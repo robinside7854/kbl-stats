@@ -1,0 +1,59 @@
+# 매일 새벽 KBL 기록을 수집해 data/ 에 커밋한다.
+# 수동 실행: GitHub → Actions → "KBL 기록 수집" → Run workflow
+name: KBL 기록 수집
+
+on:
+  schedule:
+    # 매일 04:10 KST (= 19:10 UTC 전날). 경기는 늦어도 22시경 끝나므로 다음날 새벽이면 기록이 반영돼 있다.
+    - cron: "10 19 * * *"
+  workflow_dispatch:
+    inputs:
+      seasons:
+        description: "수집할 시즌 코드 (공백 구분, 비우면 기본값, all 이면 전체)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fetch
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: 수집
+        run: |
+          if [ "${{ github.event.inputs.seasons }}" = "all" ]; then
+            npm run fetch:all
+          elif [ -n "${{ github.event.inputs.seasons }}" ]; then
+            npm run fetch -- ${{ github.event.inputs.seasons }}
+          else
+            npm run fetch
+          fi
+
+      - name: 가공
+        run: npm run process
+
+      - name: 커밋
+        run: |
+          git config user.name "kbl-stats-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/
+          if git diff --cached --quiet; then
+            echo "변경 없음"
+          else
+            git commit -m "데이터 갱신: $(date -u +'%Y-%m-%d %H:%M UTC')"
+            git push
+          fi
