@@ -36,7 +36,11 @@ export const DEFAULT_SEASONS = [47, 49];
 /** 요청 사이 대기 시간(ms). 서버 부하 예방 — CLAUDE.md 법적 제약 참고 */
 export const REQUEST_INTERVAL_MS = 1500;
 
-/** 한 번에 받을 최대 행 수. 시즌당 선수는 ~200명이므로 300이면 한 페이지에 전부 */
-export const PAGE_SIZE = 300;
+/**
+ * 한 번에 받을 최대 행 수.
+ * ⚠️ 서버가 이 값을 tinyint(최대 255)로 저장해서 256 이상이면 HTTP 500 (2026-09-29 확인).
+ * 시즌당 선수는 ~200명이라 보통 한 페이지에 다 들어오고, 넘치면 fetch.ts가 totalCn 기준으로 다음 페이지를 받는다.
+ */
+export const PAGE_SIZE = 200;
 
 export const DATA_DIR = "data";

@@ -24,7 +24,10 @@ async function getJson(url: string): Promise<unknown> {
       "User-Agent": "kbl-stats fan project (non-commercial; github.com/robinside7854/kbl-stats)",
     },
   });
-  if (!res.ok) throw new Error(`HTTP ${res.status} ${url}`);
+  if (!res.ok) {
+    const detail = (await res.text().catch(() => "")).slice(0, 200);
+    throw new Error(`HTTP ${res.status} ${url}\n    ${detail}`);
+  }
   return res.json();
 }
 
@@ -43,17 +46,36 @@ async function saveCodes(name: string, body: unknown) {
 }
 
 /** 서버 A: 선수 기록 (traditional | advanced) */
-function playerRecordsUrl(kind: "traditional" | "advanced", seasonCode: number, gameCode: string) {
+function playerRecordsUrl(kind: "traditional" | "advanced", seasonCode: number, gameCode: string, pageNo: number) {
   const q = new URLSearchParams({
     seasonCode: String(seasonCode),
     gameCode,
     sortDataSc: "SCORE",   // advanced에서도 SCORE만 안전. 다른 열 이름은 500 에러 (CLAUDE.md 참고)
     sortOrderSc: "desc",
     listCn: String(PAGE_SIZE),
-    pageNo: "1",
+    pageNo: String(pageNo),
     ruleCk: "0", perCn: "0", lastCn: "0", partIfList: "0", draftNo: "0",
   });
   return `${STATS_API}/api/records/player/general/${kind}?${q}`;
+}
+
+type RecordsBody = { resultCode?: number; message?: string; data?: Array<Record<string, unknown>> };
+
+/** 모든 페이지를 받아 하나의 응답 형태로 합친다. 각 행의 totalCn이 전체 행 수. */
+async function fetchAllPages(kind: "traditional" | "advanced", seasonCode: number, gameCode: string): Promise<RecordsBody> {
+  const first = (await getJson(playerRecordsUrl(kind, seasonCode, gameCode, 1))) as RecordsBody;
+  if (first.resultCode !== 200 || !Array.isArray(first.data)) {
+    throw new Error(`${kind}: 예상 밖 응답 (resultCode=${first.resultCode}, ${first.message ?? ""})`);
+  }
+  const total = Number(first.data[0]?.totalCn ?? first.data.length);
+  const rows = [...first.data];
+  for (let page = 2; rows.length < total; page++) {
+    await sleep(REQUEST_INTERVAL_MS);
+    const next = (await getJson(playerRecordsUrl(kind, seasonCode, gameCode, page))) as RecordsBody;
+    if (!Array.isArray(next.data) || next.data.length === 0) break;
+    rows.push(...next.data);
+  }
+  return { ...first, data: rows };
 }
 
 /** 코드표 수집 (시즌·팀·경기구분). 실패해도 수집은 계속한다. */
@@ -78,13 +100,9 @@ async function fetchSeason(seasonCode: number) {
   const results: string[] = [];
 
   for (const kind of ["traditional", "advanced"] as const) {
-    const url = playerRecordsUrl(kind, seasonCode, GAME_CODE.regular);
-    const body = (await getJson(url)) as { resultCode?: number; data?: unknown[] };
-    if (body.resultCode !== 200 || !Array.isArray(body.data)) {
-      throw new Error(`${kind}: 예상 밖 응답 (resultCode=${body.resultCode})`);
-    }
-    const file = await saveRaw(seasonCode, `${kind}_regular`, body);
-    results.push(`${kind} ${body.data.length}행`);
+    const body = await fetchAllPages(kind, seasonCode, GAME_CODE.regular);
+    await saveRaw(seasonCode, `${kind}_regular`, body);
+    results.push(`${kind} ${body.data!.length}행`);
     await sleep(REQUEST_INTERVAL_MS);
   }
 

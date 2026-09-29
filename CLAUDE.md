@@ -20,6 +20,8 @@ KBL 공홈은 화면을 그릴 때 아래 두 서버에서 JSON을 받아온다.
 - traditional 주요 필드: `playerNo, kname, ename, teamCode, teamName1, teamName4, gameCount, win, lose, playSec, score, fg, fgA, fgRt, threep, threepA, threepRt, fdg, fdgA, fdgRt, ft, ftA, ftRt, dk, dkA, oR, dR, rb, aS, sT, gd, bS, tO, foulTot, dd2, td3, margin, sA, df, totalCn`
 - advanced 주요 필드: `perRt, offrtg, defrtg, netrtg, efgRt, tsRt, astRt, astTo, astRatio, orebRt, drebRt, rebRt, usgRt, pace, tovRt, toRatio, pie, poss`
 - 주의: `sortDataSc`에 존재하지 않는 열 이름을 넣으면 500 에러 (예: advanced에 `PER` 넣으면 실패). 정렬은 우리 쪽에서 하고 API 정렬은 기본값(SCORE)만 쓴다.
+- 주의: `listCn`은 **255 이하**만 허용 (서버가 tinyint로 변환, 300이면 500 에러). 200으로 두고 `totalCn`으로 페이지를 넘긴다.
+- GitHub Actions 러너에서 이 서버 접속 가능 확인 (2026-09-29, 첫 실행에서 도달 성공)
 - `playSec`은 초 단위. 분으로 바꿔서 보여준다.
 
 ### 서버 B: `https://kbl-api.sports2i.com` — 시즌리더(부문별 상위 5명), 공통 코드
