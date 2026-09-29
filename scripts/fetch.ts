@@ -85,9 +85,10 @@ async function fetchCodes(): Promise<number[]> {
     const recent = await getJson(`${CODES_API}/api/v1/Common/recent-seasons?seriesCd=1`);
     await saveCodes("seasons", recent);
     // 응답 구조가 문서화돼 있지 않아, 숫자형 seasonCode 필드를 넓게 찾는다
-    const found = JSON.stringify(recent).match(/"seasonCode"\s*:\s*(\d+)/gi)?.map((m) => Number(m.replace(/\D/g, "")));
-    if (found && found.length > 0) seasons = [...new Set(found)].sort((a, b) => a - b);
-    console.log(`코드표: 시즌 ${seasons.length}개 확인`);
+    // recent-seasons는 현재 시즌 1개만 돌려준다(2026-09-29 확인). 백업 상수와 합쳐 새 시즌만 추가한다.
+    const found = JSON.stringify(recent).match(/"seasonCode"\s*:\s*(\d+)/gi)?.map((m) => Number(m.replace(/\D/g, ""))) ?? [];
+    seasons = [...new Set([...seasons, ...found])].sort((a, b) => a - b);
+    console.log(`코드표: API ${found.length}개 + 백업 → 시즌 ${seasons.length}개`);
   } catch (e) {
     console.warn(`코드표 수집 실패 → 백업 상수 사용: ${(e as Error).message}`);
   }
