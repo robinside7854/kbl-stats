@@ -1,0 +1,52 @@
+# 일회성 조사용: KBL 공홈이 선수 사진·팀 로고를 어디서 가져오는지 확인한다.
+# (Claude 클라우드 세션은 KBL 서버 접속이 차단돼 Actions 러너에서 대신 확인)
+# 요청은 10회 미만, 간격 1.5초. 결과는 로그와 아티팩트(probe-images.txt)로 남긴다.
+name: 이미지 출처 조사
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: 페이지·번들에서 이미지 주소 패턴 추출
+        shell: bash
+        run: |
+          set +e
+          UA="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/128 Safari/537.36"
+          OUT=probe-images.txt
+          get() { curl -sSL --max-time 20 -A "$UA" "$1"; sleep 1.5; }
+          {
+            echo "=== 1. 선수 목록 페이지 HTML"
+            get "https://kbl.or.kr/player/list" > page_list.html
+            echo "bytes: $(wc -c < page_list.html)"
+            grep -oE '(src|href|content)="[^"]+"' page_list.html | grep -iE '\.(png|jpg|jpeg|webp|svg|js)' | sort -u | head -80
+
+            echo; echo "=== 2. 선수 상세 페이지 HTML (자밀 워니 291248)"
+            get "https://kbl.or.kr/player/detail?playerNo=291248" > page_player.html
+            echo "bytes: $(wc -c < page_player.html)"
+            grep -oE '(src|href|content)="[^"]+"' page_player.html | grep -iE '\.(png|jpg|jpeg|webp|svg)' | sort -u | head -60
+
+            echo; echo "=== 3. JS 번들 안의 이미지·API 경로 패턴"
+            for js in $(grep -oE 'src="[^"]+\.js[^"]*"' page_list.html | sed 's/src="//;s/"$//' | sort -u | head -6); do
+              case "$js" in http*) url="$js";; /*) url="https://kbl.or.kr$js";; *) url="https://kbl.or.kr/$js";; esac
+              echo "--- $url"
+              get "$url" > bundle.js
+              grep -oE '[A-Za-z0-9_./:-]*(player|team|logo|photo|profile|emblem|img|image)[A-Za-z0-9_./${}:-]*\.(png|jpg|jpeg|webp|svg)' bundle.js | sort -u | head -40
+              grep -oE 'https?://[A-Za-z0-9./_-]*(kbl|sports2i|cdn|s3|cloudfront|storage)[A-Za-z0-9./_-]*' bundle.js | sort -u | head -30
+            done
+
+            echo; echo "=== 4. 팀 페이지 HTML"
+            get "https://kbl.or.kr/team/list" > page_team.html
+            grep -oE '(src|href|content)="[^"]+"' page_team.html | grep -iE '\.(png|jpg|jpeg|webp|svg)' | sort -u | head -40
+
+            echo; echo "=== 5. 서버 B 선수 상세 API 후보 (이미지 필드 유무)"
+            get "https://kbl-api.sports2i.com/api/v1/player/291248" | head -c 1500; echo
+            get "https://api-stats.kbl.or.kr/api/players/291248" | head -c 1500; echo
+          } | tee "$OUT"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: probe-images
+          path: probe-images.txt
