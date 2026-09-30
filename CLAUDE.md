@@ -64,10 +64,19 @@ KBL 공홈은 화면을 그릴 때 아래 두 서버에서 JSON을 받아온다.
 - playerNo는 시즌이 바뀌어도 동일(803명이 2개 시즌 이상) → 선수 커리어 페이지 가능. 동명이인 32명 있으므로 이름이 아닌 playerNo로 식별
 - teamCode는 팀명 변경에도 유지(안양 KT&G→KGC→정관장=70), 구단 매각 시엔 새 코드(안양 SBS=40 → KT&G=70)
 
+### 서버 C: `https://api.kbl.or.kr` — 공홈 자체 API (경기 일정·경기 상세·슛 차트, 2026-09-30 Actions 러너 확인)
+- 경기 목록 `GET /match/list?fromDate=YYYYMMDD&toDate=YYYYMMDD&tcodeList=all` → 배열 `{ gmkey: "S49G14N1"(시즌·경기구분·번호 키), seasonCode, gameCode("01" 정규, "14" OPEN MATCH DAY 등), gameNo, gameDate, tcodeH, tcodeA, scoreH, scoreA, isEnded, … }`. 연도 목록 `GET /match/year`
+- 경기 상세 `GET /match/{gmkey}` → 심판·관중·쿼터 점수·detailUrl(`/game/record/{gmkey}`), 팀 합계 `GET /league/{gmkey}/vs/team-statsByGmKey?teamA=&teamB=`
+- **슛 차트** `GET /match/{gmkey}/match-chart` → `{ shootLog: [ { pcode(선수번호), pname, tcode, logs: [ { q: "Q1"~"Q4", x, y, o: "O"(성공)|"X"(실패), d: "1"|"2" } ] } ] }` — x·y는 코트 그림 픽셀 좌표(관측 범위 x 0~700, y 0~400 근처), d는 공격 방향(코트 절반) 추정. **바스켓 위치·구역 경계는 실제 데이터로 검증 후 정한다**(3점 성공 좌표의 거리 분포로 역산). 경기당 1회 요청, 정규시즌 270경기/시즌
+- 헤더: 서버 B와 같은 Referer/Origin 필요 여부 미확인(브라우저에서는 됨) → fetch.ts 공용 헤더로 시도
+
+### 서버 A 추가 확인 (2026-09-30)
+- 팀 기록 `GET /api/records/team/general/traditional?seasonCode=&gameCode=01&sortDataSc=WIN_A&sortOrderSc=desc&perCn=0&lastCn=0&partIfList=0&draftNo=0` (화면 열: G W L MIN 승률 PTS 2PM… +/- SAST DFL DD2 TD3). advanced 등 다른 탭 주소는 같은 패턴 추정
+- 라인업 기록 `GET /api/records/lineup/traditional?seasonCode=&gameCode=01&sortDataSc=PLAY_SEC&sortOrderSc=desc&listCn=10&pageNo=1&perCn=0&lastCn=0&partIfList=0&draftNo=0` (5인 조합별 G MIN PTS … +/-). listCn ≤ 255 규칙 동일 추정
+- 아직 수집하지 않음 — SCOPE.md OUT(라인업·팀 기록)이 바뀌면 원칙 2에 따라 raw부터
+
 ### 아직 확인 안 된 것 (다음 세션에서 확인)
-- 라인업기록(`/record/lineup`)의 API 주소·파라미터 — 화면상 5인 조합별 G, MIN, 득실, +/- 등 제공 확인됨(2025-26 정규시즌 357페이지). 주소는 미확인
-- 경기별 박스스코어·일정 API — 미확인. `/game/schedule`은 404였음
-- 팀 기록(`/record/team`) API — 미확인
+- 경기별 박스스코어(팀·선수 전체) — 서버 C `/match/{gmkey}` 하위에 있을 것으로 추정, 미확인. 선수별 경기 기록은 서버 B players/categories/game 으로 대체
 - 서버 A의 요청 빈도 제한 여부 — 알 수 없음. 안전하게 요청 간 1초 이상 간격
 
 ## 기술 스택 / 제약
