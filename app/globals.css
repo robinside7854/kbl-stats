@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+/* 색 토큰 — 라이트/다크 각각 따로 고른 값 (dataviz 기본 팔레트, 검증 스크립트 통과).
+   시리즈 1 = 파랑(주 선수), 시리즈 2 = 주황(비교 선수). 글자는 시리즈 색을 쓰지 않는다. */
+:root {
+  color-scheme: light;
+  --bg: #f4f4f1;
+  --surface: #fcfcfb;
+  --surface-2: #f0efec;
+  --ink: #0b0b0b;
+  --ink-2: #52514e;
+  --ink-3: #6b6a66;
+  --line: #e3e2de;
+  --grid: #dcdbd6;
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --warn: #fab219;
+  --focus: #2a78d6;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #111110;
+    --surface: #1a1a19;
+    --surface-2: #242422;
+    --ink: #ffffff;
+    --ink-2: #c3c2b7;
+    --ink-3: #9a998f;
+    --line: #2e2e2b;
+    --grid: #3a3a37;
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --warn: #fab219;
+    --focus: #3987e5;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-line: var(--line);
+  --color-series-1: var(--series-1);
+  --color-series-2: var(--series-2);
+  --color-warn: var(--warn);
+  --color-focus: var(--focus);
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--ink);
+}
+
+body {
+  font-family: system-ui, -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
