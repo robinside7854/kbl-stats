@@ -3,7 +3,7 @@
 import "server-only";
 import fs from "node:fs";
 import path from "node:path";
-import type { CardPlayer, SeasonData, SeasonOption } from "./types";
+import type { CardPlayer, PlayerIndexEntry, SeasonData, SeasonOption } from "./types";
 
 const PROCESSED_DIR = path.join(process.cwd(), "data", "processed");
 
@@ -56,4 +56,14 @@ export function toCardPlayers(season: SeasonData): CardPlayer[] {
     rebPct: p.rebPct,
     pie: p.pie,
   }));
+}
+
+let playersIndexCache: PlayerIndexEntry[] | null = null;
+
+/** 선수 색인 (전 시즌 선수 목록, 한글 이름순). 파일이 없으면 빈 배열 — npm run process 로 생성 */
+export function loadPlayersIndex(): PlayerIndexEntry[] {
+  if (playersIndexCache) return playersIndexCache;
+  const file = "players-index.json";
+  playersIndexCache = fs.existsSync(path.join(PROCESSED_DIR, file)) ? readJson<PlayerIndexEntry[]>(file) : [];
+  return playersIndexCache;
 }

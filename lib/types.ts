@@ -47,12 +47,59 @@ export interface Player {
   poss: number;
 }
 
+/**
+ * 시즌별 항목 커버리지 — "선수 50% 이상이 0이 아닌 값"이면 true (lib/metrics.ts seasonCoverage).
+ * 화면은 시즌 코드가 아니라 이 플래그를 보고 열·축을 켜고 끈다.
+ */
+export interface SeasonCoverage {
+  /** USG%·PIE·AST%·REB% (그리고 같이 생긴 OREB/DREB%·DEF/NET RTG·PACE·POSS) — 넷 모두 통과해야 true */
+  advanced: boolean;
+  /** +/- (margin) */
+  plusMinus: boolean;
+  /** 굿디펜스 (gd) */
+  goodDef: boolean;
+  /** 스크린 어시스트·디플렉션 — 둘 모두 통과해야 true */
+  hustle: boolean;
+}
+
+/** 시즌 참가 팀 (raw teams.json → process.ts에서 변환) */
+export interface Team {
+  teamCode: string;       // 예: "55" (팀명이 바뀌어도 유지, 구단 매각 시 새 코드)
+  name: string;           // teamName1, 예: "서울 SK"
+  shortName: string;      // teamName4, 예: "SK"
+  fullName: string;       // teamName2, 예: "서울 SK 나이츠"
+  nameEn: string;         // teamName3, 예: "SEOUL SK KNIGHTS"
+  logoName: string;       // teamLogoName, 예: "sk" (teams.json이 없어 선수 데이터로 대체한 경우 "")
+  order: number;          // orderNo (KBL 공홈 표시 순서)
+}
+
 export interface SeasonData {
   seasonCode: number;
   seasonLabel: string;    // 예: "2025-2026"
   gameType: "regular";
   fetchedAt: string;      // ISO
+  coverage: SeasonCoverage;
+  teams: Team[];
   players: Player[];
+}
+
+// ─────────────────────────────────────────────
+// 선수 색인 — data/processed/players-index.json (검색·선수 페이지의 뼈대)
+// ─────────────────────────────────────────────
+
+export interface PlayerIndexSeason {
+  seasonCode: number;
+  teamCode: string;
+  teamShort: string;
+  games: number;
+}
+
+export interface PlayerIndexEntry {
+  id: string;             // playerNo (시즌이 바뀌어도 같다. 동명이인이 있으므로 이름 대신 이것으로 식별)
+  nameKo: string;         // 가장 최근 시즌 표기
+  nameEn: string;         // 가장 최근 시즌 표기
+  isForeign: boolean;     // 가장 최근 시즌 값
+  seasons: PlayerIndexSeason[]; // seasonCode 오름차순
 }
 
 // ─────────────────────────────────────────────

@@ -2,13 +2,16 @@
 // 시즌 페이지의 상호작용 부분: 시즌 선택, 표본 기준, 선수·비교 선수 선택 → 레이더 카드
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { CardPlayer, SeasonOption } from "@/lib/types";
+import type { CardPlayer, SeasonCoverage, SeasonOption } from "@/lib/types";
 import {
+  axisSetFor,
+  axisValue,
   buildReference,
   DEFAULT_QUALIFY,
   isQualified,
   perGameStats,
   playerType,
+  RADAR_IMPACT_AXIS,
   radarPercentiles,
   type QualifyRule,
 } from "@/lib/metrics";
@@ -32,24 +35,28 @@ interface Props {
   seasonCode: number;
   seasonLabel: string;
   players: CardPlayer[];
+  coverage: SeasonCoverage;
 }
 
-export default function RadarExplorer({ seasons, seasonCode, seasonLabel, players }: Props) {
+export default function RadarExplorer({ seasons, seasonCode, seasonLabel, players, coverage }: Props) {
   const router = useRouter();
   const colors = useThemeColors();
   const [presetIdx, setPresetIdx] = useState(0);
   const rule = QUALIFY_PRESETS[presetIdx];
 
+  // 축 세트는 시즌 코드가 아니라 커버리지 플래그로 고른다 (2차 스탯 없는 시즌 → 고전 축)
+  const axisSet = axisSetFor(coverage);
   const qualifiedFn = useCallback((p: CardPlayer) => isQualified(p, rule), [rule]);
-  const reference = useMemo(() => buildReference(players, rule), [players, rule]);
-  const qualifiedCount = reference.pie.length;
+  const reference = useMemo(() => buildReference(players, rule, axisSet), [players, rule, axisSet]);
+  const qualifiedCount = useMemo(() => players.filter(qualifiedFn).length, [players, qualifiedFn]);
 
-  // 기본 선수: 표본 충족 선수 중 PIE 1위
+  // 기본 선수: 표본 충족 선수 중 종합 기여도 축(modern: PIE, classic: PER) 1위
   const defaultId = useMemo(() => {
+    const impact = RADAR_IMPACT_AXIS[axisSet];
     const pool = players.filter((p) => isQualified(p, DEFAULT_QUALIFY));
     const list = pool.length ? pool : players;
-    return list.reduce((best, p) => (p.pie > best.pie ? p : best), list[0]).id;
-  }, [players]);
+    return list.reduce((best, p) => (axisValue(p, impact) > axisValue(best, impact) ? p : best), list[0]).id;
+  }, [players, axisSet]);
 
   const exists = (id: string | null) => !!id && players.some((p) => p.id === id);
   const [aId, setAId] = useState<string>(defaultId);
@@ -77,10 +84,16 @@ export default function RadarExplorer({ seasons, seasonCode, seasonLabel, player
     (id: string | null): CardEntry | null => {
       const p = players.find((x) => x.id === id);
       if (!p) return null;
-      const pct = radarPercentiles(p, reference);
-      return { player: p, pct, type: playerType(pct), qualified: isQualified(p, rule), perGame: perGameStats(p) };
+      const pct = radarPercentiles(p, reference, axisSet);
+      return {
+        player: p,
+        pct,
+        type: playerType(pct, axisSet),
+        qualified: isQualified(p, rule),
+        perGame: perGameStats(p),
+      };
     },
-    [players, reference, rule],
+    [players, reference, rule, axisSet],
   );
 
   const a = toEntry(aId);
@@ -98,7 +111,9 @@ export default function RadarExplorer({ seasons, seasonCode, seasonLabel, player
         <p className="text-xs font-medium text-ink-3">KBL 정규시즌 · 비영리 팬 프로젝트</p>
         <h1 className="mt-0.5 text-xl font-bold tracking-tight">선수 유형 레이더 카드</h1>
         <p className="mt-1 text-sm text-ink-2">
-          다섯 가지 2차 스탯이 같은 시즌 선수들 사이에서 어느 정도 위치인지(백분위) 한눈에 봅니다.
+          {axisSet === "modern"
+            ? "다섯 가지 2차 스탯이 같은 시즌 선수들 사이에서 어느 정도 위치인지(백분위) 한눈에 봅니다."
+            : "이 시즌은 KBL 2차 스탯(USG%·AST%·REB%·PIE)이 없어, 전 시즌 공통 지표(40분당 득점·어시스트·리바운드, TS%, PER)의 시즌 내 백분위로 봅니다."}
         </p>
       </header>
 
@@ -165,6 +180,7 @@ export default function RadarExplorer({ seasons, seasonCode, seasonLabel, player
             a={a}
             b={b}
             seasonLabel={seasonLabel}
+            axisSet={axisSet}
             ruleLabel={presetLabel(rule)}
             qualifiedCount={qualifiedCount}
             colors={colors}

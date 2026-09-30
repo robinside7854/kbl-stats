@@ -5,11 +5,13 @@ import { PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart, Responsi
 import { toPng } from "html-to-image";
 import type { CardPlayer } from "@/lib/types";
 import {
-  RADAR_AXES,
+  axisValue,
+  radarAxes,
   RADAR_AXIS_LABELS,
   type PerGameStats,
   type PlayerType,
   type RadarAxis,
+  type RadarAxisSet,
   type RadarPercentiles,
 } from "@/lib/metrics";
 import type { ThemeColors } from "./useThemeColors";
@@ -27,6 +29,7 @@ interface Props {
   a: CardEntry;
   b: CardEntry | null;
   seasonLabel: string;
+  axisSet: RadarAxisSet;
   ruleLabel: string;
   qualifiedCount: number;
   colors: ThemeColors;
@@ -38,6 +41,10 @@ const AXIS_HINT: Record<RadarAxis, string> = {
   astPct: "동료 득점 도움 비율",
   rebPct: "리바운드 점유",
   pie: "경기 전체 기여도",
+  pts40: "40분 풀타임 환산 득점",
+  ast40: "40분 풀타임 환산 어시스트",
+  reb40: "40분 풀타임 환산 리바운드",
+  per: "종합 효율 (KBL 계산값)",
 };
 
 const fmt = (n: number, d = 1) => (Number.isFinite(n) ? n.toFixed(d) : "–");
@@ -52,6 +59,15 @@ function SampleBadge() {
         <rect x="4.5" y="7" width="1" height="1" fill="#0b0b0b" />
       </svg>
       표본 부족
+    </span>
+  );
+}
+
+// 2차 스탯이 없는 시즌이라 전 시즌 공통 축으로 그렸다는 표시 (저장 이미지에도 남는다)
+function ClassicAxesBadge() {
+  return (
+    <span className="whitespace-nowrap rounded-full border border-line px-2 py-0.5 text-[11px] font-medium text-ink-2">
+      고전 축 (2차 스탯 미제공 시즌)
     </span>
   );
 }
@@ -71,14 +87,15 @@ interface TooltipRow {
   b?: number;
 }
 
-export default function RadarCard({ a, b, seasonLabel, ruleLabel, qualifiedCount, colors }: Props) {
+export default function RadarCard({ a, b, seasonLabel, axisSet, ruleLabel, qualifiedCount, colors }: Props) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const p = a.player;
 
   // 백분위가 없는 축(비교 집단이 빈 경우)은 0으로 그리되 표에는 "–"
-  const data: TooltipRow[] = RADAR_AXES.map((axis) => ({
+  const axes = radarAxes(axisSet);
+  const data: TooltipRow[] = axes.map((axis) => ({
     axis,
     label: RADAR_AXIS_LABELS[axis],
     a: a.pct[axis] ?? 0,
@@ -129,6 +146,7 @@ export default function RadarCard({ a, b, seasonLabel, ruleLabel, qualifiedCount
           </div>
           <div className="flex flex-wrap items-center gap-1.5">
             <OriginBadge isForeign={p.isForeign} />
+            {axisSet === "classic" && <ClassicAxesBadge />}
             {!a.qualified && <SampleBadge />}
           </div>
         </div>
@@ -195,13 +213,18 @@ export default function RadarCard({ a, b, seasonLabel, ruleLabel, qualifiedCount
                   return (
                     <div className="rounded-lg border border-line bg-surface px-3 py-2 text-xs shadow-md">
                       <p className="font-semibold text-ink">{row.label}</p>
-                      <TooltipLine color={colors.series1} name={p.nameKo} raw={p[row.axis]} pct={a.pct[row.axis]} />
+                      <TooltipLine
+                        color={colors.series1}
+                        name={p.nameKo}
+                        raw={axisValue(p, row.axis)}
+                        pct={a.pct[row.axis] ?? null}
+                      />
                       {b && (
                         <TooltipLine
                           color={colors.series2}
                           name={b.player.nameKo}
-                          raw={b.player[row.axis]}
-                          pct={b.pct[row.axis]}
+                          raw={axisValue(b.player, row.axis)}
+                          pct={b.pct[row.axis] ?? null}
                         />
                       )}
                     </div>
@@ -242,7 +265,7 @@ export default function RadarCard({ a, b, seasonLabel, ruleLabel, qualifiedCount
             </tr>
           </thead>
           <tbody>
-            {RADAR_AXES.map((axis) => (
+            {axes.map((axis) => (
               <tr key={axis} className="border-b border-line last:border-0">
                 <th scope="row" className="py-2 text-left font-normal">
                   <span className="font-semibold text-ink">{RADAR_AXIS_LABELS[axis]}</span>
@@ -251,16 +274,18 @@ export default function RadarCard({ a, b, seasonLabel, ruleLabel, qualifiedCount
                 {b ? (
                   <>
                     <td className="py-2 text-right text-ink">
-                      {fmt(p[axis])} <span className="text-xs text-ink-3">({fmtPct(a.pct[axis])})</span>
+                      {fmt(axisValue(p, axis))}{" "}
+                      <span className="text-xs text-ink-3">({fmtPct(a.pct[axis] ?? null)})</span>
                     </td>
                     <td className="py-2 text-right text-ink">
-                      {fmt(b.player[axis])} <span className="text-xs text-ink-3">({fmtPct(b.pct[axis])})</span>
+                      {fmt(axisValue(b.player, axis))}{" "}
+                      <span className="text-xs text-ink-3">({fmtPct(b.pct[axis] ?? null)})</span>
                     </td>
                   </>
                 ) : (
                   <>
-                    <td className="py-2 text-right text-ink">{fmt(p[axis])}</td>
-                    <td className="py-2 text-right font-semibold text-ink">{fmtPct(a.pct[axis])}</td>
+                    <td className="py-2 text-right text-ink">{fmt(axisValue(p, axis))}</td>
+                    <td className="py-2 text-right font-semibold text-ink">{fmtPct(a.pct[axis] ?? null)}</td>
                   </>
                 )}
               </tr>
@@ -270,7 +295,10 @@ export default function RadarCard({ a, b, seasonLabel, ruleLabel, qualifiedCount
 
         <p className="mt-3 text-[11px] leading-relaxed text-ink-3">
           그래프는 원래 값이 아니라 백분위(0~100)입니다. 비교 집단: {seasonLabel} 정규시즌 {ruleLabel} {qualifiedCount}명
-          {b ? " · 괄호 안은 백분위" : ""}. 2차 스탯은 KBL 계산값 그대로입니다(NBA 공식과 척도가 다를 수 있음).
+          {b ? " · 괄호 안은 백분위" : ""}.{" "}
+          {axisSet === "classic"
+            ? "이 시즌은 KBL이 USG%·AST%·REB%·PIE를 제공하지 않아 40분당 환산(누적 ÷ 출전시간 × 40)과 TS%·PER로 그렸습니다. 2차 스탯이 있는 시즌의 카드와는 축이 달라 직접 비교할 수 없습니다."
+            : "2차 스탯은 KBL 계산값 그대로입니다(NBA 공식과 척도가 다를 수 있음)."}
         </p>
         <p className="mt-2 border-t border-line pt-2 text-[11px] font-medium text-ink-2">{SOURCE_LINE}</p>
       </article>

@@ -17,6 +17,7 @@ export default function SeasonView({ seasonCode }: { seasonCode: number }) {
         seasonCode={season.seasonCode}
         seasonLabel={season.seasonLabel}
         players={players}
+        coverage={season.coverage}
       />
       <SourceFooter fetchedAt={season.fetchedAt} />
     </>
