@@ -5,8 +5,9 @@
 //   GET /api/v1/players/categories/mostgame/{seasonCode}/{playerNo}
 //   → { MostGameRegularSeasons: [...], MostGameRegularAllTimes: [...], (플레이오프·챔프전 배열도 같은 형식) }
 //   항목: { seasonCode, recordSc: "RECORD"|"RATE", recordTxt: "득점"…, record: "46.000", awayTeam: "70", gameDate: "20231021", scoreRankCn: 1, orderNo }
-//   …Seasons = 요청한 시즌의 시즌 하이, …AllTimes = 통산. 플레이오프·챔프전 배열 이름은 확인 전이라
-//   "MostGame{구분}{Seasons|AllTimes}" 꼴을 넓게 받아 구분 이름에 Regular / Champ·Final / PlayOff·PO 가 들어 있는지로 나눈다.
+//   실제 키(2026-09-30 시즌 47 백필로 확인): MostGameRegularSeasons(그 시즌 정규 하이), MostGameRegularAllTimes(통산 정규),
+//   MostGameRegularPlayoffs(통산 플레이오프), MostGameRegularChampions(통산 챔프전), MostGameDLeagueAlltimes(D리그 — 무시).
+//   "Regular"는 접두어처럼 모든 키에 붙고, 구분은 그 뒤 단어(Playoffs/Champions)가 정한다. 리바운드 합계는 "전체 리바운드".
 
 import { emptyHighsSet } from "../lib/highs.js";
 import type { CareerHighs, HighKey, HighRecord, HighsSet } from "../lib/types.js";
@@ -26,6 +27,7 @@ export const RECORD_TXT_TO_KEY: Readonly<Record<string, HighKey>> = {
   "자유투 성공율": "ftPct",
   "공격 리바운드": "oreb",
   "수비 리바운드": "dreb",
+  "전체 리바운드": "reb",
   "리바운드": "reb",
   "어시스트": "ast",
   "스틸": "stl",
@@ -101,12 +103,14 @@ export type HighsScope = "season" | "allTime";
 
 /** 응답 키 이름 → (구분, 범위). MostGame… 꼴이 아니거나 구분을 모르면 null */
 export function classifyMostGameKey(key: string): { game: GameKind; scope: HighsScope } | null {
-  const m = /^MostGame(.*?)(Seasons?|AllTimes?)$/i.exec(key.trim());
-  if (!m) return null;
-  const scope: HighsScope = /^all/i.test(m[2]) ? "allTime" : "season";
-  const g = m[1];
-  // 챔프전 판정을 플레이오프보다 먼저 (예: "PlayOffChamp…" 같은 이름이어도 챔프전)
-  const game: GameKind | null = /regular/i.test(g) ? "regular" : /champ|final/i.test(g) ? "finals" : /play ?off|^po/i.test(g) ? "playoff" : null;
+  const k = key.trim();
+  if (!/^MostGame/i.test(k)) return null;
+  if (/dleague/i.test(k)) return null; // D리그는 범위 밖
+  const rest = k.slice("MostGame".length);
+  // 범위: "…Seasons"만 그 시즌, 나머지(AllTimes·Playoffs·Champions)는 통산
+  const scope: HighsScope = /seasons?$/i.test(rest) ? "season" : "allTime";
+  // 구분: 챔프전 → 플레이오프 → 정규 순으로 판정 ("Regular"가 접두어로 늘 붙으므로 마지막에 본다)
+  const game: GameKind | null = /champ|final/i.test(rest) ? "finals" : /play ?off|(^|[^a-z])po([^a-z]|$)/i.test(rest) ? "playoff" : /regular/i.test(rest) ? "regular" : null;
   return game ? { game, scope } : null;
 }
 
@@ -133,6 +137,7 @@ export function parseMostGame(parsed: unknown): ParsedMostGame {
   if (!o || typeof o !== "object" || Array.isArray(o)) return out;
   for (const [k, v] of Object.entries(o as Raw)) {
     if (!/^MostGame/i.test(k)) continue;
+    if (/dleague/i.test(k)) continue; // D리그 배열은 범위 밖이라 경고 없이 넘긴다
     const c = classifyMostGameKey(k);
     if (!c) {
       out.unknownKeys.push(k);

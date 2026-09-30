@@ -19,8 +19,9 @@ import {
 import { birthdayIso, isProfileResponse, profileExtraFrom } from "../scripts/player-master";
 import { HIGH_KEYS } from "../lib/highs";
 
-// ── 응답 파싱: recordTxt 15개 → 우리 키 15개 (빠짐·중복 없음) ──
-assert.equal(Object.keys(RECORD_TXT_TO_KEY).length, 15);
+// ── 응답 파싱: recordTxt 16개("리바운드"·"전체 리바운드" 둘 다 reb) → 우리 키 15개 ──
+assert.equal(Object.keys(RECORD_TXT_TO_KEY).length, 16);
+assert.equal(new Set(Object.values(RECORD_TXT_TO_KEY)).size, 15);
 assert.deepEqual(new Set(Object.values(RECORD_TXT_TO_KEY)), new Set(HIGH_KEYS));
 assert.equal(recordKeyOf("필드골 성공"), "fgm"); // 필드골 = 야투 전체
 assert.equal(recordKeyOf("2점슛 성공"), "twoPm");
@@ -83,6 +84,11 @@ assert.deepEqual(classifyMostGameKey("MostGamePOAllTimes"), { game: "playoff", s
 assert.deepEqual(classifyMostGameKey("MostGameChampionAllTimes"), { game: "finals", scope: "allTime" });
 assert.deepEqual(classifyMostGameKey("MostGamePlayOffFinalAllTimes"), { game: "finals", scope: "allTime" });
 assert.equal(classifyMostGameKey("RegularGameRecords"), null);
+// 실제 응답 키 (2026-09-30 시즌 47 백필 확인)
+assert.deepEqual(classifyMostGameKey("MostGameRegularPlayoffs"), { game: "playoff", scope: "allTime" });
+assert.deepEqual(classifyMostGameKey("MostGameRegularChampions"), { game: "finals", scope: "allTime" });
+assert.equal(classifyMostGameKey("MostGameDLeagueAlltimes"), null);
+assert.equal(recordKeyOf("전체 리바운드"), "reb");
 
 // 저장 전 응답 검사: MostGame… 배열이 있어야 저장
 assert.equal(isMostGameResponse(sample), true);
