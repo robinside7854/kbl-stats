@@ -28,7 +28,7 @@ const LIGHT_FALLBACK: ThemeColors = {
   surface: "#fcfcfb",
   ink: "#0b0b0b",
   ink2: "#52514e",
-  ink3: "#6b6a66",
+  ink3: "#64635f",
   grid: "#dcdbd6",
   series1: "#2a78d6",
   series2: "#eb6834",

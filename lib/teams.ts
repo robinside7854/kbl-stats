@@ -225,7 +225,8 @@ export interface GradeTone {
  *  - 글자 색은 바탕과 4.5:1 이상 (readableInk).
  */
 export function gradeTone(grade: Grade | "-", team: { primary: string; text: string }, c: GradeThemeColors): GradeTone {
-  const teamBg = desaturate(team.primary, 0.2);
+  // 검정 계열 팀 색(KT)은 다크 바탕에서 배지 경계가 사라지므로 바탕과 1.8:1 이상이 되게 보정 (ensureMarkContrast, 디자인 점검 C5)
+  const teamBg = ensureMarkContrast(desaturate(team.primary, 0.2), c.surface);
   switch (grade) {
     case "S":
       // 테두리는 금색을 30% 어둡게 — 밝은 바탕에서 금색 면(대비 약 1.8:1)의 경계가 보이게 (3:1 이상)

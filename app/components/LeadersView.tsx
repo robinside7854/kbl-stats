@@ -123,7 +123,7 @@ function CoverCard({
   const lowerIsBetter = LEADER_STATS[category].better === "low";
   return (
     <article
-      className={`tabular relative overflow-hidden rounded-2xl ${hero ? "col-span-2 p-4 sm:p-5" : "p-3"}`}
+      className={`tabular relative overflow-hidden rounded-2xl border border-black/10 dark:border-white/15 ${hero ? "col-span-2 p-4 sm:p-5" : "p-3"}`}
       style={{ background: color.primary, color: color.text }}
       aria-label={`${entry.rank}위 ${p.nameKo} ${teamLabel} ${statTitle(category, mode)} ${formatStat(entry.value, category, mode)}`}
     >

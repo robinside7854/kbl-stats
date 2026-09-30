@@ -23,7 +23,10 @@ export default function TeamLogo({ logoUrl, shortName, color = FALLBACK, size = 
   const mark = teamMark(shortName);
   return (
     <span
-      className={`relative inline-flex shrink-0 select-none items-center justify-center overflow-hidden rounded-md font-bold leading-none ${className}`}
+      // 대체 디자인(팀 색 칸)에는 옅은 안쪽 테두리 — 검정 계열 팀 색(KT)이 다크 바탕에 묻히지 않게 (디자인 점검 C5)
+      className={`relative inline-flex shrink-0 select-none items-center justify-center overflow-hidden rounded-md font-bold leading-none ${
+        loaded ? "" : "ring-1 ring-inset ring-black/5 dark:ring-white/20"
+      } ${className}`}
       style={{
         width: size,
         height: size,

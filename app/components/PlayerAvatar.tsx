@@ -81,7 +81,8 @@ export default function PlayerAvatar({
 
   return (
     <span
-      className={`relative inline-flex shrink-0 select-none items-center justify-center overflow-hidden rounded-full font-bold ${className}`}
+      // 옅은 안쪽 테두리 — 검정 계열 팀 색 원이 다크 바탕에 묻히지 않게 (디자인 점검 C5)
+      className={`relative inline-flex shrink-0 select-none items-center justify-center overflow-hidden rounded-full font-bold ring-1 ring-inset ring-black/5 dark:ring-white/20 ${className}`}
       style={{ width: size, height: size, background: color.primary, color: color.text, fontSize: Math.round(size * 0.45) }}
       title={nameKo}
     >
