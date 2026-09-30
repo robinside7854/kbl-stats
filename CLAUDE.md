@@ -47,6 +47,7 @@ KBL 공홈은 화면을 그릴 때 아래 두 서버에서 JSON을 받아온다.
 ### 이미지 (2026-09-30 Actions 러너에서 공홈 HTML·JS·CSS 확인 — 상세는 PLAN.md §5)
 - 선수 사진: `https://kbl.or.kr/files/kbl/players-photo/{playerNo}.png` (옛 선수도 있음, 없으면 200이지만 HTML 반환)
 - 현재 팀 로고: `https://kbl.or.kr/assets/img/ico/logo/ic-{teamLogoName}.svg` (정관장만 `/assets/img/logo/logo-jkj.png`), 옛 팀 로고: `.../ico/logo/old/{teamLogoName}e.png`
+- **사진 숨김**: KBL 이 코치가 된 선수 사진을 코치 사진으로 바꿔 둔 경우 `data/codes/photo-overrides.json`의 `hide`에 선수 번호(문자열)를 적는다 → 다음 가공(`npm run process`, 매일 Actions) 때 그 선수 `photoUrl: null`(대체 디자인). 사용자가 번호를 알려 주면 여기에 추가만 하면 된다
 - 규칙: 레포에 복사하지 않고 핫링크. 주소는 `scripts/process.ts`가 processed JSON에 써 넣고 화면은 그 값만 쓴다(원칙 1). 로드 실패 시 팀 색+이니셜 대체, 환경변수로 전체 끄기 가능해야 함. 하단 출처에 "사진·로고 © KBL 및 각 구단".
 
 ### 코드 체계
@@ -128,11 +129,12 @@ kbl-stats/
 │   ├── teams.test.ts    ← 팀 색 배정·핵심 의존도·산점도 쿼리·홈 시즌 고르기 검증 (npm run test:teams)
 │   ├── roster.test.ts   ← 선수 마스터 매핑·포지션/국적 필터·용어집·카드 파일 인코딩 검증 (npm run test:roster)
 │   ├── cardview.test.ts ← 카드 순위 범위(전체/같은 포지션)·선수 그리드 정렬/필터·비교표·선수/선수 탭/비교 탭 주소·용어 앵커 검증 (npm run test:cardview)
+│   ├── badges.test.ts   ← 칭호 배지 조건·우선순위 (npm run test:badges)
 │   └── highs.test.ts    ← 한 경기 최다 응답 파싱·프로필·매일 수집 대상 시즌(30일 경계)·백필 이어받기·시즌 하이 1위(동률·RATE 제외)·만 나이·커리어 하이 행 (npm run test:highs, 여덟 다: npm test)
 ├── public/search-index.json ← 빌드 전 생성되는 검색 색인 (id·이름·최근 팀·첫/마지막 시즌·뛴 시즌 코드 seasons·photoUrl·팀 색·positionGroup·positionLabel, 약 370KB). git 제외
 ├── public/cards/{seasonCode}.json ← 빌드 전 생성되는 시즌 카드 데이터 (선수 탭·선수 상세 시즌 전환·비교 탭이 브라우저에서 받음, lib/cards.ts SeasonCardsFile). git 제외
 ├── data/
-│   ├── codes/           ← 시즌·팀·경기구분 코드표 (API에서 받아 저장) + team-colors.json(팀 색, 손으로 관리하는 유일한 예외)
+│   ├── codes/           ← 시즌·팀·경기구분 코드표 (API에서 받아 저장) + 손으로 관리하는 예외 둘: team-colors.json(팀 색), photo-overrides.json(사진 숨길 선수 번호 hide)
 │   ├── raw/{seasonCode}/traditional.json, advanced.json, ... + raw/players/players.json(선수 마스터, 페이지 응답 배열)
 │   │    + raw/highs/{seasonCode}/{playerNo}.json(한 경기 최다) + raw/profiles/{playerNo}.json(프로필)
 │   ├── season-first-seen.json ← 시즌별 선수가 처음 수집된 날 (fetch.ts 가 기록, 직전 시즌 30일 판정용 상태 파일)
@@ -148,7 +150,8 @@ kbl-stats/
 │   ├── distribution.ts  ← 팀 분포 산점도 규칙 (지표 SCATTER_METRICS PER·TS%·경기당 득점, scatterPoints(표본 충족만), toggleTeam(최대 2팀), 주소 쿼리 ?teams=&y=&q=&pos=&p=)
 │   ├── home.ts          ← 홈 규칙 (HOME_CATEGORIES, pickHomeSeason(코드표 최신 시즌이 0명이면 직전 시즌 + 개막 전 안내), splitRecentSeasons)
 │   ├── roster.ts        ← 포지션·국적 규칙 (POSITION_LABELS, positionGroupOf(첫 글자), nationalityOf(마스터 없으면 isForeign)) + 비교 집단 필터 filterByPosition·filterByNationality + 쿼리 값 positionParam/FromParam·nationalityParam/FromParam (순위표·선수 탭·팀 분포 공용)
-│   ├── glossary.ts      ← 용어 설명 데이터 GLOSSARY (지표별 한 줄 설명·공식·출처 URL·검산 메모) + 용어 탭 앵커 GLOSSARY_ANCHORS·glossaryHref(/glossary#ts)·순위표 열/레이더 축 → 용어 매핑. 계산 없음
+│   ├── badges.ts        ← 칭호 배지 (순수: BADGE_DEFS 조건·우선순위, buildBadgeIndex(시즌별 최다 경기·경기당 1위), playerBadges, splitBadges(히어로 5개 + "+n")) — lib/data 가 빌드 시점에 계산
+│   ├── glossary.ts      ← 유형 라벨 PLAYER_TYPES(라벨·조건·설명, 문턱 TYPE_ALLROUNDER_MIN·TYPE_ROLE_MAX — playerType 이 읽음) + 용어 설명 데이터 GLOSSARY (지표별 한 줄 설명·공식·출처 URL·검산 메모) + 용어 탭 앵커 GLOSSARY_ANCHORS·glossaryHref(/glossary#ts)·순위표 열/레이더 축 → 용어 매핑. 계산 없음
 │   ├── convert.ts       ← 시즌 파일 → 화면용 최소 필드 변환 toCardPlayers·toLeaderPlayers·toCardTeams (순수 — data.ts 와 prebuild 스크립트 공용)
 │   ├── cards.ts         ← public/cards 파일 형식 (열 형식 CARD_FIELDS, encodeSeasonCards·decodeSeasonCards, 기본 표본 기준 참고값 defaults)
 │   ├── data.ts          ← 빌드 시점에 data/processed 읽기 (서버 전용, loadSeasonHighCards·loadCareerHighTabs·teamNameInSeason(한 경기 최다, 필드 없으면 빈 배열), listAllSeasons(코드표 전체)·loadPlayersIndex·toCardPlayers·toCardTeams·toLeaderPlayers·loadPlayerCareer(선수 전 시즌 행)·loadSeasonCardsFile/loadSeasonCards(public/cards 와 같은 encode→decode — 정적 HTML 첫 카드용))
@@ -202,6 +205,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-09-30 (피드백 3차, PLAN.md §10): ① 종합 등급 = 5축 백분위 평균에 컷 직접 적용(재순위 없음) → 강성욱 S→B, 2025-26 종합 S 0명(국내 최고 이정현 86.7 A). ② 유형 라벨을 `lib/glossary PLAYER_TYPES`로 모으고 카드 라벨 → 용어 탭 표, 종합 옆 ⓘ. ③ 히어로 통산 8칸(스틸·블록·통산 야투%·3점%). ④ PC 카드 옆 열 = 추이(카드 높이 채움) + 하이라이트 3개(시즌 1~10위 부문, 없으면 커리어 하이) — 1024/1280/1440 두 열 높이 차 0. ⑤ 칭호 배지 `lib/badges.ts`(히어로 5개+“+n”, 그리드 1개, 용어 표). ⑥ `data/codes/photo-overrides.json`. 덤: `scripts/highs.ts` "PO…" 키 분류 버그(기존 highs 테스트 실패) 수정. 검증: typecheck·test 9개·build, Playwright 390/1024/1280/1440 × 4화면 가로 넘침 0·콘솔 에러 0, slop 0. 남은 것: CareerTable 시즌 링크(PC 표 안 글자 링크) 높이 15px — 이전부터.
 - 2026-09-30 (배포 차단 수정): Vercel Hobby 플랜은 비공개 레포에서 프로젝트 소유자가 아닌 작성자의 커밋을 배포하지 않는다("commit author did not have contributing access"). Actions 가 만든 데이터 커밋(작성자 kbl-stats-bot)이 전부 Blocked → 세 워크플로의 git 작성자를 소유자 GitHub 계정(`robinside7854 <252681033+robinside7854@users.noreply.github.com>`)으로 바꿈. 소유자 계정이 바뀌면 이 값도 바꿔야 한다. 대안: 레포를 공개로 전환하거나 Vercel Pro.
 - 2026-09-30 (커리어 하이·시즌 하이): 서버 B mostgame·profile API 수집·가공·화면. 매일 수집은 현재 시즌 선수만(개막 후 30일은 직전 시즌도, `scripts/highs.ts highsTargetSeasons`), 과거 전체는 `backfill-highs.yml`(선수-시즌 약 4,980회 + 프로필 약 1,330회 ≈ 3시간, 이어받기·시즌 단위 커밋, `# 실행 횟수` 0 → 1로 올려 푸시하면 실행). process 가 선수 `seasonHighs`(15개 부문)·시즌 `seasonHighLeaders`(기록 11개, 동률은 먼저 달성, 성공률 제외)·색인 `careerHighs`(정규/PO/챔프전, 최신 시즌 raw 우선)·`birthday/country/school`. 화면: 선수 상세 히어로 나이(빌드 시각 기준)·국적·출신교, 기록표 아래 "커리어 하이" 탭 표, 순위표 1~3위 아래 "이 시즌 한 경기 최다" 가로 카드 줄(고른 부문 강조), 용어 "한 경기 최다". 세션 환경은 KBL 차단 → raw 없음이라 지금은 전부 null(섹션 숨김), 가짜 raw 3명으로 화면 확인 후 삭제. 검증: typecheck·test 8개·build, Playwright 390/1280 가로 스크롤 0·콘솔 에러 0. data/processed 변경분은 커밋 안 함(백필 후 Actions 가 생성). 미확인: 플레이오프·챔프전 배열 이름, 옛 시즌(1997~)에 mostgame 기록이 있는지, raw 파일 크기.
 - 2026-09-30 (등급 체계 2차, PLAN.md §8): 등급(백분위·S~F·종합)을 같은 국적 집단(국내/외국/아시아쿼터, 아시아쿼터 표본 충족 8명 미만이면 외국과 합산) 안에서 매김 — 순위는 리그 전체 그대로. 레이더를 공격·수비·3점·허슬·효율 5축(구성 요소 백분위 평균 → 집단 안 다시 백분위, 기록 없는 요소는 빼고, 파울·TOV% 반전)으로 바꾸고 modern/classic 축 세트 제거. 카드에 "등급 기준: 국내 선수 109명 중"·뺀 항목 안내. USG% 열(순위표·기록표·비교표·팀 분포 표, 없는 시즌 –), 순위표 PC 17열을 992px 안에(dense). 선수 상세 시즌 비교 토글·?vs= 제거. 추이 점 = 팀 로고, 지표 스틸·블록·3점% 추가(TS% 뺌). 결과: 2025-26 국내 S 0→11명(이정현·안영준·허훈·박지훈 B→S, 허웅 B→A). 검증: typecheck·test·build, Playwright 390/1280 6화면 가로 스크롤 0·콘솔 에러 0·카드 PNG 저장, slop 스캔 0.
