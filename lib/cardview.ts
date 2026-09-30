@@ -62,7 +62,7 @@ export interface SeasonCardView {
   qualifiedCount: number;
   /** 등급 기준 표기, 예: "국내 선수 109명 중" / "아시아쿼터·외국 합산 31명 중" */
   gradeLabel: string;
-  /** 이 시즌 기록이 없어 레이더에서 빠진 구성 요소, 예: ["USG%", "40분당 디플렉션"] */
+  /** 이 시즌 기록이 없어 레이더에서 빠진 구성 요소, 예: ["USG%", "경기당 디플렉션"] */
   missingComponents: string[];
   /** 성공률 시도 기준 표기 (리그 전체 기준 — 집단을 좁혀도 같다) */
   attemptsLabel: string;

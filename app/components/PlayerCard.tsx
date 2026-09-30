@@ -183,7 +183,7 @@ function StatCell({ entry, color, size, group }: { entry: CardStatEntry; color: 
 // ─────────────────────────────────────────────
 
 /** 레이더 꼭짓점 라벨: 등급 칩(크게) + 축 이름 + 원래 값(작게). 꼭짓점 바깥쪽으로 밀어 그린다 */
-/** 축 구성 요소 한 줄 설명 (툴팁·표 보기), 예: "40분당 득점 25.1 (92) · USG% 30.2 (88)" — 빠진 항목은 "제외" */
+/** 축 구성 요소 한 줄 설명 (툴팁·표 보기), 예: "경기당 득점 25.1 (92) · USG% 30.2 (88)" — 빠진 항목은 "제외" */
 function componentsText(entry: CardEntry, axis: RadarAxis): string {
   return entry.radar.components[axis]
     .map((c) => `${RADAR_COMPONENTS[c.key].label} ${fmt1(c.value)} (${c.pct === null ? "시도 부족 제외" : fmtPct(c.pct)})`)

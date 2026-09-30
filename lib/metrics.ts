@@ -175,9 +175,12 @@ export function seasonCoverage(players: readonly CoverageInput[], threshold = 0.
 // ─────────────────────────────────────────────
 // 레이더 5축: 공격 · 수비 · 3점 · 허슬 · 효율 (2026-09-30 등급 체계 2차, PLAN.md §8)
 // ─────────────────────────────────────────────
-// 축 하나 = 관련 스탯 여러 개(구성 요소)의 **백분위 평균**. 볼륨(40분당)과 효율(성공률·지수)을 함께 넣는다.
+// 축 하나 = 관련 스탯 여러 개(구성 요소)의 **백분위 평균**. 볼륨(경기당 실제 기록)과 효율(성공률·지수)을 함께 넣는다.
+// 볼륨은 **경기당**(시즌 합계 ÷ 경기 수)이다 (2026-09-30 피드백 5차, PLAN.md §13). 처음엔 40분당 환산을 썼으나
+// 출전 10분 안팎인 선수의 40분당 값이 4배로 부풀어 벤치 선수가 공격·허슬 A~S 를 받았다 — 팬이 보는 "실제 경기당 기록"과
+// 등급이 어긋났다. 경기당이면 출전 시간이 곧 역할이라 주전·많이 뛰는 선수가 볼륨 축에서 앞선다(의도).
 //   1) 구성 요소 백분위: 같은 시즌·같은 국적 집단(gradeGroupOf)·표본 기준 충족 선수 안에서 percentileRank.
-//      낮을수록 좋은 항목(40분당 파울·TOV%)은 percentileRankLow(반전).
+//      낮을수록 좋은 항목(경기당 파울·TOV%)은 percentileRankLow(반전).
 //   2) 축 원점수 = 그 선수에게 쓸 수 있는 구성 요소 백분위의 단순 평균(가중치 모두 1).
 //      - 시즌에 기록이 없는 항목은 뺀다(activeRadarComponents: coverage 플래그 + KBL 계산값은 0 아닌 비율 50%).
 //      - 성공률(2점%·3점%)은 그 선수의 경기당 시도가 리그 평균 이상일 때만 넣는다(아니면 그 선수만 그 항목 제외).
@@ -188,7 +191,7 @@ export function seasonCoverage(players: readonly CoverageInput[], threshold = 0.
 //   4) 종합 = 5축 백분위 평균(null 축 제외)을 같은 방식으로 집단 안에서 다시 percentileRank → 종합 등급.
 // 가중치: 전부 1(단순 평균). 근거 — 팬이 "무엇이 몇 %"로 바로 이해할 수 있고, 어느 항목을 더 무겁게 볼지에 대한
 // 합의된 기준이 없다. 스틸은 수비·허슬 두 축에 모두 들어간다(사용자 제안 그대로 — 둘 다의 대표 기록이라서).
-// 40분당 환산은 per40, 경기당 +/- 는 perGame.
+// 경기당 값(누적 기록·+/-)은 perGame. per40 은 레이더에선 더 쓰지 않는다(함수는 다른 곳·테스트용으로 남김).
 
 export const RADAR_AXES = ["offense", "defense", "three", "hustle", "efficiency"] as const;
 export type RadarAxis = (typeof RADAR_AXES)[number];
@@ -203,15 +206,15 @@ export const RADAR_AXIS_LABELS: Record<RadarAxis, string> = {
 };
 
 export type RadarComponentKey =
-  | "pts40" | "ast40" | "usgPct" | "twoPPct"
-  | "stl40" | "blk40" | "dreb40" | "gd40" | "fouls40"
-  | "tpm40" | "tpPct" | "tpa40"
-  | "oreb40" | "defl40" | "screen40" | "pmPerGame"
+  | "ptsPerGame" | "astPerGame" | "usgPct" | "twoPPct"
+  | "stlPerGame" | "blkPerGame" | "drebPerGame" | "gdPerGame" | "foulsPerGame"
+  | "tpmPerGame" | "tpPct" | "tpaPerGame"
+  | "orebPerGame" | "deflPerGame" | "screenPerGame" | "pmPerGame"
   | "tsPct" | "efgPct" | "tovPct" | "astTo" | "per";
 
 export interface RadarComponentDef {
   key: RadarComponentKey;
-  /** 화면 표기, 예: "40분당 득점" */
+  /** 화면 표기, 예: "경기당 득점" */
   label: string;
   /** high: 클수록 상위 / low: 작을수록 상위(백분위 반전) */
   better: "high" | "low";
@@ -223,23 +226,23 @@ export interface RadarComponentDef {
   attempt?: "twoPa" | "tpa";
 }
 
-/** 구성 요소 정의 (한 요소가 두 축에 들어갈 수 있다 — 40분당 스틸) */
+/** 구성 요소 정의 (한 요소가 두 축에 들어갈 수 있다 — 경기당 스틸) */
 export const RADAR_COMPONENTS: Record<RadarComponentKey, RadarComponentDef> = {
-  pts40: { key: "pts40", label: "40분당 득점", better: "high" },
-  ast40: { key: "ast40", label: "40분당 어시스트", better: "high" },
+  ptsPerGame: { key: "ptsPerGame", label: "경기당 득점", better: "high" },
+  astPerGame: { key: "astPerGame", label: "경기당 어시스트", better: "high" },
   usgPct: { key: "usgPct", label: "USG%", better: "high", requires: "advanced", kblComputed: true },
   twoPPct: { key: "twoPPct", label: "2점 성공률", better: "high", attempt: "twoPa" },
-  stl40: { key: "stl40", label: "40분당 스틸", better: "high" },
-  blk40: { key: "blk40", label: "40분당 블록", better: "high" },
-  dreb40: { key: "dreb40", label: "40분당 수비 리바운드", better: "high" },
-  gd40: { key: "gd40", label: "40분당 굿디펜스", better: "high", requires: "goodDef" },
-  fouls40: { key: "fouls40", label: "40분당 파울", better: "low" },
-  tpm40: { key: "tpm40", label: "40분당 3점 성공", better: "high" },
+  stlPerGame: { key: "stlPerGame", label: "경기당 스틸", better: "high" },
+  blkPerGame: { key: "blkPerGame", label: "경기당 블록", better: "high" },
+  drebPerGame: { key: "drebPerGame", label: "경기당 수비 리바운드", better: "high" },
+  gdPerGame: { key: "gdPerGame", label: "경기당 굿디펜스", better: "high", requires: "goodDef" },
+  foulsPerGame: { key: "foulsPerGame", label: "경기당 파울", better: "low" },
+  tpmPerGame: { key: "tpmPerGame", label: "경기당 3점 성공", better: "high" },
   tpPct: { key: "tpPct", label: "3점 성공률", better: "high", attempt: "tpa" },
-  tpa40: { key: "tpa40", label: "40분당 3점 시도", better: "high" },
-  oreb40: { key: "oreb40", label: "40분당 공격 리바운드", better: "high" },
-  defl40: { key: "defl40", label: "40분당 디플렉션", better: "high", requires: "hustle" },
-  screen40: { key: "screen40", label: "40분당 스크린 어시스트", better: "high", requires: "hustle" },
+  tpaPerGame: { key: "tpaPerGame", label: "경기당 3점 시도", better: "high" },
+  orebPerGame: { key: "orebPerGame", label: "경기당 공격 리바운드", better: "high" },
+  deflPerGame: { key: "deflPerGame", label: "경기당 디플렉션", better: "high", requires: "hustle" },
+  screenPerGame: { key: "screenPerGame", label: "경기당 스크린 어시스트", better: "high", requires: "hustle" },
   pmPerGame: { key: "pmPerGame", label: "경기당 +/-", better: "high", requires: "plusMinus" },
   tsPct: { key: "tsPct", label: "TS%", better: "high", kblComputed: true },
   efgPct: { key: "efgPct", label: "eFG%", better: "high", kblComputed: true },
@@ -250,10 +253,10 @@ export const RADAR_COMPONENTS: Record<RadarComponentKey, RadarComponentDef> = {
 
 /** 축별 구성 요소 (배열 순서 = 설명·표 순서) */
 export const RADAR_AXIS_COMPONENTS: Record<RadarAxis, readonly RadarComponentKey[]> = {
-  offense: ["pts40", "ast40", "usgPct", "twoPPct"],
-  defense: ["stl40", "blk40", "dreb40", "gd40", "fouls40"],
-  three: ["tpm40", "tpPct", "tpa40"],
-  hustle: ["oreb40", "stl40", "defl40", "screen40", "pmPerGame"],
+  offense: ["ptsPerGame", "astPerGame", "usgPct", "twoPPct"],
+  defense: ["stlPerGame", "blkPerGame", "drebPerGame", "gdPerGame", "foulsPerGame"],
+  three: ["tpmPerGame", "tpPct", "tpaPerGame"],
+  hustle: ["orebPerGame", "stlPerGame", "deflPerGame", "screenPerGame", "pmPerGame"],
   efficiency: ["tsPct", "efgPct", "tovPct", "astTo", "per"],
 };
 
@@ -271,21 +274,21 @@ export interface RadarInput {
   usgPct: number; tsPct: number; efgPct: number; tovPct: number; astTo: number; per: number;
 }
 
-/** 한 선수의 구성 요소 값 (40분당 환산·경기당 +/- 는 여기서, 나머지는 KBL 값 그대로) */
+/** 한 선수의 구성 요소 값 (누적 기록은 경기당 = 시즌 합계 ÷ 경기 수, 나머지는 KBL 값 그대로) */
 export function componentValue(p: RadarInput, key: RadarComponentKey): number {
   switch (key) {
-    case "pts40": return per40(p.points, p.minutes);
-    case "ast40": return per40(p.ast, p.minutes);
-    case "stl40": return per40(p.stl, p.minutes);
-    case "blk40": return per40(p.blk, p.minutes);
-    case "dreb40": return per40(p.dreb, p.minutes);
-    case "gd40": return per40(p.goodDef, p.minutes);
-    case "fouls40": return per40(p.fouls, p.minutes);
-    case "tpm40": return per40(p.tpm, p.minutes);
-    case "tpa40": return per40(p.tpa, p.minutes);
-    case "oreb40": return per40(p.oreb, p.minutes);
-    case "defl40": return per40(p.deflections, p.minutes);
-    case "screen40": return per40(p.screenAst, p.minutes);
+    case "ptsPerGame": return perGame(p.points, p.games);
+    case "astPerGame": return perGame(p.ast, p.games);
+    case "stlPerGame": return perGame(p.stl, p.games);
+    case "blkPerGame": return perGame(p.blk, p.games);
+    case "drebPerGame": return perGame(p.dreb, p.games);
+    case "gdPerGame": return perGame(p.goodDef, p.games);
+    case "foulsPerGame": return perGame(p.fouls, p.games);
+    case "tpmPerGame": return perGame(p.tpm, p.games);
+    case "tpaPerGame": return perGame(p.tpa, p.games);
+    case "orebPerGame": return perGame(p.oreb, p.games);
+    case "deflPerGame": return perGame(p.deflections, p.games);
+    case "screenPerGame": return perGame(p.screenAst, p.games);
     case "pmPerGame": return perGame(p.plusMinus, p.games);
     default: return p[key];
   }
@@ -514,7 +517,7 @@ export function radarScore(p: GradeInput, ctx: GradingContext): RadarScore {
   return { axes, raw, components, overall: overallScore(axes) };
 }
 
-/** 시즌에 기록이 없어 빠진 구성 요소 이름 (카드 아래 안내, 예: ["USG%", "40분당 디플렉션"]) */
+/** 시즌에 기록이 없어 빠진 구성 요소 이름 (카드 아래 안내, 예: ["USG%", "경기당 디플렉션"]) */
 export function missingComponentLabels(ctx: Pick<GradingContext, "active">): string[] {
   return ALL_COMPONENTS.filter((k) => !ctx.active.includes(k)).map((k) => RADAR_COMPONENTS[k].label);
 }

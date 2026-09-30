@@ -144,7 +144,7 @@ const oldCards = decodeSeasonCards(
 );
 const oldView = buildSeasonCardView(oldCards, "101")!;
 assert.equal(oldView.entry.usgPct, null);
-assert.deepEqual(oldView.missingComponents, ["USG%", "40분당 디플렉션", "40분당 스크린 어시스트"]);
+assert.deepEqual(oldView.missingComponents, ["USG%", "경기당 디플렉션", "경기당 스크린 어시스트"]);
 const usgOld = compareCardEntries(va, oldView.entry).find((r) => r.key === "usgPct")!;
 assert.equal(usgOld.bText, "–");
 assert.equal(usgOld.deltaText, "–");

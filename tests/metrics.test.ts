@@ -99,12 +99,12 @@ assert.equal(percentileRankLow(1, []), null);
 // ── 레이더 5축 정의 ──
 assert.deepEqual([...RADAR_AXES], ["offense", "defense", "three", "hustle", "efficiency"]);
 assert.deepEqual(RADAR_AXES.map((a) => RADAR_AXIS_LABELS[a]), ["공격", "수비", "3점", "허슬", "효율"]);
-assert.deepEqual([...RADAR_AXIS_COMPONENTS.offense], ["pts40", "ast40", "usgPct", "twoPPct"]);
-assert.deepEqual([...RADAR_AXIS_COMPONENTS.defense], ["stl40", "blk40", "dreb40", "gd40", "fouls40"]);
-assert.deepEqual([...RADAR_AXIS_COMPONENTS.three], ["tpm40", "tpPct", "tpa40"]);
-assert.deepEqual([...RADAR_AXIS_COMPONENTS.hustle], ["oreb40", "stl40", "defl40", "screen40", "pmPerGame"]);
+assert.deepEqual([...RADAR_AXIS_COMPONENTS.offense], ["ptsPerGame", "astPerGame", "usgPct", "twoPPct"]);
+assert.deepEqual([...RADAR_AXIS_COMPONENTS.defense], ["stlPerGame", "blkPerGame", "drebPerGame", "gdPerGame", "foulsPerGame"]);
+assert.deepEqual([...RADAR_AXIS_COMPONENTS.three], ["tpmPerGame", "tpPct", "tpaPerGame"]);
+assert.deepEqual([...RADAR_AXIS_COMPONENTS.hustle], ["orebPerGame", "stlPerGame", "deflPerGame", "screenPerGame", "pmPerGame"]);
 assert.deepEqual([...RADAR_AXIS_COMPONENTS.efficiency], ["tsPct", "efgPct", "tovPct", "astTo", "per"]);
-assert.equal(RADAR_COMPONENTS.fouls40.better, "low"); // 파울·TOV% 는 반전
+assert.equal(RADAR_COMPONENTS.foulsPerGame.better, "low"); // 파울·TOV% 는 반전
 assert.equal(RADAR_COMPONENTS.tovPct.better, "low");
 assert.ok(!Object.keys(RADAR_COMPONENTS).includes("pie")); // PIE 없음
 
@@ -116,10 +116,15 @@ const rp = (o: Partial<GradeInput> = {}): GradeInput => ({
   nationality: "domestic", isForeign: false,
   ...o,
 });
-// 구성 요소 값: 40분당 = 누적 ÷ 분 × 40, +/- 는 경기당
-close(componentValue(rp(), "pts40"), 20);
-close(componentValue(rp(), "gd40"), 1);
-close(componentValue(rp(), "fouls40"), 4);
+// 구성 요소 값: 누적 기록·+/- 는 경기당 = 시즌 합계 ÷ 경기 수 (40분 환산 아님, PLAN.md §13)
+close(componentValue(rp(), "ptsPerGame"), 10);
+close(componentValue(rp(), "gdPerGame"), 0.5);
+close(componentValue(rp(), "foulsPerGame"), 2);
+close(componentValue(rp(), "tpaPerGame"), 3);
+// 출전 시간은 값에 영향 없음: 같은 경기·같은 득점이면 100분을 뛰든 400분을 뛰든 경기당 득점은 같다
+// (40분당이었다면 100분 선수가 40점으로 4배 부풀었다 — 벤치 선수 등급이 뛰던 원인)
+close(componentValue(rp({ minutes: 100 }), "ptsPerGame"), componentValue(rp(), "ptsPerGame"));
+assert.ok(!Object.keys(RADAR_COMPONENTS).some((k) => k.endsWith("40"))); // 40분당 구성 요소 없음
 close(componentValue(rp(), "pmPerGame"), 2);
 assert.equal(componentValue(rp(), "tsPct"), 55);
 
@@ -129,9 +134,9 @@ const old = { advanced: false, plusMinus: true, goodDef: false, hustle: false };
 const pool = [rp(), rp({ points: 300 }), rp({ points: 100 })];
 assert.equal(activeRadarComponents(pool, DEFAULT_QUALIFY, full).length, 21);
 const oldActive = activeRadarComponents(pool, DEFAULT_QUALIFY, old);
-for (const k of ["usgPct", "gd40", "defl40", "screen40"] as const) assert.ok(!oldActive.includes(k), k);
+for (const k of ["usgPct", "gdPerGame", "deflPerGame", "screenPerGame"] as const) assert.ok(!oldActive.includes(k), k);
 assert.ok(oldActive.includes("pmPerGame") && oldActive.includes("per"));
-assert.deepEqual(missingComponentLabels({ active: oldActive }), ["USG%", "40분당 굿디펜스", "40분당 디플렉션", "40분당 스크린 어시스트"]);
+assert.deepEqual(missingComponentLabels({ active: oldActive }), ["USG%", "경기당 굿디펜스", "경기당 디플렉션", "경기당 스크린 어시스트"]);
 // KBL 계산값이 절반 이상 0 이면(기록 없음) 빠진다 — 커버리지 플래그가 없어도
 const noEfg = pool.map((p) => ({ ...p, efgPct: 0 }));
 assert.ok(!activeRadarComponents(noEfg, DEFAULT_QUALIFY, full).includes("efgPct"));
@@ -153,11 +158,11 @@ const topDom = radarScore(dom[2], g);
 const topFor = radarScore(forn[2], g);
 assert.ok(topDom.axes.offense! > 80, `국내 득점 1위 공격 ${topDom.axes.offense}`); // 리그 전체였다면 외국 3명 아래
 assert.ok(Math.abs(topDom.axes.offense! - topFor.axes.offense!) < 1e-9); // 각자 집단 1위 → 같은 백분위
-// 구성 요소 pts40: 국내 집단 안 3명 중 1위 → (2 + 0.5) / 3
-close(topDom.components.offense.find((c) => c.key === "pts40")!.pct, (2.5 / 3) * 100);
+// 구성 요소 ptsPerGame: 국내 집단 안 3명 중 1위 → (2 + 0.5) / 3
+close(topDom.components.offense.find((c) => c.key === "ptsPerGame")!.pct, (2.5 / 3) * 100);
 // 반전: 파울 적은 선수가 수비 파울 항목 상위
 const lowFoul = radarScore(rp({ fouls: 10 }), buildGradingContext([rp({ fouls: 10 }), rp({ fouls: 40 }), rp({ fouls: 80 })], DEFAULT_QUALIFY, full));
-close(lowFoul.components.defense.find((c) => c.key === "fouls40")!.pct, (2.5 / 3) * 100);
+close(lowFoul.components.defense.find((c) => c.key === "foulsPerGame")!.pct, (2.5 / 3) * 100);
 // 시도 기준 미달이면 그 선수의 3점 성공률 항목은 제외(pct null), 축은 남은 항목으로
 const noThree = radarScore(rp({ tpa: 2, tpm: 1, tpPct: 50 }), buildGradingContext([rp(), rp({ tpa: 2, tpm: 1, tpPct: 50 }), rp({ tpa: 80 })], DEFAULT_QUALIFY, full));
 assert.equal(noThree.components.three.find((c) => c.key === "tpPct")!.pct, null);
@@ -165,7 +170,7 @@ assert.ok(noThree.raw.three !== null);
 // 커버리지 없는 항목은 구성 요소 목록에서 빠진다
 const gOld = buildGradingContext(pool, DEFAULT_QUALIFY, old);
 assert.ok(!radarScore(pool[0], gOld).components.offense.some((c) => c.key === "usgPct"));
-assert.ok(!radarScore(pool[0], gOld).components.hustle.some((c) => c.key === "defl40"));
+assert.ok(!radarScore(pool[0], gOld).components.hustle.some((c) => c.key === "deflPerGame"));
 
 // 소집단 합산: 표본 충족 아시아쿼터가 MIN_GRADE_GROUP(8) 미만이면 외국과 한 집단
 assert.equal(MIN_GRADE_GROUP, 8);
