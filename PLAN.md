@@ -205,3 +205,25 @@
 - 공통 컴포넌트 `PlayerAvatar`, `TeamLogo` (실패 시 대체 디자인, 스위치 반영)
 - SourceFooter 문구 확장
 - 결과: 주소 생성은 `scripts/image-urls.ts`, 스위치는 `lib/images.ts`(`NEXT_PUBLIC_OFFICIAL_IMAGES=off`, `.env.example` 참고), 현재 화면은 선수 선택 목록·카드 위 선수 줄에만 적용. 레이더 카드 저장 이미지 안의 사진은 CORS 때문에 보류 — 나중에 html-to-image `filter`로 이미지를 빼고 대체 디자인으로 저장하는 방식으로 처리
+
+## 6. 2차 개편 (2026-09-30 피드백)
+
+사용자 피드백으로 두 단계로 나눠 진행한다: **(가) 데이터·계산 층** ✅ 완료 (2026-09-30) → (나) 화면 개편(다음 세션, 다른 에이전트).
+
+### 6-1. 새로 확인된 사실 (Actions 러너)
+- 선수 마스터 API(서버 B `/api/v1/players?regSc=N`) — 은퇴 선수 포함 2,061명의 포지션·국적(국내/외국/아시아쿼터)·신장·체중·등번호·드래프트. 상세 형식은 CLAUDE.md "서버 B".
+- KBL USG%는 표준식(Basketball-Reference)의 정확히 1/5. TS%·eFG%·AST%는 표준식과 일치(TOV%·AST/TO도 우리 데이터로 일치 확인).
+
+### 6-2. 결정 (데이터·계산 층)
+1. **선수 마스터 조인**: `npm run fetch`가 시즌 수집 전에 마스터 전 페이지를 받아 `data/raw/players/players.json`(페이지 응답 배열 그대로)에 저장. `process.ts`가 playerNo로 조인해 선수 색인·시즌 players[]에 `position`(G/F/C/GF/FC)·`positionLabel`·`positionGroup`(첫 글자: GF→G, FC→F)·`nationality`·`heightCm`·`weightKg`·`backNumber`·`draft{year,round,pick}`를 넣는다. 마스터가 없으면 전부 null + 경고 한 줄(빌드는 계속). 마스터는 현재 스냅숏이라 등번호·신장은 시즌별 값이 아니다.
+2. **isForeign**: 마스터가 있으면 `nationality !== "domestic"`(아시아쿼터 포함), 없으면 기존 이름 추정. 순위표 국적 필터는 `nationality` 기반 4가지(전체/국내/외국/아시아쿼터, 쿼리 `origin=all|dom|for|asia`).
+3. **USG% ×5**: processed `usgPct`는 표준 척도, 원값은 `usgPctRaw`. 화면 문구에서 "KBL 척도가 NBA와 다름(중앙값 ~3.5)" 안내는 필요 없어짐.
+4. **PIE 미사용**: 레이더 modern 축 = USG%·TS%·AST%·REB%·**PER**(classic은 그대로). 유형 라벨·종합 등급·기본 선수(PER 1위)도 PIE 없이. `coverage.advanced`는 USG%·AST%·REB% 셋으로 판정(결과는 이전과 같음: 2025-26만 true). processed `pie`는 원본 보존으로 남김.
+5. **파울**: 카드 스탯 10번째(경기당, `ranked: false` → 순위 없음, `rank.reason = "unranked"`). 순위표 열(턴오버 뒤)에 추가, 부문(1~3위 카드)에는 넣지 않음. 현재 카드 3×3 격자는 순위 있는 9개만 그리고, 파울 배치는 화면 개편에서 정한다.
+6. **비교 집단 바꾸기**: 순위·백분위·등급 함수는 이미 "넘겨받은 선수 목록"을 집단으로 쓴다 → `lib/roster.ts` `filterByPosition(players, "all"|"G"|"F"|"C")`·`filterByNationality(players, "all"|"domestic"|"foreign"|"asia")` 결과를 넘기면 된다. 포지션을 모르는(null) 선수는 "전체" 외 집단에서 빠진다. 집단을 좁혀도 성공률 시도 기준은 리그 값을 유지하도록 `buildCardContext(..., { thresholds })` 옵션 추가(센터 집단만으로 3점 시도 평균을 내면 기준이 너무 낮아짐). 순위표 상태에 `position`(쿼리 `pos=g|f|c`) 추가 — 화면 연결은 (나)에서.
+7. **용어 설명** `lib/glossary.ts`: PER·TS%·eFG%·USG%·AST%·REB%·TOV%·AST/TO·ORtg/DRtg/NetRtg·PACE·40분당·백분위/등급·표본 기준·시도 기준 14개. 공식 문자열·Basketball-Reference 출처 URL·검산 메모(USG ×5, PER 검산 불가, TS/eFG/AST 검산 일치).
+8. **비교 탭 데이터** `public/cards/{seasonCode}.json`(prebuild `scripts/build-cards.ts`, git 제외): 시즌 coverage·axisSet·teams + 선수 CardPlayer 전 필드를 **열 형식**(`fields` + `rows`)으로, 소수는 넷째 자리까지. 기본 표본 기준 참고값(`defaults`: rule·thresholds·qualifiedCount·defaultPlayerId). 비교 재료(백분위·순위 집단)는 넣지 않고 화면이 `decodeSeasonCards` → `buildCardContext`로 다시 만든다(200명이라 즉시). 크기 시즌당 22~44KB(2025-26 44KB, gzip 약 15KB) — 목표 100KB 이하.
+
+### 6-3. (나) 화면 개편이 할 일 (다음 단계)
+- 카드·순위표에 포지션/국적 필터 UI(Segmented), 파울 칸 배치, 선수 페이지 히어로에 포지션·신장·드래프트, 용어 풀이 UI, 비교 탭(두 시즌·두 선수 카드 나란히 — `public/cards` 사용).
+- 순위표 "외국인" 버튼 → "외국"·"아시아쿼터" 추가(마스터 수집 후에만 의미 있음. 마스터가 없으면 아시아쿼터는 빈 목록).

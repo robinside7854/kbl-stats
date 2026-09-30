@@ -20,6 +20,8 @@ KBL 공홈은 화면을 그릴 때 아래 두 서버에서 JSON을 받아온다.
 - traditional 주요 필드: `playerNo, kname, ename, teamCode, teamName1, teamName4, gameCount, win, lose, playSec, score, fg, fgA, fgRt, threep, threepA, threepRt, fdg, fdgA, fdgRt, ft, ftA, ftRt, dk, dkA, oR, dR, rb, aS, sT, gd, bS, tO, foulTot, dd2, td3, margin, sA, df, totalCn`
 - ⚠️ 필드 뜻 주의: `fg/fgA/fgRt`는 **2점슛**, `fdg/fdgA/fdgRt`가 **전체 야투**(2점+3점). fdg = fg + threep, score = 2×fg + 3×threep + ft 로 확인(2026-09-30). process.ts가 fgm←fdg, twoPm←fg 로 변환
 - advanced 주요 필드: `perRt, offrtg, defrtg, netrtg, efgRt, tsRt, astRt, astTo, astRatio, orebRt, drebRt, rebRt, usgRt, pace, tovRt, toRatio, pie, poss`
+- ⚠️ **`usgRt`(USG%)는 Basketball-Reference 표준식의 정확히 1/5** (2026-09-30 Actions 러너 확인: 2025-26 500분 이상 선수 전원 표준식/KBL 비율 4.95~5.06 — "팀 출전시간/5" 항이 빠진 것으로 추정). processed `usgPct`는 **×5(표준 척도)**로 저장하고 원값은 `usgPctRaw`에 보존(`lib/metrics.ts usgFromKbl`). TS%·eFG%·AST%·TOV%·AST/TO는 표준식과 일치(예: 워니 TS 49.8 = 1158/(2×(1091+0.44×161))). PER은 계산식 미공개라 검산 불가
+- **PIE는 쓰지 않는다**(2026-09-30 결정: 팬이 읽기 어렵고 2025-26에만 있음). processed `pie`는 원본 보존 차원에서 남기지만 화면용 타입(CardPlayer 등)·레이더 축·`coverage.advanced` 판정(USG%·AST%·REB% 셋)에서는 뺐다
 - 주의: `sortDataSc`에 존재하지 않는 열 이름을 넣으면 500 에러 (예: advanced에 `PER` 넣으면 실패). 정렬은 우리 쪽에서 하고 API 정렬은 기본값(SCORE)만 쓴다.
 - 주의: `listCn`은 **255 이하**만 허용 (서버가 tinyint로 변환, 300이면 500 에러). 200으로 두고 `totalCn`으로 페이지를 넘긴다.
 - GitHub Actions 러너에서 이 서버 접속 가능 확인 (2026-09-29, 첫 실행에서 도달 성공)
@@ -28,6 +30,11 @@ KBL 공홈은 화면을 그릴 때 아래 두 서버에서 JSON을 받아온다.
 ### 서버 B: `https://kbl-api.sports2i.com` — 시즌리더(부문별 상위 5명), 공통 코드
 - `GET /api/v1/season-leaders/persons?seasonCode=&gameCode=` / `.../teams?...` — 상위 5명만 → 참고용, 주 데이터원 아님
 - `GET /api/v1/Common/recent-seasons?seriesCd=1`, `/api/v1/Common/kbl-season-game/{seasonCode}`, `/api/v1/Common/team?seasonCodeList=&gameCodeList=` — 시즌·경기구분·팀 코드표. **코드표는 하드코딩하지 말고 여기서 받아 저장한다.**
+- **선수 마스터** `GET /api/v1/players?regSc=N&pageNo={n}&listCn=200` → `{ totalCn: "2061", playerList: [ { playerNo, kname, ename, teamCode, backNum, pos, pWeight, pHeight, playerFlagCode2, yearNo, monthNo, roundNo, rankNo, rowNo } ] }` (2026-09-30 확인). 은퇴 선수 포함 2,061명(`regSc=Y`면 현역 186명만). `listCn` ≤ 255. `Referer/Origin: https://kbl.or.kr`, `Accept: application/json` 헤더가 없으면 빈 응답. 단건 상세 API 없음(401/빈 응답)
+  - `pos`: GD 가드, FD 포워드, C 센터, GF 가드-포워드, FC 포워드-센터 → 우리 `position` G/F/C/GF/FC, 비교 묶음 `positionGroup`은 첫 글자(GF→G, FC→F)
+  - `playerFlagCode2`: "0" 국내, "1" 외국, "2" 아시아쿼터 → `nationality` domestic/foreign/asia. **마스터가 있으면 `isForeign = nationality !== "domestic"`**, 없으면 이름 추정(라건아 등 귀화 선수 오분류)
+  - `yearNo/roundNo/rankNo` 드래프트(외국 선수 null), `pHeight` cm, `pWeight` kg, `backNum` 현재 등번호 — 마스터는 "지금" 한 장이라 시즌별 값이 아님
+  - `npm run fetch`가 시즌 수집 전에 전 페이지를 받아 `data/raw/players/players.json`(페이지 응답 배열 그대로)에 저장. 실패해도 시즌 수집은 계속. 가공은 `scripts/player-master.ts`
 - 운영 주체가 KBL이 아닌 외부 기록업체(Sports2i)임.
 
 ### 이미지 (2026-09-30 Actions 러너에서 공홈 HTML·JS·CSS 확인 — 상세는 PLAN.md §5)
@@ -43,7 +50,7 @@ KBL 공홈은 화면을 그릴 때 아래 두 서버에서 JSON을 받아온다.
 ### 시즌별 데이터 커버리지 (2026-09-30 processed 전수 확인 — 화면 설계의 기준)
 - 1차 스탯, PER, TS%, eFG%, TOV%, AST ratio, AST/TO, ORtg: **30개 시즌 전부** 있음
 - +/-: 1997-98부터. 굿디펜스(gd): 2000-01부터
-- **USG%, PIE, AST%, REB%, OREB/DREB%, DEF/NET RTG, PACE, POSS: 2025-26(코드 47)만** 정상(선수 97%). 2023-24·2024-25는 24명 정도만, 그 이전은 전부 0 → 레이더 카드 4개 축이 옛 시즌에선 무의미. 시즌 파일에 `coverage` 플래그를 넣어 화면이 축·열을 켜고 끈다(PLAN.md ①)
+- **USG%, PIE, AST%, REB%, OREB/DREB%, DEF/NET RTG, PACE, POSS: 2025-26(코드 47)만** (`coverage.advanced`는 USG%·AST%·REB%로 판정 — PIE 제외) 정상(선수 97%). 2023-24·2024-25는 24명 정도만, 그 이전은 전부 0 → 레이더 카드 4개 축이 옛 시즌에선 무의미. 시즌 파일에 `coverage` 플래그를 넣어 화면이 축·열을 켜고 끈다(PLAN.md ①)
 - 스크린 어시스트·디플렉션: 2025-26만
 - playerNo는 시즌이 바뀌어도 동일(803명이 2개 시즌 이상) → 선수 커리어 페이지 가능. 동명이인 32명 있으므로 이름이 아닌 playerNo로 식별
 - teamCode는 팀명 변경에도 유지(안양 KT&G→KGC→정관장=70), 구단 매각 시엔 새 코드(안양 SBS=40 → KT&G=70)
@@ -97,27 +104,35 @@ kbl-stats/
 │   ├── fetch.ts         ← KBL API 호출 + data/raw 저장 (API 주소는 여기와 config에만)
 │   ├── process.ts       ← raw → processed 변환 (photoUrl·logoUrl·팀 color 추가)
 │   ├── image-urls.ts    ← KBL 사진·로고 주소 생성 (playerPhotoUrl, teamLogoUrl) — KBL 이미지 주소는 여기에만
-│   ├── config.ts        ← 엔드포인트, 시즌 목록, 요청 간격
-│   └── build-search-index.ts ← 검색용 경량 색인 public/search-index.json 생성 (npm prebuild·predev 로 자동 실행, 생성물은 .gitignore)
+│   ├── config.ts        ← 엔드포인트(선수 마스터 PLAYER_MASTER_PATH 포함), 시즌 목록, 요청 간격
+│   ├── player-master.ts ← 선수 마스터 raw → 프로필(position·positionGroup·nationality·heightCm·weightKg·backNumber·draft) 순수 함수, isForeignPlayer
+│   ├── build-search-index.ts ← 검색용 경량 색인 public/search-index.json 생성 (npm prebuild·predev 로 자동 실행, 생성물은 .gitignore)
+│   └── build-cards.ts   ← 비교 탭용 시즌별 카드 데이터 public/cards/{seasonCode}.json 생성 (prebuild·predev, 형식은 lib/cards.ts, 시즌당 약 22~44KB, git 제외)
 ├── tests/
 │   ├── metrics.test.ts  ← lib/metrics.ts 검증 (npm run test:metrics)
 │   ├── leaders.test.ts  ← lib/leaders.ts 검증 (npm run test:leaders)
 │   ├── card.test.ts     ← 플레이어 카드 스탯·순위 검증 (npm run test:card)
 │   ├── player.test.ts   ← 통산 계산·추이·카드 계산·검색 매칭 검증 (npm run test:player)
-│   └── teams.test.ts    ← 팀 색 배정·핵심 의존도·산점도 쿼리·홈 시즌 고르기 검증 (npm run test:teams, 다섯 다: npm test)
-├── public/search-index.json ← 빌드 전 생성되는 검색 색인 (id·이름·최근 팀·첫/마지막 시즌·photoUrl·팀 색, 약 290KB / gzip 약 41KB). git 제외
+│   ├── teams.test.ts    ← 팀 색 배정·핵심 의존도·산점도 쿼리·홈 시즌 고르기 검증 (npm run test:teams)
+│   └── roster.test.ts   ← 선수 마스터 매핑·포지션/국적 필터·용어집·카드 파일 인코딩 검증 (npm run test:roster, 여섯 다: npm test)
+├── public/search-index.json ← 빌드 전 생성되는 검색 색인 (id·이름·최근 팀·첫/마지막 시즌·photoUrl·팀 색·positionGroup·positionLabel, 약 365KB). git 제외
+├── public/cards/{seasonCode}.json ← 빌드 전 생성되는 시즌 카드 데이터 (비교 탭용, lib/cards.ts SeasonCardsFile). git 제외
 ├── data/
 │   ├── codes/           ← 시즌·팀·경기구분 코드표 (API에서 받아 저장) + team-colors.json(팀 색, 손으로 관리하는 유일한 예외)
-│   ├── raw/{seasonCode}/traditional.json, advanced.json, ...
-│   └── processed/seasons.json, players-index.json(전 시즌 선수 색인: 번호·이름·photoUrl·시즌별 팀·경기), {seasonCode}/players.json(coverage·teams(logoUrl·color)·players)
+│   ├── raw/{seasonCode}/traditional.json, advanced.json, ... + raw/players/players.json(선수 마스터, 페이지 응답 배열)
+│   └── processed/seasons.json, players-index.json(전 시즌 선수 색인: 번호·이름·photoUrl·프로필·시즌별 팀·경기), {seasonCode}/players.json(coverage·teams(logoUrl·color)·players)
 ├── lib/
-│   ├── metrics.ts       ← 파생 지표 계산 (순수 함수만: 백분위, 경기당·40분당 환산, 커버리지 판정, 레이더 축 세트 modern/classic, 유형 라벨, 표본 프리셋 QUALIFY_PRESETS — 카드·순위표 공용, 플레이어 카드 스탯 9개 CARD_STATS·시즌 순위 cardStats(동점 1,2,2,4 / 턴오버 오름차순 / 성공률 시도 기준 attemptThresholds = 경기당 시도 리그 평균, 순위표 공용)·메달 단계 rankTier, 등급 percentileGrade(S~F)·종합 overallPercentile·기본 선수 pickDefaultPlayer, 카드 한 장 계산 buildCardContext·buildCardEntry(카드 화면·선수 페이지 공용), 통산 careerSummary(합계 ÷ 합계 경기))
+│   ├── metrics.ts       ← 파생 지표 계산 (순수 함수만: 백분위, 경기당·40분당 환산, 커버리지 판정, 레이더 축 세트 modern(USG%·TS%·AST%·REB%·PER, PIE 없음)/classic, USG% ×5 usgFromKbl, 유형 라벨, 표본 프리셋 QUALIFY_PRESETS — 카드·순위표 공용, 플레이어 카드 스탯 10개 CARD_STATS(파울은 ranked:false)·시즌 순위 cardStats(동점 1,2,2,4 / 턴오버 오름차순 / 성공률 시도 기준 attemptThresholds = 경기당 시도 리그 평균, 순위표 공용)·메달 단계 rankTier, 등급 percentileGrade(S~F)·종합 overallPercentile·기본 선수 pickDefaultPlayer, 카드 한 장 계산 buildCardContext·buildCardEntry(카드 화면·선수 페이지 공용), 통산 careerSummary(합계 ÷ 합계 경기))
 │   ├── career.ts        ← 선수 페이지 규칙 (순수 함수: 시즌 짧은 표기 seasonShortLabel, 활동 기간, 소속 팀 구간 teamStints, 추이 지표 TREND_METRICS·trendRows(빈 시즌 null))
 │   ├── search.ts        ← 선수 검색 (순수 함수: normalizeName(공백 무시)·matchScore·searchPlayers(최대 10명, 최근 선수 먼저)·buildSearchIndex)
 │   ├── leaders.ts       ← 순위표 규칙 (순수 함수: 부문 정의(better high/low), 필터·정렬·순위(성공률 시도 기준), 열 순서, 성공/시도·숫자 표기, 주소 쿼리)
 │   ├── teams.ts         ← 팀 한글 약칭 teamShortNameKo (연고지 지명 목록 HOME_CITIES — 하드코딩 예외, 이유 주석), 팀 색 배정 assignTeamColors(회색 기본값 팀 → 범주형 팔레트, 팀 순서, 순환 금지)·ensureMarkContrast·comparePairColors(OKLab 거리 < 15면 팔레트 1·2번), 핵심 의존도 teamDependency(상위 3명 득점 비중·표본 충족 수)
 │   ├── distribution.ts  ← 팀 분포 산점도 규칙 (지표 SCATTER_METRICS PER·TS%·경기당 득점, scatterPoints(표본 충족만), toggleTeam(최대 2팀), 주소 쿼리 ?teams=&y=&q=&p=)
 │   ├── home.ts          ← 홈 규칙 (HOME_CATEGORIES, pickHomeSeason(코드표 최신 시즌이 0명이면 직전 시즌 + 개막 전 안내), splitRecentSeasons)
+│   ├── roster.ts        ← 포지션·국적 규칙 (POSITION_LABELS, positionGroupOf(첫 글자), nationalityOf(마스터 없으면 isForeign)) + 비교 집단 필터 filterByPosition·filterByNationality
+│   ├── glossary.ts      ← 용어 설명 데이터 GLOSSARY (지표별 한 줄 설명·공식·출처 URL·검산 메모). 계산 없음
+│   ├── convert.ts       ← 시즌 파일 → 화면용 최소 필드 변환 toCardPlayers·toLeaderPlayers·toCardTeams (순수 — data.ts 와 prebuild 스크립트 공용)
+│   ├── cards.ts         ← public/cards 파일 형식 (열 형식 CARD_FIELDS, encodeSeasonCards·decodeSeasonCards, 기본 표본 기준 참고값 defaults)
 │   ├── data.ts          ← 빌드 시점에 data/processed 읽기 (서버 전용, listAllSeasons(코드표 전체)·loadPlayersIndex·toCardPlayers·toCardTeams·toLeaderPlayers·loadPlayerCareer(선수 전 시즌 행)·loadPlayerCard(최근 시즌 카드를 서버에서 계산))
 │   ├── images.ts        ← 공식 이미지 스위치 officialImagesEnabled() (NEXT_PUBLIC_OFFICIAL_IMAGES=off 면 끔) + 대체 디자인 글자 규칙(teamMark) + 표용 팀 약칭(teamShortLabel: 9글자 넘으면 머리글자) + 색 섞기 mixHex(카드 그라데이션)
 │   └── types.ts         ← Player, SeasonData(coverage·teams), Team(shortNameKo·logoUrl·color), TeamColor, PlayerIndexEntry(photoUrl), CardPlayer, CardTeam, LeaderPlayer(순위표용 최소 필드), CareerSeason·PlayerCareer(선수 페이지), SearchEntry(검색 색인) 등 타입 정의
@@ -154,6 +169,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-09-30 (2차 개편 데이터층): 선수 마스터 API(서버 B /api/v1/players) 수집·조인 추가 — `data/raw/players/players.json` → 선수 색인·시즌 players[]에 position·positionGroup·nationality·heightCm·weightKg·backNumber·draft (마스터 없으면 null + 경고 한 줄, isForeign은 이름 추정 유지). USG% ×5(표준 척도, 원값 usgPctRaw), PIE 미사용(레이더 modern 축 PIE→PER, coverage.advanced는 USG·AST·REB 판정 — 결과 동일), 카드 스탯에 파울(경기당·순위 없음), 순위표 열에 파울, 포지션·국적 필터(lib/roster.ts), 용어집(lib/glossary.ts), 비교 탭용 public/cards/{시즌}.json(열 형식, 최대 44KB). 세션 환경은 KBL 차단이라 마스터 수집은 미검증 — 다음 Actions 실행에서 확인. TOV%·AST/TO 도 우리 데이터로 검산 일치 확인.
 - 2026-09-30 (팀 분포·홈): PLAN.md ④⑤ 완료. `/season/[코드]/teams` 30개 시즌 — 산점도(가로 경기당 출전, 세로 PER/TS%/경기당 득점, 표본 충족만), 팀 칩이 범례·필터 겸용(전체/한 팀 강조/두 팀 비교), 점 누르면 하단 선수 카드(PC는 툴팁도), 표로 보기, 팀별 핵심 의존도 카드(상위 3명 득점 비중·표본 충족 수, 선수 기록 합산이라 공식 팀 기록 아님 안내). 홈은 "이번 시즌 한눈에"로 교체(득점 1위 표지·부문별 1~3위·네 화면 버튼·시즌 목록), 지금은 2026-27이 0명이라 "개막 전 · 직전 시즌" 안내가 뜬다. 발견: 팀 색 10개는 산점도 전체 보기에서 서로 구분되지 않는다(dataviz 검증기: 산점도는 3색까지만 통과, SK·정관장 빨강 ΔE<15, 현대모비스·KCC·가스공사 남색) → 강조/비교가 기본 읽는 방법, 비교 두 팀 색이 비슷하면 파랑·주황으로 바꾸고 두 번째 팀은 네모 점. KT 검정은 다크 바탕에서 밝게 보정. 검증: Playwright 390·1280px 가로 스크롤 0, 팀 선택·지표 전환·점 클릭·쿼리 유지 확인.
 - 2026-09-30 (③ 선수 페이지·검색): `/player/[선수번호]` 1,329개 정적 생성 + SiteNav 검색창. 구성: 팀 색 히어로(사진·로고·국내/외국인·활동 기간·통산 경기/경기당 득점·리바·어시 = 합계 ÷ 합계 경기·소속 이력) → 최근 시즌 플레이어 카드(서버에서 buildCardEntry 로 계산해 결과만 전달, 기본 표본 기준이라 /season 카드와 같은 순위·등급, 저장 동작) → 추이 선 그래프(득점·리바·어시·야투%·TS%·PER, 점 색 = 그 시즌 팀, 이적 시즌은 큰 점, 뛰지 않은 시즌은 선이 끊김, 1시즌이면 안내문) → 시즌별 기록표(경기당/합계, 시즌 → `/season/코드?p=`). 검색 색인은 prebuild 에서 `public/search-index.json` 생성(git 제외). 순위표·카드 이름·PlayerPicker "기록 ›"에 선수 페이지 링크. 빌드 약 33초(정적 1,393쪽), 선수 페이지 HTML 50~115KB(gzip 약 14KB). 검증: typecheck·test·build, Playwright 390/1280 가로 스크롤 0, 검색→이동, 카드 PNG 저장.
 - 2026-09-30 (피드백 반영): ① 순위표 — 출전시간을 경기 오른쪽으로, 3점 성공·USG%·PIE 삭제, 턴오버·3점%·자유투% 추가, 성공률 칸 아래 시즌 합계 성공/시도. 턴오버 부문은 적은 순(카드·순위·기본 정렬). ② 성공률 시도 기준을 "표본 충족 선수의 경기당 시도 리그 평균 이상"으로(`lib/metrics.ts attemptThresholds`, 카드·순위표 공용, 2025-26: 야투 5.8·3점 2.4·자유투 1.3). ③ 팀 한글 약칭 `teams[].shortNameKo`(`lib/teams.ts`, 연고지 지명 제거) → 화면 전부 한글. ④ 플레이어 카드: PC(≥768px) 500px 확대, 팀 필터(`?team=`), 레이더 크게 + 꼭짓점 등급 S~F(`percentileGrade`: 90/75/55/35/15), 헤더 종합 등급(5축 평균). **발견·수정: KBL `fg/fgA/fgRt`는 2점슛, `fdg/fdgA/fdgRt`가 전체 야투였다**(fdg = fg + threep, 득점 = 2·fg + 3·3점 + 자유투, 3개 시즌 전원 일치) → process.ts 매핑을 바로잡아 야투율이 전 시즌 바뀜(예: 워니 49.9 → 44.2%).
