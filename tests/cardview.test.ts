@@ -220,3 +220,30 @@ assert.deepEqual(clearGridFilter({ season: 47, position: "C" as const, origin: "
 assert.equal(clearGridFilter({ position: "C" as const, origin: "foreign" as const, teamCode: "60" }, "origin").origin, "all");
 
 console.log("cardview: 카드 범위·그리드·비교표·주소·용어 앵커·필터 칩 통과");
+
+// ── 선수 상세 하이라이트 카드 (피드백 3차 #6) ──
+{
+  const { seasonHighlights, careerHighlights } = await import("../lib/cardview");
+  const { CARD_STATS } = await import("../lib/metrics");
+  const def = (k: string) => CARD_STATS.find((d) => d.key === k)!;
+  const st = (k: string, rank: number | null, value = 10) =>
+    rank === null
+      ? { def: def(k), value, rank: { rank: null, of: 100, reason: "sample" as const } }
+      : { def: def(k), value, rank: { rank, of: 100, reason: null } };
+  // 1~10위만, 순위 높은 순, 같은 순위는 CARD_STATS 순서, 턴오버·파울 제외, 최대 3개
+  const h = seasonHighlights([st("points", 3, 22.4), st("reb", 12), st("ast", 1), st("tov", 1), st("fgPct", 3, 51.2), st("blk", 8), st("stl", null)], null);
+  assert.deepEqual(h.map((x) => x.title), ["어시스트 1위", "득점 3위", "야투율 3위"]);
+  assert.equal(h[1].value, "22.4");
+  assert.equal(h[1].unit, "경기당");
+  assert.equal(h[2].unit, "%");
+  assert.equal(h[0].note, "100명 중");
+  assert.equal(seasonHighlights([st("points", 5)], "가드")[0].title, "가드 중 득점 5위");
+  assert.deepEqual(seasonHighlights([st("points", 11), st("tov", 1)], null), []);
+  // 대체: 커리어 하이 — 득점·리바·어시 순, 성공률 제외
+  const row = (key: string, label: string, value: string, rate = false) => ({ key, label, value, opponent: "KCC", date: "2023.10.21", rate });
+  const c = careerHighlights([row("fgPct", "야투 성공률", "100.0%", true), row("ast", "어시스트", "12"), row("pts", "득점", "46"), row("blk", "블록", "5"), row("reb", "리바운드", "20")]);
+  assert.deepEqual(c.map((x) => x.title), ["커리어 하이 · 득점", "커리어 하이 · 리바운드", "커리어 하이 · 어시스트"]);
+  assert.equal(c[0].note, "2023.10.21 · 상대 KCC");
+  assert.deepEqual(careerHighlights([]), []);
+  console.log("cardview: 하이라이트 카드 통과");
+}

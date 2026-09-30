@@ -6,6 +6,7 @@
 // - 순위 범위: 전체 / 같은 포지션 — 카드의 순위 비교 집단만 바꾼다 ("가드 중 3위"). 등급은 항상 같은 국적 집단 안.
 // - 같은 선수 "시즌 비교"는 없앴다(2026-09-30 사용자 피드백) — 두 시즌·두 선수 비교는 비교 탭 링크로.
 // - 상태는 주소 ?season=&scope=pos 에 남긴다 (window.location — 정적 HTML은 기본 상태로 그려진다).
+// - PC 는 카드 오른쪽 열 = 시즌별 추이(카드 높이를 채움) + 하이라이트 카드 3개(그 시즌 순위 1~10위 부문, 없으면 커리어 하이).
 // - 시즌별 기록표(CareerTable)의 시즌을 누르면 "player-season" 이벤트로 여기 시즌을 바꾼다.
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -19,7 +20,10 @@ import InfoLink from "./InfoLink";
 import { PlayerCardSkeleton } from "./PlayerCard";
 import Segmented from "./Segmented";
 import { useCardView } from "./useSeasonCards";
-import type { SeasonCardView } from "@/lib/cardview";
+import { careerHighlights, seasonHighlights, type SeasonCardView } from "@/lib/cardview";
+import type { CareerHighRow } from "@/lib/career";
+import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
+import HighlightCards from "./HighlightCards";
 
 /** 시즌별 기록표 등 다른 컴포넌트가 카드 시즌을 바꿀 때 보내는 이벤트 이름 */
 export const PLAYER_SEASON_EVENT = "player-season";
@@ -33,11 +37,13 @@ interface Props {
   initial: SeasonCardView;
   /** 포지션 묶음 이름 (예: "가드"). 모르면 null → 같은 포지션 범위 버튼을 끈다 */
   groupLabel: string | null;
-  /** PC 에서 카드 오른쪽에 둘 내용 (시즌별 추이 그래프) */
+  /** PC 에서 카드 오른쪽에 둘 내용 (시즌별 추이 그래프 — fill 로 카드 높이를 채운다) */
   aside?: React.ReactNode;
+  /** 정규시즌 커리어 하이 행 (시즌 순위 1~10위가 없을 때 하이라이트 대체용). 없으면 [] */
+  careerHighRows: CareerHighRow[];
 }
 
-export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, groupLabel, aside }: Props) {
+export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, groupLabel, aside, careerHighRows }: Props) {
   const codes = useMemo(() => seasons.map((s) => s.seasonCode), [seasons]);
   const labelOf = (code: number) => seasonShortLabel(seasons.find((s) => s.seasonCode === code)?.seasonLabel ?? String(code));
   const [state, setState] = useState<PlayerViewState>({ season: initial.seasonCode, scope: "all" });
@@ -68,6 +74,12 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
   const seasonChips = [...codes].reverse().map((c) => ({ value: c, label: labelOf(c), aria: `${labelOf(c)} 시즌` }));
 
   const view = a.view;
+  // 하이라이트: 고른 시즌 순위 1~10위 부문 최대 3개, 없으면 정규시즌 커리어 하이 상위 3개 (lib/cardview)
+  const seasonItems = view ? seasonHighlights(view.entry.stats, view.groupLabel) : [];
+  const highlight =
+    seasonItems.length > 0
+      ? { title: `${labelOf(view!.seasonCode)} 하이라이트`, items: seasonItems }
+      : { title: "커리어 하이 (정규시즌)", items: careerHighlights(careerHighRows) };
   const fileName = `${nameKo}_${labelOf(season)}_플레이어카드.png`;
 
   const deck = (
@@ -124,9 +136,13 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
       </section>
 
       {/* ── 카드 (PC 는 오른쪽에 추이 그래프) ── */}
-      <div className="mt-4 grid gap-6 lg:grid-cols-[500px_minmax(0,1fr)] lg:items-start">
+      {/* PC: 오른쪽 열이 카드 높이만큼 늘어나고(stretch), 추이 그래프가 남는 높이를 채운 뒤 아래에 하이라이트 3개 */}
+      <div className="mt-4 grid gap-6 lg:grid-cols-[500px_minmax(0,1fr)] lg:items-stretch">
         {deck}
-        {aside && <div className="min-w-0">{aside}</div>}
+        <div className="flex min-w-0 flex-col gap-4">
+          {aside}
+          <HighlightCards title={highlight.title} items={highlight.items} teamPrimary={view?.team?.color.primary ?? FALLBACK_TEAM_COLOR.primary} />
+        </div>
       </div>
 
       <p className="mt-4 max-w-3xl text-sub leading-relaxed text-ink-3">

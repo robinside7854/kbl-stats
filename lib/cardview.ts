@@ -16,6 +16,7 @@ import {
   qualifyLabel,
   type CardContext,
   type CardEntryOf,
+  type CardStatEntry,
   type CardStatKey,
   type CardStatRank,
   type Grade,
@@ -463,4 +464,79 @@ export function playersQueryString(s: PlayersState, latest: number): string {
   if (s.teamCode) qs.set("team", s.teamCode);
   const str = qs.toString();
   return str ? `?${str}` : "";
+}
+
+// ─────────────────────────────────────────────
+// 선수 상세 하이라이트 카드 (PC 오른쪽 열 아래, 피드백 3차 #6)
+// ─────────────────────────────────────────────
+
+export interface Highlight {
+  key: string;
+  /** 예: "득점 1위" / "가드 중 득점 1위" / "커리어 하이 · 득점" */
+  title: string;
+  /** 큰 숫자, 예: "25.3" / "46" */
+  value: string;
+  /** 숫자 뒤 작은 단위, 예: "경기당" / "%" / "점" */
+  unit: string;
+  /** 아래 작은 줄, 예: "142명 중" / "2023.10.21 · 상대 KCC" */
+  note: string;
+  /** 순위 (시즌 하이라이트만, 커리어 하이는 null) */
+  rank: number | null;
+}
+
+/** 하이라이트 카드 최대 수 */
+export const HIGHLIGHT_LIMIT = 3;
+/** 하이라이트에 넣는 시즌 순위 한계 (1~10위) */
+export const HIGHLIGHT_MAX_RANK = 10;
+
+/**
+ * 그 시즌 카드 스탯 중 순위 1~10위인 부문, 순위 높은 순(같으면 CARD_STATS 순서) 최대 3개.
+ * 턴오버는 뺀다 — "적을수록 상위"라 출전이 적은 선수가 1위가 되기 쉬워 하이라이트로 읽히지 않는다. 파울(순위 없음)도 뺀다.
+ * groupLabel: 같은 포지션 범위면 "가드" → "가드 중 득점 1위".
+ */
+export function seasonHighlights(
+  stats: readonly CardStatEntry[],
+  groupLabel: string | null,
+  limit = HIGHLIGHT_LIMIT,
+): Highlight[] {
+  const order = CARD_STATS.map((d) => d.key);
+  return stats
+    .filter((s) => s.def.ranked && s.def.key !== "tov" && s.rank.rank !== null && s.rank.rank <= HIGHLIGHT_MAX_RANK)
+    .sort((a, b) => a.rank.rank! - b.rank.rank! || order.indexOf(a.def.key) - order.indexOf(b.def.key))
+    .slice(0, limit)
+    .map((s) => ({
+      key: s.def.key,
+      title: `${groupLabel ? `${groupLabel} 중 ` : ""}${s.def.label} ${s.rank.rank}위`,
+      value: formatCardValue(s.value, false),
+      unit: s.def.kind === "pct" ? "%" : "경기당",
+      note: `${s.rank.of}명 중`,
+      rank: s.rank.rank,
+    }));
+}
+
+/** 커리어 하이 대체 카드에 쓰는 부문 순서 (팬이 먼저 찾는 기록부터) */
+export const CAREER_HIGHLIGHT_KEYS = ["pts", "reb", "ast", "stl", "blk", "tpm"] as const;
+
+/**
+ * 시즌 순위 1~10위가 하나도 없을 때 대신 보여 줄 정규시즌 커리어 하이 최대 3개 (CAREER_HIGHLIGHT_KEYS 순서, 성공률 제외).
+ * rows = lib/career careerHighRows 결과 (값·날짜·상대가 이미 표기된 문자열).
+ */
+export function careerHighlights(
+  rows: readonly { key: string; label: string; value: string; opponent: string; date: string; rate: boolean }[],
+  limit = HIGHLIGHT_LIMIT,
+): Highlight[] {
+  const byKey = new Map(rows.filter((r) => !r.rate).map((r) => [r.key, r]));
+  return CAREER_HIGHLIGHT_KEYS.flatMap((k) => {
+    const r = byKey.get(k);
+    return r ? [r] : [];
+  })
+    .slice(0, limit)
+    .map((r) => ({
+      key: r.key,
+      title: `커리어 하이 · ${r.label}`,
+      value: r.value,
+      unit: r.key === "pts" ? "점" : "개",
+      note: [r.date, r.opponent !== "–" ? `상대 ${r.opponent}` : ""].filter(Boolean).join(" · "),
+      rank: null,
+    }));
 }

@@ -1,7 +1,7 @@
 // 선수 페이지 머리말 (PLAN.md §2-2 ①, §5-4): 최근 시즌 팀 색 배경 + 큰 세로 사진 + 로고 + 이름·소속·활동 기간,
 // 이름 아래 국적 배지(국내/외국/아시아쿼터)·활동 기간, 프로필 한 줄(포지션·키·몸무게·등번호·드래프트 — 선수 마스터,
 // 나이·국적(국가명)·출신교 — 서버 B 프로필, 없으면 뺌),
-// 그 아래 통산 요약 4칸과 소속 팀 이력. 계산은 lib/metrics careerSummary, 표기는 lib/career.
+// 이름 아래 칭호 배지 줄(lib/badges, 최대 5개 + "+n"), 그 아래 통산 요약 8칸(모바일 4×2, PC 8×1)과 소속 팀 이력. 계산은 lib/metrics careerSummary, 표기는 lib/career.
 // 머리말 팀 색은 가장 최근 시즌 팀 (카드 영역은 고른 시즌 팀 색을 따로 쓴다).
 import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
 import type { CareerSeason, PlayerIndexEntry, TeamColor } from "@/lib/types";
@@ -11,10 +11,12 @@ import { nationalityOf, NATIONALITY_LABELS } from "@/lib/roster";
 import { mixHex, teamShortLabel } from "@/lib/images";
 import PlayerAvatar from "./PlayerAvatar";
 import TeamLogo from "./TeamLogo";
+import BadgeRow, { type BadgeItem } from "./BadgeRow";
 
 const FALLBACK: TeamColor = FALLBACK_TEAM_COLOR;
 const NF1 = new Intl.NumberFormat("ko-KR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 const NF0 = new Intl.NumberFormat("ko-KR");
+const pctText = (v: number | null) => (v === null ? "–" : NF1.format(v));
 
 interface Props {
   entry: PlayerIndexEntry;
@@ -22,9 +24,11 @@ interface Props {
   seasons: CareerSeason[];
   /** 만 나이 기준일 "YYYY-MM-DD" (빌드 시각, 한국 시간 — 페이지가 넘긴다) */
   today: string;
+  /** 칭호 배지 (우선순위 순, 빌드 시점 lib/badges playerBadges) */
+  badges: BadgeItem[];
 }
 
-export default function PlayerHero({ entry, seasons, today }: Props) {
+export default function PlayerHero({ entry, seasons, today, badges }: Props) {
   const latest = seasons[seasons.length - 1];
   const first = seasons[0];
   const team = latest?.team ?? null;
@@ -36,11 +40,16 @@ export default function PlayerHero({ entry, seasons, today }: Props) {
   const span = first && latest ? activeSpanLabel(first.seasonLabel, latest.seasonLabel, seasons.length) : "";
   const stints = teamStints(seasons);
   const facts = [...profileFacts(entry), ...personalFacts(entry, today)];
+  // 통산 타일 8칸: 경기 · 경기당 득점·리바운드·어시스트·스틸·블록 · 통산 야투%·3점%(성공 합계 ÷ 시도 합계). 계산은 careerSummary
   const tiles = [
-    { label: "통산 경기", value: NF0.format(sum.games), unit: "경기" },
-    { label: "경기당 득점", value: NF1.format(sum.points), unit: "" },
-    { label: "경기당 리바운드", value: NF1.format(sum.reb), unit: "" },
-    { label: "경기당 어시스트", value: NF1.format(sum.ast), unit: "" },
+    { label: "통산 경기", value: NF0.format(sum.games), perGame: false },
+    { label: "득점", value: NF1.format(sum.points), perGame: true },
+    { label: "리바운드", value: NF1.format(sum.reb), perGame: true },
+    { label: "어시스트", value: NF1.format(sum.ast), perGame: true },
+    { label: "스틸", value: NF1.format(sum.stl), perGame: true },
+    { label: "블록", value: NF1.format(sum.blk), perGame: true },
+    { label: "야투%", value: pctText(sum.fgPct), perGame: false },
+    { label: "3점%", value: pctText(sum.tpPct), perGame: false },
   ];
 
   return (
@@ -73,6 +82,11 @@ export default function PlayerHero({ entry, seasons, today }: Props) {
               {entry.nameKo}
             </h1>
             <p className="mt-1 truncate text-sub font-medium opacity-85 sm:text-body">{entry.nameEn}</p>
+            {badges.length > 0 && (
+              <div className="mt-2.5">
+                <BadgeRow badges={badges} teamPrimary={color.primary} />
+              </div>
+            )}
             <div className="mt-3 flex flex-wrap gap-1.5 text-sub font-semibold">
               <span className="rounded-control px-2 py-0.5" style={{ background: "rgba(255,255,255,0.18)" }}>
                 {NATIONALITY_LABELS[nationalityOf(entry)]}
@@ -105,18 +119,19 @@ export default function PlayerHero({ entry, seasons, today }: Props) {
 
       {/* ── 통산 요약 + 소속 이력 ── */}
       <div className="mx-auto max-w-5xl px-4">
-        <dl className="tabular -mt-px grid grid-cols-4 overflow-hidden rounded-b-container border border-t-0 border-line bg-surface shadow-card">
-          {tiles.map((t, i) => (
-            <div key={t.label} className={`min-w-0 px-2 py-3 text-center sm:px-4 ${i > 0 ? "border-l border-line" : ""}`}>
+        <dl className="tabular -mt-px grid grid-cols-4 gap-px overflow-hidden rounded-b-container border border-t-0 border-line bg-line shadow-card lg:grid-cols-8">
+          {tiles.map((t) => (
+            <div key={t.label} className="min-w-0 bg-surface px-1.5 py-3 text-center sm:px-3">
               <dt className="truncate text-caption font-medium text-ink-3 sm:text-sub">
-                {i === 0 ? t.label : <><span className="hidden sm:inline">경기당 </span>{t.label.replace("경기당 ", "")}</>}
+                {t.perGame ? <span className="hidden sm:inline">경기당 </span> : null}
+                {t.label}
               </dt>
-              <dd className="mt-0.5 text-xl font-bold tracking-tight text-ink sm:text-3xl">{t.value}</dd>
+              <dd className="mt-0.5 text-xl font-bold tracking-tight text-ink sm:text-3xl lg:text-2xl">{t.value}</dd>
             </div>
           ))}
         </dl>
         <p className="mt-1.5 text-caption text-ink-3">
-          통산 {sum.seasons}시즌 정규시즌 기준 · 경기당 값은 전 시즌 합계 ÷ 전 시즌 경기 수
+          통산 {sum.seasons}시즌 정규시즌 기준 · 득점~블록은 경기당(전 시즌 합계 ÷ 전 시즌 경기 수), 야투%·3점%는 전 시즌 성공 합계 ÷ 시도 합계
         </p>
 
         <div className="mt-4">

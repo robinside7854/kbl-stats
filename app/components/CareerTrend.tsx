@@ -32,6 +32,11 @@ interface Props {
   seasons: CareerSeason[];
   /** 코드표 시즌 목록 (빈 시즌을 가로축에 깔기 위해) */
   allSeasons: SeasonOption[];
+  /**
+   * PC(1024px 이상)에서 부모 높이를 채운다 — 선수 상세에서 카드 옆 열이 카드 높이만큼 늘어날 때 차트가 그 높이를 채우도록.
+   * 모바일은 지금처럼 고정 높이.
+   */
+  fill?: boolean;
 }
 
 interface Datum extends TrendRow {
@@ -100,7 +105,7 @@ function LogoDot({ cx, cy, d, surface }: { cx: number; cy: number; d: Datum; sur
   );
 }
 
-export default function CareerTrend({ seasons, allSeasons }: Props) {
+export default function CareerTrend({ seasons, allSeasons, fill = false }: Props) {
   const colors = useThemeColors();
   const [key, setKey] = useState<TrendKey>("points");
   const metric = TREND_METRICS.find((m) => m.key === key)!;
@@ -131,7 +136,7 @@ export default function CareerTrend({ seasons, allSeasons }: Props) {
 
   if (seasons.length < 2) {
     return (
-      <section aria-labelledby="trend-title" className="surface-card rounded-container p-4">
+      <section aria-labelledby="trend-title" className={`surface-card rounded-container p-4 ${fill ? "lg:flex-1" : ""}`}>
         <h2 id="trend-title" className="text-h2 font-bold">
           시즌별 추이
         </h2>
@@ -146,7 +151,10 @@ export default function CareerTrend({ seasons, allSeasons }: Props) {
   const yDomain: [number | string, number | string] = metric.kind === "perGame" ? [0, "auto"] : ["auto", "auto"];
 
   return (
-    <section aria-labelledby="trend-title" className="surface-card rounded-container p-3 sm:p-4">
+    <section
+      aria-labelledby="trend-title"
+      className={`surface-card rounded-container p-3 sm:p-4 ${fill ? "lg:flex lg:min-h-0 lg:flex-1 lg:flex-col" : ""}`}
+    >
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         <h2 id="trend-title" className="text-h2 font-bold">
           시즌별 추이 <span className="font-medium text-ink-2">· {metric.title}</span>
@@ -170,7 +178,7 @@ export default function CareerTrend({ seasons, allSeasons }: Props) {
         ))}
       </div>
 
-      <div aria-hidden className="mt-3 h-60 w-full sm:h-72">
+      <div aria-hidden className={`mt-3 h-60 w-full sm:h-72 ${fill ? "lg:h-auto lg:min-h-72 lg:flex-1" : ""}`}>
         <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 340, height: 240 }}>
           <LineChart data={data} margin={{ top: 30, right: 34, bottom: 4, left: 4 }}>
             <CartesianGrid vertical={false} stroke={colors.grid} strokeWidth={1} />
