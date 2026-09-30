@@ -14,44 +14,18 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: 9차 조사(헤더 추가) — players API 범위(은퇴 선수 포함 여부)·필드 값 분포
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: 10차 조사 — 선수 상세 페이지 API(경기별 기록) 캡처
         shell: bash
         run: |
           set +e
-          UA="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/128 Safari/537.36"
-          B="https://kbl-api.sports2i.com/api/v1/players"
-          q() { echo; echo "--- $1"; curl -sS --max-time 25 -A "$UA" -H "Accept: application/json" -H "Referer: https://kbl.or.kr/" -H "Origin: https://kbl.or.kr" "$1" > r.json; echo "bytes=$(wc -c < r.json)"; python3 - <<'PY'
-          import json
-          try:
-              d=json.load(open('r.json'))
-          except Exception as e:
-              print('not json:', open('r.json').read()[:300]); raise SystemExit
-          if isinstance(d,dict):
-              print('keys=',list(d)[:8],'totalCn=',d.get('totalCn'))
-              L=d.get('playerList') or d.get('data') or []
-          else: L=d
-          print('rows=',len(L))
-          if L:
-              print('fields=',list(L[0].keys()))
-              from collections import Counter
-              print('pos=',Counter(str(x.get('pos')) for x in L))
-              print('flag2=',Counter(str(x.get('playerFlagCode2')) for x in L))
-              print('teams=',Counter(str(x.get('teamCode')) for x in L).most_common(12))
-              hit=[x for x in L if str(x.get('playerNo')) in ('255032','245027','215026','291248')]
-              print('known=',[(x.get('playerNo'),x.get('kname'),x.get('pos'),x.get('teamCode')) for x in hit])
-              print('sample=',json.dumps(L[0],ensure_ascii=False)[:300])
-          PY
-          sleep 1.5; }
-          {
-            q "$B?regSc=Y&pageNo=1&listCn=200"
-            q "$B?regSc=N&pageNo=1&listCn=200"
-            q "$B?pageNo=1&listCn=200"
-            q "$B?regSc=N&pageNo=2&listCn=200"
-            q "$B?kname=%EC%84%9C%EC%9E%A5%ED%9B%88&pageNo=1&listCn=20"
-            q "$B?playerNo=255032"
-            q "$B/255032"
-            q "$B?regSc=N&seasonCode=13&pageNo=1&listCn=200"
-          } | tee probe-images.txt
+          npm init -y >/dev/null 2>&1
+          npm i playwright@1 >/dev/null 2>&1
+          npx playwright install --with-deps chromium >/dev/null 2>&1
+          node scripts-probe/capture.mjs 2>&1 | tee probe-images.txt
           true
       - uses: actions/upload-artifact@v4
         with:
