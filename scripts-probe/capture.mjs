@@ -13,26 +13,31 @@ page.on("response", async (res) => {
   console.log("    body=" + body.slice(0, 900).replace(/\s+/g, " "));
 });
 const open = async (u) => { console.log("\n===== OPEN " + u); try { await page.goto(u, { waitUntil: "networkidle", timeout: 45000 }); } catch (e) { console.log("goto: " + e.message); } await page.waitForTimeout(2500); };
-await open("https://kbl.or.kr/player/player");
-// 첫 선수 이름 클릭 (표 행)
-const cell = page.getByText("강상재", { exact: true }).first();
-if (await cell.count()) { await cell.click().catch(e => console.log("click: " + e.message)); await page.waitForTimeout(4000); console.log("    url after click=" + page.url()); }
-else console.log("    no cell");
-const txt = await page.evaluate(() => document.body.innerText.slice(0, 2500).replace(/\s+/g, " "));
-console.log("    visibleText=" + txt);
-// 상세 페이지 안 탭(경기별 기록 등) 클릭 시도
-for (const label of ["경기별", "경기기록", "기록", "시즌별"]) {
-  const t = page.getByText(label, { exact: false }).first();
-  if (await t.count()) { console.log("\n===== CLICK tab " + label); await t.click().catch(e => console.log("click: " + e.message)); await page.waitForTimeout(3500); console.log("    url=" + page.url()); }
+await open("https://kbl.or.kr/player/player/291248");
+const dump = async (tag) => { const t = await page.evaluate(() => document.body.innerText.slice(0, 1800).replace(/\s+/g, " ")); console.log(`    [${tag}] text=` + t); };
+await dump("open");
+// 시즌 선택: 2025-2026 으로
+const sel = page.locator("select").first();
+if (await sel.count()) {
+  const opts = await sel.locator("option").allTextContents(); console.log("    select options=" + JSON.stringify(opts.slice(0, 8)));
+  const target = opts.findIndex(o => o.includes("2025")); if (target >= 0) { await sel.selectOption({ index: target }); await page.waitForTimeout(3500); await dump("season47"); }
+} else console.log("    no select");
+for (const label of ["한경기최다", "경기별", "부문별"]) {
+  const t = page.locator(`button:has-text("${label}"), a:has-text("${label}"), li:has-text("${label}")`).first();
+  console.log("\n===== CLICK tab " + label + " count=" + await t.count());
+  if (await t.count()) { await t.click({ force: true }).catch(e => console.log("click: " + e.message)); await page.waitForTimeout(3500); await dump(label); }
 }
-// 서버 A 경기별 후보 직접 호출
+// 후보 직접 호출
 for (const u of [
-  "https://api-stats.kbl.or.kr/api/records/player/game/traditional?seasonCode=47&gameCode=01&playerNo=291248&listCn=200&pageNo=1",
-  "https://api-stats.kbl.or.kr/api/records/player/games?seasonCode=47&gameCode=01&playerNo=291248",
-  "https://api-stats.kbl.or.kr/api/records/player/detail?seasonCode=47&gameCode=01&playerNo=291248",
+  "https://kbl-api.sports2i.com/api/v1/players/categories/game/47/01/291248",
+  "https://kbl-api.sports2i.com/api/v1/players/categories/game/47/48/291248",
+  "https://kbl-api.sports2i.com/api/v1/players/categories/high/291248",
+  "https://kbl-api.sports2i.com/api/v1/players/categories/max/291248",
+  "https://kbl-api.sports2i.com/api/v1/players/categories/best/291248",
+  "https://kbl-api.sports2i.com/api/v1/players/categories/game-high/291248",
 ]) {
-  const r = await page.request.get(u, { headers: { Accept: "application/json", Referer: "https://kbl.or.kr/", Origin: "https://kbl.or.kr" } }).catch(e => null);
-  console.log("\n--- " + u + " → " + (r ? r.status() + " " + (await r.text()).slice(0, 400) : "error"));
+  const r = await page.request.get(u, { headers: { Accept: "application/json", Referer: "https://kbl.or.kr/", Origin: "https://kbl.or.kr" } }).catch(() => null);
+  console.log("\n--- " + u + " → " + (r ? r.status() + " " + (await r.text()).slice(0, 500).replace(/\s+/g, " ") : "error"));
   await page.waitForTimeout(1500);
 }
 await browser.close();
