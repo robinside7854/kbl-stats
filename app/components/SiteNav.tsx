@@ -37,9 +37,11 @@ interface Props {
   onSeasonChange?: (seasonCode: number) => void;
   /** 순위표처럼 넓은 화면에 맞출 때 */
   wide?: boolean;
+  /** 본문에 큰 검색창이 있는 화면(선수 탭)에서 상단 검색을 숨긴다 (디자인 점검 A4: 검색창 중복) */
+  hideSearch?: boolean;
 }
 
-export default function SiteNav({ seasons, seasonCode, view, onSeasonChange, wide = false }: Props) {
+export default function SiteNav({ seasons, seasonCode, view, onSeasonChange, wide = false, hideSearch = false }: Props) {
   const router = useRouter();
   const route = SEASON_ROUTES[view];
   const showSeason = !!route || !!onSeasonChange;
@@ -56,13 +58,13 @@ export default function SiteNav({ seasons, seasonCode, view, onSeasonChange, wid
           <Link href="/" className="order-1 shrink-0 text-base font-bold tracking-tight text-ink">
             KBL 팬 스탯
           </Link>
-          <PlayerSearch siteSearch className="order-3 w-full sm:order-2 sm:w-auto sm:max-w-xs sm:flex-1" />
+          {!hideSearch && <PlayerSearch className="order-3 w-full sm:order-2 sm:w-auto sm:max-w-xs sm:flex-1" />}
           {showSeason && (
             <label className="order-2 flex min-w-0 items-center gap-2 text-xs font-medium text-ink-2 sm:order-3">
               <span className="shrink-0">시즌</span>
               <select
                 aria-label="시즌 선택"
-                className="h-9 min-w-0 rounded-lg border border-line bg-surface px-2 text-sm text-ink"
+                className="focus-ring h-10 min-w-0 cursor-pointer rounded-lg border border-line bg-surface px-2 text-sm text-ink"
                 value={seasonCode}
                 onChange={(e) => changeSeason(Number(e.target.value))}
               >

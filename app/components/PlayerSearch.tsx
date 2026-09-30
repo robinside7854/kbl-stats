@@ -4,13 +4,13 @@
 // - onSelect 를 주면 이동하지 않고 고른 선수를 넘긴다 (비교 탭 슬롯)
 // 검색 데이터는 우리 사이트의 정적 파일 /search-index.json (useSearchIndex) — KBL 서버 호출 아님.
 // 매칭·정렬 규칙은 lib/search.ts searchPlayers.
-// 입력창의 data-site-search 속성은 홈의 "선수 검색" 버튼이 포커스를 옮길 때 찾는 표시다 (FocusSearchButton) — 상단 검색창에만 단다.
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { SearchEntry } from "@/lib/types";
 import { searchPlayers, searchSpanLabel } from "@/lib/search";
 import { teamShortLabel } from "@/lib/images";
+import { IconSearch } from "./icons";
 import PlayerAvatar from "./PlayerAvatar";
 import { loadSearchIndex } from "./useSearchIndex";
 
@@ -25,8 +25,6 @@ interface Props {
   placeholder?: string;
   /** 스크린리더 이름 */
   label?: string;
-  /** 상단 검색창 표시 (홈 "선수 검색" 버튼이 찾는다) */
-  siteSearch?: boolean;
 }
 
 export default function PlayerSearch({
@@ -36,7 +34,6 @@ export default function PlayerSearch({
   autoFocusDesktop = false,
   placeholder = "선수 이름 검색 (예: 워니)",
   label = "선수 검색",
-  siteSearch = false,
 }: Props) {
   const id = useId();
   const router = useRouter();
@@ -124,15 +121,11 @@ export default function PlayerSearch({
         {label}
       </label>
       <span aria-hidden className={`pointer-events-none absolute top-1/2 -translate-y-1/2 text-ink-3 ${lg ? "left-3.5" : "left-2.5"}`}>
-        <svg width={lg ? 20 : 16} height={lg ? 20 : 16} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-          <circle cx="7" cy="7" r="4.75" />
-          <path d="M10.5 10.5 14 14" />
-        </svg>
+        <IconSearch size={lg ? 20 : 16} />
       </span>
       <input
         ref={inputRef}
         id={id}
-        data-site-search={siteSearch ? "" : undefined}
         type="search"
         role="combobox"
         aria-expanded={showList}

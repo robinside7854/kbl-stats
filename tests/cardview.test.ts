@@ -2,6 +2,9 @@
 import assert from "node:assert/strict";
 import { decodeSeasonCards, encodeSeasonCards } from "../lib/cards";
 import {
+  GRID_PAGE_SIZE,
+  gridFilterChips,
+  clearGridFilter,
   buildGridEntries,
   buildSeasonCardView,
   cardFootStats,
@@ -184,4 +187,16 @@ assert.equal(new Set(Object.values(GLOSSARY_ANCHORS)).size, GLOSSARY.length); //
 for (const k of Object.keys(LEADER_COLUMN_GLOSSARY)) assert.ok((TABLE_COLUMNS as readonly string[]).includes(k), k);
 for (const set of Object.values(RADAR_AXIS_SETS)) for (const a of set) assert.ok(RADAR_AXIS_GLOSSARY[a], a); // 모든 레이더 축에 풀이
 
-console.log("cardview: 카드 범위·그리드·비교표·주소·용어 앵커 통과");
+// ── 선수 탭 필터 칩 · 더 보기 ──
+assert.equal(GRID_PAGE_SIZE, 20);
+assert.deepEqual(gridFilterChips({ position: "all", origin: "all", teamCode: null }, String), []);
+assert.deepEqual(
+  gridFilterChips({ position: "C", origin: "foreign", teamCode: "60" }, (c) => `팀${c}`).map((c) => `${c.field}:${c.label}`),
+  ["position:센터", "origin:외국", "teamCode:팀60"],
+);
+assert.deepEqual(clearGridFilter({ season: 47, position: "C" as const, origin: "foreign" as const, teamCode: "60" }, "teamCode"), {
+  season: 47, position: "C", origin: "foreign", teamCode: null,
+});
+assert.equal(clearGridFilter({ position: "C" as const, origin: "foreign" as const, teamCode: "60" }, "origin").origin, "all");
+
+console.log("cardview: 카드 범위·그리드·비교표·주소·용어 앵커·필터 칩 통과");

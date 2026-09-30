@@ -22,8 +22,10 @@ import {
 import {
   filterByNationality,
   filterByPosition,
+  nationalityFilterLabel,
   nationalityFromParam,
   nationalityParam,
+  positionFilterLabel,
   positionFromParam,
   positionParam,
   POSITION_GROUP_LABELS,
@@ -164,6 +166,29 @@ export interface GridFilter {
   origin: NationalityFilter;
   /** null 이면 전체 팀 */
   teamCode: string | null;
+}
+
+/** 선수 탭 그리드 첫 화면 카드 수. "더 보기"를 누를 때마다 이만큼 더 (디자인 점검 A3) */
+export const GRID_PAGE_SIZE = 20;
+
+/** 선수 탭 "필터" 시트 항목 (시즌은 상단 시즌 선택이 맡는다) */
+export type GridFilterField = keyof GridFilter;
+
+/**
+ * 적용 중 필터 요약 칩 (기본값 아닌 것만, 시트 안 순서). teamLabel: 팀 코드 → 표시 이름.
+ * 형식은 lib/leaders leaderFilterChips 와 같다 ({ field, label }).
+ */
+export function gridFilterChips(f: GridFilter, teamLabel: (code: string) => string): { field: GridFilterField; label: string }[] {
+  const out: { field: GridFilterField; label: string }[] = [];
+  if (f.position !== "all") out.push({ field: "position", label: positionFilterLabel(f.position) });
+  if (f.origin !== "all") out.push({ field: "origin", label: nationalityFilterLabel(f.origin) });
+  if (f.teamCode !== null) out.push({ field: "teamCode", label: teamLabel(f.teamCode) });
+  return out;
+}
+
+/** 칩의 ✕: 그 항목만 기본값(전체)으로 */
+export function clearGridFilter<T extends GridFilter>(f: T, field: GridFilterField): T {
+  return { ...f, [field]: field === "teamCode" ? null : "all" };
 }
 
 /** 포지션·국적(lib/roster)·팀으로 거른다 */
