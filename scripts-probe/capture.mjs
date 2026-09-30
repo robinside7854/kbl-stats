@@ -16,12 +16,23 @@ page.on("response", async (res) => {
   const pd = req.postData(); if (pd) console.log("    postData=" + pd.slice(0, 300));
   if (hit) console.log("    body=" + body.slice(0, 1200).replace(/\s+/g, " "));
 });
-for (const u of ["https://kbl.or.kr/player/list", "https://kbl.or.kr/player/detail?playerNo=291248"]) {
+for (const u of ["https://kbl.or.kr/player/player"]) {
   console.log("\n===== OPEN " + u);
   try { await page.goto(u, { waitUntil: "networkidle", timeout: 45000 }); } catch (e) { console.log("goto: " + e.message); }
   await page.waitForTimeout(3000);
-  // 화면에 포지션 글자가 보이는지
-  const txt = await page.evaluate(() => document.body.innerText.slice(0, 1500).replace(/\s+/g, " "));
+  const txt = await page.evaluate(() => document.body.innerText.slice(0, 1200).replace(/\s+/g, " "));
   console.log("    visibleText=" + txt);
+  // 선수 목록의 링크·클릭 대상 후보
+  const links = await page.evaluate(() => Array.from(document.querySelectorAll("a[href*='player'], li[data-pcode]")).slice(0, 8).map(e => (e.getAttribute("href") ?? "") + " | data-pcode=" + (e.getAttribute("data-pcode") ?? "") + " | " + e.textContent.trim().slice(0, 40)));
+  console.log("    links=" + JSON.stringify(links));
+  const target = await page.$("li[data-pcode], a[href*='playerNo'], a[href*='/player/detail'], a[href*='pcode']");
+  if (target) {
+    console.log("\n===== CLICK first player");
+    await target.click().catch(e => console.log("click: " + e.message));
+    await page.waitForTimeout(4000);
+    console.log("    url after click=" + page.url());
+    const txt2 = await page.evaluate(() => document.body.innerText.slice(0, 1500).replace(/\s+/g, " "));
+    console.log("    visibleText=" + txt2);
+  }
 }
 await browser.close();
