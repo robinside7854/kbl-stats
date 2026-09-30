@@ -1,6 +1,6 @@
 "use client";
 // 팀 로고: 기본은 팀 색 사각형 + 약칭(최대 3글자), 공식 로고가 있으면 위에 얹는다 (PLAN.md §5-2 ③).
-// next/image를 쓰지 않는다(외부 로고 복제 회피). 이미지 저장(html-to-image) 대상 영역 안에는 넣지 않는다(CORS).
+// next/image를 쓰지 않는다(외부 로고 복제 회피). 이미지 저장(html-to-image) 사본에는 official={false} 로 넣는다(CORS).
 import type { TeamColor } from "@/lib/types";
 import { teamMark } from "@/lib/images";
 import { useOfficialImage } from "./useOfficialImage";
@@ -12,11 +12,13 @@ interface Props {
   shortName: string;
   color?: TeamColor;
   size?: number;
+  /** false 면 공식 로고를 쓰지 않고 대체 디자인(팀 색 + 약칭)만 — 이미지 저장 사본 */
+  official?: boolean;
   className?: string;
 }
 
-export default function TeamLogo({ logoUrl, shortName, color = FALLBACK, size = 24, className = "" }: Props) {
-  const { src, loaded, imgProps } = useOfficialImage(logoUrl);
+export default function TeamLogo({ logoUrl, shortName, color = FALLBACK, size = 24, official = true, className = "" }: Props) {
+  const { src, loaded, imgProps } = useOfficialImage(logoUrl, official);
   const mark = teamMark(shortName);
   return (
     <span

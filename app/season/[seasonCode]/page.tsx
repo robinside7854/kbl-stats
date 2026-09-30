@@ -14,7 +14,7 @@ type Params = Promise<{ seasonCode: string }>;
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { seasonCode } = await params;
   const season = loadSeasonData(Number(seasonCode));
-  return { title: season ? `${season.seasonLabel} 선수 유형 레이더 카드 · KBL` : "KBL 선수 유형 레이더 카드" };
+  return { title: season ? `${season.seasonLabel} 플레이어 카드 · KBL` : "KBL 플레이어 카드" };
 }
 
 export default async function SeasonPage({ params }: { params: Params }) {

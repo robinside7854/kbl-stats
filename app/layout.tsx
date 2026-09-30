@@ -2,8 +2,8 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "KBL 선수 유형 레이더 카드",
-  description: "KBL 정규시즌 선수의 USG% · TS% · AST% · REB% · PIE 시즌 내 백분위를 한 장의 카드로. 비영리 팬 프로젝트.",
+  title: "KBL 플레이어 카드",
+  description: "KBL 정규시즌 선수의 경기당 기록 9개와 시즌 순위, 유형 레이더를 한 장의 플레이어 카드로. 비영리 팬 프로젝트.",
 };
 
 export const viewport: Viewport = {

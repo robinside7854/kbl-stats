@@ -4,8 +4,20 @@
 import { useEffect, useRef, useState } from "react";
 import { officialImagesEnabled } from "@/lib/images";
 
-export function useOfficialImage(url: string | null | undefined) {
-  const src = url && officialImagesEnabled() ? url : null;
+/** 이미지 저장(html-to-image)이 공식 이미지를 걸러낼 때 쓰는 표시 속성 — <img data-official-image> */
+export const OFFICIAL_IMAGE_ATTR = "data-official-image";
+
+/** html-to-image filter: 공식 이미지 <img> 는 빼고 나머지만 그린다 (KBL 서버에 CORS 헤더가 없어 캔버스가 실패) */
+export function excludeOfficialImages(node: Node): boolean {
+  return !(node instanceof HTMLElement && node.hasAttribute(OFFICIAL_IMAGE_ATTR));
+}
+
+/**
+ * @param url 공식 이미지 주소 (processed JSON 값)
+ * @param enabled false 면 이미지 없이 대체 디자인만 (이미지 저장용 사본 등)
+ */
+export function useOfficialImage(url: string | null | undefined, enabled = true) {
+  const src = url && enabled && officialImagesEnabled() ? url : null;
   const imgRef = useRef<HTMLImageElement>(null);
   // 주소별로 상태를 기억 → 선수가 바뀌면 자동으로 초기화된다
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
@@ -27,6 +39,7 @@ export function useOfficialImage(url: string | null | undefined) {
       ref: imgRef,
       onError: () => setFailedSrc(src),
       onLoad: () => setLoadedSrc(src),
+      [OFFICIAL_IMAGE_ATTR]: "",
     },
   };
 }

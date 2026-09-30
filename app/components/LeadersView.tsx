@@ -2,7 +2,7 @@
 // 시즌 순위표 화면 (PLAN.md §2-1, §5-4): 부문 1~3위 "표지" 카드 + 정렬 가능한 표.
 // 정렬·필터·순위·표기는 전부 lib/leaders.ts 순수 함수 — 이 파일은 상태와 배치만 맡는다.
 // 선택 상태는 주소 쿼리(?cat=&mode=&origin=&team=&q=)에 남긴다. useSearchParams 대신 window.location 을 읽어
-// 정적 HTML에 기본 상태(경기당 득점)의 카드·표가 그대로 렌더링되게 한다 (RadarExplorer 와 같은 방식).
+// 정적 HTML에 기본 상태(경기당 득점)의 카드·표가 그대로 렌더링되게 한다 (CardExplorer 와 같은 방식).
 import { useEffect, useMemo, useState } from "react";
 import type { CardTeam, LeaderPlayer, SeasonCoverage } from "@/lib/types";
 import { QUALIFY_PRESETS, qualifyLabel, qualifyShort } from "@/lib/metrics";

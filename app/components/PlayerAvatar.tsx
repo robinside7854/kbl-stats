@@ -1,23 +1,83 @@
 "use client";
-// 선수 원형 아바타: 기본은 팀 색 + 이름 첫 글자, 공식 사진이 있으면 위에 얹는다 (PLAN.md §5-2 ③).
+// 선수 아바타: 기본은 팀 색 + 이름 첫 글자, 공식 사진이 있으면 위에 얹는다 (PLAN.md §5-2 ③).
 // next/image를 쓰지 않는다 — 외부 사진을 Vercel이 다시 받아 최적화(=복제)하지 않도록 브라우저가 직접 받게 둔다.
-// ⚠️ 이미지 저장(html-to-image) 대상 영역 안에는 넣지 않는다 — KBL 서버에 CORS 헤더가 없어 저장이 실패한다.
+// ⚠️ 이미지 저장(html-to-image) 사본에는 official={false} 로 넣는다 — KBL 서버에 CORS 헤더가 없어 저장이 실패한다.
+//    (혹시 섞여 들어가도 excludeOfficialImages filter 가 <img data-official-image> 를 뺀다)
+//
+// variant
+// - "circle"  : 목록·선택 상자용 원형 (size = 지름)
+// - "portrait": 플레이어 카드 상단의 큰 세로 사진 (size = 높이, 폭은 공식 사진 비율 470:609).
+//               배경 없이 카드 그라데이션 위에 얹고, 사진이 없으면 실루엣 + 큰 이니셜로 대체.
 import type { TeamColor } from "@/lib/types";
 import { nameInitial } from "@/lib/images";
 import { useOfficialImage } from "./useOfficialImage";
 
 const FALLBACK: TeamColor = { primary: "#6B7280", secondary: "#9CA3AF", text: "#fff" };
+/** KBL 현역 프로필 사진 비율 (470×609, PLAN.md §5-1) */
+const PORTRAIT_RATIO = 470 / 609;
 
 interface Props {
   photoUrl?: string | null;
   nameKo: string;
   color?: TeamColor;
   size?: number;
+  variant?: "circle" | "portrait";
+  /** false 면 공식 사진을 쓰지 않고 대체 디자인만 (이미지 저장 사본) */
+  official?: boolean;
   className?: string;
 }
 
-export default function PlayerAvatar({ photoUrl, nameKo, color = FALLBACK, size = 32, className = "" }: Props) {
-  const { src, imgProps } = useOfficialImage(photoUrl);
+export default function PlayerAvatar({
+  photoUrl,
+  nameKo,
+  color = FALLBACK,
+  size = 32,
+  variant = "circle",
+  official = true,
+  className = "",
+}: Props) {
+  const { src, loaded, imgProps } = useOfficialImage(photoUrl, official);
+
+  if (variant === "portrait") {
+    const width = Math.round(size * PORTRAIT_RATIO);
+    return (
+      <span
+        className={`relative inline-block shrink-0 select-none ${className}`}
+        style={{ width, height: size, color: color.text }}
+        title={nameKo}
+      >
+        {/* 대체 디자인: 사진이 뜨기 전·실패·저장 사본에서 보인다 */}
+        {!loaded && (
+          <span aria-hidden className="absolute inset-0">
+            <svg viewBox="0 0 94 122" className="absolute inset-x-0 bottom-0 h-full w-full" preserveAspectRatio="xMidYMax meet">
+              <circle cx="47" cy="40" r="21" fill="currentColor" fillOpacity="0.2" />
+              <path d="M6 122c0-27 18-44 41-44s41 17 41 44Z" fill="currentColor" fillOpacity="0.2" />
+            </svg>
+            <span
+              className="absolute inset-x-0 text-center font-black leading-none"
+              style={{ top: size * 0.2, fontSize: Math.round(size * 0.2), opacity: 0.85 }}
+            >
+              {nameInitial(nameKo)}
+            </span>
+          </span>
+        )}
+        {src && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            {...imgProps}
+            src={src}
+            alt={nameKo}
+            decoding="async"
+            referrerPolicy="no-referrer"
+            width={width}
+            height={size}
+            className="absolute inset-0 h-full w-full object-contain object-bottom"
+          />
+        )}
+      </span>
+    );
+  }
+
   return (
     <span
       className={`relative inline-flex shrink-0 select-none items-center justify-center overflow-hidden rounded-full font-bold ${className}`}

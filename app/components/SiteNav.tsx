@@ -1,5 +1,5 @@
 "use client";
-// 모든 화면 상단 내비게이션: 사이트 이름 · 시즌 선택 · 화면 메뉴(레이더 카드 / 순위표).
+// 모든 화면 상단 내비게이션: 사이트 이름 · 시즌 선택 · 화면 메뉴(플레이어 카드 / 순위표).
 // 시즌을 바꾸면 지금 보는 화면 종류와 주소 쿼리(선택 상태)를 그대로 둔 채 시즌만 바꾼다.
 // 새 시즌에 없는 값(선수·팀)은 각 화면이 쿼리를 읽을 때 기본값으로 되돌린다.
 import Link from "next/link";
@@ -9,7 +9,7 @@ import type { SeasonOption } from "@/lib/types";
 export type SiteView = "radar" | "leaders";
 
 const VIEWS: { view: SiteView; label: string; href: (seasonCode: number) => string }[] = [
-  { view: "radar", label: "레이더 카드", href: (c) => `/season/${c}` },
+  { view: "radar", label: "플레이어 카드", href: (c) => `/season/${c}` },
   { view: "leaders", label: "순위표", href: (c) => `/season/${c}/leaders` },
 ];
 

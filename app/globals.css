@@ -16,6 +16,10 @@
   --series-2: #eb6834;
   --warn: #fab219;
   --focus: #2a78d6;
+  /* 플레이어 카드 1~10위 칸: 팀 색을 표면에 섞는 비율 (배경 / 테두리) */
+  --rank-tint: 13%;
+  --rank-border: 45%;
+  --rank-pill-ring: transparent;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -33,6 +37,9 @@
     --series-2: #d95926;
     --warn: #fab219;
     --focus: #3987e5;
+    --rank-tint: 32%;
+    --rank-border: 70%;
+    --rank-pill-ring: rgba(255, 255, 255, 0.35);
   }
 }
 
