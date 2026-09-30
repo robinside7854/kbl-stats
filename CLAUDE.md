@@ -37,9 +37,10 @@ KBL 공홈은 화면을 그릴 때 아래 두 서버에서 JSON을 받아온다.
   - `npm run fetch`가 시즌 수집 전에 전 페이지를 받아 `data/raw/players/players.json`(페이지 응답 배열 그대로)에 저장. 실패해도 시즌 수집은 계속. 가공은 `scripts/player-master.ts`
 - **한 경기 최다(커리어 하이·시즌 하이)** `GET /api/v1/players/categories/mostgame/{seasonCode}/{playerNo}` (2026-09-30 확인) → `{ MostGameRegularSeasons: [...](요청 시즌의 시즌 하이), MostGameRegularAllTimes: [...](통산), 플레이오프·챔프전 배열(이름 미확인 — "MostGame{구분}{Seasons|AllTimes}" 꼴을 넓게 분류) }`. 항목 `{ seasonCode, recordSc: "RECORD"|"RATE", recordTxt: "득점"|"필드골 성공"|…|"블록"(15개), record: "46.000", awayTeam: "70"(상대 팀 코드), gameDate: "20231021", scoreRankCn(달성 횟수), orderNo }`. "필드골" = 야투 전체(2점슛이 따로 있음). 한 요청이 시즌 하이 + 통산을 같이 준다 → **선수-시즌 조합당 1회**. 매핑은 `scripts/highs.ts`
 - **프로필** `GET /api/v1/players/profile/0/{playerNo}` → `{ playerInfo: [{ birthday: "19940131", country: "미국", countryEng, univSch, pHeight, pos, backNum, … }], playerScore: [...] }`. 생년월일·국가·출신교만 쓴다(`scripts/player-master.ts profileExtraFrom`)
-- (참고, 수집 안 함 — 부하) 경기별 기록 `GET /api/v1/players/categories/game/{seasonCode}/01/{playerNo}` → `{ RegularGameRecords: [{ gameNo, gameDate, awayTeam, win, loss, score, awayScore, playSec, pts, fg, fgA, …, rb, aS, sT, bS, tO, foulTot }] }`
-- **수집 규칙 (한 경기 최다·프로필)**: raw 는 `data/raw/highs/{seasonCode}/{playerNo}.json`, `data/raw/profiles/{playerNo}.json`(응답 그대로, 한 줄 JSON — 파일 수천 개라 들여쓰기 없이). 형식이 다른 응답은 저장하지 않는다
-  - 매일(`npm run fetch`): **현재 시즌 선수만**(raw traditional 기준 ~200명 × mostgame 1 + profile 1, 1.5초 간격 ≈ 10분). 코드표 최신 시즌이 0명(개막 전)이면 직전 시즌이 "현재". 개막 후에는 최신 시즌 첫 수집일(`data/season-first-seen.json`)부터 **30일 동안만** 직전 시즌도 같이(`PREVIOUS_SEASON_GRACE_DAYS`), 그 뒤 자동 제외. 마감 시즌은 다시 받지 않는다. `fetch:all`·`--no-highs`는 건너뜀
+- **경기별 기록** `GET /api/v1/players/categories/game/{seasonCode}/01/{playerNo}` → `{ RegularGameRecords: [{ gameNo, gameDate: "20260406", awayTeam, playSec, pts, fg, fgA, fgRt(2점), threep, threepA, threepRt, fdg, fdgA, fdgRt(전체 야투), ft, ftA, ftRt, oR, dR, rb, aS, sT, bS, tO, foulTot }] }` — **수집함**(2026-09-30). mostgame 에는 성공 개수만 있어서, 같은 선수·시즌·날짜 경기를 찾아 3점·자유투(·야투) 성공 하이에 `attempts`·`pct`를 붙인다(`scripts/gamelogs.ts`, 그 경기 성공 개수가 기록 값과 같을 때만, 못 찾으면 null → 화면은 개수만). fg=2점·fdg=전체 야투는 서버 A와 같다고 보고 매핑(실제 응답으로 확인 필요)
+- **수집 규칙 (한 경기 최다·경기별 기록·프로필)**: raw 는 `data/raw/highs/{seasonCode}/{playerNo}.json`, `data/raw/gamelogs/{seasonCode}/{playerNo}.json`, `data/raw/profiles/{playerNo}.json`(응답 그대로, 한 줄 JSON — 파일 수천 개라 들여쓰기 없이). 형식이 다른 응답은 저장하지 않는다
+  - 매일(`npm run fetch`): **현재 시즌 선수만**(raw traditional 기준 ~200명 × mostgame 1 + 경기별 기록 1 + profile 1, 1.5초 간격 ≈ 15분). 코드표 최신 시즌이 0명(개막 전)이면 직전 시즌이 "현재". 개막 후에는 최신 시즌 첫 수집일(`data/season-first-seen.json`)부터 **30일 동안만** 직전 시즌도 같이(`PREVIOUS_SEASON_GRACE_DAYS`), 그 뒤 자동 제외. 마감 시즌은 다시 받지 않는다. `fetch:all`·`--no-highs`는 건너뜀
+  - 경기별 기록 과거분: `.github/workflows/backfill-gamelogs.yml` 한 번 — **정규시즌 커리어 하이의 득점·3점 성공·자유투 성공이 나온 (선수, 시즌)만**(`gamelogTargets`, 선수당 최대 3개, 2026-09-30 색인 기준 1,918회 ≈ 1시간). `# 실행 횟수: 0` → 1로 올려 푸시하면 실행, 이어받기·시즌 단위 커밋. 과거 시즌의 시즌 하이 시도 수는 범위 밖(현재 시즌만 매일)
   - 과거 전체: `.github/workflows/backfill-highs.yml` 한 번(선수-시즌 약 4,980회 + 프로필 약 1,330회 ≈ 3시간, 이어받기·시즌 단위 커밋). 파일의 `# 실행 횟수: N`을 1 올려 푸시하면 실행(0이면 아무것도 안 함)
   - 연속 10회 실패면 그 시즌 중단(`MAX_CONSECUTIVE_FAILURES`)
 - 운영 주체가 KBL이 아닌 외부 기록업체(Sports2i)임.
@@ -110,10 +111,12 @@ kbl-stats/
 ├── next.config.mjs, postcss.config.mjs  ← Next.js / Tailwind v4 설정
 ├── .env.example         ← NEXT_PUBLIC_OFFICIAL_IMAGES (공식 사진·로고 끄기 스위치) 설명
 ├── scripts/
-│   ├── fetch.ts         ← KBL API 호출 + data/raw 저장 (API 주소는 여기와 config에만) + 현재 시즌 선수 한 경기 최다·프로필
+│   ├── fetch.ts         ← KBL API 호출 + data/raw 저장 (API 주소는 여기와 config에만) + 현재 시즌 선수 한 경기 최다·경기별 기록·프로필
 │   ├── http.ts          ← getJson(공홈 헤더)·sleep·saveRaw 공용 (fetch·backfill-highs)
+│   ├── gamelogs.ts      ← 경기별 기록 raw → 슛 시도 수(parseGameLog·shotAttemptsFor 같은 날짜+성공 개수 일치·attachShotAttempts) + 백필 대상 gamelogTargets(커리어 하이 득점·3점·자유투 시즌) — 순수 함수
+│   ├── backfill-gamelogs.ts ← 경기별 기록 백필 (--count / --list-seasons / --season N, 이어받기) — backfill-gamelogs.yml 이 부름
 │   ├── highs.ts         ← 한 경기 최다 raw → 우리 키(parseMostGame, recordTxt 15개 매핑) + 매일 수집 대상 시즌 highsTargetSeasons(직전 시즌 30일)·첫 수집일·백필 이어받기 pendingPlayers — 순수 함수
-│   ├── collect-extras.ts ← 선수별 mostgame·profile 수집 루프 (저장 전 형식 검사, 연속 실패 중단)
+│   ├── collect-extras.ts ← 선수별 mostgame·경기별 기록·profile 수집 루프 (저장 전 형식 검사, 연속 실패 중단)
 │   ├── backfill-highs.ts ← 과거 전체 백필 (--list-seasons / --season N, 이미 raw 있는 조합 건너뜀) — backfill-highs.yml 이 시즌마다 부름
 │   ├── process.ts       ← raw → processed 변환 (photoUrl·logoUrl·팀 color 추가, 한 경기 최다 seasonHighs·seasonHighLeaders·careerHighs, 프로필 birthday·country·school)
 │   ├── image-urls.ts    ← KBL 사진·로고 주소 생성 (playerPhotoUrl, teamLogoUrl) — KBL 이미지 주소는 여기에만
@@ -130,19 +133,20 @@ kbl-stats/
 │   ├── roster.test.ts   ← 선수 마스터 매핑·포지션/국적 필터·용어집·카드 파일 인코딩 검증 (npm run test:roster)
 │   ├── cardview.test.ts ← 카드 순위 범위(전체/같은 포지션)·선수 그리드 정렬/필터·비교표·선수/선수 탭/비교 탭 주소·용어 앵커 검증 (npm run test:cardview)
 │   ├── badges.test.ts   ← 칭호 배지 조건·우선순위 (npm run test:badges)
-│   └── highs.test.ts    ← 한 경기 최다 응답 파싱·프로필·매일 수집 대상 시즌(30일 경계)·백필 이어받기·시즌 하이 1위(동률·RATE 제외)·만 나이·커리어 하이 행 (npm run test:highs, 여덟 다: npm test)
+│   ├── gamelogs.test.ts ← 경기별 기록 파싱·날짜 매칭·시도 수 붙이기·백필 대상 선정 (npm run test:gamelogs)
+│   └── highs.test.ts    ← 한 경기 최다 응답 파싱·프로필·매일 수집 대상 시즌(30일 경계)·백필 이어받기·시즌 하이 1위(동률·RATE 제외)·만 나이·커리어 하이 행 (npm run test:highs, 전부: npm test)
 ├── public/search-index.json ← 빌드 전 생성되는 검색 색인 (id·이름·최근 팀·첫/마지막 시즌·뛴 시즌 코드 seasons·photoUrl·팀 색·positionGroup·positionLabel, 약 370KB). git 제외
 ├── public/cards/{seasonCode}.json ← 빌드 전 생성되는 시즌 카드 데이터 (선수 탭·선수 상세 시즌 전환·비교 탭이 브라우저에서 받음, lib/cards.ts SeasonCardsFile). git 제외
 ├── data/
 │   ├── codes/           ← 시즌·팀·경기구분 코드표 (API에서 받아 저장) + 손으로 관리하는 예외 둘: team-colors.json(팀 색), photo-overrides.json(사진 숨길 선수 번호 hide)
 │   ├── raw/{seasonCode}/traditional.json, advanced.json, ... + raw/players/players.json(선수 마스터, 페이지 응답 배열)
-│   │    + raw/highs/{seasonCode}/{playerNo}.json(한 경기 최다) + raw/profiles/{playerNo}.json(프로필)
+│   │    + raw/highs/{seasonCode}/{playerNo}.json(한 경기 최다) + raw/gamelogs/{seasonCode}/{playerNo}.json(경기별 기록) + raw/profiles/{playerNo}.json(프로필)
 │   ├── season-first-seen.json ← 시즌별 선수가 처음 수집된 날 (fetch.ts 가 기록, 직전 시즌 30일 판정용 상태 파일)
 │   └── processed/seasons.json, players-index.json(전 시즌 선수 색인: 번호·이름·photoUrl·프로필·birthday·country·school·careerHighs·시즌별 팀·경기), {seasonCode}/players.json(coverage·teams(logoUrl·color)·players(seasonHighs)·seasonHighLeaders)
 ├── lib/
-│   ├── metrics.ts       ← 파생 지표 계산 (순수 함수만: 백분위(반전 percentileRankLow 포함), 경기당·40분당 환산, 커버리지 판정, **레이더 5축 공격·수비·3점·허슬·효율**(RADAR_AXIS_COMPONENTS — 구성 요소 백분위 평균 → 집단 안 다시 백분위, 구성 요소 단위 커버리지·성공률 시도 기준), **등급은 국적 집단(국내/외국/아시아쿼터, 아시아쿼터 8명 미만이면 외국과 합산) 안** buildGradingContext·radarScore, USG% ×5 usgFromKbl, 유형 라벨(5축), 표본 프리셋 QUALIFY_PRESETS — 카드·순위표 공용, 플레이어 카드 스탯 10개 CARD_STATS(파울은 ranked:false)·시즌 순위 cardStats(동점 1,2,2,4 / 턴오버 오름차순 / 성공률 시도 기준 attemptThresholds = 경기당 시도 리그 평균, 순위표 공용)·메달 단계 rankTier, 등급 percentileGrade(S~F)·기본 선수 pickDefaultPlayer(PER), 카드 한 장 계산 buildCardContext(순위 집단 + 등급 재료)·buildCardEntry, 통산 careerSummary(합계 ÷ 합계 경기))
+│   ├── metrics.ts       ← 파생 지표 계산 (순수 함수만: 백분위(반전 percentileRankLow 포함), 경기당·40분당 환산, 커버리지 판정, **레이더 5축 공격·수비·3점·허슬·효율**(RADAR_AXIS_COMPONENTS — 구성 요소 백분위 평균 → 집단 안 다시 백분위, 구성 요소 단위 커버리지·성공률 시도 기준), **등급은 국적 집단(국내/외국/아시아쿼터, 아시아쿼터 8명 미만이면 외국과 합산) 안** buildGradingContext·radarScore, USG% ×5 usgFromKbl, 유형 라벨(5축), 표본 프리셋 QUALIFY_PRESETS — 카드·순위표 공용, 플레이어 카드 스탯 10개 CARD_STATS(파울은 ranked:false)·시즌 순위 cardStats(동점 1,2,2,4 / 턴오버 오름차순 / 성공률 시도 기준 attemptThresholds = 경기당 시도 리그 평균, 순위표 공용)·메달 단계 rankTier, 등급 percentileGrade(S~F, 축 컷 90/75/55/35/15)·종합 등급 overallGrade(OVERALL_GRADE_CUTS 85/70/55/40/25)·기본 선수 pickDefaultPlayer(PER), 카드 한 장 계산 buildCardContext(순위 집단 + 등급 재료)·buildCardEntry, 통산 careerSummary(합계 ÷ 합계 경기))
 │   ├── career.ts        ← 선수 페이지 규칙 (순수 함수: 시즌 짧은 표기 seasonShortLabel, 활동 기간, 소속 팀 구간 teamStints, 추이 지표 TREND_METRICS·trendRows(빈 시즌 null), 프로필 한 줄 profileFacts, 만 나이 ageOn·personalFacts(나이·국적·출신교), 커리어 하이 표 careerHighRows·careerHighTabs)
-│   ├── highs.ts         ← 한 경기 최다 규칙 (부문 15개 HIGH_DEFS(record/rate), 순위표 부문 11개 SEASON_HIGH_LEADER_KEYS(성공률 제외), 시즌 하이 1위 computeSeasonHighLeaders(동률 → 먼저 달성), 표기, 순위표 카드 buildSeasonHighCards, 부문 대응 LEADER_CATEGORY_HIGH)
+│   ├── highs.ts         ← 한 경기 최다 규칙 (부문 15개 HIGH_DEFS(record/rate), 1위 계산 부문 11개 SEASON_HIGH_LEADER_KEYS(성공률 제외), **화면 부문 7개 HERO_HIGH_KEYS**(득점·리바·어시·스틸·블록·3점·자유투 성공), 슛 부문 SHOT_HIGH_KEYS·성공/시도 표기 formatHighShot("5/8 · 62.5%"), 시즌 하이 1위 computeSeasonHighLeaders(동률 → 먼저 달성), 표기, 순위표 카드 buildSeasonHighCards, 부문 대응 LEADER_CATEGORY_HIGH)
 │   ├── cardview.ts      ← 시즌 카드 데이터 → 화면 (순수 함수: 카드 한 장 buildSeasonCardView(시즌·순위 범위 전체/같은 포지션, 시도 기준은 항상 리그 값), 파울·출전 줄 cardFootStats, 선수 그리드 buildGridEntries·sortGridEntries(등급→PER)·filterGridEntries, 비교표 compareCardEntries(턴오버·파울은 낮은 쪽), 주소 쿼리: 선수 상세 ?season=&scope=pos(시즌 비교 ?vs= 는 없앰) · 선수 탭 ?season=&pos=&origin=&team= · 비교 탭 ?a=번호:코드&b=번호:코드)
 │   ├── search.ts        ← 선수 검색 (순수 함수: normalizeName(공백 무시)·matchScore·searchPlayers(최대 10명, 최근 선수 먼저)·buildSearchIndex)
 │   ├── leaders.ts       ← 순위표 규칙 (순수 함수: 부문 정의(better high/low), 필터·정렬·순위(성공률 시도 기준), 열 순서, 성공/시도·숫자 표기, 주소 쿼리)
@@ -175,7 +179,7 @@ kbl-stats/
 │                           PlayerCard(게임식 플레이어 카드: 팀 색 상단+큰 사진 / 스탯 9개+순위(전체 또는 "가드 중") / 파울·출전 줄 / 레이더+등급, 입력은 SeasonCardView 하나),
 │                           LeadersView(순위표), TeamsView(팀 분포 산점도·팀 요약), HomeView(홈), SourceFooter, useThemeColors,
 │                           PlayerAvatar(circle·portrait)·TeamLogo(공식 이미지+대체 디자인, official={false}면 대체만), useOfficialImage(저장 filter excludeOfficialImages)
-└── .github/workflows/fetch.yml, backfill.yml, backfill-highs.yml  ← 매일 새벽 수집 / 전체 재수집 / 한 경기 최다·프로필 과거 전체 백필(실행 횟수 숫자 올려 푸시)
+└── .github/workflows/fetch.yml, backfill.yml, backfill-highs.yml, backfill-gamelogs.yml  ← 매일 새벽 수집 / 전체 재수집 / 한 경기 최다·프로필 과거 전체 백필 / 커리어 하이 경기별 기록 백필(둘 다 실행 횟수 숫자 올려 푸시)
 ```
 
 ## 코딩 규칙
@@ -205,6 +209,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-09-30 (한 경기 최다 7개·슛 시도 수·종합 컷): PLAN.md §11. ① 커리어 하이 표·순위표 "이 시즌 한 경기 최다"·하이라이트 대체 카드를 7개(`lib/highs HERO_HIGH_KEYS` 득점·리바·어시·스틸·블록·3점·자유투 성공)로 — 나머지 부문은 processed 에 그대로. ② 서버 B 경기별 기록 수집 시작: 매일 현재 시즌 선수 전원(한 경기 최다와 같은 대상 시즌), 과거는 `backfill-gamelogs.yml`(커리어 하이 득점·3점·자유투 시즌만, 1,918회, `# 실행 횟수: 0`). process 가 3점·자유투·야투 성공 하이에 같은 날짜 경기의 `attempts`·`pct`(성공 개수 일치할 때만), 화면은 값 옆 "8/12 · 66.7%". ③ 종합 등급 전용 컷 `OVERALL_GRADE_CUTS` 85/70/55/40/25(축 컷 90/75/55/35/15 그대로) → 2025-26 국내 S 1(이정현)·A 13, 외국 S 0·A 0·B 11, 강성욱 A·워니 B. 검증: typecheck·test(10개)·build, 가짜 경기별 raw 2명(워니·허웅)으로 /player/291248·/season/47/leaders 390/1280 가로 넘침 0·콘솔 에러 0(외부 이미지·CDN 차단 제외) 확인 후 삭제, slop 0. 세션 환경은 KBL 차단 → 경기별 기록 응답의 fg/fdg 뜻은 첫 Actions 실행에서 확인할 것.
 - 2026-09-30 (피드백 3차, PLAN.md §10): ① 종합 등급 = 5축 백분위 평균에 컷 직접 적용(재순위 없음) → 강성욱 S→B, 2025-26 종합 S 0명(국내 최고 이정현 86.7 A). ② 유형 라벨을 `lib/glossary PLAYER_TYPES`로 모으고 카드 라벨 → 용어 탭 표, 종합 옆 ⓘ. ③ 히어로 통산 8칸(스틸·블록·통산 야투%·3점%). ④ PC 카드 옆 열 = 추이(카드 높이 채움) + 하이라이트 3개(시즌 1~10위 부문, 없으면 커리어 하이) — 1024/1280/1440 두 열 높이 차 0. ⑤ 칭호 배지 `lib/badges.ts`(히어로 5개+“+n”, 그리드 1개, 용어 표). ⑥ `data/codes/photo-overrides.json`. 덤: `scripts/highs.ts` "PO…" 키 분류 버그(기존 highs 테스트 실패) 수정. 검증: typecheck·test 9개·build, Playwright 390/1024/1280/1440 × 4화면 가로 넘침 0·콘솔 에러 0, slop 0. 남은 것: CareerTable 시즌 링크(PC 표 안 글자 링크) 높이 15px — 이전부터.
 - 2026-09-30 (배포 차단 수정): Vercel Hobby 플랜은 비공개 레포에서 프로젝트 소유자가 아닌 작성자의 커밋을 배포하지 않는다("commit author did not have contributing access"). Actions 가 만든 데이터 커밋(작성자 kbl-stats-bot)이 전부 Blocked → 세 워크플로의 git 작성자를 소유자 GitHub 계정(`robinside7854 <252681033+robinside7854@users.noreply.github.com>`)으로 바꿈. 소유자 계정이 바뀌면 이 값도 바꿔야 한다. 대안: 레포를 공개로 전환하거나 Vercel Pro.
 - 2026-09-30 (커리어 하이·시즌 하이): 서버 B mostgame·profile API 수집·가공·화면. 매일 수집은 현재 시즌 선수만(개막 후 30일은 직전 시즌도, `scripts/highs.ts highsTargetSeasons`), 과거 전체는 `backfill-highs.yml`(선수-시즌 약 4,980회 + 프로필 약 1,330회 ≈ 3시간, 이어받기·시즌 단위 커밋, `# 실행 횟수` 0 → 1로 올려 푸시하면 실행). process 가 선수 `seasonHighs`(15개 부문)·시즌 `seasonHighLeaders`(기록 11개, 동률은 먼저 달성, 성공률 제외)·색인 `careerHighs`(정규/PO/챔프전, 최신 시즌 raw 우선)·`birthday/country/school`. 화면: 선수 상세 히어로 나이(빌드 시각 기준)·국적·출신교, 기록표 아래 "커리어 하이" 탭 표, 순위표 1~3위 아래 "이 시즌 한 경기 최다" 가로 카드 줄(고른 부문 강조), 용어 "한 경기 최다". 세션 환경은 KBL 차단 → raw 없음이라 지금은 전부 null(섹션 숨김), 가짜 raw 3명으로 화면 확인 후 삭제. 검증: typecheck·test 8개·build, Playwright 390/1280 가로 스크롤 0·콘솔 에러 0. data/processed 변경분은 커밋 안 함(백필 후 Actions 가 생성). 미확인: 플레이오프·챔프전 배열 이름, 옛 시즌(1997~)에 mostgame 기록이 있는지, raw 파일 크기.
