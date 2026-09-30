@@ -1,6 +1,6 @@
 "use client";
 // 플레이어 카드 한 장 (게임 카드처럼): 팀 색 상단 + 큰 사진 + 종합 등급 → 메인 스탯 9개(시즌 순위) + 파울·출전 줄
-// → 레이더 + 축별 등급(S~F). 값·순위·백분위·등급 계산은 전부 lib/metrics.ts·lib/cardview.ts — 이 파일은 배치와 표기만 맡는다.
+// → 레이더 5축(공격·수비·3점·허슬·효율) + 축별 등급(S~F). 순위는 리그 전체(또는 같은 포지션), 등급은 같은 국적 집단 안. 값·순위·백분위·등급 계산은 전부 lib/metrics.ts·lib/cardview.ts — 이 파일은 배치와 표기만 맡는다.
 // 입력은 lib/cardview buildSeasonCardView 결과(SeasonCardView) 하나: 시즌·순위 범위(전체/같은 포지션)·팀 색·로고가 그 시즌 것.
 // 사진은 선수당 한 장(시즌별 사진이 없다)이라 어느 시즌 카드든 같은 사진을 쓰고, 팀 색·로고만 그 시즌 것을 쓴다.
 // size: "sm"(모바일, 폭 100%) / "lg"(PC·저장 이미지, 폭 약 500px) — 글자·사진·격자·레이더를 비례해 키운다.
@@ -12,10 +12,9 @@ import { cardFootStats, rankHeading, rankPhrase, type SeasonCardView } from "@/l
 import { glossaryHref } from "@/lib/glossary";
 import { nationalityOf, NATIONALITY_LABELS, positionLabel } from "@/lib/roster";
 import {
-  axisValue,
-  radarAxes,
+  RADAR_AXES,
   RADAR_AXIS_LABELS,
-  RADAR_AXIS_SHORT_LABELS,
+  RADAR_COMPONENTS,
   rankTier,
   type CardEntryOf,
   type CardStatEntry,
@@ -184,6 +183,13 @@ function StatCell({ entry, color, size, group }: { entry: CardStatEntry; color: 
 // ─────────────────────────────────────────────
 
 /** 레이더 꼭짓점 라벨: 등급 칩(크게) + 축 이름 + 원래 값(작게). 꼭짓점 바깥쪽으로 밀어 그린다 */
+/** 축 구성 요소 한 줄 설명 (툴팁·표 보기), 예: "40분당 득점 25.1 (92) · USG% 30.2 (88)" — 빠진 항목은 "제외" */
+function componentsText(entry: CardEntry, axis: RadarAxis): string {
+  return entry.radar.components[axis]
+    .map((c) => `${RADAR_COMPONENTS[c.key].label} ${fmt1(c.value)} (${c.pct === null ? "시도 부족 제외" : fmtPct(c.pct)})`)
+    .join(" · ");
+}
+
 function GradeTick(props: {
   x?: number;
   y?: number;
@@ -212,10 +218,11 @@ function GradeTick(props: {
   const bx = x + ux * (blockW / 2 + 2);
   const by = y + uy * (blockH / 2 + 2);
   const top = by - blockH / 2;
-  const raw = fmt1(axisValue(entry.player, axis));
+  // 꼭짓점 아래 작은 숫자 = 축 백분위(0~100, 같은 국적 집단 안)
+  const raw = fmtPct(entry.pct[axis]);
   return (
     <g>
-      <title>{`${RADAR_AXIS_LABELS[axis]} ${raw} · 백분위 ${fmtPct(entry.pct[axis])} · 등급 ${grade}`}</title>
+      <title>{`${RADAR_AXIS_LABELS[axis]} 백분위 ${raw} · 등급 ${grade} — ${componentsText(entry, axis)}`}</title>
       <rect
         x={bx - chip / 2}
         y={top}
@@ -238,7 +245,7 @@ function GradeTick(props: {
         {grade}
       </text>
       <text x={bx} y={top + chip + 3 + d.tickLabel * 0.9} textAnchor="middle" fontSize={d.tickLabel} fontWeight={700} fill={colors.ink2}>
-        {RADAR_AXIS_SHORT_LABELS[axis]}
+        {RADAR_AXIS_LABELS[axis]}
       </text>
       <text
         x={bx}
@@ -262,15 +269,6 @@ function HeroBadge({ children, fs }: { children: React.ReactNode; fs: number }) 
   return (
     <span className="whitespace-nowrap rounded-control px-2 py-0.5 font-semibold" style={{ background: "rgba(255,255,255,0.18)", fontSize: fs }}>
       {children}
-    </span>
-  );
-}
-
-// 2차 스탯이 없는 시즌이라 전 시즌 공통 축으로 그렸다는 표시 (저장 이미지에도 남는다)
-function ClassicAxesBadge() {
-  return (
-    <span className="whitespace-nowrap rounded border border-line px-1.5 py-px text-caption font-medium text-ink-2">
-      고전 축
     </span>
   );
 }
@@ -361,7 +359,7 @@ export function PlayerCardSkeleton({ size = "sm" }: { size?: CardSize }) {
 // ─────────────────────────────────────────────
 
 export default function PlayerCard({ view, colors, size = "sm", seriesColor, exportMode = false, nameHref }: Props) {
-  const { entry, seasonLabel, axisSet, ruleLabel, qualifiedCount, attemptsLabel, groupLabel } = view;
+  const { entry, seasonLabel, ruleLabel, qualifiedCount, attemptsLabel, groupLabel, gradeLabel, missingComponents } = view;
   const team = view.team ?? undefined;
   const p = entry.player;
   const foot = cardFootStats(p);
@@ -372,8 +370,8 @@ export default function PlayerCard({ view, colors, size = "sm", seriesColor, exp
   const dark = mixHex(color.primary, "#000000", 0.62);
   const mid = mixHex(color.primary, "#000000", 0.3);
   const official = !exportMode;
-  const axes = radarAxes(axisSet);
-  const radarData = axes.map((axis) => ({ axis, label: RADAR_AXIS_SHORT_LABELS[axis], v: entry.pct[axis] ?? 0 }));
+  const axes = RADAR_AXES;
+  const radarData = axes.map((axis) => ({ axis, label: RADAR_AXIS_LABELS[axis], v: entry.pct[axis] ?? 0 }));
   const teamShort = team?.shortName ?? p.teamShort;
   // 레이더 반지름: 차트 높이의 약 1/3 (꼭짓점 바깥에 등급 블록 자리를 남긴다)
   const outer = Math.round(d.radarH * 0.34);
@@ -506,19 +504,18 @@ export default function PlayerCard({ view, colors, size = "sm", seriesColor, exp
       {/* ── 하단: 레이더(크게) + 꼭짓점마다 등급 S~F ── */}
       <div className="mt-3 border-t border-line" style={{ paddingLeft: d.pad, paddingRight: d.pad, paddingTop: 8 }}>
         <p className="flex flex-wrap items-center gap-1.5 font-semibold text-ink-2" style={{ fontSize: d.statLabel }}>
-          {groupLabel ? `${groupLabel} 중 등급` : "시즌 내 등급"}
+          등급 기준: {gradeLabel}
           {!exportMode && (
             <Link
-              href={glossaryHref("percentileGrade")}
+              href={glossaryHref("radarAxes")}
               className="focus-ring -mx-3 -my-3 inline-flex h-10 w-10 items-center justify-center rounded-control font-normal text-ink-3 transition-colors duration-200 hover:text-ink"
-              aria-label="등급 계산 방법 (용어 풀이)"
-              title="등급 계산 방법"
+              aria-label="레이더 5축과 등급 계산 방법 (용어 풀이)"
+              title="레이더 5축과 등급 계산 방법"
             >
               <IconInfo size={16} />
             </Link>
           )}
           <span className="font-normal text-ink-3">S 상위 10% · A 25% · B 45% · C 65% · D 85%</span>
-          {axisSet === "classic" && <ClassicAxesBadge />}
         </p>
         <div aria-hidden style={{ height: d.radarH }}>
           {radarWidth ? (
@@ -529,27 +526,34 @@ export default function PlayerCard({ view, colors, size = "sm", seriesColor, exp
             </ResponsiveContainer>
           )}
         </div>
-        {/* 스크린리더·표 보기: 축별 원래 값·백분위·등급 */}
-        <table className="sr-only">
-          <caption>축별 원래 값, 시즌 내 백분위(0~100), 등급</caption>
+        {missingComponents.length > 0 && (
+          <p className="pb-1 leading-snug text-ink-3" style={{ fontSize: size === "lg" ? 12.5 : 11 }}>
+            이 시즌 기록이 없어 뺀 항목: {missingComponents.join("·")}
+          </p>
+        )}
+        {/* 스크린리더·표 보기: 축별 백분위·등급·구성 요소. 표는 sr-only 폭(1px)을 무시하고 늘어나므로 div 로 감싼다 */}
+        <div className="sr-only">
+        <table>
+          <caption>레이더 5축: 축 백분위(0~100, {gradeLabel}), 등급, 구성 요소 값과 백분위</caption>
           <tbody>
             {axes.map((axis) => (
               <tr key={axis}>
                 <th scope="row">{RADAR_AXIS_LABELS[axis]}</th>
-                <td>{fmt1(axisValue(p, axis))}</td>
                 <td>{fmtPct(entry.pct[axis])}</td>
                 <td>{entry.grades[axis] ?? "-"}</td>
+                <td>{componentsText(entry, axis)}</td>
               </tr>
             ))}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* ── 기준·출처 (저장 이미지에도 남는다) ── */}
       <div className="border-t border-line py-2 leading-snug text-ink-3" style={{ paddingLeft: d.pad + 2, paddingRight: d.pad + 2, fontSize: size === "lg" ? 12.5 : 11 }}>
         <p>
-          순위·등급: {seasonLabel} {groupLabel ? `${groupLabel} 중 ` : ""}
-          {ruleLabel} {qualifiedCount}명 중 · 턴오버는 적을수록 상위 · 성공률 순위는 경기당 시도가 리그 평균({attemptsLabel}) 이상인 선수만
+          순위: {seasonLabel} {groupLabel ? `${groupLabel} 중 ` : ""}
+          {ruleLabel} {qualifiedCount}명 중 · 등급: {gradeLabel} · 턴오버는 적을수록 상위 · 성공률 순위는 경기당 시도가 리그 평균({attemptsLabel}) 이상인 선수만
         </p>
         <p className="mt-1 font-medium text-ink-2">{SOURCE_LINE}</p>
       </div>

@@ -176,12 +176,6 @@ export default function CompareView({ seasons, initialA, initialB }: Props) {
             caption={`${tag(both[0])}와 ${tag(both[1])} 기록 비교`}
           />
         )}
-        {both && both[0].axisSet !== both[1].axisSet && (
-          <p className="text-sub text-ink-3">
-            두 카드의 레이더 축이 다릅니다. 2차 스탯(USG%·AST%·REB%)이 없는 시즌은 40분당 환산 축(고전 축)이라 모양끼리는 비교하지 마세요.
-            위 표의 경기당 기록과 순위를 보면 됩니다.
-          </p>
-        )}
       </div>
     </main>
   );

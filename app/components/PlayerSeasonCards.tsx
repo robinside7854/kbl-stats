@@ -1,34 +1,25 @@
 "use client";
-// 선수 상세(/player/[번호])의 카드 영역: 시즌 칩 → 플레이어 카드(+ 시즌 비교) → 설명.
+// 선수 상세(/player/[번호])의 카드 영역: 시즌 칩 → 플레이어 카드 → 설명.
 // - 시즌 칩: 그 선수가 뛴 시즌 전부(최신이 기본). 고르면 카드가 그 시즌 기록·순위·등급·팀 색·로고로 바뀐다.
 //   첫 화면(최신 시즌·전체 범위) 카드는 서버가 계산해 정적 HTML에 넣고(initial), 다른 시즌은 /cards/{코드}.json 을 받아
 //   lib/cardview buildSeasonCardView 로 계산한다 (useCardView).
-// - 순위 범위: 전체 / 같은 포지션 — 카드의 순위·등급 비교 집단만 바꾼다 ("가드 중 3위").
-// - 시즌 비교: 켜면 두 번째 시즌 칩 줄 + 카드 두 장 + 스탯 증감 표, 비교 탭 링크.
-// - 상태는 주소 ?season=&vs=&scope=pos 에 남긴다 (window.location — 정적 HTML은 기본 상태로 그려진다).
+// - 순위 범위: 전체 / 같은 포지션 — 카드의 순위 비교 집단만 바꾼다 ("가드 중 3위"). 등급은 항상 같은 국적 집단 안.
+// - 같은 선수 "시즌 비교"는 없앴다(2026-09-30 사용자 피드백) — 두 시즌·두 선수 비교는 비교 탭 링크로.
+// - 상태는 주소 ?season=&scope=pos 에 남긴다 (window.location — 정적 HTML은 기본 상태로 그려진다).
 // - 시즌별 기록표(CareerTable)의 시즌을 누르면 "player-season" 이벤트로 여기 시즌을 바꾼다.
 import { useEffect, useMemo, useState } from "react";
-import type { SeasonOption } from "@/lib/types";
-import {
-  compareHref,
-  defaultVsSeason,
-  parsePlayerQuery,
-  playerQueryString,
-  type CardScope,
-  type PlayerViewState,
-  type SeasonCardView,
-} from "@/lib/cardview";
-import { seasonShortLabel } from "@/lib/career";
 import Link from "next/link";
+import type { SeasonOption } from "@/lib/types";
+import { compareHref, parsePlayerQuery, playerQueryString, type CardScope, type PlayerViewState } from "@/lib/cardview";
+import { seasonShortLabel } from "@/lib/career";
 import CardDeck from "./CardDeck";
 import ChipRow from "./ChipRow";
-import CompareTable from "./CompareTable";
 import { IconChevronRight } from "./icons";
 import InfoLink from "./InfoLink";
 import { PlayerCardSkeleton } from "./PlayerCard";
 import Segmented from "./Segmented";
 import { useCardView } from "./useSeasonCards";
-import { useThemeColors } from "./useThemeColors";
+import type { SeasonCardView } from "@/lib/cardview";
 
 /** 시즌별 기록표 등 다른 컴포넌트가 카드 시즌을 바꿀 때 보내는 이벤트 이름 */
 export const PLAYER_SEASON_EVENT = "player-season";
@@ -42,22 +33,21 @@ interface Props {
   initial: SeasonCardView;
   /** 포지션 묶음 이름 (예: "가드"). 모르면 null → 같은 포지션 범위 버튼을 끈다 */
   groupLabel: string | null;
-  /** 카드 한 장일 때 PC 에서 오른쪽에 둘 내용 (시즌별 추이 그래프) — 시즌 비교 중에는 아래로 */
+  /** PC 에서 카드 오른쪽에 둘 내용 (시즌별 추이 그래프) */
   aside?: React.ReactNode;
 }
 
 export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, groupLabel, aside }: Props) {
-  const colors = useThemeColors();
   const codes = useMemo(() => seasons.map((s) => s.seasonCode), [seasons]);
   const labelOf = (code: number) => seasonShortLabel(seasons.find((s) => s.seasonCode === code)?.seasonLabel ?? String(code));
-  const [state, setState] = useState<PlayerViewState>({ season: initial.seasonCode, vs: null, scope: "all" });
+  const [state, setState] = useState<PlayerViewState>({ season: initial.seasonCode, scope: "all" });
 
   // 공유 링크로 들어온 상태 반영 + 기록표에서 시즌을 누르면 카드 시즌 변경
   useEffect(() => {
     setState(parsePlayerQuery(window.location.search, codes));
     const onSeason = (e: Event) => {
       const code = (e as CustomEvent<number>).detail;
-      if (codes.includes(code)) setState((s) => ({ ...s, season: code, vs: s.vs === code ? null : s.vs }));
+      if (codes.includes(code)) setState((s) => ({ ...s, season: code }));
     };
     window.addEventListener(PLAYER_SEASON_EVENT, onSeason);
     return () => window.removeEventListener(PLAYER_SEASON_EVENT, onSeason);
@@ -68,54 +58,35 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
     window.history.replaceState(null, "", `${window.location.pathname}${playerQueryString(state, codes)}${window.location.hash}`);
   }, [state, codes]);
 
-  const { season, vs, scope } = state;
+  const { season, scope } = state;
   const a = useCardView(playerId, season, scope, initial);
-  const b = useCardView(vs === null ? null : playerId, vs, scope, null);
-  const comparing = vs !== null;
-
-  function chooseSeason(code: number) {
-    setState((s) => ({ ...s, season: code, vs: s.vs === code ? defaultVsSeason(codes.filter((c) => c !== code), code) : s.vs }));
-  }
-  function toggleCompare() {
-    setState((s) => ({ ...s, vs: s.vs === null ? defaultVsSeason(codes, s.season) : null }));
-  }
 
   const scopeOptions: { value: CardScope; label: string }[] = [
     { value: "all", label: "전체" },
     { value: "position", label: groupLabel ? `같은 포지션 (${groupLabel})` : "같은 포지션" },
   ];
-  const seasonChips = (list: number[]) =>
-    [...list].reverse().map((c) => ({ value: c, label: labelOf(c), aria: `${labelOf(c)} 시즌` }));
+  const seasonChips = [...codes].reverse().map((c) => ({ value: c, label: labelOf(c), aria: `${labelOf(c)} 시즌` }));
 
-  const viewA = a.view;
-  const viewB = comparing ? b.view : null;
-  const cards = [
-    viewA && { view: viewA, loading: a.status === "loading" },
-    viewB && { view: viewB, loading: b.status === "loading" },
-  ].filter((c): c is { view: SeasonCardView; loading: boolean } => !!c);
-  const fileName = `${nameKo}_${labelOf(season)}${viewB ? `_vs_${labelOf(viewB.seasonCode)}` : ""}_플레이어카드.png`;
-  const classic = cards.some((c) => c.view.axisSet === "classic");
-  const mixedAxes = cards.length === 2 && cards[0].view.axisSet !== cards[1].view.axisSet;
+  const view = a.view;
+  const fileName = `${nameKo}_${labelOf(season)}_플레이어카드.png`;
 
   const deck = (
     <section id="season-card" aria-label="시즌 플레이어 카드" className="scroll-mt-4">
-      {cards.length > 0 ? (
-        <CardDeck cards={cards} fileName={fileName} />
+      {view ? (
+        <CardDeck cards={[{ view, loading: a.status === "loading" }]} fileName={fileName} />
+      ) : a.status === "error" ? (
+        <p role="alert" className="surface-card rounded-container px-4 py-8 text-center text-body text-ink-2">
+          시즌 기록을 불러오지 못했습니다. 시즌을 다시 눌러 주세요.
+        </p>
       ) : (
-        a.status === "error" ? (
-          <p role="alert" className="surface-card rounded-container px-4 py-8 text-center text-body text-ink-2">
-            시즌 기록을 불러오지 못했습니다. 시즌을 다시 눌러 주세요.
+        <div className="mx-auto w-full max-w-[420px] md:max-w-[500px]">
+          <p role="status" className="sr-only">
+            시즌 기록 불러오는 중
           </p>
-        ) : (
-          <div className="mx-auto w-full max-w-[420px] md:max-w-[500px]">
-            <p role="status" className="sr-only">
-              시즌 기록 불러오는 중
-            </p>
-            <PlayerCardSkeleton />
-          </div>
-        )
+          <PlayerCardSkeleton />
+        </div>
       )}
-      {(a.status === "error" || b.status === "error") && cards.length > 0 && (
+      {a.status === "error" && view && (
         <p role="alert" className="mt-2 text-body text-ink-2">
           시즌 기록을 불러오지 못했습니다. 다른 시즌을 눌렀다가 다시 눌러 주세요.
         </p>
@@ -125,94 +96,43 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
 
   return (
     <div>
-      {/* ── 조작: 시즌 칩 · 순위 범위 · 시즌 비교 ── */}
+      {/* ── 조작: 시즌 칩 · 순위 범위 · 비교 탭 링크 ── */}
       <section aria-label="카드 보기 설정" className="space-y-2.5">
         <div>
           <h2 className="text-h2 font-bold">시즌 카드</h2>
           <p className="mb-1.5 mt-1 text-sub font-semibold text-ink-2">
             시즌 <span className="font-normal text-ink-3">· {seasons.length}시즌 뛰었음</span>
           </p>
-          <ChipRow label="카드 시즌 선택" chips={seasonChips(codes)} value={season} onChange={chooseSeason} scroll />
+          <ChipRow label="카드 시즌 선택" chips={seasonChips} value={season} onChange={(c) => setState((s) => ({ ...s, season: c }))} scroll />
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
           <Segmented
-            label="순위·등급 비교 범위"
+            label="순위 비교 범위"
             options={groupLabel ? scopeOptions : scopeOptions.slice(0, 1)}
             value={scope}
             onChange={(v) => setState((s) => ({ ...s, scope: v }))}
           />
-          {codes.length > 1 && (
-            <button
-              type="button"
-              aria-pressed={comparing}
-              onClick={toggleCompare}
-              className={`focus-ring h-10 rounded-control border px-3 text-body font-semibold transition-colors duration-200 ${
-                comparing ? "border-ink bg-ink text-bg" : "border-line bg-surface text-ink-2 hover:bg-surface-2"
-              }`}
-            >
-              {comparing ? "시즌 비교 끄기" : "시즌 비교"}
-            </button>
-          )}
+          <Link
+            href={compareHref({ id: playerId, seasonCode: season })}
+            className="focus-ring inline-flex h-10 items-center gap-0.5 rounded-control text-body font-semibold text-ink-2 underline underline-offset-4 transition-colors duration-200 hover:text-ink"
+          >
+            비교 탭에서 다른 선수·시즌과 비교
+            <IconChevronRight size={16} />
+          </Link>
         </div>
         {!groupLabel && <p className="text-sub text-ink-3">포지션 정보가 없는 선수라 순위 범위는 전체만 볼 수 있습니다.</p>}
-        {comparing && vs !== null && (
-          <div>
-            <p className="mb-1.5 text-sub font-semibold text-ink-2">
-              비교할 시즌 <span className="font-normal text-ink-3">· 레이더 선 주황</span>
-            </p>
-            <ChipRow
-              label="비교할 시즌 선택"
-              chips={seasonChips(codes.filter((c) => c !== season))}
-              value={vs}
-              onChange={(v) => setState((s) => ({ ...s, vs: v }))}
-              scroll
-            />
-            <p className="mt-1 text-sub">
-              <Link
-                href={compareHref({ id: playerId, seasonCode: season }, { id: playerId, seasonCode: vs })}
-                className="focus-ring inline-flex h-10 items-center gap-0.5 rounded-control font-semibold text-ink-2 underline underline-offset-4 transition-colors duration-200 hover:text-ink"
-              >
-                비교 탭에서 다른 선수와 비교
-                <IconChevronRight size={16} />
-              </Link>
-            </p>
-          </div>
-        )}
       </section>
 
-      {/* ── 카드 ── */}
-      {comparing ? (
-        <div className="mt-4 space-y-6">
-          {deck}
-          {viewA && viewB && (
-            <CompareTable
-              a={viewA}
-              b={viewB}
-              aLabel={labelOf(viewA.seasonCode)}
-              bLabel={labelOf(viewB.seasonCode)}
-              seriesA={colors.series1}
-              seriesB={colors.series2}
-              showDelta
-              caption={`${nameKo} ${labelOf(viewA.seasonCode)}와 ${labelOf(viewB.seasonCode)} 시즌 기록 비교`}
-            />
-          )}
-          {aside && <div className="min-w-0">{aside}</div>}
-        </div>
-      ) : (
-        <div className="mt-4 grid gap-6 lg:grid-cols-[500px_minmax(0,1fr)] lg:items-start">
-          {deck}
-          {aside && <div className="min-w-0">{aside}</div>}
-        </div>
-      )}
+      {/* ── 카드 (PC 는 오른쪽에 추이 그래프) ── */}
+      <div className="mt-4 grid gap-6 lg:grid-cols-[500px_minmax(0,1fr)] lg:items-start">
+        {deck}
+        {aside && <div className="min-w-0">{aside}</div>}
+      </div>
 
       <p className="mt-4 max-w-3xl text-sub leading-relaxed text-ink-3">
-        레이더는 그 시즌 백분위(0~100)이고, 꼭짓점 글자가 등급입니다 <InfoLink term="percentileGrade" />. 사진은 모든 시즌에 같은
-        한 장을 쓰고, 팀 색과 로고만 그 시즌 팀을 따릅니다.{" "}
-        {classic
-          ? "2차 스탯(USG%·AST%·REB%)이 없는 시즌은 40분당 환산과 TS%·PER로 그린 고전 축입니다"
-          : "USG%는 KBL 원값에 5를 곱한 표준 척도입니다"}{" "}
-        {classic ? <InfoLink term="per40" /> : <InfoLink term="usgPct" />}
-        {mixedAxes && ". 두 시즌의 레이더 축이 달라 모양끼리는 비교하지 마세요"}.
+        레이더 5축(공격·수비·3점·허슬·효율)은 축마다 관련 기록 여러 개의 백분위를 평균한 값이고, 꼭짓점 글자가 등급입니다{" "}
+        <InfoLink term="radarAxes" />. 등급은 같은 국적 집단(국내·외국·아시아쿼터) 안에서, 순위는 리그 전체
+        {groupLabel ? "(또는 같은 포지션)" : ""} 안에서 매깁니다. 사진은 모든 시즌에 같은 한 장을 쓰고, 팀 색과 로고만 그 시즌 팀을 따릅니다.
       </p>
     </div>
   );
