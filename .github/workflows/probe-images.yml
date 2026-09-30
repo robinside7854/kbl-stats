@@ -14,34 +14,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: 5차 조사 — 선수 목록·상세 API(포지션·키·생년 등) 찾기
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: 6차 조사 — 실제 브라우저로 선수 목록·상세 페이지의 JSON 요청 캡처
         shell: bash
         run: |
           set +e
-          UA="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/128 Safari/537.36"
-          OUT=probe-images.txt
-          {
-            curl -sSL --max-time 30 -A "$UA" "https://kbl.or.kr/assets/index-BYeGquu0.js" > bundle.js; sleep 1.5
-            echo "bundle bytes: $(wc -c < bundle.js)"
-            echo "=== A. 번들 안의 API 경로 (player/person/roster 포함)"
-            grep -oE '"(/api|https?://[a-z0-9.-]+/api)[A-Za-z0-9_./${}-]*(player|person|roster|Player|Person)[A-Za-z0-9_./${}-]*"' bundle.js | sort -u | head -60
-            echo "=== B. API 호스트 목록"
-            grep -oE 'https?://[a-z0-9.-]*(kbl|sports2i)[a-z0-9.-]*' bundle.js | sort | uniq -c | sort -rn | head -20
-            echo "=== C. position 관련 문자열"
-            grep -oE '.{0,80}(position|Position|posi|포지션).{0,80}' bundle.js | sort -u | head -30
-            echo "=== D. 선수 목록 화면이 쓰는 필드명 (pcode 주변 문맥)"
-            grep -oE '.{0,200}data-pcode.{0,300}' bundle.js | head -3
-            echo "=== E. 후보 엔드포인트 직접 호출"
-            for u in \
-              "https://api-stats.kbl.or.kr/api/players?seasonCode=47&teamCode=55" \
-              "https://api-stats.kbl.or.kr/api/player/list?seasonCode=47" \
-              "https://kbl-api.sports2i.com/api/v1/player?seasonCode=47&teamCode=55" \
-              "https://kbl-api.sports2i.com/api/v1/player/list?seasonCode=47" \
-              "https://kbl-api.sports2i.com/api/v1/players?seasonCode=47" \
-              "https://kbl-api.sports2i.com/api/v1/Common/player?seasonCodeList=47"; do
-              echo "--- $u"; curl -sS --max-time 20 -A "$UA" "$u" | head -c 600; echo; sleep 1.5
-            done
-          } | tee "$OUT"
+          npm init -y >/dev/null 2>&1
+          npm i playwright@1 >/dev/null 2>&1
+          npx playwright install --with-deps chromium >/dev/null 2>&1
+          node scripts-probe/capture.mjs 2>&1 | tee probe-images.txt
           true
       - uses: actions/upload-artifact@v4
         with:
