@@ -4,7 +4,8 @@
 //   팀 칩이 범례와 필터를 겸한다: 전체 / 한 팀 강조 / 두 팀 비교 — 선택 팀만 진하게, 나머지는 옅게.
 //   두 팀 비교 때 색이 비슷하면 팔레트 1·2번으로 바꾸고(comparePairColors), 두 번째 팀 점은 네모 → 모양으로도 구분.
 // - 점을 누르면 아래 작은 카드(이름·팀·값·선수 기록 링크). PC 는 올리면 툴팁도 뜬다. 모바일은 툴팁 없이 카드만.
-// - 계산은 전부 lib/distribution.ts·lib/teams.ts 순수 함수. 상태는 주소 쿼리(?teams=&y=&q=&p=)에 남긴다.
+// - 포지션 칩(전체/가드/포워드/센터): 점만 거른다 (lib/roster filterByPosition). 팀 의존도 카드는 팀 전체 기준 그대로.
+// - 계산은 전부 lib/distribution.ts·lib/teams.ts·lib/roster.ts 순수 함수. 상태는 주소 쿼리(?teams=&y=&q=&pos=&p=)에 남긴다.
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { CartesianGrid, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis } from "recharts";
@@ -28,6 +29,7 @@ import {
 } from "@/lib/distribution";
 import { assignTeamColors, comparePairColors, ensureMarkContrast, teamDependency } from "@/lib/teams";
 import { teamShortLabel } from "@/lib/images";
+import { filterByPosition, POSITION_FILTERS, positionFilterLabel, positionLabel } from "@/lib/roster";
 import PlayerAvatar from "./PlayerAvatar";
 import Segmented from "./Segmented";
 import TeamLogo from "./TeamLogo";
@@ -82,7 +84,7 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
   }, [state]);
 
   const update = (patch: Partial<DistributionState>) => setState((s) => ({ ...s, ...patch }));
-  const { teams: selected, yKey, presetIdx, playerId } = state;
+  const { teams: selected, yKey, presetIdx, playerId, position } = state;
   const rule = QUALIFY_PRESETS[presetIdx];
   const metric = scatterMetric(yKey);
 
@@ -100,7 +102,7 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
   }, [teams, colors, selected]);
   const colorOf = (code: string) => teamColor.get(code) ?? "#6B7280";
 
-  const points = useMemo(() => scatterPoints(players, rule, yKey), [players, rule, yKey]);
+  const points = useMemo(() => scatterPoints(filterByPosition(players, position), rule, yKey), [players, position, rule, yKey]);
   // 선택한 선수가 표본 기준을 바꿔 사라지면 카드도 닫는다
   const selectedPoint = points.find((d) => d.player.id === playerId) ?? null;
 
@@ -158,6 +160,12 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
             value={yKey}
             onChange={(v) => update({ yKey: v })}
           />
+          <Segmented
+            label="포지션"
+            options={POSITION_FILTERS.map((f) => ({ value: f, label: positionFilterLabel(f) }))}
+            value={position}
+            onChange={(v) => update({ position: v })}
+          />
           <label className="flex min-w-0 items-center gap-2 text-xs font-medium text-ink-2">
             <span className="shrink-0">표본 기준</span>
             <select
@@ -206,7 +214,7 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
           })}
         </div>
         <p className="text-xs text-ink-3">
-          {qualifyLabel(rule)} 출전한 선수 {points.length}명 · {selectionText}
+          {qualifyLabel(rule)} 출전한 {position !== "all" ? `${positionFilterLabel(position)} ` : ""}선수 {points.length}명 · {selectionText}
           {selected.length === 1 && " 강조 · 한 팀을 더 누르면 두 팀 비교"}
           {selected.length === 2 && " 비교 (두 번째 팀은 네모 점)"}
         </p>
@@ -269,7 +277,10 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
                         <p className="flex items-center gap-1.5 font-semibold text-ink">
                           <Swatch color={d.color} square={d.square} />
                           {d.player.nameKo}
-                          <span className="font-normal text-ink-2">{teamShortLabel(t?.shortName ?? d.player.teamShort)}</span>
+                          <span className="font-normal text-ink-2">
+                            {teamShortLabel(t?.shortName ?? d.player.teamShort)}
+                            {d.player.position ? ` · ${d.player.position}` : ""}
+                          </span>
                         </p>
                         <p className="mt-0.5 text-ink-2">
                           출전 {formatMinutes(d.x)} · {metric.label} <b className="text-ink">{formatScatterY(d.y, yKey)}</b>
@@ -464,6 +475,7 @@ function SelectedCard({
         </p>
         <p className="mt-0.5 text-xs text-ink-2">
           출전 {formatMinutes(point.x)} · {metricLabel} <b className="text-ink">{yText}</b> · {p.games}경기
+          {positionLabel(p.position) ? ` · ${positionLabel(p.position)}` : ""}
         </p>
       </div>
       <button

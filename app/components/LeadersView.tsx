@@ -1,7 +1,10 @@
 "use client";
 // 시즌 순위표 화면 (PLAN.md §2-1, §5-4): 부문 1~3위 "표지" 카드 + 정렬 가능한 표.
 // 정렬·필터·순위·표기는 전부 lib/leaders.ts 순수 함수 — 이 파일은 상태와 배치만 맡는다.
-// 선택 상태는 주소 쿼리(?cat=&mode=&origin=&team=&q=)에 남긴다. useSearchParams 대신 window.location 을 읽어
+// 포지션(전체/가드/포워드/센터)·국적(전체/국내/외국/아시아쿼터) 칩으로 집단을 좁히면 1~3위·순위도 그 집단 안 순위다
+// (lib/leaders filterLeaders → rankMap). 성공률 시도 기준은 집단과 관계없이 리그 전체 값.
+// 열 머리글의 ⓘ 는 용어 탭 해당 항목으로 (lib/glossary LEADER_COLUMN_GLOSSARY).
+// 선택 상태는 주소 쿼리(?cat=&mode=&origin=&pos=&team=&q=)에 남긴다. useSearchParams 대신 window.location 을 읽어
 // 정적 HTML에 기본 상태(경기당 득점)의 카드·표가 그대로 렌더링되게 한다 (CardExplorer 와 같은 방식).
 import { useEffect, useMemo, useState } from "react";
 import type { CardTeam, LeaderPlayer } from "@/lib/types";
@@ -34,7 +37,19 @@ import {
   type StatMode,
 } from "@/lib/leaders";
 import { teamShortLabel } from "@/lib/images";
+import { LEADER_COLUMN_GLOSSARY } from "@/lib/glossary";
+import {
+  NATIONALITY_FILTERS,
+  nationalityFilterLabel,
+  nationalityOf,
+  NATIONALITY_LABELS,
+  POSITION_FILTERS,
+  positionFilterLabel,
+  positionLabel,
+  type PositionFilter,
+} from "@/lib/roster";
 import Link from "next/link";
+import InfoLink from "./InfoLink";
 import PlayerAvatar from "./PlayerAvatar";
 import Segmented from "./Segmented";
 import TeamLogo from "./TeamLogo";
@@ -49,11 +64,22 @@ const MODE_OPTIONS: { value: StatMode; label: string }[] = [
   { value: "perGame", label: "경기당" },
   { value: "total", label: "시즌 합계" },
 ];
-const ORIGIN_OPTIONS: { value: OriginFilter; label: string }[] = [
-  { value: "all", label: "전체" },
-  { value: "domestic", label: "국내" },
-  { value: "foreign", label: "외국인" },
-];
+const ORIGIN_OPTIONS: { value: OriginFilter; label: string }[] = NATIONALITY_FILTERS.map((f) => ({ value: f, label: nationalityFilterLabel(f) }));
+const POSITION_OPTIONS: { value: PositionFilter; label: string }[] = POSITION_FILTERS.map((f) => ({ value: f, label: positionFilterLabel(f) }));
+
+/** 이름 옆 작은 포지션 배지 (G·F·C·GF·FC). 모르면 그리지 않는다 */
+function PosBadge({ p }: { p: LeaderPlayer }) {
+  if (!p.position) return null;
+  return (
+    <span
+      className="shrink-0 rounded border border-line px-1 text-[10px] font-semibold leading-[1.35] text-ink-2"
+      title={positionLabel(p.position) ?? undefined}
+      aria-label={positionLabel(p.position) ?? undefined}
+    >
+      {p.position}
+    </span>
+  );
+}
 
 /** 팀 색 배경 위에 올리는 로고 — 로고 색이 배경과 겹치지 않게 흰 칩 위에 */
 function LogoChip({ team, fallback, size }: { team?: CardTeam; fallback: string; size: number }) {
@@ -115,7 +141,13 @@ function CoverCard({
           <p className={`mt-1 flex min-w-0 items-center gap-1.5 opacity-90 ${hero ? "text-sm" : "text-[11px]"}`}>
             <LogoChip team={team} fallback={p.teamShort} size={hero ? 20 : 14} />
             <span className="truncate">{teamLabel}</span>
-            {hero && <span className="shrink-0">· {p.isForeign ? "외국인" : "국내"}</span>}
+            {hero && (
+              <span className="shrink-0">
+                · {positionLabel(p.position) ? `${positionLabel(p.position)} · ` : ""}
+                {NATIONALITY_LABELS[nationalityOf(p)]}
+              </span>
+            )}
+            {!hero && p.position && <span className="shrink-0">· {p.position}</span>}
           </p>
         </div>
       </div>
@@ -151,19 +183,19 @@ export default function LeadersView({ seasonLabel, players, teams }: Props) {
   }, [state]);
 
   const update = (patch: Partial<LeadersState>) => setState((s) => ({ ...s, ...patch }));
-  const { category, mode, origin, teamCode, presetIdx } = state;
+  const { category, mode, origin, position, teamCode, presetIdx } = state;
   const rule = QUALIFY_PRESETS[presetIdx];
   const categories = LEADER_CATEGORIES;
   const columns = columnOrder(category);
   const sortKey = sort?.key ?? category;
   const sortDir = sort?.dir ?? defaultSortDir(category);
 
-  // 성공률 시도 기준: 이 시즌 표본 충족 선수(국내/외국인·팀 필터 전 전체)의 경기당 시도 평균 — 플레이어 카드와 같은 함수
+  // 성공률 시도 기준: 이 시즌 표본 충족 선수(포지션·국적·팀 필터 전 리그 전체)의 경기당 시도 평균 — 플레이어 카드와 같은 함수
   const thresholds = useMemo(() => attemptThresholds(players, rule), [players, rule]);
 
   const filtered = useMemo(
-    () => filterLeaders(players, { origin, teamCode, rule }),
-    [players, origin, teamCode, rule],
+    () => filterLeaders(players, { origin, position, teamCode, rule }),
+    [players, origin, position, teamCode, rule],
   );
   const top = useMemo(
     () => topLeaders(filtered, category, mode, 3, thresholds),
@@ -216,7 +248,10 @@ export default function LeadersView({ seasonLabel, players, teams }: Props) {
       <section aria-label="보기 설정" className="mt-3 space-y-2">
         <div className="flex flex-wrap gap-2">
           <Segmented label="경기당 또는 시즌 합계" options={MODE_OPTIONS} value={mode} onChange={(v) => update({ mode: v })} />
-          <Segmented label="국내 또는 외국인" options={ORIGIN_OPTIONS} value={origin} onChange={(v) => update({ origin: v })} />
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Segmented label="포지션" options={POSITION_OPTIONS} value={position} onChange={(v) => update({ position: v })} />
+          <Segmented label="국적" options={ORIGIN_OPTIONS} value={origin} onChange={(v) => update({ origin: v })} />
         </div>
         <div className="grid grid-cols-2 gap-2 sm:max-w-md">
           <label className="flex min-w-0 flex-col text-xs font-medium text-ink-2">
@@ -259,7 +294,10 @@ export default function LeadersView({ seasonLabel, players, teams }: Props) {
           </label>
         </div>
         <p className="text-xs text-ink-3">
-          {qualifyLabel(rule)} 출전한 선수 {filtered.length}명
+          {qualifyLabel(rule)} 출전한
+          {position !== "all" ? ` ${positionFilterLabel(position)}` : ""}
+          {origin !== "all" ? ` ${nationalityFilterLabel(origin)}` : ""} 선수 {filtered.length}명
+          {(position !== "all" || origin !== "all") && " · 순위는 이 집단 안 순위"}
           {isModeIndependent(category) && " · 이 부문은 비율 지표라 경기당/합계 전환과 관계없습니다"}
           {LEADER_STATS[category].better === "low" && " · 턴오버는 적을수록 상위입니다"}
         </p>
@@ -287,7 +325,7 @@ export default function LeadersView({ seasonLabel, players, teams }: Props) {
           </div>
         ) : (
           <p className="rounded-xl border border-line bg-surface px-4 py-8 text-center text-sm text-ink-2">
-            조건에 맞는 선수가 없습니다. 표본 기준을 낮추거나 팀·국내/외국인 선택을 바꿔 보세요.
+            조건에 맞는 선수가 없습니다. 표본 기준을 낮추거나 팀·포지션·국적 선택을 바꿔 보세요.
           </p>
         )}
       </section>
@@ -317,6 +355,7 @@ export default function LeadersView({ seasonLabel, players, teams }: Props) {
                   </th>
                   {columns.map((key) => {
                     const active = key === sortKey;
+                    const term = LEADER_COLUMN_GLOSSARY[key];
                     return (
                       <th
                         key={key}
@@ -324,17 +363,20 @@ export default function LeadersView({ seasonLabel, players, teams }: Props) {
                         aria-sort={active ? (sortDir === "desc" ? "descending" : "ascending") : "none"}
                         className={`border-b border-line p-0 text-right font-medium ${active ? "bg-surface-2 text-ink" : ""}`}
                       >
-                        <button
-                          type="button"
-                          onClick={() => clickHeader(key)}
-                          title={`${statTitle(key, mode)}로 정렬`}
-                          className="flex w-full items-center justify-end gap-0.5 whitespace-nowrap px-1.5 py-2 font-semibold hover:text-ink"
-                        >
-                          {LEADER_STATS[key].short}
-                          <span aria-hidden className="w-2 text-[9px]">
-                            {active ? (sortDir === "desc" ? "▼" : "▲") : ""}
-                          </span>
-                        </button>
+                        <span className="flex items-center justify-end">
+                          {term && <InfoLink term={term} className="-mr-1 h-8 w-5 text-[11px]" />}
+                          <button
+                            type="button"
+                            onClick={() => clickHeader(key)}
+                            title={`${statTitle(key, mode)}로 정렬`}
+                            className="flex w-full items-center justify-end gap-0.5 whitespace-nowrap px-1.5 py-2 font-semibold hover:text-ink"
+                          >
+                            {LEADER_STATS[key].short}
+                            <span aria-hidden className="w-2 text-[9px]">
+                              {active ? (sortDir === "desc" ? "▼" : "▲") : ""}
+                            </span>
+                          </button>
+                        </span>
                       </th>
                     );
                   })}
@@ -369,6 +411,7 @@ export default function LeadersView({ seasonLabel, players, teams }: Props) {
                             <span className="flex min-w-0 items-center gap-1 text-[11px] text-ink-3">
                               <TeamLogo logoUrl={team?.logoUrl} shortName={team?.shortName ?? p.teamShort} color={team?.color} size={16} />
                               <span className="truncate">{teamShortLabel(team?.shortName ?? p.teamShort)}</span>
+                              <PosBadge p={p} />
                             </span>
                           </span>
                         </span>
@@ -401,7 +444,9 @@ export default function LeadersView({ seasonLabel, players, teams }: Props) {
           <p className="mt-2 text-xs text-ink-3">
             경기당 모드에서 출전시간·득점 등 누적 기록은 경기 수로 나눈 값입니다. 야투%·3점%·자유투%·TS%·PER는 KBL
             계산값 그대로이고, 성공률 아래 작은 숫자는 시즌 합계 성공/시도입니다. 성공률 순위는 경기당 시도가 리그
-            평균({note}) 이상인 선수만 매기며, 미달 선수는 순위 “–”로 표 아래쪽에 둡니다. 턴오버는 적을수록 상위입니다.
+            평균({note}) 이상인 선수만 매기며, 미달 선수는 순위 “–”로 표 아래쪽에 둡니다. 턴오버·파울은 적을수록 상위입니다. 이름
+            옆 배지는 포지션(G 가드 · F 포워드 · C 센터 · GF 가드-포워드 · FC 포워드-센터)이고, 포지션 칩은 GF를 가드, FC를 포워드로
+            묶습니다. ⓘ 를 누르면 용어 풀이로 갑니다.
           </p>
         </section>
       )}

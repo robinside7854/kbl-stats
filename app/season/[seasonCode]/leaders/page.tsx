@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const season = loadSeasonData(Number(seasonCode));
   return {
     title: season ? `${season.seasonLabel} 시즌 순위표 · KBL` : "KBL 시즌 순위표",
-    description: "KBL 정규시즌 부문별 1~3위와 전체 순위. 경기당/합계, 국내/외국인, 팀별로 나눠 봅니다. 비영리 팬 프로젝트.",
+    description: "KBL 정규시즌 부문별 1~3위와 전체 순위. 경기당/합계, 포지션·국적(국내/외국/아시아쿼터), 팀별로 나눠 봅니다. 비영리 팬 프로젝트.",
   };
 }
 
