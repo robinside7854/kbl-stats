@@ -20,6 +20,15 @@
   --rank-tint: 13%;
   --rank-border: 45%;
   --rank-pill-ring: transparent;
+  /* 플레이어 카드 등급 S~F (A·B 는 팀 색이라 토큰 없음). 바탕 / 글자 */
+  --grade-s: #e9b72c;
+  --grade-s-ink: #3a2900;
+  --grade-c: #e4e2dc;
+  --grade-c-ink: #2f2e2b;
+  --grade-d: #d2d1cb;
+  --grade-d-ink: #4a4946;
+  --grade-f: #ecebe7;
+  --grade-f-ink: #6b6a66;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -40,6 +49,14 @@
     --rank-tint: 32%;
     --rank-border: 70%;
     --rank-pill-ring: rgba(255, 255, 255, 0.35);
+    --grade-s: #f2c94c;
+    --grade-s-ink: #2e2100;
+    --grade-c: #3b3b37;
+    --grade-c-ink: #f0efe8;
+    --grade-d: #2f2f2c;
+    --grade-d-ink: #b9b8ae;
+    --grade-f: #252523;
+    --grade-f-ink: #92918a;
   }
 }
 

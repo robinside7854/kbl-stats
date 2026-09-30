@@ -11,6 +11,15 @@ export interface ThemeColors {
   grid: string;
   series1: string;
   series2: string;
+  /** 플레이어 카드 등급 색 (globals.css --grade-*) */
+  gradeS: string;
+  gradeSInk: string;
+  gradeC: string;
+  gradeCInk: string;
+  gradeD: string;
+  gradeDInk: string;
+  gradeF: string;
+  gradeFInk: string;
 }
 
 const LIGHT_FALLBACK: ThemeColors = {
@@ -21,6 +30,14 @@ const LIGHT_FALLBACK: ThemeColors = {
   grid: "#dcdbd6",
   series1: "#2a78d6",
   series2: "#eb6834",
+  gradeS: "#e9b72c",
+  gradeSInk: "#3a2900",
+  gradeC: "#e4e2dc",
+  gradeCInk: "#2f2e2b",
+  gradeD: "#d2d1cb",
+  gradeDInk: "#4a4946",
+  gradeF: "#ecebe7",
+  gradeFInk: "#6b6a66",
 };
 
 function read(): ThemeColors {
@@ -34,6 +51,14 @@ function read(): ThemeColors {
     grid: v("--grid", LIGHT_FALLBACK.grid),
     series1: v("--series-1", LIGHT_FALLBACK.series1),
     series2: v("--series-2", LIGHT_FALLBACK.series2),
+    gradeS: v("--grade-s", LIGHT_FALLBACK.gradeS),
+    gradeSInk: v("--grade-s-ink", LIGHT_FALLBACK.gradeSInk),
+    gradeC: v("--grade-c", LIGHT_FALLBACK.gradeC),
+    gradeCInk: v("--grade-c-ink", LIGHT_FALLBACK.gradeCInk),
+    gradeD: v("--grade-d", LIGHT_FALLBACK.gradeD),
+    gradeDInk: v("--grade-d-ink", LIGHT_FALLBACK.gradeDInk),
+    gradeF: v("--grade-f", LIGHT_FALLBACK.gradeF),
+    gradeFInk: v("--grade-f-ink", LIGHT_FALLBACK.gradeFInk),
   };
 }
 

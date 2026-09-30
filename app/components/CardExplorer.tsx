@@ -1,26 +1,31 @@
 "use client";
-// 시즌 페이지의 상호작용 부분: 표본 기준, 선수·비교 선수 선택 → 플레이어 카드(1~2장) + 이미지 저장
-// (시즌 선택은 상단 SiteNav 가 맡는다 — 주소의 ?p=&vs= 는 SiteNav 가 시즌을 바꿀 때 그대로 넘긴다)
+// 시즌 페이지의 상호작용 부분: 표본 기준, 팀 필터, 선수·비교 선수 선택 → 플레이어 카드(1~2장) + 이미지 저장
+// (시즌 선택은 상단 SiteNav 가 맡는다 — 주소의 ?p=&vs=&team= 은 SiteNav 가 시즌을 바꿀 때 그대로 넘긴다)
+// 카드 크기: 화면 폭 ≥ 768px 이면 lg(약 500px), 비교 두 장은 ≥ 1024px 에서만 lg(나란히 놓을 자리가 있을 때).
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toPng } from "html-to-image";
 import type { CardPlayer, CardTeam, SeasonCoverage } from "@/lib/types";
 import {
+  attemptsNote,
+  attemptThresholds,
   axisSetFor,
-  axisValue,
   buildCardStatPools,
   buildReference,
   cardStats,
-  DEFAULT_QUALIFY,
   isQualified,
+  overallPercentile,
+  percentileGrade,
+  pickDefaultPlayer,
   playerType,
   QUALIFY_PRESETS,
   qualifyLabel as presetLabel,
   qualifyShort as presetShort,
-  RADAR_IMPACT_AXIS,
+  radarAxes,
   radarPercentiles,
 } from "@/lib/metrics";
 import PlayerPicker from "./PlayerPicker";
-import PlayerCard, { type CardEntry } from "./PlayerCard";
+import PlayerCard, { type CardEntry, type CardSize } from "./PlayerCard";
+import TeamLogo from "./TeamLogo";
 import { excludeOfficialImages } from "./useOfficialImage";
 import { useThemeColors } from "./useThemeColors";
 
@@ -34,6 +39,19 @@ interface Props {
 /** 다음 그림 그리기까지 기다린다 (저장용 사본이 화면 밖에 그려진 뒤 캡처하기 위해) */
 const nextFrame = () => new Promise<void>((r) => requestAnimationFrame(() => r()));
 
+/** 미디어 쿼리 일치 여부 (정적 HTML·첫 렌더는 false → 모바일 크기) */
+function useMedia(query: string): boolean {
+  const [match, setMatch] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia(query);
+    const on = () => setMatch(mq.matches);
+    on();
+    mq.addEventListener("change", on);
+    return () => mq.removeEventListener("change", on);
+  }, [query]);
+  return match;
+}
+
 export default function CardExplorer({ seasonLabel, players, teams, coverage }: Props) {
   const colors = useThemeColors();
   const [presetIdx, setPresetIdx] = useState(0);
@@ -45,28 +63,36 @@ export default function CardExplorer({ seasonLabel, players, teams, coverage }: 
   const axisSet = axisSetFor(coverage);
   const qualifiedFn = useCallback((p: CardPlayer) => isQualified(p, rule), [rule]);
   const reference = useMemo(() => buildReference(players, rule, axisSet), [players, rule, axisSet]);
-  const pools = useMemo(() => buildCardStatPools(players, rule), [players, rule]);
+  // 성공률 시도 기준 = 표본 충족 선수의 경기당 시도 리그 평균 (순위표와 같은 함수)
+  const thresholds = useMemo(() => attemptThresholds(players, rule), [players, rule]);
+  const pools = useMemo(() => buildCardStatPools(players, rule, thresholds), [players, rule, thresholds]);
   const qualifiedCount = useMemo(() => players.filter(qualifiedFn).length, [players, qualifiedFn]);
 
+  // 팀 필터 (null = 전체). 선수 선택 목록을 그 팀으로 좁힌다
+  const [teamCode, setTeamCode] = useState<string | null>(null);
+  const teamPlayers = useMemo(
+    () => (teamCode ? players.filter((p) => p.teamCode === teamCode) : players),
+    [players, teamCode],
+  );
+
   // 기본 선수: 표본 충족 선수 중 종합 기여도 축(modern: PIE, classic: PER) 1위
-  const defaultId = useMemo(() => {
-    const impact = RADAR_IMPACT_AXIS[axisSet];
-    const pool = players.filter((p) => isQualified(p, DEFAULT_QUALIFY));
-    const list = pool.length ? pool : players;
-    return list.reduce((best, p) => (axisValue(p, impact) > axisValue(best, impact) ? p : best), list[0]).id;
-  }, [players, axisSet]);
+  const defaultId = useMemo(() => pickDefaultPlayer(players, axisSet) ?? players[0]?.id ?? "", [players, axisSet]);
 
   const exists = (id: string | null) => !!id && players.some((p) => p.id === id);
   const [aId, setAId] = useState<string>(defaultId);
   const [bId, setBId] = useState<string | null>(null);
 
-  // 공유 링크(?p=선수&vs=비교선수)로 들어온 경우 반영.
+  // 공유 링크(?p=선수&vs=비교선수&team=팀)로 들어온 경우 반영.
   // useSearchParams 대신 window.location을 읽는다 → 정적 HTML에 카드가 그대로 렌더링됨 (클라이언트 전용 렌더링 회피)
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     const p = searchParams.get("p");
     const vs = searchParams.get("vs");
+    const team = searchParams.get("team");
+    const validTeam = team && teams.some((t) => t.teamCode === team) ? team : null;
+    if (validTeam) setTeamCode(validTeam);
     if (exists(p)) setAId(p!);
+    else if (validTeam) setAId(pickDefaultPlayer(players.filter((x) => x.teamCode === validTeam), axisSet) ?? defaultId);
     if (exists(vs) && vs !== p) setBId(vs);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -75,23 +101,40 @@ export default function CardExplorer({ seasonLabel, players, teams, coverage }: 
   useEffect(() => {
     const qs = new URLSearchParams({ p: aId });
     if (bId) qs.set("vs", bId);
+    if (teamCode) qs.set("team", teamCode);
     window.history.replaceState(null, "", `${window.location.pathname}?${qs}`);
-  }, [aId, bId]);
+  }, [aId, bId, teamCode]);
+
+  // 팀을 고르면: 지금 선수가 그 팀이 아니면 그 팀의 기본 선수(종합 기여도 1위)로 바꾼다
+  function chooseTeam(code: string | null) {
+    setTeamCode(code);
+    if (!code) return;
+    const cur = players.find((p) => p.id === aId);
+    if (cur?.teamCode !== code) {
+      const next = pickDefaultPlayer(players.filter((p) => p.teamCode === code), axisSet);
+      if (next) setAId(next);
+    }
+  }
+  const selectedTeam = teamCode ? teamByCode.get(teamCode) : undefined;
 
   const toEntry = useCallback(
     (id: string | null): CardEntry | null => {
       const p = players.find((x) => x.id === id);
       if (!p) return null;
       const pct = radarPercentiles(p, reference, axisSet);
+      const grades: CardEntry["grades"] = {};
+      for (const axis of radarAxes(axisSet)) grades[axis] = percentileGrade(pct[axis]);
       return {
         player: p,
         pct,
+        grades,
+        overall: percentileGrade(overallPercentile(pct, axisSet)),
         type: playerType(pct, axisSet),
         qualified: isQualified(p, rule),
-        stats: cardStats(p, pools, rule),
+        stats: cardStats(p, pools, rule, thresholds),
       };
     },
-    [players, reference, pools, rule, axisSet],
+    [players, reference, pools, rule, axisSet, thresholds],
   );
 
   const a = toEntry(aId);
@@ -134,10 +177,16 @@ export default function CardExplorer({ seasonLabel, players, teams, coverage }: 
     }
   }
 
-  const cardProps = { seasonLabel, axisSet, ruleLabel: presetLabel(rule), qualifiedCount, colors };
+  const isMd = useMedia("(min-width: 768px)");
+  const isLg = useMedia("(min-width: 1024px)");
+  const size: CardSize = isMd && (!b || isLg) ? "lg" : "sm";
+  const attemptsLabel = attemptsNote(thresholds);
+  const cardProps = { seasonLabel, axisSet, ruleLabel: presetLabel(rule), qualifiedCount, colors, attemptsLabel };
+  // 카드 한 장일 때 가운데 폭 (sm 420px, lg 500px)
+  const single = size === "lg" ? "mx-auto max-w-[500px]" : "mx-auto max-w-[420px]";
 
   return (
-    <main className="mx-auto max-w-3xl px-4 pt-5">
+    <main className="mx-auto max-w-5xl px-4 pt-5">
       <header className="mb-4">
         <p className="text-xs font-medium text-ink-3">{seasonLabel} KBL 정규시즌</p>
         <h1 className="mt-0.5 text-xl font-bold tracking-tight">플레이어 카드</h1>
@@ -146,11 +195,35 @@ export default function CardExplorer({ seasonLabel, players, teams, coverage }: 
         </p>
       </header>
 
-      <section aria-label="보기 설정" className="grid grid-cols-2 gap-2">
-        <label className="flex flex-col text-xs font-medium text-ink-2">
-          <span className="mb-1">순위·백분위 비교 기준</span>
+      <section aria-label="보기 설정" className="grid grid-cols-2 gap-2 sm:max-w-md">
+        <label className="flex min-w-0 flex-col text-xs font-medium text-ink-2">
+          <span className="mb-1">팀</span>
+          <span className="relative flex items-center">
+            {selectedTeam && (
+              <span className="pointer-events-none absolute left-2">
+                <TeamLogo logoUrl={selectedTeam.logoUrl} shortName={selectedTeam.shortName} color={selectedTeam.color} size={22} />
+              </span>
+            )}
+            <select
+              className={`h-11 w-full min-w-0 rounded-lg border border-line bg-surface pr-2 text-base text-ink ${
+                selectedTeam ? "pl-9" : "pl-2"
+              }`}
+              value={teamCode ?? ""}
+              onChange={(e) => chooseTeam(e.target.value || null)}
+            >
+              <option value="">전체 팀</option>
+              {teams.map((t) => (
+                <option key={t.teamCode} value={t.teamCode}>
+                  {t.shortName}
+                </option>
+              ))}
+            </select>
+          </span>
+        </label>
+        <label className="flex min-w-0 flex-col text-xs font-medium text-ink-2">
+          <span className="mb-1">순위·등급 비교 기준</span>
           <select
-            className="h-11 rounded-lg border border-line bg-surface px-2 text-base text-ink"
+            className="h-11 w-full min-w-0 rounded-lg border border-line bg-surface px-2 text-base text-ink"
             value={presetIdx}
             onChange={(e) => setPresetIdx(Number(e.target.value))}
           >
@@ -165,8 +238,8 @@ export default function CardExplorer({ seasonLabel, players, teams, coverage }: 
 
       <section aria-label="선수 선택" className="mt-3 grid gap-3 sm:grid-cols-2">
         <PlayerPicker
-          label="선수"
-          players={players}
+          label={selectedTeam ? `선수 (${selectedTeam.shortName})` : "선수"}
+          players={teamPlayers}
           value={aId}
           onChange={(id) => id && setAId(id)}
           isQualified={qualifiedFn}
@@ -175,7 +248,7 @@ export default function CardExplorer({ seasonLabel, players, teams, coverage }: 
         />
         <PlayerPicker
           label="비교 선수 (선택)"
-          players={players.filter((p) => p.id !== aId)}
+          players={teamPlayers.filter((p) => p.id !== aId)}
           value={bId}
           onChange={setBId}
           isQualified={qualifiedFn}
@@ -187,27 +260,26 @@ export default function CardExplorer({ seasonLabel, players, teams, coverage }: 
       </section>
 
       <p className="mt-2 text-xs text-ink-3">
-        비교 집단: {presetLabel(rule)} 출전한 {qualifiedCount}명
+        비교 집단: {presetLabel(rule)} 출전한 {qualifiedCount}명 (팀을 골라도 순위·등급은 리그 전체 기준)
       </p>
 
       {a && (
         <>
           {/* 비교 선수가 있으면 카드 두 장을 나란히(모바일은 위아래로) */}
-          <div
-            className={`mt-4 grid gap-4 ${b ? "sm:grid-cols-2" : "mx-auto max-w-[420px]"}`}
-          >
+          <div className={`mt-4 grid gap-4 ${b ? "md:grid-cols-2" : single}`}>
             {cards.map((c) => (
               <PlayerCard
                 key={c.entry.player.id}
                 entry={c.entry}
                 team={teamOf(c.entry.player)}
                 seriesColor={c.series}
+                size={size}
                 {...cardProps}
               />
             ))}
           </div>
 
-          <div className={`mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 ${b ? "" : "mx-auto max-w-[420px]"}`}>
+          <div className={`mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 ${b ? "" : single}`}>
             <button
               type="button"
               onClick={save}
@@ -224,8 +296,10 @@ export default function CardExplorer({ seasonLabel, players, teams, coverage }: 
             )}
           </div>
 
-          <p className={`mt-4 text-xs leading-relaxed text-ink-3 ${b ? "" : "mx-auto max-w-[420px]"}`}>
-            카드 아래 레이더는 원래 값이 아니라 시즌 내 백분위(0~100)입니다.{" "}
+          <p className={`mt-4 text-xs leading-relaxed text-ink-3 ${b ? "" : single}`}>
+            카드 아래 레이더는 원래 값이 아니라 시즌 내 백분위(0~100)이고, 꼭짓점 글자는 그 백분위의 등급입니다 — S 상위
+            10%, A 상위 25%, B 상위 45%, C 상위 65%, D 상위 85%, F 그 아래. 종합 등급은 5개 축 백분위 평균의 등급입니다.
+            성공률 순위는 경기당 시도가 리그 평균({attemptsLabel}) 이상인 선수만 매깁니다.{" "}
             {axisSet === "classic"
               ? "이 시즌은 KBL이 USG%·AST%·REB%·PIE를 제공하지 않아 40분당 환산(누적 ÷ 출전시간 × 40)과 TS%·PER로 그렸습니다(고전 축). 2차 스탯이 있는 시즌의 카드와는 축이 달라 직접 비교할 수 없습니다."
               : "2차 스탯은 KBL 계산값 그대로입니다(NBA 공식과 척도가 다를 수 있음)."}
@@ -242,6 +316,7 @@ export default function CardExplorer({ seasonLabel, players, teams, coverage }: 
                     team={teamOf(c.entry.player)}
                     seriesColor={c.series}
                     exportMode
+                    size="lg"
                     {...cardProps}
                   />
                 ))}

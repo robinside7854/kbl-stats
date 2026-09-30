@@ -14,14 +14,14 @@ export default function SeasonView({ seasonCode }: { seasonCode: number }) {
 
   return (
     <>
-      <SiteNav seasons={seasons} seasonCode={season.seasonCode} view="radar" />
+      <SiteNav seasons={seasons} seasonCode={season.seasonCode} view="radar" wide />
       <CardExplorer
         seasonLabel={season.seasonLabel}
         players={players}
         teams={teams}
         coverage={season.coverage}
       />
-      <SourceFooter fetchedAt={season.fetchedAt} />
+      <SourceFooter fetchedAt={season.fetchedAt} wide />
     </>
   );
 }
