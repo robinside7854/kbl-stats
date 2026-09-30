@@ -110,7 +110,10 @@ export function classifyMostGameKey(key: string): { game: GameKind; scope: Highs
   // 범위: "…Seasons"만 그 시즌, 나머지(AllTimes·Playoffs·Champions)는 통산
   const scope: HighsScope = /seasons?$/i.test(rest) ? "season" : "allTime";
   // 구분: 챔프전 → 플레이오프 → 정규 순으로 판정 ("Regular"가 접두어로 늘 붙으므로 마지막에 본다)
-  const game: GameKind | null = /champ|final/i.test(rest) ? "finals" : /play ?off|(^|[^a-z])po([^a-z]|$)/i.test(rest) ? "playoff" : /regular/i.test(rest) ? "regular" : null;
+  // "PO" 약칭은 대문자 두 글자 + 다음 단어(대문자)로만 본다 — 대소문자 무시로 보면 "POAllTimes"의 뒤 글자를 단어로 오인하거나
+  // 다른 단어 속 "po"(예: "Report")를 잘못 잡는다
+  const isPlayoff = /play ?off/i.test(rest) || /(^|[^A-Za-z]|[a-z])PO([A-Z]|[^A-Za-z]|$)/.test(rest);
+  const game: GameKind | null = /champ|final/i.test(rest) ? "finals" : isPlayoff ? "playoff" : /regular/i.test(rest) ? "regular" : null;
   return game ? { game, scope } : null;
 }
 
