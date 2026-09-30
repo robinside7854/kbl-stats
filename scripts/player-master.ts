@@ -105,3 +105,45 @@ export function isForeignPlayer(nationality: Nationality | null, nameKo: string)
   if (nationality) return nationality !== "domestic";
   return !/^[가-힣]{2,4}$/.test(nameKo.trim());
 }
+
+// ─────────────────────────────────────────────
+// 선수 프로필 (서버 B /api/v1/players/profile/0/{playerNo}) — 생년월일·국가·출신교
+// raw: data/raw/profiles/{playerNo}.json = { playerInfo: [{ birthday: "19940131", country: "미국", univSch: "Stony brook", … }], playerScore: [...] }
+// ─────────────────────────────────────────────
+
+export interface ProfileExtra {
+  birthday: string | null; // "1994-01-31"
+  country: string | null;
+  school: string | null;
+}
+
+export const EMPTY_PROFILE_EXTRA: ProfileExtra = { birthday: null, country: null, school: null };
+
+/** 응답이 프로필 형태인가 (playerInfo 배열) — 수집 때 이상한 응답을 저장하지 않으려고 */
+export function isProfileResponse(body: unknown): boolean {
+  const o = unwrap(body) as Raw | null;
+  return !!o && typeof o === "object" && Array.isArray(o.playerInfo);
+}
+
+const text = (v: unknown): string | null => {
+  const s = v === null || v === undefined ? "" : String(v).trim();
+  return s && s !== "-" ? s : null;
+};
+
+/** "19940131" → "1994-01-31". 달·날이 범위를 벗어나거나 형식이 다르면 null */
+export function birthdayIso(v: unknown): string | null {
+  const m = /^(\d{4})[-.]?(\d{2})[-.]?(\d{2})$/.exec(String(v ?? "").trim());
+  if (!m) return null;
+  const mo = Number(m[2]);
+  const d = Number(m[3]);
+  if (mo < 1 || mo > 12 || d < 1 || d > 31) return null;
+  return `${m[1]}-${m[2]}-${m[3]}`;
+}
+
+/** 프로필 raw 내용 → 생년월일·국가·출신교 (없으면 null) */
+export function profileExtraFrom(parsed: unknown): ProfileExtra {
+  const o = unwrap(parsed) as Raw | null;
+  const info = Array.isArray(o?.playerInfo) ? (o!.playerInfo[0] as Raw | undefined) : undefined;
+  if (!info) return { ...EMPTY_PROFILE_EXTRA };
+  return { birthday: birthdayIso(info.birthday), country: text(info.country), school: text(info.univSch) };
+}

@@ -1,5 +1,7 @@
 # 매일 새벽 KBL 기록을 수집해 data/ 에 커밋한다.
 # 수동 실행: GitHub → Actions → "KBL 기록 수집" → Run workflow
+# 시즌 기록 뒤에 현재 시즌 선수의 한 경기 최다·프로필도 받는다(약 200명 × 2회, 1.5초 간격 ≈ 10분,
+# 개막 후 30일 동안은 직전 시즌 선수도 — scripts/highs.ts highsTargetSeasons). 과거 전체는 backfill-highs.yml.
 name: KBL 기록 수집
 
 on:
@@ -23,6 +25,7 @@ concurrency:
 jobs:
   fetch:
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
 

@@ -1,45 +1,25 @@
 // KBL 공식 기록 수집 스크립트
-// 실행: npm run fetch            → 기본 시즌(DEFAULT_SEASONS)만
-//       npm run fetch -- 45 47   → 지정 시즌만
-//       npm run fetch:all        → 코드표에 있는 모든 시즌
+// 실행: npm run fetch            → 기본 시즌(DEFAULT_SEASONS)만 + 현재 시즌 선수의 한 경기 최다·프로필
+//       npm run fetch -- 45 47   → 지정 시즌만 (+ 한 경기 최다·프로필 — 대상 시즌은 규칙대로, 지정 시즌과 무관)
+//       npm run fetch:all        → 코드표에 있는 모든 시즌 (한 경기 최다는 받지 않는다 — 과거 전체는 backfill-highs)
+//       --no-highs               → 한 경기 최다·프로필 건너뜀
+//
+// 한 경기 최다·프로필 대상(scripts/highs.ts highsTargetSeasons): 현재 시즌 선수만(~200명 × 2회, 1.5초 간격 ≈ 10분).
+// 직전 시즌은 최신 시즌 첫 수집일(data/season-first-seen.json)부터 30일 동안만 같이 받고, 마감된 옛 시즌은 다시 받지 않는다.
 //
 // 원칙(CLAUDE.md): 응답은 가공하지 않고 data/raw/{seasonCode}/ 에 그대로 저장한다.
 // 시즌 수집 전에 선수 마스터(서버 B)를 전부 받아 data/raw/players/players.json 에 저장한다 (실패해도 시즌 수집은 계속).
 
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import {
   STATS_API, CODES_API, GAME_CODE, SEASON_CODES_FALLBACK,
   DEFAULT_SEASONS, REQUEST_INTERVAL_MS, PAGE_SIZE, DATA_DIR,
   PLAYER_MASTER_PATH, PLAYER_MASTER_REG_SC, PLAYER_MASTER_MAX_PAGES,
 } from "./config.js";
-
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-async function getJson(url: string): Promise<unknown> {
-  const res = await fetch(url, {
-    headers: {
-      // 공홈 브라우저 요청과 동일한 형태로 보낸다. 별도 인증 없음 (2026-09-29 확인)
-      Accept: "application/json",
-      Referer: "https://kbl.or.kr/",
-      Origin: "https://kbl.or.kr",
-      "User-Agent": "kbl-stats fan project (non-commercial; github.com/robinside7854/kbl-stats)",
-    },
-  });
-  if (!res.ok) {
-    const detail = (await res.text().catch(() => "")).slice(0, 200);
-    throw new Error(`HTTP ${res.status} ${url}\n    ${detail}`);
-  }
-  return res.json();
-}
-
-async function saveRaw(seasonCode: number | string, name: string, body: unknown) {
-  const dir = join(DATA_DIR, "raw", String(seasonCode));
-  await mkdir(dir, { recursive: true });
-  const file = join(dir, `${name}.json`);
-  await writeFile(file, JSON.stringify(body, null, 2), "utf8");
-  return file;
-}
+import { getJson, saveRaw, sleep } from "./http.js";
+import { collectHighs, collectProfiles } from "./collect-extras.js";
+import { highsTargetSeasons, playerNosFromTraditional, todayKst, updateFirstSeen } from "./highs.js";
 
 async function saveCodes(name: string, body: unknown) {
   const dir = join(DATA_DIR, "codes");
@@ -131,6 +111,57 @@ async function fetchPlayerMaster(): Promise<void> {
   await sleep(REQUEST_INTERVAL_MS);
 }
 
+/** 시즌 첫 수집일 기록 파일 (시즌 코드 → "YYYY-MM-DD"). 한 경기 최다 대상 선정에 쓴다 */
+const FIRST_SEEN_FILE = join(DATA_DIR, "season-first-seen.json");
+
+async function readJsonOr<T>(file: string, fallback: T): Promise<T> {
+  try {
+    return JSON.parse(await readFile(file, "utf8")) as T;
+  } catch {
+    return fallback;
+  }
+}
+
+/** raw traditional 파일의 선수 번호 (없으면 빈 배열) */
+async function rawPlayerNos(seasonCode: number): Promise<string[]> {
+  return playerNosFromTraditional(await readJsonOr(join(DATA_DIR, "raw", String(seasonCode), "traditional_regular.json"), null));
+}
+
+/**
+ * 현재 시즌 선수의 한 경기 최다 + 프로필. 시즌 수집이 끝난 뒤 raw traditional 의 선수 목록으로 돈다.
+ * 반환: 실패 요약 (선수별 실패는 개수만 — 목록이 길어지지 않게)
+ */
+async function fetchHighsAndProfiles(knownSeasons: number[], fetchedToday: number[]): Promise<string[]> {
+  const today = todayKst();
+  let firstSeen = await readJsonOr<Record<string, string>>(FIRST_SEEN_FILE, {});
+  const seasons: { seasonCode: number; playerCount: number }[] = [];
+  const nosBySeason = new Map<number, string[]>();
+  for (const code of knownSeasons) {
+    const nos = await rawPlayerNos(code);
+    nosBySeason.set(code, nos);
+    seasons.push({ seasonCode: code, playerCount: nos.length });
+    // 오늘 받은 시즌만 첫 수집일을 기록 (옛 raw 가 있다고 오늘 날짜를 찍지 않는다)
+    if (fetchedToday.includes(code)) firstSeen = updateFirstSeen(firstSeen, code, nos.length, today);
+  }
+  await writeFile(FIRST_SEEN_FILE, JSON.stringify(firstSeen, null, 2) + "\n", "utf8");
+
+  const targets = highsTargetSeasons({ seasons, firstSeen, today });
+  console.log(`\n한 경기 최다·프로필 대상 시즌: ${targets.join(", ") || "없음"}`);
+  const failed: string[] = [];
+  const profileNos = new Set<string>();
+  for (const code of targets) {
+    const nos = nosBySeason.get(code) ?? [];
+    nos.forEach((no) => profileNos.add(no));
+    const r = await collectHighs(code, nos, { skipExisting: false });
+    if (r.failed.length) failed.push(`highs ${code}: ${r.failed.length}명 실패${r.aborted ? "(중단)" : ""} — 예: ${r.failed[0]}`);
+  }
+  if (profileNos.size > 0) {
+    const r = await collectProfiles([...profileNos], { skipExisting: false });
+    if (r.failed.length) failed.push(`profiles: ${r.failed.length}명 실패${r.aborted ? "(중단)" : ""} — 예: ${r.failed[0]}`);
+  }
+  return failed;
+}
+
 async function fetchSeason(seasonCode: number) {
   const label = SEASON_CODES_FALLBACK[seasonCode] ?? String(seasonCode);
   const results: string[] = [];
@@ -168,6 +199,7 @@ async function main() {
   const all = args.includes("--all");
   const explicit = args.filter((a) => /^\d+$/.test(a)).map(Number);
 
+  const skipHighs = all || args.includes("--no-highs");
   const knownSeasons = await fetchCodes();
   const targets = all ? knownSeasons : explicit.length > 0 ? explicit : DEFAULT_SEASONS;
 
@@ -191,6 +223,15 @@ async function main() {
       // 한 시즌이 실패해도 나머지는 계속 (CLAUDE.md 코딩 규칙)
       failed.push(`${seasonCode}: ${(e as Error).message}`);
       console.error(`[${seasonCode}] 실패: ${(e as Error).message}`);
+    }
+  }
+
+  // 한 경기 최다·프로필 (현재 시즌 선수) — 실패해도 시즌 기록은 이미 저장됨
+  if (!skipHighs) {
+    try {
+      failed.push(...(await fetchHighsAndProfiles(knownSeasons, targets)));
+    } catch (e) {
+      failed.push(`highs: ${(e as Error).message}`);
     }
   }
 

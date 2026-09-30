@@ -32,6 +32,48 @@ export interface PlayerProfile {
   draft: DraftInfo | null;            // 외국 선수 등 드래프트 기록이 없으면 null
 }
 
+// ─────────────────────────────────────────────
+// 한 경기 최다(시즌 하이·커리어 하이) — 서버 B mostgame 응답(data/raw/highs/{시즌}/{선수}.json)에서
+// scripts/highs.ts 가 우리 키로 바꾼다. raw 가 없으면 null (백필 전 옛 processed 파일에는 필드 자체가 없을 수 있음).
+// ─────────────────────────────────────────────
+
+/**
+ * 한 경기 최다 부문 15개 (KBL recordTxt → 우리 키, scripts/highs.ts RECORD_TXT_TO_KEY).
+ * 기록(RECORD) 11개: 득점·야투 성공·2점 성공·3점 성공·자유투 성공·공격/수비/전체 리바운드·어시스트·스틸·블록
+ * 성공률(RATE) 4개: 야투·2점·3점·자유투 성공률 — 시도 수 조건이 없어 순위표에는 쓰지 않는다 (lib/highs.ts)
+ */
+export type HighKey =
+  | "pts" | "fgm" | "fgPct" | "twoPm" | "twoPPct" | "tpm" | "tpPct" | "ftm" | "ftPct"
+  | "oreb" | "dreb" | "reb" | "ast" | "stl" | "blk";
+
+/** 순위표 "이 시즌 한 경기 최다"에 쓰는 기록(RECORD) 부문 11개 */
+export type SeasonHighLeaderKey = Exclude<HighKey, "fgPct" | "twoPPct" | "tpPct" | "ftPct">;
+
+export interface HighRecord {
+  value: number;                   // 기록 (성공률은 0~100)
+  date: string | null;             // 달성 날짜 "2023-10-21" (gameDate "20231021" → ISO)
+  opponentTeamCode: string | null; // 상대 팀 코드 (awayTeam)
+  times: number | null;            // 같은 최고 기록을 낸 횟수 (scoreRankCn)
+  seasonCode: number | null;       // 달성 시즌 (통산 기록의 상대 팀 이름 조회용)
+}
+
+/** 부문별 한 경기 최다. 그 부문 기록이 응답에 없으면 null */
+export type HighsSet = Record<HighKey, HighRecord | null>;
+
+/** 통산 한 경기 최다 — 정규시즌 / 플레이오프 / 챔피언결정전. 응답에 그 배열이 없거나 비어 있으면 null */
+export interface CareerHighs {
+  regular: HighsSet | null;
+  playoff: HighsSet | null;
+  finals: HighsSet | null;
+}
+
+export interface SeasonHighLeader extends HighRecord {
+  playerNo: string;
+}
+
+/** 시즌 파일의 부문별 시즌 하이 1위 (lib/highs.ts computeSeasonHighLeaders — 동률이면 먼저 달성한 선수) */
+export type SeasonHighLeaders = Record<SeasonHighLeaderKey, SeasonHighLeader | null>;
+
 export interface Player extends PlayerProfile {
   playerNo: string;
   nameKo: string;
@@ -82,6 +124,9 @@ export interface Player extends PlayerProfile {
   /** KBL 원값 그대로 보존만 한다. 화면용 타입·레이더·커버리지 판정에서는 쓰지 않는다(2026-09-30 결정) */
   pie: number;
   poss: number;
+
+  /** 이 시즌 한 경기 최다 (정규시즌). 그 시즌 raw(data/raw/highs)가 없으면 null — 옛 processed 파일엔 필드가 없다 */
+  seasonHighs?: HighsSet | null;
 }
 
 /**
@@ -131,6 +176,8 @@ export interface SeasonData {
   coverage: SeasonCoverage;
   teams: Team[];
   players: Player[];
+  /** 부문별 시즌 하이 1위 (기록 부문 11개). 그 시즌 한 경기 최다 raw 가 없으면 null — 옛 processed 파일엔 필드가 없다 */
+  seasonHighLeaders?: SeasonHighLeaders | null;
 }
 
 // ─────────────────────────────────────────────
@@ -151,6 +198,12 @@ export interface PlayerIndexEntry extends PlayerProfile {
   isForeign: boolean;     // 가장 최근 시즌 값 (마스터가 있으면 nationality 기준)
   photoUrl: string;       // 공식 프로필 사진 주소 (process.ts가 생성). 사진이 없을 수 있으므로 화면은 실패 시 대체 디자인
   seasons: PlayerIndexSeason[]; // seasonCode 오름차순
+  /** 통산 한 경기 최다 (가장 최근 시즌 raw 의 AllTimes). raw 가 없으면 null — 옛 색인엔 필드가 없다 */
+  careerHighs?: CareerHighs | null;
+  /** 이하 3개: 서버 B 프로필(data/raw/profiles/{선수}.json). 없으면 null */
+  birthday?: string | null;   // "1994-01-31"
+  country?: string | null;    // 국가명, 예: "미국"
+  school?: string | null;     // 출신 학교(univSch), 예: "Stony brook"
 }
 
 // ─────────────────────────────────────────────

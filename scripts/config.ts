@@ -18,6 +18,35 @@ export const PLAYER_MASTER_REG_SC = "N";
 /** 선수 마스터 페이지 수 상한 (200명 × 50쪽 = 10,000명) — 응답 이상으로 끝없이 넘기는 일 방지 */
 export const PLAYER_MASTER_MAX_PAGES = 50;
 
+/**
+ * 한 경기 최다(커리어 하이·시즌 하이) (서버 B, 2026-09-30 Actions 러너에서 확인)
+ * GET /api/v1/players/categories/mostgame/{seasonCode}/{playerNo}
+ *   → { MostGameRegularSeasons: [...](요청 시즌의 시즌 하이), MostGameRegularAllTimes: [...](통산), 플레이오프·챔프전 배열 }
+ * 한 요청이 "그 시즌 하이 + 통산"을 같이 주므로 선수-시즌 조합당 1회. 형식·매핑은 scripts/highs.ts.
+ */
+export const PLAYER_HIGHS_PATH = "/api/v1/players/categories/mostgame";
+/**
+ * 선수 프로필 (서버 B): GET /api/v1/players/profile/0/{playerNo}
+ *   → { playerInfo: [{ birthday: "19940131", country: "미국", countryEng, univSch, pHeight, pos, backNum, … }], playerScore: [...] }
+ * 생년월일·국가·출신교만 쓴다 (scripts/player-master.ts profileExtraFrom).
+ */
+export const PLAYER_PROFILE_PATH = "/api/v1/players/profile/0";
+/**
+ * (참고, 수집하지 않음 — 부하) 경기별 기록: GET /api/v1/players/categories/game/{seasonCode}/01/{playerNo}
+ *   → { RegularGameRecords: [{ gameNo, gameDate, awayTeam, win, loss, score, awayScore, playSec, pts, fg, fgA, …, rb, aS, sT, bS, tO, foulTot }] }
+ */
+export const PLAYER_GAMES_PATH = "/api/v1/players/categories/game";
+
+export const playerHighsUrl = (seasonCode: number | string, playerNo: string) =>
+  `${CODES_API}${PLAYER_HIGHS_PATH}/${seasonCode}/${encodeURIComponent(playerNo)}`;
+export const playerProfileUrl = (playerNo: string) => `${CODES_API}${PLAYER_PROFILE_PATH}/${encodeURIComponent(playerNo)}`;
+
+/**
+ * 선수별 요청(한 경기 최다·프로필)이 연속으로 이만큼 실패하면 그 시즌은 멈춘다
+ * — 서버가 막혔거나 응답 형식이 바뀐 것이라 계속 두드리지 않는다.
+ */
+export const MAX_CONSECUTIVE_FAILURES = 10;
+
 /** 경기 구분 코드 — 1차 범위는 정규시즌만 */
 export const GAME_CODE = {
   regular: "01",
