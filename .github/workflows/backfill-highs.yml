@@ -1,0 +1,95 @@
+# 한 경기 최다(시즌 하이·커리어 하이)·선수 프로필 과거 전체 백필 — 한 번만 돌리면 된다.
+# 선수-시즌 조합당 1회(약 4,900회) + 선수당 프로필 1회(약 1,300회), 요청 간격 1.5초 → 약 3시간.
+#
+# 실행 방법: 아래 "실행 횟수" 숫자를 1 올려서 main 에 푸시 (0 이면 파일이 푸시돼도 아무것도 받지 않는다)
+#   (GitHub → Actions → "한 경기 최다 백필" → Run workflow 버튼도 된다 — 이때는 숫자와 관계없이 실행)
+# 이어받기: 이미 raw 가 있는 선수-시즌은 건너뛰고, 시즌 하나가 끝날 때마다 커밋·푸시한다.
+#   시간 제한(330분)에 걸리거나 실패가 남으면 숫자를 한 번 더 올려 푸시하면 남은 것만 받는다.
+#
+# 실행 횟수: 0
+name: 한 경기 최다 백필
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/backfill-highs.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fetch          # 매일 수집(fetch.yml)·전체 백필과 동시에 돌지 않게 같은 그룹 (매일 수집은 이 실행이 끝날 때까지 기다린다)
+  cancel-in-progress: false
+
+jobs:
+  backfill-highs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 실행 횟수 확인 (0 이면 건너뜀)
+        id: gate
+        run: |
+          n=$(grep -m1 -oE '^# 실행 횟수: [0-9]+' .github/workflows/backfill-highs.yml | grep -oE '[0-9]+$' || echo 0)
+          echo "실행 횟수: $n (이벤트: ${{ github.event_name }})"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "$n" -gt 0 ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::실행 횟수가 0 이라 백필하지 않습니다. 숫자를 1 올려 푸시하면 실행됩니다."
+          fi
+
+      - uses: actions/setup-node@v4
+        if: steps.gate.outputs.run == 'true'
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+        if: steps.gate.outputs.run == 'true'
+
+      - name: 시즌별 수집·커밋 (최신 시즌부터)
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          git config user.name "kbl-stats-bot"
+          git config user.email "actions@users.noreply.github.com"
+          # 시간 제한(330분) 전에 새 시즌을 시작하지 않도록 300분 예산 — 남은 시간에 가공·커밋 단계가 돈다
+          deadline=$(( $(date +%s) + 300 * 60 ))
+          failed=""
+          for s in $(npx tsx scripts/backfill-highs.ts --list-seasons); do
+            if [ "$(date +%s)" -ge "$deadline" ]; then
+              echo "::warning::시간 예산을 다 써서 시즌 $s 부터는 다음 실행으로 넘깁니다 (실행 횟수를 올려 다시 푸시)"
+              break
+            fi
+            npx tsx scripts/backfill-highs.ts --season "$s" || failed="$failed $s"
+            for d in data/raw/highs data/raw/profiles; do [ -d "$d" ] && git add "$d"; done
+            if ! git diff --cached --quiet; then
+              git commit -q -m "데이터 백필: 한 경기 최다·프로필 시즌 $s"
+              git pull -q --rebase origin main
+              git push -q
+            fi
+          done
+          if [ -n "$failed" ]; then
+            echo "::warning::일부 실패가 남은 시즌:$failed — 실행 횟수를 올려 다시 푸시하면 남은 것만 받습니다"
+          fi
+
+      - name: 가공
+        if: always() && steps.gate.outputs.run == 'true'
+        run: npm run process
+
+      - name: 가공 결과 커밋
+        if: always() && steps.gate.outputs.run == 'true'
+        run: |
+          git config user.name "kbl-stats-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/
+          if git diff --cached --quiet; then
+            echo "변경 없음"
+          else
+            git commit -m "데이터 가공: 한 경기 최다 백필 반영 $(date -u +'%Y-%m-%d %H:%M UTC')"
+            git pull --rebase origin main
+            git push
+          fi
