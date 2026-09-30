@@ -3,7 +3,27 @@
 import "server-only";
 import fs from "node:fs";
 import path from "node:path";
-import type { CardPlayer, CardTeam, LeaderPlayer, PlayerIndexEntry, SeasonData, SeasonOption } from "./types";
+import type {
+  CardPlayer,
+  CardTeam,
+  CareerSeason,
+  LeaderPlayer,
+  PlayerCareer,
+  PlayerIndexEntry,
+  SeasonData,
+  SeasonOption,
+} from "./types";
+import {
+  attemptsNote,
+  axisSetFor,
+  buildCardContext,
+  buildCardEntry,
+  DEFAULT_QUALIFY,
+  qualifyLabel,
+  type CardContext,
+  type CardEntryOf,
+  type RadarAxisSet,
+} from "./metrics";
 
 const PROCESSED_DIR = path.join(process.cwd(), "data", "processed");
 
@@ -43,7 +63,6 @@ function koShortOf(season: SeasonData): (p: { teamCode: string; teamShort: strin
 
 /** 화면에 넘길 최소 필드만 추린다. 사진 주소는 선수 색인(players-index.json)에서 playerNo로 찾는다 */
 export function toCardPlayers(season: SeasonData): CardPlayer[] {
-  const photoById = new Map(loadPlayersIndex().map((e) => [e.id, e.photoUrl]));
   const koShort = koShortOf(season);
   return season.players.map((p) => ({
     id: p.playerNo,
@@ -53,7 +72,7 @@ export function toCardPlayers(season: SeasonData): CardPlayer[] {
     teamShort: koShort(p),
     teamCode: p.teamCode,
     isForeign: p.isForeign,
-    photoUrl: photoById.get(p.playerNo) ?? null,
+    photoUrl: findPlayerIndexEntry(p.playerNo)?.photoUrl ?? null,
     games: p.games,
     minutes: p.minutes,
     points: p.points,
@@ -79,7 +98,6 @@ export function toCardPlayers(season: SeasonData): CardPlayer[] {
 
 /** 순위표에 넘길 최소 필드만 추린다 (Player 전체를 클라이언트로 보내지 않는다) */
 export function toLeaderPlayers(season: SeasonData): LeaderPlayer[] {
-  const photoById = new Map(loadPlayersIndex().map((e) => [e.id, e.photoUrl]));
   const koShort = koShortOf(season);
   return season.players.map((p) => ({
     id: p.playerNo,
@@ -88,7 +106,7 @@ export function toLeaderPlayers(season: SeasonData): LeaderPlayer[] {
     teamCode: p.teamCode,
     teamShort: koShort(p),
     isForeign: p.isForeign,
-    photoUrl: photoById.get(p.playerNo) ?? null,
+    photoUrl: findPlayerIndexEntry(p.playerNo)?.photoUrl ?? null,
     games: p.games,
     minutes: p.minutes,
     points: p.points,
@@ -129,4 +147,105 @@ export function loadPlayersIndex(): PlayerIndexEntry[] {
   const file = "players-index.json";
   playersIndexCache = fs.existsSync(path.join(PROCESSED_DIR, file)) ? readJson<PlayerIndexEntry[]>(file) : [];
   return playersIndexCache;
+}
+
+// ─────────────────────────────────────────────
+// 선수 페이지 (/player/[선수번호])
+// ─────────────────────────────────────────────
+
+let indexByIdCache: Map<string, PlayerIndexEntry> | null = null;
+
+/** 선수 번호 → 색인 항목 */
+export function findPlayerIndexEntry(playerNo: string): PlayerIndexEntry | null {
+  if (!indexByIdCache) indexByIdCache = new Map(loadPlayersIndex().map((e) => [e.id, e]));
+  return indexByIdCache.get(playerNo) ?? null;
+}
+
+// 시즌별 변환 결과 캐시 — 선수 페이지 1,329개가 같은 시즌을 여러 번 변환하지 않도록 (빌드 시간)
+const leaderRowsCache = new Map<number, Map<string, LeaderPlayer>>();
+const teamsCache = new Map<number, CardTeam[]>();
+
+function seasonLeaderRows(season: SeasonData): Map<string, LeaderPlayer> {
+  let m = leaderRowsCache.get(season.seasonCode);
+  if (!m) {
+    m = new Map(toLeaderPlayers(season).map((p) => [p.id, p]));
+    leaderRowsCache.set(season.seasonCode, m);
+  }
+  return m;
+}
+
+function seasonTeams(season: SeasonData): CardTeam[] {
+  let t = teamsCache.get(season.seasonCode);
+  if (!t) {
+    t = toCardTeams(season);
+    teamsCache.set(season.seasonCode, t);
+  }
+  return t;
+}
+
+/**
+ * 한 선수의 전 시즌 기록: 색인의 시즌 목록을 따라 각 시즌 파일(메모리 캐시)에서 그 선수 행을 모은다.
+ * 시즌 파일에 그 선수가 없으면(색인과 어긋남) 그 시즌은 건너뛴다. 색인에 없는 번호면 null.
+ * 클라이언트로는 순위표 행과 같은 최소 필드(LeaderPlayer) + 시즌 라벨 + 그 시즌 팀 정보만 넘긴다.
+ */
+export function loadPlayerCareer(playerNo: string): PlayerCareer | null {
+  const entry = findPlayerIndexEntry(playerNo);
+  if (!entry) return null;
+  const seasons: CareerSeason[] = [];
+  for (const s of entry.seasons) {
+    const season = loadSeasonData(s.seasonCode);
+    const row = season && seasonLeaderRows(season).get(playerNo);
+    if (!season || !row) continue;
+    seasons.push({
+      ...row,
+      seasonCode: season.seasonCode,
+      seasonLabel: season.seasonLabel,
+      team: seasonTeams(season).find((t) => t.teamCode === row.teamCode) ?? null,
+    });
+  }
+  return { entry, seasons };
+}
+
+/** 선수 페이지에 넣을 플레이어 카드 한 장 — 서버에서 계산해 결과만 넘긴다 (시즌 선수 전체를 보내지 않기 위해) */
+export interface PlayerCardData {
+  entry: CardEntryOf<CardPlayer>;
+  team: CardTeam | null;
+  seasonCode: number;
+  seasonLabel: string;
+  axisSet: RadarAxisSet;
+  ruleLabel: string;
+  qualifiedCount: number;
+  attemptsLabel: string;
+}
+
+const cardSeasonCache = new Map<number, { players: Map<string, CardPlayer>; ctx: CardContext }>();
+
+/**
+ * 그 시즌 플레이어 카드: 비교 집단은 플레이어 카드 화면의 기본값(DEFAULT_QUALIFY)과 같다 →
+ * 같은 선수·시즌이면 /season/[코드] 의 기본 카드와 순위·등급이 같다.
+ */
+export function loadPlayerCard(playerNo: string, seasonCode: number): PlayerCardData | null {
+  const season = loadSeasonData(seasonCode);
+  if (!season) return null;
+  let c = cardSeasonCache.get(seasonCode);
+  if (!c) {
+    const players = toCardPlayers(season);
+    c = {
+      players: new Map(players.map((p) => [p.id, p])),
+      ctx: buildCardContext(players, DEFAULT_QUALIFY, axisSetFor(season.coverage)),
+    };
+    cardSeasonCache.set(seasonCode, c);
+  }
+  const p = c.players.get(playerNo);
+  if (!p) return null;
+  return {
+    entry: buildCardEntry(p, c.ctx),
+    team: seasonTeams(season).find((t) => t.teamCode === p.teamCode) ?? null,
+    seasonCode,
+    seasonLabel: season.seasonLabel,
+    axisSet: c.ctx.set,
+    ruleLabel: qualifyLabel(c.ctx.rule),
+    qualifiedCount: c.ctx.qualifiedCount,
+    attemptsLabel: attemptsNote(c.ctx.thresholds),
+  };
 }

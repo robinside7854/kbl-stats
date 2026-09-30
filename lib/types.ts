@@ -194,3 +194,39 @@ export interface LeaderPlayer {
   tsPct: number;
   per: number;
 }
+
+// ─────────────────────────────────────────────
+// 선수 페이지(/player/[선수번호]) — 한 선수의 전 시즌 기록 (lib/data.ts loadPlayerCareer)
+// ─────────────────────────────────────────────
+
+/**
+ * 선수 페이지 시즌별 한 줄. 순위표 행(LeaderPlayer)과 같은 필드 + 시즌·그 시즌 팀 정보.
+ * 같은 모양이라 표기·경기당 환산은 lib/leaders.ts(statValue·formatStat)를 그대로 쓴다.
+ */
+export interface CareerSeason extends LeaderPlayer {
+  seasonCode: number;
+  seasonLabel: string;    // 예: "2025-2026" (짧은 표기는 lib/career.ts seasonShortLabel)
+  team: CardTeam | null;  // 그 시즌 팀 (로고·색·한글 약칭). 시즌 팀 목록에 없으면 null
+}
+
+export interface PlayerCareer {
+  entry: PlayerIndexEntry;
+  /** 시즌 오름차순 (오래된 시즌이 먼저) */
+  seasons: CareerSeason[];
+}
+
+// ─────────────────────────────────────────────
+// 검색용 경량 색인 — public/search-index.json (scripts/build-search-index.ts 가 빌드 전에 생성)
+// ─────────────────────────────────────────────
+
+export interface SearchEntry {
+  id: string;             // playerNo
+  nameKo: string;
+  nameEn: string;
+  team: string;           // 가장 최근 시즌 팀 한글 약칭
+  from: string;           // 첫 시즌 짧은 표기, 예: "2019-20"
+  to: string;             // 마지막 시즌 짧은 표기
+  last: number;           // 마지막 시즌 코드 (검색 결과 정렬: 최근 선수 먼저)
+  photoUrl: string;       // process.ts 가 만든 주소 그대로 (화면은 KBL 주소를 모른다)
+  color: { primary: string; text: string }; // 최근 팀 색 (아바타 대체 디자인)
+}

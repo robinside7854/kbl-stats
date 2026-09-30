@@ -542,3 +542,92 @@ export function pickDefaultPlayer<T extends RadarInput & { id: string }>(
   const list = pool.length ? pool : players;
   return list.reduce((best, p) => (axisValue(p, impact) > axisValue(best, impact) ? p : best), list[0]).id;
 }
+
+// ─────────────────────────────────────────────
+// 플레이어 카드 한 장의 계산 묶음 — 플레이어 카드 화면(CardExplorer)과 선수 페이지가 같이 쓴다
+// ─────────────────────────────────────────────
+
+/** 카드 계산에 필요한 선수 필드 (레이더 + 메인 스탯) */
+export type CardInput = RadarInput & CardStatInput;
+
+/** 한 시즌·한 표본 기준의 비교 재료: 레이더 백분위 집단, 성공률 시도 기준, 스탯 순위 집단, 집단 크기 */
+export interface CardContext {
+  rule: QualifyRule;
+  set: RadarAxisSet;
+  reference: RadarReference;
+  thresholds: AttemptThresholds;
+  pools: CardStatPools;
+  qualifiedCount: number;
+}
+
+export function buildCardContext(players: readonly CardInput[], rule: QualifyRule, set: RadarAxisSet): CardContext {
+  const thresholds = attemptThresholds(players, rule);
+  return {
+    rule,
+    set,
+    reference: buildReference(players, rule, set),
+    thresholds,
+    pools: buildCardStatPools(players, rule, thresholds),
+    qualifiedCount: players.filter((p) => isQualified(p, rule)).length,
+  };
+}
+
+/** 카드 한 장에 그리는 값 (player 는 화면이 쓰는 선수 객체 그대로) */
+export interface CardEntryOf<T> {
+  player: T;
+  pct: RadarPercentiles;
+  /** 축별 등급 (percentileGrade) */
+  grades: Partial<Record<RadarAxis, Grade | "-">>;
+  /** 종합 등급 (5축 백분위 평균 → percentileGrade) */
+  overall: Grade | "-";
+  type: PlayerType;
+  qualified: boolean;
+  /** 메인 스탯 9개 (CARD_STATS 순서) + 시즌 순위 */
+  stats: CardStatEntry[];
+}
+
+/** 한 선수의 카드 값: 백분위·등급·유형·표본 충족·메인 스탯 순위. ctx 는 같은 시즌 선수로 만든 buildCardContext() */
+export function buildCardEntry<T extends CardInput>(p: T, ctx: CardContext): CardEntryOf<T> {
+  const pct = radarPercentiles(p, ctx.reference, ctx.set);
+  const grades: CardEntryOf<T>["grades"] = {};
+  for (const axis of radarAxes(ctx.set)) grades[axis] = percentileGrade(pct[axis]);
+  return {
+    player: p,
+    pct,
+    grades,
+    overall: percentileGrade(overallPercentile(pct, ctx.set)),
+    type: playerType(pct, ctx.set),
+    qualified: isQualified(p, ctx.rule),
+    stats: cardStats(p, ctx.pools, ctx.rule, ctx.thresholds),
+  };
+}
+
+// ─────────────────────────────────────────────
+// 통산 (선수 페이지 머리말)
+// ─────────────────────────────────────────────
+
+export interface CareerSummary {
+  seasons: number;
+  games: number;
+  /** 통산 경기당 = 전 시즌 합계 ÷ 전 시즌 경기 합계 (시즌별 경기당 값의 평균이 아니다) */
+  points: number;
+  reb: number;
+  ast: number;
+}
+
+/**
+ * 통산 요약. 경기당 값은 "합계 ÷ 합계 경기"(perGame)로 계산한다 —
+ * 시즌 평균들의 평균을 내면 몇 경기 안 뛴 시즌이 한 시즌 전체와 같은 비중이 되어 값이 왜곡된다.
+ * (Basketball-Reference 통산 Per Game 과 같은 방식)
+ */
+export function careerSummary(seasons: readonly { games: number; points: number; reb: number; ast: number }[]): CareerSummary {
+  const sum = (k: "games" | "points" | "reb" | "ast") => seasons.reduce((s, x) => s + (Number.isFinite(x[k]) ? x[k] : 0), 0);
+  const games = sum("games");
+  return {
+    seasons: seasons.length,
+    games,
+    points: perGame(sum("points"), games),
+    reb: perGame(sum("reb"), games),
+    ast: perGame(sum("ast"), games),
+  };
+}

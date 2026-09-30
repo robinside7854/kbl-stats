@@ -1,0 +1,141 @@
+// 선수 페이지·검색 검증 (lib/metrics careerSummary·buildCardEntry, lib/career, lib/search). 실행: npm run test:player
+import assert from "node:assert/strict";
+import {
+  buildCardContext,
+  buildCardEntry,
+  careerSummary,
+  DEFAULT_QUALIFY,
+  type CardInput,
+} from "../lib/metrics";
+import {
+  activeSpanLabel,
+  formatTrend,
+  seasonShortLabel,
+  seasonTickLabel,
+  teamChangedAt,
+  teamStints,
+  trendRows,
+  trendValue,
+} from "../lib/career";
+import { buildSearchIndex, matchScore, normalizeName, searchPlayers, searchSpanLabel } from "../lib/search";
+import type { PlayerIndexEntry, SearchEntry } from "../lib/types";
+
+// ── 통산: 합계 ÷ 합계 경기 (시즌 평균의 평균이 아님) ──
+const sum = careerSummary([
+  { games: 50, points: 1000, reb: 500, ast: 100 }, // 20.0 / 10.0 / 2.0
+  { games: 2, points: 2, reb: 0, ast: 0 },         // 1.0 (몇 경기 안 뛴 시즌)
+]);
+assert.equal(sum.seasons, 2);
+assert.equal(sum.games, 52);
+assert.equal(sum.points, 1002 / 52);                // ≈ 19.27 (평균의 평균이면 10.5)
+assert.equal(sum.reb, 500 / 52);
+assert.equal(sum.ast, 100 / 52);
+assert.deepEqual(careerSummary([]), { seasons: 0, games: 0, points: 0, reb: 0, ast: 0 });
+console.log("player: 통산 계산 통과");
+
+// ── 시즌 표기 ──
+assert.equal(seasonShortLabel("2025-2026"), "2025-26");
+assert.equal(seasonShortLabel("1999-2000"), "1999-00");
+assert.equal(seasonShortLabel("1997"), "1997");
+assert.equal(seasonTickLabel("2025-2026"), "25-26");
+assert.equal(seasonTickLabel("1997"), "97");
+assert.equal(activeSpanLabel("2019-2020", "2025-2026", 7), "2019-20 ~ 2025-26 · 7시즌");
+assert.equal(activeSpanLabel("2025-2026", "2025-2026", 1), "2025-26 · 1시즌");
+
+// ── 소속 팀 이력: 연속 구간, 돌아오면 새 구간 ──
+const stints = teamStints([
+  { teamCode: "55", seasonLabel: "A" },
+  { teamCode: "55", seasonLabel: "B" },
+  { teamCode: "35", seasonLabel: "C" },
+  { teamCode: "55", seasonLabel: "D" },
+]);
+assert.deepEqual(stints.map((s) => [s.teamCode, s.fromLabel, s.toLabel, s.seasons]), [
+  ["55", "A", "B", 2],
+  ["35", "C", "C", 1],
+  ["55", "D", "D", 1],
+]);
+assert.equal(teamChangedAt([{ teamCode: "1" }, { teamCode: "2" }], 1), true);
+assert.equal(teamChangedAt([{ teamCode: "1" }, { teamCode: "2" }], 0), false);
+
+// ── 추이: 경기당 환산·빈 시즌 null·이적 표시 ──
+const base = { fgPct: 45, tsPct: 55, per: 15, reb: 100, ast: 50 };
+const career = [
+  { seasonCode: 43, seasonLabel: "2023-2024", teamCode: "55", games: 50, points: 1000, ...base },
+  { seasonCode: 47, seasonLabel: "2025-2026", teamCode: "35", games: 40, points: 400, ...base },
+];
+const all = [41, 43, 45, 47, 49].map((c) => ({ seasonCode: c, seasonLabel: `S${c}` }));
+const rows = trendRows(career, all, "points");
+assert.deepEqual(rows.map((r) => r.seasonCode), [43, 45, 47]); // 첫~마지막 시즌 사이만, 빈 시즌 포함
+assert.deepEqual(rows.map((r) => r.value), [20, null, 10]);
+assert.deepEqual(rows.map((r) => r.teamChanged), [false, false, true]);
+assert.equal(rows[0].seasonLabel, "2023-2024"); // 선수 기록의 라벨 우선
+assert.equal(trendValue(career[0], "fgPct"), 45); // 비율은 그대로
+assert.equal(trendValue({ ...career[0], games: 0 }, "points"), 0);
+assert.equal(formatTrend(45, "fgPct"), "45.0%");
+assert.equal(formatTrend(20, "points"), "20.0");
+assert.deepEqual(trendRows([], all, "points"), []);
+console.log("player: 시즌 표기·팀 이력·추이 통과");
+
+// ── 카드 한 장 계산 (CardExplorer·선수 페이지 공용) ──
+const mkCard = (o: Partial<CardInput> & { id: string }): CardInput & { id: string } => ({
+  games: 20, minutes: 400, points: 200, reb: 100, ast: 50, stl: 10, blk: 5, tov: 30,
+  fga: 160, tpa: 60, fta: 40, fgPct: 45, tpPct: 35, ftPct: 75,
+  per: 15, usgPct: 0, tsPct: 55, astPct: 0, rebPct: 0, pie: 0, ...o,
+});
+const players = [mkCard({ id: "a", points: 400, per: 25 }), mkCard({ id: "b" }), mkCard({ id: "c", games: 2, minutes: 10 })];
+const ctx = buildCardContext(players, DEFAULT_QUALIFY, "classic");
+assert.equal(ctx.qualifiedCount, 2);
+const ea = buildCardEntry(players[0], ctx);
+assert.equal(ea.player.id, "a");
+assert.equal(ea.qualified, true);
+assert.equal(ea.stats[0].rank.rank, 1); // 경기당 득점 1위
+assert.equal(ea.stats.length, 9);
+const ec = buildCardEntry(players[2], ctx);
+assert.equal(ec.qualified, false);
+assert.equal(ec.stats[0].rank.reason, "sample");
+console.log("player: 카드 계산 통과");
+
+// ── 검색 ──
+assert.equal(normalizeName(" Guy Terrance. Rucker "), "guyterrancerucker");
+const mkS = (id: string, nameKo: string, nameEn: string, last: number): SearchEntry => ({
+  id, nameKo, nameEn, team: "SK", from: "2019-20", to: "2025-26", last, photoUrl: "", color: { primary: "#000", text: "#fff" },
+});
+const idx: SearchEntry[] = [
+  mkS("1", "자밀 워니", "Jameel Warney", 47),
+  mkS("2", "김민수", "Kim Min Soo", 20),
+  mkS("3", "김민수", "Kim Min Su", 45), // 동명이인
+  mkS("4", "민수호", "Min Soo Ho", 30),
+  mkS("5", "이워니", "Lee Wonee", 10),
+];
+assert.equal(matchScore(idx[0], "자밀워니"), 0);       // 공백 무시, 전체 일치
+assert.equal(matchScore(idx[0], "자밀"), 1);            // 앞부분
+assert.equal(matchScore(idx[0], "워니"), 3);            // 중간 부분
+assert.equal(matchScore(idx[0], "warney"), 2);          // 영문 성으로 시작
+assert.equal(matchScore(idx[0], "JAMEEL WARNEY"), 0);   // 대소문자·공백 무시
+assert.equal(matchScore(idx[0], "  "), null);
+assert.equal(matchScore(idx[0], "없는이름"), null);
+// 워니: "자밀 워니"(중간 일치)와 "이워니"(중간 일치) → 같은 점수면 최근 선수 먼저
+assert.deepEqual(searchPlayers(idx, "워니").map((e) => e.id), ["1", "5"]);
+// 동명이인 둘 다 나오고 최근에 뛴 선수 먼저, 앞부분 일치가 중간 일치(민수호 ×, "김민수" 앞부분)보다 먼저
+assert.deepEqual(searchPlayers(idx, "김민수").map((e) => e.id), ["3", "2"]);
+assert.deepEqual(searchPlayers(idx, "민수").map((e) => e.id), ["4", "3", "2"]);
+assert.equal(searchPlayers(idx, "", 10).length, 0);
+assert.equal(searchPlayers(Array.from({ length: 30 }, (_, i) => mkS(String(i), `김${i}`, "", i)), "김", 10).length, 10);
+assert.equal(searchSpanLabel({ from: "2025-26", to: "2025-26" }), "2025-26");
+assert.equal(searchSpanLabel({ from: "2019-20", to: "2025-26" }), "2019-20 ~ 2025-26");
+
+// 색인 → 검색용 경량 색인
+const pIdx: PlayerIndexEntry[] = [
+  { id: "9", nameKo: "가", nameEn: "Ga", isForeign: false, photoUrl: "p9", seasons: [
+    { seasonCode: 43, teamCode: "55", teamShort: "SK", games: 1 },
+    { seasonCode: 47, teamCode: "35", teamShort: "삼성", games: 2 },
+  ] },
+  { id: "8", nameKo: "나", nameEn: "Na", isForeign: true, photoUrl: "p8", seasons: [] },
+];
+const built = buildSearchIndex(pIdx, (c) => (c === 43 ? "2023-2024" : "2025-2026"), (t) => (t === "35" ? { primary: "#00f", text: "#fff" } : undefined));
+assert.equal(built.length, 1); // 시즌 없는 선수는 제외
+assert.deepEqual(built[0], {
+  id: "9", nameKo: "가", nameEn: "Ga", team: "삼성", from: "2023-24", to: "2025-26", last: 47, photoUrl: "p9",
+  color: { primary: "#00f", text: "#fff" },
+});
+console.log("player: 검색 매칭·색인 통과");
