@@ -55,7 +55,7 @@ const fmtPct = (n: number | null | undefined) => (n === null || n === undefined 
 
 /** 크기별 치수 (px). lg 는 sm 의 약 1.3배 */
 const DIM = {
-  sm: { header: 226, photo: 208, logo: 40, name: 28, nameEn: 11, statVal: 22, statPct: 13, statLabel: 11, rank: 12, ovr: 34, radarH: 300, gradeChip: 26, tickLabel: 10.5, tickValue: 9.5, pad: 12 },
+  sm: { header: 226, photo: 208, logo: 40, name: 28, nameEn: 12, statVal: 22, statPct: 13, statLabel: 12, rank: 12, ovr: 34, radarH: 300, gradeChip: 26, tickLabel: 11, tickValue: 10.5, pad: 12 },
   lg: { header: 296, photo: 276, logo: 52, name: 36, nameEn: 13, statVal: 29, statPct: 16, statLabel: 13, rank: 13.5, ovr: 46, radarH: 380, gradeChip: 34, tickLabel: 13, tickValue: 11.5, pad: 16 },
 } as const;
 /** lg 카드 폭 (저장 이미지·PC 한 장 보기) */
@@ -78,7 +78,7 @@ function Medal({ tier, rank, px }: { tier: "gold" | "silver" | "bronze"; rank: n
     <svg aria-hidden width={px} height={px} viewBox="0 0 18 18" className="shrink-0">
       <circle cx="9" cy="9" r="8" fill={m.fill} stroke={m.ring} strokeWidth="1.5" />
       <circle cx="9" cy="9" r="5.6" fill="none" stroke={m.ring} strokeOpacity="0.45" strokeWidth="0.8" />
-      <text x="9" y="12.4" textAnchor="middle" fontSize="9.5" fontWeight="800" fill={m.ink} fontFamily="system-ui, sans-serif">
+      <text x="9" y="12.4" textAnchor="middle" fontSize="9.5" fontWeight="800" fill={m.ink}>
         {rank}
       </text>
     </svg>
@@ -250,7 +250,7 @@ function GradeTick(props: {
         fontSize={chip * 0.68}
         fontWeight={900}
         fill={tone.ink}
-        fontFamily="system-ui, sans-serif"
+       
       >
         {grade}
       </text>
@@ -286,7 +286,7 @@ function HeroBadge({ children, fs }: { children: React.ReactNode; fs: number }) 
 // 2차 스탯이 없는 시즌이라 전 시즌 공통 축으로 그렸다는 표시 (저장 이미지에도 남는다)
 function ClassicAxesBadge() {
   return (
-    <span className="whitespace-nowrap rounded-full border border-line px-1.5 py-px text-[10px] font-medium text-ink-2">
+    <span className="whitespace-nowrap rounded-full border border-line px-1.5 py-px text-caption font-medium text-ink-2">
       고전 축
     </span>
   );
@@ -528,7 +528,7 @@ export default function PlayerCard({ view, colors, size = "sm", seriesColor, exp
       </div>
 
       {/* ── 기준·출처 (저장 이미지에도 남는다) ── */}
-      <div className="border-t border-line py-2 leading-snug text-ink-3" style={{ paddingLeft: d.pad + 2, paddingRight: d.pad + 2, fontSize: size === "lg" ? 11.5 : 10 }}>
+      <div className="border-t border-line py-2 leading-snug text-ink-3" style={{ paddingLeft: d.pad + 2, paddingRight: d.pad + 2, fontSize: size === "lg" ? 12.5 : 11 }}>
         <p>
           순위·등급: {seasonLabel} {groupLabel ? `${groupLabel} 중 ` : ""}
           {ruleLabel} {qualifiedCount}명 중 · 턴오버는 적을수록 상위 · 성공률 순위는 경기당 시도가 리그 평균({attemptsLabel}) 이상인 선수만

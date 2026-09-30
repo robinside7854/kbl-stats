@@ -59,15 +59,15 @@ export default function PlayerHero({ entry, seasons }: Props) {
               <span className="inline-flex rounded-xl bg-white p-1 shadow-sm">
                 <TeamLogo logoUrl={team?.logoUrl} shortName={teamName} color={color} size={40} />
               </span>
-              <span className="text-xs font-semibold opacity-90 sm:text-sm">
+              <span className="text-sub font-semibold opacity-90 sm:text-body">
                 {latest ? `${seasonShortLabel(latest.seasonLabel)} ${teamShortLabel(teamName)}` : ""}
               </span>
             </div>
             <h1 className="mt-3 text-[2rem] font-black leading-[1.1] tracking-tight [overflow-wrap:anywhere] sm:text-5xl">
               {entry.nameKo}
             </h1>
-            <p className="mt-1 truncate text-xs font-medium uppercase tracking-wide opacity-80 sm:text-sm">{entry.nameEn}</p>
-            <div className="mt-3 flex flex-wrap gap-1.5 text-xs font-semibold">
+            <p className="mt-1 truncate text-sub font-medium uppercase tracking-wide opacity-80 sm:text-body">{entry.nameEn}</p>
+            <div className="mt-3 flex flex-wrap gap-1.5 text-sub font-semibold">
               <span className="rounded-full px-2 py-0.5" style={{ background: "rgba(255,255,255,0.18)" }}>
                 {NATIONALITY_LABELS[nationalityOf(entry)]}
               </span>
@@ -76,7 +76,7 @@ export default function PlayerHero({ entry, seasons }: Props) {
               </span>
             </div>
             {facts.length > 0 && (
-              <dl className="mt-3 flex max-w-md flex-wrap gap-x-3 gap-y-1 text-xs sm:text-sm">
+              <dl className="mt-3 flex max-w-md flex-wrap gap-x-3 gap-y-1 text-sub sm:text-body">
                 {facts.map((f) => (
                   <div key={f.label} className="flex items-baseline gap-1">
                     <dt className="opacity-75">{f.label}</dt>
@@ -102,20 +102,20 @@ export default function PlayerHero({ entry, seasons }: Props) {
         <dl className="-mt-px grid grid-cols-4 overflow-hidden rounded-b-2xl border border-t-0 border-line bg-surface">
           {tiles.map((t, i) => (
             <div key={t.label} className={`min-w-0 px-2 py-3 text-center sm:px-4 ${i > 0 ? "border-l border-line" : ""}`}>
-              <dt className="truncate text-[11px] font-medium text-ink-3 sm:text-xs">
+              <dt className="truncate text-caption font-medium text-ink-3 sm:text-sub">
                 {i === 0 ? t.label : <><span className="hidden sm:inline">경기당 </span>{t.label.replace("경기당 ", "")}</>}
               </dt>
               <dd className="mt-0.5 text-xl font-bold tracking-tight text-ink sm:text-3xl">{t.value}</dd>
             </div>
           ))}
         </dl>
-        <p className="mt-1.5 text-[11px] text-ink-3">
+        <p className="mt-1.5 text-caption text-ink-3">
           통산 {sum.seasons}시즌 정규시즌 기준 · 경기당 값은 전 시즌 합계 ÷ 전 시즌 경기 수
         </p>
 
         <div className="mt-4">
-          <h2 className="text-xs font-semibold text-ink-2">소속 팀 이력</h2>
-          <ol className="mt-1.5 flex flex-wrap gap-1.5">
+          <p id="stints-title" className="text-sub font-semibold text-ink-2">소속 팀 이력</p>
+          <ol aria-labelledby="stints-title" className="mt-1.5 flex flex-wrap gap-1.5">
             {stints.map((st, i) => {
               // 같은 팀 코드라도 시즌마다 이름·로고가 다를 수 있어(KT&G → 정관장) 구간 마지막 시즌의 팀 정보를 쓴다
               const s = seasons.find((x) => x.seasonLabel === st.toLabel);
@@ -126,7 +126,7 @@ export default function PlayerHero({ entry, seasons }: Props) {
               return (
                 <li
                   key={`${st.teamCode}-${i}`}
-                  className="flex items-center gap-1.5 rounded-full border border-line bg-surface py-1 pl-1 pr-2.5 text-xs"
+                  className="flex items-center gap-1.5 rounded-full border border-line bg-surface py-1 pl-1 pr-2.5 text-sub"
                 >
                   <TeamLogo logoUrl={t?.logoUrl} shortName={name} color={t?.color} size={20} />
                   <span className="font-semibold text-ink">{teamShortLabel(name)}</span>

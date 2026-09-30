@@ -5,9 +5,9 @@ export default function NotFound() {
   return (
     <>
       <main className="mx-auto max-w-3xl px-4 py-16 text-center">
-        <h1 className="text-lg font-semibold">페이지를 찾을 수 없습니다</h1>
-        <p className="mt-2 text-sm text-ink-2">없는 시즌이거나 아직 기록이 없는 시즌입니다.</p>
-        <Link href="/" className="mt-6 inline-block text-sm underline underline-offset-4">
+        <h1 className="text-h1 font-bold">페이지를 찾을 수 없습니다</h1>
+        <p className="mt-2 text-body text-ink-2">없는 시즌이거나 아직 기록이 없는 시즌입니다.</p>
+        <Link href="/" className="mt-6 inline-block text-body underline underline-offset-4">
           최신 시즌으로 가기
         </Link>
       </main>

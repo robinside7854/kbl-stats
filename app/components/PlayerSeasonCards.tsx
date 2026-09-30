@@ -100,12 +100,12 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
       {cards.length > 0 ? (
         <CardDeck cards={cards} fileName={fileName} />
       ) : (
-        <p className="rounded-xl border border-line bg-surface px-4 py-8 text-center text-sm text-ink-2">
+        <p className="rounded-xl border border-line bg-surface px-4 py-8 text-center text-body text-ink-2">
           {a.status === "error" ? "시즌 기록을 불러오지 못했습니다. 다시 시도해 주세요." : "시즌 기록 불러오는 중…"}
         </p>
       )}
       {(a.status === "error" || b.status === "error") && cards.length > 0 && (
-        <p role="alert" className="mt-2 text-sm text-ink-2">
+        <p role="alert" className="mt-2 text-body text-ink-2">
           시즌 기록을 불러오지 못했습니다. 다른 시즌을 눌렀다가 다시 눌러 주세요.
         </p>
       )}
@@ -117,9 +117,10 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
       {/* ── 조작: 시즌 칩 · 순위 범위 · 시즌 비교 ── */}
       <section aria-label="카드 보기 설정" className="space-y-2.5">
         <div>
-          <h2 className="mb-1.5 text-sm font-bold">
+          <h2 className="text-h2 font-bold">시즌 카드</h2>
+          <p className="mb-1.5 mt-1 text-sub font-semibold text-ink-2">
             시즌 <span className="font-normal text-ink-3">· {seasons.length}시즌 뛰었음</span>
-          </h2>
+          </p>
           <ChipRow label="카드 시즌 선택" chips={seasonChips(codes)} value={season} onChange={chooseSeason} scroll />
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -134,7 +135,7 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
               type="button"
               aria-pressed={comparing}
               onClick={toggleCompare}
-              className={`h-10 rounded-lg border px-3 text-sm font-semibold ${
+              className={`h-10 rounded-lg border px-3 text-body font-semibold ${
                 comparing ? "border-ink bg-ink text-bg" : "border-line bg-surface text-ink-2 hover:bg-surface-2"
               }`}
             >
@@ -142,12 +143,12 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
             </button>
           )}
         </div>
-        {!groupLabel && <p className="text-xs text-ink-3">포지션 정보가 없는 선수라 순위 범위는 전체만 볼 수 있습니다.</p>}
+        {!groupLabel && <p className="text-sub text-ink-3">포지션 정보가 없는 선수라 순위 범위는 전체만 볼 수 있습니다.</p>}
         {comparing && vs !== null && (
           <div>
-            <h3 className="mb-1.5 text-sm font-bold">
+            <p className="mb-1.5 text-sub font-semibold text-ink-2">
               비교할 시즌 <span className="font-normal text-ink-3">· 레이더 선 주황</span>
-            </h3>
+            </p>
             <ChipRow
               label="비교할 시즌 선택"
               chips={seasonChips(codes.filter((c) => c !== season))}
@@ -155,7 +156,7 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
               onChange={(v) => setState((s) => ({ ...s, vs: v }))}
               scroll
             />
-            <p className="mt-1.5 text-xs">
+            <p className="mt-1.5 text-sub">
               <Link
                 href={compareHref({ id: playerId, seasonCode: season }, { id: playerId, seasonCode: vs })}
                 className="font-semibold text-ink-2 underline underline-offset-4 hover:text-ink"
@@ -192,7 +193,7 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
         </div>
       )}
 
-      <p className="mt-4 max-w-3xl text-xs leading-relaxed text-ink-3">
+      <p className="mt-4 max-w-3xl text-sub leading-relaxed text-ink-3">
         레이더는 시즌 내 백분위(0~100), 꼭짓점 글자는 그 등급(S 상위 10% · A 25% · B 45% · C 65% · D 85% · F 그 아래)
         <InfoLink term="percentileGrade" />. 사진은 모든 시즌 같은 한 장, 팀 색·로고는 그 시즌 팀.{" "}
         {classic

@@ -89,7 +89,7 @@ export default function CareerTable({ seasons }: { seasons: CareerSeason[] }) {
           return (
             <>
               <span className="block leading-tight">{value(s, key)}</span>
-              {ma && <span className="block text-[10px] leading-tight text-ink-3">{formatMadeAttempts(ma)}</span>}
+              {ma && <span className="block text-caption leading-tight text-ink-3">{formatMadeAttempts(ma)}</span>}
             </>
           );
         },
@@ -100,7 +100,7 @@ export default function CareerTable({ seasons }: { seasons: CareerSeason[] }) {
   return (
     <section aria-labelledby="career-table-title">
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <h2 id="career-table-title" className="text-base font-bold">
+        <h2 id="career-table-title" className="text-h2 font-bold">
           시즌별 기록
         </h2>
         <Segmented label="경기당 또는 시즌 합계" options={MODE_OPTIONS} value={mode} onChange={setMode} />
@@ -116,18 +116,18 @@ export default function CareerTable({ seasons }: { seasons: CareerSeason[] }) {
         }
         summary={(s) => (
           <>
-            <span className="w-12 shrink-0 text-sm font-bold text-ink">{seasonShortLabel(s.seasonLabel)}</span>
+            <span className="w-12 shrink-0 text-body font-bold text-ink">{seasonShortLabel(s.seasonLabel)}</span>
             <span className="min-w-0 flex-1">
-              <span className="flex min-w-0 items-center gap-1.5 text-sm text-ink-2">
+              <span className="flex min-w-0 items-center gap-1.5 text-body text-ink-2">
                 <TeamLogo logoUrl={s.team?.logoUrl} shortName={teamOf(s)} color={s.team?.color} size={20} />
                 <span className="truncate">{teamShortLabel(teamOf(s))}</span>
               </span>
-              <span className="tabular block text-xs text-ink-3">{s.games}경기</span>
+              <span className="tabular block text-sub text-ink-3">{s.games}경기</span>
             </span>
             {SUMMARY_KEYS.map((k) => (
               <span key={k} className="w-11 shrink-0 text-right">
-                <span className="tabular block text-[15px] font-bold leading-tight text-ink">{value(s, k)}</span>
-                <span className="block text-[11px] leading-tight text-ink-3">{LEADER_STATS[k].short}</span>
+                <span className="tabular block text-body font-bold leading-tight text-ink">{value(s, k)}</span>
+                <span className="block text-caption leading-tight text-ink-3">{LEADER_STATS[k].short}</span>
               </span>
             ))}
           </>
@@ -141,7 +141,7 @@ export default function CareerTable({ seasons }: { seasons: CareerSeason[] }) {
               value: (
                 <>
                   {value(s, key)}
-                  {ma && <span className="ml-1 text-[11px] text-ink-3">{formatMadeAttempts(ma)}</span>}
+                  {ma && <span className="ml-1 text-caption text-ink-3">{formatMadeAttempts(ma)}</span>}
                 </>
               ),
             };
@@ -151,13 +151,13 @@ export default function CareerTable({ seasons }: { seasons: CareerSeason[] }) {
           <button
             type="button"
             onClick={() => showSeasonCard(s.seasonCode)}
-            className="focus-ring inline-flex h-10 cursor-pointer items-center gap-1 rounded-lg px-1 text-sm font-semibold text-ink underline-offset-4 hover:underline"
+            className="focus-ring inline-flex h-10 cursor-pointer items-center gap-1 rounded-lg px-1 text-body font-semibold text-ink underline-offset-4 hover:underline"
           >
             {seasonShortLabel(s.seasonLabel)} 선수 카드 보기 <IconChevronRight size={16} />
           </button>
         )}
       />
-      <p className="mt-2 text-xs text-ink-3">정규시즌만. 성공률 아래 작은 숫자는 시즌 합계 성공/시도.</p>
+      <p className="mt-2 text-sub text-ink-3">정규시즌만. 성공률 아래 작은 숫자는 시즌 합계 성공/시도.</p>
     </section>
   );
 }

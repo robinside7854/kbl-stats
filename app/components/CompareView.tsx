@@ -96,10 +96,10 @@ export default function CompareView({ seasons, initialA, initialB }: Props) {
 
   const slotUi = (name: "A" | "B", slot: Slot | null, set: (s: Slot | null) => void, series: string, other: Slot | null) => (
     <section aria-label={`선수 ${name}`} className="min-w-0 rounded-2xl border border-line bg-surface p-3">
-      <h2 className="flex items-center gap-1.5 text-sm font-bold">
+      <h2 className="flex min-w-0 items-center gap-2 text-h2 font-bold">
         <span aria-hidden className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: series }} />
         선수 {name}
-        {slot && <span className="truncate font-semibold text-ink-2">· {slot.nameKo}</span>}
+        {slot && <span className="truncate text-ink-2">· {slot.nameKo}</span>}
       </h2>
       <PlayerSearch
         className="mt-2 w-full"
@@ -109,7 +109,7 @@ export default function CompareView({ seasons, initialA, initialB }: Props) {
       />
       {slot && (
         <div className="mt-2.5">
-          <h3 className="mb-1.5 text-xs font-semibold text-ink-2">시즌 · {slot.seasons.length}시즌 뛰었음</h3>
+          <p className="mb-1.5 text-sub font-semibold text-ink-2">시즌 · {slot.seasons.length}시즌 뛰었음</p>
           <ChipRow
             label={`선수 ${name} 시즌`}
             scroll
@@ -121,7 +121,7 @@ export default function CompareView({ seasons, initialA, initialB }: Props) {
             <button
               type="button"
               onClick={() => set({ ...other, season: other.seasons.find((c) => c !== other.season) ?? other.season })}
-              className="mt-1.5 text-xs font-semibold text-ink-2 underline underline-offset-4 hover:text-ink"
+              className="mt-1.5 text-sub font-semibold text-ink-2 underline underline-offset-4 hover:text-ink"
             >
               {other.nameKo}의 다른 시즌과 비교하기
             </button>
@@ -134,8 +134,8 @@ export default function CompareView({ seasons, initialA, initialB }: Props) {
   return (
     <main className="mx-auto max-w-5xl px-4 pt-5">
       <header className="mb-4">
-        <h1 className="text-xl font-bold tracking-tight">비교</h1>
-        <p className="mt-1 text-sm text-ink-2">두 선수, 또는 한 선수의 두 시즌을 나란히 봅니다.</p>
+        <h1 className="text-h1 font-bold">비교</h1>
+        <p className="mt-1 text-body text-ink-2">두 선수, 또는 한 선수의 두 시즌을 나란히 봅니다.</p>
       </header>
 
       <div className="grid gap-3 md:grid-cols-2">
@@ -143,12 +143,12 @@ export default function CompareView({ seasons, initialA, initialB }: Props) {
         {slotUi("B", b, setB, colors.series2, a)}
       </div>
       {queryError && (
-        <p role="alert" className="mt-2 text-sm text-ink-2">
+        <p role="alert" className="mt-2 text-body text-ink-2">
           주소의 선수를 찾지 못했습니다. 검색으로 다시 골라 주세요.
         </p>
       )}
       {[va, vb].some((v) => v.status === "error") && (
-        <p role="alert" className="mt-2 text-sm text-ink-2">
+        <p role="alert" className="mt-2 text-body text-ink-2">
           시즌 기록을 불러오지 못했습니다. 시즌을 다시 눌러 주세요.
         </p>
       )}
@@ -173,7 +173,7 @@ export default function CompareView({ seasons, initialA, initialB }: Props) {
           />
         )}
         {both && both[0].axisSet !== both[1].axisSet && (
-          <p className="text-xs text-ink-3">
+          <p className="text-sub text-ink-3">
             두 시즌의 레이더 축이 다릅니다. 2차 스탯(USG%·AST%·REB%)이 없는 시즌은 40분당 환산 축(고전 축)으로 그려 모양을 직접 비교할 수
             없습니다. 비교표의 경기당 기록·순위를 보세요.
           </p>

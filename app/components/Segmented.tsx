@@ -21,7 +21,7 @@ export default function Segmented<T extends string>({
           type="button"
           aria-pressed={o.value === value}
           onClick={() => onChange(o.value)}
-          className={`focus-ring-inset h-10 cursor-pointer rounded-md px-3 text-sm font-semibold transition-colors duration-200 ${
+          className={`focus-ring-inset h-10 cursor-pointer rounded-md px-3 text-body font-semibold transition-colors duration-200 ${
             o.value === value ? "bg-ink text-bg" : "text-ink-2 hover:bg-surface-2"
           }`}
         >

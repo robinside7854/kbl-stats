@@ -29,13 +29,13 @@ export default function CompareTable({ a, b, aLabel, bLabel, seriesA, seriesB, s
     <>
       <span className={`block leading-tight ${win ? "font-bold text-ink" : "text-ink-2"}`}>
         {win && (
-          <span aria-label="더 나음" className="mr-0.5 text-[10px]">
+          <span aria-label="더 나음" className="mr-0.5 text-caption">
             ▲
           </span>
         )}
         {text}
       </span>
-      {rank && <span className="block text-[10px] leading-tight text-ink-3">{rank}</span>}
+      {rank && <span className="block text-caption leading-tight text-ink-3">{rank}</span>}
     </>
   );
   // 라벨(aLabel·bLabel)에 이미 시즌이 있을 수도, 없을 수도 있어 시즌을 한 번 더 적는다 — 단, 라벨에 있으면 뺀다
@@ -47,10 +47,10 @@ export default function CompareTable({ a, b, aLabel, bLabel, seriesA, seriesB, s
   return (
     <section aria-label={caption}>
       <div className="rounded-2xl border border-line bg-surface">
-        <table className="tabular w-full border-separate border-spacing-0 text-sm">
+        <table className="tabular w-full border-separate border-spacing-0 text-body">
           <caption className="sr-only">{caption}</caption>
           <thead>
-            <tr className="text-xs text-ink-3">
+            <tr className="text-sub text-ink-3">
               <th scope="col" className="border-b border-line px-2 py-2 text-left font-medium">
                 기록
               </th>
@@ -74,8 +74,8 @@ export default function CompareTable({ a, b, aLabel, bLabel, seriesA, seriesB, s
               <tr key={r.key} className={r.key === "overall" ? "bg-surface-2" : ""}>
                 <th scope="row" className="border-b border-line px-2 py-1.5 text-left font-medium text-ink-2">
                   {r.label}
-                  {r.lowerIsBetter && <span className="ml-1 text-[10px] font-normal text-ink-3">적을수록 좋음</span>}
-                  {r.key === "fouls" && <span className="block text-[10px] font-normal text-ink-3">순위 없음</span>}
+                  {r.lowerIsBetter && <span className="ml-1 text-caption font-normal text-ink-3">적을수록 좋음</span>}
+                  {r.key === "fouls" && <span className="block text-caption font-normal text-ink-3">순위 없음</span>}
                 </th>
                 <td className="whitespace-nowrap border-b border-line px-2 py-1.5 text-right">{cell(r.aText, rankShort(r.aRank), r.better === "a")}</td>
                 <td className="whitespace-nowrap border-b border-line px-2 py-1.5 text-right">{cell(r.bText, rankShort(r.bRank), r.better === "b")}</td>
@@ -87,7 +87,7 @@ export default function CompareTable({ a, b, aLabel, bLabel, seriesA, seriesB, s
           </tbody>
         </table>
       </div>
-      <p className="mt-2 text-xs leading-relaxed text-ink-3">
+      <p className="mt-2 text-sub leading-relaxed text-ink-3">
         ▲ 더 나은 쪽(턴오버·파울은 적은 쪽). 순위·등급은 각자 자기 시즌 안에서 매겼습니다: {aLabel} {groupNote(a, aLabel)}, {bLabel}{" "}
         {groupNote(b, bLabel)}. 시즌이 다르면 값보다 순위·등급을 보세요.{showDelta && " 증감 = 두 번째 시즌 − 첫 번째 시즌(성공률은 %p)."}
       </p>

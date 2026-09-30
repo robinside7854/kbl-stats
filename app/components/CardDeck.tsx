@@ -47,7 +47,7 @@ export default function CardDeck({ cards, fileName }: Props) {
             {c.loading && (
               <p
                 role="status"
-                className="absolute left-1/2 top-24 -translate-x-1/2 rounded-full bg-ink px-3 py-1.5 text-xs font-semibold text-bg shadow"
+                className="absolute left-1/2 top-24 -translate-x-1/2 rounded-full bg-ink px-3 py-1.5 text-sub font-semibold text-bg shadow"
               >
                 시즌 기록 불러오는 중…
               </p>
@@ -61,13 +61,13 @@ export default function CardDeck({ cards, fileName }: Props) {
           type="button"
           onClick={() => save(fileName)}
           disabled={saving || busy}
-          className="h-11 rounded-lg bg-ink px-4 text-sm font-semibold text-surface hover:opacity-90 disabled:opacity-60"
+          className="h-11 rounded-lg bg-ink px-4 text-body font-semibold text-surface hover:opacity-90 disabled:opacity-60"
         >
           {saving ? "저장 중…" : pair ? "카드 두 장 이미지 저장" : "이미지 저장"}
         </button>
-        <p className="text-xs text-ink-3">저장 이미지에는 사진·로고가 들어가지 않습니다 (팀 색·이니셜로 대신 그림)</p>
+        <p className="text-sub text-ink-3">저장 이미지에는 사진·로고가 들어가지 않습니다 (팀 색·이니셜로 대신 그림)</p>
         {saveError && (
-          <p role="alert" className="w-full text-sm text-ink-2">
+          <p role="alert" className="w-full text-body text-ink-2">
             {saveError}
           </p>
         )}

@@ -150,8 +150,8 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
   return (
     <main className="mx-auto max-w-5xl px-4 pt-5">
       <header className="mb-4">
-        <p className="text-xs font-medium text-ink-3">{seasonLabel} KBL 정규시즌</p>
-        <h1 className="mt-0.5 text-xl font-bold tracking-tight">팀별 선수 분포</h1>
+        <p className="text-sub font-medium text-ink-3">{seasonLabel} KBL 정규시즌</p>
+        <h1 className="mt-0.5 text-h1 font-bold">팀별 선수 분포</h1>
       </header>
 
       {/* 1차 컨트롤: 세로축 지표 + 팀 범례 칩(필터 겸용). 포지션·표본 기준은 FilterSheet (디자인 점검 A2) */}
@@ -168,7 +168,7 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
             type="button"
             aria-pressed={selected.length === 0}
             onClick={() => update({ teams: [] })}
-            className={`focus-ring h-10 cursor-pointer rounded-full border px-3 text-sm font-semibold transition-colors duration-200 ${
+            className={`focus-ring h-10 cursor-pointer rounded-full border px-3 text-body font-semibold transition-colors duration-200 ${
               selected.length === 0 ? "border-ink bg-ink text-bg" : "border-line bg-surface text-ink-2 hover:bg-surface-2"
             }`}
           >
@@ -183,7 +183,7 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
                 type="button"
                 aria-pressed={on}
                 onClick={() => update({ teams: toggleTeam(selected, t.teamCode) })}
-                className={`focus-ring flex h-10 cursor-pointer items-center gap-1.5 rounded-full border py-1 pl-1.5 pr-3 text-sm font-semibold transition-colors duration-200 ${
+                className={`focus-ring flex h-10 cursor-pointer items-center gap-1.5 rounded-full border py-1 pl-1.5 pr-3 text-body font-semibold transition-colors duration-200 ${
                   on ? "border-ink bg-surface-2 text-ink ring-1 ring-ink" : "border-line bg-surface text-ink-2 hover:bg-surface-2"
                 } ${dim ? "opacity-60" : ""}`}
               >
@@ -283,7 +283,7 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
                     if (!d) return null;
                     const t = teamByCode.get(d.player.teamCode);
                     return (
-                      <div className="rounded-lg border border-line bg-surface px-2.5 py-1.5 text-xs shadow-md">
+                      <div className="rounded-lg border border-line bg-surface px-2.5 py-1.5 text-sub shadow-md">
                         <p className="flex items-center gap-1.5 font-semibold text-ink">
                           <Swatch color={d.color} square={d.square} />
                           {d.player.nameKo}
@@ -360,16 +360,16 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
               onClose={() => update({ playerId: null })}
             />
           ) : (
-            <p className="flex h-16 items-center justify-center rounded-xl bg-surface-2 px-3 text-center text-xs text-ink-3">
+            <p className="flex h-16 items-center justify-center rounded-xl bg-surface-2 px-3 text-center text-sub text-ink-3">
               점을 누르면 선수 이름과 기록이 여기 나옵니다
             </p>
           )}
         </div>
-        <p className="mt-2 text-[11px] leading-snug text-ink-3">
+        <p className="mt-2 text-caption leading-snug text-ink-3">
           {metric.note}. 가로축은 경기당 출전시간, {qualifyLabel(rule)} 선수만. 색이 비슷한 팀은 팀 칩으로 골라 보세요.
         </p>
-        <details className="mt-2 text-sm">
-          <summary className="focus-ring flex h-10 cursor-pointer items-center rounded-lg text-xs font-semibold text-ink-2 hover:text-ink">
+        <details className="mt-2 text-body">
+          <summary className="focus-ring flex h-10 cursor-pointer items-center rounded-lg text-sub font-semibold text-ink-2 hover:text-ink">
             표로 보기 ({selected.length ? selectionText : "전체"} {tableRows.length}명)
           </summary>
           <div className="mt-1">
@@ -405,14 +405,14 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
                   <>
                     <Swatch color={d.color} square={d.square} />
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[15px] font-semibold leading-tight text-ink">{d.player.nameKo}</span>
-                      <span className="tabular block truncate text-xs text-ink-3">
+                      <span className="block truncate text-body font-semibold leading-tight text-ink">{d.player.nameKo}</span>
+                      <span className="tabular block truncate text-sub text-ink-3">
                         {teamShortLabel(t?.shortName ?? d.player.teamShort)} · 출전 {formatMinutes(d.x)}
                       </span>
                     </span>
                     <span className="shrink-0 text-right">
                       <span className="tabular block text-lg font-bold leading-tight text-ink">{formatScatterY(d.y, yKey)}</span>
-                      <span className="block text-[11px] leading-tight text-ink-3">{metric.short}</span>
+                      <span className="block text-caption leading-tight text-ink-3">{metric.short}</span>
                     </span>
                   </>
                 );
@@ -426,7 +426,7 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
               detailFooter={(d) => (
                 <Link
                   href={`/player/${d.player.id}`}
-                  className="focus-ring inline-flex h-10 items-center gap-1 rounded-lg px-1 text-sm font-semibold text-ink underline-offset-4 hover:underline"
+                  className="focus-ring inline-flex h-10 items-center gap-1 rounded-lg px-1 text-body font-semibold text-ink underline-offset-4 hover:underline"
                 >
                   {d.player.nameKo} 선수 페이지 <IconChevronRight size={16} />
                 </Link>
@@ -438,10 +438,10 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
 
       {/* 팀 요약: 핵심 의존도 */}
       <section aria-labelledby="dep-title" className="mt-8">
-        <h2 id="dep-title" className="text-base font-bold">
+        <h2 id="dep-title" className="text-h2 font-bold">
           팀별 핵심 의존도
         </h2>
-        <p className="mt-1 text-xs text-ink-3">팀 득점 1~3위의 득점 합 ÷ 팀 전체 득점. 높을수록 소수에게 기댑니다.</p>
+        <p className="mt-1 text-sub text-ink-3">팀 득점 1~3위의 득점 합 ÷ 팀 전체 득점. 높을수록 소수에게 기댑니다.</p>
         <ul className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
           {deps.map(({ team: t, dep }) => {
             const on = selected.includes(t.teamCode);
@@ -458,17 +458,17 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
                 >
                   <span className="flex min-w-0 items-center gap-2">
                     <TeamLogo logoUrl={t.logoUrl} shortName={t.shortName} color={t.color} size={28} />
-                    <span className="truncate text-sm font-bold text-ink">{teamShortLabel(t.shortName)}</span>
+                    <span className="truncate text-body font-bold text-ink">{teamShortLabel(t.shortName)}</span>
                   </span>
-                  <span className="mt-2 text-[11px] font-medium text-ink-3">상위 3명 득점 비중</span>
+                  <span className="mt-2 text-caption font-medium text-ink-3">상위 3명 득점 비중</span>
                   <span className="text-2xl font-bold leading-tight tracking-tight text-ink">{formatShare(dep.topShare)}</span>
                   <span aria-hidden className="mt-1 block h-1.5 w-full overflow-hidden rounded-full bg-surface-2">
                     <span className="block h-full rounded-full" style={{ width: `${share}%`, background: colorOf(t.teamCode) }} />
                   </span>
-                  <span className="mt-1.5 text-[11px] text-ink-2">
+                  <span className="mt-1.5 text-caption text-ink-2">
                     표본 충족 {dep.qualifiedCount}명 / {dep.rosterCount}명
                   </span>
-                  <span className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-ink-3 break-keep">
+                  <span className="mt-0.5 line-clamp-2 text-caption leading-snug text-ink-3 break-keep">
                     {dep.top.map((p) => p.nameKo).join(" · ")}
                   </span>
                 </button>
@@ -476,7 +476,7 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
             );
           })}
         </ul>
-        <p className="mt-2 text-[11px] leading-snug text-ink-3">
+        <p className="mt-2 text-caption leading-snug text-ink-3">
           선수 기록을 합친 값이라 KBL 공식 팀 기록과 다릅니다(시즌 중 이적한 선수는 KBL 기록상 소속 팀 한 곳으로 집계).
         </p>
       </section>
@@ -507,12 +507,12 @@ function SelectedCard({
         <p className="flex min-w-0 items-center gap-1.5">
           <Swatch color={color} />
           <span className="truncate font-bold text-ink">{p.nameKo}</span>
-          <span className="flex shrink-0 items-center gap-1 text-xs text-ink-2">
+          <span className="flex shrink-0 items-center gap-1 text-sub text-ink-2">
             <TeamLogo logoUrl={team?.logoUrl} shortName={team?.shortName ?? p.teamShort} color={team?.color} size={16} />
             {teamShortLabel(team?.shortName ?? p.teamShort)}
           </span>
         </p>
-        <p className="mt-0.5 text-xs text-ink-2">
+        <p className="mt-0.5 text-sub text-ink-2">
           출전 {formatMinutes(point.x)} · {metricLabel} <b className="text-ink">{yText}</b> · {p.games}경기
           {positionLabel(p.position) ? ` · ${positionLabel(p.position)}` : ""}
         </p>
@@ -528,7 +528,7 @@ function SelectedCard({
       {/* 모바일은 아래 줄 전체 폭, 640px 이상은 같은 줄 오른쪽 */}
       <Link
         href={`/player/${p.id}`}
-        className="w-full shrink-0 rounded-lg bg-ink px-2.5 py-2 text-center text-xs font-semibold text-bg hover:opacity-90 sm:w-auto"
+        className="w-full shrink-0 rounded-lg bg-ink px-2.5 py-2 text-center text-sub font-semibold text-bg hover:opacity-90 sm:w-auto"
       >
         선수 기록 보기
       </Link>

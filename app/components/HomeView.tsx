@@ -54,16 +54,16 @@ export default function HomeView({ season, fetchedLabel, upcoming, categories, t
   return (
     <main className="pb-2">
       {upcoming && (
-        <p className="border-b border-line bg-surface-2 px-4 py-2 text-center text-xs font-semibold text-ink-2">
+        <p className="border-b border-line bg-surface-2 px-4 py-2 text-center text-sub font-semibold text-ink-2">
           {seasonShortLabel(upcoming.seasonLabel)} 개막 전 · 직전 시즌({short}) 기록을 보여 줍니다
         </p>
       )}
 
       <div className="mx-auto max-w-5xl px-4 pt-5">
-        <p className="text-xs font-medium text-ink-3">
+        <p className="text-sub font-medium text-ink-3">
           KBL 정규시즌 · 기록 갱신 {fetchedLabel}
         </p>
-        <h1 className="mt-0.5 text-2xl font-black tracking-tight sm:text-3xl">{short} 시즌 한눈에</h1>
+        <h1 className="mt-0.5 text-h1 font-black">{short} 시즌 한눈에</h1>
       </div>
 
       {scoring && <Hero entry={scoring} team={teamByCode.get(scoring.player.teamCode)} seasonCode={code} />}
@@ -71,10 +71,10 @@ export default function HomeView({ season, fetchedLabel, upcoming, categories, t
       {/* 부문별 1~3위 */}
       <section aria-labelledby="leaders-title" className="mx-auto mt-8 max-w-5xl px-4">
         <div className="flex items-baseline justify-between gap-2">
-          <h2 id="leaders-title" className="text-lg font-bold">
+          <h2 id="leaders-title" className="text-h2 font-bold">
             부문별 1~3위
           </h2>
-          <p className="text-xs text-ink-3">경기당 · {qualifyText}</p>
+          <p className="text-sub text-ink-3">경기당 · {qualifyText}</p>
         </div>
         <ul className="-mx-4 mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0">
           {categories.map((c) => (
@@ -83,12 +83,12 @@ export default function HomeView({ season, fetchedLabel, upcoming, categories, t
             </li>
           ))}
         </ul>
-        <p className="mt-1 text-xs text-ink-3 md:hidden">옆으로 밀면 부문이 더 있습니다 →</p>
+        <p className="mt-1 text-sub text-ink-3 md:hidden">옆으로 밀면 부문이 더 있습니다 →</p>
       </section>
 
       {/* 화면 바로가기: 큰 버튼 2개 + 작은 링크 줄 */}
       <section aria-labelledby="screens-title" className="mx-auto mt-8 max-w-5xl px-4">
-        <h2 id="screens-title" className="text-lg font-bold">
+        <h2 id="screens-title" className="text-h2 font-bold">
           바로가기
         </h2>
         <ul className="mt-3 grid grid-cols-2 gap-3">
@@ -98,12 +98,12 @@ export default function HomeView({ season, fetchedLabel, upcoming, categories, t
                 <span className="flex items-center gap-1 text-lg font-bold text-ink">
                   {s.title} <IconChevronRight size={20} />
                 </span>
-                <span className="mt-1 text-xs text-ink-2">{s.desc}</span>
+                <span className="mt-1 text-sub text-ink-2">{s.desc}</span>
               </Link>
             </li>
           ))}
         </ul>
-        <ul className="mt-2 flex flex-wrap items-center gap-x-1 text-sm">
+        <ul className="mt-2 flex flex-wrap items-center gap-x-1 text-body">
           {secondary.map((s) => (
             <li key={s.href}>
               <Link
@@ -120,13 +120,13 @@ export default function HomeView({ season, fetchedLabel, upcoming, categories, t
 
       {/* 시즌 목록 → 순위표 */}
       <section aria-labelledby="seasons-title" className="mx-auto mt-8 max-w-5xl px-4">
-        <h2 id="seasons-title" className="text-lg font-bold">
+        <h2 id="seasons-title" className="text-h2 font-bold">
           시즌별 순위표
         </h2>
         <SeasonChips seasons={recentSeasons} className="mt-3" />
         {olderSeasons.length > 0 && (
           <details className="mt-2">
-            <summary className="cursor-pointer text-sm font-semibold text-ink-2">전체 보기 ({olderSeasons.length}개 시즌 더)</summary>
+            <summary className="cursor-pointer text-body font-semibold text-ink-2">전체 보기 ({olderSeasons.length}개 시즌 더)</summary>
             <SeasonChips seasons={olderSeasons} className="mt-2" />
           </details>
         )}
@@ -145,7 +145,7 @@ function SeasonChips({ seasons, className = "" }: { seasons: SeasonOption[]; cla
         <li key={s.seasonCode}>
           <Link
             href={`/season/${s.seasonCode}/leaders`}
-            className="inline-flex h-9 items-center rounded-full border border-line bg-surface px-3 text-sm font-semibold text-ink-2 hover:bg-surface-2"
+            className="inline-flex h-9 items-center rounded-full border border-line bg-surface px-3 text-body font-semibold text-ink-2 hover:bg-surface-2"
           >
             {seasonShortLabel(s.seasonLabel)}
           </Link>
@@ -178,7 +178,7 @@ function Hero({ entry, team, seasonCode }: { entry: LeaderEntry<LeaderPlayer>; t
         </span>
         <div className="relative flex min-h-[260px] items-end px-4 sm:min-h-[320px] sm:px-8">
           <div className="relative z-10 min-w-0 flex-1 pb-5 pt-5">
-            <p className="inline-flex rounded-full px-2.5 py-1 text-xs font-bold" style={{ background: "rgba(0,0,0,0.25)" }}>
+            <p className="inline-flex rounded-full px-2.5 py-1 text-sub font-bold" style={{ background: "rgba(0,0,0,0.25)" }}>
               득점 1위
             </p>
             <h2 className="mt-3 text-[2.1rem] font-black leading-[1.05] tracking-tight [overflow-wrap:anywhere] sm:text-6xl">
@@ -186,7 +186,7 @@ function Hero({ entry, team, seasonCode }: { entry: LeaderEntry<LeaderPlayer>; t
                 {p.nameKo}
               </Link>
             </h2>
-            <p className="mt-2 flex items-center gap-1.5 text-sm font-semibold opacity-90">
+            <p className="mt-2 flex items-center gap-1.5 text-body font-semibold opacity-90">
               <span className="inline-flex rounded-md bg-white p-0.5">
                 <TeamLogo logoUrl={team?.logoUrl} shortName={teamName} color={color} size={20} />
               </span>
@@ -197,10 +197,10 @@ function Hero({ entry, team, seasonCode }: { entry: LeaderEntry<LeaderPlayer>; t
               <span className="text-5xl font-black tracking-tight sm:text-6xl">{value}</span>
               <span className="ml-1 text-lg font-bold">점</span>
             </p>
-            <p className="mt-1.5 text-sm font-semibold opacity-90">경기당 {value}점 · 득점 1위</p>
+            <p className="mt-1.5 text-body font-semibold opacity-90">경기당 {value}점 · 득점 1위</p>
             <Link
               href={playerHref(p.id, seasonCode)}
-              className="focus-ring mt-4 inline-flex h-11 items-center gap-1 rounded-full bg-white px-4 text-sm font-bold text-[#0b0b0b] transition-opacity duration-200 hover:opacity-90"
+              className="focus-ring mt-4 inline-flex h-11 items-center gap-1 rounded-full bg-white px-4 text-body font-bold text-[#0b0b0b] transition-opacity duration-200 hover:opacity-90"
             >
               선수 카드 보기 <IconChevronRight size={16} />
             </Link>
@@ -233,38 +233,38 @@ function LeaderCard({
   return (
     <article className="h-full rounded-2xl border border-line bg-surface p-3">
       <h3 className="flex items-baseline justify-between">
-        <Link href={leadersHref(seasonCode, category.key)} className="text-sm font-bold text-ink underline-offset-4 hover:underline">
+        <Link href={leadersHref(seasonCode, category.key)} className="text-body font-bold text-ink underline-offset-4 hover:underline">
           {def.label} ›
         </Link>
-        <span className="text-[11px] text-ink-3">경기당</span>
+        <span className="text-caption text-ink-3">경기당</span>
       </h3>
       {category.entries.length === 0 ? (
-        <p className="mt-3 text-xs text-ink-3">기준을 채운 선수가 없습니다</p>
+        <p className="mt-3 text-sub text-ink-3">기준을 채운 선수가 없습니다</p>
       ) : (
         <ol className="mt-2 space-y-2">
           {category.entries.map((e) => {
             const t = teamByCode.get(e.player.teamCode);
             return (
               <li key={e.player.id} className="flex min-w-0 items-center gap-2">
-                <span className={`w-4 shrink-0 text-center text-xs ${e.rank === 1 ? "font-black text-ink" : "font-semibold text-ink-3"}`}>
+                <span className={`w-4 shrink-0 text-center text-sub ${e.rank === 1 ? "font-black text-ink" : "font-semibold text-ink-3"}`}>
                   {e.rank}
                 </span>
                 <PlayerAvatar photoUrl={e.player.photoUrl} nameKo={e.player.nameKo} color={t?.color} size={e.rank === 1 ? 40 : 32} />
                 <span className="min-w-0 flex-1">
                   <Link
                     href={`/player/${e.player.id}`}
-                    className="block truncate text-sm font-semibold text-ink underline-offset-2 hover:underline"
+                    className="block truncate text-body font-semibold text-ink underline-offset-2 hover:underline"
                   >
                     {e.player.nameKo}
                   </Link>
-                  <span className="block truncate text-[11px] text-ink-3">
+                  <span className="block truncate text-caption text-ink-3">
                     {teamShortLabel(t?.shortName ?? e.player.teamShort)}
                     {e.player.position ? ` · ${positionLabel(e.player.position)}` : ""}
                   </span>
                 </span>
-                <span className={`shrink-0 font-bold tracking-tight text-ink ${e.rank === 1 ? "text-lg" : "text-sm"}`}>
+                <span className={`shrink-0 font-bold tracking-tight text-ink ${e.rank === 1 ? "text-lg" : "text-body"}`}>
                   {formatStat(e.value, category.key, "perGame")}
-                  <span className="ml-0.5 text-[10px] font-medium text-ink-3">{unit}</span>
+                  <span className="ml-0.5 text-caption font-medium text-ink-3">{unit}</span>
                 </span>
               </li>
             );

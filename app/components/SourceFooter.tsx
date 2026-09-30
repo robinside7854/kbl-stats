@@ -14,7 +14,7 @@ export function formatFetchedAt(iso: string): string {
 
 export default function SourceFooter({ fetchedAt, wide = false }: { fetchedAt?: string; wide?: boolean }) {
   return (
-    <footer className={`mx-auto mt-10 ${wide ? "max-w-5xl" : "max-w-3xl"} border-t border-line px-4 py-6 text-xs text-ink-3`}>
+    <footer className={`mx-auto mt-10 ${wide ? "max-w-5xl" : "max-w-3xl"} border-t border-line px-4 py-6 text-sub text-ink-3`}>
       <p>{SOURCE_LINE}</p>
       {officialImagesEnabled() && <p className="mt-1">{IMAGE_CREDIT_LINE}</p>}
       {fetchedAt && <p className="mt-1">데이터 수집일: {formatFetchedAt(fetchedAt)}</p>}

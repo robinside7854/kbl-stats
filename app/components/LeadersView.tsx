@@ -84,7 +84,7 @@ function PosBadge({ p }: { p: LeaderPlayer }) {
   if (!p.position) return null;
   return (
     <span
-      className="shrink-0 rounded border border-line px-1 text-[10px] font-semibold leading-[1.35] text-ink-2"
+      className="shrink-0 rounded border border-line px-1 text-caption font-semibold leading-[1.35] text-ink-2"
       title={positionLabel(p.position) ?? undefined}
       aria-label={positionLabel(p.position) ?? undefined}
     >
@@ -144,13 +144,13 @@ function CoverCard({
           className="ring-2 ring-white/70"
         />
         <div className="min-w-0">
-          <p className={`font-semibold opacity-85 ${hero ? "text-xs" : "text-[11px]"}`}>{entry.rank}위</p>
+          <p className={`font-semibold opacity-85 ${hero ? "text-sub" : "text-caption"}`}>{entry.rank}위</p>
           <h3 className={`font-bold leading-tight break-keep ${hero ? "truncate text-2xl" : "line-clamp-2 text-base"}`} title={p.nameKo}>
             <Link href={`/player/${p.id}`} className="underline-offset-4 hover:underline">
               {p.nameKo}
             </Link>
           </h3>
-          <p className={`mt-1 flex min-w-0 items-center gap-1.5 opacity-90 ${hero ? "text-sm" : "text-[11px]"}`}>
+          <p className={`mt-1 flex min-w-0 items-center gap-1.5 opacity-90 ${hero ? "text-body" : "text-caption"}`}>
             <LogoChip team={team} fallback={p.teamShort} size={hero ? 20 : 14} />
             <span className="truncate">{teamLabel}</span>
             {hero && (
@@ -164,7 +164,7 @@ function CoverCard({
         </div>
       </div>
       <p className={`relative ${hero ? "mt-4" : "mt-2.5"}`}>
-        <span className={`block font-semibold opacity-85 ${hero ? "text-xs" : "text-[11px]"}`}>
+        <span className={`block font-semibold opacity-85 ${hero ? "text-sub" : "text-caption"}`}>
           {statTitle(category, mode)}
           {lowerIsBetter && <span className="whitespace-nowrap"> · 적을수록 상위</span>}
         </span>
@@ -271,7 +271,7 @@ export default function LeadersView({ seasonLabel, players, teams }: Props) {
               >
                 {p.nameKo}
               </Link>
-              <span className="flex min-w-0 items-center gap-1 text-[11px] text-ink-3">
+              <span className="flex min-w-0 items-center gap-1 text-caption text-ink-3">
                 <TeamLogo logoUrl={team?.logoUrl} shortName={team?.shortName ?? p.teamShort} color={team?.color} size={16} />
                 <span className="max-w-20 truncate">{teamShortLabel(team?.shortName ?? p.teamShort)}</span>
                 <PosBadge p={p} />
@@ -291,7 +291,7 @@ export default function LeadersView({ seasonLabel, players, teams }: Props) {
         headerClassName: "p-0",
         header: (
           <span className="flex items-center justify-end">
-            {term && <InfoLink term={term} className="-mr-1 h-8 w-4 text-[11px]" />}
+            {term && <InfoLink term={term} className="-mr-1 h-8 w-4 text-caption" />}
             <button
               type="button"
               onClick={() => clickHeader(key)}
@@ -314,7 +314,7 @@ export default function LeadersView({ seasonLabel, players, teams }: Props) {
           return (
             <>
               <span className="block leading-tight">{formatStat(statValue(p, key, mode), key, mode)}</span>
-              {ma && <span className="block text-[10px] font-normal leading-tight text-ink-3">{formatMadeAttempts(ma)}</span>}
+              {ma && <span className="block text-caption font-normal leading-tight text-ink-3">{formatMadeAttempts(ma)}</span>}
             </>
           );
         },
@@ -325,8 +325,8 @@ export default function LeadersView({ seasonLabel, players, teams }: Props) {
   return (
     <main className="mx-auto max-w-5xl px-4 pt-5">
       <header className="mb-3">
-        <p className="text-xs font-medium text-ink-3">{seasonLabel} KBL 정규시즌</p>
-        <h1 className="mt-0.5 text-xl font-bold tracking-tight">시즌 순위표</h1>
+        <p className="text-sub font-medium text-ink-3">{seasonLabel} KBL 정규시즌</p>
+        <h1 className="mt-0.5 text-h1 font-bold">시즌 순위표</h1>
       </header>
 
       {/* 1차 컨트롤: 부문 칩 한 줄 (칩이 많으면 이 줄만 옆으로 민다) */}
@@ -395,7 +395,7 @@ export default function LeadersView({ seasonLabel, players, teams }: Props) {
           </FilterGroup>
         </FilterSheet>
         {(position !== "all" || origin !== "all" || LEADER_STATS[category].better === "low" || attemptName(category)) && (
-          <p className="mt-2 text-xs text-ink-3">
+          <p className="mt-2 text-sub text-ink-3">
             {[
               (position !== "all" || origin !== "all") && "순위는 고른 집단 안 순위",
               LEADER_STATS[category].better === "low" && "적을수록 상위",
@@ -423,7 +423,7 @@ export default function LeadersView({ seasonLabel, players, teams }: Props) {
             ))}
           </div>
         ) : (
-          <p className="rounded-2xl border border-line bg-surface px-4 py-8 text-center text-sm text-ink-2">
+          <p className="rounded-2xl border border-line bg-surface px-4 py-8 text-center text-body text-ink-2">
             조건에 맞는 선수가 없습니다. 필터를 줄이거나 표본 기준을 낮춰 보세요.
           </p>
         )}
@@ -433,11 +433,11 @@ export default function LeadersView({ seasonLabel, players, teams }: Props) {
       {rows.length > 0 && (
         <section aria-labelledby="all-ranks" className="mt-6">
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-            <h2 id="all-ranks" className="text-base font-bold">
+            <h2 id="all-ranks" className="text-h2 font-bold">
               전체 순위
             </h2>
             {/* 모바일 정렬: 드롭다운 하나 (PC 는 열 제목을 누른다) */}
-            <label className="flex items-center gap-2 text-xs font-medium text-ink-2 lg:hidden">
+            <label className="flex items-center gap-2 text-sub font-medium text-ink-2 lg:hidden">
               정렬 기준
               <select
                 className="focus-ring h-10 cursor-pointer rounded-lg border border-line bg-surface px-2 text-base text-ink"
@@ -475,17 +475,17 @@ export default function LeadersView({ seasonLabel, players, teams }: Props) {
               return (
                 <>
                   <span
-                    className={`tabular w-7 shrink-0 text-center text-sm ${rank !== undefined && rank <= 3 ? "font-black text-ink" : "font-semibold text-ink-3"}`}
+                    className={`tabular w-7 shrink-0 text-center text-body ${rank !== undefined && rank <= 3 ? "font-black text-ink" : "font-semibold text-ink-3"}`}
                   >
                     {rank ?? "–"}
                   </span>
                   <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={team?.color} size={36} />
                   <span className="min-w-0 flex-1">
                     <span className="flex min-w-0 items-center gap-1.5">
-                      <span className="truncate text-[15px] font-semibold leading-tight text-ink">{p.nameKo}</span>
+                      <span className="truncate text-body font-semibold leading-tight text-ink">{p.nameKo}</span>
                       <PosBadge p={p} />
                     </span>
-                    <span className="tabular mt-0.5 flex min-w-0 items-center gap-1 text-xs text-ink-3">
+                    <span className="tabular mt-0.5 flex min-w-0 items-center gap-1 text-sub text-ink-3">
                       <TeamLogo logoUrl={team?.logoUrl} shortName={team?.shortName ?? p.teamShort} color={team?.color} size={16} />
                       <span className="truncate">
                         {teamShortLabel(team?.shortName ?? p.teamShort)} · {summaryKeys.slice(0, 2).map((k) => formatSummaryStat(p, k, mode)).join(" · ")}
@@ -497,7 +497,7 @@ export default function LeadersView({ seasonLabel, players, teams }: Props) {
                     <span className="tabular block text-lg font-bold leading-tight tracking-tight text-ink">
                       {formatStat(statValue(p, sortKey, mode), sortKey, mode)}
                     </span>
-                    <span className="tabular block text-[11px] leading-tight text-ink-3">
+                    <span className="tabular block text-caption leading-tight text-ink-3">
                       {ma ? formatMadeAttempts(ma) : LEADER_STATS[sortKey].short}
                     </span>
                   </span>
@@ -514,7 +514,7 @@ export default function LeadersView({ seasonLabel, players, teams }: Props) {
                   value: (
                     <>
                       {formatStat(statValue(p, key, mode), key, mode)}
-                      {ma && <span className="ml-1 text-[11px] font-normal text-ink-3">{formatMadeAttempts(ma)}</span>}
+                      {ma && <span className="ml-1 text-caption font-normal text-ink-3">{formatMadeAttempts(ma)}</span>}
                     </>
                   ),
                 };
@@ -523,13 +523,13 @@ export default function LeadersView({ seasonLabel, players, teams }: Props) {
             detailFooter={(p) => (
               <Link
                 href={`/player/${p.id}`}
-                className="focus-ring inline-flex h-10 items-center gap-1 rounded-lg px-1 text-sm font-semibold text-ink underline-offset-4 hover:underline"
+                className="focus-ring inline-flex h-10 items-center gap-1 rounded-lg px-1 text-body font-semibold text-ink underline-offset-4 hover:underline"
               >
                 {p.nameKo} 선수 페이지 <IconChevronRight size={16} />
               </Link>
             )}
           />
-          <p className="mt-2 text-xs leading-relaxed text-ink-3">
+          <p className="mt-2 text-sub leading-relaxed text-ink-3">
             성공률 아래 작은 숫자는 시즌 합계 성공/시도. 경기당 시도가 리그 평균({note})에 못 미치면 순위 “–”
             <InfoLink term="attempts" className="ml-0.5 h-5 w-5" />
           </p>

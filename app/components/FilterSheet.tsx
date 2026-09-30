@@ -31,9 +31,9 @@ interface Props {
 export function FilterGroup({ label, children, hint }: { label: string; children: ReactNode; hint?: ReactNode }) {
   return (
     <div role="group" aria-label={label}>
-      <p className="mb-1.5 text-xs font-semibold text-ink-2">{label}</p>
+      <p className="mb-1.5 text-sub font-semibold text-ink-2">{label}</p>
       {children}
-      {hint && <p className="mt-1.5 text-xs text-ink-3">{hint}</p>}
+      {hint && <p className="mt-1.5 text-sub text-ink-3">{hint}</p>}
     </div>
   );
 }
@@ -105,14 +105,14 @@ export default function FilterSheet({ chips, onReset, resultText, children, trai
         type="button"
         onClick={onReset}
         disabled={count === 0}
-        className="focus-ring h-11 cursor-pointer rounded-xl border border-line bg-surface px-4 text-sm font-semibold text-ink-2 transition-colors duration-200 hover:bg-surface-2 disabled:cursor-default disabled:opacity-50"
+        className="focus-ring h-11 cursor-pointer rounded-xl border border-line bg-surface px-4 text-body font-semibold text-ink-2 transition-colors duration-200 hover:bg-surface-2 disabled:cursor-default disabled:opacity-50"
       >
         초기화
       </button>
       <button
         type="button"
         onClick={close}
-        className="focus-ring h-11 flex-1 cursor-pointer rounded-xl bg-ink px-4 text-sm font-semibold text-bg transition-opacity duration-200 hover:opacity-90"
+        className="focus-ring h-11 flex-1 cursor-pointer rounded-xl bg-ink px-4 text-body font-semibold text-bg transition-opacity duration-200 hover:opacity-90"
       >
         {resultText}
       </button>
@@ -129,14 +129,14 @@ export default function FilterSheet({ chips, onReset, resultText, children, trai
           aria-controls={panelId}
           aria-haspopup={isDesktop ? undefined : "dialog"}
           onClick={() => (open ? close() : setOpen(true))}
-          className={`focus-ring inline-flex h-10 cursor-pointer items-center gap-1.5 rounded-lg border px-3 text-sm font-semibold transition-colors duration-200 ${
+          className={`focus-ring inline-flex h-10 cursor-pointer items-center gap-1.5 rounded-lg border px-3 text-body font-semibold transition-colors duration-200 ${
             open || count > 0 ? "border-ink text-ink" : "border-line text-ink-2 hover:text-ink"
           } bg-surface hover:bg-surface-2`}
         >
           <IconFilter size={16} />
           필터
           {count > 0 && (
-            <span className="tabular inline-flex h-5 min-w-5 items-center justify-center rounded-md bg-ink px-1 text-xs font-bold text-bg">
+            <span className="tabular inline-flex h-5 min-w-5 items-center justify-center rounded-md bg-ink px-1 text-sub font-bold text-bg">
               {count}
               <span className="sr-only">개 적용 중</span>
             </span>
@@ -145,7 +145,7 @@ export default function FilterSheet({ chips, onReset, resultText, children, trai
         {chips.map((c) => (
           <span
             key={c.key}
-            className="inline-flex h-10 items-center rounded-lg border border-line bg-surface-2 pl-3 text-sm font-semibold text-ink"
+            className="inline-flex h-10 items-center rounded-lg border border-line bg-surface-2 pl-3 text-body font-semibold text-ink"
           >
             {c.label}
             <button
@@ -158,7 +158,7 @@ export default function FilterSheet({ chips, onReset, resultText, children, trai
             </button>
           </span>
         ))}
-        {trailing && <span className="ml-auto text-xs text-ink-3">{trailing}</span>}
+        {trailing && <span className="ml-auto text-sub text-ink-3">{trailing}</span>}
       </div>
 
       {/* PC: 인라인 패널 */}
@@ -182,7 +182,7 @@ export default function FilterSheet({ chips, onReset, resultText, children, trai
             className="absolute inset-x-0 bottom-0 flex max-h-[85dvh] flex-col rounded-t-2xl border-t border-line bg-surface"
           >
             <div className="flex items-center justify-between px-4 pb-1 pt-3">
-              <h2 id={titleId} className="text-lg font-bold">
+              <h2 id={titleId} className="text-h2 font-bold">
                 필터
               </h2>
               <button

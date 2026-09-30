@@ -125,10 +125,10 @@ export default function RowList<R>({
               </button>
               {isOpen && (
                 <div id={panelId} className="bg-surface-2 px-3 pb-3 pt-2.5">
-                  <dl className="tabular grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
+                  <dl className="tabular grid grid-cols-2 gap-x-4 gap-y-1.5 text-body">
                     {details(r).map((d) => (
                       <div key={d.key} className="flex min-w-0 items-baseline justify-between gap-2 border-b border-line/70 pb-1">
-                        <dt className="shrink-0 text-xs text-ink-3">{d.label}</dt>
+                        <dt className="shrink-0 text-sub text-ink-3">{d.label}</dt>
                         <dd className={`min-w-0 text-right ${d.strong ? "font-bold text-ink" : "text-ink-2"}`}>{d.value}</dd>
                       </div>
                     ))}
@@ -143,10 +143,10 @@ export default function RowList<R>({
 
       {/* ── PC: 전체 표 (가로 스크롤 없음 — 열 폭·글자를 줄여 992px 안에 넣는다) ── */}
       <div className="hidden overflow-hidden rounded-2xl border border-line bg-surface lg:block">
-        <table className="tabular w-full border-separate border-spacing-0 text-[13px]">
+        <table className="tabular w-full border-separate border-spacing-0 text-sub">
           <caption className="sr-only">{caption}</caption>
           <thead>
-            <tr className="text-xs text-ink-3">
+            <tr className="text-sub text-ink-3">
               {columns.map((c) => (
                 <th
                   key={c.key}
@@ -193,7 +193,7 @@ export default function RowList<R>({
         <button
           type="button"
           onClick={() => setLimit((n) => n + (pageSize ?? remaining))}
-          className="focus-ring mt-3 flex h-11 w-full cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-line bg-surface text-sm font-semibold text-ink-2 transition-colors duration-200 hover:bg-surface-2 hover:text-ink"
+          className="focus-ring mt-3 flex h-11 w-full cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-line bg-surface text-body font-semibold text-ink-2 transition-colors duration-200 hover:bg-surface-2 hover:text-ink"
         >
           더 보기 <span className="font-normal text-ink-3">(남은 {remaining}{unit})</span>
           <IconChevronDown size={16} />

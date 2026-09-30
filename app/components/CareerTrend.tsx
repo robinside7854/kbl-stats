@@ -65,10 +65,10 @@ export default function CareerTrend({ seasons, allSeasons }: Props) {
   if (seasons.length < 2) {
     return (
       <section aria-labelledby="trend-title" className="rounded-2xl border border-line bg-surface p-4">
-        <h2 id="trend-title" className="text-base font-bold">
+        <h2 id="trend-title" className="text-h2 font-bold">
           시즌별 추이
         </h2>
-        <p className="mt-2 text-sm text-ink-2">
+        <p className="mt-2 text-body text-ink-2">
           정규시즌 기록이 {seasonShortLabel(seasons[0]?.seasonLabel ?? "")} 한 시즌뿐이라 추이 그래프 대신 아래 기록표로 봅니다.
         </p>
       </section>
@@ -81,10 +81,10 @@ export default function CareerTrend({ seasons, allSeasons }: Props) {
   return (
     <section aria-labelledby="trend-title" className="rounded-2xl border border-line bg-surface p-3 sm:p-4">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-        <h2 id="trend-title" className="text-base font-bold">
+        <h2 id="trend-title" className="text-h2 font-bold">
           시즌별 추이 <span className="font-medium text-ink-2">· {metric.title}</span>
         </h2>
-        <p className="text-xs text-ink-3">점을 누르면 값이 보입니다</p>
+        <p className="text-sub text-ink-3">점을 누르면 값이 보입니다</p>
       </div>
 
       <div role="group" aria-label="추이 지표" className="mt-2 flex flex-wrap gap-1.5">
@@ -94,7 +94,7 @@ export default function CareerTrend({ seasons, allSeasons }: Props) {
             type="button"
             aria-pressed={m.key === key}
             onClick={() => setKey(m.key)}
-            className={`h-8 rounded-full border px-3 text-xs font-semibold ${
+            className={`h-8 rounded-full border px-3 text-sub font-semibold ${
               m.key === key ? "border-ink bg-ink text-bg" : "border-line bg-surface text-ink-2 hover:bg-surface-2"
             }`}
           >
@@ -131,7 +131,7 @@ export default function CareerTrend({ seasons, allSeasons }: Props) {
                 const d = active && payload?.[0] ? (payload[0].payload as Datum) : null;
                 if (!d) return null;
                 return (
-                  <div className="rounded-lg border border-line bg-surface px-2.5 py-1.5 text-xs shadow-md">
+                  <div className="rounded-lg border border-line bg-surface px-2.5 py-1.5 text-sub shadow-md">
                     <p className="font-semibold text-ink">{seasonShortLabel(d.seasonLabel)}</p>
                     {d.value === null ? (
                       <p className="text-ink-3">정규시즌 기록 없음</p>
@@ -142,7 +142,7 @@ export default function CareerTrend({ seasons, allSeasons }: Props) {
                           {d.team}
                           {d.teamChanged && <span className="text-ink-3">(이적)</span>} · {d.games}경기
                         </p>
-                        <p className="mt-0.5 text-sm font-bold text-ink">
+                        <p className="mt-0.5 text-body font-bold text-ink">
                           {metric.title} {formatTrend(d.value, key)}
                         </p>
                       </>
@@ -181,7 +181,7 @@ export default function CareerTrend({ seasons, allSeasons }: Props) {
         </ResponsiveContainer>
       </div>
 
-      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-2">
+      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sub text-ink-2">
         <span className="text-ink-3">점 색 = 그 시즌 팀{legend.length > 1 ? " · 큰 점 = 이적한 시즌" : ""}</span>
         {legend.map((l) => (
           <span key={l.team} className="inline-flex items-center gap-1.5">
@@ -190,7 +190,7 @@ export default function CareerTrend({ seasons, allSeasons }: Props) {
           </span>
         ))}
       </div>
-      <p className="mt-1 text-[11px] leading-snug text-ink-3">
+      <p className="mt-1 text-caption leading-snug text-ink-3">
         {metric.kind === "perGame"
           ? "경기당 값 = 시즌 누적 ÷ 출전 경기."
           : "KBL 계산값 그대로."}{" "}

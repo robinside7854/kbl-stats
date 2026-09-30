@@ -60,11 +60,11 @@ export default function SiteNav({ seasons, seasonCode, view, onSeasonChange, wid
           </Link>
           {!hideSearch && <PlayerSearch className="order-3 w-full sm:order-2 sm:w-auto sm:max-w-xs sm:flex-1" />}
           {showSeason && (
-            <label className="order-2 flex min-w-0 items-center gap-2 text-xs font-medium text-ink-2 sm:order-3">
+            <label className="order-2 flex min-w-0 items-center gap-2 text-sub font-medium text-ink-2 sm:order-3">
               <span className="shrink-0">시즌</span>
               <select
                 aria-label="시즌 선택"
-                className="focus-ring h-10 min-w-0 cursor-pointer rounded-lg border border-line bg-surface px-2 text-sm text-ink"
+                className="focus-ring h-10 min-w-0 cursor-pointer rounded-lg border border-line bg-surface px-2 text-body text-ink"
                 value={seasonCode}
                 onChange={(e) => changeSeason(Number(e.target.value))}
               >
@@ -86,7 +86,7 @@ export default function SiteNav({ seasons, seasonCode, view, onSeasonChange, wid
                 key={m.label}
                 href={m.href(seasonCode)}
                 aria-current={active ? "page" : undefined}
-                className={`-mb-px shrink-0 whitespace-nowrap border-b-2 px-2 py-2 text-sm font-semibold sm:px-3 ${
+                className={`-mb-px shrink-0 whitespace-nowrap border-b-2 px-2 py-2 text-body font-semibold sm:px-3 ${
                   active ? "border-ink text-ink" : "border-transparent text-ink-3 hover:text-ink-2"
                 }`}
               >

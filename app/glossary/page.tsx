@@ -32,8 +32,8 @@ export default function GlossaryPage() {
       <SiteNav seasons={seasons} seasonCode={latest} view="glossary" wide />
       <main className="mx-auto max-w-5xl px-4 pt-5">
         <header className="mb-4">
-          <h1 className="text-xl font-bold tracking-tight">용어 풀이</h1>
-          <p className="mt-1 text-sm text-ink-2">2차 스탯은 KBL 계산값 그대로(USG%만 ×5), 백분위·등급·표본·시도 기준은 이 사이트 규칙.</p>
+          <h1 className="text-h1 font-bold">용어 풀이</h1>
+          <p className="mt-1 text-body text-ink-2">2차 스탯은 KBL 계산값 그대로(USG%만 ×5), 백분위·등급·표본·시도 기준은 이 사이트 규칙.</p>
         </header>
 
         <nav aria-label="용어 목록" className="mb-4 flex flex-wrap gap-1.5">
@@ -41,7 +41,7 @@ export default function GlossaryPage() {
             <a
               key={g.key}
               href={`#${GLOSSARY_ANCHORS[g.key]}`}
-              className="inline-flex h-8 items-center rounded-full border border-line bg-surface px-2.5 text-xs font-semibold text-ink-2 hover:bg-surface-2"
+              className="inline-flex h-8 items-center rounded-full border border-line bg-surface px-2.5 text-sub font-semibold text-ink-2 hover:bg-surface-2"
             >
               {g.name}
             </a>
@@ -49,10 +49,10 @@ export default function GlossaryPage() {
         </nav>
 
         <div className="rounded-xl border border-line bg-surface max-md:border-0 max-md:bg-transparent">
-          <table className="w-full border-separate border-spacing-0 text-sm max-md:block">
+          <table className="w-full border-separate border-spacing-0 text-body max-md:block">
             <caption className="sr-only">지표 이름, 한 줄 한 줄 설명, 계산식, 비고, 출처</caption>
             <thead className="max-md:sr-only">
-              <tr className="text-left text-xs text-ink-3">
+              <tr className="text-left text-sub text-ink-3">
                 <th scope="col" className="w-32 border-b border-line px-3 py-2 font-medium">이름</th>
                 <th scope="col" className="w-48 border-b border-line px-3 py-2 font-medium">한 줄 설명</th>
                 <th scope="col" className="border-b border-line px-3 py-2 font-medium">계산식</th>
@@ -72,15 +72,15 @@ export default function GlossaryPage() {
                   </th>
                   <td className={`${CELL} text-ink`}>{g.short}</td>
                   <td className={CELL}>
-                    <code className="block rounded-lg bg-surface-2 px-2.5 py-2 font-mono text-xs leading-relaxed text-ink-2 [overflow-wrap:anywhere]">
+                    <code className="block rounded-lg bg-surface-2 px-2.5 py-2 text-sub leading-relaxed text-ink-2 [overflow-wrap:anywhere]">
                       {g.formula}
                     </code>
                   </td>
-                  <td className={`${CELL} text-xs leading-relaxed text-ink-2`}>
+                  <td className={`${CELL} text-sub leading-relaxed text-ink-2`}>
                     <span className="font-semibold text-ink-3 md:hidden">비고 · </span>
                     {g.note}
                   </td>
-                  <td className={`${CELL} text-xs`}>
+                  <td className={`${CELL} text-sub`}>
                     {g.source ? (
                       <a
                         href={g.source}

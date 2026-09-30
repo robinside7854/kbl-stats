@@ -60,7 +60,7 @@ interface Props {
 /** 종합 등급 배지 색: S 금색, A 진한 잉크, 나머지 옅은 면 (색만으로 구분하지 않고 글자가 등급) */
 function GradeBadge({ grade }: { grade: Grade | "-" }) {
   if (grade === "-") {
-    return <span className="rounded-md bg-surface-2 px-1.5 py-0.5 text-[10px] font-semibold text-ink-3">표본 미달</span>;
+    return <span className="rounded-md bg-surface-2 px-1.5 py-0.5 text-caption font-semibold text-ink-3">표본 미달</span>;
   }
   const style: React.CSSProperties =
     grade === "S"
@@ -90,15 +90,15 @@ function GridCard({ e, team, seasonCode }: { e: GridEntry; team?: CardTeam; seas
         <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={team?.color} size={52} />
         <GradeBadge grade={e.overall} />
       </span>
-      <span className="mt-2 line-clamp-2 text-sm font-bold leading-tight text-ink break-keep">{p.nameKo}</span>
-      <span className="mt-1 flex min-w-0 items-center gap-1 text-[11px] text-ink-2">
+      <span className="mt-2 line-clamp-2 text-body font-bold leading-tight text-ink break-keep">{p.nameKo}</span>
+      <span className="mt-1 flex min-w-0 items-center gap-1 text-caption text-ink-2">
         <TeamLogo logoUrl={team?.logoUrl} shortName={team?.shortName ?? p.teamShort} color={team?.color} size={16} />
         <span className="truncate">
           {teamShortLabel(team?.shortName ?? p.teamShort)}
           {pos ? ` · ${pos}` : ""}
         </span>
       </span>
-      <span className="mt-auto pt-2 text-[11px] text-ink-3">
+      <span className="mt-auto pt-2 text-caption text-ink-3">
         경기당 <b className="text-base font-bold tracking-tight text-ink">{formatCardValue(e.ppg, false)}</b>점
         {p.nationality && p.nationality !== "domestic" && <span className="ml-1">· {NATIONALITY_LABELS[nationalityOf(p)]}</span>}
       </span>
@@ -146,7 +146,7 @@ export default function PlayersView({ seasons, latest, initialFile }: Props) {
       {/* 시즌은 상단 시즌 선택이 맡는다(본문 시즌 칩 없음), 검색은 본문 큰 검색창 하나 (디자인 점검 A4·A5) */}
       <SiteNav seasons={seasons} seasonCode={state.season} view="players" onSeasonChange={(c) => update({ season: c })} wide hideSearch />
       <main className="mx-auto max-w-5xl px-4 pt-5">
-        <h1 className="mb-3 text-xl font-bold tracking-tight">선수</h1>
+        <h1 className="mb-3 text-h1 font-bold">선수</h1>
 
         <PlayerSearch size="lg" autoFocusDesktop label="선수 이름으로 찾기" placeholder="선수 이름 (한글·영문, 예: 워니)" className="w-full" />
 
@@ -198,20 +198,20 @@ export default function PlayersView({ seasons, latest, initialFile }: Props) {
 
         <section aria-labelledby="grid-title" className="mt-5" aria-busy={status === "loading" || undefined}>
           <div className="mb-2 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-            <h2 id="grid-title" className="text-base font-bold">
+            <h2 id="grid-title" className="text-h2 font-bold">
               {seasonShortLabel(seasonLabel)} 시즌 선수 <span className="font-normal text-ink-3">{filtered.length}명</span>
             </h2>
-            <p className="text-xs text-ink-3">
+            <p className="text-sub text-ink-3">
               종합 등급 순, 같은 등급은 PER 순 <InfoLink term="percentileGrade" className="h-5 w-5" />
             </p>
           </div>
           {status === "loading" && (
-            <p role="status" className="mb-2 text-sm font-semibold text-ink-2">
+            <p role="status" className="mb-2 text-body font-semibold text-ink-2">
               시즌 기록 불러오는 중…
             </p>
           )}
           {status === "error" && (
-            <p role="alert" className="mb-2 text-sm text-ink-2">
+            <p role="alert" className="mb-2 text-body text-ink-2">
               시즌 기록을 불러오지 못했습니다. 시즌을 다시 골라 주세요.
             </p>
           )}
@@ -224,7 +224,7 @@ export default function PlayersView({ seasons, latest, initialFile }: Props) {
               ))}
             </ul>
           ) : (
-            <p className="rounded-2xl border border-line bg-surface px-4 py-8 text-center text-sm text-ink-2">
+            <p className="rounded-2xl border border-line bg-surface px-4 py-8 text-center text-body text-ink-2">
               조건에 맞는 선수가 없습니다. 필터를 줄여 보세요.
             </p>
           )}
@@ -232,13 +232,13 @@ export default function PlayersView({ seasons, latest, initialFile }: Props) {
             <button
               type="button"
               onClick={() => setLimit((n) => n + GRID_PAGE_SIZE)}
-              className="focus-ring mt-3 flex h-11 w-full cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-line bg-surface text-sm font-semibold text-ink-2 transition-colors duration-200 hover:bg-surface-2 hover:text-ink"
+              className="focus-ring mt-3 flex h-11 w-full cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-line bg-surface text-body font-semibold text-ink-2 transition-colors duration-200 hover:bg-surface-2 hover:text-ink"
             >
               더 보기 <span className="font-normal text-ink-3">(남은 {remaining}명)</span>
               <IconChevronDown size={16} />
             </button>
           )}
-          <p className="mt-3 text-xs leading-relaxed text-ink-3">
+          <p className="mt-3 text-sub leading-relaxed text-ink-3">
             종합 등급: 그 시즌 리그 전체({cards ? qualifyLabel(cards.defaults.rule) : "표본 기준"} 출전 선수) 안 레이더 5축 백분위 평균. 기준 미달은
             “표본 미달”로 맨 뒤.
           </p>
