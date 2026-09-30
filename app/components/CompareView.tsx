@@ -4,6 +4,9 @@
 // - 데이터는 전부 우리 정적 파일: 선수·뛴 시즌은 /search-index.json(useSearchIndex), 카드는 /cards/{코드}.json(useCardView).
 //   정적 HTML에는 서버가 계산한 기본 비교(initialA·initialB)가 들어간다.
 // - 상태는 주소 ?a=번호:코드&b=번호:코드 에 남겨 공유한다 (lib/cardview parseCompareQuery·compareQueryString).
+// - 모바일(768px 미만)에 두 선수가 다 있으면 카드 2장 대신 좌우 비교(CompareHeadToHead: 겹친 레이더 + A값 | 항목 | B값 막대),
+//   카드 전체는 "카드 보기" 토글로 (저장도 거기서). PC 는 카드 2장 + 비교표 그대로 (피드백 5차 #6).
+//   화면 폭 판단은 CSS(md:)로 해 정적 HTML 에서도 깜빡이지 않는다.
 import { useEffect, useState } from "react";
 import type { SearchEntry, SeasonOption } from "@/lib/types";
 import {
@@ -17,7 +20,9 @@ import {
 import { seasonShortLabel } from "@/lib/career";
 import CardDeck, { type DeckCard } from "./CardDeck";
 import ChipRow from "./ChipRow";
+import CompareHeadToHead from "./CompareHeadToHead";
 import CompareTable from "./CompareTable";
+import { IconChevronDown, IconChevronUp } from "./icons";
 import PlayerSearch from "./PlayerSearch";
 import { useCardView } from "./useSeasonCards";
 import { loadSearchIndex } from "./useSearchIndex";
@@ -61,6 +66,8 @@ export default function CompareView({ seasons, initialA, initialB }: Props) {
   const [a, setA] = useState<Slot | null>(fromInit(initialA));
   const [b, setB] = useState<Slot | null>(fromInit(initialB));
   const [queryError, setQueryError] = useState(false);
+  // 모바일 좌우 비교에서 카드 2장 펼치기
+  const [showCards, setShowCards] = useState(false);
   const labelOf = (code: number) => seasonShortLabel(seasons.find((s) => s.seasonCode === code)?.seasonLabel ?? String(code));
 
   // 공유 링크(?a=&b=)로 들어오면 검색 색인에서 선수 이름·뛴 시즌을 찾아 슬롯을 채운다
@@ -157,14 +164,39 @@ export default function CompareView({ seasons, initialA, initialB }: Props) {
       )}
 
       <div className="mt-5 space-y-6">
+        {both && (
+          <div className="space-y-2 md:hidden">
+            <CompareHeadToHead
+              a={both[0]}
+              b={both[1]}
+              aLabel={tag(both[0])}
+              bLabel={tag(both[1])}
+              colors={colors}
+              caption={`${tag(both[0])}와 ${tag(both[1])} 좌우 비교`}
+            />
+            <button
+              type="button"
+              aria-expanded={showCards}
+              aria-controls="compare-cards"
+              onClick={() => setShowCards((v) => !v)}
+              className="focus-ring inline-flex h-11 w-full cursor-pointer items-center justify-center gap-1 rounded-control border border-line bg-surface text-body font-semibold text-ink transition-colors duration-200 hover:bg-surface-2"
+            >
+              {showCards ? "카드 접기" : "카드 보기 · 이미지 저장"}
+              {showCards ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
+            </button>
+          </div>
+        )}
         {cards.length + pending > 0 && (
-          <CardDeck
-            cards={cards}
-            pending={pending}
-            fileName={`${cards.map((c) => `${c.view.entry.player.nameKo}_${labelOf(c.view.seasonCode)}`).join("_vs_")}_플레이어카드.png`}
-          />
+          <div id="compare-cards" className={both && !showCards ? "hidden md:block" : ""}>
+            <CardDeck
+              cards={cards}
+              pending={pending}
+              fileName={`${cards.map((c) => `${c.view.entry.player.nameKo}_${labelOf(c.view.seasonCode)}`).join("_vs_")}_플레이어카드.png`}
+            />
+          </div>
         )}
         {both && (
+          <div className="hidden md:block">
           <CompareTable
             a={both[0]}
             b={both[1]}
@@ -175,6 +207,7 @@ export default function CompareView({ seasons, initialA, initialB }: Props) {
             showDelta={both[0].entry.player.id === both[1].entry.player.id}
             caption={`${tag(both[0])}와 ${tag(both[1])} 기록 비교`}
           />
+          </div>
         )}
       </div>
     </main>
