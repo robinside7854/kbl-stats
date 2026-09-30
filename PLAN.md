@@ -155,7 +155,8 @@
 | ⑤ 홈 | 이번 시즌 부문 1위 선수 사진을 "표지"처럼 크게 |
 | 레이더 카드 | 카드 좌상단에 사진·로고 (이미지 저장 시 CORS 때문에 사진이 빠질 수 있음 → 저장 시엔 대체 디자인으로 그린다) |
 
-### 5-5. ① 이후 추가 작업 (①-b, 작은 세션 하나)
+### 5-5. ① 이후 추가 작업 (①-b, 작은 세션 하나) — ✅ 완료 (2026-09-30)
 - process.ts: `photoUrl`·`logoUrl` 생성, `team-colors.json` 읽어 `color` 필드 추가
 - 공통 컴포넌트 `PlayerAvatar`, `TeamLogo` (실패 시 대체 디자인, 스위치 반영)
 - SourceFooter 문구 확장
+- 결과: 주소 생성은 `scripts/image-urls.ts`, 스위치는 `lib/images.ts`(`NEXT_PUBLIC_OFFICIAL_IMAGES=off`, `.env.example` 참고), 현재 화면은 선수 선택 목록·카드 위 선수 줄에만 적용. 레이더 카드 저장 이미지 안의 사진은 CORS 때문에 보류 — 나중에 html-to-image `filter`로 이미지를 빼고 대체 디자인으로 저장하는 방식으로 처리

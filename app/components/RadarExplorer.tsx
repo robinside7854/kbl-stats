@@ -2,7 +2,7 @@
 // 시즌 페이지의 상호작용 부분: 시즌 선택, 표본 기준, 선수·비교 선수 선택 → 레이더 카드
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { CardPlayer, SeasonCoverage, SeasonOption } from "@/lib/types";
+import type { CardPlayer, CardTeam, SeasonCoverage, SeasonOption } from "@/lib/types";
 import {
   axisSetFor,
   axisValue,
@@ -15,7 +15,9 @@ import {
   radarPercentiles,
   type QualifyRule,
 } from "@/lib/metrics";
+import PlayerAvatar from "./PlayerAvatar";
 import PlayerPicker from "./PlayerPicker";
+import TeamLogo from "./TeamLogo";
 import RadarCard, { type CardEntry } from "./RadarCard";
 import { useThemeColors } from "./useThemeColors";
 
@@ -35,14 +37,33 @@ interface Props {
   seasonCode: number;
   seasonLabel: string;
   players: CardPlayer[];
+  teams: CardTeam[];
   coverage: SeasonCoverage;
 }
 
-export default function RadarExplorer({ seasons, seasonCode, seasonLabel, players, coverage }: Props) {
+/**
+ * 카드 위 선수 표시줄 (사진·로고). 저장되는 카드(html-to-image 대상) 바깥에 둔다 —
+ * KBL 이미지는 CORS 헤더가 없어 캔버스에 그리면 저장이 실패하기 때문.
+ */
+function PlayerStrip({ player, team, swatch }: { player: CardPlayer; team?: CardTeam; swatch?: string }) {
+  return (
+    <div className="flex min-w-0 items-center gap-2">
+      {swatch && <span aria-hidden className="inline-block h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: swatch }} />}
+      <PlayerAvatar photoUrl={player.photoUrl} nameKo={player.nameKo} color={team?.color} size={32} />
+      <span className="min-w-0 truncate text-sm font-semibold text-ink">{player.nameKo}</span>
+      <TeamLogo logoUrl={team?.logoUrl} shortName={team?.shortName ?? player.teamShort} color={team?.color} size={22} />
+      <span className="truncate text-xs text-ink-3">{player.teamName}</span>
+    </div>
+  );
+}
+
+export default function RadarExplorer({ seasons, seasonCode, seasonLabel, players, teams, coverage }: Props) {
   const router = useRouter();
   const colors = useThemeColors();
   const [presetIdx, setPresetIdx] = useState(0);
   const rule = QUALIFY_PRESETS[presetIdx];
+  const teamByCode = useMemo(() => new Map(teams.map((t) => [t.teamCode, t])), [teams]);
+  const teamOf = useCallback((p: CardPlayer) => teamByCode.get(p.teamCode), [teamByCode]);
 
   // 축 세트는 시즌 코드가 아니라 커버리지 플래그로 고른다 (2차 스탯 없는 시즌 → 고전 축)
   const axisSet = axisSetFor(coverage);
@@ -156,6 +177,7 @@ export default function RadarExplorer({ seasons, seasonCode, seasonLabel, player
           value={aId}
           onChange={(id) => id && setAId(id)}
           isQualified={qualifiedFn}
+          teamOf={teamOf}
           swatchColor={b ? colors.series1 : undefined}
         />
         <PlayerPicker
@@ -164,6 +186,7 @@ export default function RadarExplorer({ seasons, seasonCode, seasonLabel, player
           value={bId}
           onChange={setBId}
           isQualified={qualifiedFn}
+          teamOf={teamOf}
           clearable
           placeholder="겹쳐 볼 선수 검색"
           swatchColor={colors.series2}
@@ -176,6 +199,11 @@ export default function RadarExplorer({ seasons, seasonCode, seasonLabel, player
 
       {a && (
         <div className="mt-4">
+          {/* 사진·로고 줄 — 저장 이미지에는 들어가지 않는다 */}
+          <div className="mb-2 flex flex-wrap items-center gap-x-4 gap-y-2">
+            <PlayerStrip player={a.player} team={teamOf(a.player)} swatch={b ? colors.series1 : undefined} />
+            {b && <PlayerStrip player={b.player} team={teamOf(b.player)} swatch={colors.series2} />}
+          </div>
           <RadarCard
             a={a}
             b={b}

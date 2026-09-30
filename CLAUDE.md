@@ -91,26 +91,30 @@ kbl-stats/
 ├── tsconfig.json        ← 화면(app + lib) 타입 설정 — next build가 사용
 ├── tsconfig.scripts.json← 수집 스크립트·테스트 타입 설정 (tsx 실행분)
 ├── next.config.mjs, postcss.config.mjs  ← Next.js / Tailwind v4 설정
+├── .env.example         ← NEXT_PUBLIC_OFFICIAL_IMAGES (공식 사진·로고 끄기 스위치) 설명
 ├── scripts/
 │   ├── fetch.ts         ← KBL API 호출 + data/raw 저장 (API 주소는 여기와 config에만)
-│   ├── process.ts       ← raw → processed 변환
+│   ├── process.ts       ← raw → processed 변환 (photoUrl·logoUrl·팀 color 추가)
+│   ├── image-urls.ts    ← KBL 사진·로고 주소 생성 (playerPhotoUrl, teamLogoUrl) — KBL 이미지 주소는 여기에만
 │   └── config.ts        ← 엔드포인트, 시즌 목록, 요청 간격
 ├── tests/
 │   └── metrics.test.ts  ← lib/metrics.ts 검증 (npm run test:metrics)
 ├── data/
-│   ├── codes/           ← 시즌·팀·경기구분 코드표 (API에서 받아 저장)
+│   ├── codes/           ← 시즌·팀·경기구분 코드표 (API에서 받아 저장) + team-colors.json(팀 색, 손으로 관리하는 유일한 예외)
 │   ├── raw/{seasonCode}/traditional.json, advanced.json, ...
-│   └── processed/seasons.json, players-index.json(전 시즌 선수 색인: 번호·이름·시즌별 팀·경기), {seasonCode}/players.json(coverage·teams·players)
+│   └── processed/seasons.json, players-index.json(전 시즌 선수 색인: 번호·이름·photoUrl·시즌별 팀·경기), {seasonCode}/players.json(coverage·teams(logoUrl·color)·players)
 ├── lib/
 │   ├── metrics.ts       ← 파생 지표 계산 (순수 함수만: 백분위, 경기당·40분당 환산, 커버리지 판정, 레이더 축 세트 modern/classic, 유형 라벨)
-│   ├── data.ts          ← 빌드 시점에 data/processed 읽기 (서버 전용, loadPlayersIndex 포함)
-│   └── types.ts         ← Player, SeasonData(coverage·teams), Team, PlayerIndexEntry, CardPlayer 등 타입 정의
+│   ├── data.ts          ← 빌드 시점에 data/processed 읽기 (서버 전용, loadPlayersIndex·toCardTeams 포함)
+│   ├── images.ts        ← 공식 이미지 스위치 officialImagesEnabled() (NEXT_PUBLIC_OFFICIAL_IMAGES=off 면 끔) + 대체 디자인 글자 규칙
+│   └── types.ts         ← Player, SeasonData(coverage·teams), Team(logoUrl·color), TeamColor, PlayerIndexEntry(photoUrl), CardPlayer, CardTeam 등 타입 정의
 ├── app/                 ← Next.js 화면 (App Router)
 │   ├── layout.tsx, globals.css (색 토큰: 라이트/다크)
 │   ├── page.tsx         ← 최신 시즌 레이더 카드 (정적)
 │   ├── season/[seasonCode]/page.tsx  ← 시즌별 정적 페이지
 │   ├── not-found.tsx
-│   └── components/      ← SeasonView, RadarExplorer, RadarCard, PlayerPicker, SourceFooter, useThemeColors
+│   └── components/      ← SeasonView, RadarExplorer, RadarCard, PlayerPicker, SourceFooter, useThemeColors,
+│                           PlayerAvatar·TeamLogo(공식 이미지+대체 디자인, 저장 카드 영역 밖에서만), useOfficialImage
 └── .github/workflows/fetch.yml, backfill.yml  ← 매일 새벽 수집 / 전체 재수집
 ```
 
@@ -131,6 +135,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-09-30 (①-b 이미지): PLAN.md §5-5 완료. `scripts/image-urls.ts`가 사진·로고 주소 생성 → 시즌 파일 `teams[]`에 `logoUrl`·`color`, `players-index.json`에 `photoUrl`(색인 약 536KB). 팀 색은 `data/codes/team-colors.json`(현재 10개 구단 근사값, 보조색 포함 사용자 확인 필요, 나머지 회색). 공통 컴포넌트 PlayerAvatar·TeamLogo(대체 디자인 기본, onError·하이드레이션 전 실패도 대체), 스위치 `NEXT_PUBLIC_OFFICIAL_IMAGES=off`(빌드 시 반영, off 빌드에서 <img>·사진 출처 줄 0개 확인). PlayerPicker 목록과 카드 위 선수 줄에만 적용 — 저장 카드(html-to-image) 안에는 CORS 때문에 넣지 않음. 발견: 정관장(70)의 현재 logoName은 `kgc`(ic-kgc.svg)라 jkj 예외는 현재 데이터에 안 쓰임. teamCode 10은 1997 부산 기아도 같은 코드라 현대모비스 색이 옛 시즌에도 칠해짐.
 - 2026-09-30 (이미지 조사): 세션 환경은 kbl.or.kr 차단이라 조사용 워크플로(`claude/probe-images` 브랜치, 푸시로 실행)를 만들어 Actions 러너에서 확인. 선수 사진·현재/옛 팀 로고 주소 형식 확정, raw teams.json 의 teamLogoName 47개가 공홈 CSS 규칙과 전부 일치. 방향: 매거진형 팬페이지, 핫링크+대체 디자인+끄기 스위치. PLAN.md §5 추가. GitHub 앱 권한상 workflow_dispatch 는 403 → 푸시 트리거만 가능.
 - 2026-09-30 (3차): PLAN.md ① 데이터 기반 정비 완료. 시즌 파일에 `coverage`(advanced·plusMinus·goodDef·hustle, 선수 50% 이상 0 아님 기준)·`teams` 추가, `players-index.json`(1,329명, 약 440KB) 생성. 레이더 축 세트 2벌 — coverage.advanced면 modern(USG%·TS%·AST%·REB%·PIE), 아니면 classic(40분당 득점·TS%·40분당 AST·40분당 REB·PER) + "고전 축" 배지. 결과: advanced는 2025-26만 true(2023-24·2024-25는 11%라 false), +/-는 1997-98부터, 굿디펜스는 2000-01부터, hustle은 2025-26만. 발견: raw teams.json은 JSON 문자열이 한 번 더 감싸져 저장됨(process.ts에서 두 번 파싱), teamName4(약칭)는 옛 시즌·일부 팀이 영문 대문자(예: "DAEWOO SECURITIES", "HYUNDAI MOBIS").
 - 2026-09-30 (설계): 대시보드 화면 구성 확정 → PLAN.md 작성. 화면 5개(레이더·순위표·선수 페이지+검색·팀 분포·홈), 작업 순서 ①~⑤. 발견: 2차 스탯(USG%·PIE·AST%·REB% 등)은 2025-26만 존재, 이전 29개 시즌은 0 → 옛 시즌 레이더가 잘못된 그림(전원 50점). ①에서 커버리지 플래그 + 전 시즌 공통 축(40분당 환산)으로 고치기로. SCOPE.md 보류 목록 4건 추가.

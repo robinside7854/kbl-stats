@@ -1,7 +1,9 @@
 "use client";
 // 선수 검색 콤보박스: 이름(한/영)·팀으로 걸러서 팀별로 묶어 보여준다.
 import { useId, useMemo, useRef, useState } from "react";
-import type { CardPlayer } from "@/lib/types";
+import type { CardPlayer, CardTeam } from "@/lib/types";
+import PlayerAvatar from "./PlayerAvatar";
+import TeamLogo from "./TeamLogo";
 
 interface Props {
   label: string;
@@ -9,6 +11,8 @@ interface Props {
   value: string | null;
   onChange: (id: string | null) => void;
   isQualified: (p: CardPlayer) => boolean;
+  /** 선수의 팀 로고·색 찾기 (없으면 회색 대체 디자인) */
+  teamOf?: (p: CardPlayer) => CardTeam | undefined;
   clearable?: boolean;
   placeholder?: string;
   swatchColor?: string;
@@ -31,6 +35,7 @@ export default function PlayerPicker({
   value,
   onChange,
   isQualified,
+  teamOf,
   clearable,
   placeholder,
   swatchColor,
@@ -126,10 +131,14 @@ export default function PlayerPicker({
           {filtered.map((p, i) => {
             const header = p.teamName !== lastTeam ? p.teamName : null;
             lastTeam = p.teamName;
+            const team = teamOf?.(p);
             return (
               <li key={p.id} role="presentation">
                 {header && (
-                  <div className="sticky top-0 bg-surface-2 px-3 py-1 text-[11px] font-semibold text-ink-3">{header}</div>
+                  <div className="sticky top-0 z-10 flex items-center gap-1.5 bg-surface-2 px-3 py-1 text-[11px] font-semibold text-ink-3">
+                    <TeamLogo logoUrl={team?.logoUrl} shortName={team?.shortName ?? p.teamShort} color={team?.color} size={16} />
+                    {header}
+                  </div>
                 )}
                 <div
                   id={`${id}-opt-${p.id}`}
@@ -142,9 +151,12 @@ export default function PlayerPicker({
                     i === active ? "bg-surface-2" : ""
                   }`}
                 >
-                  <span className="min-w-0 truncate">
-                    <span className="font-medium text-ink">{p.nameKo}</span>{" "}
-                    <span className="text-ink-3">{p.nameEn}</span>
+                  <span className="flex min-w-0 items-center gap-2">
+                    <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={team?.color} size={24} />
+                    <span className="min-w-0 truncate">
+                      <span className="font-medium text-ink">{p.nameKo}</span>{" "}
+                      <span className="text-ink-3">{p.nameEn}</span>
+                    </span>
                   </span>
                   {!isQualified(p) && <span className="shrink-0 text-[11px] text-ink-3">표본 부족</span>}
                 </div>
