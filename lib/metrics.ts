@@ -418,7 +418,7 @@ export interface RadarScore {
   components: Record<RadarAxis, RadarComponentScore[]>;
   /**
    * 종합 점수 (종합 등급) = 5축 백분위(axes)의 단순 평균 — 다시 순위 매기지 않는다 (overallScore).
-   * 0~100 척도라 등급 컷(GRADE_CUTS)을 그대로 대면 S 는 "5축 평균 90 이상" = 여러 축이 동시에 높은 선수만 받는다.
+   * 0~100 척도라 종합 전용 컷(OVERALL_GRADE_CUTS)을 그대로 대면 S 는 "5축 평균 85 이상" = 여러 축이 동시에 높은 선수만 받는다.
    */
   overall: number | null;
 }
@@ -462,9 +462,10 @@ function axisPercentiles(raw: Record<RadarAxis, number | null>, g: Pick<GradeGro
 
 /**
  * 종합 점수 = 5축 백분위의 단순 평균 (null 축은 빼고, 전부 null 이면 null). 가중치 없이 5축을 같은 비중으로 본다.
- * 종합 등급 = 이 값에 등급 컷(GRADE_CUTS 90/75/55/35/15)을 **직접** 댄다 — 집단 안에서 다시 순위 매기지 않는다.
+ * 종합 등급 = 이 값에 종합 전용 컷(OVERALL_GRADE_CUTS 85/70/55/40/25)을 **직접** 댄다 — 집단 안에서 다시 순위 매기지 않는다.
  * (2026-09-30 피드백 3차: 다시 순위를 매기면 "평균이 집단 상위 10%"만 되면 S 라, 한 축만 뛰어나도 S 가 나왔다 —
- *  예: 강성욱 2025-26 축 S·A·D·A·A → 재순위 종합 S. 평균에 컷을 직접 대면 S 는 5축 평균 90 이상 = 여러 축이 동시에 높아야 한다.)
+ *  예: 강성욱 2025-26 축 S·A·D·A·A → 재순위 종합 S. 평균에 컷을 직접 대면 S 는 5축 평균이 컷 이상 = 여러 축이 동시에 높아야 한다.
+ *  처음엔 축 컷 90 을 그대로 댔더니 2025-26 종합 S 가 0명이라 종합 전용 컷 85/70/55/40/25 로 내렸다.)
  * 축 등급은 그대로 "구성 요소 백분위 평균 → 집단 안 재순위" (백분위 몇 개의 평균은 50 근처로 모이기 때문).
  */
 export function overallScore(axes: Partial<Record<RadarAxis, number | null>>): number | null {
@@ -772,11 +773,34 @@ export const GRADE_CUTS: readonly (readonly [Grade, number])[] = [
   ["F", -Infinity],
 ];
 
-/** 백분위(0~100) → 등급. null·NaN → "-" */
-export function percentileGrade(pct: number | null | undefined): Grade | "-" {
+/**
+ * 종합 등급 전용 컷 (5축 백분위 평균 = overallScore 에 직접 댄다). 축 등급 컷(GRADE_CUTS)보다 한 단계 낮다.
+ * 이유(2026-09-30 피드백): 5축 평균은 여러 축이 동시에 높아야 올라가서, 축 컷 90 을 그대로 대면 2025-26 종합 S 가 0명이었다
+ * (5축 평균 최고 이정현 86.7). 85 로 낮춰도 S 는 "다섯 축 평균 85 이상" = 여러 축이 모두 상위권인 선수뿐이다.
+ */
+export const OVERALL_GRADE_CUTS: readonly (readonly [Grade, number])[] = [
+  ["S", 85],
+  ["A", 70],
+  ["B", 55],
+  ["C", 40],
+  ["D", 25],
+  ["F", -Infinity],
+];
+
+function gradeByCuts(pct: number | null | undefined, cuts: readonly (readonly [Grade, number])[]): Grade | "-" {
   if (pct === null || pct === undefined || !Number.isFinite(pct)) return "-";
-  for (const [g, cut] of GRADE_CUTS) if (pct >= cut) return g;
+  for (const [g, cut] of cuts) if (pct >= cut) return g;
   return "F";
+}
+
+/** 백분위(0~100) → 축 등급 (GRADE_CUTS). null·NaN → "-" */
+export function percentileGrade(pct: number | null | undefined): Grade | "-" {
+  return gradeByCuts(pct, GRADE_CUTS);
+}
+
+/** 종합 점수(5축 평균) → 종합 등급 (OVERALL_GRADE_CUTS) */
+export function overallGrade(score: number | null | undefined): Grade | "-" {
+  return gradeByCuts(score, OVERALL_GRADE_CUTS);
 }
 
 // ─────────────────────────────────────────────
@@ -850,7 +874,7 @@ export interface CardEntryOf<T> {
   pct: Record<RadarAxis, number | null>;
   /** 축별 등급 (percentileGrade) */
   grades: Record<RadarAxis, Grade | "-">;
-  /** 종합 등급 (5축 백분위 평균 → percentileGrade, 재순위 없음) */
+  /** 종합 등급 (5축 백분위 평균 → overallGrade = OVERALL_GRADE_CUTS 85/70/55/40/25, 재순위 없음) */
   overall: Grade | "-";
   /** 종합 점수 = 5축 백분위 평균 (0~100) */
   overallPct: number | null;
@@ -875,7 +899,7 @@ export function buildCardEntry<T extends CardInput>(p: T, ctx: CardContext): Car
     player: p,
     pct: radar.axes,
     grades,
-    overall: percentileGrade(radar.overall),
+    overall: overallGrade(radar.overall),
     overallPct: radar.overall,
     radar,
     type: playerType(radar.axes),

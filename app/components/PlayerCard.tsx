@@ -540,7 +540,7 @@ export default function PlayerCard({ view, colors, size = "sm", seriesColor, exp
               <IconInfo size={16} />
             </Link>
           )}
-          <span className="font-normal text-ink-3">S 상위 10% · A 25% · B 45% · C 65% · D 85% · 종합 = 5축 평균</span>
+          <span className="font-normal text-ink-3">축 S 상위 10% · A 25% · B 45% · C 65% · D 85% · 종합 = 5축 평균 S 85 · A 70 · B 55 · C 40 · D 25</span>
         </p>
         <div aria-hidden style={{ height: d.radarH }}>
           {radarWidth ? (

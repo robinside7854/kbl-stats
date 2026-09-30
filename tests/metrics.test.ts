@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import { PLAYER_TYPES, TYPE_ALLROUNDER_MIN, TYPE_ROLE_MAX } from "../lib/glossary";
 import {
   percentileGrade,
+  overallGrade,
+  OVERALL_GRADE_CUTS,
   activeRadarComponents,
   buildGradingContext,
   componentValue,
@@ -195,10 +197,19 @@ for (const p of pool) {
   assert.equal(r.overall, overallScore(r.axes));
 }
 // 한 축만 S(99)이고 나머지가 평범하면 종합은 S 가 아니다: (99 + 70 + 20 + 70 + 70) / 5 = 65.8 → B
-assert.equal(percentileGrade(overallScore({ offense: 99, defense: 70, three: 20, hustle: 70, efficiency: 70 })), "B");
-// 종합 S 는 5축 평균 90 이상 = 여러 축이 동시에 높아야 한다
-assert.equal(percentileGrade(overallScore({ offense: 95, defense: 90, three: 88, hustle: 92, efficiency: 90 })), "S");
-assert.equal(percentileGrade(overallScore({ offense: 99, defense: 99, three: 99, hustle: 99, efficiency: 50 })), "A"); // 89.2
+assert.equal(overallGrade(overallScore({ offense: 99, defense: 70, three: 20, hustle: 70, efficiency: 70 })), "B");
+// 종합 S 는 5축 평균 85 이상 = 여러 축이 동시에 높아야 한다 (종합 전용 컷 OVERALL_GRADE_CUTS)
+assert.equal(overallGrade(overallScore({ offense: 95, defense: 90, three: 88, hustle: 92, efficiency: 90 })), "S");
+assert.equal(overallGrade(overallScore({ offense: 99, defense: 99, three: 99, hustle: 99, efficiency: 50 })), "S"); // 89.2 (축 컷이면 A)
+assert.equal(overallGrade(overallScore({ offense: 90, defense: 90, three: 90, hustle: 90, efficiency: 55 })), "A"); // 83
+// 종합 컷 경계: S ≥ 85, A ≥ 70, B ≥ 55, C ≥ 40, D ≥ 25, F < 25 (축 컷 90/75/55/35/15 와 다르다)
+assert.deepEqual(OVERALL_GRADE_CUTS.map(([g, c]) => [g, c]), [["S", 85], ["A", 70], ["B", 55], ["C", 40], ["D", 25], ["F", -Infinity]]);
+assert.deepEqual(
+  [100, 85, 84.99, 70, 69.9, 55, 54.9, 40, 39.9, 25, 24.9, 0].map((v) => overallGrade(v)),
+  ["S", "S", "A", "A", "B", "B", "C", "C", "D", "D", "F", "F"],
+);
+assert.equal(overallGrade(null), "-");
+assert.equal(percentileGrade(86), "A"); // 축 등급은 그대로 90 컷
 // 모든 축 1위(집단 밖 선수라 백분위 100)면 종합도 100
 assert.ok(radarScore(rp({ points: 900, ast: 200, stl: 60, blk: 40, dreb: 200, oreb: 80, tpm: 80, tpa: 160, per: 30, tsPct: 70, efgPct: 65, astTo: 4, tovPct: 5, fouls: 10, twoPPct: 70, tpPct: 50, plusMinus: 200, goodDef: 40, deflections: 60, screenAst: 40, usgPct: 35 }), g).overall! >= 99.9);
 
