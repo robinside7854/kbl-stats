@@ -35,6 +35,13 @@ KBL 공홈은 화면을 그릴 때 아래 두 서버에서 JSON을 받아온다.
   - `playerFlagCode2`: "0" 국내, "1" 외국, "2" 아시아쿼터 → `nationality` domestic/foreign/asia. **마스터가 있으면 `isForeign = nationality !== "domestic"`**, 없으면 이름 추정(라건아 등 귀화 선수 오분류)
   - `yearNo/roundNo/rankNo` 드래프트(외국 선수 null), `pHeight` cm, `pWeight` kg, `backNum` 현재 등번호 — 마스터는 "지금" 한 장이라 시즌별 값이 아님
   - `npm run fetch`가 시즌 수집 전에 전 페이지를 받아 `data/raw/players/players.json`(페이지 응답 배열 그대로)에 저장. 실패해도 시즌 수집은 계속. 가공은 `scripts/player-master.ts`
+- **한 경기 최다(커리어 하이·시즌 하이)** `GET /api/v1/players/categories/mostgame/{seasonCode}/{playerNo}` (2026-09-30 확인) → `{ MostGameRegularSeasons: [...](요청 시즌의 시즌 하이), MostGameRegularAllTimes: [...](통산), 플레이오프·챔프전 배열(이름 미확인 — "MostGame{구분}{Seasons|AllTimes}" 꼴을 넓게 분류) }`. 항목 `{ seasonCode, recordSc: "RECORD"|"RATE", recordTxt: "득점"|"필드골 성공"|…|"블록"(15개), record: "46.000", awayTeam: "70"(상대 팀 코드), gameDate: "20231021", scoreRankCn(달성 횟수), orderNo }`. "필드골" = 야투 전체(2점슛이 따로 있음). 한 요청이 시즌 하이 + 통산을 같이 준다 → **선수-시즌 조합당 1회**. 매핑은 `scripts/highs.ts`
+- **프로필** `GET /api/v1/players/profile/0/{playerNo}` → `{ playerInfo: [{ birthday: "19940131", country: "미국", countryEng, univSch, pHeight, pos, backNum, … }], playerScore: [...] }`. 생년월일·국가·출신교만 쓴다(`scripts/player-master.ts profileExtraFrom`)
+- (참고, 수집 안 함 — 부하) 경기별 기록 `GET /api/v1/players/categories/game/{seasonCode}/01/{playerNo}` → `{ RegularGameRecords: [{ gameNo, gameDate, awayTeam, win, loss, score, awayScore, playSec, pts, fg, fgA, …, rb, aS, sT, bS, tO, foulTot }] }`
+- **수집 규칙 (한 경기 최다·프로필)**: raw 는 `data/raw/highs/{seasonCode}/{playerNo}.json`, `data/raw/profiles/{playerNo}.json`(응답 그대로, 한 줄 JSON — 파일 수천 개라 들여쓰기 없이). 형식이 다른 응답은 저장하지 않는다
+  - 매일(`npm run fetch`): **현재 시즌 선수만**(raw traditional 기준 ~200명 × mostgame 1 + profile 1, 1.5초 간격 ≈ 10분). 코드표 최신 시즌이 0명(개막 전)이면 직전 시즌이 "현재". 개막 후에는 최신 시즌 첫 수집일(`data/season-first-seen.json`)부터 **30일 동안만** 직전 시즌도 같이(`PREVIOUS_SEASON_GRACE_DAYS`), 그 뒤 자동 제외. 마감 시즌은 다시 받지 않는다. `fetch:all`·`--no-highs`는 건너뜀
+  - 과거 전체: `.github/workflows/backfill-highs.yml` 한 번(선수-시즌 약 4,980회 + 프로필 약 1,330회 ≈ 3시간, 이어받기·시즌 단위 커밋). 파일의 `# 실행 횟수: N`을 1 올려 푸시하면 실행(0이면 아무것도 안 함)
+  - 연속 10회 실패면 그 시즌 중단(`MAX_CONSECUTIVE_FAILURES`)
 - 운영 주체가 KBL이 아닌 외부 기록업체(Sports2i)임.
 
 ### 이미지 (2026-09-30 Actions 러너에서 공홈 HTML·JS·CSS 확인 — 상세는 PLAN.md §5)
@@ -85,6 +92,7 @@ KBL 공홈은 화면을 그릴 때 아래 두 서버에서 JSON을 받아온다.
 - 경기 기록 숫자 자체의 저작권 여부·DB제작자 권리는 확실하지 않음 → 사업화 시 변호사 검토 항목.
 
 ## 의식적으로 감수하는 트레이드오프
+- 한 경기 최다 raw 는 파일 약 4,980개(+ 프로필 약 1,330개). 한 파일 크기는 응답을 받아 봐야 알지만 5~15KB로 보면 25~75MB — 백필 뒤 `du -sh data/raw/highs`로 재평가
 - JSON 파일 저장 → 시즌 30개 × 여러 엔드포인트가 쌓이면 레포가 커진다. 수십 MB 수준까지는 문제없음. 100MB 넘어가거나 검색·필터가 느려지면 DB로 이전 (갚을 시점: 라인업 데이터 전 시즌 수집 시 재평가)
 - 정규시즌만 우선 → 플레이오프·컵대회는 gameCode만 바꾸면 되지만 화면 설계가 복잡해지므로 1차 범위에서 제외
 - 라인업·경기별 데이터는 API 주소 확인 전까지 보류 → 확인되면 원칙 2에 따라 raw부터 저장
@@ -101,11 +109,15 @@ kbl-stats/
 ├── next.config.mjs, postcss.config.mjs  ← Next.js / Tailwind v4 설정
 ├── .env.example         ← NEXT_PUBLIC_OFFICIAL_IMAGES (공식 사진·로고 끄기 스위치) 설명
 ├── scripts/
-│   ├── fetch.ts         ← KBL API 호출 + data/raw 저장 (API 주소는 여기와 config에만)
-│   ├── process.ts       ← raw → processed 변환 (photoUrl·logoUrl·팀 color 추가)
+│   ├── fetch.ts         ← KBL API 호출 + data/raw 저장 (API 주소는 여기와 config에만) + 현재 시즌 선수 한 경기 최다·프로필
+│   ├── http.ts          ← getJson(공홈 헤더)·sleep·saveRaw 공용 (fetch·backfill-highs)
+│   ├── highs.ts         ← 한 경기 최다 raw → 우리 키(parseMostGame, recordTxt 15개 매핑) + 매일 수집 대상 시즌 highsTargetSeasons(직전 시즌 30일)·첫 수집일·백필 이어받기 pendingPlayers — 순수 함수
+│   ├── collect-extras.ts ← 선수별 mostgame·profile 수집 루프 (저장 전 형식 검사, 연속 실패 중단)
+│   ├── backfill-highs.ts ← 과거 전체 백필 (--list-seasons / --season N, 이미 raw 있는 조합 건너뜀) — backfill-highs.yml 이 시즌마다 부름
+│   ├── process.ts       ← raw → processed 변환 (photoUrl·logoUrl·팀 color 추가, 한 경기 최다 seasonHighs·seasonHighLeaders·careerHighs, 프로필 birthday·country·school)
 │   ├── image-urls.ts    ← KBL 사진·로고 주소 생성 (playerPhotoUrl, teamLogoUrl) — KBL 이미지 주소는 여기에만
 │   ├── config.ts        ← 엔드포인트(선수 마스터 PLAYER_MASTER_PATH 포함), 시즌 목록, 요청 간격
-│   ├── player-master.ts ← 선수 마스터 raw → 프로필(position·positionGroup·nationality·heightCm·weightKg·backNumber·draft) 순수 함수, isForeignPlayer
+│   ├── player-master.ts ← 선수 마스터 raw → 프로필(position·positionGroup·nationality·heightCm·weightKg·backNumber·draft) 순수 함수, isForeignPlayer, 프로필 API raw → birthday·country·school(profileExtraFrom)
 │   ├── build-search-index.ts ← 검색용 경량 색인 public/search-index.json 생성 (npm prebuild·predev 로 자동 실행, 생성물은 .gitignore)
 │   └── build-cards.ts   ← 비교 탭용 시즌별 카드 데이터 public/cards/{seasonCode}.json 생성 (prebuild·predev, 형식은 lib/cards.ts v2 — 레이더 구성 요소 열 포함, 시즌당 약 28~55KB, git 제외)
 ├── tests/
@@ -115,16 +127,20 @@ kbl-stats/
 │   ├── player.test.ts   ← 통산 계산·추이·카드 계산·검색 매칭 검증 (npm run test:player)
 │   ├── teams.test.ts    ← 팀 색 배정·핵심 의존도·산점도 쿼리·홈 시즌 고르기 검증 (npm run test:teams)
 │   ├── roster.test.ts   ← 선수 마스터 매핑·포지션/국적 필터·용어집·카드 파일 인코딩 검증 (npm run test:roster)
-│   └── cardview.test.ts ← 카드 순위 범위(전체/같은 포지션)·선수 그리드 정렬/필터·비교표·선수/선수 탭/비교 탭 주소·용어 앵커 검증 (npm run test:cardview, 일곱 다: npm test)
+│   ├── cardview.test.ts ← 카드 순위 범위(전체/같은 포지션)·선수 그리드 정렬/필터·비교표·선수/선수 탭/비교 탭 주소·용어 앵커 검증 (npm run test:cardview)
+│   └── highs.test.ts    ← 한 경기 최다 응답 파싱·프로필·매일 수집 대상 시즌(30일 경계)·백필 이어받기·시즌 하이 1위(동률·RATE 제외)·만 나이·커리어 하이 행 (npm run test:highs, 여덟 다: npm test)
 ├── public/search-index.json ← 빌드 전 생성되는 검색 색인 (id·이름·최근 팀·첫/마지막 시즌·뛴 시즌 코드 seasons·photoUrl·팀 색·positionGroup·positionLabel, 약 370KB). git 제외
 ├── public/cards/{seasonCode}.json ← 빌드 전 생성되는 시즌 카드 데이터 (선수 탭·선수 상세 시즌 전환·비교 탭이 브라우저에서 받음, lib/cards.ts SeasonCardsFile). git 제외
 ├── data/
 │   ├── codes/           ← 시즌·팀·경기구분 코드표 (API에서 받아 저장) + team-colors.json(팀 색, 손으로 관리하는 유일한 예외)
 │   ├── raw/{seasonCode}/traditional.json, advanced.json, ... + raw/players/players.json(선수 마스터, 페이지 응답 배열)
-│   └── processed/seasons.json, players-index.json(전 시즌 선수 색인: 번호·이름·photoUrl·프로필·시즌별 팀·경기), {seasonCode}/players.json(coverage·teams(logoUrl·color)·players)
+│   │    + raw/highs/{seasonCode}/{playerNo}.json(한 경기 최다) + raw/profiles/{playerNo}.json(프로필)
+│   ├── season-first-seen.json ← 시즌별 선수가 처음 수집된 날 (fetch.ts 가 기록, 직전 시즌 30일 판정용 상태 파일)
+│   └── processed/seasons.json, players-index.json(전 시즌 선수 색인: 번호·이름·photoUrl·프로필·birthday·country·school·careerHighs·시즌별 팀·경기), {seasonCode}/players.json(coverage·teams(logoUrl·color)·players(seasonHighs)·seasonHighLeaders)
 ├── lib/
 │   ├── metrics.ts       ← 파생 지표 계산 (순수 함수만: 백분위(반전 percentileRankLow 포함), 경기당·40분당 환산, 커버리지 판정, **레이더 5축 공격·수비·3점·허슬·효율**(RADAR_AXIS_COMPONENTS — 구성 요소 백분위 평균 → 집단 안 다시 백분위, 구성 요소 단위 커버리지·성공률 시도 기준), **등급은 국적 집단(국내/외국/아시아쿼터, 아시아쿼터 8명 미만이면 외국과 합산) 안** buildGradingContext·radarScore, USG% ×5 usgFromKbl, 유형 라벨(5축), 표본 프리셋 QUALIFY_PRESETS — 카드·순위표 공용, 플레이어 카드 스탯 10개 CARD_STATS(파울은 ranked:false)·시즌 순위 cardStats(동점 1,2,2,4 / 턴오버 오름차순 / 성공률 시도 기준 attemptThresholds = 경기당 시도 리그 평균, 순위표 공용)·메달 단계 rankTier, 등급 percentileGrade(S~F)·기본 선수 pickDefaultPlayer(PER), 카드 한 장 계산 buildCardContext(순위 집단 + 등급 재료)·buildCardEntry, 통산 careerSummary(합계 ÷ 합계 경기))
-│   ├── career.ts        ← 선수 페이지 규칙 (순수 함수: 시즌 짧은 표기 seasonShortLabel, 활동 기간, 소속 팀 구간 teamStints, 추이 지표 TREND_METRICS·trendRows(빈 시즌 null), 프로필 한 줄 profileFacts)
+│   ├── career.ts        ← 선수 페이지 규칙 (순수 함수: 시즌 짧은 표기 seasonShortLabel, 활동 기간, 소속 팀 구간 teamStints, 추이 지표 TREND_METRICS·trendRows(빈 시즌 null), 프로필 한 줄 profileFacts, 만 나이 ageOn·personalFacts(나이·국적·출신교), 커리어 하이 표 careerHighRows·careerHighTabs)
+│   ├── highs.ts         ← 한 경기 최다 규칙 (부문 15개 HIGH_DEFS(record/rate), 순위표 부문 11개 SEASON_HIGH_LEADER_KEYS(성공률 제외), 시즌 하이 1위 computeSeasonHighLeaders(동률 → 먼저 달성), 표기, 순위표 카드 buildSeasonHighCards, 부문 대응 LEADER_CATEGORY_HIGH)
 │   ├── cardview.ts      ← 시즌 카드 데이터 → 화면 (순수 함수: 카드 한 장 buildSeasonCardView(시즌·순위 범위 전체/같은 포지션, 시도 기준은 항상 리그 값), 파울·출전 줄 cardFootStats, 선수 그리드 buildGridEntries·sortGridEntries(등급→PER)·filterGridEntries, 비교표 compareCardEntries(턴오버·파울은 낮은 쪽), 주소 쿼리: 선수 상세 ?season=&scope=pos(시즌 비교 ?vs= 는 없앰) · 선수 탭 ?season=&pos=&origin=&team= · 비교 탭 ?a=번호:코드&b=번호:코드)
 │   ├── search.ts        ← 선수 검색 (순수 함수: normalizeName(공백 무시)·matchScore·searchPlayers(최대 10명, 최근 선수 먼저)·buildSearchIndex)
 │   ├── leaders.ts       ← 순위표 규칙 (순수 함수: 부문 정의(better high/low), 필터·정렬·순위(성공률 시도 기준), 열 순서, 성공/시도·숫자 표기, 주소 쿼리)
@@ -135,28 +151,28 @@ kbl-stats/
 │   ├── glossary.ts      ← 용어 설명 데이터 GLOSSARY (지표별 한 줄 설명·공식·출처 URL·검산 메모) + 용어 탭 앵커 GLOSSARY_ANCHORS·glossaryHref(/glossary#ts)·순위표 열/레이더 축 → 용어 매핑. 계산 없음
 │   ├── convert.ts       ← 시즌 파일 → 화면용 최소 필드 변환 toCardPlayers·toLeaderPlayers·toCardTeams (순수 — data.ts 와 prebuild 스크립트 공용)
 │   ├── cards.ts         ← public/cards 파일 형식 (열 형식 CARD_FIELDS, encodeSeasonCards·decodeSeasonCards, 기본 표본 기준 참고값 defaults)
-│   ├── data.ts          ← 빌드 시점에 data/processed 읽기 (서버 전용, listAllSeasons(코드표 전체)·loadPlayersIndex·toCardPlayers·toCardTeams·toLeaderPlayers·loadPlayerCareer(선수 전 시즌 행)·loadSeasonCardsFile/loadSeasonCards(public/cards 와 같은 encode→decode — 정적 HTML 첫 카드용))
+│   ├── data.ts          ← 빌드 시점에 data/processed 읽기 (서버 전용, loadSeasonHighCards·loadCareerHighTabs·teamNameInSeason(한 경기 최다, 필드 없으면 빈 배열), listAllSeasons(코드표 전체)·loadPlayersIndex·toCardPlayers·toCardTeams·toLeaderPlayers·loadPlayerCareer(선수 전 시즌 행)·loadSeasonCardsFile/loadSeasonCards(public/cards 와 같은 encode→decode — 정적 HTML 첫 카드용))
 │   ├── images.ts        ← 공식 이미지 스위치 officialImagesEnabled() (NEXT_PUBLIC_OFFICIAL_IMAGES=off 면 끔) + 대체 디자인 글자 규칙(teamMark) + 표용 팀 약칭(teamShortLabel: 9글자 넘으면 머리글자) + 색 섞기 mixHex(카드 그라데이션)
 │   └── types.ts         ← Player, SeasonData(coverage·teams), Team(shortNameKo·logoUrl·color), TeamColor, PlayerIndexEntry(photoUrl), CardPlayer, CardTeam, LeaderPlayer(순위표용 최소 필드), CareerSeason·PlayerCareer(선수 페이지), SearchEntry(검색 색인) 등 타입 정의
 ├── app/                 ← Next.js 화면 (App Router)
 │   ├── layout.tsx, globals.css (색 토큰: 라이트/다크, 범주형 --cat-1…8, 포커스 링 유틸 focus-ring·focus-ring-inset)
 │   ├── page.tsx         ← 홈 "이번 시즌 한눈에" (개막 전 안내·득점 1위 표지·부문별 1~3위·화면 버튼(선수·순위표·팀 분포·비교·용어·검색)·시즌 목록, 정적)
 │   ├── players/page.tsx ← 선수 탭 (큰 검색창 + 시즌·포지션·국적·팀 칩 + 선수 그리드, 최신 시즌 정적 HTML, 다른 시즌은 /cards)
-│   ├── player/[playerNo]/page.tsx  ← 선수 상세 정적 1,329개 (히어로(프로필·국적) → 시즌 칩·순위 범위·시즌 비교 카드 → 추이 그래프 → 시즌별 기록표)
+│   ├── player/[playerNo]/page.tsx  ← 선수 상세 정적 1,329개 (히어로(프로필·국적·나이·국가·출신교) → 시즌 칩·순위 범위·시즌 비교 카드 → 추이 그래프 → 시즌별 기록표 → 커리어 하이)
 │   ├── compare/page.tsx ← 비교 탭 정적 1쪽 (?a=번호:코드&b=번호:코드, 기본은 최신·직전 시즌 PER 1위)
 │   ├── glossary/page.tsx ← 용어 탭 (lib/glossary 표, 앵커 /glossary#ts)
-│   ├── season/[seasonCode]/leaders/page.tsx  ← 시즌 순위표 정적 페이지 (1~3위 표지 카드 + 정렬 표, 포지션·국적 칩, 파울 열)
+│   ├── season/[seasonCode]/leaders/page.tsx  ← 시즌 순위표 정적 페이지 (1~3위 표지 카드 + 이 시즌 한 경기 최다 카드 줄 + 정렬 표, 포지션·국적 칩, 파울 열)
 │   ├── season/[seasonCode]/teams/page.tsx  ← 팀별 선수 분포 정적 페이지 (산점도(포지션 칩) + 팀별 핵심 의존도)
 │   ├── (옛 /season/[코드] 플레이어 카드 탭은 없앰 → next.config.mjs redirects: ?p= 있으면 /player/번호?season=코드, 없으면 순위표)
 │   ├── not-found.tsx
 │   └── components/      ← SiteNav(상단: 사이트 이름·검색창(선수 탭은 hideSearch)·시즌 선택(순위표·팀 분포·선수 탭만)·메뉴 홈/선수/순위표/팀 분포/비교/용어), PlayerSearch(상단·큰 검색창·onSelect 선택 모드), useSearchIndex(/search-index.json 한 번 fetch — 우리 정적 파일),
 │                           RowList(표 대신: 모바일 행 카드 펼침 / PC 전체 표, 가로 스크롤 없음, pageSize "더 보기" — 순위표·기록표·팀 분포 표), FilterSheet(필터 버튼+요약 칩 → 모바일 바텀시트 / PC 인라인 패널, FilterGroup), icons(인라인 SVG 모음 16/20/24: 검색·닫기·꺾쇠·필터·정보·화살표·바깥 링크), Skeleton(불러오는 중 자리, PlayerCardSkeleton 은 PlayerCard.tsx), webFont(Pretendard CSS 주소 한 곳 + 카드 저장용 글꼴 조각 넣기),
 │                           useSeasonCards(/cards/{코드}.json fetch·캐시, useCardView), PlayersView(선수 탭), PlayerSeasonCards(선수 상세 카드 영역), CompareView(비교 탭), CardDeck(카드 1~2장 + PNG 저장), CompareTable(비교표·증감), ChipRow, InfoLink(ⓘ → 용어),
-│                           PlayerHero·CareerTrend(Recharts LineChart)·CareerTable(선수 페이지), Segmented, useCardSave(카드 PNG 저장), useMedia,
+│                           PlayerHero·CareerTrend(Recharts LineChart)·CareerTable·CareerHighs(선수 페이지), SeasonHighStrip(순위표 한 경기 최다 줄), Segmented, useCardSave(카드 PNG 저장), useMedia,
 │                           PlayerCard(게임식 플레이어 카드: 팀 색 상단+큰 사진 / 스탯 9개+순위(전체 또는 "가드 중") / 파울·출전 줄 / 레이더+등급, 입력은 SeasonCardView 하나),
 │                           LeadersView(순위표), TeamsView(팀 분포 산점도·팀 요약), HomeView(홈), SourceFooter, useThemeColors,
 │                           PlayerAvatar(circle·portrait)·TeamLogo(공식 이미지+대체 디자인, official={false}면 대체만), useOfficialImage(저장 filter excludeOfficialImages)
-└── .github/workflows/fetch.yml, backfill.yml  ← 매일 새벽 수집 / 전체 재수집
+└── .github/workflows/fetch.yml, backfill.yml, backfill-highs.yml  ← 매일 새벽 수집 / 전체 재수집 / 한 경기 최다·프로필 과거 전체 백필(실행 횟수 숫자 올려 푸시)
 ```
 
 ## 코딩 규칙
@@ -186,6 +202,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-09-30 (커리어 하이·시즌 하이): 서버 B mostgame·profile API 수집·가공·화면. 매일 수집은 현재 시즌 선수만(개막 후 30일은 직전 시즌도, `scripts/highs.ts highsTargetSeasons`), 과거 전체는 `backfill-highs.yml`(선수-시즌 약 4,980회 + 프로필 약 1,330회 ≈ 3시간, 이어받기·시즌 단위 커밋, `# 실행 횟수` 0 → 1로 올려 푸시하면 실행). process 가 선수 `seasonHighs`(15개 부문)·시즌 `seasonHighLeaders`(기록 11개, 동률은 먼저 달성, 성공률 제외)·색인 `careerHighs`(정규/PO/챔프전, 최신 시즌 raw 우선)·`birthday/country/school`. 화면: 선수 상세 히어로 나이(빌드 시각 기준)·국적·출신교, 기록표 아래 "커리어 하이" 탭 표, 순위표 1~3위 아래 "이 시즌 한 경기 최다" 가로 카드 줄(고른 부문 강조), 용어 "한 경기 최다". 세션 환경은 KBL 차단 → raw 없음이라 지금은 전부 null(섹션 숨김), 가짜 raw 3명으로 화면 확인 후 삭제. 검증: typecheck·test 8개·build, Playwright 390/1280 가로 스크롤 0·콘솔 에러 0. data/processed 변경분은 커밋 안 함(백필 후 Actions 가 생성). 미확인: 플레이오프·챔프전 배열 이름, 옛 시즌(1997~)에 mostgame 기록이 있는지, raw 파일 크기.
 - 2026-09-30 (등급 체계 2차, PLAN.md §8): 등급(백분위·S~F·종합)을 같은 국적 집단(국내/외국/아시아쿼터, 아시아쿼터 표본 충족 8명 미만이면 외국과 합산) 안에서 매김 — 순위는 리그 전체 그대로. 레이더를 공격·수비·3점·허슬·효율 5축(구성 요소 백분위 평균 → 집단 안 다시 백분위, 기록 없는 요소는 빼고, 파울·TOV% 반전)으로 바꾸고 modern/classic 축 세트 제거. 카드에 "등급 기준: 국내 선수 109명 중"·뺀 항목 안내. USG% 열(순위표·기록표·비교표·팀 분포 표, 없는 시즌 –), 순위표 PC 17열을 992px 안에(dense). 선수 상세 시즌 비교 토글·?vs= 제거. 추이 점 = 팀 로고, 지표 스틸·블록·3점% 추가(TS% 뺌). 결과: 2025-26 국내 S 0→11명(이정현·안영준·허훈·박지훈 B→S, 허웅 B→A). 검증: typecheck·test·build, Playwright 390/1280 6화면 가로 스크롤 0·콘솔 에러 0·카드 PNG 저장, slop 스캔 0.
 - 2026-09-30 (디자인 반영 3~5단계): `docs/design-review-2026-09-30.md` B1~B5·C1~C5·D. Pretendard(jsDelivr, 카드 PNG 에도 글꼴 조각을 넣음)·글자 단계 유틸리티·반경 이름 토큰 3단계·`surface-card`/`shadow-card`·등급/메달 채도 20%↓(`lib/teams gradeTone·desaturate·readableInk`), 터치 타겟 40px+·전역 포커스 링·스켈레톤·빈 상태·reduced-motion·글리프 → 아이콘, 다크 모드 대비(ink-3, 검정 팀 색 경계). 스캔 93 → 0(유지 항목은 deslop-ignore). 검증: typecheck·test·build, 8화면×390/1280×라이트/다크 32장 가로 넘침 문서 0·콘솔 에러 0·높이 40 미만 클릭 요소 0·Pretendard 로드 확인, 카드 PNG 저장(글꼴 포함). 세션 환경은 jsDelivr 도 차단이라 검증 때 npm pretendard@1.3.9 파일로 CDN 요청을 대신 응답했다.
 - 2026-09-30 (디자인 반영 1·2단계): docs/design-review-2026-09-30.md A1~A7. 표 가로 스크롤 제거 — 공통 `RowList`(모바일 행 카드 펼침 / PC 전체 표 992px 안), 순위표 25행·선수 그리드 20장 "더 보기", `FilterSheet`(모바일 바텀시트·PC 인라인 패널·요약 칩, 1차 컨트롤만 노출), 선수 탭 상단 검색·본문 시즌 칩 제거, 설명 문구 축약, 홈 바로가기 큰 버튼 2개 + 링크 줄. lib 추가: takeFirst·rowSummaryKeys·formatSummaryStat·leaderFilterChips(leaders), GRID_PAGE_SIZE·gridFilterChips(cardview), distributionFilterChips(distribution) + 테스트. 측정: 390px 순위표 8,314→2,472px, 선수 탭 16,903→2,256px, 표·카드 가로 넘침 0(남은 건 의도한 칩 줄·Recharts 내부 래퍼), 콘솔 에러 0. 다음: 3단계(폰트·위계·반경·그림자·등급 색).
