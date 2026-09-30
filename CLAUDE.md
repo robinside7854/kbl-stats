@@ -29,6 +29,11 @@ KBL 공홈은 화면을 그릴 때 아래 두 서버에서 JSON을 받아온다.
 - `GET /api/v1/Common/recent-seasons?seriesCd=1`, `/api/v1/Common/kbl-season-game/{seasonCode}`, `/api/v1/Common/team?seasonCodeList=&gameCodeList=` — 시즌·경기구분·팀 코드표. **코드표는 하드코딩하지 말고 여기서 받아 저장한다.**
 - 운영 주체가 KBL이 아닌 외부 기록업체(Sports2i)임.
 
+### 이미지 (2026-09-30 Actions 러너에서 공홈 HTML·JS·CSS 확인 — 상세는 PLAN.md §5)
+- 선수 사진: `https://kbl.or.kr/files/kbl/players-photo/{playerNo}.png` (옛 선수도 있음, 없으면 200이지만 HTML 반환)
+- 현재 팀 로고: `https://kbl.or.kr/assets/img/ico/logo/ic-{teamLogoName}.svg` (정관장만 `/assets/img/logo/logo-jkj.png`), 옛 팀 로고: `.../ico/logo/old/{teamLogoName}e.png`
+- 규칙: 레포에 복사하지 않고 핫링크. 주소는 `scripts/process.ts`가 processed JSON에 써 넣고 화면은 그 값만 쓴다(원칙 1). 로드 실패 시 팀 색+이니셜 대체, 환경변수로 전체 끄기 가능해야 함. 하단 출처에 "사진·로고 © KBL 및 각 구단".
+
 ### 코드 체계
 - 시즌 코드: 1997=1, 1997-98=2, 1998-99=3 … 2007-08=12, 2008-09=13, 이후 홀수 증가 → 2024-25=45, 2025-26=47, 2026-27=49. (규칙이 중간에 바뀌므로 반드시 코드표에서 받는다)
 - 경기 구분(gameCode): 정규시즌 `01`, 플레이오프 `03,04`, 챔피언결정전 `04`, 전체 `01,03,04`. 올스타·컵대회 등 별도 코드 존재
@@ -126,6 +131,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-09-30 (이미지 조사): 세션 환경은 kbl.or.kr 차단이라 조사용 워크플로(`claude/probe-images` 브랜치, 푸시로 실행)를 만들어 Actions 러너에서 확인. 선수 사진·현재/옛 팀 로고 주소 형식 확정, raw teams.json 의 teamLogoName 47개가 공홈 CSS 규칙과 전부 일치. 방향: 매거진형 팬페이지, 핫링크+대체 디자인+끄기 스위치. PLAN.md §5 추가. GitHub 앱 권한상 workflow_dispatch 는 403 → 푸시 트리거만 가능.
 - 2026-09-30 (3차): PLAN.md ① 데이터 기반 정비 완료. 시즌 파일에 `coverage`(advanced·plusMinus·goodDef·hustle, 선수 50% 이상 0 아님 기준)·`teams` 추가, `players-index.json`(1,329명, 약 440KB) 생성. 레이더 축 세트 2벌 — coverage.advanced면 modern(USG%·TS%·AST%·REB%·PIE), 아니면 classic(40분당 득점·TS%·40분당 AST·40분당 REB·PER) + "고전 축" 배지. 결과: advanced는 2025-26만 true(2023-24·2024-25는 11%라 false), +/-는 1997-98부터, 굿디펜스는 2000-01부터, hustle은 2025-26만. 발견: raw teams.json은 JSON 문자열이 한 번 더 감싸져 저장됨(process.ts에서 두 번 파싱), teamName4(약칭)는 옛 시즌·일부 팀이 영문 대문자(예: "DAEWOO SECURITIES", "HYUNDAI MOBIS").
 - 2026-09-30 (설계): 대시보드 화면 구성 확정 → PLAN.md 작성. 화면 5개(레이더·순위표·선수 페이지+검색·팀 분포·홈), 작업 순서 ①~⑤. 발견: 2차 스탯(USG%·PIE·AST%·REB% 등)은 2025-26만 존재, 이전 29개 시즌은 0 → 옛 시즌 레이더가 잘못된 그림(전원 50점). ①에서 커버리지 플래그 + 전 시즌 공통 축(40분당 환산)으로 고치기로. SCOPE.md 보류 목록 4건 추가.
 - 2026-09-30 (배포): Vercel 프로젝트 kbl-stats 생성·배포 완료. 공개 주소 **https://kbl-stats-mu.vercel.app** (kbl-stats.vercel.app은 타인 소유). main 푸시 시 자동 재배포 → 매일 새벽 데이터 커밋도 자동 반영. 개발 작업은 Opus 5.5 에이전트에 위임하는 방식으로 진행(사용자 요청).
