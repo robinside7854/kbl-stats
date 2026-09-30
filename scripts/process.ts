@@ -10,7 +10,8 @@ import { readdir, readFile, mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { DATA_DIR, SEASON_CODES_FALLBACK } from "./config.js";
 import { seasonCoverage } from "../lib/metrics.js";
-import type { Player, PlayerIndexEntry, SeasonData, Team } from "../lib/types.js";
+import { playerPhotoUrl, teamLogoUrl } from "./image-urls.js";
+import type { Player, PlayerIndexEntry, SeasonData, Team, TeamColor } from "../lib/types.js";
 
 type Raw = Record<string, any>;
 
@@ -86,15 +87,47 @@ async function readRawTeams(rawDir: string): Promise<Raw[] | null> {
   return Array.isArray(list) ? list : null;
 }
 
+/**
+ * 팀 색상표 (data/codes/team-colors.json) — 손으로 관리하는 파일. 팀 코드별 색, 없으면 default.
+ * 파일이 없거나 깨졌으면 회색 기본값으로 계속 진행한다.
+ */
+interface TeamColorTable {
+  byTeamCode: Record<string, TeamColor>;
+  fallback: TeamColor;
+}
+const GRAY: TeamColor = { primary: "#6B7280", secondary: "#9CA3AF", text: "#fff" };
+
+async function readTeamColors(): Promise<TeamColorTable> {
+  try {
+    const raw = JSON.parse(await readFile(join(DATA_DIR, "codes", "team-colors.json"), "utf8"));
+    return { byTeamCode: raw.byTeamCode ?? {}, fallback: raw.default ?? GRAY };
+  } catch (e) {
+    console.warn(`team-colors.json 읽기 실패 → 전 팀 회색 기본값: ${(e as Error).message}`);
+    return { byTeamCode: {}, fallback: GRAY };
+  }
+}
+
+function teamColor(table: TeamColorTable, teamCode: string): TeamColor {
+  // 표에 name 등 설명 필드가 있어도 세 값만 골라 쓴다
+  const c = table.byTeamCode[teamCode] ?? table.fallback;
+  return { primary: c.primary, secondary: c.secondary, text: c.text };
+}
+
+let teamColors: TeamColorTable = { byTeamCode: {}, fallback: GRAY };
+
 function toTeam(t: Raw): Team {
+  const teamCode = String(t.teamCode ?? "");
+  const logoName = (t.teamLogoName ?? "").trim();
   return {
-    teamCode: String(t.teamCode ?? ""),
+    teamCode,
     name: (t.teamName1 ?? "").trim(),
     shortName: (t.teamName4 ?? "").trim(),
     fullName: (t.teamName2 ?? "").trim(),
     nameEn: (t.teamName3 ?? "").trim(),
-    logoName: (t.teamLogoName ?? "").trim(),
+    logoName,
     order: num(t.orderNo),
+    logoUrl: teamLogoUrl(logoName),
+    color: teamColor(teamColors, teamCode),
   };
 }
 
@@ -111,6 +144,8 @@ function teamsFromPlayers(players: Player[]): Team[] {
       nameEn: "",
       logoName: "",
       order: seen.size + 1,
+      logoUrl: null,
+      color: teamColor(teamColors, p.teamCode),
     });
   }
   return [...seen.values()];
@@ -173,7 +208,15 @@ function buildPlayersIndex(seasons: SeasonData[]): PlayerIndexEntry[] {
     for (const p of season.players) {
       let e = byId.get(p.playerNo);
       if (!e) {
-        e = { id: p.playerNo, nameKo: p.nameKo, nameEn: p.nameEn, isForeign: p.isForeign, seasons: [], latest: -1 };
+        e = {
+          id: p.playerNo,
+          nameKo: p.nameKo,
+          nameEn: p.nameEn,
+          isForeign: p.isForeign,
+          photoUrl: playerPhotoUrl(p.playerNo),
+          seasons: [],
+          latest: -1,
+        };
         byId.set(p.playerNo, e);
       }
       if (season.seasonCode >= e.latest) {
@@ -191,6 +234,7 @@ function buildPlayersIndex(seasons: SeasonData[]): PlayerIndexEntry[] {
 }
 
 async function main() {
+  teamColors = await readTeamColors();
   const seasons = (await readdir(join(DATA_DIR, "raw"), { withFileTypes: true }))
     .filter((d) => d.isDirectory() && /^\d+$/.test(d.name))
     .map((d) => Number(d.name))

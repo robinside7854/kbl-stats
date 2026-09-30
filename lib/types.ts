@@ -62,6 +62,16 @@ export interface SeasonCoverage {
   hustle: boolean;
 }
 
+/**
+ * 팀 색 (data/codes/team-colors.json → process.ts가 teams[].color 에 넣음).
+ * 손으로 관리하는 근사값이며, 코드표에 없는 팀은 회색 기본값.
+ */
+export interface TeamColor {
+  primary: string;        // 배경 등 주 색, 예: "#E4002B"
+  secondary: string;      // 보조 색
+  text: string;           // primary 위에 올릴 글자 색
+}
+
 /** 시즌 참가 팀 (raw teams.json → process.ts에서 변환) */
 export interface Team {
   teamCode: string;       // 예: "55" (팀명이 바뀌어도 유지, 구단 매각 시 새 코드)
@@ -71,6 +81,8 @@ export interface Team {
   nameEn: string;         // teamName3, 예: "SEOUL SK KNIGHTS"
   logoName: string;       // teamLogoName, 예: "sk" (teams.json이 없어 선수 데이터로 대체한 경우 "")
   order: number;          // orderNo (KBL 공홈 표시 순서)
+  logoUrl: string | null; // 공식 로고 주소 (process.ts가 logoName으로 생성, 없으면 null). 화면은 이 값만 쓴다
+  color: TeamColor;
 }
 
 export interface SeasonData {
@@ -99,6 +111,7 @@ export interface PlayerIndexEntry {
   nameKo: string;         // 가장 최근 시즌 표기
   nameEn: string;         // 가장 최근 시즌 표기
   isForeign: boolean;     // 가장 최근 시즌 값
+  photoUrl: string;       // 공식 프로필 사진 주소 (process.ts가 생성). 사진이 없을 수 있으므로 화면은 실패 시 대체 디자인
   seasons: PlayerIndexSeason[]; // seasonCode 오름차순
 }
 
@@ -113,7 +126,9 @@ export interface CardPlayer {
   nameEn: string;
   teamName: string;
   teamShort: string;
+  teamCode: string;
   isForeign: boolean;
+  photoUrl: string | null; // 선수 색인에서 조회 (lib/data.ts). 저장 카드 영역에는 쓰지 않는다(CORS)
   games: number;
   minutes: number;        // 시즌 누적 (분)
   points: number;         // 시즌 누적
@@ -125,6 +140,14 @@ export interface CardPlayer {
   astPct: number;
   rebPct: number;
   pie: number;
+}
+
+/** 화면으로 넘기는 팀 정보 (로고·색만) */
+export interface CardTeam {
+  teamCode: string;
+  shortName: string;
+  logoUrl: string | null;
+  color: TeamColor;
 }
 
 export interface SeasonOption {

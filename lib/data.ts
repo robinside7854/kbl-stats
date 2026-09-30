@@ -3,7 +3,7 @@
 import "server-only";
 import fs from "node:fs";
 import path from "node:path";
-import type { CardPlayer, PlayerIndexEntry, SeasonData, SeasonOption } from "./types";
+import type { CardPlayer, CardTeam, PlayerIndexEntry, SeasonData, SeasonOption } from "./types";
 
 const PROCESSED_DIR = path.join(process.cwd(), "data", "processed");
 
@@ -35,15 +35,18 @@ export function listSeasonsWithPlayers(): SeasonOption[] {
     .sort((a, b) => b.seasonCode - a.seasonCode);
 }
 
-/** 화면에 넘길 최소 필드만 추린다 */
+/** 화면에 넘길 최소 필드만 추린다. 사진 주소는 선수 색인(players-index.json)에서 playerNo로 찾는다 */
 export function toCardPlayers(season: SeasonData): CardPlayer[] {
+  const photoById = new Map(loadPlayersIndex().map((e) => [e.id, e.photoUrl]));
   return season.players.map((p) => ({
     id: p.playerNo,
     nameKo: p.nameKo,
     nameEn: p.nameEn,
     teamName: p.teamName,
     teamShort: p.teamShort,
+    teamCode: p.teamCode,
     isForeign: p.isForeign,
+    photoUrl: photoById.get(p.playerNo) ?? null,
     games: p.games,
     minutes: p.minutes,
     points: p.points,
@@ -55,6 +58,16 @@ export function toCardPlayers(season: SeasonData): CardPlayer[] {
     astPct: p.astPct,
     rebPct: p.rebPct,
     pie: p.pie,
+  }));
+}
+
+/** 화면에 넘길 팀 정보 (로고·색만) */
+export function toCardTeams(season: SeasonData): CardTeam[] {
+  return season.teams.map((t) => ({
+    teamCode: t.teamCode,
+    shortName: t.shortName,
+    logoUrl: t.logoUrl ?? null,
+    color: t.color,
   }));
 }
 

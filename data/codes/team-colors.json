@@ -1,0 +1,16 @@
+{
+  "_comment": "팀 색은 API에 없어 손으로 관리. 코드에 팀 코드를 박지 않는다는 규칙의 유일한 예외. 값은 구단 브랜드색 근사값이며 사용자 확인 필요 (2026-09-30 작성, 현재 10개 구단만. 없는 팀 코드는 default). teamCode는 구단 매각 전까지 유지되므로 같은 코드의 옛 팀명(예: 10 = 부산 기아 → 울산 현대모비스)에도 같은 색이 쓰인다. process.ts가 읽어 시즌 파일 teams[].color 에 넣는다.",
+  "byTeamCode": {
+    "55": { "name": "서울 SK", "primary": "#E4002B", "secondary": "#1A1A1A", "text": "#fff" },
+    "16": { "name": "원주 DB", "primary": "#00703C", "secondary": "#A5ACAF", "text": "#fff" },
+    "10": { "name": "울산 현대모비스", "primary": "#003E7E", "secondary": "#E4002B", "text": "#fff" },
+    "60": { "name": "부산 KCC", "primary": "#003A70", "secondary": "#D6A461", "text": "#fff" },
+    "66": { "name": "고양 소노", "primary": "#00A0E9", "secondary": "#1B2A4A", "text": "#fff" },
+    "06": { "name": "수원 KT", "primary": "#111111", "secondary": "#E60012", "text": "#fff" },
+    "35": { "name": "서울 삼성", "primary": "#0053A6", "secondary": "#A5ACAF", "text": "#fff" },
+    "70": { "name": "안양 정관장", "primary": "#C8102E", "secondary": "#1A1A1A", "text": "#fff" },
+    "50": { "name": "창원 LG", "primary": "#7A1B33", "secondary": "#C4A15A", "text": "#fff" },
+    "64": { "name": "대구 한국가스공사", "primary": "#0B2E6B", "secondary": "#00A0E9", "text": "#fff" }
+  },
+  "default": { "primary": "#6B7280", "secondary": "#9CA3AF", "text": "#fff" }
+}
