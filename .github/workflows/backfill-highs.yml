@@ -54,8 +54,8 @@ jobs:
       - name: 시즌별 수집·커밋 (최신 시즌부터)
         if: steps.gate.outputs.run == 'true'
         run: |
-          git config user.name "kbl-stats-bot"
-          git config user.email "actions@users.noreply.github.com"
+          git config user.name "robinside7854"
+          git config user.email "252681033+robinside7854@users.noreply.github.com"
           # 시간 제한(330분) 전에 새 시즌을 시작하지 않도록 300분 예산 — 남은 시간에 가공·커밋 단계가 돈다
           deadline=$(( $(date +%s) + 300 * 60 ))
           failed=""
@@ -83,8 +83,8 @@ jobs:
       - name: 가공 결과 커밋
         if: always() && steps.gate.outputs.run == 'true'
         run: |
-          git config user.name "kbl-stats-bot"
-          git config user.email "actions@users.noreply.github.com"
+          git config user.name "robinside7854"
+          git config user.email "252681033+robinside7854@users.noreply.github.com"
           git add data/
           if git diff --cached --quiet; then
             echo "변경 없음"
