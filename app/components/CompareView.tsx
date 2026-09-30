@@ -116,7 +116,6 @@ export default function CompareView({ seasons, initialA, initialB }: Props) {
             chips={[...slot.seasons].reverse().map((c) => ({ value: c, label: labelOf(c) }))}
             value={slot.season}
             onChange={(c) => set({ ...slot, season: c })}
-            className="-mx-3 px-3"
           />
           {other && other.id !== slot.id && (
             <button
@@ -136,9 +135,7 @@ export default function CompareView({ seasons, initialA, initialB }: Props) {
     <main className="mx-auto max-w-5xl px-4 pt-5">
       <header className="mb-4">
         <h1 className="text-xl font-bold tracking-tight">비교</h1>
-        <p className="mt-1 text-sm text-ink-2">
-          두 선수, 또는 한 선수의 두 시즌을 카드로 나란히. 선수를 검색하고 시즌을 고르세요. 주소를 복사하면 같은 비교를 공유할 수 있습니다.
-        </p>
+        <p className="mt-1 text-sm text-ink-2">두 선수, 또는 한 선수의 두 시즌을 나란히 봅니다.</p>
       </header>
 
       <div className="grid gap-3 md:grid-cols-2">
@@ -177,7 +174,7 @@ export default function CompareView({ seasons, initialA, initialB }: Props) {
         )}
         {both && both[0].axisSet !== both[1].axisSet && (
           <p className="text-xs text-ink-3">
-            두 시즌의 레이더 축이 다릅니다 — 2차 스탯(USG%·AST%·REB%)이 없는 시즌은 40분당 환산 축(고전 축)으로 그려 모양을 직접 비교할 수
+            두 시즌의 레이더 축이 다릅니다. 2차 스탯(USG%·AST%·REB%)이 없는 시즌은 40분당 환산 축(고전 축)으로 그려 모양을 직접 비교할 수
             없습니다. 비교표의 경기당 기록·순위를 보세요.
           </p>
         )}

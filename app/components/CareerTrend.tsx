@@ -194,7 +194,7 @@ export default function CareerTrend({ seasons, allSeasons }: Props) {
         {metric.kind === "perGame"
           ? "경기당 값 = 시즌 누적 ÷ 출전 경기."
           : "KBL 계산값 그대로."}{" "}
-        출전 경기가 적은 시즌은 값이 튈 수 있습니다. 정확한 숫자는 아래 시즌별 기록표에 있습니다.
+        출전 경기가 적은 시즌은 값이 튀기도 합니다. 정확한 숫자는 아래 시즌별 기록.
       </p>
     </section>
   );

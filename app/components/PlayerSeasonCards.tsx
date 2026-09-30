@@ -193,14 +193,13 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
       )}
 
       <p className="mt-4 max-w-3xl text-xs leading-relaxed text-ink-3">
-        카드 아래 레이더는 원래 값이 아니라 시즌 내 백분위(0~100)이고, 꼭짓점 글자는 그 백분위의 등급입니다 — S 상위 10%, A 상위 25%,
-        B 상위 45%, C 상위 65%, D 상위 85%, F 그 아래 <InfoLink term="percentileGrade" />. 종합 등급은 5개 축 백분위 평균의 등급입니다.
-        사진은 시즌별로 따로 없어 모든 시즌 카드에 같은 사진을 쓰고, 팀 색·로고는 그 시즌 소속 팀 것입니다.{" "}
+        레이더는 시즌 내 백분위(0~100), 꼭짓점 글자는 그 등급(S 상위 10% · A 25% · B 45% · C 65% · D 85% · F 그 아래)
+        <InfoLink term="percentileGrade" />. 사진은 모든 시즌 같은 한 장, 팀 색·로고는 그 시즌 팀.{" "}
         {classic
           ? "2차 스탯(USG%·AST%·REB%)이 없는 시즌은 40분당 환산과 TS%·PER로 그렸습니다(고전 축)"
           : "USG%는 표준 척도(KBL 원값×5), 용어 참고"}
         {classic ? <InfoLink term="per40" className="ml-0.5" /> : <InfoLink term="usgPct" className="ml-0.5" />}
-        {mixedAxes && " — 두 시즌의 레이더 축이 달라 모양을 직접 비교할 수 없습니다"}.
+        {mixedAxes && ". 두 시즌의 레이더 축이 달라 모양은 비교하지 않습니다"}.
       </p>
     </div>
   );

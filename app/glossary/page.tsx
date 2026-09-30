@@ -33,10 +33,7 @@ export default function GlossaryPage() {
       <main className="mx-auto max-w-5xl px-4 pt-5">
         <header className="mb-4">
           <h1 className="text-xl font-bold tracking-tight">용어 풀이</h1>
-          <p className="mt-1 text-sm text-ink-2">
-            카드·순위표에 나오는 지표의 뜻과 계산식입니다. 2차 스탯은 KBL이 계산한 값을 그대로 쓰고(USG%만 표준 척도로 ×5), 백분위·등급·표본
-            기준·시도 기준은 이 사이트의 규칙입니다.
-          </p>
+          <p className="mt-1 text-sm text-ink-2">2차 스탯은 KBL 계산값 그대로(USG%만 ×5), 백분위·등급·표본·시도 기준은 이 사이트 규칙.</p>
         </header>
 
         <nav aria-label="용어 목록" className="mb-4 flex flex-wrap gap-1.5">
