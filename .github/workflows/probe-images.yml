@@ -14,40 +14,39 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: 페이지·번들에서 이미지 주소 패턴 추출
+      - name: 2차 조사 — 사진 URL 존재 확인, 팀 로고 경로, 번들 문맥
         shell: bash
         run: |
           set +e
           UA="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/128 Safari/537.36"
           OUT=probe-images.txt
-          get() { curl -sSL --max-time 20 -A "$UA" "$1"; sleep 1.5; }
+          head_of() { curl -sS -o /dev/null -I --max-time 20 -A "$UA" -w "%{http_code} %{content_type} %{size_download}B redirect=%{redirect_url}" "$1"; echo "  <- $1"; sleep 1.5; }
           {
-            echo "=== 1. 선수 목록 페이지 HTML"
-            get "https://kbl.or.kr/player/list" > page_list.html
-            echo "bytes: $(wc -c < page_list.html)"
-            grep -oE '(src|href|content)="[^"]+"' page_list.html | grep -iE '\.(png|jpg|jpeg|webp|svg|js)' | sort -u | head -80
-
-            echo; echo "=== 2. 선수 상세 페이지 HTML (자밀 워니 291248)"
-            get "https://kbl.or.kr/player/detail?playerNo=291248" > page_player.html
-            echo "bytes: $(wc -c < page_player.html)"
-            grep -oE '(src|href|content)="[^"]+"' page_player.html | grep -iE '\.(png|jpg|jpeg|webp|svg)' | sort -u | head -60
-
-            echo; echo "=== 3. JS 번들 안의 이미지·API 경로 패턴"
-            for js in $(grep -oE 'src="[^"]+\.js[^"]*"' page_list.html | sed 's/src="//;s/"$//' | sort -u | head -6); do
-              case "$js" in http*) url="$js";; /*) url="https://kbl.or.kr$js";; *) url="https://kbl.or.kr/$js";; esac
-              echo "--- $url"
-              get "$url" > bundle.js
-              grep -oE '[A-Za-z0-9_./:-]*(player|team|logo|photo|profile|emblem|img|image)[A-Za-z0-9_./${}:-]*\.(png|jpg|jpeg|webp|svg)' bundle.js | sort -u | head -40
-              grep -oE 'https?://[A-Za-z0-9./_-]*(kbl|sports2i|cdn|s3|cloudfront|storage)[A-Za-z0-9./_-]*' bundle.js | sort -u | head -30
+            echo "=== A. 선수 사진 존재 여부 (현역 / 2014-15 / 1997)"
+            for no in 291248 290524 215026; do
+              head_of "https://kbl.or.kr/files/kbl/players-photo/$no.png"
             done
 
-            echo; echo "=== 4. 팀 페이지 HTML"
-            get "https://kbl.or.kr/team/list" > page_team.html
-            grep -oE '(src|href|content)="[^"]+"' page_team.html | grep -iE '\.(png|jpg|jpeg|webp|svg)' | sort -u | head -40
+            echo; echo "=== B. 번들 문맥: players-photo 와 팀 로고 템플릿 문자열 (앞뒤 120자)"
+            curl -sSL --max-time 20 -A "$UA" "https://kbl.or.kr/assets/index-BYeGquu0.js" > bundle.js; sleep 1.5
+            echo "bundle bytes: $(wc -c < bundle.js)"
+            grep -oE '.{0,120}players-photo.{0,120}' bundle.js | sort -u | head -8
+            echo "--- teamLogoName / emblem / team-logo 문맥"
+            grep -oE '.{0,120}(teamLogoName|team-logo|teamlogo|emblem|team_logo).{0,120}' bundle.js | sort -u | head -12
+            echo "--- files/kbl/ 하위 경로 전체"
+            grep -oE 'files/kbl/[A-Za-z0-9_./${}-]+' bundle.js | sort -u | head -40
 
-            echo; echo "=== 5. 서버 B 선수 상세 API 후보 (이미지 필드 유무)"
-            get "https://kbl-api.sports2i.com/api/v1/player/291248" | head -c 1500; echo
-            get "https://api-stats.kbl.or.kr/api/players/291248" | head -c 1500; echo
+            echo; echo "=== C. 팀 로고 후보 URL 존재 확인 (teamLogoName=sk, db)"
+            for u in \
+              "https://kbl.or.kr/files/kbl/team-logo/sk.png" \
+              "https://kbl.or.kr/files/kbl/teams-logo/sk.png" \
+              "https://kbl.or.kr/files/kbl/team/sk.png" \
+              "https://kbl.or.kr/assets/img/team/sk.png" \
+              "https://kbl.or.kr/assets/img/team/logo-sk.png" \
+              "https://kbl.or.kr/assets/img/emblem/sk.png" \
+              "https://kbl.or.kr/assets/img/logo/sk.svg"; do
+              head_of "$u"
+            done
           } | tee "$OUT"
       - uses: actions/upload-artifact@v4
         with:
