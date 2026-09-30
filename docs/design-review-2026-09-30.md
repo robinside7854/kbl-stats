@@ -91,3 +91,50 @@
 - 3단계 B: 폰트(Pretendard)·위계·반경 3단계 일괄(기존 `rounded-full` 칩·`rounded-3xl` 카드), 그림자, 등급 색. 새 컴포넌트(RowList·FilterSheet)만 16/12/8px 반경을 쓰기 시작함.
 - 4단계 C: 기존 컴포넌트의 글리프(›·▲·▼·ⓘ·↗)를 icons.tsx로, 시즌 전환 스켈레톤, reduced-motion 전체 점검, 다크 모드 스크린샷.
 - 요약 칩이 많으면 두 줄로 감긴다(한 줄 고정은 아님). 모바일 행 카드 둘째 줄은 긴 팀 이름(한국가스공사·현대모비스)에서 세 번째 보조값이 잘린다(640px 이상에서만 표시).
+
+## 반영 3~5단계 결과 (2026-09-30, B1~B5 · C1~C5 · D)
+
+### 무엇을 어떻게
+| # | 반영 | 파일 |
+|---|---|---|
+| B1 | Pretendard Variable 동적 서브셋(jsDelivr `v1.3.9`, `font-display: swap` 은 CSS 안) + preconnect, `--font-sans` 하나. formula 의 font-mono 도 뺐다. 숫자 고정폭은 데이터 자리(`.tabular`: 카드·행 카드·표·홈 1~3위·표지·그리드·의존도 카드)와 차트(`.recharts-wrapper`)에만 — body 전체에 걸었더니 문장 속 "10경기·100분"의 1 앞뒤가 벌어져 보여 되돌렸다. 카드 PNG 저장은 `skipFonts` 대신 사본 글자가 속한 글꼴 조각만 data: 로 넣는다(`webFont.pretendardEmbedCss`, 실패하면 글꼴 없이 저장) | `app/layout.tsx`, `app/components/webFont.ts`, `useCardSave.ts`, `globals.css` |
+| B2 | `@utility text-h1/h2/body/sub/caption` (28/32 · 20/22 · 15/16 · 13 · 12, PC = 1024px↑). 모든 화면 h1 → text-h1, 구역 h2 → text-h2, 본문 text-sm → text-body, 보조 text-xs → text-sub, 10·11px → text-caption. 제목이 아닌 작은 라벨(소속 팀 이력·시즌 칩 위 "시즌")은 h2/h3 → p. 입력창·select 는 16px(iOS 확대 방지) | 전 화면 |
+| B3 | 반경을 이름 토큰으로: `rounded-container` 16 · `rounded-card` 12 · `rounded-control` 8(`--radius-*`). rounded-3xl 0, rounded-full 은 아바타·색 점·아바타 모양 스켈레톤만. 바깥 − 패딩: 세그먼트 안 버튼 6(8 − 2), 산점도 상자 안 카드 8(16 − 8), 작은 태그(포지션·1~10위·고전 축) 4 | `globals.css`, 전 화면 |
+| B4 | `surface-card`(표면 + hairline + `shadow-card` `0 1px 2px rgba(28,27,22,.06)`) 한 가지. shadow-sm/md/lg 전부 교체, 산점도 안 카드는 그림자 없음. 회색은 기존 따뜻한 회색 토큰만, 팀 모를 때 색은 `FALLBACK_TEAM_COLOR` 하나로(데이터 기본 회색과 같은 값). 은메달을 차가운 회색 → 따뜻한 회색. 호버의 투명도 전환 제거 | `lib/teams.ts`, 전 화면 |
+| B5 | `lib/teams`: `desaturate`(OKLab 채도 × 0.8), `readableInk`(글자 4.5:1 아니면 흰/검 중 대비 큰 쪽), `gradeTone`(카드 레이더·종합 등급·선수 탭 그리드 공용 — 전에는 그리드만 A=검정·B=회색으로 달랐다). S 금색 #e9b72c → #e1b95a(다크 #f2c94c → #ebcb6f), S 테두리는 금색 30% 어둡게. 메달·1~10위 태그·칸 색도 채도 20%↓ | `lib/teams.ts`, `PlayerCard`, `PlayersView`, `globals.css` |
+| C1 | 칩·세그먼트·버튼 h-10, 주요 버튼 h-11, 메뉴 h-11, 표 행 h-12, 검색 결과 min-h-12, 추이 지표·용어 목록·홈 시즌 칩 h-8/9 → h-10, 홈 1~3위는 한 줄 전체가 링크(min-h-12), PC 순위표 선수 칸 전체가 링크, ⓘ 는 40×40(음수 여백으로 글줄 높이 그대로) | 전 화면, `InfoLink` |
+| C2 | 전역 `:focus-visible` 링(`--focus`) + `cursor: pointer`(button·summary·select·option), 빠져 있던 곳(메뉴·홈·표지 이름·저장 버튼·의존도 카드·검색 결과·details)에 focus-ring, 호버는 transition-colors duration-200 만 | `globals.css` |
+| C3 | 공용 `Skeleton`, `PlayerCardSkeleton`(DIM 치수 그대로 머리·3×3·레이더), 선수 탭 시즌 전환 그리드 스켈레톤(제목은 고른 시즌), 비교 탭 공유 주소 첫 로딩 자리(`CardDeck pending`), 검색 색인 로딩 3줄. 결과 0명: 순위표·선수 탭·팀 분포에 문구 + "필터 초기화", 검색 결과 없음에 입력어·도움말 | `Skeleton.tsx`, `CardDeck`, `PlayersView`, `CompareView`, `PlayerSearch` |
+| C4 | `prefers-reduced-motion` 이면 전환·애니메이션 0.01ms, 스크롤 smooth 끔(기록표 → 카드 이동도 확인). 차트는 원래 전부 `isAnimationActive={false}` | `globals.css`, `CareerTable` |
+| C5 | 다크 스크린샷에서 고친 것: ① 1~10위 팀 색 칸 위 보조 글자(/142) 대비 4.23 → `--ink-3` 조정(라이트 #6b6a66 → #64635f, 다크 #9a998f → #a4a399, 전 팀 최저 4.99/4.78) ② KT(검정) 등급 A 배지가 다크 바탕에 묻힘 → `ensureMarkContrast` 로 바탕 대비 1.8:1 이상 ③ KT 로고 대체 칸·아바타 원이 다크 바탕에 묻힘 → 옅은 안쪽 테두리 ④ 순위표 1~3위 표지 카드 경계 → 옅은 테두리 | `globals.css`, `lib/teams`, `TeamLogo`, `PlayerAvatar`, `LeadersView` |
+| 아이콘 | › ▲ ▼ ⓘ ↗ → 를 `icons.tsx`(IconInfo·ChevronUp·ArrowUp·ArrowRight·External 추가, 16/20/24)로 | |
+
+### 측정 (next build + start, Playwright 크로미움, 스크린샷 32장 `scratchpad/design2/`)
+- 문서 가로 넘침: 8화면 × 390·1280 × 라이트·다크 전부 0. 1024px 순위표·기록표도 0. 넘치는 요소는 의도한 칩 줄(순위표 부문, 선수 상세 시즌, 비교 A·B 시즌, 홈 1~3위 카드 줄)뿐 — 1·2단계와 같다.
+- 콘솔 에러 0(공식 사진·로고 차단 제외). Pretendard: 32장 전부 `document.fonts.check('16px "Pretendard Variable"', "가나다123")` = true, 화면마다 조각 13~20개 로드.
+- 높이 40px 미만 클릭 요소(인라인 텍스트 링크 제외): 390·1280 모두 **0**(시작 전 홈 53·순위표 PC 47).
+- 첫 화면 세로(390px): 홈 1,481 · 선수 탭 2,262 · 선수 상세 3,117 · 순위표 2,473 · 팀 분포 2,264 · 비교 3,685 · 용어 4,404.
+- 카드 PNG 저장: 선수 상세 1장 685KB, 비교 2장 1.34MB, 저장 때 글꼴 요청 12개(CSS + 조각 11), 결과 이미지 글자가 Pretendard 로 그려진 것을 눈으로 확인. 오류 알림 없음.
+- 스켈레톤: 시즌 전환 중 100개 블록, reduced-motion 이면 animation none.
+- 등급 글자 대비(WCAG): 전 팀 색 × 라이트/다크 × S~F 최저 4.54:1(라이트 F) — `tests/teams.test.ts` 에 넣었다. 메달 숫자 6.5~9.7:1. dataviz 검증기(`validate_palette.js`)는 범주형 팔레트용이라 등급 색에는 밝기 대역·채도 하한이 FAIL로 나온다(금·은·동은 계열 색이 아니고 늘 글자와 같이 나오므로 해당 없음). 대비 항목만 참고: 라이트 S 금색 면 대 바탕 1.81 → 테두리를 어둡게 해 경계 3:1 이상.
+
+### 스캔 (`scan.mjs app --skip=15,16,28,30,34`)
+- 전: 10그룹 93건 → 후: **0건**.
+- 고친 것: 12 평평한 위계(13건, B2), 19 pill(칩·배지·버튼 rounded-full → 8px), 21·22 반경(3단계 토큰, 안쪽 카드 바깥 − 패딩), 10 영문 이름 uppercase·자간 제거(2건).
+- 21·22 는 rounded-xl/2xl 이름 자체를 잡는 규칙이라, 이름 토큰(rounded-container/card)으로 바꾼 뒤로는 잡히지 않는다. 대신 안쪽 요소가 바깥 모서리에 붙는 곳을 직접 확인했다(세그먼트·산점도 상자·표 상자).
+- 일부러 남긴 것(`deslop-ignore-next-line`, 17곳): 06 카드 이름 띠의 팀 색 그라데이션(사진 아래 이름을 읽히게 하는 띠, 카드 정체성) · 11 표시 이름·큰 숫자(홈 표지 이름/득점, 선수 상세 이름, 1~3위 표지 값, 장식 팀 약칭) · 09/13 비교표 열 제목 색 점(레이더 선 색 범례) · 19 색 점·아바타 원·아바타 모양 스켈레톤 · 24 메달 원 2개·아바타 실루엣 머리·아이콘 원(돋보기·필터·정보). 스켈레톤의 animate-pulse(16)는 기본 --skip 이지만 소스에도 표시.
+
+### 문구 (humanizer)
+- 용어 한 줄 설명: em dash 5곳 제거, "진짜 슈팅 효율" → "모두 반영한 슈팅 효율", "~나를 한 숫자로" → "~를 한 숫자로 나타낸 값", "볼 핸들러" → "공을 안정적으로 다룬다는 뜻", "그걸 글자로" → "그 등급 글자(S~F)".
+- 선수 상세 카드 설명: 괄호 속 등급 기준 반복(카드에 이미 있음) 삭제, 두 문장으로. 비교 탭 축 안내 "비교할 수 없습니다" → "모양끼리는 비교하지 마세요", 선수 탭 종합 등급 설명 곡선 따옴표 제거·두 문장으로, 순위표 각주 “–” → "- 표시", 저장 안내 괄호 제거, 홈 "옆으로 밀면 부문이 더 있습니다 →" → "옆으로 밀어 5개 부문 보기" + 아이콘, 선수 메타 설명 em dash.
+- 빈 상태·검색 없음·로딩 문구는 새로 씀("조건에 맞는 선수가 없습니다" + 한 줄 도움말 + 버튼).
+
+### 설계 판단
+- 글자 단계의 1.25배는 제목 단계(28 → 20 → 15)에 적용했다. 보조 13·캡션 12 는 요청한 값 그대로라 본문과의 비율이 1.15·1.08 이다(작은 글자 두 단계는 역할 구분용).
+- 카드(PlayerCard)는 저장 이미지와 같은 그림이라 자체 비례 치수(DIM)를 유지하고, 가장 작은 글자만 올렸다(sm 라벨·영문 이름 11 → 12, 꼭짓점 값 9.5 → 10.5, 하단 10 → 11).
+- 팀 색 회색 기본값(#6B7280, 차가운 회색)은 데이터(`team-colors.json`)라 이번에는 바꾸지 않았다(data 커밋 금지). 화면 크롬 회색은 전부 따뜻한 토큰.
+
+### 못 한 것 · 남은 것
+- 실제 jsDelivr 로드는 이 세션 환경에서 막혀 있어(403), 검증은 npm `pretendard@1.3.9` 파일로 CDN 요청을 대신 응답해 했다. 배포 후 한 번 실제로 확인 필요(특히 카드 저장 PNG 글꼴).
+- 비교표 열 제목("자밀 워니 2025-26")이 390px 에서 두 줄로 감긴다. 선수 탭 시즌 전환 중 스켈레톤 개수는 이전 시즌 보이던 수 기준(최대 20).
+- 라이트/다크 테마 전환 버튼이 없어 `dark:` 변형은 시스템 설정(prefers-color-scheme)만 따른다(색 토큰과 같은 기준).

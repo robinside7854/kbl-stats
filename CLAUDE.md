@@ -150,7 +150,7 @@ kbl-stats/
 │   ├── (옛 /season/[코드] 플레이어 카드 탭은 없앰 → next.config.mjs redirects: ?p= 있으면 /player/번호?season=코드, 없으면 순위표)
 │   ├── not-found.tsx
 │   └── components/      ← SiteNav(상단: 사이트 이름·검색창(선수 탭은 hideSearch)·시즌 선택(순위표·팀 분포·선수 탭만)·메뉴 홈/선수/순위표/팀 분포/비교/용어), PlayerSearch(상단·큰 검색창·onSelect 선택 모드), useSearchIndex(/search-index.json 한 번 fetch — 우리 정적 파일),
-│                           RowList(표 대신: 모바일 행 카드 펼침 / PC 전체 표, 가로 스크롤 없음, pageSize "더 보기" — 순위표·기록표·팀 분포 표), FilterSheet(필터 버튼+요약 칩 → 모바일 바텀시트 / PC 인라인 패널, FilterGroup), icons(인라인 SVG 모음 16/20/24),
+│                           RowList(표 대신: 모바일 행 카드 펼침 / PC 전체 표, 가로 스크롤 없음, pageSize "더 보기" — 순위표·기록표·팀 분포 표), FilterSheet(필터 버튼+요약 칩 → 모바일 바텀시트 / PC 인라인 패널, FilterGroup), icons(인라인 SVG 모음 16/20/24: 검색·닫기·꺾쇠·필터·정보·화살표·바깥 링크), Skeleton(불러오는 중 자리, PlayerCardSkeleton 은 PlayerCard.tsx), webFont(Pretendard CSS 주소 한 곳 + 카드 저장용 글꼴 조각 넣기),
 │                           useSeasonCards(/cards/{코드}.json fetch·캐시, useCardView), PlayersView(선수 탭), PlayerSeasonCards(선수 상세 카드 영역), CompareView(비교 탭), CardDeck(카드 1~2장 + PNG 저장), CompareTable(비교표·증감), ChipRow, InfoLink(ⓘ → 용어),
 │                           PlayerHero·CareerTrend(Recharts LineChart)·CareerTable(선수 페이지), Segmented, useCardSave(카드 PNG 저장), useMedia,
 │                           PlayerCard(게임식 플레이어 카드: 팀 색 상단+큰 사진 / 스탯 9개+순위(전체 또는 "가드 중") / 파울·출전 줄 / 레이더+등급, 입력은 SeasonCardView 하나),
@@ -167,6 +167,16 @@ kbl-stats/
 - 새 화면·차트를 만들기 전에 `SCOPE.md`의 IN 목록에 있는지 확인. 없으면 만들지 말고 사용자에게 묻는다
 - 새 지표를 추가할 때 계산식·출처 주석 필수
 
+### 디자인 토큰 (2026-09-30 디자인 점검 B·C, 토큰은 `app/globals.css`)
+- 글꼴은 **Pretendard Variable 하나**(`app/components/webFont.ts` 주소, layout 에서 로드). 다른 글꼴·font-mono 를 추가하지 않는다. 데이터 숫자(스탯 타일·표·행 카드·카드 격자·순위)에는 `tabular`, 차트는 `.recharts-wrapper` 에 이미 걸려 있다. 문장 속 숫자는 비례폭
+- 글자 크기는 단계 유틸리티만: `text-h1`(28/32) · `text-h2`(20/22) · `text-body`(15/16) · `text-sub`(13) · `text-caption`(12). PC = 1024px 이상. 입력창·select 는 iOS 확대 방지로 `text-base`(16). 카드(PlayerCard)·큰 숫자·표지 이름은 예외(자체 비례 치수, deslop-ignore 11)
+- 반경 3단계: `rounded-container`(16, 페이지 위 카드·목록 상자) · `rounded-card`(12, 안에 든 카드) · `rounded-control`(8, 칩·배지·버튼·입력). 바깥 모서리에 붙는 안쪽 요소는 바깥 − 패딩(예: 8 − 2 → rounded-md). `rounded-full` 은 아바타·색 점만, `rounded-2xl/xl/lg/3xl` 직접 쓰지 않는다
+- 표면: 흰 면 카드는 `surface-card`(표면 + hairline + `shadow-card` 0 1px 2px). 그림자는 이것 하나. 반투명·블러 표면 금지
+- 색: 회색은 토큰(`ink/ink-2/ink-3/line/surface-2`)만, 액센트는 팀 색 외 `--series-1`(파랑) 하나. 등급·메달 색은 `lib/teams gradeTone`(S 금색·A/B 팀 색·C 이하 무채색, 채도 20%↓, 글자 4.5:1 — tests/teams.test.ts 가 확인)
+- 인터랙션: 누르는 것은 높이 40px 이상(칩 h-10, 주요 버튼 h-11, 표 행 48px), 포커스는 `--focus` 링 하나(전역 기본값 + `focus-ring`/`focus-ring-inset`), 호버는 `transition-colors duration-200` 만(`transition-all`·투명도 호버 금지). 글리프(› ▲ ⓘ ↗)는 쓰지 않고 `icons.tsx`
+- 불러오는 중은 같은 모양의 `Skeleton`, 결과 0명은 문구 + "필터 초기화". `prefers-reduced-motion` 이면 전환·펄스를 끈다(globals.css)
+- 점검: `node .claude/skills/kill-ai-slop/scripts/scan.mjs app --skip=15,16,28,30,34` 가 0건이어야 한다. 일부러 남기는 것은 `deslop-ignore-next-line NN`
+
 ## 하지 말 것 (안티패턴)
 - 화면 컴포넌트에서 fetch로 KBL 서버 호출 (CORS로 실패하고, 원칙 1 위반)
 - raw 파일을 직접 수정하거나 가공 결과로 덮어쓰기
@@ -176,6 +186,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-09-30 (디자인 반영 3~5단계): `docs/design-review-2026-09-30.md` B1~B5·C1~C5·D. Pretendard(jsDelivr, 카드 PNG 에도 글꼴 조각을 넣음)·글자 단계 유틸리티·반경 이름 토큰 3단계·`surface-card`/`shadow-card`·등급/메달 채도 20%↓(`lib/teams gradeTone·desaturate·readableInk`), 터치 타겟 40px+·전역 포커스 링·스켈레톤·빈 상태·reduced-motion·글리프 → 아이콘, 다크 모드 대비(ink-3, 검정 팀 색 경계). 스캔 93 → 0(유지 항목은 deslop-ignore). 검증: typecheck·test·build, 8화면×390/1280×라이트/다크 32장 가로 넘침 문서 0·콘솔 에러 0·높이 40 미만 클릭 요소 0·Pretendard 로드 확인, 카드 PNG 저장(글꼴 포함). 세션 환경은 jsDelivr 도 차단이라 검증 때 npm pretendard@1.3.9 파일로 CDN 요청을 대신 응답했다.
 - 2026-09-30 (디자인 반영 1·2단계): docs/design-review-2026-09-30.md A1~A7. 표 가로 스크롤 제거 — 공통 `RowList`(모바일 행 카드 펼침 / PC 전체 표 992px 안), 순위표 25행·선수 그리드 20장 "더 보기", `FilterSheet`(모바일 바텀시트·PC 인라인 패널·요약 칩, 1차 컨트롤만 노출), 선수 탭 상단 검색·본문 시즌 칩 제거, 설명 문구 축약, 홈 바로가기 큰 버튼 2개 + 링크 줄. lib 추가: takeFirst·rowSummaryKeys·formatSummaryStat·leaderFilterChips(leaders), GRID_PAGE_SIZE·gridFilterChips(cardview), distributionFilterChips(distribution) + 테스트. 측정: 390px 순위표 8,314→2,472px, 선수 탭 16,903→2,256px, 표·카드 가로 넘침 0(남은 건 의도한 칩 줄·Recharts 내부 래퍼), 콘솔 에러 0. 다음: 3단계(폰트·위계·반경·그림자·등급 색).
 - 2026-09-30 (2차 개편 화면층): 사용자 피드백 9건 반영 — 메뉴 홈/선수/순위표/팀 분포/비교/용어, "플레이어 카드" 탭 폐지(선수 상세로 통합, `/season/[코드]`는 next.config redirects로 순위표 또는 `?p=`면 `/player/번호?season=코드`). 선수 탭 `/players`(큰 검색창·시즌/포지션/국적/팀 칩·등급→PER 그리드, 다른 시즌은 public/cards fetch), 선수 상세에 시즌 칩·순위 범위(전체/같은 포지션 "가드 중 3위")·시즌 비교(카드 2장+증감 표)·프로필(포지션·키·몸무게·등번호·드래프트·국적 배지), 비교 탭 `/compare?a=번호:코드&b=번호:코드`(검색 → 뛴 시즌 칩, 다른 시즌·같은 선수 가능, 각자 시즌 안 순위 안내), 용어 탭 `/glossary`(앵커, 카드 등급·순위표 열 ⓘ에서 연결). 순위표 포지션·국적 4단 칩·포지션 배지, 팀 분포 포지션 칩, 카드 파울·출전 줄. 계산은 새 `lib/cardview.ts`(서버도 public/cards와 같은 encode→decode로 계산해 첫 HTML과 브라우저 결과가 같다). 검색 색인에 뛴 시즌 코드 추가(370KB). 검증: typecheck·test(7개)·build 36.8초(정적 1,396쪽), Playwright 390/1280 8개 화면 가로 스크롤 0·콘솔 에러 0, 카드 PNG 저장 확인. `grep kbl.or.kr app lib` 0, `grep PIE app` 0.
 - 2026-09-30 (2차 개편 데이터층): 선수 마스터 API(서버 B /api/v1/players) 수집·조인 추가 — `data/raw/players/players.json` → 선수 색인·시즌 players[]에 position·positionGroup·nationality·heightCm·weightKg·backNumber·draft (마스터 없으면 null + 경고 한 줄, isForeign은 이름 추정 유지). USG% ×5(표준 척도, 원값 usgPctRaw), PIE 미사용(레이더 modern 축 PIE→PER, coverage.advanced는 USG·AST·REB 판정 — 결과 동일), 카드 스탯에 파울(경기당·순위 없음), 순위표 열에 파울, 포지션·국적 필터(lib/roster.ts), 용어집(lib/glossary.ts), 비교 탭용 public/cards/{시즌}.json(열 형식, 최대 44KB). 세션 환경은 KBL 차단이라 마스터 수집은 미검증 — 다음 Actions 실행에서 확인. TOV%·AST/TO 도 우리 데이터로 검산 일치 확인.
