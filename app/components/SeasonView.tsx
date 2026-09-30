@@ -2,6 +2,7 @@
 import { notFound } from "next/navigation";
 import { listSeasonsWithPlayers, loadSeasonData, toCardPlayers, toCardTeams } from "@/lib/data";
 import RadarExplorer from "./RadarExplorer";
+import SiteNav from "./SiteNav";
 import SourceFooter from "./SourceFooter";
 
 export default function SeasonView({ seasonCode }: { seasonCode: number }) {
@@ -13,9 +14,8 @@ export default function SeasonView({ seasonCode }: { seasonCode: number }) {
 
   return (
     <>
+      <SiteNav seasons={seasons} seasonCode={season.seasonCode} view="radar" />
       <RadarExplorer
-        seasons={seasons}
-        seasonCode={season.seasonCode}
         seasonLabel={season.seasonLabel}
         players={players}
         teams={teams}

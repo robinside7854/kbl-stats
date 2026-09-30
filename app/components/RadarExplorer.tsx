@@ -1,8 +1,8 @@
 "use client";
-// 시즌 페이지의 상호작용 부분: 시즌 선택, 표본 기준, 선수·비교 선수 선택 → 레이더 카드
+// 시즌 페이지의 상호작용 부분: 표본 기준, 선수·비교 선수 선택 → 레이더 카드
+// (시즌 선택은 상단 SiteNav 가 맡는다 — 주소의 ?p=&vs= 는 SiteNav 가 시즌을 바꿀 때 그대로 넘긴다)
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import type { CardPlayer, CardTeam, SeasonCoverage, SeasonOption } from "@/lib/types";
+import type { CardPlayer, CardTeam, SeasonCoverage } from "@/lib/types";
 import {
   axisSetFor,
   axisValue,
@@ -11,9 +11,11 @@ import {
   isQualified,
   perGameStats,
   playerType,
+  QUALIFY_PRESETS,
+  qualifyLabel as presetLabel,
+  qualifyShort as presetShort,
   RADAR_IMPACT_AXIS,
   radarPercentiles,
-  type QualifyRule,
 } from "@/lib/metrics";
 import PlayerAvatar from "./PlayerAvatar";
 import PlayerPicker from "./PlayerPicker";
@@ -21,20 +23,7 @@ import TeamLogo from "./TeamLogo";
 import RadarCard, { type CardEntry } from "./RadarCard";
 import { useThemeColors } from "./useThemeColors";
 
-// 백분위 비교 집단 기준 프리셋 (첫 번째가 기본값)
-const QUALIFY_PRESETS: QualifyRule[] = [
-  DEFAULT_QUALIFY,
-  { minGames: 20, minMinutes: 300 },
-  { minGames: 30, minMinutes: 500 },
-  { minGames: 5, minMinutes: 50 },
-];
-const presetLabel = (r: QualifyRule) => `${r.minGames}경기·${r.minMinutes}분 이상`;
-// 모바일 선택 상자용 짧은 표기
-const presetShort = (r: QualifyRule) => `${r.minGames}경기·${r.minMinutes}분+`;
-
 interface Props {
-  seasons: SeasonOption[];
-  seasonCode: number;
   seasonLabel: string;
   players: CardPlayer[];
   teams: CardTeam[];
@@ -57,8 +46,7 @@ function PlayerStrip({ player, team, swatch }: { player: CardPlayer; team?: Card
   );
 }
 
-export default function RadarExplorer({ seasons, seasonCode, seasonLabel, players, teams, coverage }: Props) {
-  const router = useRouter();
+export default function RadarExplorer({ seasonLabel, players, teams, coverage }: Props) {
   const colors = useThemeColors();
   const [presetIdx, setPresetIdx] = useState(0);
   const rule = QUALIFY_PRESETS[presetIdx];
@@ -120,16 +108,10 @@ export default function RadarExplorer({ seasons, seasonCode, seasonLabel, player
   const a = toEntry(aId);
   const b = bId && bId !== aId ? toEntry(bId) : null;
 
-  function changeSeason(code: string) {
-    const qs = new URLSearchParams({ p: aId });
-    if (bId) qs.set("vs", bId);
-    router.push(`/season/${code}?${qs}`);
-  }
-
   return (
     <main className="mx-auto max-w-3xl px-4 pt-5">
       <header className="mb-4">
-        <p className="text-xs font-medium text-ink-3">KBL 정규시즌 · 비영리 팬 프로젝트</p>
+        <p className="text-xs font-medium text-ink-3">{seasonLabel} KBL 정규시즌</p>
         <h1 className="mt-0.5 text-xl font-bold tracking-tight">선수 유형 레이더 카드</h1>
         <p className="mt-1 text-sm text-ink-2">
           {axisSet === "modern"
@@ -140,20 +122,6 @@ export default function RadarExplorer({ seasons, seasonCode, seasonLabel, player
 
       {/* 필터는 차트 위 한 줄(모바일에서는 두 줄) */}
       <section aria-label="보기 설정" className="grid grid-cols-2 gap-2">
-        <label className="flex flex-col text-xs font-medium text-ink-2">
-          <span className="mb-1">시즌</span>
-          <select
-            className="h-11 rounded-lg border border-line bg-surface px-2 text-base text-ink"
-            value={seasonCode}
-            onChange={(e) => changeSeason(e.target.value)}
-          >
-            {seasons.map((s) => (
-              <option key={s.seasonCode} value={s.seasonCode}>
-                {s.seasonLabel}
-              </option>
-            ))}
-          </select>
-        </label>
         <label className="flex flex-col text-xs font-medium text-ink-2">
           <span className="mb-1">백분위 비교 기준</span>
           <select
