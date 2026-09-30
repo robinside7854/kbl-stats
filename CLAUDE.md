@@ -74,21 +74,30 @@ KBL 공홈은 화면을 그릴 때 아래 두 서버에서 JSON을 받아온다.
 kbl-stats/
 ├── CLAUDE.md            ← 이 파일
 ├── SCOPE.md             ← 범위 정의 (IN / OUT / 추가 기준)
+├── tsconfig.json        ← 화면(app + lib) 타입 설정 — next build가 사용
+├── tsconfig.scripts.json← 수집 스크립트·테스트 타입 설정 (tsx 실행분)
+├── next.config.mjs, postcss.config.mjs  ← Next.js / Tailwind v4 설정
 ├── scripts/
 │   ├── fetch.ts         ← KBL API 호출 + data/raw 저장 (API 주소는 여기와 config에만)
 │   ├── process.ts       ← raw → processed 변환
 │   └── config.ts        ← 엔드포인트, 시즌 목록, 요청 간격
+├── tests/
+│   └── metrics.test.ts  ← lib/metrics.ts 검증 (npm run test:metrics)
 ├── data/
 │   ├── codes/           ← 시즌·팀·경기구분 코드표 (API에서 받아 저장)
 │   ├── raw/{seasonCode}/traditional.json, advanced.json, ...
-│   └── processed/{seasonCode}/players.json
+│   └── processed/seasons.json, {seasonCode}/players.json
 ├── lib/
-│   ├── metrics.ts       ← 파생 지표 계산 (순수 함수만)
-│   └── types.ts         ← Player, Season 등 타입 정의
-├── app/                 ← Next.js 화면
-│   ├── page.tsx
-│   └── components/
-└── .github/workflows/fetch.yml  ← 매일 새벽 수집
+│   ├── metrics.ts       ← 파생 지표 계산 (순수 함수만: 백분위, 경기당, 유형 라벨)
+│   ├── data.ts          ← 빌드 시점에 data/processed 읽기 (서버 전용)
+│   └── types.ts         ← Player, SeasonData, CardPlayer 등 타입 정의
+├── app/                 ← Next.js 화면 (App Router)
+│   ├── layout.tsx, globals.css (색 토큰: 라이트/다크)
+│   ├── page.tsx         ← 최신 시즌 레이더 카드 (정적)
+│   ├── season/[seasonCode]/page.tsx  ← 시즌별 정적 페이지
+│   ├── not-found.tsx
+│   └── components/      ← SeasonView, RadarExplorer, RadarCard, PlayerPicker, SourceFooter, useThemeColors
+└── .github/workflows/fetch.yml, backfill.yml  ← 매일 새벽 수집 / 전체 재수집
 ```
 
 ## 코딩 규칙
@@ -108,6 +117,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-09-30 (2차): 첫 화면 "선수 유형 레이더 카드" 구현 — Next.js 15 + Tailwind v4 + Recharts 3, 30개 시즌 정적 생성(선수 0명 시즌 제외), next build 성공. 결정: 백분위는 mid-rank, 비교 집단 기본 10경기·100분 이상(프리셋 4개), 유형 라벨은 최고 백분위 축 기준 단순 규칙(전 축 60↑ 올라운더, 최고 40↓ 롤 플레이어), 이미지 저장은 html-to-image. tsconfig를 화면용/스크립트용으로 분리. 발견: KBL USG%·PIE 값 척도가 NBA와 다름(USG 중앙값 ~3.5) → 원값 그대로 표기하고 주석 안내. 출전 적은 선수는 advanced가 0으로 들어와 백분위 0으로 보임(표본 부족 배지로 구분).
 - 2026-09-30: 전체 시즌 백필 완료 — 1997~2025-26 정규시즌 30개 시즌, 선수 102~202명/시즌, 실패 0, data/ 16MB. 1997 시즌부터 advanced(2차 스탯) 존재 확인. 2026-27은 개막 전이라 0명 → 화면에서는 선수 0명인 시즌을 숨겨야 함. backfill.yml 추가(버튼 또는 파일 수정 푸시로 전체 재수집). 크롬 미연결 상황 대응으로 push 트리거 채택.
 - 2026-09-29 (2차): 수집 스크립트·워크플로 완성. Actions 실행 #2 성공 — 2025-26 정규시즌 193명 raw+processed 저장(676KB). 발견: listCn≤255, recent-seasons는 현재 시즌 1개만 반환(백업 상수와 병합), 출전 1~5경기 선수 5명은 advanced 없음(정상). 세션 환경(Claude 클라우드)은 KBL 서버 차단 → 수집 검증은 Actions 수동 실행으로.
 - 2026-09-29: 프로젝트 정의. KBL 공홈 데이터 서버 2곳 확인(api-stats.kbl.or.kr / kbl-api.sports2i.com), 인증 없음·CORS 없음 확인. 이용약관 제23·28조 확인 → 비영리 단계 진행, 영리 전환 시 서면 승낙 필요. 스택 결정: TS + Next.js + Recharts + JSON 파일 + GitHub Actions + Vercel. 라인업·경기별 API는 미확인 상태로 보류.
