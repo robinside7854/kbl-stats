@@ -136,7 +136,7 @@ export default function PlayerSearch({
         enterKeyHint="search"
         placeholder={placeholder}
         className={`w-full min-w-0 border border-line bg-surface text-base text-ink placeholder:text-ink-3 focus:outline-2 focus:outline-focus ${
-          lg ? "h-12 rounded-xl pl-11 pr-3 shadow-sm" : "h-9 rounded-lg pl-8 pr-2 sm:text-body"
+          lg ? "h-12 rounded-lg pl-11 pr-3 shadow-card" : "h-10 rounded-lg pl-8 pr-2"
         }`}
         value={query}
         onChange={(e) => {
@@ -157,7 +157,7 @@ export default function PlayerSearch({
           id={listId}
           role="listbox"
           aria-label="검색 결과"
-          className="absolute right-0 z-40 mt-1 max-h-[70vh] w-full min-w-[17rem] overflow-y-auto rounded-lg border border-line bg-surface py-1 shadow-lg"
+          className="absolute right-0 z-40 mt-1 max-h-[70vh] w-full min-w-[17rem] overflow-y-auto surface-card rounded-lg py-1"
         >
           {status === "loading" && !entries && <li className="px-3 py-2 text-body text-ink-3">선수 목록을 불러오는 중…</li>}
           {status === "error" && <li className="px-3 py-2 text-body text-ink-3">선수 목록을 불러오지 못했습니다. 다시 눌러 주세요.</li>}

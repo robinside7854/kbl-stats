@@ -100,7 +100,7 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
       {cards.length > 0 ? (
         <CardDeck cards={cards} fileName={fileName} />
       ) : (
-        <p className="rounded-xl border border-line bg-surface px-4 py-8 text-center text-body text-ink-2">
+        <p className="surface-card rounded-2xl px-4 py-8 text-center text-body text-ink-2">
           {a.status === "error" ? "시즌 기록을 불러오지 못했습니다. 다시 시도해 주세요." : "시즌 기록 불러오는 중…"}
         </p>
       )}

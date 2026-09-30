@@ -2,6 +2,7 @@
 // 이름 아래 국적 배지(국내/외국/아시아쿼터)·활동 기간, 프로필 한 줄(포지션·키·몸무게·등번호·드래프트 — 선수 마스터),
 // 그 아래 통산 요약 4칸과 소속 팀 이력. 계산은 lib/metrics careerSummary, 표기는 lib/career.
 // 머리말 팀 색은 가장 최근 시즌 팀 (카드 영역은 고른 시즌 팀 색을 따로 쓴다).
+import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
 import type { CareerSeason, PlayerIndexEntry, TeamColor } from "@/lib/types";
 import { careerSummary } from "@/lib/metrics";
 import { activeSpanLabel, profileFacts, seasonShortLabel, teamStints } from "@/lib/career";
@@ -10,7 +11,7 @@ import { mixHex, teamShortLabel } from "@/lib/images";
 import PlayerAvatar from "./PlayerAvatar";
 import TeamLogo from "./TeamLogo";
 
-const FALLBACK: TeamColor = { primary: "#6B7280", secondary: "#9CA3AF", text: "#fff" };
+const FALLBACK: TeamColor = FALLBACK_TEAM_COLOR;
 const NF1 = new Intl.NumberFormat("ko-KR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 const NF0 = new Intl.NumberFormat("ko-KR");
 
@@ -56,7 +57,7 @@ export default function PlayerHero({ entry, seasons }: Props) {
         <div className="relative mx-auto flex min-h-[250px] max-w-5xl items-end px-4 sm:min-h-[300px]">
           <div className="relative z-10 min-w-0 flex-1 pb-5 pt-5 pr-2">
             <div className="flex items-center gap-2">
-              <span className="inline-flex rounded-xl bg-white p-1 shadow-sm">
+              <span className="inline-flex rounded-lg bg-white p-1 shadow-card">
                 <TeamLogo logoUrl={team?.logoUrl} shortName={teamName} color={color} size={40} />
               </span>
               <span className="text-sub font-semibold opacity-90 sm:text-body">
@@ -68,10 +69,10 @@ export default function PlayerHero({ entry, seasons }: Props) {
             </h1>
             <p className="mt-1 truncate text-sub font-medium uppercase tracking-wide opacity-80 sm:text-body">{entry.nameEn}</p>
             <div className="mt-3 flex flex-wrap gap-1.5 text-sub font-semibold">
-              <span className="rounded-full px-2 py-0.5" style={{ background: "rgba(255,255,255,0.18)" }}>
+              <span className="rounded-lg px-2 py-0.5" style={{ background: "rgba(255,255,255,0.18)" }}>
                 {NATIONALITY_LABELS[nationalityOf(entry)]}
               </span>
-              <span className="rounded-full px-2 py-0.5" style={{ background: "rgba(0,0,0,0.25)" }}>
+              <span className="rounded-lg px-2 py-0.5" style={{ background: "rgba(0,0,0,0.25)" }}>
                 {span}
               </span>
             </div>
@@ -99,7 +100,7 @@ export default function PlayerHero({ entry, seasons }: Props) {
 
       {/* ── 통산 요약 + 소속 이력 ── */}
       <div className="mx-auto max-w-5xl px-4">
-        <dl className="-mt-px grid grid-cols-4 overflow-hidden rounded-b-2xl border border-t-0 border-line bg-surface">
+        <dl className="-mt-px grid grid-cols-4 overflow-hidden rounded-b-2xl border border-t-0 border-line bg-surface shadow-card">
           {tiles.map((t, i) => (
             <div key={t.label} className={`min-w-0 px-2 py-3 text-center sm:px-4 ${i > 0 ? "border-l border-line" : ""}`}>
               <dt className="truncate text-caption font-medium text-ink-3 sm:text-sub">
@@ -126,7 +127,7 @@ export default function PlayerHero({ entry, seasons }: Props) {
               return (
                 <li
                   key={`${st.teamCode}-${i}`}
-                  className="flex items-center gap-1.5 rounded-full border border-line bg-surface py-1 pl-1 pr-2.5 text-sub"
+                  className="flex h-10 items-center gap-1.5 rounded-lg border border-line bg-surface pl-1.5 pr-2.5 text-sub"
                 >
                   <TeamLogo logoUrl={t?.logoUrl} shortName={name} color={t?.color} size={20} />
                   <span className="font-semibold text-ink">{teamShortLabel(name)}</span>

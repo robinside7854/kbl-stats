@@ -24,6 +24,7 @@ import {
   type RankTier,
 } from "@/lib/metrics";
 import { mixHex, teamShortLabel } from "@/lib/images";
+import { desaturate, FALLBACK_TEAM_COLOR, gradeTone, readableInk } from "@/lib/teams";
 import PlayerAvatar from "./PlayerAvatar";
 import TeamLogo from "./TeamLogo";
 import type { ThemeColors } from "./useThemeColors";
@@ -47,7 +48,7 @@ interface Props {
   nameHref?: string;
 }
 
-const FALLBACK_COLOR: TeamColor = { primary: "#6B7280", secondary: "#9CA3AF", text: "#fff" };
+const FALLBACK_COLOR: TeamColor = FALLBACK_TEAM_COLOR;
 
 const NF1 = new Intl.NumberFormat("ko-KR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 const fmt1 = (n: number) => (Number.isFinite(n) ? NF1.format(n) : "–");
@@ -65,11 +66,13 @@ export const CARD_LG_WIDTH = 500;
 // 순위 표시
 // ─────────────────────────────────────────────
 
-/** 금·은·동 메달 색 (바탕·테두리·숫자). 이모지 대신 SVG — 이미지 저장 시 이모지 폰트 문제 회피 */
+/** 금·은·동 메달 색 (바탕·테두리·숫자). 이모지 대신 SVG — 이미지 저장 시 이모지 폰트 문제 회피.
+ *  채도를 원래 값에서 20% 낮췄다(lib/teams desaturate, 디자인 점검 B5). 은색은 화면 회색 계열(따뜻한 회색)에 맞췄다.
+ *  메달 옆에는 항상 "n위" 글자가 붙는다(색만으로 순위를 전하지 않는다). */
 const MEDAL: Record<"gold" | "silver" | "bronze", { fill: string; ring: string; ink: string; name: string }> = {
-  gold: { fill: "#F2C94C", ring: "#B7892A", ink: "#4A3500", name: "금메달" },
-  silver: { fill: "#D9DCE1", ring: "#8E949C", ink: "#2F3338", name: "은메달" },
-  bronze: { fill: "#DE9A68", ring: "#9A5A2C", ink: "#3D1F08", name: "동메달" },
+  gold: { fill: "#ebcb6f", ring: "#b08b48", ink: "#3f2e00", name: "금메달" },
+  silver: { fill: "#dcdad4", ring: "#8f8d86", ink: "#2f2e2b", name: "은메달" },
+  bronze: { fill: "#d59e77", ring: "#925f3c", ink: "#3a1f0a", name: "동메달" },
 };
 
 function Medal({ tier, rank, px }: { tier: "gold" | "silver" | "bronze"; rank: number; px: number }) {
@@ -114,11 +117,12 @@ function RankLine({ entry, color, fs, group }: { entry: CardStatEntry; color: Te
     );
   }
   if (tier === "top10") {
+    const tagBg = desaturate(color.primary, 0.2);
     return (
       <span className="inline-flex items-center gap-1" aria-label={rankPhrase(r.rank, r.of, group)}>
         <span
-          className="rounded-full px-1.5 py-px font-bold"
-          style={{ fontSize: fs - 1, lineHeight: 1.35, background: color.primary, color: color.text, boxShadow: "0 0 0 1px var(--rank-pill-ring)" }}
+          className="rounded px-1.5 py-px font-bold"
+          style={{ fontSize: fs - 1, lineHeight: 1.35, background: tagBg, color: readableInk(tagBg, color.text), boxShadow: "0 0 0 1px var(--rank-pill-ring)" }}
         >
           {r.rank}위
         </span>
@@ -136,9 +140,10 @@ function RankLine({ entry, color, fs, group }: { entry: CardStatEntry; color: Te
 /** 1~10위 칸 배경: 팀 색을 표면 색에 옅게 섞는다 (농도는 globals.css --rank-tint, 다크 모드에서 더 진하게) */
 function cellStyle(tier: RankTier, color: TeamColor): React.CSSProperties | undefined {
   if (!tier) return undefined;
+  const team = desaturate(color.primary, 0.2);
   return {
-    background: `color-mix(in srgb, ${color.primary} var(--rank-tint), var(--surface))`,
-    borderColor: `color-mix(in srgb, ${color.primary} var(--rank-border), var(--surface))`,
+    background: `color-mix(in srgb, ${team} var(--rank-tint), var(--surface))`,
+    borderColor: `color-mix(in srgb, ${team} var(--rank-border), var(--surface))`,
   };
 }
 
@@ -170,35 +175,9 @@ function StatCell({ entry, color, size, group }: { entry: CardStatEntry; color: 
 }
 
 // ─────────────────────────────────────────────
-// 등급 (S~F) 색
+// 등급 (S~F) 색 — lib/teams gradeTone (S 금색, A 팀 색, B 팀 색 옅게, C 이하 무채색, 채도 20% 낮춤, 글자 4.5:1)
+// 레이더(SVG) 안에서도 쓰므로 hex 로 넘긴다(useThemeColors).
 // ─────────────────────────────────────────────
-// S = 금색 계열(globals.css --grade-s), A = 팀 색, B = 팀 색을 표면에 옅게 섞은 색 + 팀 색 테두리,
-// C = 중립(--grade-c), D·F = 회색(--grade-d, --grade-f). 레이더(SVG) 안에서도 쓰므로 hex 로 넘긴다(useThemeColors).
-
-interface GradeTone {
-  bg: string;
-  ink: string;
-  border: string;
-}
-
-function gradeTone(grade: Grade | "-", color: TeamColor, c: ThemeColors): GradeTone {
-  switch (grade) {
-    case "S":
-      return { bg: c.gradeS, ink: c.gradeSInk, border: c.gradeS };
-    case "A":
-      return { bg: color.primary, ink: color.text, border: color.primary };
-    case "B":
-      return { bg: mixHex(color.primary, c.surface, 0.72), ink: c.ink, border: color.primary };
-    case "C":
-      return { bg: c.gradeC, ink: c.gradeCInk, border: c.gradeC };
-    case "D":
-      return { bg: c.gradeD, ink: c.gradeDInk, border: c.gradeD };
-    case "F":
-      return { bg: c.gradeF, ink: c.gradeFInk, border: c.gradeF };
-    default:
-      return { bg: c.surface, ink: c.ink3, border: c.grid };
-  }
-}
 
 /** 레이더 꼭짓점 라벨: 등급 칩(크게) + 축 이름 + 원래 값(작게). 꼭짓점 바깥쪽으로 밀어 그린다 */
 function GradeTick(props: {
@@ -277,7 +256,7 @@ function GradeTick(props: {
 
 function HeroBadge({ children, fs }: { children: React.ReactNode; fs: number }) {
   return (
-    <span className="whitespace-nowrap rounded-full px-2 py-0.5 font-semibold" style={{ background: "rgba(255,255,255,0.18)", fontSize: fs }}>
+    <span className="whitespace-nowrap rounded-lg px-2 py-0.5 font-semibold" style={{ background: "rgba(255,255,255,0.18)", fontSize: fs }}>
       {children}
     </span>
   );
@@ -286,7 +265,7 @@ function HeroBadge({ children, fs }: { children: React.ReactNode; fs: number }) 
 // 2차 스탯이 없는 시즌이라 전 시즌 공통 축으로 그렸다는 표시 (저장 이미지에도 남는다)
 function ClassicAxesBadge() {
   return (
-    <span className="whitespace-nowrap rounded-full border border-line px-1.5 py-px text-caption font-medium text-ink-2">
+    <span className="whitespace-nowrap rounded border border-line px-1.5 py-px text-caption font-medium text-ink-2">
       고전 축
     </span>
   );
@@ -308,7 +287,7 @@ function OverallBadge({
   if (!entry.qualified) {
     return (
       <span
-        className="inline-flex flex-col items-center justify-center rounded-xl px-2 text-center font-bold leading-tight"
+        className="inline-flex flex-col items-center justify-center rounded-lg px-2 text-center font-bold leading-tight"
         style={{ height: d.logo + 8, background: "rgba(0,0,0,0.3)", fontSize: d.statLabel, boxShadow: "0 0 0 2px rgba(255,255,255,0.6)" }}
         aria-label="종합 등급: 표본 미달"
       >
@@ -320,7 +299,7 @@ function OverallBadge({
   const tone = gradeTone(entry.overall, color, colors);
   return (
     <span
-      className="inline-flex flex-col items-center justify-center rounded-xl"
+      className="inline-flex flex-col items-center justify-center rounded-lg"
       style={{
         width: d.logo + 8,
         height: d.logo + 8,
@@ -391,7 +370,7 @@ export default function PlayerCard({ view, colors, size = "sm", seriesColor, exp
 
   return (
     <article
-      className="w-full overflow-hidden rounded-3xl border border-line bg-surface shadow-sm"
+      className="surface-card w-full overflow-hidden rounded-2xl"
       style={exportMode ? { width: CARD_LG_WIDTH } : undefined}
       aria-label={`${p.nameKo} 플레이어 카드`}
     >
@@ -417,7 +396,7 @@ export default function PlayerCard({ view, colors, size = "sm", seriesColor, exp
         {/* 좌상단: 로고 + 종합 등급 · 시즌 · 유형 */}
         <div className="absolute flex max-w-[60%] flex-col items-start gap-1.5" style={{ left: d.pad + 2, top: d.pad + 2 }}>
           <div className="flex items-center gap-2">
-            <span className="inline-flex rounded-xl bg-white p-1 shadow-sm">
+            <span className="inline-flex rounded-lg bg-white p-1 shadow-card">
               <TeamLogo logoUrl={team?.logoUrl} shortName={teamShort} color={color} size={d.logo} official={official} />
             </span>
             <OverallBadge entry={entry} color={color} colors={colors} size={size} />

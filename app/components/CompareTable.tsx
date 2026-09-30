@@ -46,7 +46,7 @@ export default function CompareTable({ a, b, aLabel, bLabel, seriesA, seriesB, s
 
   return (
     <section aria-label={caption}>
-      <div className="rounded-2xl border border-line bg-surface">
+      <div className="surface-card rounded-2xl">
         <table className="tabular w-full border-separate border-spacing-0 text-body">
           <caption className="sr-only">{caption}</caption>
           <thead>

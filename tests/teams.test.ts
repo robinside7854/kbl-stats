@@ -7,7 +7,10 @@ import {
   comparePairColors,
   contrastRatio,
   DEFAULT_TEAM_PRIMARY,
+  desaturate,
   ensureMarkContrast,
+  gradeTone,
+  readableInk,
   oklabDistance,
   teamDependency,
   type DependencyInput,
@@ -135,5 +138,27 @@ assert.deepEqual(distributionFilterChips(DEFAULT_DISTRIBUTION_STATE), []);
 const dfs = { ...DEFAULT_DISTRIBUTION_STATE, teams: ["55"], position: "F" as const, presetIdx: 2 };
 assert.deepEqual(distributionFilterChips(dfs).map((c) => `${c.field}:${c.label}`), ["position:포워드", "presetIdx:30경기·500분+"]);
 assert.deepEqual(clearDistributionFilter(dfs, "presetIdx"), { ...dfs, presetIdx: 0 });
+
+// 등급 색 (디자인 점검 B5): 채도 20% 낮춤은 밝기를 거의 유지하고 색 거리를 줄인다, 회색은 그대로
+assert.equal(desaturate("#808080", 0.2), "#808080");
+assert.ok(oklabDistance(desaturate("#CE0E2D", 0.2), "#CE0E2D") > 3);
+assert.ok(Math.abs(contrastRatio(desaturate("#CE0E2D", 0.2), "#ffffff") - contrastRatio("#CE0E2D", "#ffffff")) < 0.6);
+assert.equal(desaturate("잘못된 값"), "잘못된 값");
+// 글자 색: 대비가 모자라면 흰색/검정 중 대비 큰 쪽
+assert.equal(readableInk("#111111", "#ffffff"), "#ffffff");
+assert.equal(readableInk("#f5f5f5", "#ffffff"), "#0b0b0b");
+// 등급 배지: 모든 팀 색·라이트/다크에서 글자 대비 4.5:1 이상
+const teamColorFile = JSON.parse(fs.readFileSync(path.join(process.cwd(), "data/codes/team-colors.json"), "utf8")) as Record<string, { primary?: string; text?: string }>;
+const gradeThemes = [
+  { surface: "#fcfcfb", ink: "#0b0b0b", ink3: "#6b6a66", grid: "#dcdbd6", gradeS: "#e1b95a", gradeSInk: "#3a2900", gradeC: "#e4e2dc", gradeCInk: "#2f2e2b", gradeD: "#d2d1cb", gradeDInk: "#4a4946", gradeF: "#ecebe7", gradeFInk: "#6b6a66" },
+  { surface: "#1a1a19", ink: "#ffffff", ink3: "#9a998f", grid: "#3a3a37", gradeS: "#ebcb6f", gradeSInk: "#2e2100", gradeC: "#3b3b37", gradeCInk: "#f0efe8", gradeD: "#2f2f2c", gradeDInk: "#b9b8ae", gradeF: "#252523", gradeFInk: "#92918a" },
+];
+for (const theme of gradeThemes)
+  for (const tc of Object.values(teamColorFile))
+    if (tc && tc.primary && tc.text)
+      for (const g of ["S", "A", "B", "C", "D", "F"] as const) {
+        const tone = gradeTone(g, { primary: tc.primary, text: tc.text }, theme);
+        assert.ok(contrastRatio(tone.ink, tone.bg) >= 4.5, `${g} ${tc.primary} ${tone.ink}/${tone.bg}`);
+      }
 
 console.log("teams.test.ts: 모든 테스트 통과");

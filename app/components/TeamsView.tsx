@@ -30,7 +30,7 @@ import {
   type Emphasis,
   type ScatterPoint,
 } from "@/lib/distribution";
-import { assignTeamColors, comparePairColors, ensureMarkContrast, teamDependency } from "@/lib/teams";
+import { assignTeamColors, comparePairColors, DEFAULT_TEAM_PRIMARY, ensureMarkContrast, teamDependency } from "@/lib/teams";
 import { teamShortLabel } from "@/lib/images";
 import { filterByPosition, POSITION_FILTERS, positionFilterLabel, positionLabel } from "@/lib/roster";
 import FilterSheet, { FilterGroup } from "./FilterSheet";
@@ -107,7 +107,7 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
     }
     return m;
   }, [teams, colors, selected]);
-  const colorOf = (code: string) => teamColor.get(code) ?? "#6B7280";
+  const colorOf = (code: string) => teamColor.get(code) ?? DEFAULT_TEAM_PRIMARY;
 
   const points = useMemo(() => scatterPoints(filterByPosition(players, position), rule, yKey), [players, position, rule, yKey]);
   // 선택한 선수가 표본 기준을 바꿔 사라지면 카드도 닫는다
@@ -168,7 +168,7 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
             type="button"
             aria-pressed={selected.length === 0}
             onClick={() => update({ teams: [] })}
-            className={`focus-ring h-10 cursor-pointer rounded-full border px-3 text-body font-semibold transition-colors duration-200 ${
+            className={`focus-ring h-10 cursor-pointer rounded-lg border px-3 text-body font-semibold transition-colors duration-200 ${
               selected.length === 0 ? "border-ink bg-ink text-bg" : "border-line bg-surface text-ink-2 hover:bg-surface-2"
             }`}
           >
@@ -183,7 +183,7 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
                 type="button"
                 aria-pressed={on}
                 onClick={() => update({ teams: toggleTeam(selected, t.teamCode) })}
-                className={`focus-ring flex h-10 cursor-pointer items-center gap-1.5 rounded-full border py-1 pl-1.5 pr-3 text-body font-semibold transition-colors duration-200 ${
+                className={`focus-ring flex h-10 cursor-pointer items-center gap-1.5 rounded-lg border py-1 pl-1.5 pr-3 text-body font-semibold transition-colors duration-200 ${
                   on ? "border-ink bg-surface-2 text-ink ring-1 ring-ink" : "border-line bg-surface text-ink-2 hover:bg-surface-2"
                 } ${dim ? "opacity-60" : ""}`}
               >
@@ -231,7 +231,7 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
       </section>
 
       {/* 산점도 */}
-      <section aria-label={`${metric.label} 대 경기당 출전시간 산점도`} className="mt-3 rounded-2xl border border-line bg-surface p-2 sm:p-4">
+      <section aria-label={`${metric.label} 대 경기당 출전시간 산점도`} className="surface-card mt-3 rounded-2xl p-2 sm:p-4">
         <div aria-hidden className="scatter-plot w-full">
           <ResponsiveContainer
             width="100%"
@@ -283,7 +283,7 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
                     if (!d) return null;
                     const t = teamByCode.get(d.player.teamCode);
                     return (
-                      <div className="rounded-lg border border-line bg-surface px-2.5 py-1.5 text-sub shadow-md">
+                      <div className="surface-card rounded-lg px-2.5 py-1.5 text-sub">
                         <p className="flex items-center gap-1.5 font-semibold text-ink">
                           <Swatch color={d.color} square={d.square} />
                           {d.player.nameKo}
@@ -462,8 +462,8 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
                   </span>
                   <span className="mt-2 text-caption font-medium text-ink-3">상위 3명 득점 비중</span>
                   <span className="text-2xl font-bold leading-tight tracking-tight text-ink">{formatShare(dep.topShare)}</span>
-                  <span aria-hidden className="mt-1 block h-1.5 w-full overflow-hidden rounded-full bg-surface-2">
-                    <span className="block h-full rounded-full" style={{ width: `${share}%`, background: colorOf(t.teamCode) }} />
+                  <span aria-hidden className="mt-1 block h-1.5 w-full overflow-hidden rounded-sm bg-surface-2">
+                    <span className="block h-full rounded-sm" style={{ width: `${share}%`, background: colorOf(t.teamCode) }} />
                   </span>
                   <span className="mt-1.5 text-caption text-ink-2">
                     표본 충족 {dep.qualifiedCount}명 / {dep.rosterCount}명
@@ -501,7 +501,7 @@ function SelectedCard({
 }) {
   const p = point.player;
   return (
-    <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-line bg-surface px-3 py-2 shadow-sm">
+    <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-line bg-surface px-3 py-2">
       <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={team?.color} size={44} />
       <div className="min-w-0 flex-1">
         <p className="flex min-w-0 items-center gap-1.5">

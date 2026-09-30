@@ -7,6 +7,7 @@
 // - 뛰지 않은 시즌(군 복무 등)은 값 없음 → 선이 끊긴다.
 import { useMemo, useState } from "react";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
 import type { CareerSeason, SeasonOption, TeamColor } from "@/lib/types";
 import {
   formatTrend,
@@ -20,7 +21,7 @@ import {
 import { teamShortLabel } from "@/lib/images";
 import { useThemeColors } from "./useThemeColors";
 
-const GRAY: TeamColor = { primary: "#6B7280", secondary: "#9CA3AF", text: "#fff" };
+const GRAY: TeamColor = FALLBACK_TEAM_COLOR;
 
 interface Props {
   /** 시즌 오름차순 */
@@ -64,7 +65,7 @@ export default function CareerTrend({ seasons, allSeasons }: Props) {
 
   if (seasons.length < 2) {
     return (
-      <section aria-labelledby="trend-title" className="rounded-2xl border border-line bg-surface p-4">
+      <section aria-labelledby="trend-title" className="surface-card rounded-2xl p-4">
         <h2 id="trend-title" className="text-h2 font-bold">
           시즌별 추이
         </h2>
@@ -79,7 +80,7 @@ export default function CareerTrend({ seasons, allSeasons }: Props) {
   const yDomain: [number | string, number | string] = metric.kind === "perGame" ? [0, "auto"] : ["auto", "auto"];
 
   return (
-    <section aria-labelledby="trend-title" className="rounded-2xl border border-line bg-surface p-3 sm:p-4">
+    <section aria-labelledby="trend-title" className="surface-card rounded-2xl p-3 sm:p-4">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         <h2 id="trend-title" className="text-h2 font-bold">
           시즌별 추이 <span className="font-medium text-ink-2">· {metric.title}</span>
@@ -94,7 +95,7 @@ export default function CareerTrend({ seasons, allSeasons }: Props) {
             type="button"
             aria-pressed={m.key === key}
             onClick={() => setKey(m.key)}
-            className={`h-8 rounded-full border px-3 text-sub font-semibold ${
+            className={`h-10 rounded-lg border px-3 text-sub font-semibold ${
               m.key === key ? "border-ink bg-ink text-bg" : "border-line bg-surface text-ink-2 hover:bg-surface-2"
             }`}
           >
@@ -131,7 +132,7 @@ export default function CareerTrend({ seasons, allSeasons }: Props) {
                 const d = active && payload?.[0] ? (payload[0].payload as Datum) : null;
                 if (!d) return null;
                 return (
-                  <div className="rounded-lg border border-line bg-surface px-2.5 py-1.5 text-sub shadow-md">
+                  <div className="surface-card rounded-lg px-2.5 py-1.5 text-sub">
                     <p className="font-semibold text-ink">{seasonShortLabel(d.seasonLabel)}</p>
                     {d.value === null ? (
                       <p className="text-ink-3">정규시즌 기록 없음</p>

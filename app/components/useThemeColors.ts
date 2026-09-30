@@ -32,7 +32,7 @@ const LIGHT_FALLBACK: ThemeColors = {
   grid: "#dcdbd6",
   series1: "#2a78d6",
   series2: "#eb6834",
-  gradeS: "#e9b72c",
+  gradeS: "#e1b95a",
   gradeSInk: "#3a2900",
   gradeC: "#e4e2dc",
   gradeCInk: "#2f2e2b",

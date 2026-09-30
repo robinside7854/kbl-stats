@@ -57,6 +57,7 @@ import {
   type PositionFilter,
 } from "@/lib/roster";
 import Link from "next/link";
+import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
 import ChipRow from "./ChipRow";
 import FilterSheet, { FilterGroup } from "./FilterSheet";
 import { IconChevronRight } from "./icons";
@@ -96,7 +97,7 @@ function PosBadge({ p }: { p: LeaderPlayer }) {
 /** 팀 색 배경 위에 올리는 로고 — 로고 색이 배경과 겹치지 않게 흰 칩 위에 */
 function LogoChip({ team, fallback, size }: { team?: CardTeam; fallback: string; size: number }) {
   return (
-    <span className="inline-flex shrink-0 rounded-md bg-white p-0.5">
+    <span className="inline-flex shrink-0 rounded-lg bg-white p-0.5">
       <TeamLogo logoUrl={team?.logoUrl} shortName={team?.shortName ?? fallback} color={team?.color} size={size} />
     </span>
   );
@@ -117,7 +118,7 @@ function CoverCard({
   hero: boolean;
 }) {
   const p = entry.player;
-  const color = team?.color ?? { primary: "#6B7280", secondary: "#9CA3AF", text: "#fff" };
+  const color = team?.color ?? FALLBACK_TEAM_COLOR;
   const teamLabel = teamShortLabel(team?.shortName ?? p.teamShort);
   const lowerIsBetter = LEADER_STATS[category].better === "low";
   return (
@@ -296,7 +297,7 @@ export default function LeadersView({ seasonLabel, players, teams }: Props) {
               type="button"
               onClick={() => clickHeader(key)}
               title={`${statTitle(key, mode)}로 정렬`}
-              className="focus-ring flex cursor-pointer items-center justify-end gap-0.5 whitespace-nowrap rounded px-1 py-2 font-semibold transition-colors duration-200 hover:text-ink"
+              className="focus-ring flex cursor-pointer items-center justify-end gap-0.5 whitespace-nowrap rounded-lg px-1 py-2 font-semibold transition-colors duration-200 hover:text-ink"
             >
               {LEADER_STATS[key].short}
               {/* 정렬 방향 표시는 지금 정렬 중인 열에만 (빈 자리를 두지 않아 14개 열이 992px 안에 들어간다) */}
@@ -423,7 +424,7 @@ export default function LeadersView({ seasonLabel, players, teams }: Props) {
             ))}
           </div>
         ) : (
-          <p className="rounded-2xl border border-line bg-surface px-4 py-8 text-center text-body text-ink-2">
+          <p className="surface-card rounded-2xl px-4 py-8 text-center text-body text-ink-2">
             조건에 맞는 선수가 없습니다. 필터를 줄이거나 표본 기준을 낮춰 보세요.
           </p>
         )}

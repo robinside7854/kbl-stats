@@ -95,7 +95,7 @@ export default function CompareView({ seasons, initialA, initialB }: Props) {
   const tag = (v: SeasonCardView) => `${v.entry.player.nameKo} ${labelOf(v.seasonCode)}`;
 
   const slotUi = (name: "A" | "B", slot: Slot | null, set: (s: Slot | null) => void, series: string, other: Slot | null) => (
-    <section aria-label={`선수 ${name}`} className="min-w-0 rounded-2xl border border-line bg-surface p-3">
+    <section aria-label={`선수 ${name}`} className="surface-card min-w-0 rounded-2xl p-3">
       <h2 className="flex min-w-0 items-center gap-2 text-h2 font-bold">
         <span aria-hidden className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: series }} />
         선수 {name}

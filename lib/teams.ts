@@ -1,5 +1,5 @@
 // 팀 이름·색·의존도 규칙 — 순수 함수만 둔다. scripts/process.ts 가 시즌 파일을 만들 때 쓰고, 테스트(tests/leaders.test.ts)가 검증한다.
-import { isQualified, type QualifyRule } from "./metrics";
+import { isQualified, type Grade, type QualifyRule } from "./metrics";
 
 /**
  * KBL 역대 연고지 지명 (1997~ 정규시즌 teamName1 에 나온 것 + 앞으로 쓰일 법한 광역시·도).
@@ -43,6 +43,9 @@ export function teamShortNameKo(teamName1: string): string {
  * (team-colors.json 기본값을 바꾸면 여기도 같이 바꾼다 — tests/teams.test.ts 가 두 값이 같은지 확인한다)
  */
 export const DEFAULT_TEAM_PRIMARY = "#6B7280";
+
+/** 팀을 모를 때 화면이 쓰는 팀 색 (data/codes/team-colors.json "default" 와 같은 값 — 옛 구단 회색과 맞춘다) */
+export const FALLBACK_TEAM_COLOR = { primary: DEFAULT_TEAM_PRIMARY, secondary: "#9CA3AF", text: "#fff" } as const;
 
 export const isDefaultTeamColor = (hex: string) => hex.trim().toLowerCase() === DEFAULT_TEAM_PRIMARY.toLowerCase();
 
@@ -134,6 +137,122 @@ export function oklabDistance(a: string, b: string): number {
   const p = lab(a);
   const q = lab(b);
   return Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]) * 100;
+}
+
+// ── OKLab ↔ sRGB (채도 낮추기용). 출처: Björn Ottosson OKLab 변환식 (oklabDistance 와 같은 행렬) ──
+
+function toOklab(hex: string): [number, number, number] | null {
+  const rgb = hexRgb(hex);
+  if (!rgb) return null;
+  const [r, g, bl] = rgb.map(toLinear);
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * bl);
+  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * bl);
+  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * bl);
+  return [
+    0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s,
+    1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s,
+    0.0259040371 * l + 0.7827717662 * m - 0.808675703 * s,
+  ];
+}
+
+function fromOklab([L, a, b]: [number, number, number]): string {
+  const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3;
+  const m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3;
+  const s = (L - 0.0894841775 * a - 1.291485548 * b) ** 3;
+  const lin = [
+    4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+    -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+    -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s,
+  ];
+  const enc = (c: number) => {
+    const v = c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055;
+    return Math.round(Math.min(1, Math.max(0, v)) * 255)
+      .toString(16)
+      .padStart(2, "0");
+  };
+  return "#" + lin.map(enc).join("");
+}
+
+/**
+ * 채도(OKLCH 의 C)를 amount 만큼 낮춘다 (0.2 = 20% 낮춤). 밝기(L)·색상(h)은 그대로. 잘못된 hex 면 그대로.
+ * 등급 배지·순위 강조의 팀 색·금색이 팔레트처럼 튀지 않게 쓴다 (디자인 점검 B5).
+ */
+export function desaturate(hex: string, amount = 0.2): string {
+  const lab = toOklab(hex);
+  if (!lab) return hex;
+  const k = 1 - Math.min(1, Math.max(0, amount));
+  return fromOklab([lab[0], lab[1] * k, lab[2] * k]);
+}
+
+/** 본문 글자 대비 기준 (WCAG AA 일반 글자) */
+export const TEXT_CONTRAST = 4.5;
+
+/**
+ * bg 위 글자 색: preferred 가 4.5:1 이상이면 그대로, 아니면 light·dark 중 대비가 큰 쪽.
+ * 팀 색 배지(등급 A·1~10위 칸) 글자에 쓴다 — 팀 색 text 값이 채도를 낮춘 바탕에서 모자랄 때 대비.
+ */
+export function readableInk(bg: string, preferred: string, light = "#ffffff", dark = "#0b0b0b"): string {
+  if (hexRgb(preferred) && contrastRatio(preferred, bg) >= TEXT_CONTRAST) return preferred;
+  return contrastRatio(light, bg) >= contrastRatio(dark, bg) ? light : dark;
+}
+
+/** 등급 배지 색 입력: 화면 테마 색(hex) */
+export interface GradeThemeColors {
+  surface: string;
+  ink: string;
+  ink3: string;
+  grid: string;
+  gradeS: string;
+  gradeSInk: string;
+  gradeC: string;
+  gradeCInk: string;
+  gradeD: string;
+  gradeDInk: string;
+  gradeF: string;
+  gradeFInk: string;
+}
+
+export interface GradeTone {
+  bg: string;
+  ink: string;
+  border: string;
+}
+
+/**
+ * 등급 S~F 배지 색 (플레이어 카드 레이더 꼭짓점·종합 등급·선수 탭 그리드 공용, 디자인 점검 B5).
+ *  - S = 금색(테마 --grade-s, 이미 채도 20% 낮춘 값), A = 팀 색(채도 20% 낮춤), B = 그 팀 색을 표면에 옅게 섞은 면 + 팀 색 테두리,
+ *    C·D·F = 무채색(--grade-c/d/f). 글자는 항상 등급 글자라 색만으로 뜻을 전하지 않는다.
+ *  - 글자 색은 바탕과 4.5:1 이상 (readableInk).
+ */
+export function gradeTone(grade: Grade | "-", team: { primary: string; text: string }, c: GradeThemeColors): GradeTone {
+  const teamBg = desaturate(team.primary, 0.2);
+  switch (grade) {
+    case "S":
+      // 테두리는 금색을 30% 어둡게 — 밝은 바탕에서 금색 면(대비 약 1.8:1)의 경계가 보이게 (3:1 이상)
+      return { bg: c.gradeS, ink: readableInk(c.gradeS, c.gradeSInk), border: mixHexLinear(c.gradeS, "#000000", 0.3) };
+    case "A":
+      return { bg: teamBg, ink: readableInk(teamBg, team.text), border: teamBg };
+    case "B": {
+      const bg = mixHexLinear(teamBg, c.surface, 0.72);
+      return { bg, ink: readableInk(bg, c.ink), border: teamBg };
+    }
+    case "C":
+      return { bg: c.gradeC, ink: readableInk(c.gradeC, c.gradeCInk), border: c.gradeC };
+    case "D":
+      return { bg: c.gradeD, ink: readableInk(c.gradeD, c.gradeDInk), border: c.gradeD };
+    case "F":
+      return { bg: c.gradeF, ink: readableInk(c.gradeF, c.gradeFInk), border: c.gradeF };
+    default:
+      return { bg: c.surface, ink: c.ink3, border: c.grid };
+  }
+}
+
+/** sRGB 선형 보간 (lib/images mixHex 와 같은 규칙, 순환 import 를 피하려고 여기 둔다) */
+function mixHexLinear(a: string, b: string, t: number): string {
+  const ca = hexRgb(a);
+  const cb = hexRgb(b);
+  if (!ca || !cb) return a;
+  return mix(ca, cb, Math.min(1, Math.max(0, t)));
 }
 
 /** 두 팀 비교 때 색이 이 거리(OKLab ×100)보다 가까우면 팀 색 대신 팔레트 1·2번(파랑·주황)으로 바꾼다 */

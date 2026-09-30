@@ -20,8 +20,8 @@
   --rank-tint: 13%;
   --rank-border: 45%;
   --rank-pill-ring: transparent;
-  /* 플레이어 카드 등급 S~F (A·B 는 팀 색이라 토큰 없음). 바탕 / 글자 */
-  --grade-s: #e9b72c;
+  /* 플레이어 카드 등급 S~F (A·B 는 팀 색이라 토큰 없음). 바탕 / 글자. S 금색은 원래 값에서 채도 20% 낮춤(디자인 점검 B5) */
+  --grade-s: #e1b95a;
   --grade-s-ink: #3a2900;
   --grade-c: #e4e2dc;
   --grade-c-ink: #2f2e2b;
@@ -59,7 +59,7 @@
     --rank-tint: 32%;
     --rank-border: 70%;
     --rank-pill-ring: rgba(255, 255, 255, 0.35);
-    --grade-s: #f2c94c;
+    --grade-s: #ebcb6f;
     --grade-s-ink: #2e2100;
     --grade-c: #3b3b37;
     --grade-c-ink: #f0efe8;

@@ -1,11 +1,12 @@
 "use client";
 // 팀 로고: 기본은 팀 색 사각형 + 약칭(최대 3글자), 공식 로고가 있으면 위에 얹는다 (PLAN.md §5-2 ③).
 // next/image를 쓰지 않는다(외부 로고 복제 회피). 이미지 저장(html-to-image) 사본에는 official={false} 로 넣는다(CORS).
+import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
 import type { TeamColor } from "@/lib/types";
 import { teamMark } from "@/lib/images";
 import { useOfficialImage } from "./useOfficialImage";
 
-const FALLBACK: TeamColor = { primary: "#6B7280", secondary: "#9CA3AF", text: "#fff" };
+const FALLBACK: TeamColor = FALLBACK_TEAM_COLOR;
 
 interface Props {
   logoUrl?: string | null;

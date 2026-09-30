@@ -48,6 +48,8 @@ import Segmented from "./Segmented";
 import SiteNav from "./SiteNav";
 import TeamLogo from "./TeamLogo";
 import { primeSeasonCards, useSeasonCards } from "./useSeasonCards";
+import { useThemeColors, type ThemeColors } from "./useThemeColors";
+import { FALLBACK_TEAM_COLOR, gradeTone } from "@/lib/teams";
 
 interface Props {
   /** 선수가 있는 시즌 (최신이 먼저) */
@@ -57,38 +59,35 @@ interface Props {
   initialFile: SeasonCardsFile;
 }
 
-/** 종합 등급 배지 색: S 금색, A 진한 잉크, 나머지 옅은 면 (색만으로 구분하지 않고 글자가 등급) */
-function GradeBadge({ grade }: { grade: Grade | "-" }) {
+/** 종합 등급 배지 — 플레이어 카드와 같은 색 규칙(lib/teams gradeTone: S 금색, A·B 팀 색, C 이하 무채색). 글자가 곧 등급 */
+function GradeBadge({ grade, team, colors }: { grade: Grade | "-"; team?: CardTeam; colors: ThemeColors }) {
   if (grade === "-") {
-    return <span className="rounded-md bg-surface-2 px-1.5 py-0.5 text-caption font-semibold text-ink-3">표본 미달</span>;
+    return <span className="rounded-lg bg-surface-2 px-1.5 py-0.5 text-caption font-semibold text-ink-2">표본 미달</span>;
   }
-  const style: React.CSSProperties =
-    grade === "S"
-      ? { background: "var(--grade-s)", color: "var(--grade-s-ink)" }
-      : grade === "A"
-        ? { background: "var(--ink)", color: "var(--bg)" }
-        : grade === "B" || grade === "C"
-          ? { background: "var(--grade-c)", color: "var(--grade-c-ink)" }
-          : { background: "var(--grade-f)", color: "var(--grade-f-ink)" };
+  const tone = gradeTone(grade, team?.color ?? FALLBACK_TEAM_COLOR, colors);
   return (
-    <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-base font-black" style={style} aria-label={`종합 등급 ${grade}`}>
+    <span
+      className="inline-flex h-7 w-7 items-center justify-center rounded-lg border-[1.5px] text-base font-black"
+      style={{ background: tone.bg, color: tone.ink, borderColor: tone.border }}
+      aria-label={`종합 등급 ${grade}`}
+    >
       {grade}
     </span>
   );
 }
 
-function GridCard({ e, team, seasonCode }: { e: GridEntry; team?: CardTeam; seasonCode: number }) {
+function GridCard({ e, team, seasonCode, colors }: { e: GridEntry; team?: CardTeam; seasonCode: number; colors: ThemeColors }) {
   const p = e.player;
   const pos = positionLabel(p.position);
   return (
     <Link
       href={playerHref(p.id, seasonCode)}
-      className="focus-ring flex h-full min-w-0 flex-col rounded-2xl border border-line bg-surface p-3 transition-colors duration-200 hover:bg-surface-2"
+      className="focus-ring surface-card flex h-full min-w-0 flex-col rounded-2xl p-3 transition-colors duration-200 hover:bg-surface-2"
       aria-label={`${p.nameKo}, ${team?.shortName ?? p.teamShort}${pos ? `, ${pos}` : ""}, 종합 등급 ${e.overall === "-" ? "표본 미달" : e.overall}, 경기당 ${formatCardValue(e.ppg, false)}점`}
     >
       <span className="flex items-start justify-between gap-2">
         <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={team?.color} size={52} />
-        <GradeBadge grade={e.overall} />
+        <GradeBadge grade={e.overall} team={team} colors={colors} />
       </span>
       <span className="mt-2 line-clamp-2 text-body font-bold leading-tight text-ink break-keep">{p.nameKo}</span>
       <span className="mt-1 flex min-w-0 items-center gap-1 text-caption text-ink-2">
@@ -107,6 +106,7 @@ function GridCard({ e, team, seasonCode }: { e: GridEntry; team?: CardTeam; seas
 }
 
 export default function PlayersView({ seasons, latest, initialFile }: Props) {
+  const colors = useThemeColors();
   const initialCards = useMemo(() => primeSeasonCards(initialFile), [initialFile]);
   const [state, setState] = useState<PlayersState>({ season: latest, position: "all", origin: "all", teamCode: null });
   const [limit, setLimit] = useState(GRID_PAGE_SIZE);
@@ -219,12 +219,12 @@ export default function PlayersView({ seasons, latest, initialFile }: Props) {
             <ul className={`grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 ${status === "loading" ? "opacity-50" : ""}`}>
               {shown.map((e) => (
                 <li key={e.player.id} className="min-w-0">
-                  <GridCard e={e} team={teamByCode.get(e.player.teamCode)} seasonCode={shownSeason} />
+                  <GridCard e={e} team={teamByCode.get(e.player.teamCode)} seasonCode={shownSeason} colors={colors} />
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="rounded-2xl border border-line bg-surface px-4 py-8 text-center text-body text-ink-2">
+            <p className="surface-card rounded-2xl px-4 py-8 text-center text-body text-ink-2">
               조건에 맞는 선수가 없습니다. 필터를 줄여 보세요.
             </p>
           )}
@@ -232,7 +232,7 @@ export default function PlayersView({ seasons, latest, initialFile }: Props) {
             <button
               type="button"
               onClick={() => setLimit((n) => n + GRID_PAGE_SIZE)}
-              className="focus-ring mt-3 flex h-11 w-full cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-line bg-surface text-body font-semibold text-ink-2 transition-colors duration-200 hover:bg-surface-2 hover:text-ink"
+              className="focus-ring mt-3 flex h-11 w-full cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-line bg-surface text-body font-semibold text-ink-2 transition-colors duration-200 hover:bg-surface-2 hover:text-ink"
             >
               더 보기 <span className="font-normal text-ink-3">(남은 {remaining}명)</span>
               <IconChevronDown size={16} />

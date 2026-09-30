@@ -41,14 +41,14 @@ export default function GlossaryPage() {
             <a
               key={g.key}
               href={`#${GLOSSARY_ANCHORS[g.key]}`}
-              className="inline-flex h-8 items-center rounded-full border border-line bg-surface px-2.5 text-sub font-semibold text-ink-2 hover:bg-surface-2"
+              className="inline-flex h-10 items-center rounded-lg border border-line bg-surface px-3 text-sub font-semibold text-ink-2 hover:bg-surface-2"
             >
               {g.name}
             </a>
           ))}
         </nav>
 
-        <div className="rounded-xl border border-line bg-surface max-md:border-0 max-md:bg-transparent">
+        <div className="surface-card rounded-2xl max-md:border-0 max-md:bg-transparent max-md:shadow-none">
           <table className="w-full border-separate border-spacing-0 text-body max-md:block">
             <caption className="sr-only">지표 이름, 한 줄 한 줄 설명, 계산식, 비고, 출처</caption>
             <thead className="max-md:sr-only">
@@ -65,7 +65,7 @@ export default function GlossaryPage() {
                 <tr
                   key={g.key}
                   id={GLOSSARY_ANCHORS[g.key]}
-                  className="scroll-mt-4 target:bg-surface-2 max-md:block max-md:rounded-xl max-md:border max-md:border-line max-md:bg-surface max-md:p-3 max-md:target:bg-surface-2 max-md:target:ring-2 max-md:target:ring-ink"
+                  className="scroll-mt-4 target:bg-surface-2 max-md:block max-md:rounded-2xl max-md:border max-md:border-line max-md:bg-surface max-md:shadow-card max-md:p-3 max-md:target:bg-surface-2 max-md:target:ring-2 max-md:target:ring-ink"
                 >
                   <th scope="row" className={`${CELL} text-left text-base font-bold text-ink`}>
                     {g.name}

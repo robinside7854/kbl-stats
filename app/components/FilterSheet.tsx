@@ -105,14 +105,14 @@ export default function FilterSheet({ chips, onReset, resultText, children, trai
         type="button"
         onClick={onReset}
         disabled={count === 0}
-        className="focus-ring h-11 cursor-pointer rounded-xl border border-line bg-surface px-4 text-body font-semibold text-ink-2 transition-colors duration-200 hover:bg-surface-2 disabled:cursor-default disabled:opacity-50"
+        className="focus-ring h-11 cursor-pointer rounded-lg border border-line bg-surface px-4 text-body font-semibold text-ink-2 transition-colors duration-200 hover:bg-surface-2 disabled:cursor-default disabled:opacity-50"
       >
         초기화
       </button>
       <button
         type="button"
         onClick={close}
-        className="focus-ring h-11 flex-1 cursor-pointer rounded-xl bg-ink px-4 text-body font-semibold text-bg transition-opacity duration-200 hover:opacity-90"
+        className="focus-ring h-11 flex-1 cursor-pointer rounded-lg bg-ink px-4 text-body font-semibold text-bg transition-opacity duration-200 hover:opacity-90"
       >
         {resultText}
       </button>
@@ -163,7 +163,7 @@ export default function FilterSheet({ chips, onReset, resultText, children, trai
 
       {/* PC: 인라인 패널 */}
       {open && isDesktop && (
-        <div id={panelId} role="region" aria-label="필터 설정" className="mt-3 rounded-2xl border border-line bg-surface p-4">
+        <div id={panelId} role="region" aria-label="필터 설정" className="surface-card mt-3 rounded-2xl p-4">
           <div className="grid gap-4 lg:grid-cols-2">{children}</div>
           <div className="mt-4 max-w-sm">{footer}</div>
         </div>

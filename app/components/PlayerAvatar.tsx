@@ -8,11 +8,12 @@
 // - "circle"  : 목록·선택 상자용 원형 (size = 지름)
 // - "portrait": 플레이어 카드 상단의 큰 세로 사진 (size = 높이, 폭은 공식 사진 비율 470:609).
 //               배경 없이 카드 그라데이션 위에 얹고, 사진이 없으면 실루엣 + 큰 이니셜로 대체.
+import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
 import type { TeamColor } from "@/lib/types";
 import { nameInitial } from "@/lib/images";
 import { useOfficialImage } from "./useOfficialImage";
 
-const FALLBACK: TeamColor = { primary: "#6B7280", secondary: "#9CA3AF", text: "#fff" };
+const FALLBACK: TeamColor = FALLBACK_TEAM_COLOR;
 /** KBL 현역 프로필 사진 비율 (470×609, PLAN.md §5-1) */
 const PORTRAIT_RATIO = 470 / 609;
 
