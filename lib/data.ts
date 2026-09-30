@@ -47,6 +47,11 @@ function readSeasonFile(seasonCode: number): SeasonData | null {
   return readJson<SeasonData>(file);
 }
 
+/** 코드표(seasons.json)의 전체 시즌 — 개막 전(선수 0명) 시즌 포함, 최신 시즌이 먼저 */
+export function listAllSeasons(): SeasonOption[] {
+  return [...readJson<SeasonOption[]>("seasons.json")].sort((a, b) => b.seasonCode - a.seasonCode);
+}
+
 /** 선수가 1명 이상 있는 시즌만, 최신 시즌이 먼저 오도록 정렬 (개막 전 시즌은 숨김) */
 export function listSeasonsWithPlayers(): SeasonOption[] {
   const seasons = readJson<SeasonOption[]>("seasons.json");
