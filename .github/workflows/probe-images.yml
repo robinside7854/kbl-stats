@@ -14,41 +14,23 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: 3차 조사 — 사진 파일 크기(플레이스홀더 판별), CSS의 팀 엠블럼 주소, 팀코드→클래스 매핑
+      - name: 4차 조사 — ico.css 의 ic-emblem 규칙 전체(옛 로고 포함)
         shell: bash
         run: |
           set +e
           UA="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/128 Safari/537.36"
           OUT=probe-images.txt
           {
-            echo "=== A. 선수 사진 GET 크기·타입 (현역 워니 / 2000-01 조성원 / 2008-09 서장훈 / 2014-15 문태영 / 라건아 / 존재하지 않는 번호 999999)"
-            for no in 291248 245027 255032 290280 290524 999999; do
-              curl -sS -o photo_$no.bin --max-time 20 -A "$UA" -w "%{http_code} %{content_type} %{size_download}B" "https://kbl.or.kr/files/kbl/players-photo/$no.png"
-              echo "  sha=$(sha256sum photo_$no.bin | cut -c1-12) dims=$(python3 -c "import struct,sys;d=open('photo_$no.bin','rb').read(32);print(struct.unpack('>II',d[16:24]) if d[:8]==b'\\x89PNG\\r\\n\\x1a\\n' else 'not-png')")  <- $no"
-              sleep 1.5
-            done
-
-            echo; echo "=== B. 페이지의 CSS 파일과 그 안의 ic-emblem 규칙"
-            curl -sSL --max-time 20 -A "$UA" "https://kbl.or.kr/player/list" > page.html; sleep 1.5
-            grep -oE '(href|src)="[^"]+\.css[^"]*"' page.html | sort -u
-            for css in $(grep -oE 'href="[^"]+\.css[^"]*"' page.html | sed 's/href="//;s/"$//' | sort -u | head -3); do
-              case "$css" in http*) url="$css";; /*) url="https://kbl.or.kr$css";; *) url="https://kbl.or.kr/$css";; esac
-              echo "--- $url"
-              curl -sSL --max-time 20 -A "$UA" "$url" > style.css; sleep 1.5
-              echo "css bytes: $(wc -c < style.css)"
-              grep -oE '\.ic-emblem[^{]*\{[^}]*\}' style.css | head -40
-              echo "--- css 안의 emblem/logo 이미지 경로"
-              grep -oE '[A-Za-z0-9_./-]*(emblem|logo)[A-Za-z0-9_./-]*\.(png|svg|webp)' style.css | sort -u | head -40
-            done
-
-            echo; echo "=== C. 번들의 teamClassCd / getTeamEmblemClass 함수 본문"
-            curl -sSL --max-time 20 -A "$UA" "https://kbl.or.kr/assets/index-BYeGquu0.js" > bundle.js; sleep 1.5
-            grep -oE 'function teamClassCd\([^)]*\)\{.{0,600}' bundle.js | head -1
-            echo "---"
-            grep -oE '(const|function) getTeamEmblemClass[^{]*\{.{0,400}' bundle.js | head -1
-            echo "---"
-            grep -oE '(const|function) getTeamShortName[^{]*\{.{0,400}' bundle.js | head -1
+            curl -sSL --max-time 20 -A "$UA" "https://kbl.or.kr/assets/css/ico.css" > ico.css; sleep 1.5
+            echo "css bytes: $(wc -c < ico.css)"
+            grep -oE '\.ic-emblem[^{]*\{[^}]*\}' ico.css
+            echo "=== old/ 디렉터리 파일"
+            grep -oE 'logo/old/[A-Za-z0-9_.-]+' ico.css | sort -u
+            echo "=== 로고 파일 하나 실제 확인"
+            curl -sS -o /dev/null -I --max-time 20 -A "$UA" -w "%{http_code} %{content_type}\n" "https://kbl.or.kr/assets/img/ico/logo/ic-sk.svg"; sleep 1.5
+            curl -sS -o /dev/null -I --max-time 20 -A "$UA" -w "%{http_code} %{content_type}\n" "https://kbl.or.kr/assets/img/ico/logo/old/db1997e.png"
           } | tee "$OUT"
+          true
       - uses: actions/upload-artifact@v4
         with:
           name: probe-images
