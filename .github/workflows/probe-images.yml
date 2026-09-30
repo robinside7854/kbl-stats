@@ -1,4 +1,4 @@
-# 일회성 조사용 (실행 15):
+# 일회성 조사용 (실행 16):
 # (Claude 클라우드 세션은 KBL 서버 접속이 차단돼 Actions 러너에서 대신 확인)
 # 요청은 10회 미만, 간격 1.5초. 결과는 로그와 아티팩트(probe-images.txt)로 남긴다.
 name: 이미지 출처 조사
@@ -14,18 +14,31 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - name: 15차 조사(경기 기록 버튼·팀·라인업) — 선수 상세 페이지 API(경기별 기록) 캡처
+      - name: 16차 조사 — 서버 C match/list 400 원인(헤더·날짜 조합) + match-chart gmkey 직접 호출
         shell: bash
         run: |
           set +e
-          npm init -y >/dev/null 2>&1
-          npm i playwright@1 >/dev/null 2>&1
-          npx playwright install --with-deps chromium >/dev/null 2>&1
-          node scripts-probe/capture.mjs 2>&1 | tee probe-images.txt
+          B="https://api.kbl.or.kr"
+          try() { echo; echo "--- $1 | $2"; curl -sS --max-time 25 -o r.json -w "http=%{http_code} bytes=%{size_download}\n" $3 "$1"; head -c 300 r.json; echo; sleep 1.5; }
+          U1="$B/match/list?fromDate=20250901&toDate=20250930&tcodeList=all"
+          U2="$B/match/list?fromDate=20251001&toDate=20251031&tcodeList=all"
+          U3="$B/match/list?fromDate=20260901&toDate=20260930&tcodeList=all"
+          H_BROWSER='-A "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/128 Safari/537.36"'
+          {
+            try "$U3" "no headers" ""
+            try "$U3" "browser UA only" "-A Mozilla/5.0"
+            try "$U3" "our headers" "-H Accept:application/json -H Referer:https://kbl.or.kr/ -H Origin:https://kbl.or.kr"
+            try "$U3" "UA+Referer" "-A Mozilla/5.0 -H Referer:https://kbl.or.kr/match/schedule"
+            try "$U1" "2025-09 UA+Referer" "-A Mozilla/5.0 -H Referer:https://kbl.or.kr/match/schedule"
+            try "$U2" "2025-10 UA+Referer" "-A Mozilla/5.0 -H Referer:https://kbl.or.kr/match/schedule"
+            try "$U2" "2025-10 no headers" ""
+            try "$B/match/list?fromDate=20251001&toDate=20251031" "2025-10 without tcodeList" "-A Mozilla/5.0"
+            try "$B/match/list?fromDate=2025-10-01&toDate=2025-10-31&tcodeList=all" "dashed dates" "-A Mozilla/5.0"
+            try "$B/match/S47G01N265" "match detail gmkey guess" "-A Mozilla/5.0 -H Referer:https://kbl.or.kr/"
+            try "$B/match/S47G01N265/match-chart" "match-chart gmkey guess" "-A Mozilla/5.0 -H Referer:https://kbl.or.kr/"
+            try "$B/match/S49G14N1/match-chart" "match-chart known" "-A Mozilla/5.0 -H Referer:https://kbl.or.kr/"
+            try "$B/match/S49G14N1/match-chart" "match-chart known, no headers" ""
+          } | tee probe-images.txt
           true
       - uses: actions/upload-artifact@v4
         with:
