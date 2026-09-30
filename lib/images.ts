@@ -40,3 +40,22 @@ export function teamShortLabel(shortName: string, maxLength = 9): string {
   if ([...s].length <= maxLength) return s;
   return teamMark(s);
 }
+
+/**
+ * 두 hex 색을 섞는다 (sRGB 선형 보간, t=0 이면 a, t=1 이면 b). 3·6자리 hex 지원, 잘못된 값이면 a 그대로.
+ * 플레이어 카드 상단 그라데이션(팀 primary → 어두운 색)에 쓴다. CSS color-mix 대신 hex 로 만들어
+ * 이미지 저장(html-to-image) 결과가 브라우저마다 달라지지 않게 한다.
+ */
+export function mixHex(a: string, b: string, t: number): string {
+  const parse = (h: string): number[] | null => {
+    let s = h.trim().replace(/^#/, "");
+    if (s.length === 3) s = [...s].map((c) => c + c).join("");
+    if (!/^[0-9a-fA-F]{6}$/.test(s)) return null;
+    return [0, 2, 4].map((i) => parseInt(s.slice(i, i + 2), 16));
+  };
+  const ca = parse(a);
+  const cb = parse(b);
+  if (!ca || !cb) return a;
+  const k = Math.min(1, Math.max(0, t));
+  return "#" + ca.map((v, i) => Math.round(v + (cb[i] - v) * k).toString(16).padStart(2, "0")).join("");
+}

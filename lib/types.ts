@@ -117,7 +117,7 @@ export interface PlayerIndexEntry {
 
 // ─────────────────────────────────────────────
 // 화면(클라이언트)으로 넘기는 최소 필드 — 페이로드를 작게 유지하기 위해
-// Player 전체가 아니라 레이더 카드에 필요한 값만 담는다. (lib/data.ts 에서 변환)
+// Player 전체가 아니라 플레이어 카드(메인 스탯 9개 + 레이더)에 필요한 값만 담는다. (lib/data.ts 에서 변환)
 // ─────────────────────────────────────────────
 
 export interface CardPlayer {
@@ -134,6 +134,15 @@ export interface CardPlayer {
   points: number;         // 시즌 누적
   reb: number;
   ast: number;
+  stl: number;            // 이하 3개 시즌 누적 (플레이어 카드 메인 스탯)
+  blk: number;
+  tov: number;
+  fga: number;            // 시즌 누적 시도 — 성공률 순위의 시도 기준용 (lib/metrics.ts CARD_STATS)
+  tpa: number;
+  fta: number;
+  fgPct: number;          // 이하 KBL 계산 성공률 그대로 (0~100)
+  tpPct: number;
+  ftPct: number;
   per: number;
   usgPct: number;
   tsPct: number;
