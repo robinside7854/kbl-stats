@@ -58,9 +58,12 @@ export default function SeasonHighStrip({ cards, teamByCode, activeKey }: Props)
                 <span className="truncate">{c.label}</span>
                 {c.times !== null && c.times > 1 && <span className="shrink-0 text-caption font-medium text-ink-3">{c.times}회</span>}
               </p>
-              {/* deslop-ignore-next-line 11 */}
-              <p className="mt-1 text-4xl font-black leading-none tracking-tight text-ink">{c.value}</p>
-              {c.shot && <p className="mt-1 text-caption font-medium text-ink-3">{c.shot}</p>}
+              {/* 3점·자유투는 큰 숫자 옆에 그 경기 성공/시도·성공률 — 카드마다 높이가 같도록 같은 줄에 */}
+              <p className="mt-1 flex min-w-0 items-baseline gap-1.5">
+                {/* deslop-ignore-next-line 11 */}
+                <span className="text-4xl font-black leading-none tracking-tight text-ink">{c.value}</span>
+                {c.shot && <span className="truncate text-caption font-medium text-ink-3">{c.shot}</span>}
+              </p>
               <Link
                 href={`/player/${c.playerNo}`}
                 className="focus-ring group mt-2.5 flex min-h-11 min-w-0 items-center gap-2 rounded-control"

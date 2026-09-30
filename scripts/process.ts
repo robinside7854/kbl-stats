@@ -3,6 +3,7 @@
 //   (+ data/raw/players/players.json 선수 마스터 — 있으면 playerNo 로 조인해 포지션·국적·신장 등 프로필을 붙인다)
 //   (+ data/raw/highs/{season}/{playerNo}.json 한 경기 최다 — 선수 seasonHighs, 시즌 seasonHighLeaders, 색인 careerHighs)
 //   (+ data/raw/profiles/{playerNo}.json 프로필 — 색인 birthday·country·school)
+//   (+ data/raw/gamelogs/{season}/{playerNo}.json 경기별 기록 — 한 경기 최다 3점·자유투·야투 성공에 그 경기 attempts·pct)
 //   → data/processed/{season}/players.json (lib/types.ts의 SeasonData 형태: coverage·teams·players)
 // 모든 시즌을 가공한 뒤
 //   → data/processed/seasons.json (시즌 목록), data/processed/players-index.json (선수 색인)
@@ -17,8 +18,9 @@ import { playerPhotoUrl, teamLogoUrl } from "./image-urls.js";
 import { teamShortNameKo } from "../lib/teams.js";
 import { buildProfileMap, EMPTY_PROFILE, EMPTY_PROFILE_EXTRA, isForeignPlayer, profileExtraFrom, type ProfileExtra } from "./player-master.js";
 import { hasCareerHighs, parseMostGame, type ParsedMostGame } from "./highs.js";
-import { computeSeasonHighLeaders } from "../lib/highs.js";
-import type { CareerHighs, Player, PlayerIndexEntry, PlayerProfile, SeasonData, Team, TeamColor } from "../lib/types.js";
+import { attachShotAttempts, parseGameLog, type GameLogRow } from "./gamelogs.js";
+import { computeSeasonHighLeaders, SHOT_HIGH_KEYS } from "../lib/highs.js";
+import type { CareerHighs, HighsSet, Player, PlayerIndexEntry, PlayerProfile, SeasonData, Team, TeamColor } from "../lib/types.js";
 
 type Raw = Record<string, any>;
 
@@ -57,6 +59,53 @@ async function readSeasonHighs(seasonCode: number): Promise<Map<string, ParsedMo
     } catch {
       console.warn(`[${seasonCode}] 한 경기 최다 파일 읽기 실패: ${f}`);
     }
+  }
+  return out;
+}
+
+/**
+ * 경기별 기록 (시즌 코드 → 선수 번호 → 경기 목록). main() 이 data/raw/gamelogs/{시즌}/{선수}.json 을 전부 읽어 채운다.
+ * 없으면 빈 Map → 한 경기 최다에 시도 수가 붙지 않는다(attempts 필드 없음 → 화면은 개수만).
+ */
+let gameLogs = new Map<number, Map<string, GameLogRow[]>>();
+/** 시도 수를 붙인 슛 기록 수 / 경기별 raw 는 있는데 그날 경기를 못 찾은 수 (로그용) */
+const shotStats = { attached: 0, missing: 0 };
+
+async function readGameLogs(): Promise<Map<number, Map<string, GameLogRow[]>>> {
+  const root = join(DATA_DIR, "raw", "gamelogs");
+  const out = new Map<number, Map<string, GameLogRow[]>>();
+  let dirs: string[];
+  try {
+    dirs = (await readdir(root)).filter((d) => /^\d+$/.test(d));
+  } catch {
+    console.warn(`경기별 기록 없음(${root}) → 한 경기 최다 시도 수 없음`);
+    return out;
+  }
+  let files = 0;
+  for (const d of dirs) {
+    const bySeason = new Map<string, GameLogRow[]>();
+    for (const f of (await readdir(join(root, d))).filter((x) => x.endsWith(".json"))) {
+      try {
+        bySeason.set(f.replace(/\.json$/, ""), parseGameLog(JSON.parse(await readFile(join(root, d, f), "utf8"))));
+        files++;
+      } catch {
+        console.warn(`[${d}] 경기별 기록 파일 읽기 실패: ${f}`);
+      }
+    }
+    out.set(Number(d), bySeason);
+  }
+  console.log(`경기별 기록: ${files}개 파일 (시즌 ${out.size}개)`);
+  return out;
+}
+
+/** 한 선수의 세트에 슛 시도 수를 붙이고 로그용으로 센다 */
+function withShots(set: HighsSet | null, playerNo: string, fallbackSeason: number | null): HighsSet | null {
+  const out = attachShotAttempts(set, (season) => gameLogs.get(season)?.get(playerNo), fallbackSeason);
+  for (const k of SHOT_HIGH_KEYS) {
+    const r = out?.[k];
+    if (!r || r.attempts === undefined) continue;
+    if (r.attempts === null) shotStats.missing++;
+    else shotStats.attached++;
   }
   return out;
 }
@@ -242,8 +291,12 @@ async function processSeason(seasonCode: number): Promise<SeasonData> {
   if (highs.size > 0) highsSeasonCount++;
   for (const p of players) {
     const h = highs.get(p.playerNo);
-    p.seasonHighs = h?.season ?? null;
-    if (h && hasCareerHighs(h.career)) careerHighsByPlayer.set(p.playerNo, h.career);
+    // 슛 부문(3점·자유투·야투 성공)에 그 경기 시도 수 — 같은 선수·시즌·날짜의 경기별 기록 (scripts/gamelogs.ts)
+    p.seasonHighs = withShots(h?.season ?? null, p.playerNo, seasonCode);
+    if (h && hasCareerHighs(h.career)) {
+      // 통산은 정규시즌만 붙인다 (경기별 기록은 정규시즌 raw 뿐). 기록의 달성 시즌 raw 에서 찾는다
+      careerHighsByPlayer.set(p.playerNo, { ...h.career, regular: withShots(h.career.regular, p.playerNo, null) });
+    }
   }
 
   const rawTeams = await readRawTeams(rawDir);
@@ -367,6 +420,7 @@ async function main() {
   hiddenPhotos = await readPhotoOverrides();
   profiles = await readProfiles();
   profileExtras = await readProfileExtras();
+  gameLogs = await readGameLogs();
   const seasons = (await readdir(join(DATA_DIR, "raw"), { withFileTypes: true }))
     .filter((d) => d.isDirectory() && /^\d+$/.test(d.name))
     .map((d) => Number(d.name))
@@ -381,6 +435,7 @@ async function main() {
 
   if (highsSeasonCount === 0) console.warn("한 경기 최다 raw 없음(data/raw/highs) → seasonHighs·seasonHighLeaders·careerHighs 는 null");
   else console.log(`한 경기 최다: ${highsSeasonCount}개 시즌, 통산 ${careerHighsByPlayer.size}명`);
+  if (gameLogs.size > 0) console.log(`한 경기 최다 슛 시도 수: 붙임 ${shotStats.attached} · 그날 경기 못 찾음 ${shotStats.missing} (시즌별·통산 합계, 중복 포함)`);
   if (unknownHighsKeys.size > 0) console.warn(`한 경기 최다 응답의 모르는 배열(무시함): ${[...unknownHighsKeys].join(", ")}`);
 
   // 팀 한글 약칭 점검표 (teamName1 → shortNameKo, 등장 시즌) — 이상한 값이 없는지 눈으로 확인
