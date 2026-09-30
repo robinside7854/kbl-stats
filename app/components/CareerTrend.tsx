@@ -1,11 +1,14 @@
 "use client";
 // 선수 페이지 시즌별 추이 선 그래프 (Recharts LineChart, PLAN.md §2-2 ③).
-// - 지표 전환 버튼 6개(lib/career TREND_METRICS), 가로축 = 시즌, 세로축 = 값. 한 개 계열이라 범례 상자 없음(제목이 이름).
-// - 선은 시리즈 색 2px, 점은 그 시즌 팀 색(표면 색 고리 2px) — 팀이 바뀐 시즌은 점을 크게 + 아래 범례(팀 한글 약칭)로 구분.
-//   팀 색이 비슷하거나(옛 구단은 모두 회색) 색을 구분하기 어려운 경우를 위해 툴팁·표에 팀 이름이 항상 같이 나온다.
+// - 지표 전환 버튼 8개(lib/career TREND_METRICS: 득점·리바·어시·스틸·블록·야투%·3점%·PER), 가로축 = 시즌, 세로축 = 값.
+//   한 개 계열이라 범례 상자 없음(제목이 이름).
+// - 선은 시리즈 색 2px, 점은 **그 시즌 팀 로고**(LogoDot: 흰 원 + 로고 22px, 이적 시즌은 26px + 두꺼운 팀 색 테두리).
+//   로고가 없거나 불러오지 못하면(또는 공식 이미지 스위치 off) 팀 색 원 + 약칭 글자로 대신한다.
+//   팀 색이 비슷하거나(옛 구단은 모두 회색) 로고를 알아보기 어려운 경우를 위해 툴팁·범례에 팀 이름이 항상 같이 나온다.
 // - 점을 누르거나(모바일) 올리면 툴팁에 시즌·팀·값·경기 수. 마지막 시즌 값은 점 옆에 직접 표기.
 // - 뛰지 않은 시즌(군 복무 등)은 값 없음 → 선이 끊긴다.
 import { useMemo, useState } from "react";
+import { officialImagesEnabled, teamMark } from "@/lib/images";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
 import type { CareerSeason, SeasonOption, TeamColor } from "@/lib/types";
@@ -19,6 +22,7 @@ import {
   type TrendRow,
 } from "@/lib/career";
 import { teamShortLabel } from "@/lib/images";
+import TeamLogo from "./TeamLogo";
 import { useThemeColors } from "./useThemeColors";
 
 const GRAY: TeamColor = FALLBACK_TEAM_COLOR;
@@ -34,6 +38,66 @@ interface Datum extends TrendRow {
   tick: string;
   team: string;
   color: string;
+  textColor: string;
+  logoUrl: string | null;
+}
+
+/** 로고 점 지름 (px): 보통 시즌 / 이적 시즌 */
+const DOT = { normal: 22, changed: 26 } as const;
+
+/**
+ * 추이 그래프의 점 = 그 시즌 팀 로고 (SVG <image>). 대체: 팀 색 원 + 약칭 글자(teamMark).
+ * 로고는 흰 원 안에 얹는다(팀 색 배경 위 로고가 묻히지 않게) — 로드가 끝나기 전·실패하면 대체 디자인이 보인다.
+ */
+function LogoDot({ cx, cy, d, surface }: { cx: number; cy: number; d: Datum; surface: string }) {
+  const [failed, setFailed] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState<string | null>(null);
+  const size = d.teamChanged ? DOT.changed : DOT.normal;
+  const r = size / 2;
+  const src = d.logoUrl && officialImagesEnabled() && failed !== d.logoUrl ? d.logoUrl : null;
+  const showLogo = !!src && loaded === src;
+  // 점이 작아(22px) 한글 약칭은 두 글자까지만 (전자랜드 → 전자). 영문 머리글자는 teamMark 그대로(최대 3글자)
+  const m = teamMark(d.team);
+  const mark = /[가-힣]/.test(m) ? [...m].slice(0, 2).join("") : m;
+  const inner = size - 6; // 로고 그림 크기 (테두리 안쪽)
+  return (
+    <g>
+      {/* 바깥 고리: 표면 색 2px (선과 겹칠 때 분리), 이적 시즌은 팀 색 고리를 한 겹 더 */}
+      <circle cx={cx} cy={cy} r={r + 1} fill={surface} />
+      {d.teamChanged && <circle cx={cx} cy={cy} r={r} fill="none" stroke={d.color} strokeWidth={2.5} />}
+      {showLogo ? (
+        <circle cx={cx} cy={cy} r={r - (d.teamChanged ? 1.5 : 0)} fill="#ffffff" stroke="rgba(0,0,0,0.12)" strokeWidth={1} />
+      ) : (
+        <>
+          <circle cx={cx} cy={cy} r={r - (d.teamChanged ? 1.5 : 0)} fill={d.color} />
+          <text
+            x={cx}
+            y={cy + (mark.length > 2 ? 3 : 3.5)}
+            textAnchor="middle"
+            fontSize={mark.length > 2 ? 7.5 : 9.5}
+            fontWeight={800}
+            fill={d.textColor}
+          >
+            {mark}
+          </text>
+        </>
+      )}
+      {src && (
+        <image
+          href={src}
+          x={cx - inner / 2}
+          y={cy - inner / 2}
+          width={inner}
+          height={inner}
+          preserveAspectRatio="xMidYMid meet"
+          opacity={showLogo ? 1 : 0}
+          onLoad={() => setLoaded(src)}
+          onError={() => setFailed(src)}
+          data-official-image=""
+        />
+      )}
+    </g>
+  );
 }
 
 export default function CareerTrend({ seasons, allSeasons }: Props) {
@@ -51,6 +115,8 @@ export default function CareerTrend({ seasons, allSeasons }: Props) {
           tick: seasonTickLabel(r.seasonLabel),
           team: s ? teamShortLabel(s.team?.shortName ?? s.teamShort) : "",
           color: (s?.team?.color ?? GRAY).primary,
+          textColor: (s?.team?.color ?? GRAY).text,
+          logoUrl: s?.team?.logoUrl ?? null,
         };
       }),
     [seasons, allSeasons, key, bySeason],
@@ -58,9 +124,9 @@ export default function CareerTrend({ seasons, allSeasons }: Props) {
 
   // 범례: 거쳐 간 팀(처음 등장 순). 같은 팀 코드라도 이름이 바뀌면 따로 (KT&G → 정관장)
   const legend = useMemo(() => {
-    const seen = new Map<string, string>();
-    for (const d of data) if (d.value !== null && !seen.has(d.team)) seen.set(d.team, d.color);
-    return [...seen.entries()].map(([team, color]) => ({ team, color }));
+    const seen = new Map<string, Datum>();
+    for (const d of data) if (d.value !== null && !seen.has(d.team)) seen.set(d.team, d);
+    return [...seen.values()].map((d) => ({ team: d.team, color: { primary: d.color, secondary: d.color, text: d.textColor }, logoUrl: d.logoUrl }));
   }, [data]);
 
   if (seasons.length < 2) {
@@ -106,7 +172,7 @@ export default function CareerTrend({ seasons, allSeasons }: Props) {
 
       <div aria-hidden className="mt-3 h-60 w-full sm:h-72">
         <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 340, height: 240 }}>
-          <LineChart data={data} margin={{ top: 22, right: 34, bottom: 0, left: 0 }}>
+          <LineChart data={data} margin={{ top: 30, right: 34, bottom: 4, left: 4 }}>
             <CartesianGrid vertical={false} stroke={colors.grid} strokeWidth={1} />
             <XAxis
               dataKey="tick"
@@ -165,30 +231,29 @@ export default function CareerTrend({ seasons, allSeasons }: Props) {
               dot={(props: { cx?: number; cy?: number; index?: number; payload?: Datum }) => {
                 const { cx, cy, index = 0, payload } = props;
                 if (cx == null || cy == null || !payload || payload.value === null) return <g key={`d${index}`} />;
-                const r = payload.teamChanged ? 6.5 : 5;
+                const r = (payload.teamChanged ? DOT.changed : DOT.normal) / 2;
                 return (
                   <g key={`d${index}`}>
-                    <circle cx={cx} cy={cy} r={r} fill={payload.color} stroke={colors.surface} strokeWidth={2} />
+                    <LogoDot cx={cx} cy={cy} d={payload} surface={colors.surface} />
                     {index === lastIdx && (
-                      <text x={cx} y={cy - 11} textAnchor="middle" fontSize={12} fontWeight={700} fill={colors.ink}>
+                      <text x={cx} y={cy - r - 5} textAnchor="middle" fontSize={12} fontWeight={700} fill={colors.ink}>
                         {formatTrend(payload.value, key)}
                       </text>
                     )}
                   </g>
                 );
               }}
-              activeDot={{ r: 7, stroke: colors.surface, strokeWidth: 2, fill: colors.series1 }}
+              activeDot={false}
             />
           </LineChart>
         </ResponsiveContainer>
       </div>
 
       <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sub text-ink-2">
-        <span className="text-ink-3">점 색 = 그 시즌 팀{legend.length > 1 ? " · 큰 점 = 이적한 시즌" : ""}</span>
+        <span className="text-ink-3">점 = 그 시즌 팀 로고{legend.length > 1 ? " · 테두리 있는 큰 점 = 이적한 시즌" : ""}</span>
         {legend.map((l) => (
           <span key={l.team} className="inline-flex items-center gap-1.5">
-            {/* deslop-ignore-next-line 19 */}
-            <span aria-hidden className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: l.color }} />
+            <TeamLogo logoUrl={l.logoUrl} shortName={l.team} color={l.color} size={16} />
             {l.team}
           </span>
         ))}
