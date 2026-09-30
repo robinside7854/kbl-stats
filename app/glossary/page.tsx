@@ -1,5 +1,5 @@
 // 용어 탭 (/glossary): lib/glossary.ts 항목을 표로 — 이름 · 한 줄 설명 · 계산식(고정폭) · 비고(검산 여부·KBL 특이사항) · 출처.
-// 카드 등급 영역·순위표 열 머리글의 ⓘ 가 여기 앵커(/glossary#ts 등, GLOSSARY_ANCHORS)로 연결된다 — 앵커 줄은 강조된다.
+// 메뉴에는 없다(2026-09-30 피드백 5차) — 각 화면 ⓘ 팝오버(HelpPopover)의 "자세히"가 여기 앵커(/glossary#ts 등, GLOSSARY_ANCHORS)로 연결된다 — 앵커 줄은 강조된다.
 // 그 아래 "선수 유형 라벨"(lib/glossary PLAYER_TYPES, 앵커 #type-{키})·"칭호 배지"(lib/badges BADGE_DEFS, 앵커 #badge-{키}) 규칙 표.
 // 모바일(768px 미만)은 표의 한 줄을 카드처럼 세로로 쌓는다 (같은 표 마크업, CSS만 다름 — 가로 스크롤 없음).
 import type { Metadata } from "next";

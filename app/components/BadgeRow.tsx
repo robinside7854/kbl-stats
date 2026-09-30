@@ -1,14 +1,14 @@
 "use client";
 // 칭호 배지 줄 (선수 상세 히어로 이름 아래): 우선순위 순 최대 5개(lib/badges HERO_BADGE_LIMIT), 나머지는 "+n" 으로 접는다.
-// 배지 = 팀 색을 표면 색에 옅게 섞은 바탕 + 본문 글자색(ink), 아이콘 없음. 누르면 용어 탭 "칭호 배지" 표의 그 줄로.
+// 배지 = 팀 색을 표면 색에 옅게 섞은 바탕 + 본문 글자색(ink), 아이콘 없음. 누르면 그 자리에서 조건 팝오버(HelpPopover — "자세히"가 용어 페이지 칭호 표의 그 줄).
 // 보이는 칩은 28px 이지만 누르는 영역은 위아래로 늘려 40px (음수 여백으로 줄 간격은 그대로).
 // 계산은 빌드 시점 lib/badges playerBadges — 여기서는 받은 목록을 그리기만 한다.
 import { useState } from "react";
-import Link from "next/link";
 import { BADGE_DEFS, splitBadges, type BadgeKey } from "@/lib/badges";
 import { badgeHref } from "@/lib/glossary";
+import HelpPopover from "./HelpPopover";
 
-const CONDITION = new Map(BADGE_DEFS.map((d) => [d.key, d.condition]));
+const DEF = new Map(BADGE_DEFS.map((d) => [d.key, d]));
 
 export interface BadgeItem {
   key: BadgeKey;
@@ -36,16 +36,15 @@ export default function BadgeRow({ badges, teamPrimary }: { badges: BadgeItem[];
     <ul aria-label="칭호 배지" className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
       {list.map((b) => (
         <li key={b.key}>
-          <Link
-            href={badgeHref(b.key)}
-            title={`${b.label}: ${CONDITION.get(b.key) ?? ""}`}
-            aria-label={`칭호 ${b.label} — 조건 보기`}
-            className="focus-ring group -my-1.5 inline-flex h-10 items-center rounded-control"
+          <HelpPopover
+            content={{ title: `칭호: ${b.label}`, short: DEF.get(b.key)?.short ?? "", formula: DEF.get(b.key)?.condition ?? null, href: badgeHref(b.key) }}
+            ariaLabel={`칭호 ${b.label} — 조건 보기`}
+            className="group -my-1.5 inline-flex h-10 items-center rounded-control"
           >
             <span className={`${BADGE_CHIP} transition-colors duration-200 group-hover:underline group-hover:underline-offset-4`} style={style}>
               {b.label}
             </span>
-          </Link>
+          </HelpPopover>
         </li>
       ))}
       {hidden > 0 && (

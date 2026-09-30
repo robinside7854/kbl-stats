@@ -1,22 +1,10 @@
-// ⓘ 아이콘 → 용어 탭의 해당 항목 (/glossary#앵커). 앵커는 lib/glossary GLOSSARY_ANCHORS.
-// 누르는 영역은 40×40(C1), 음수 여백으로 글줄 높이·간격은 아이콘(16px) 크기만큼만 차지한다.
-// compact: 표 머리글처럼 옆 칸이 붙어 있는 곳 — 높이 40, 폭 20.
-import Link from "next/link";
-import { glossaryEntry, glossaryHref, type GlossaryKey } from "@/lib/glossary";
-import { IconInfo } from "./icons";
+// ⓘ 아이콘 — 누르면 그 자리에서 용어 설명 팝오버(HelpPopover)가 뜬다 (2026-09-30 피드백 5차: 용어 탭을 메뉴에서 뺐다).
+// 예전에는 용어 탭(/glossary#앵커)으로 이동하는 링크였다. 이제 이동은 팝오버 안 "자세히"를 누를 때만.
+// 부르는 쪽 API(term·compact·className)는 그대로 — 순위표·기록표·비교표·팀 분포·카드가 이 컴포넌트를 쓴다.
+// 누르는 영역은 40×40(C1), 음수 여백으로 글줄 높이·간격은 아이콘(16px) 크기만큼만 차지한다. compact: 표 머리글용 40×20.
+import type { GlossaryKey } from "@/lib/glossary";
+import HelpPopover from "./HelpPopover";
 
 export default function InfoLink({ term, className = "", compact = false }: { term: GlossaryKey; className?: string; compact?: boolean }) {
-  const name = glossaryEntry(term)?.name ?? "용어";
-  return (
-    <Link
-      href={glossaryHref(term)}
-      aria-label={`${name} 설명 보기`}
-      title={`${name}: ${glossaryEntry(term)?.short ?? ""}`}
-      className={`focus-ring inline-flex shrink-0 items-center justify-center rounded-control align-middle text-ink-3 transition-colors duration-200 hover:text-ink ${
-        compact ? "h-10 w-5" : "-mx-3 -my-3 h-10 w-10"
-      } ${className}`}
-    >
-      <IconInfo size={16} />
-    </Link>
-  );
+  return <HelpPopover term={term} compact={compact} className={className} />;
 }

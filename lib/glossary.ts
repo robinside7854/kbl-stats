@@ -40,6 +40,8 @@ export interface GlossaryEntry {
   source: string | null;
   /** KBL 값과의 관계·검산 결과·주의 사항 */
   note: string;
+  /** 도움말 팝오버용 계산식 한 줄 (formula 가 길 때만). 없으면 formula 를 그대로 쓴다 */
+  brief?: string;
 }
 
 /** 배열 순서 = 용어 풀이 화면 표시 순서 */
@@ -75,6 +77,7 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     formula:
       "USG% = 100 × ((야투 시도 + 0.44 × 자유투 시도 + 턴오버) × (팀 출전시간 ÷ 5)) ÷ (출전시간 × (팀 야투 시도 + 0.44 × 팀 자유투 시도 + 팀 턴오버))",
     source: BREF_GLOSSARY,
+    brief: "(야투 시도 + 0.44 × 자유투 시도 + 턴오버) ÷ 코트에 있는 동안 팀 공격 수 × 100",
     note: "KBL 원값은 표준식의 1/5로 확인되어(2025-26 500분 이상 선수 전원 비율 4.95~5.06) ×5로 표시합니다. 원값은 usgPctRaw 로 보존합니다.",
   },
   {
@@ -92,6 +95,7 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     formula:
       "REB% = 100 × (리바운드 × (팀 출전시간 ÷ 5)) ÷ (출전시간 × (팀 리바운드 + 상대 리바운드)) · OREB%·DREB% 는 공격(팀 공격 + 상대 수비)·수비(팀 수비 + 상대 공격) 리바운드로 같은 식",
     source: BREF_GLOSSARY,
+    brief: "잡은 리바운드 ÷ 코트에 있는 동안 나온 전체 리바운드 × 100",
     note: "KBL 계산값 그대로 씁니다(팀·상대 리바운드가 없어 우리 쪽 검산은 못 함). 2025-26 시즌에만 제공됩니다.",
   },
   {
@@ -141,6 +145,7 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     formula:
       "백분위 = (나보다 낮은 선수 수 + 0.5 × 같은 값 선수 수) ÷ 비교 집단 수 × 100 · 등급 S ≥ 90, A ≥ 75, B ≥ 55, C ≥ 35, D ≥ 15, F < 15 · 종합 등급 = 레이더 5축 백분위의 단순 평균에 종합 전용 컷(S ≥ 85, A ≥ 70, B ≥ 55, C ≥ 40, D ≥ 25)을 그대로 댄 등급",
     source: WIKI_PERCENTILE_RANK,
+    brief: "백분위 = 나보다 낮은 선수 비율 · 축 S ≥ 90 · A ≥ 75 · B ≥ 55 · C ≥ 35 · D ≥ 15",
     note:
       "우리 사이트 규칙입니다(lib/metrics.ts percentileRank·GRADE_CUTS·OVERALL_GRADE_CUTS). 등급의 비교 집단은 같은 시즌·표본 기준을 넘긴 같은 국적 집단(국내 / 외국 / 아시아쿼터) 선수입니다. 외국 선수가 공격 기록을 독점해 리그 전체로 매기면 국내 선수는 잘해야 A~B였기 때문입니다. 아시아쿼터가 8명 미만인 시즌은 외국 선수와 합쳐 계산합니다(아시아쿼터·외국 합산). 순위(n위)는 따로 리그 전체(또는 같은 포지션) 기준입니다.",
   },
@@ -151,6 +156,7 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     formula:
       "공격 = 경기당 득점·경기당 어시스트·USG%·2점 성공률 · 수비 = 경기당 스틸·블록·수비 리바운드·굿디펜스·파울(적을수록 좋음) · 3점 = 경기당 3점 성공·3점 성공률·경기당 3점 시도 · 허슬 = 경기당 공격 리바운드·스틸·디플렉션·스크린 어시스트·경기당 +/- · 효율 = TS%·eFG%·TOV%(적을수록 좋음)·AST/TO·PER · 축 점수 = 구성 요소 백분위의 단순 평균(가중치 모두 같음)을 같은 국적 집단 안에서 다시 백분위로 · 축 등급 컷 S ≥ 90, A ≥ 75, B ≥ 55, C ≥ 35, D ≥ 15 · 종합 점수 = 5축 백분위의 단순 평균(다시 순위 매기지 않음) → 종합 등급 컷 S ≥ 85, A ≥ 70, B ≥ 55, C ≥ 40, D ≥ 25",
     source: null,
+    brief: "축 = 관련 경기당 기록·비율 백분위 평균 → 같은 국적 집단 안에서 다시 백분위 · 종합 = 5축 평균 (S ≥ 85)",
     note:
       "우리 사이트 규칙입니다(lib/metrics.ts RADAR_AXIS_COMPONENTS). 득점·리바운드 같은 누적 기록은 40분 환산이 아니라 경기당 실제 기록으로 비교합니다. 40분 환산은 적게 뛴 선수의 값을 부풀려, 벤치 선수가 주전보다 높은 등급을 받는 일이 생겼기 때문입니다. 그 시즌에 기록이 없는 항목(예: 2024-25 이전의 USG%·디플렉션·스크린 어시스트, 2000-01 이전의 굿디펜스)은 빼고 남은 항목으로 평균합니다. 2점·3점 성공률은 경기당 시도가 리그 평균 이상인 선수만 넣습니다. 축 점수를 다시 백분위로 바꾸는 이유는, 백분위 여러 개를 평균하면 값이 50 근처로 모여 S(상위 10%) 같은 등급이 제 뜻을 잃기 때문입니다. 종합 등급은 반대로 다시 매기지 않습니다: 5축 평균에 종합 전용 컷을 그대로 대므로 종합 S는 다섯 축 평균이 85 이상, 즉 여러 축이 동시에 높은 선수만 받습니다. 종합 컷이 축 컷(90/75/55/35/15)보다 낮은 이유는, 다섯 축이 모두 높기는 어려워 평균이 축 점수보다 가운데로 모이기 때문입니다(축 컷 그대로면 2025-26 종합 S가 0명). 한 축만 뛰어난 선수는 그 축이 S여도 종합은 A~B에 머뭅니다.",
   },
@@ -185,6 +191,7 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     short: "플레이어 카드 위쪽의 한 줄 라벨. 레이더 5축 중 어느 쪽이 가장 강한지로 붙인다",
     formula: "위에서부터 먼저 맞는 규칙: 5축 모두 60 이상 → 올라운더 · 가장 높은 축이 40 미만 → 궂은일 담당 롤 플레이어 · 그 외 → 가장 높은 축의 유형 (동점이면 공격 → 수비 → 3점 → 허슬 → 효율 순)",
     source: null,
+    brief: "5축 모두 60 이상이면 올라운더 · 가장 높은 축이 40 미만이면 롤 플레이어 · 그 외는 가장 높은 축의 유형",
     note: "우리 사이트 규칙입니다(lib/metrics.ts playerType, 라벨 목록은 lib/glossary.ts PLAYER_TYPES). 축 값은 같은 국적 집단 안 백분위라, 같은 선수라도 국적 집단이 바뀌면 라벨이 바뀔 수 있습니다. 아래 '선수 유형 라벨' 표에 전체 목록이 있습니다.",
   },
   {
@@ -193,6 +200,7 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     short: "선수 페이지 이름 아래 붙는 칭호. 기록에서 바로 셀 수 있는 것만 쓴다",
     formula: "뛴 시즌 수·소속 팀 코드 수·시즌 부문 1위 횟수·전 경기 출전 시즌 수·커리어 하이 득점·트리플더블·시즌 더블더블로 계산 (조건은 아래 '칭호 배지' 표)",
     source: null,
+    brief: "시즌 수·팀 수·부문 1위·커리어 하이·트리플더블 등 기록에서 센다",
     note: "우리 사이트 규칙입니다(lib/badges.ts playerBadges). 추정·주관 판단은 넣지 않습니다. 정규시즌 기록만 셉니다. 팀은 팀 코드 기준이라 이름만 바뀐 구단(KT&G → 정관장)은 같은 팀입니다. 이름 아래에는 우선순위 순서로 5개까지 보이고 나머지는 +n 으로 접습니다.",
   },
 ];
@@ -229,6 +237,31 @@ export const GLOSSARY_ANCHORS: Record<GlossaryKey, string> = {
   playerTypes: "types",
   badges: "badges",
 };
+
+/** 도움말 팝오버 한 개의 내용 (app/components/HelpPopover — 그 자리에서 뜨는 ⓘ 설명) */
+export interface HelpContent {
+  /** 제목 (지표 이름) */
+  title: string;
+  /** 한 줄 설명 */
+  short: string;
+  /** 계산식 한 줄 (없으면 null) */
+  formula: string | null;
+  /** "자세히" 링크 (용어 페이지 앵커) */
+  href: string;
+}
+
+/** 용어 → 팝오버 내용. 계산식은 brief(짧은 한 줄)가 있으면 그것, 없으면 formula */
+export function helpContent(key: GlossaryKey): HelpContent {
+  const e = BY_KEY.get(key);
+  if (!e) return { title: "용어", short: "", formula: null, href: glossaryHref(key) };
+  return { title: e.name, short: e.short, formula: e.brief ?? e.formula, href: glossaryHref(key) };
+}
+
+/** 선수 유형 라벨 → 팝오버 내용 (조건 한 줄 + 용어 페이지 유형 표) */
+export function playerTypeHelp(key: PlayerTypeKey): HelpContent {
+  const d = playerTypeDef(key);
+  return { title: `선수 유형: ${d.label}`, short: d.short, formula: d.condition, href: playerTypeHref(key) };
+}
 
 /** 용어 탭 링크, 예: glossaryHref("tsPct") → "/glossary#ts" */
 export function glossaryHref(key: GlossaryKey): string {
