@@ -103,7 +103,7 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
         <CardDeck cards={cards} fileName={fileName} />
       ) : (
         a.status === "error" ? (
-          <p role="alert" className="surface-card rounded-2xl px-4 py-8 text-center text-body text-ink-2">
+          <p role="alert" className="surface-card rounded-container px-4 py-8 text-center text-body text-ink-2">
             시즌 기록을 불러오지 못했습니다. 시즌을 다시 눌러 주세요.
           </p>
         ) : (
@@ -146,7 +146,7 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
               type="button"
               aria-pressed={comparing}
               onClick={toggleCompare}
-              className={`focus-ring h-10 rounded-lg border px-3 text-body font-semibold transition-colors duration-200 ${
+              className={`focus-ring h-10 rounded-control border px-3 text-body font-semibold transition-colors duration-200 ${
                 comparing ? "border-ink bg-ink text-bg" : "border-line bg-surface text-ink-2 hover:bg-surface-2"
               }`}
             >
@@ -170,7 +170,7 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
             <p className="mt-1 text-sub">
               <Link
                 href={compareHref({ id: playerId, seasonCode: season }, { id: playerId, seasonCode: vs })}
-                className="focus-ring inline-flex h-10 items-center gap-0.5 rounded-lg font-semibold text-ink-2 underline underline-offset-4 transition-colors duration-200 hover:text-ink"
+                className="focus-ring inline-flex h-10 items-center gap-0.5 rounded-control font-semibold text-ink-2 underline underline-offset-4 transition-colors duration-200 hover:text-ink"
               >
                 비교 탭에서 다른 선수와 비교
                 <IconChevronRight size={16} />
@@ -206,13 +206,13 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
       )}
 
       <p className="mt-4 max-w-3xl text-sub leading-relaxed text-ink-3">
-        레이더는 시즌 내 백분위(0~100), 꼭짓점 글자는 그 등급(S 상위 10% · A 25% · B 45% · C 65% · D 85% · F 그 아래)
-        <InfoLink term="percentileGrade" />. 사진은 모든 시즌 같은 한 장, 팀 색·로고는 그 시즌 팀.{" "}
+        레이더는 그 시즌 백분위(0~100)이고, 꼭짓점 글자가 등급입니다 <InfoLink term="percentileGrade" />. 사진은 모든 시즌에 같은
+        한 장을 쓰고, 팀 색과 로고만 그 시즌 팀을 따릅니다.{" "}
         {classic
-          ? "2차 스탯(USG%·AST%·REB%)이 없는 시즌은 40분당 환산과 TS%·PER로 그렸습니다(고전 축)"
-          : "USG%는 표준 척도(KBL 원값×5), 용어 참고"}
-        {" "}{classic ? <InfoLink term="per40" /> : <InfoLink term="usgPct" />}
-        {mixedAxes && ". 두 시즌의 레이더 축이 달라 모양은 비교하지 않습니다"}.
+          ? "2차 스탯(USG%·AST%·REB%)이 없는 시즌은 40분당 환산과 TS%·PER로 그린 고전 축입니다"
+          : "USG%는 KBL 원값에 5를 곱한 표준 척도입니다"}{" "}
+        {classic ? <InfoLink term="per40" /> : <InfoLink term="usgPct" />}
+        {mixedAxes && ". 두 시즌의 레이더 축이 달라 모양끼리는 비교하지 마세요"}.
       </p>
     </div>
   );

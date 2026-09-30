@@ -105,14 +105,14 @@ export default function FilterSheet({ chips, onReset, resultText, children, trai
         type="button"
         onClick={onReset}
         disabled={count === 0}
-        className="focus-ring h-11 cursor-pointer rounded-lg border border-line bg-surface px-4 text-body font-semibold text-ink-2 transition-colors duration-200 hover:bg-surface-2 disabled:cursor-default disabled:opacity-50"
+        className="focus-ring h-11 cursor-pointer rounded-control border border-line bg-surface px-4 text-body font-semibold text-ink-2 transition-colors duration-200 hover:bg-surface-2 disabled:cursor-default disabled:opacity-50"
       >
         초기화
       </button>
       <button
         type="button"
         onClick={close}
-        className="focus-ring h-11 flex-1 cursor-pointer rounded-lg bg-ink px-4 text-body font-semibold text-bg transition-colors duration-200 hover:bg-ink/85"
+        className="focus-ring h-11 flex-1 cursor-pointer rounded-control bg-ink px-4 text-body font-semibold text-bg transition-colors duration-200 hover:bg-ink/85"
       >
         {resultText}
       </button>
@@ -129,7 +129,7 @@ export default function FilterSheet({ chips, onReset, resultText, children, trai
           aria-controls={panelId}
           aria-haspopup={isDesktop ? undefined : "dialog"}
           onClick={() => (open ? close() : setOpen(true))}
-          className={`focus-ring inline-flex h-10 cursor-pointer items-center gap-1.5 rounded-lg border px-3 text-body font-semibold transition-colors duration-200 ${
+          className={`focus-ring inline-flex h-10 cursor-pointer items-center gap-1.5 rounded-control border px-3 text-body font-semibold transition-colors duration-200 ${
             open || count > 0 ? "border-ink text-ink" : "border-line text-ink-2 hover:text-ink"
           } bg-surface hover:bg-surface-2`}
         >
@@ -145,14 +145,14 @@ export default function FilterSheet({ chips, onReset, resultText, children, trai
         {chips.map((c) => (
           <span
             key={c.key}
-            className="inline-flex h-10 items-center rounded-lg border border-line bg-surface-2 pl-3 text-body font-semibold text-ink"
+            className="inline-flex h-10 items-center rounded-control border border-line bg-surface-2 pl-3 text-body font-semibold text-ink"
           >
             {c.label}
             <button
               type="button"
               onClick={c.onClear}
               aria-label={`${c.label} 필터 해제`}
-              className="focus-ring-inset flex h-10 w-9 cursor-pointer items-center justify-center rounded-lg text-ink-3 transition-colors duration-200 hover:text-ink"
+              className="focus-ring-inset flex h-10 w-9 cursor-pointer items-center justify-center rounded-control text-ink-3 transition-colors duration-200 hover:text-ink"
             >
               <IconClose size={16} />
             </button>
@@ -163,7 +163,7 @@ export default function FilterSheet({ chips, onReset, resultText, children, trai
 
       {/* PC: 인라인 패널 */}
       {open && isDesktop && (
-        <div id={panelId} role="region" aria-label="필터 설정" className="surface-card mt-3 rounded-2xl p-4">
+        <div id={panelId} role="region" aria-label="필터 설정" className="surface-card mt-3 rounded-container p-4">
           <div className="grid gap-4 lg:grid-cols-2">{children}</div>
           <div className="mt-4 max-w-sm">{footer}</div>
         </div>
@@ -179,7 +179,7 @@ export default function FilterSheet({ chips, onReset, resultText, children, trai
             role="dialog"
             aria-modal="true"
             aria-labelledby={titleId}
-            className="absolute inset-x-0 bottom-0 flex max-h-[85dvh] flex-col rounded-t-2xl border-t border-line bg-surface"
+            className="absolute inset-x-0 bottom-0 flex max-h-[85dvh] flex-col rounded-t-container border-t border-line bg-surface"
           >
             <div className="flex items-center justify-between px-4 pb-1 pt-3">
               <h2 id={titleId} className="text-h2 font-bold">
@@ -189,7 +189,7 @@ export default function FilterSheet({ chips, onReset, resultText, children, trai
                 type="button"
                 onClick={close}
                 aria-label="필터 닫기"
-                className="focus-ring -mr-2 flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg text-ink-2 transition-colors duration-200 hover:text-ink"
+                className="focus-ring -mr-2 flex h-11 w-11 cursor-pointer items-center justify-center rounded-control text-ink-2 transition-colors duration-200 hover:text-ink"
               >
                 <IconClose size={20} />
               </button>

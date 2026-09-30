@@ -65,7 +65,7 @@ export default function CareerTrend({ seasons, allSeasons }: Props) {
 
   if (seasons.length < 2) {
     return (
-      <section aria-labelledby="trend-title" className="surface-card rounded-2xl p-4">
+      <section aria-labelledby="trend-title" className="surface-card rounded-container p-4">
         <h2 id="trend-title" className="text-h2 font-bold">
           시즌별 추이
         </h2>
@@ -80,7 +80,7 @@ export default function CareerTrend({ seasons, allSeasons }: Props) {
   const yDomain: [number | string, number | string] = metric.kind === "perGame" ? [0, "auto"] : ["auto", "auto"];
 
   return (
-    <section aria-labelledby="trend-title" className="surface-card rounded-2xl p-3 sm:p-4">
+    <section aria-labelledby="trend-title" className="surface-card rounded-container p-3 sm:p-4">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         <h2 id="trend-title" className="text-h2 font-bold">
           시즌별 추이 <span className="font-medium text-ink-2">· {metric.title}</span>
@@ -95,7 +95,7 @@ export default function CareerTrend({ seasons, allSeasons }: Props) {
             type="button"
             aria-pressed={m.key === key}
             onClick={() => setKey(m.key)}
-            className={`focus-ring h-10 rounded-lg border px-3 text-body font-semibold transition-colors duration-200 ${
+            className={`focus-ring h-10 rounded-control border px-3 text-body font-semibold transition-colors duration-200 ${
               m.key === key ? "border-ink bg-ink text-bg" : "border-line bg-surface text-ink-2 hover:bg-surface-2"
             }`}
           >
@@ -132,13 +132,14 @@ export default function CareerTrend({ seasons, allSeasons }: Props) {
                 const d = active && payload?.[0] ? (payload[0].payload as Datum) : null;
                 if (!d) return null;
                 return (
-                  <div className="surface-card rounded-lg px-2.5 py-1.5 text-sub">
+                  <div className="surface-card rounded-control px-2.5 py-1.5 text-sub">
                     <p className="font-semibold text-ink">{seasonShortLabel(d.seasonLabel)}</p>
                     {d.value === null ? (
                       <p className="text-ink-3">정규시즌 기록 없음</p>
                     ) : (
                       <>
                         <p className="mt-0.5 flex items-center gap-1.5 text-ink-2">
+                          {/* deslop-ignore-next-line 19 */}
                           <span aria-hidden className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: d.color }} />
                           {d.team}
                           {d.teamChanged && <span className="text-ink-3">(이적)</span>} · {d.games}경기
@@ -186,6 +187,7 @@ export default function CareerTrend({ seasons, allSeasons }: Props) {
         <span className="text-ink-3">점 색 = 그 시즌 팀{legend.length > 1 ? " · 큰 점 = 이적한 시즌" : ""}</span>
         {legend.map((l) => (
           <span key={l.team} className="inline-flex items-center gap-1.5">
+            {/* deslop-ignore-next-line 19 */}
             <span aria-hidden className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: l.color }} />
             {l.team}
           </span>

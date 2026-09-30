@@ -97,7 +97,7 @@ function PosBadge({ p }: { p: LeaderPlayer }) {
 /** 팀 색 배경 위에 올리는 로고 — 로고 색이 배경과 겹치지 않게 흰 칩 위에 */
 function LogoChip({ team, fallback, size }: { team?: CardTeam; fallback: string; size: number }) {
   return (
-    <span className="inline-flex shrink-0 rounded-lg bg-white p-0.5">
+    <span className="inline-flex shrink-0 rounded-control bg-white p-0.5">
       <TeamLogo logoUrl={team?.logoUrl} shortName={team?.shortName ?? fallback} color={team?.color} size={size} />
     </span>
   );
@@ -123,7 +123,7 @@ function CoverCard({
   const lowerIsBetter = LEADER_STATS[category].better === "low";
   return (
     <article
-      className={`tabular relative overflow-hidden rounded-2xl border border-black/10 dark:border-white/15 ${hero ? "col-span-2 p-4 sm:p-5" : "p-3"}`}
+      className={`tabular relative overflow-hidden rounded-container border border-black/10 dark:border-white/15 ${hero ? "col-span-2 p-4 sm:p-5" : "p-3"}`}
       style={{ background: color.primary, color: color.text }}
       aria-label={`${entry.rank}위 ${p.nameKo} ${teamLabel} ${statTitle(category, mode)} ${formatStat(entry.value, category, mode)}`}
     >
@@ -147,7 +147,7 @@ function CoverCard({
         <div className="min-w-0">
           <p className={`font-semibold opacity-85 ${hero ? "text-sub" : "text-caption"}`}>{entry.rank}위</p>
           <h3 className={`font-bold leading-tight break-keep ${hero ? "truncate text-2xl" : "line-clamp-2 text-base"}`} title={p.nameKo}>
-            <Link href={`/player/${p.id}`} className="focus-ring rounded-lg underline-offset-4 hover:underline">
+            <Link href={`/player/${p.id}`} className="focus-ring rounded-control underline-offset-4 hover:underline">
               {p.nameKo}
             </Link>
           </h3>
@@ -169,6 +169,7 @@ function CoverCard({
           {statTitle(category, mode)}
           {lowerIsBetter && <span className="whitespace-nowrap"> · 적을수록 상위</span>}
         </span>
+        {/* deslop-ignore-next-line 11 */}
         <span className={`block font-bold leading-none tracking-tight ${hero ? "mt-1 text-5xl" : "mt-0.5 text-3xl"}`}>
           {formatStat(entry.value, category, mode)}
         </span>
@@ -265,7 +266,7 @@ export default function LeadersView({ seasonLabel, players, teams }: Props) {
           // 칸 전체(사진·이름·팀)가 선수 페이지 링크 — 누르는 영역 40px 이상 (디자인 점검 C1)
           <Link
             href={`/player/${p.id}`}
-            className="focus-ring group flex min-h-10 min-w-0 items-center gap-2 rounded-lg"
+            className="focus-ring group flex min-h-10 min-w-0 items-center gap-2 rounded-control"
             title={`${p.nameKo} 선수 페이지`}
           >
             <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={team?.color} size={28} />
@@ -298,7 +299,7 @@ export default function LeadersView({ seasonLabel, players, teams }: Props) {
               type="button"
               onClick={() => clickHeader(key)}
               title={`${statTitle(key, mode)}로 정렬`}
-              className="focus-ring flex h-10 cursor-pointer items-center justify-end gap-0.5 whitespace-nowrap rounded-lg px-1 font-semibold transition-colors duration-200 hover:text-ink"
+              className="focus-ring flex h-10 cursor-pointer items-center justify-end gap-0.5 whitespace-nowrap rounded-control px-1 font-semibold transition-colors duration-200 hover:text-ink"
             >
               {LEADER_STATS[key].short}
               {/* 정렬 방향 표시는 지금 정렬 중인 열에만 (빈 자리를 두지 않아 14개 열이 992px 안에 들어간다) */}
@@ -362,7 +363,7 @@ export default function LeadersView({ seasonLabel, players, teams }: Props) {
               )}
               <select
                 aria-label="팀"
-                className={`focus-ring h-11 w-full min-w-0 cursor-pointer rounded-lg border border-line bg-surface pr-2 text-base text-ink ${
+                className={`focus-ring h-11 w-full min-w-0 cursor-pointer rounded-control border border-line bg-surface pr-2 text-base text-ink ${
                   selectedTeam ? "pl-9" : "pl-2"
                 }`}
                 value={teamCode ?? ""}
@@ -380,7 +381,7 @@ export default function LeadersView({ seasonLabel, players, teams }: Props) {
           <FilterGroup label="표본 기준 (고급)" hint={<>이 기준을 넘긴 선수만 순위에 넣습니다 <InfoLink term="qualify" /></>}>
             <select
               aria-label="표본 기준"
-              className="focus-ring h-11 w-full min-w-0 max-w-xs cursor-pointer rounded-lg border border-line bg-surface px-2 text-base text-ink"
+              className="focus-ring h-11 w-full min-w-0 max-w-xs cursor-pointer rounded-control border border-line bg-surface px-2 text-base text-ink"
               value={presetIdx}
               onChange={(e) => update({ presetIdx: Number(e.target.value) })}
             >
@@ -421,13 +422,13 @@ export default function LeadersView({ seasonLabel, players, teams }: Props) {
             ))}
           </div>
         ) : (
-          <div className="surface-card rounded-2xl px-4 py-8 text-center">
+          <div className="surface-card rounded-container px-4 py-8 text-center">
             <p className="text-body font-semibold text-ink">조건에 맞는 선수가 없습니다</p>
             <p className="mt-1 text-sub text-ink-2">필터를 줄이거나 표본 기준을 낮춰 보세요.</p>
             <button
               type="button"
               onClick={() => setState((s) => resetLeaderFilters(s))}
-              className="focus-ring mt-4 h-11 rounded-lg border border-line bg-surface px-4 text-body font-semibold text-ink transition-colors duration-200 hover:bg-surface-2"
+              className="focus-ring mt-4 h-11 rounded-control border border-line bg-surface px-4 text-body font-semibold text-ink transition-colors duration-200 hover:bg-surface-2"
             >
               필터 초기화
             </button>
@@ -446,7 +447,7 @@ export default function LeadersView({ seasonLabel, players, teams }: Props) {
             <label className="flex items-center gap-2 text-sub font-medium text-ink-2 lg:hidden">
               정렬 기준
               <select
-                className="focus-ring h-10 cursor-pointer rounded-lg border border-line bg-surface px-2 text-base text-ink"
+                className="focus-ring h-10 cursor-pointer rounded-control border border-line bg-surface px-2 text-base text-ink"
                 value={`${sortKey}:${sortDir}`}
                 onChange={(e) => {
                   const [k, d] = e.target.value.split(":") as [LeaderStatKey, SortDir];
@@ -529,14 +530,14 @@ export default function LeadersView({ seasonLabel, players, teams }: Props) {
             detailFooter={(p) => (
               <Link
                 href={`/player/${p.id}`}
-                className="focus-ring inline-flex h-10 items-center gap-1 rounded-lg px-1 text-body font-semibold text-ink underline-offset-4 hover:underline"
+                className="focus-ring inline-flex h-10 items-center gap-1 rounded-control px-1 text-body font-semibold text-ink underline-offset-4 hover:underline"
               >
                 {p.nameKo} 선수 페이지 <IconChevronRight size={16} />
               </Link>
             )}
           />
           <p className="mt-2 text-sub leading-relaxed text-ink-3">
-            성공률 아래 작은 숫자는 시즌 합계 성공/시도. 경기당 시도가 리그 평균({note})에 못 미치면 순위 “–”
+            성공률 아래 작은 숫자는 시즌 합계 성공/시도. 경기당 시도가 리그 평균({note})보다 적으면 순위 칸에 - 표시
             {" "}<InfoLink term="attempts" />
           </p>
         </section>

@@ -43,7 +43,7 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
   {
     key: "per",
     name: "PER",
-    short: "출전 시간 대비 얼마나 많은 걸 해냈나를 한 숫자로 — 리그 평균이 약 15",
+    short: "출전 시간 대비 기여를 한 숫자로 나타낸 값. 리그 평균은 약 15",
     formula: "득점·리바운드·어시스트·스틸·블록 등 좋은 기록에서 놓친 슛·턴오버·파울을 빼고 분당·리그 평균으로 맞춘 값 (Hollinger)",
     source: BREF_PER,
     note: "KBL 계산값 그대로 씁니다. KBL이 계산식을 공개하지 않아 우리 데이터로 검산할 수 없습니다.",
@@ -51,7 +51,7 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
   {
     key: "tsPct",
     name: "TS%",
-    short: "2점·3점·자유투를 모두 합친 진짜 슈팅 효율",
+    short: "2점·3점·자유투를 모두 반영한 슈팅 효율",
     formula: "TS% = 득점 ÷ (2 × (야투 시도 + 0.44 × 자유투 시도)) × 100",
     source: BREF_GLOSSARY,
     note: "KBL 계산값 그대로이며, 우리 데이터로 검산해 일치합니다.",
@@ -101,7 +101,7 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
   {
     key: "astTo",
     name: "AST/TO",
-    short: "턴오버 1개당 어시스트 몇 개 — 높을수록 안정적인 볼 핸들러",
+    short: "턴오버 1개당 어시스트 수. 높으면 공을 안정적으로 다룬다는 뜻",
     formula: "AST/TO = 어시스트 ÷ 턴오버",
     source: BREF_GLOSSARY,
     note: "KBL 계산값 그대로이며, 우리 데이터로 검산해 일치합니다.",
@@ -117,7 +117,7 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
   {
     key: "pace",
     name: "PACE",
-    short: "경기당 공격 횟수 — 높을수록 빠른 농구",
+    short: "경기당 공격 횟수. 높을수록 빠르게 공격하는 팀",
     formula: "PACE = 공격 횟수를 한 경기(KBL 40분) 기준으로 환산한 값",
     source: BREF_GLOSSARY,
     note: "KBL 계산값 그대로 씁니다(NBA 는 48분 기준). 2025-26 시즌에만 제공됩니다.",
@@ -125,7 +125,7 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
   {
     key: "per40",
     name: "40분당 환산",
-    short: "풀타임(40분)을 뛰었다면 몇 개였을까 — 출전 시간이 다른 선수끼리 비교용",
+    short: "40분을 다 뛰었다면 몇 개였을지. 출전 시간이 다른 선수끼리 비교할 때 쓴다",
     formula: "40분당 값 = 시즌 누적 ÷ 누적 출전시간(분) × 40",
     source: BREF_PER36,
     note: "우리 계산입니다(lib/metrics.ts per40). NBA 의 36분당 환산을 KBL 경기 시간(40분)에 맞췄습니다. 출전이 아주 적으면 값이 튀어 표본 기준으로 거릅니다.",
@@ -133,7 +133,7 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
   {
     key: "percentileGrade",
     name: "백분위 · S~F 등급",
-    short: "같은 시즌 선수들 사이에서 몇 번째쯤인가 (0~100)와 그걸 글자로",
+    short: "같은 시즌 선수 중 위치를 0~100으로 나타낸 값과 그 등급 글자(S~F)",
     formula:
       "백분위 = (나보다 낮은 선수 수 + 0.5 × 같은 값 선수 수) ÷ 비교 집단 수 × 100 · 등급 S ≥ 90, A ≥ 75, B ≥ 55, C ≥ 35, D ≥ 15, F < 15 · 종합 등급 = 레이더 5개 축 백분위 평균의 등급",
     source: WIKI_PERCENTILE_RANK,
@@ -150,7 +150,7 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
   {
     key: "attempts",
     name: "성공률 시도 기준",
-    short: "1개 던져 1개 넣은 100%가 1위가 되지 않도록, 충분히 던진 선수만 성공률 순위에",
+    short: "1개 던져 1개 넣은 100%가 1위가 되지 않게, 충분히 던진 선수만 성공률 순위에 넣는다",
     formula: "기준 = 그 시즌 표본 기준 충족 선수의 경기당 시도 수 평균 (야투·3점·자유투 각각) · 경기당 시도 ≥ 기준이면 순위 대상",
     source: null,
     note: "우리 사이트 규칙이며 KBL 공식 규정이 아닙니다(lib/metrics.ts attemptThresholds). 참고로 NBA 는 시즌 성공 수(야투 300·3점 82·자유투 125개)로 자격을 정합니다.",

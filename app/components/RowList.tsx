@@ -102,7 +102,7 @@ export default function RowList<R>({
   return (
     <div>
       {/* ── 모바일·태블릿: 행 카드 ── */}
-      <ul aria-label={caption} className="surface-card tabular overflow-hidden rounded-2xl lg:hidden">
+      <ul aria-label={caption} className="surface-card tabular overflow-hidden rounded-container lg:hidden">
         {shown.map((r) => {
           const key = rowKey(r);
           const isOpen = open.has(key);
@@ -142,7 +142,7 @@ export default function RowList<R>({
       </ul>
 
       {/* ── PC: 전체 표 (가로 스크롤 없음 — 열 폭·글자를 줄여 992px 안에 넣는다) ── */}
-      <div className="surface-card hidden overflow-hidden rounded-2xl lg:block">
+      <div className="surface-card hidden overflow-hidden rounded-container lg:block">
         <table className="tabular w-full border-separate border-spacing-0 text-sub">
           <caption className="sr-only">{caption}</caption>
           <thead>
@@ -193,7 +193,7 @@ export default function RowList<R>({
         <button
           type="button"
           onClick={() => setLimit((n) => n + (pageSize ?? remaining))}
-          className="focus-ring mt-3 flex h-11 w-full cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-line bg-surface text-body font-semibold text-ink-2 transition-colors duration-200 hover:bg-surface-2 hover:text-ink"
+          className="focus-ring mt-3 flex h-11 w-full cursor-pointer items-center justify-center gap-1.5 rounded-control border border-line bg-surface text-body font-semibold text-ink-2 transition-colors duration-200 hover:bg-surface-2 hover:text-ink"
         >
           더 보기 <span className="font-normal text-ink-3">(남은 {remaining}{unit})</span>
           <IconChevronDown size={16} />

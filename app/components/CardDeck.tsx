@@ -71,7 +71,7 @@ export default function CardDeck({ cards, fileName, pending = 0 }: Props) {
           type="button"
           onClick={() => save(fileName)}
           disabled={saving || busy}
-          className="focus-ring h-11 rounded-lg bg-ink px-4 text-body font-semibold text-bg transition-colors duration-200 hover:bg-ink/85 disabled:cursor-default disabled:opacity-60"
+          className="focus-ring h-11 rounded-control bg-ink px-4 text-body font-semibold text-bg transition-colors duration-200 hover:bg-ink/85 disabled:cursor-default disabled:opacity-60"
         >
           {saving ? "저장 중…" : pair ? "카드 두 장 이미지 저장" : "이미지 저장"}
         </button>

@@ -21,6 +21,7 @@ interface Props {
 }
 
 function Mark({ color }: { color: string }) {
+  // deslop-ignore-next-line 19
   return <span aria-hidden className="mr-1 inline-block h-2.5 w-2.5 shrink-0 rounded-full align-middle" style={{ background: color }} />;
 }
 
@@ -48,7 +49,7 @@ export default function CompareTable({ a, b, aLabel, bLabel, seriesA, seriesB, s
 
   return (
     <section aria-label={caption}>
-      <div className="surface-card rounded-2xl">
+      <div className="surface-card rounded-container">
         <table className="tabular w-full border-separate border-spacing-0 text-body">
           <caption className="sr-only">{caption}</caption>
           <thead>
@@ -57,10 +58,12 @@ export default function CompareTable({ a, b, aLabel, bLabel, seriesA, seriesB, s
                 기록
               </th>
               <th scope="col" className="border-b border-line px-2 py-2 text-right font-semibold text-ink">
+                {/* deslop-ignore-next-line 09 13 */}
                 <Mark color={seriesA} />
                 {aLabel}
               </th>
               <th scope="col" className="border-b border-line px-2 py-2 text-right font-semibold text-ink">
+                {/* deslop-ignore-next-line 09 13 */}
                 <Mark color={seriesB} />
                 {bLabel}
               </th>

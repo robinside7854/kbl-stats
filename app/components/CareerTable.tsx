@@ -63,7 +63,7 @@ export default function CareerTable({ seasons }: { seasons: CareerSeason[] }) {
             ev.preventDefault();
             showSeasonCard(s.seasonCode);
           }}
-          className="focus-ring whitespace-nowrap rounded-lg text-ink underline decoration-line underline-offset-4 hover:decoration-ink"
+          className="focus-ring whitespace-nowrap rounded-control text-ink underline decoration-line underline-offset-4 hover:decoration-ink"
           title={`${seasonShortLabel(s.seasonLabel)} 선수 카드`}
         >
           {seasonShortLabel(s.seasonLabel)}
@@ -153,7 +153,7 @@ export default function CareerTable({ seasons }: { seasons: CareerSeason[] }) {
           <button
             type="button"
             onClick={() => showSeasonCard(s.seasonCode)}
-            className="focus-ring inline-flex h-10 cursor-pointer items-center gap-1 rounded-lg px-1 text-body font-semibold text-ink underline-offset-4 hover:underline"
+            className="focus-ring inline-flex h-10 cursor-pointer items-center gap-1 rounded-control px-1 text-body font-semibold text-ink underline-offset-4 hover:underline"
           >
             {seasonShortLabel(s.seasonLabel)} 선수 카드 보기 <IconChevronRight size={16} />
           </button>

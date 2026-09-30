@@ -137,7 +137,7 @@ export default function PlayerSearch({
         enterKeyHint="search"
         placeholder={placeholder}
         className={`w-full min-w-0 border border-line bg-surface text-base text-ink placeholder:text-ink-3 focus-visible:outline-offset-0 ${
-          lg ? "h-12 rounded-lg pl-11 pr-3 shadow-card" : "h-10 rounded-lg pl-8 pr-2"
+          lg ? "h-12 rounded-control pl-11 pr-3 shadow-card" : "h-10 rounded-control pl-8 pr-2"
         }`}
         value={query}
         onChange={(e) => {
@@ -158,13 +158,14 @@ export default function PlayerSearch({
           id={listId}
           role="listbox"
           aria-label="검색 결과"
-          className="absolute right-0 z-40 mt-1 max-h-[70vh] w-full min-w-[17rem] overflow-y-auto surface-card rounded-lg py-1"
+          className="absolute right-0 z-40 mt-1 max-h-[70vh] w-full min-w-[17rem] overflow-y-auto surface-card rounded-control py-1"
         >
           {status === "loading" && !entries && (
             <li role="status" className="px-3 py-2">
               <span className="sr-only">선수 목록 불러오는 중</span>
               {[0, 1, 2].map((i) => (
                 <span key={i} className="flex items-center gap-2 py-1.5">
+                  {/* deslop-ignore-next-line 19 */}
                   <Skeleton className="h-7 w-7 shrink-0 rounded-full" />
                   <Skeleton className="h-4 flex-1" />
                 </span>

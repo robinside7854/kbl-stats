@@ -51,6 +51,7 @@ export default function PlayerAvatar({
         {!loaded && (
           <span aria-hidden className="absolute inset-0">
             <svg viewBox="0 0 94 122" className="absolute inset-x-0 bottom-0 h-full w-full" preserveAspectRatio="xMidYMax meet">
+              {/* deslop-ignore-next-line 24 */}
               <circle cx="47" cy="40" r="21" fill="currentColor" fillOpacity="0.2" />
               <path d="M6 122c0-27 18-44 41-44s41 17 41 44Z" fill="currentColor" fillOpacity="0.2" />
             </svg>
@@ -82,6 +83,7 @@ export default function PlayerAvatar({
   return (
     <span
       // 옅은 안쪽 테두리 — 검정 계열 팀 색 원이 다크 바탕에 묻히지 않게 (디자인 점검 C5)
+      // deslop-ignore-next-line 19
       className={`relative inline-flex shrink-0 select-none items-center justify-center overflow-hidden rounded-full font-bold ring-1 ring-inset ring-black/5 dark:ring-white/20 ${className}`}
       style={{ width: size, height: size, background: color.primary, color: color.text, fontSize: Math.round(size * 0.45) }}
       title={nameKo}

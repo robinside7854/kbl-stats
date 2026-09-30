@@ -97,8 +97,9 @@ export default function CompareView({ seasons, initialA, initialB }: Props) {
   const tag = (v: SeasonCardView) => `${v.entry.player.nameKo} ${labelOf(v.seasonCode)}`;
 
   const slotUi = (name: "A" | "B", slot: Slot | null, set: (s: Slot | null) => void, series: string, other: Slot | null) => (
-    <section aria-label={`선수 ${name}`} className="surface-card min-w-0 rounded-2xl p-3">
+    <section aria-label={`선수 ${name}`} className="surface-card min-w-0 rounded-container p-3">
       <h2 className="flex min-w-0 items-center gap-2 text-h2 font-bold">
+        {/* deslop-ignore-next-line 19 */}
         <span aria-hidden className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: series }} />
         선수 {name}
         {slot && <span className="truncate text-ink-2">· {slot.nameKo}</span>}
@@ -123,7 +124,7 @@ export default function CompareView({ seasons, initialA, initialB }: Props) {
             <button
               type="button"
               onClick={() => set({ ...other, season: other.seasons.find((c) => c !== other.season) ?? other.season })}
-              className="focus-ring mt-1 inline-flex h-10 items-center rounded-lg text-sub font-semibold text-ink-2 underline underline-offset-4 transition-colors duration-200 hover:text-ink"
+              className="focus-ring mt-1 inline-flex h-10 items-center rounded-control text-sub font-semibold text-ink-2 underline underline-offset-4 transition-colors duration-200 hover:text-ink"
             >
               {other.nameKo}의 다른 시즌과 비교하기
             </button>
@@ -177,8 +178,8 @@ export default function CompareView({ seasons, initialA, initialB }: Props) {
         )}
         {both && both[0].axisSet !== both[1].axisSet && (
           <p className="text-sub text-ink-3">
-            두 시즌의 레이더 축이 다릅니다. 2차 스탯(USG%·AST%·REB%)이 없는 시즌은 40분당 환산 축(고전 축)으로 그려 모양을 직접 비교할 수
-            없습니다. 비교표의 경기당 기록·순위를 보세요.
+            두 카드의 레이더 축이 다릅니다. 2차 스탯(USG%·AST%·REB%)이 없는 시즌은 40분당 환산 축(고전 축)이라 모양끼리는 비교하지 마세요.
+            위 표의 경기당 기록과 순위를 보면 됩니다.
           </p>
         )}
       </div>

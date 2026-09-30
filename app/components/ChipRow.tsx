@@ -35,7 +35,7 @@ export default function ChipRow<T extends string | number>({ label, chips, value
             aria-pressed={on}
             aria-label={c.aria}
             onClick={() => onChange(c.value)}
-            className={`focus-ring-inset flex h-10 shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-lg border px-3 text-body font-semibold transition-colors duration-200 ${
+            className={`focus-ring-inset flex h-10 shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-control border px-3 text-body font-semibold transition-colors duration-200 ${
               on ? "border-ink bg-ink text-bg" : "border-line bg-surface text-ink-2 hover:bg-surface-2"
             }`}
           >

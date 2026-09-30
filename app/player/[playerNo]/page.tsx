@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const span = activeSpanLabel(seasons[0].seasonLabel, latest.seasonLabel, seasons.length);
   return {
     title: `${entry.nameKo} · KBL 선수 기록`,
-    description: `${entry.nameKo}(${entry.nameEn}) KBL 정규시즌 기록 — ${span}, 최근 소속 ${latest.team?.shortName ?? latest.teamShort}. 시즌별 플레이어 카드·시즌 비교, 기록표와 추이 그래프. 비영리 팬 프로젝트.`,
+    description: `${entry.nameKo}(${entry.nameEn}) KBL 정규시즌 기록, ${span}, 최근 소속 ${latest.team?.shortName ?? latest.teamShort}. 시즌별 플레이어 카드·시즌 비교, 기록표와 추이 그래프. 비영리 팬 프로젝트.`,
   };
 }
 

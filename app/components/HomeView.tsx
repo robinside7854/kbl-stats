@@ -111,7 +111,7 @@ export default function HomeView({ season, fetchedLabel, upcoming, categories, t
             <li key={s.href}>
               <Link
                 href={s.href}
-                className="focus-ring inline-flex h-11 items-center gap-0.5 rounded-lg px-2 font-semibold text-ink-2 underline-offset-4 transition-colors duration-200 hover:text-ink hover:underline"
+                className="focus-ring inline-flex h-11 items-center gap-0.5 rounded-control px-2 font-semibold text-ink-2 underline-offset-4 transition-colors duration-200 hover:text-ink hover:underline"
               >
                 {s.title}
                 <IconChevronRight size={16} />
@@ -129,7 +129,7 @@ export default function HomeView({ season, fetchedLabel, upcoming, categories, t
         <SeasonChips seasons={recentSeasons} className="mt-3" />
         {olderSeasons.length > 0 && (
           <details className="group mt-2">
-            <summary className="focus-ring inline-flex h-10 cursor-pointer list-none items-center gap-1 rounded-lg text-body font-semibold text-ink-2 transition-colors duration-200 hover:text-ink [&::-webkit-details-marker]:hidden">
+            <summary className="focus-ring inline-flex h-10 cursor-pointer list-none items-center gap-1 rounded-control text-body font-semibold text-ink-2 transition-colors duration-200 hover:text-ink [&::-webkit-details-marker]:hidden">
               전체 보기 ({olderSeasons.length}개 시즌 더)
               <IconChevronDown size={16} className="transition-transform duration-200 group-open:rotate-180" />
             </summary>
@@ -142,7 +142,7 @@ export default function HomeView({ season, fetchedLabel, upcoming, categories, t
 }
 
 const BIG_BUTTON =
-  "focus-ring flex h-full min-h-24 w-full flex-col justify-between surface-card rounded-2xl p-4 text-left transition-colors duration-200 hover:bg-surface-2";
+  "focus-ring flex h-full min-h-24 w-full flex-col justify-between surface-card rounded-container p-4 text-left transition-colors duration-200 hover:bg-surface-2";
 
 function SeasonChips({ seasons, className = "" }: { seasons: SeasonOption[]; className?: string }) {
   return (
@@ -151,7 +151,7 @@ function SeasonChips({ seasons, className = "" }: { seasons: SeasonOption[]; cla
         <li key={s.seasonCode}>
           <Link
             href={`/season/${s.seasonCode}/leaders`}
-            className="focus-ring inline-flex h-10 items-center rounded-lg border border-line bg-surface px-3 text-body font-semibold text-ink-2 transition-colors duration-200 hover:bg-surface-2 hover:text-ink"
+            className="focus-ring inline-flex h-10 items-center rounded-control border border-line bg-surface px-3 text-body font-semibold text-ink-2 transition-colors duration-200 hover:bg-surface-2 hover:text-ink"
           >
             {seasonShortLabel(s.seasonLabel)}
           </Link>
@@ -172,41 +172,44 @@ function Hero({ entry, team, seasonCode }: { entry: LeaderEntry<LeaderPlayer>; t
   return (
     <section aria-label={`득점 1위 ${p.nameKo}`} className="mx-auto mt-3 max-w-5xl sm:px-4">
       <div
-        className="relative overflow-hidden sm:rounded-2xl"
+        className="relative overflow-hidden sm:rounded-container"
         style={{ background: `linear-gradient(155deg, ${color.primary} 0%, ${mid} 55%, ${dark} 100%)`, color: color.text }}
       >
         {/* 장식: 팀 약칭 큰 글씨 (선수 페이지 머리말과 같은 방식) */}
         <span
           aria-hidden
+          // deslop-ignore-next-line 11
           className="pointer-events-none absolute -right-3 top-2 select-none whitespace-nowrap text-[7.5rem] font-black leading-none tracking-tighter opacity-10 sm:text-[11rem]"
         >
           {teamShortLabel(teamName, 5)}
         </span>
         <div className="relative flex min-h-[260px] items-end px-4 sm:min-h-[320px] sm:px-8">
           <div className="relative z-10 min-w-0 flex-1 pb-5 pt-5">
-            <p className="inline-flex rounded-lg px-2.5 py-1 text-sub font-bold" style={{ background: "rgba(0,0,0,0.25)" }}>
+            <p className="inline-flex rounded-control px-2.5 py-1 text-sub font-bold" style={{ background: "rgba(0,0,0,0.25)" }}>
               득점 1위
             </p>
+            {/* deslop-ignore-next-line 11 */}
             <h2 className="mt-3 text-[2.1rem] font-black leading-[1.05] tracking-tight [overflow-wrap:anywhere] sm:text-6xl">
-              <Link href={`/player/${p.id}`} className="focus-ring rounded-lg underline-offset-4 hover:underline">
+              <Link href={`/player/${p.id}`} className="focus-ring rounded-control underline-offset-4 hover:underline">
                 {p.nameKo}
               </Link>
             </h2>
             <p className="mt-2 flex items-center gap-1.5 text-body font-semibold opacity-90">
-              <span className="inline-flex rounded-lg bg-white p-0.5">
+              <span className="inline-flex rounded-control bg-white p-0.5">
                 <TeamLogo logoUrl={team?.logoUrl} shortName={teamName} color={color} size={20} />
               </span>
               {teamShortLabel(teamName)}
               {positionLabel(p.position) ? ` · ${positionLabel(p.position)}` : ""} · {NATIONALITY_LABELS[nationalityOf(p)]}
             </p>
             <p className="tabular mt-4 leading-none">
+              {/* deslop-ignore-next-line 11 */}
               <span className="text-5xl font-black tracking-tight sm:text-6xl">{value}</span>
               <span className="ml-1 text-lg font-bold">점</span>
             </p>
             <p className="mt-1.5 text-body font-semibold opacity-90">경기당 {value}점 · 득점 1위</p>
             <Link
               href={playerHref(p.id, seasonCode)}
-              className="focus-ring mt-4 inline-flex h-11 items-center gap-1 rounded-lg bg-white px-4 text-body font-bold text-[#0b0b0b] transition-colors duration-200 hover:bg-white/85"
+              className="focus-ring mt-4 inline-flex h-11 items-center gap-1 rounded-control bg-white px-4 text-body font-bold text-[#0b0b0b] transition-colors duration-200 hover:bg-white/85"
             >
               선수 카드 보기 <IconChevronRight size={16} />
             </Link>
@@ -237,11 +240,11 @@ function LeaderCard({
   const def = LEADER_STATS[category.key];
   const unit = HOME_UNITS[category.key] ?? "";
   return (
-    <article className="surface-card tabular h-full rounded-2xl p-3">
+    <article className="surface-card tabular h-full rounded-container p-3">
       <h3 className="flex items-center justify-between">
         <Link
           href={leadersHref(seasonCode, category.key)}
-          className="focus-ring -ml-1 inline-flex h-10 items-center gap-0.5 rounded-lg px-1 text-body font-bold text-ink underline-offset-4 transition-colors duration-200 hover:underline"
+          className="focus-ring -ml-1 inline-flex h-10 items-center gap-0.5 rounded-control px-1 text-body font-bold text-ink underline-offset-4 transition-colors duration-200 hover:underline"
         >
           {def.label}
           <IconChevronRight size={16} />
@@ -259,7 +262,7 @@ function LeaderCard({
                 {/* 한 줄 전체가 선수 페이지 링크 (누르는 영역 48px 이상, 디자인 점검 C1) */}
                 <Link
                   href={`/player/${e.player.id}`}
-                  className="focus-ring -mx-1 flex min-h-12 min-w-0 items-center gap-2 rounded-lg px-1 transition-colors duration-200 hover:bg-surface-2"
+                  className="focus-ring -mx-1 flex min-h-12 min-w-0 items-center gap-2 rounded-control px-1 transition-colors duration-200 hover:bg-surface-2"
                 >
                   <span className={`w-4 shrink-0 text-center text-sub ${e.rank === 1 ? "font-black text-ink" : "font-semibold text-ink-3"}`}>
                     {e.rank}

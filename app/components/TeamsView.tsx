@@ -62,6 +62,7 @@ function Swatch({ color, square }: { color: string; square?: boolean }) {
   return (
     <span
       aria-hidden
+      // deslop-ignore-next-line 19
       className={`inline-block h-2.5 w-2.5 shrink-0 ${square ? "rounded-[2px]" : "rounded-full"}`}
       style={{ background: color }}
     />
@@ -168,7 +169,7 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
             type="button"
             aria-pressed={selected.length === 0}
             onClick={() => update({ teams: [] })}
-            className={`focus-ring h-10 cursor-pointer rounded-lg border px-3 text-body font-semibold transition-colors duration-200 ${
+            className={`focus-ring h-10 cursor-pointer rounded-control border px-3 text-body font-semibold transition-colors duration-200 ${
               selected.length === 0 ? "border-ink bg-ink text-bg" : "border-line bg-surface text-ink-2 hover:bg-surface-2"
             }`}
           >
@@ -183,7 +184,7 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
                 type="button"
                 aria-pressed={on}
                 onClick={() => update({ teams: toggleTeam(selected, t.teamCode) })}
-                className={`focus-ring flex h-10 cursor-pointer items-center gap-1.5 rounded-lg border py-1 pl-1.5 pr-3 text-body font-semibold transition-colors duration-200 ${
+                className={`focus-ring flex h-10 cursor-pointer items-center gap-1.5 rounded-control border py-1 pl-1.5 pr-3 text-body font-semibold transition-colors duration-200 ${
                   on ? "border-ink bg-surface-2 text-ink ring-1 ring-ink" : "border-line bg-surface text-ink-2 hover:bg-surface-2"
                 } ${dim ? "opacity-60" : ""}`}
               >
@@ -216,7 +217,7 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
           <FilterGroup label="표본 기준 (고급)" hint={<>이 기준을 넘긴 선수만 점으로 찍습니다 <InfoLink term="qualify" /></>}>
             <select
               aria-label="표본 기준"
-              className="focus-ring h-11 w-full min-w-0 max-w-xs cursor-pointer rounded-lg border border-line bg-surface px-2 text-base text-ink"
+              className="focus-ring h-11 w-full min-w-0 max-w-xs cursor-pointer rounded-control border border-line bg-surface px-2 text-base text-ink"
               value={presetIdx}
               onChange={(e) => update({ presetIdx: Number(e.target.value) })}
             >
@@ -231,7 +232,7 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
       </section>
 
       {/* 산점도 */}
-      <section aria-label={`${metric.label} 대 경기당 출전시간 산점도`} className="surface-card mt-3 rounded-2xl p-2 sm:p-4">
+      <section aria-label={`${metric.label} 대 경기당 출전시간 산점도`} className="surface-card mt-3 rounded-container p-2 sm:p-4">
         <div aria-hidden className="scatter-plot w-full">
           <ResponsiveContainer
             width="100%"
@@ -283,7 +284,7 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
                     if (!d) return null;
                     const t = teamByCode.get(d.player.teamCode);
                     return (
-                      <div className="surface-card rounded-lg px-2.5 py-1.5 text-sub">
+                      <div className="surface-card rounded-control px-2.5 py-1.5 text-sub">
                         <p className="flex items-center gap-1.5 font-semibold text-ink">
                           <Swatch color={d.color} square={d.square} />
                           {d.player.nameKo}
@@ -349,12 +350,12 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
         </div>
 
         {points.length === 0 && (
-          <div className="rounded-xl bg-surface-2 px-3 py-4 text-center">
+          <div className="rounded-control bg-surface-2 px-3 py-4 text-center">
             <p className="text-body font-semibold text-ink">이 조건에 맞는 선수가 없습니다</p>
             <button
               type="button"
               onClick={() => update({ position: "all", presetIdx: DEFAULT_DISTRIBUTION_STATE.presetIdx })}
-              className="focus-ring mt-3 h-11 rounded-lg border border-line bg-surface px-4 text-body font-semibold text-ink transition-colors duration-200 hover:bg-surface-2"
+              className="focus-ring mt-3 h-11 rounded-control border border-line bg-surface px-4 text-body font-semibold text-ink transition-colors duration-200 hover:bg-surface-2"
             >
               필터 초기화
             </button>
@@ -373,7 +374,7 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
               onClose={() => update({ playerId: null })}
             />
           ) : (
-            <p className="flex h-16 items-center justify-center rounded-xl bg-surface-2 px-3 text-center text-sub text-ink-3">
+            <p className="flex h-16 items-center justify-center rounded-control bg-surface-2 px-3 text-center text-sub text-ink-3">
               점을 누르면 선수 이름과 기록이 여기 나옵니다
             </p>
           )}
@@ -382,7 +383,7 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
           {metric.note}. 가로축은 경기당 출전시간, {qualifyLabel(rule)} 선수만. 색이 비슷한 팀은 팀 칩으로 골라 보세요.
         </p>
         <details className="mt-2 text-body">
-          <summary className="focus-ring flex h-10 cursor-pointer items-center rounded-lg text-sub font-semibold text-ink-2 hover:text-ink">
+          <summary className="focus-ring flex h-10 cursor-pointer items-center rounded-control text-sub font-semibold text-ink-2 hover:text-ink">
             표로 보기 ({selected.length ? selectionText : "전체"} {tableRows.length}명)
           </summary>
           <div className="mt-1">
@@ -400,7 +401,7 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
                   rowHeader: true,
                   className: "font-normal",
                   cell: (d) => (
-                    <Link href={`/player/${d.player.id}`} className="focus-ring rounded-lg font-semibold text-ink underline-offset-2 hover:underline">
+                    <Link href={`/player/${d.player.id}`} className="focus-ring rounded-control font-semibold text-ink underline-offset-2 hover:underline">
                       {d.player.nameKo}
                     </Link>
                   ),
@@ -439,7 +440,7 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
               detailFooter={(d) => (
                 <Link
                   href={`/player/${d.player.id}`}
-                  className="focus-ring inline-flex h-10 items-center gap-1 rounded-lg px-1 text-body font-semibold text-ink underline-offset-4 hover:underline"
+                  className="focus-ring inline-flex h-10 items-center gap-1 rounded-control px-1 text-body font-semibold text-ink underline-offset-4 hover:underline"
                 >
                   {d.player.nameKo} 선수 페이지 <IconChevronRight size={16} />
                 </Link>
@@ -465,7 +466,7 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
                   type="button"
                   aria-pressed={on}
                   onClick={() => update({ teams: toggleTeam(selected, t.teamCode) })}
-                  className={`focus-ring flex h-full w-full min-w-0 flex-col rounded-2xl border bg-surface p-3 text-left shadow-card transition-colors duration-200 hover:bg-surface-2 ${
+                  className={`focus-ring flex h-full w-full min-w-0 flex-col rounded-container border bg-surface p-3 text-left shadow-card transition-colors duration-200 hover:bg-surface-2 ${
                     on ? "border-ink ring-1 ring-ink" : "border-line"
                   }`}
                 >
@@ -514,7 +515,7 @@ function SelectedCard({
 }) {
   const p = point.player;
   return (
-    <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-line bg-surface px-3 py-2">
+    <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 rounded-control border border-line bg-surface px-3 py-2">
       <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={team?.color} size={44} />
       <div className="min-w-0 flex-1">
         <p className="flex min-w-0 items-center gap-1.5">
@@ -534,14 +535,14 @@ function SelectedCard({
         type="button"
         onClick={onClose}
         aria-label="선수 카드 닫기"
-        className="focus-ring -mr-2 flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg text-ink-3 transition-colors duration-200 hover:text-ink sm:order-last"
+        className="focus-ring -mr-2 flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-control text-ink-3 transition-colors duration-200 hover:text-ink sm:order-last"
       >
         <IconClose size={20} />
       </button>
       {/* 모바일은 아래 줄 전체 폭, 640px 이상은 같은 줄 오른쪽 */}
       <Link
         href={`/player/${p.id}`}
-        className="focus-ring flex h-10 w-full shrink-0 items-center justify-center rounded-lg bg-ink px-3 text-sub font-semibold text-bg transition-colors duration-200 hover:bg-ink/85 sm:w-auto"
+        className="focus-ring flex h-10 w-full shrink-0 items-center justify-center rounded-control bg-ink px-3 text-sub font-semibold text-bg transition-colors duration-200 hover:bg-ink/85 sm:w-auto"
       >
         선수 기록 보기
       </Link>

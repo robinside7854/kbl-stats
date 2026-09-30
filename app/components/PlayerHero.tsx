@@ -50,6 +50,7 @@ export default function PlayerHero({ entry, seasons }: Props) {
         {/* 장식: 최근 팀 약칭 큰 글씨 */}
         <span
           aria-hidden
+          // deslop-ignore-next-line 11
           className="pointer-events-none absolute -right-3 top-2 select-none whitespace-nowrap text-[7.5rem] font-black leading-none tracking-tighter opacity-10 sm:text-[11rem]"
         >
           {teamShortLabel(teamName, 5)}
@@ -57,22 +58,23 @@ export default function PlayerHero({ entry, seasons }: Props) {
         <div className="relative mx-auto flex min-h-[250px] max-w-5xl items-end px-4 sm:min-h-[300px]">
           <div className="relative z-10 min-w-0 flex-1 pb-5 pt-5 pr-2">
             <div className="flex items-center gap-2">
-              <span className="inline-flex rounded-lg bg-white p-1 shadow-card">
+              <span className="inline-flex rounded-control bg-white p-1 shadow-card">
                 <TeamLogo logoUrl={team?.logoUrl} shortName={teamName} color={color} size={40} />
               </span>
               <span className="text-sub font-semibold opacity-90 sm:text-body">
                 {latest ? `${seasonShortLabel(latest.seasonLabel)} ${teamShortLabel(teamName)}` : ""}
               </span>
             </div>
+            {/* deslop-ignore-next-line 11 */}
             <h1 className="mt-3 text-[2rem] font-black leading-[1.1] tracking-tight [overflow-wrap:anywhere] sm:text-5xl">
               {entry.nameKo}
             </h1>
-            <p className="mt-1 truncate text-sub font-medium uppercase tracking-wide opacity-80 sm:text-body">{entry.nameEn}</p>
+            <p className="mt-1 truncate text-sub font-medium opacity-85 sm:text-body">{entry.nameEn}</p>
             <div className="mt-3 flex flex-wrap gap-1.5 text-sub font-semibold">
-              <span className="rounded-lg px-2 py-0.5" style={{ background: "rgba(255,255,255,0.18)" }}>
+              <span className="rounded-control px-2 py-0.5" style={{ background: "rgba(255,255,255,0.18)" }}>
                 {NATIONALITY_LABELS[nationalityOf(entry)]}
               </span>
-              <span className="rounded-lg px-2 py-0.5" style={{ background: "rgba(0,0,0,0.25)" }}>
+              <span className="rounded-control px-2 py-0.5" style={{ background: "rgba(0,0,0,0.25)" }}>
                 {span}
               </span>
             </div>
@@ -100,7 +102,7 @@ export default function PlayerHero({ entry, seasons }: Props) {
 
       {/* ── 통산 요약 + 소속 이력 ── */}
       <div className="mx-auto max-w-5xl px-4">
-        <dl className="tabular -mt-px grid grid-cols-4 overflow-hidden rounded-b-2xl border border-t-0 border-line bg-surface shadow-card">
+        <dl className="tabular -mt-px grid grid-cols-4 overflow-hidden rounded-b-container border border-t-0 border-line bg-surface shadow-card">
           {tiles.map((t, i) => (
             <div key={t.label} className={`min-w-0 px-2 py-3 text-center sm:px-4 ${i > 0 ? "border-l border-line" : ""}`}>
               <dt className="truncate text-caption font-medium text-ink-3 sm:text-sub">
@@ -127,7 +129,7 @@ export default function PlayerHero({ entry, seasons }: Props) {
               return (
                 <li
                   key={`${st.teamCode}-${i}`}
-                  className="flex h-10 items-center gap-1.5 rounded-lg border border-line bg-surface pl-1.5 pr-2.5 text-sub"
+                  className="flex h-10 items-center gap-1.5 rounded-control border border-line bg-surface pl-1.5 pr-2.5 text-sub"
                 >
                   <TeamLogo logoUrl={t?.logoUrl} shortName={name} color={t?.color} size={20} />
                   <span className="font-semibold text-ink">{teamShortLabel(name)}</span>

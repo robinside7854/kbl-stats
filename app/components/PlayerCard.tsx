@@ -81,7 +81,9 @@ function Medal({ tier, rank, px }: { tier: "gold" | "silver" | "bronze"; rank: n
   const m = MEDAL[tier];
   return (
     <svg aria-hidden width={px} height={px} viewBox="0 0 18 18" className="shrink-0">
+      {/* deslop-ignore-next-line 24 */}
       <circle cx="9" cy="9" r="8" fill={m.fill} stroke={m.ring} strokeWidth="1.5" />
+      {/* deslop-ignore-next-line 24 */}
       <circle cx="9" cy="9" r="5.6" fill="none" stroke={m.ring} strokeOpacity="0.45" strokeWidth="0.8" />
       <text x="9" y="12.4" textAnchor="middle" fontSize="9.5" fontWeight="800" fill={m.ink}>
         {rank}
@@ -155,7 +157,7 @@ function StatCell({ entry, color, size, group }: { entry: CardStatEntry; color: 
   const tier = rankTier(entry.rank.rank);
   return (
     <div
-      className={`flex min-w-0 flex-col rounded-xl border border-line ${size === "lg" ? "px-2.5 py-2" : "px-2 py-1.5"}`}
+      className={`flex min-w-0 flex-col rounded-card border border-line ${size === "lg" ? "px-2.5 py-2" : "px-2 py-1.5"}`}
       style={cellStyle(tier, color)}
     >
       <span className="truncate font-medium text-ink-2" style={{ fontSize: d.statLabel }}>
@@ -258,7 +260,7 @@ function GradeTick(props: {
 
 function HeroBadge({ children, fs }: { children: React.ReactNode; fs: number }) {
   return (
-    <span className="whitespace-nowrap rounded-lg px-2 py-0.5 font-semibold" style={{ background: "rgba(255,255,255,0.18)", fontSize: fs }}>
+    <span className="whitespace-nowrap rounded-control px-2 py-0.5 font-semibold" style={{ background: "rgba(255,255,255,0.18)", fontSize: fs }}>
       {children}
     </span>
   );
@@ -289,7 +291,7 @@ function OverallBadge({
   if (!entry.qualified) {
     return (
       <span
-        className="inline-flex flex-col items-center justify-center rounded-lg px-2 text-center font-bold leading-tight"
+        className="inline-flex flex-col items-center justify-center rounded-control px-2 text-center font-bold leading-tight"
         style={{ height: d.logo + 8, background: "rgba(0,0,0,0.3)", fontSize: d.statLabel, boxShadow: "0 0 0 2px rgba(255,255,255,0.6)" }}
         aria-label="종합 등급: 표본 미달"
       >
@@ -301,7 +303,7 @@ function OverallBadge({
   const tone = gradeTone(entry.overall, color, colors);
   return (
     <span
-      className="inline-flex flex-col items-center justify-center rounded-lg"
+      className="inline-flex flex-col items-center justify-center rounded-control"
       style={{
         width: d.logo + 8,
         height: d.logo + 8,
@@ -329,13 +331,13 @@ export function PlayerCardSkeleton({ size = "sm" }: { size?: CardSize }) {
   const d = DIM[size];
   const cellH = Math.round(d.statLabel * 1.45 + d.statVal * 1.25 + d.rank * 1.5 + (size === "lg" ? 20 : 16));
   return (
-    <div aria-hidden className="surface-card w-full overflow-hidden rounded-2xl">
+    <div aria-hidden className="surface-card w-full overflow-hidden rounded-container">
       <Skeleton className="rounded-none" style={{ height: d.header }} />
       <div style={{ padding: d.pad }}>
         <Skeleton className="mb-2 h-4 w-32" />
         <div className={`grid grid-cols-3 ${size === "lg" ? "gap-2" : "gap-1.5"}`}>
           {Array.from({ length: 9 }, (_, i) => (
-            <Skeleton key={i} className="rounded-xl" style={{ height: cellH }} />
+            <Skeleton key={i} className="rounded-card" style={{ height: cellH }} />
           ))}
         </div>
         <Skeleton className="mt-2 h-4 w-48" />
@@ -343,7 +345,7 @@ export function PlayerCardSkeleton({ size = "sm" }: { size?: CardSize }) {
       <div className="border-t border-line" style={{ padding: d.pad }}>
         <Skeleton className="h-4 w-40" />
         <div className="flex items-center justify-center" style={{ height: d.radarH }}>
-          <Skeleton className="rounded-xl" style={{ width: d.radarH * 0.62, height: d.radarH * 0.62 }} />
+          <Skeleton className="rounded-card" style={{ width: d.radarH * 0.62, height: d.radarH * 0.62 }} />
         </div>
       </div>
       <div className="border-t border-line" style={{ padding: d.pad }}>
@@ -405,7 +407,7 @@ export default function PlayerCard({ view, colors, size = "sm", seriesColor, exp
 
   return (
     <article
-      className="surface-card tabular w-full overflow-hidden rounded-2xl"
+      className="surface-card tabular w-full overflow-hidden rounded-container"
       style={exportMode ? { width: CARD_LG_WIDTH } : undefined}
       aria-label={`${p.nameKo} 플레이어 카드`}
     >
@@ -417,6 +419,7 @@ export default function PlayerCard({ view, colors, size = "sm", seriesColor, exp
         {/* 장식: 팀 약칭 큰 글씨 */}
         <span
           aria-hidden
+          // deslop-ignore-next-line 11
           className="pointer-events-none absolute -right-2 top-1 select-none whitespace-nowrap font-black leading-none tracking-tighter"
           style={{ opacity: 0.1, fontSize: Math.round(d.header * 0.39) }}
         >
@@ -431,7 +434,7 @@ export default function PlayerCard({ view, colors, size = "sm", seriesColor, exp
         {/* 좌상단: 로고 + 종합 등급 · 시즌 · 유형 */}
         <div className="absolute flex max-w-[60%] flex-col items-start gap-1.5" style={{ left: d.pad + 2, top: d.pad + 2 }}>
           <div className="flex items-center gap-2">
-            <span className="inline-flex rounded-lg bg-white p-1 shadow-card">
+            <span className="inline-flex rounded-control bg-white p-1 shadow-card">
               <TeamLogo logoUrl={team?.logoUrl} shortName={teamShort} color={color} size={d.logo} official={official} />
             </span>
             <OverallBadge entry={entry} color={color} colors={colors} size={size} />
@@ -439,7 +442,7 @@ export default function PlayerCard({ view, colors, size = "sm", seriesColor, exp
           <span className="font-medium" style={{ opacity: 0.85, fontSize: d.statLabel }}>
             {seasonLabel} 정규시즌
           </span>
-          <span className="rounded-lg px-2 py-1 font-bold leading-tight" style={{ background: "rgba(0,0,0,0.28)", fontSize: d.statLabel + 1 }}>
+          <span className="rounded-control px-2 py-1 font-bold leading-tight" style={{ background: "rgba(0,0,0,0.28)", fontSize: d.statLabel + 1 }}>
             {entry.type.label}
           </span>
         </div>
@@ -447,6 +450,7 @@ export default function PlayerCard({ view, colors, size = "sm", seriesColor, exp
         {/* 하단: 이름 (사진 아래쪽을 덮는 어두운 띠 위) */}
         <div
           className="absolute inset-x-0 bottom-0 pt-10"
+          // deslop-ignore-next-line 06
           style={{ paddingLeft: d.pad + 2, paddingRight: d.pad + 2, paddingBottom: d.pad, background: `linear-gradient(to top, ${dark} 0%, ${dark}e6 40%, ${dark}00 100%)` }}
         >
           <div className="mb-1 flex flex-wrap gap-1">
@@ -456,14 +460,14 @@ export default function PlayerCard({ view, colors, size = "sm", seriesColor, exp
           </div>
           <h2 className="font-black tracking-tight [overflow-wrap:anywhere]" style={{ fontSize: d.name, lineHeight: 1.1 }}>
             {nameHref && !exportMode ? (
-              <Link href={nameHref} className="focus-ring rounded-lg underline-offset-4 hover:underline" title={`${p.nameKo} 선수 페이지`}>
+              <Link href={nameHref} className="focus-ring rounded-control underline-offset-4 hover:underline" title={`${p.nameKo} 선수 페이지`}>
                 {p.nameKo}
               </Link>
             ) : (
               p.nameKo
             )}
           </h2>
-          <p className="mt-0.5 truncate font-medium uppercase tracking-wide" style={{ opacity: 0.8, fontSize: d.nameEn }}>
+          <p className="mt-0.5 truncate font-medium" style={{ opacity: 0.85, fontSize: d.nameEn }}>
             {p.nameEn} · {p.teamName}
           </p>
         </div>
@@ -506,7 +510,7 @@ export default function PlayerCard({ view, colors, size = "sm", seriesColor, exp
           {!exportMode && (
             <Link
               href={glossaryHref("percentileGrade")}
-              className="focus-ring -mx-3 -my-3 inline-flex h-10 w-10 items-center justify-center rounded-lg font-normal text-ink-3 transition-colors duration-200 hover:text-ink"
+              className="focus-ring -mx-3 -my-3 inline-flex h-10 w-10 items-center justify-center rounded-control font-normal text-ink-3 transition-colors duration-200 hover:text-ink"
               aria-label="등급 계산 방법 (용어 풀이)"
               title="등급 계산 방법"
             >

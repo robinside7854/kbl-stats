@@ -12,7 +12,7 @@ export default function InfoLink({ term, className = "", compact = false }: { te
       href={glossaryHref(term)}
       aria-label={`${name} 설명 보기`}
       title={`${name}: ${glossaryEntry(term)?.short ?? ""}`}
-      className={`focus-ring inline-flex shrink-0 items-center justify-center rounded-lg align-middle text-ink-3 transition-colors duration-200 hover:text-ink ${
+      className={`focus-ring inline-flex shrink-0 items-center justify-center rounded-control align-middle text-ink-3 transition-colors duration-200 hover:text-ink ${
         compact ? "h-10 w-5" : "-mx-3 -my-3 h-10 w-10"
       } ${className}`}
     >

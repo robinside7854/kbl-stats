@@ -42,14 +42,14 @@ export default function GlossaryPage() {
             <a
               key={g.key}
               href={`#${GLOSSARY_ANCHORS[g.key]}`}
-              className="focus-ring inline-flex h-10 items-center rounded-lg border border-line bg-surface px-3 text-sub font-semibold text-ink-2 transition-colors duration-200 hover:bg-surface-2 hover:text-ink"
+              className="focus-ring inline-flex h-10 items-center rounded-control border border-line bg-surface px-3 text-sub font-semibold text-ink-2 transition-colors duration-200 hover:bg-surface-2 hover:text-ink"
             >
               {g.name}
             </a>
           ))}
         </nav>
 
-        <div className="surface-card rounded-2xl max-md:border-0 max-md:bg-transparent max-md:shadow-none">
+        <div className="surface-card rounded-container max-md:border-0 max-md:bg-transparent max-md:shadow-none">
           <table className="w-full border-separate border-spacing-0 text-body max-md:block">
             <caption className="sr-only">지표 이름, 한 줄 한 줄 설명, 계산식, 비고, 출처</caption>
             <thead className="max-md:sr-only">
@@ -66,14 +66,14 @@ export default function GlossaryPage() {
                 <tr
                   key={g.key}
                   id={GLOSSARY_ANCHORS[g.key]}
-                  className="scroll-mt-4 target:bg-surface-2 max-md:block max-md:rounded-2xl max-md:border max-md:border-line max-md:bg-surface max-md:shadow-card max-md:p-3 max-md:target:bg-surface-2 max-md:target:ring-2 max-md:target:ring-ink"
+                  className="scroll-mt-4 target:bg-surface-2 max-md:block max-md:rounded-container max-md:border max-md:border-line max-md:bg-surface max-md:shadow-card max-md:p-3 max-md:target:bg-surface-2 max-md:target:ring-2 max-md:target:ring-ink"
                 >
                   <th scope="row" className={`${CELL} text-left text-base font-bold text-ink`}>
                     {g.name}
                   </th>
                   <td className={`${CELL} text-ink`}>{g.short}</td>
                   <td className={CELL}>
-                    <code className="block rounded-lg bg-surface-2 px-2.5 py-2 text-sub leading-relaxed text-ink-2 [overflow-wrap:anywhere]">
+                    <code className="block rounded-control bg-surface-2 px-2.5 py-2 text-sub leading-relaxed text-ink-2 [overflow-wrap:anywhere]">
                       {g.formula}
                     </code>
                   </td>
@@ -87,7 +87,7 @@ export default function GlossaryPage() {
                         href={g.source}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="focus-ring rounded-lg font-semibold text-ink-2 underline underline-offset-4 transition-colors duration-200 hover:text-ink"
+                        className="focus-ring rounded-control font-semibold text-ink-2 underline underline-offset-4 transition-colors duration-200 hover:text-ink"
                       >
                         {sourceName(g.source)}
                         <IconExternal size={16} className="ml-0.5 inline align-[-3px]" />
