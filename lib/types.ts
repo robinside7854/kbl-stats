@@ -54,3 +54,33 @@ export interface SeasonData {
   fetchedAt: string;      // ISO
   players: Player[];
 }
+
+// ─────────────────────────────────────────────
+// 화면(클라이언트)으로 넘기는 최소 필드 — 페이로드를 작게 유지하기 위해
+// Player 전체가 아니라 레이더 카드에 필요한 값만 담는다. (lib/data.ts 에서 변환)
+// ─────────────────────────────────────────────
+
+export interface CardPlayer {
+  id: string;             // playerNo
+  nameKo: string;
+  nameEn: string;
+  teamName: string;
+  teamShort: string;
+  isForeign: boolean;
+  games: number;
+  minutes: number;        // 시즌 누적 (분)
+  points: number;         // 시즌 누적
+  reb: number;
+  ast: number;
+  per: number;
+  usgPct: number;
+  tsPct: number;
+  astPct: number;
+  rebPct: number;
+  pie: number;
+}
+
+export interface SeasonOption {
+  seasonCode: number;
+  seasonLabel: string;
+}

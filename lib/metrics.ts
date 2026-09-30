@@ -102,6 +102,23 @@ export function perGame(total: number, games: number): number {
   return games > 0 ? total / games : 0;
 }
 
+export interface PerGameStats {
+  minutes: number;
+  points: number;
+  reb: number;
+  ast: number;
+}
+
+/** 카드에 쓰는 경기당 출전시간·득점·리바운드·어시스트 (각각 perGame 적용) */
+export function perGameStats(p: { games: number; minutes: number; points: number; reb: number; ast: number }): PerGameStats {
+  return {
+    minutes: perGame(p.minutes, p.games),
+    points: perGame(p.points, p.games),
+    reb: perGame(p.reb, p.games),
+    ast: perGame(p.ast, p.games),
+  };
+}
+
 // ─────────────────────────────────────────────
 // 선수 유형 라벨 (재미용, 단순 규칙)
 // ─────────────────────────────────────────────
