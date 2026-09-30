@@ -100,10 +100,16 @@ async function fetchSeason(seasonCode: number) {
   const label = SEASON_CODES_FALLBACK[seasonCode] ?? String(seasonCode);
   const results: string[] = [];
 
+  // traditional은 필수, advanced는 옛 시즌에 없을 수 있어 실패해도 시즌 전체를 버리지 않는다
   for (const kind of ["traditional", "advanced"] as const) {
-    const body = await fetchAllPages(kind, seasonCode, GAME_CODE.regular);
-    await saveRaw(seasonCode, `${kind}_regular`, body);
-    results.push(`${kind} ${body.data!.length}행`);
+    try {
+      const body = await fetchAllPages(kind, seasonCode, GAME_CODE.regular);
+      await saveRaw(seasonCode, `${kind}_regular`, body);
+      results.push(`${kind} ${body.data!.length}행`);
+    } catch (e) {
+      if (kind === "traditional") throw e;
+      results.push(`advanced 없음(${(e as Error).message.split("\n")[0]})`);
+    }
     await sleep(REQUEST_INTERVAL_MS);
   }
 

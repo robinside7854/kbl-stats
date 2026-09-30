@@ -44,9 +44,11 @@ jobs:
           fi
 
       - name: 가공
+        if: always()
         run: npm run process
 
       - name: 커밋
+        if: always()
         run: |
           git config user.name "kbl-stats-bot"
           git config user.email "actions@users.noreply.github.com"
