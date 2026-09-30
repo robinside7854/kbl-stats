@@ -29,6 +29,16 @@
   --grade-d-ink: #4a4946;
   --grade-f: #ecebe7;
   --grade-f-ink: #6b6a66;
+  /* 범주형 8색 (dataviz 기본 팔레트, 고정 순서) — 팀 분포 산점도에서 팀 색이 회색 기본값인 옛 구단에 팀 순서대로 배정
+     (lib/teams.ts assignTeamColors). 1·2번은 두 팀 비교 때 두 팀 색이 비슷할 때도 쓴다 */
+  --cat-1: #2a78d6;
+  --cat-2: #eb6834;
+  --cat-3: #1baf7a;
+  --cat-4: #eda100;
+  --cat-5: #e87ba4;
+  --cat-6: #008300;
+  --cat-7: #4a3aa7;
+  --cat-8: #e34948;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -57,6 +67,14 @@
     --grade-d-ink: #b9b8ae;
     --grade-f: #252523;
     --grade-f-ink: #92918a;
+    --cat-1: #3987e5;
+    --cat-2: #d95926;
+    --cat-3: #199e70;
+    --cat-4: #c98500;
+    --cat-5: #d55181;
+    --cat-6: #008300;
+    --cat-7: #9085e9;
+    --cat-8: #e66767;
   }
 }
 
@@ -87,4 +105,10 @@ body {
 
 .tabular {
   font-variant-numeric: tabular-nums;
+}
+
+/* 팀 분포 산점도: 점을 누르면 Recharts 레이어(g)에 브라우저 포커스 테두리가 생긴다.
+   차트는 aria-hidden 이고 같은 내용을 "표로 보기"가 제공하므로 차트 안 포커스 테두리만 숨긴다 */
+.scatter-plot :focus {
+  outline: none;
 }

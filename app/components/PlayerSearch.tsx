@@ -3,6 +3,7 @@
 // 검색 데이터는 우리 사이트의 정적 파일 /search-index.json (빌드 전 scripts/build-search-index.ts 가 생성).
 // 검색창에 처음 포커스가 갈 때 한 번만 받아 모듈 변수에 둔다 — KBL 서버 호출이 아니므로 원칙 1·3 위반 아님.
 // 매칭·정렬 규칙은 lib/search.ts searchPlayers.
+// 입력창의 data-site-search 속성은 홈의 "선수 검색" 버튼이 포커스를 옮길 때 찾는 표시다 (FocusSearchButton).
 import { useId, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -91,6 +92,7 @@ export default function PlayerSearch({ className = "" }: { className?: string })
       <input
         ref={inputRef}
         id={id}
+        data-site-search=""
         type="search"
         role="combobox"
         aria-expanded={showList}

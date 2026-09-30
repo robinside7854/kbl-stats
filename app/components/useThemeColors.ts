@@ -20,6 +20,8 @@ export interface ThemeColors {
   gradeDInk: string;
   gradeF: string;
   gradeFInk: string;
+  /** 범주형 8색 (globals.css --cat-1…8, 고정 순서) — 팀 분포 산점도의 회색 팀 대체 색 */
+  categorical: string[];
 }
 
 const LIGHT_FALLBACK: ThemeColors = {
@@ -38,6 +40,7 @@ const LIGHT_FALLBACK: ThemeColors = {
   gradeDInk: "#4a4946",
   gradeF: "#ecebe7",
   gradeFInk: "#6b6a66",
+  categorical: ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#4a3aa7", "#e34948"],
 };
 
 function read(): ThemeColors {
@@ -59,6 +62,7 @@ function read(): ThemeColors {
     gradeDInk: v("--grade-d-ink", LIGHT_FALLBACK.gradeDInk),
     gradeF: v("--grade-f", LIGHT_FALLBACK.gradeF),
     gradeFInk: v("--grade-f-ink", LIGHT_FALLBACK.gradeFInk),
+    categorical: LIGHT_FALLBACK.categorical.map((fb, i) => v(`--cat-${i + 1}`, fb)),
   };
 }
 
