@@ -4,13 +4,13 @@
 #
 # 실행 방법: 아래 "실행 횟수" 숫자를 1 올려서 main 에 푸시 (0 이면 파일이 푸시돼도 아무것도 받지 않는다)
 #   (GitHub → Actions → "슛 차트 백필" → Run workflow 버튼도 된다 — 이때는 숫자와 관계없이 실행)
-# 대상 시즌: 아래 "대상 시즌" 줄에 시즌 코드를 공백으로 적으면 그 시즌만 (예: "# 대상 시즌: 47 45"), 비우면 선수 raw 가 있는 전체 시즌(최신 먼저).
+# 대상 시즌 지정: 아래 "대상 시즌" 줄(맨 아래 주석 줄)에 시즌 코드를 공백으로 적으면 그 시즌만 (예: 47 45), 비우면 선수 raw 가 있는 전체 시즌(최신 먼저).
 #   처음에는 47 한 시즌으로 좌표 형식을 확인한 뒤 비워서 전체를 받는 것을 권한다.
 # 이어받기: 이미 raw 가 있는 경기는 건너뛰고, 시즌 하나가 끝날 때마다 커밋·푸시한다.
 #   시간 예산(300분)에 걸리거나 실패가 남으면 숫자를 한 번 더 올려 푸시하면 남은 것만 받는다.
 #
-# 실행 횟수: 2
-# 대상 시즌: 47
+# 실행 횟수: 3
+# 대상 시즌:
 name: 슛 차트 백필
 
 on:
@@ -60,7 +60,7 @@ jobs:
         run: |
           git config user.name "robinside7854"
           git config user.email "252681033+robinside7854@users.noreply.github.com"
-          seasons=$(grep -m1 -E '^# 대상 시즌:' .github/workflows/backfill-shots.yml | sed -E 's/^# 대상 시즌:[[:space:]]*//' | grep -oE '[0-9]+' | tr '\n' ' ' || true)
+          seasons=$(grep -m1 -E '^# 대상 시즌:'  .github/workflows/backfill-shots.yml | sed -E 's/^# 대상 시즌:[[:space:]]*//' | grep -oE '[0-9]+' | tr '\n' ' ' || true)
           if [ -z "${seasons// /}" ]; then
             seasons=$(npx tsx scripts/backfill-shots.ts --list-seasons)
             echo "대상 시즌(전체): $seasons"
