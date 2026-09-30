@@ -150,6 +150,31 @@ async function readTeamColors(): Promise<TeamColorTable> {
   }
 }
 
+/**
+ * 사진 덮어쓰기 목록 (data/codes/photo-overrides.json) — 손으로 관리하는 파일.
+ * KBL 이 코치가 된 선수의 사진을 코치 사진으로 바꿔 두어 옛 기록에도 그 사진이 뜨는 경우, 사용자가 선수 번호를 hide 에 적는다.
+ * hide 에 있는 선수는 photoUrl 을 null 로 → 화면은 대체 디자인(팀 색 + 이니셜). 파일이 없거나 깨졌으면 빈 목록.
+ */
+let hiddenPhotos = new Set<string>();
+
+async function readPhotoOverrides(): Promise<Set<string>> {
+  try {
+    const raw = JSON.parse(await readFile(join(DATA_DIR, "codes", "photo-overrides.json"), "utf8"));
+    const hide: unknown[] = Array.isArray(raw.hide) ? raw.hide : [];
+    const set = new Set(hide.map((x) => String(x).trim()).filter(Boolean));
+    if (set.size > 0) console.log(`사진 숨김(photo-overrides.json): ${set.size}명`);
+    return set;
+  } catch (e) {
+    console.warn(`photo-overrides.json 읽기 실패 → 사진 숨김 없음: ${(e as Error).message}`);
+    return new Set();
+  }
+}
+
+/** 선수 사진 주소. 덮어쓰기 목록(hide)에 있으면 null */
+function photoUrlOf(playerNo: string): string | null {
+  return hiddenPhotos.has(playerNo) ? null : playerPhotoUrl(playerNo);
+}
+
 function teamColor(table: TeamColorTable, teamCode: string): TeamColor {
   // 표에 name 등 설명 필드가 있어도 세 값만 골라 쓴다
   const c = table.byTeamCode[teamCode] ?? table.fallback;
@@ -272,7 +297,7 @@ function buildPlayersIndex(seasons: SeasonData[]): PlayerIndexEntry[] {
           nameKo: p.nameKo,
           nameEn: p.nameEn,
           isForeign: p.isForeign,
-          photoUrl: playerPhotoUrl(p.playerNo),
+          photoUrl: photoUrlOf(p.playerNo),
           ...(profiles.get(p.playerNo) ?? EMPTY_PROFILE),
           ...(profileExtras.get(p.playerNo) ?? EMPTY_PROFILE_EXTRA),
           careerHighs: careerHighsByPlayer.get(p.playerNo) ?? null,
@@ -339,6 +364,7 @@ async function readProfileExtras(): Promise<Map<string, ProfileExtra>> {
 
 async function main() {
   teamColors = await readTeamColors();
+  hiddenPhotos = await readPhotoOverrides();
   profiles = await readProfiles();
   profileExtras = await readProfileExtras();
   const seasons = (await readdir(join(DATA_DIR, "raw"), { withFileTypes: true }))

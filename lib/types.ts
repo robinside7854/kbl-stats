@@ -196,7 +196,9 @@ export interface PlayerIndexEntry extends PlayerProfile {
   nameKo: string;         // 가장 최근 시즌 표기
   nameEn: string;         // 가장 최근 시즌 표기
   isForeign: boolean;     // 가장 최근 시즌 값 (마스터가 있으면 nationality 기준)
-  photoUrl: string;       // 공식 프로필 사진 주소 (process.ts가 생성). 사진이 없을 수 있으므로 화면은 실패 시 대체 디자인
+  /** 공식 프로필 사진 주소 (process.ts가 생성). 사진이 없을 수 있으므로 화면은 실패 시 대체 디자인.
+   *  data/codes/photo-overrides.json hide 에 적힌 선수(코치 사진으로 바뀐 경우 등)는 null → 대체 디자인 */
+  photoUrl: string | null;
   seasons: PlayerIndexSeason[]; // seasonCode 오름차순
   /** 통산 한 경기 최다 (가장 최근 시즌 raw 의 AllTimes). raw 가 없으면 null — 옛 색인엔 필드가 없다 */
   careerHighs?: CareerHighs | null;
@@ -338,7 +340,7 @@ export interface SearchEntry {
   to: string;             // 마지막 시즌 짧은 표기
   last: number;           // 마지막 시즌 코드 (검색 결과 정렬: 최근 선수 먼저)
   seasons: number[];      // 뛴 시즌 코드 전부 (오름차순) — 비교 탭 시즌 칩
-  photoUrl: string;       // process.ts 가 만든 주소 그대로 (화면은 KBL 주소를 모른다)
+  photoUrl: string | null; // process.ts 가 만든 주소 그대로 (화면은 KBL 주소를 모른다). 사진 숨김 선수는 null
   positionGroup: PositionGroup | null; // 선수 마스터 (없으면 null)
   positionLabel: string | null;        // 예: "가드-포워드"
   color: { primary: string; text: string }; // 최근 팀 색 (아바타 대체 디자인)
