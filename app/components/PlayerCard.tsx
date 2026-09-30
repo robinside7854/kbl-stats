@@ -4,6 +4,7 @@
 // size: "sm"(모바일, 폭 100%) / "lg"(PC·저장 이미지, 폭 약 500px) — 글자·사진·격자·레이더를 비례해 키운다.
 // exportMode(이미지 저장 사본)에서는 공식 사진·로고를 쓰지 않고 대체 디자인(팀 색·이니셜·약칭)으로 그린다.
 import { PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart, ResponsiveContainer } from "recharts";
+import Link from "next/link";
 import type { CardPlayer, CardTeam, TeamColor } from "@/lib/types";
 import {
   axisValue,
@@ -11,12 +12,11 @@ import {
   RADAR_AXIS_LABELS,
   RADAR_AXIS_SHORT_LABELS,
   rankTier,
+  type CardEntryOf,
   type CardStatEntry,
   type Grade,
-  type PlayerType,
   type RadarAxis,
   type RadarAxisSet,
-  type RadarPercentiles,
   type RankTier,
 } from "@/lib/metrics";
 import { mixHex, teamShortLabel } from "@/lib/images";
@@ -25,18 +25,8 @@ import TeamLogo from "./TeamLogo";
 import type { ThemeColors } from "./useThemeColors";
 import { SOURCE_LINE } from "./SourceFooter";
 
-export interface CardEntry {
-  player: CardPlayer;
-  pct: RadarPercentiles;
-  /** 축별 등급 (lib/metrics percentileGrade) */
-  grades: Partial<Record<RadarAxis, Grade | "-">>;
-  /** 종합 등급 (5축 백분위 평균 → percentileGrade) */
-  overall: Grade | "-";
-  type: PlayerType;
-  qualified: boolean;
-  /** 메인 스탯 9개 (CARD_STATS 순서) + 시즌 순위 */
-  stats: CardStatEntry[];
-}
+/** 카드 한 장의 값 (lib/metrics buildCardEntry 결과) */
+export type CardEntry = CardEntryOf<CardPlayer>;
 
 export type CardSize = "sm" | "lg";
 
@@ -55,6 +45,8 @@ interface Props {
   seriesColor: string;
   /** 이미지 저장 사본: 공식 이미지 없이 대체 디자인만 */
   exportMode?: boolean;
+  /** 이름을 선수 페이지 링크로 (기본 true, 선수 페이지 안의 카드·저장 사본은 false) */
+  linkName?: boolean;
 }
 
 const FALLBACK_COLOR: TeamColor = { primary: "#6B7280", secondary: "#9CA3AF", text: "#fff" };
@@ -365,6 +357,7 @@ export default function PlayerCard({
   size = "sm",
   seriesColor,
   exportMode = false,
+  linkName = true,
 }: Props) {
   const p = entry.player;
   const d = DIM[size];
@@ -457,7 +450,13 @@ export default function PlayerCard({
             {!entry.qualified && <HeroBadge fs={d.statLabel}>표본 부족</HeroBadge>}
           </div>
           <h2 className="font-black tracking-tight [overflow-wrap:anywhere]" style={{ fontSize: d.name, lineHeight: 1.1 }}>
-            {p.nameKo}
+            {linkName && !exportMode ? (
+              <Link href={`/player/${p.id}`} className="underline-offset-4 hover:underline" title={`${p.nameKo} 선수 페이지`}>
+                {p.nameKo}
+              </Link>
+            ) : (
+              p.nameKo
+            )}
           </h2>
           <p className="mt-0.5 truncate font-medium uppercase tracking-wide" style={{ opacity: 0.8, fontSize: d.nameEn }}>
             {p.nameEn} · {p.teamName}

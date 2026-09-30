@@ -34,7 +34,9 @@ import {
   type StatMode,
 } from "@/lib/leaders";
 import { teamShortLabel } from "@/lib/images";
+import Link from "next/link";
 import PlayerAvatar from "./PlayerAvatar";
+import Segmented from "./Segmented";
 import TeamLogo from "./TeamLogo";
 
 interface Props {
@@ -52,37 +54,6 @@ const ORIGIN_OPTIONS: { value: OriginFilter; label: string }[] = [
   { value: "domestic", label: "국내" },
   { value: "foreign", label: "외국인" },
 ];
-
-/** 두세 개 중 하나를 고르는 버튼 묶음 */
-function Segmented<T extends string>({
-  label,
-  options,
-  value,
-  onChange,
-}: {
-  label: string;
-  options: { value: T; label: string }[];
-  value: T;
-  onChange: (v: T) => void;
-}) {
-  return (
-    <div role="group" aria-label={label} className="inline-flex rounded-lg border border-line bg-surface p-0.5">
-      {options.map((o) => (
-        <button
-          key={o.value}
-          type="button"
-          aria-pressed={o.value === value}
-          onClick={() => onChange(o.value)}
-          className={`h-9 rounded-md px-3 text-sm font-semibold ${
-            o.value === value ? "bg-ink text-bg" : "text-ink-2 hover:bg-surface-2"
-          }`}
-        >
-          {o.label}
-        </button>
-      ))}
-    </div>
-  );
-}
 
 /** 팀 색 배경 위에 올리는 로고 — 로고 색이 배경과 겹치지 않게 흰 칩 위에 */
 function LogoChip({ team, fallback, size }: { team?: CardTeam; fallback: string; size: number }) {
@@ -137,7 +108,9 @@ function CoverCard({
         <div className="min-w-0">
           <p className={`font-semibold opacity-85 ${hero ? "text-xs" : "text-[11px]"}`}>{entry.rank}위</p>
           <h3 className={`font-bold leading-tight break-keep ${hero ? "truncate text-2xl" : "line-clamp-2 text-base"}`} title={p.nameKo}>
-            {p.nameKo}
+            <Link href={`/player/${p.id}`} className="underline-offset-4 hover:underline">
+              {p.nameKo}
+            </Link>
           </h3>
           <p className={`mt-1 flex min-w-0 items-center gap-1.5 opacity-90 ${hero ? "text-sm" : "text-[11px]"}`}>
             <LogoChip team={team} fallback={p.teamShort} size={hero ? 20 : 14} />
@@ -386,9 +359,13 @@ export default function LeadersView({ seasonLabel, players, teams }: Props) {
                         <span className="flex min-w-0 items-center gap-2">
                           <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={team?.color} size={24} />
                           <span className="min-w-0">
-                            <span className="line-clamp-2 font-semibold leading-tight break-keep text-ink" title={p.nameKo}>
+                            <Link
+                              href={`/player/${p.id}`}
+                              className="line-clamp-2 font-semibold leading-tight break-keep text-ink underline-offset-2 hover:underline"
+                              title={`${p.nameKo} 선수 페이지`}
+                            >
                               {p.nameKo}
-                            </span>
+                            </Link>
                             <span className="flex min-w-0 items-center gap-1 text-[11px] text-ink-3">
                               <TeamLogo logoUrl={team?.logoUrl} shortName={team?.shortName ?? p.teamShort} color={team?.color} size={16} />
                               <span className="truncate">{teamShortLabel(team?.shortName ?? p.teamShort)}</span>

@@ -2,31 +2,24 @@
 // 시즌 페이지의 상호작용 부분: 표본 기준, 팀 필터, 선수·비교 선수 선택 → 플레이어 카드(1~2장) + 이미지 저장
 // (시즌 선택은 상단 SiteNav 가 맡는다 — 주소의 ?p=&vs=&team= 은 SiteNav 가 시즌을 바꿀 때 그대로 넘긴다)
 // 카드 크기: 화면 폭 ≥ 768px 이면 lg(약 500px), 비교 두 장은 ≥ 1024px 에서만 lg(나란히 놓을 자리가 있을 때).
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { toPng } from "html-to-image";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { CardPlayer, CardTeam, SeasonCoverage } from "@/lib/types";
 import {
   attemptsNote,
-  attemptThresholds,
   axisSetFor,
-  buildCardStatPools,
-  buildReference,
-  cardStats,
+  buildCardContext,
+  buildCardEntry,
   isQualified,
-  overallPercentile,
-  percentileGrade,
   pickDefaultPlayer,
-  playerType,
   QUALIFY_PRESETS,
   qualifyLabel as presetLabel,
   qualifyShort as presetShort,
-  radarAxes,
-  radarPercentiles,
 } from "@/lib/metrics";
 import PlayerPicker from "./PlayerPicker";
 import PlayerCard, { type CardEntry, type CardSize } from "./PlayerCard";
 import TeamLogo from "./TeamLogo";
-import { excludeOfficialImages } from "./useOfficialImage";
+import { useCardSave } from "./useCardSave";
+import { useMedia } from "./useMedia";
 import { useThemeColors } from "./useThemeColors";
 
 interface Props {
@@ -34,22 +27,6 @@ interface Props {
   players: CardPlayer[];
   teams: CardTeam[];
   coverage: SeasonCoverage;
-}
-
-/** 다음 그림 그리기까지 기다린다 (저장용 사본이 화면 밖에 그려진 뒤 캡처하기 위해) */
-const nextFrame = () => new Promise<void>((r) => requestAnimationFrame(() => r()));
-
-/** 미디어 쿼리 일치 여부 (정적 HTML·첫 렌더는 false → 모바일 크기) */
-function useMedia(query: string): boolean {
-  const [match, setMatch] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia(query);
-    const on = () => setMatch(mq.matches);
-    on();
-    mq.addEventListener("change", on);
-    return () => mq.removeEventListener("change", on);
-  }, [query]);
-  return match;
 }
 
 export default function CardExplorer({ seasonLabel, players, teams, coverage }: Props) {
@@ -62,11 +39,9 @@ export default function CardExplorer({ seasonLabel, players, teams, coverage }: 
   // 축 세트는 시즌 코드가 아니라 커버리지 플래그로 고른다 (2차 스탯 없는 시즌 → 고전 축)
   const axisSet = axisSetFor(coverage);
   const qualifiedFn = useCallback((p: CardPlayer) => isQualified(p, rule), [rule]);
-  const reference = useMemo(() => buildReference(players, rule, axisSet), [players, rule, axisSet]);
-  // 성공률 시도 기준 = 표본 충족 선수의 경기당 시도 리그 평균 (순위표와 같은 함수)
-  const thresholds = useMemo(() => attemptThresholds(players, rule), [players, rule]);
-  const pools = useMemo(() => buildCardStatPools(players, rule, thresholds), [players, rule, thresholds]);
-  const qualifiedCount = useMemo(() => players.filter(qualifiedFn).length, [players, qualifiedFn]);
+  // 백분위 집단·성공률 시도 기준(표본 충족 선수의 경기당 시도 리그 평균, 순위표와 같은 함수)·순위 집단 — 선수 페이지와 같은 함수
+  const ctx = useMemo(() => buildCardContext(players, rule, axisSet), [players, rule, axisSet]);
+  const { thresholds, qualifiedCount } = ctx;
 
   // 팀 필터 (null = 전체). 선수 선택 목록을 그 팀으로 좁힌다
   const [teamCode, setTeamCode] = useState<string | null>(null);
@@ -120,21 +95,9 @@ export default function CardExplorer({ seasonLabel, players, teams, coverage }: 
   const toEntry = useCallback(
     (id: string | null): CardEntry | null => {
       const p = players.find((x) => x.id === id);
-      if (!p) return null;
-      const pct = radarPercentiles(p, reference, axisSet);
-      const grades: CardEntry["grades"] = {};
-      for (const axis of radarAxes(axisSet)) grades[axis] = percentileGrade(pct[axis]);
-      return {
-        player: p,
-        pct,
-        grades,
-        overall: percentileGrade(overallPercentile(pct, axisSet)),
-        type: playerType(pct, axisSet),
-        qualified: isQualified(p, rule),
-        stats: cardStats(p, pools, rule, thresholds),
-      };
+      return p ? buildCardEntry(p, ctx) : null;
     },
-    [players, reference, pools, rule, axisSet, thresholds],
+    [players, ctx],
   );
 
   const a = toEntry(aId);
@@ -143,39 +106,10 @@ export default function CardExplorer({ seasonLabel, players, teams, coverage }: 
     (x): x is { entry: CardEntry; series: string } => !!x,
   );
 
-  // ── 이미지 저장 ──
-  // KBL 사진·로고는 CORS 헤더가 없어 캔버스에 그리면 저장이 실패한다.
-  // → 저장할 때만 화면 밖에 "공식 이미지 없는 사본"(exportMode)을 그려 그것을 PNG로 만든다. 보이는 카드는 그대로.
-  //   혹시 공식 <img> 가 섞여도 filter(excludeOfficialImages)가 뺀다.
-  const exportRef = useRef<HTMLDivElement>(null);
-  const [saving, setSaving] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
-
-  async function save() {
-    setSaving(true);
-    setSaveError(null);
-    try {
-      await nextFrame();
-      await nextFrame();
-      if (!exportRef.current) throw new Error("저장용 사본이 없습니다");
-      const dataUrl = await toPng(exportRef.current, {
-        pixelRatio: 2,
-        backgroundColor: colors.surface,
-        skipFonts: true,
-        filter: excludeOfficialImages,
-      });
-      const link = document.createElement("a");
-      link.download = `${a!.player.nameKo}${b ? `_vs_${b.player.nameKo}` : ""}_${seasonLabel}_플레이어카드.png`;
-      link.href = dataUrl;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    } catch {
-      setSaveError("이미지 저장에 실패했습니다. 다시 시도해 주세요.");
-    } finally {
-      setSaving(false);
-    }
-  }
+  // ── 이미지 저장 (화면 밖 공식 이미지 없는 사본 → PNG, useCardSave) ──
+  const { exportRef, saving, saveError, save: saveCard } = useCardSave(colors.surface);
+  const save = () =>
+    saveCard(`${a!.player.nameKo}${b ? `_vs_${b.player.nameKo}` : ""}_${seasonLabel}_플레이어카드.png`);
 
   const isMd = useMedia("(min-width: 768px)");
   const isLg = useMedia("(min-width: 1024px)");

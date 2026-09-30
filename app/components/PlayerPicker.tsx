@@ -1,6 +1,8 @@
 "use client";
 // 선수 검색 콤보박스: 이름(한/영)·팀으로 걸러서 팀별로 묶어 보여준다.
+// 항목 오른쪽 "기록" 링크 → 그 선수의 선수 페이지(전 시즌 기록). 항목 자체를 누르면 카드 선수 선택.
 import { useId, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import type { CardPlayer, CardTeam } from "@/lib/types";
 import PlayerAvatar from "./PlayerAvatar";
 import TeamLogo from "./TeamLogo";
@@ -158,7 +160,18 @@ export default function PlayerPicker({
                       <span className="text-ink-3">{p.nameEn}</span>
                     </span>
                   </span>
-                  {!isQualified(p) && <span className="shrink-0 text-[11px] text-ink-3">표본 부족</span>}
+                  <span className="flex shrink-0 items-center gap-2">
+                    {!isQualified(p) && <span className="text-[11px] text-ink-3">표본 부족</span>}
+                    <Link
+                      href={`/player/${p.id}`}
+                      tabIndex={-1}
+                      aria-label={`${p.nameKo} 선수 페이지`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="rounded-md border border-line px-1.5 py-0.5 text-[11px] font-medium text-ink-2 hover:bg-surface hover:text-ink"
+                    >
+                      기록 ›
+                    </Link>
+                  </span>
                 </div>
               </li>
             );
