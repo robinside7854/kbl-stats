@@ -2,7 +2,105 @@
   "seasonCode": 7,
   "seasonLabel": "2002-2003",
   "gameType": "regular",
-  "fetchedAt": "2026-09-30T00:34:48.056Z",
+  "fetchedAt": "2026-09-30T02:08:09.593Z",
+  "coverage": {
+    "advanced": false,
+    "plusMinus": true,
+    "goodDef": true,
+    "hustle": false
+  },
+  "teams": [
+    {
+      "teamCode": "30",
+      "name": "대구동양",
+      "shortName": "ORIONS",
+      "fullName": "대구 동양 오리온스",
+      "nameEn": "DAEGU DONGYANG ORIONS",
+      "logoName": "or1997",
+      "order": 1
+    },
+    {
+      "teamCode": "10",
+      "name": "울산모비스",
+      "shortName": "MOBIS",
+      "fullName": "울산 모비스 오트몬스",
+      "nameEn": "ULSAN MOBIS AUTOMONS",
+      "logoName": "hd2001",
+      "order": 2
+    },
+    {
+      "teamCode": "35",
+      "name": "서울삼성",
+      "shortName": "SAMSUNG",
+      "fullName": "서울 삼성 썬더스",
+      "nameEn": "SEOUL SAMSUNG THUNDERS",
+      "logoName": "ss2001",
+      "order": 3
+    },
+    {
+      "teamCode": "55",
+      "name": "서울SK",
+      "shortName": "SK",
+      "fullName": "서울 SK 나이츠",
+      "nameEn": "SEOUL SK KNIGHTS",
+      "logoName": "sk2001",
+      "order": 4
+    },
+    {
+      "teamCode": "40",
+      "name": "안양SBS",
+      "shortName": "SBS",
+      "fullName": "안양 SBS 스타즈",
+      "nameEn": "ANYANG SBS STARS",
+      "logoName": "kgc1997",
+      "order": 5
+    },
+    {
+      "teamCode": "50",
+      "name": "창원LG",
+      "shortName": "LG",
+      "fullName": "창원 LG 세이커스",
+      "nameEn": "CHANGWON LG SAKERS",
+      "logoName": "lg1997",
+      "order": 6
+    },
+    {
+      "teamCode": "37",
+      "name": "인천SK",
+      "shortName": "SK",
+      "fullName": "인천 SK 빅스",
+      "nameEn": "INCHEON SK BIGS",
+      "logoName": "zz2001",
+      "order": 7
+    },
+    {
+      "teamCode": "60",
+      "name": "전주KCC",
+      "shortName": "KCC",
+      "fullName": "전주 KCC 이지스",
+      "nameEn": "JEONJU KCC EGIS",
+      "logoName": "kcc",
+      "order": 8
+    },
+    {
+      "teamCode": "05",
+      "name": "여수 코리아텐더",
+      "shortName": "KOREATENDER",
+      "fullName": "여수 코리아텐더 푸르미",
+      "nameEn": "YEOSU KOREATENDER POORMI",
+      "logoName": "kt2001-2",
+      "order": 9
+    },
+    {
+      "teamCode": "15",
+      "name": "원주TG",
+      "shortName": "TG",
+      "fullName": "원주 TG 엑써스",
+      "nameEn": "WONJU TG XERS",
+      "logoName": "db2002",
+      "order": 10
+    }
+  ],
   "players": [
     {
       "playerNo": "230052",

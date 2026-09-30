@@ -2,7 +2,105 @@
   "seasonCode": 4,
   "seasonLabel": "1999-2000",
   "gameType": "regular",
-  "fetchedAt": "2026-09-30T00:34:48.033Z",
+  "fetchedAt": "2026-09-30T02:08:09.564Z",
+  "coverage": {
+    "advanced": false,
+    "plusMinus": true,
+    "goodDef": false,
+    "hustle": false
+  },
+  "teams": [
+    {
+      "teamCode": "05",
+      "name": "광주 골드뱅크",
+      "shortName": "GOLDBANK",
+      "fullName": "광주 골드뱅크 클리커스",
+      "nameEn": "GWANGJU GOLDBANK CLIKERS",
+      "logoName": "kt1999",
+      "order": 1
+    },
+    {
+      "teamCode": "10",
+      "name": "부산기아",
+      "shortName": "KIA",
+      "fullName": "부산 기아 엔터프라이즈",
+      "nameEn": "BUSAN KIA ENTERPRISES",
+      "logoName": "hd1997",
+      "order": 2
+    },
+    {
+      "teamCode": "30",
+      "name": "대구동양",
+      "shortName": "ORIONS",
+      "fullName": "대구 동양 오리온스",
+      "nameEn": "DAEGU DONGYANG ORIONS",
+      "logoName": "or1997",
+      "order": 3
+    },
+    {
+      "teamCode": "15",
+      "name": "원주삼보",
+      "shortName": "SAMBO",
+      "fullName": "원주 삼보 엑써스",
+      "nameEn": "WONJU SAMBO XERS",
+      "logoName": "db1999",
+      "order": 4
+    },
+    {
+      "teamCode": "35",
+      "name": "수원삼성",
+      "shortName": "SAMSUNG",
+      "fullName": "수원 삼성 썬더스",
+      "nameEn": "SUWON SAMSUNG THUNDERS",
+      "logoName": "ss1997",
+      "order": 5
+    },
+    {
+      "teamCode": "37",
+      "name": "인천신세기",
+      "shortName": "SINSEGI",
+      "fullName": "인천 신세기 빅스",
+      "nameEn": "INCHEON SINSEGI BIGS",
+      "logoName": "zz1999",
+      "order": 6
+    },
+    {
+      "teamCode": "40",
+      "name": "안양SBS",
+      "shortName": "SBS",
+      "fullName": "안양 SBS 스타즈",
+      "nameEn": "ANYANG SBS STARS",
+      "logoName": "kgc1997",
+      "order": 7
+    },
+    {
+      "teamCode": "55",
+      "name": "청주SK",
+      "shortName": "SK",
+      "fullName": "청주 SK 나이츠",
+      "nameEn": "CHEONGJU SK KNIGHTS",
+      "logoName": "sk1999",
+      "order": 8
+    },
+    {
+      "teamCode": "50",
+      "name": "창원LG",
+      "shortName": "LG",
+      "fullName": "창원 LG 세이커스",
+      "nameEn": "CHANGWON LG SAKERS",
+      "logoName": "lg1997",
+      "order": 9
+    },
+    {
+      "teamCode": "45",
+      "name": "대전현대",
+      "shortName": "HYUNDAI",
+      "fullName": "대전 현대 걸리버스",
+      "nameEn": "DAEJEON HYUNDAI GULLIVERS",
+      "logoName": "kcc1999",
+      "order": 10
+    }
+  ],
   "players": [
     {
       "playerNo": "220022",

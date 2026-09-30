@@ -2,7 +2,87 @@
   "seasonCode": 1,
   "seasonLabel": "1997",
   "gameType": "regular",
-  "fetchedAt": "2026-09-30T00:34:48.019Z",
+  "fetchedAt": "2026-09-30T02:08:09.536Z",
+  "coverage": {
+    "advanced": false,
+    "plusMinus": false,
+    "goodDef": false,
+    "hustle": false
+  },
+  "teams": [
+    {
+      "teamCode": "10",
+      "name": "부산기아",
+      "shortName": "KIA",
+      "fullName": "부산 기아 엔터프라이즈",
+      "nameEn": "BUSAN KIA ENTERPRISES",
+      "logoName": "hd1997",
+      "order": 1
+    },
+    {
+      "teamCode": "15",
+      "name": "원주나래",
+      "shortName": "NARAE",
+      "fullName": "원주 나래 블루버드",
+      "nameEn": "WONJU NARAE BLUEBIRDS",
+      "logoName": "db1997",
+      "order": 2
+    },
+    {
+      "teamCode": "20",
+      "name": "광주나산",
+      "shortName": "NASAN",
+      "fullName": "광주 나산 플라망스",
+      "nameEn": "GWANGJU NASAN FLAMES",
+      "logoName": "kt1997",
+      "order": 3
+    },
+    {
+      "teamCode": "25",
+      "name": "인천대우증권",
+      "shortName": "DAEWOO SECURITIES",
+      "fullName": "인천 대우증권 제우스",
+      "nameEn": "INCHEON DAEWOO SECURITIES ZEUS",
+      "logoName": "zz1997",
+      "order": 4
+    },
+    {
+      "teamCode": "30",
+      "name": "대구동양",
+      "shortName": "ORIONS",
+      "fullName": "대구 동양 오리온스",
+      "nameEn": "DAEGU DONGYANG ORIONS",
+      "logoName": "or1997",
+      "order": 5
+    },
+    {
+      "teamCode": "35",
+      "name": "수원삼성",
+      "shortName": "SAMSUNG",
+      "fullName": "수원 삼성 썬더스",
+      "nameEn": "SUWON SAMSUNG THUNDERS",
+      "logoName": "ss1997",
+      "order": 6
+    },
+    {
+      "teamCode": "40",
+      "name": "안양SBS",
+      "shortName": "SBS",
+      "fullName": "안양 SBS 스타즈",
+      "nameEn": "ANYANG SBS STARS",
+      "logoName": "kgc1997",
+      "order": 7
+    },
+    {
+      "teamCode": "45",
+      "name": "대전현대",
+      "shortName": "HYUNDAI",
+      "fullName": "대전 현대 다이냇",
+      "nameEn": "DAEJEON HYUNDAI DYNAT",
+      "logoName": "kcc1997",
+      "order": 8
+    }
+  ],
   "players": [
     {
       "playerNo": "215026",

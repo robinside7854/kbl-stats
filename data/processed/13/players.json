@@ -2,7 +2,105 @@
   "seasonCode": 13,
   "seasonLabel": "2008-2009",
   "gameType": "regular",
-  "fetchedAt": "2026-09-30T00:34:48.086Z",
+  "fetchedAt": "2026-09-30T02:08:09.652Z",
+  "coverage": {
+    "advanced": false,
+    "plusMinus": true,
+    "goodDef": true,
+    "hustle": false
+  },
+  "teams": [
+    {
+      "teamCode": "16",
+      "name": "원주동부",
+      "shortName": "DONGBOO",
+      "fullName": "원주 동부 프로미",
+      "nameEn": "WONJU DONGBOO PROMY",
+      "logoName": "db2006",
+      "order": 1
+    },
+    {
+      "teamCode": "10",
+      "name": "울산모비스",
+      "shortName": "MOBIS",
+      "fullName": "울산 모비스 피버스",
+      "nameEn": "ULSAN MOBIS PHOEBUS",
+      "logoName": "hd2004",
+      "order": 2
+    },
+    {
+      "teamCode": "35",
+      "name": "서울삼성",
+      "shortName": "SAMSUNG",
+      "fullName": "서울 삼성 썬더스",
+      "nameEn": "SEOUL SAMSUNG THUNDERS",
+      "logoName": "ss2001",
+      "order": 3
+    },
+    {
+      "teamCode": "55",
+      "name": "서울SK",
+      "shortName": "SK",
+      "fullName": "서울 SK 나이츠",
+      "nameEn": "SEOUL SK KNIGHTS",
+      "logoName": "sk",
+      "order": 4
+    },
+    {
+      "teamCode": "50",
+      "name": "창원LG",
+      "shortName": "LG",
+      "fullName": "창원 LG 세이커스",
+      "nameEn": "CHANGWON LG SAKERS",
+      "logoName": "lg1997",
+      "order": 5
+    },
+    {
+      "teamCode": "30",
+      "name": "대구오리온스",
+      "shortName": "ORIONS",
+      "fullName": "대구 오리온스",
+      "nameEn": "DAEGU ORIONS",
+      "logoName": "or1997",
+      "order": 6
+    },
+    {
+      "teamCode": "65",
+      "name": "인천전자랜드",
+      "shortName": "ELEC-LAND",
+      "fullName": "인천 전자랜드 블랙슬래머",
+      "nameEn": "INCHEON ELEC-LAND BLACKSLAMER",
+      "logoName": "zz2003",
+      "order": 7
+    },
+    {
+      "teamCode": "60",
+      "name": "전주KCC",
+      "shortName": "KCC",
+      "fullName": "전주 KCC 이지스",
+      "nameEn": "JEONJU KCC EGIS",
+      "logoName": "kcc",
+      "order": 8
+    },
+    {
+      "teamCode": "70",
+      "name": "안양KT&G",
+      "shortName": "KT&G",
+      "fullName": "안양 KT&G 카이츠",
+      "nameEn": "ANYANG KT&G KITES",
+      "logoName": "kgc2005",
+      "order": 9
+    },
+    {
+      "teamCode": "06",
+      "name": "부산KTF",
+      "shortName": "KTF",
+      "fullName": "부산 KTF 매직윙스",
+      "nameEn": "BUSAN KTF MAGICWINGS",
+      "logoName": "kt2003-2",
+      "order": 10
+    }
+  ],
   "players": [
     {
       "playerNo": "290147",

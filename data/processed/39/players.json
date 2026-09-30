@@ -2,7 +2,105 @@
   "seasonCode": 39,
   "seasonLabel": "2021-2022",
   "gameType": "regular",
-  "fetchedAt": "2026-09-30T00:34:48.175Z",
+  "fetchedAt": "2026-09-30T02:08:09.768Z",
+  "coverage": {
+    "advanced": false,
+    "plusMinus": true,
+    "goodDef": true,
+    "hustle": false
+  },
+  "teams": [
+    {
+      "teamCode": "16",
+      "name": "원주 DB",
+      "shortName": "DB",
+      "fullName": "원주 DB 프로미",
+      "nameEn": "WONJU DB PROMY",
+      "logoName": "db",
+      "order": 1
+    },
+    {
+      "teamCode": "35",
+      "name": "서울 삼성",
+      "shortName": "SAMSUNG",
+      "fullName": "서울 삼성 썬더스",
+      "nameEn": "SEOUL SAMSUNG THUNDERS",
+      "logoName": "ss",
+      "order": 2
+    },
+    {
+      "teamCode": "55",
+      "name": "서울 SK",
+      "shortName": "SK",
+      "fullName": "서울 SK 나이츠",
+      "nameEn": "SEOUL SK KNIGHTS",
+      "logoName": "sk",
+      "order": 3
+    },
+    {
+      "teamCode": "50",
+      "name": "창원 LG",
+      "shortName": "LG",
+      "fullName": "창원 LG 세이커스",
+      "nameEn": "CHANGWON LG SAKERS",
+      "logoName": "lg",
+      "order": 4
+    },
+    {
+      "teamCode": "30",
+      "name": "고양 오리온",
+      "shortName": "ORION",
+      "fullName": "고양 오리온 오리온스",
+      "nameEn": "GOYANG ORION ORIONS",
+      "logoName": "or2011",
+      "order": 5
+    },
+    {
+      "teamCode": "60",
+      "name": "전주 KCC",
+      "shortName": "KCC",
+      "fullName": "전주 KCC 이지스",
+      "nameEn": "JEONJU KCC EGIS",
+      "logoName": "kcc",
+      "order": 6
+    },
+    {
+      "teamCode": "70",
+      "name": "안양 KGC",
+      "shortName": "KGC",
+      "fullName": "안양 KGC 인삼공사",
+      "nameEn": "ANYANG KGC",
+      "logoName": "kgc2011",
+      "order": 7
+    },
+    {
+      "teamCode": "06",
+      "name": "수원 KT",
+      "shortName": "KT",
+      "fullName": "수원 KT 소닉붐",
+      "nameEn": "SUWON KT SONICBOOM",
+      "logoName": "kt",
+      "order": 8
+    },
+    {
+      "teamCode": "64",
+      "name": "대구 한국가스공사",
+      "shortName": "KOGAS",
+      "fullName": "대구 한국가스공사 페가수스",
+      "nameEn": "DAEGU KOREAGASCORPORATION PEGASUS",
+      "logoName": "pega2021",
+      "order": 9
+    },
+    {
+      "teamCode": "10",
+      "name": "울산 현대모비스",
+      "shortName": "HYUNDAI MOBIS",
+      "fullName": "울산 현대모비스 피버스",
+      "nameEn": "ULSAN HYUNDAI MOBIS PHOEBUS",
+      "logoName": "hd",
+      "order": 10
+    }
+  ],
   "players": [
     {
       "playerNo": "290524",

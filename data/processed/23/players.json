@@ -2,7 +2,105 @@
   "seasonCode": 23,
   "seasonLabel": "2013-2014",
   "gameType": "regular",
-  "fetchedAt": "2026-09-30T00:34:48.122Z",
+  "fetchedAt": "2026-09-30T02:08:09.690Z",
+  "coverage": {
+    "advanced": false,
+    "plusMinus": true,
+    "goodDef": true,
+    "hustle": false
+  },
+  "teams": [
+    {
+      "teamCode": "16",
+      "name": "원주동부",
+      "shortName": "DONGBOO",
+      "fullName": "원주 동부 프로미",
+      "nameEn": "WONJU DONGBOO PROMY",
+      "logoName": "db2006",
+      "order": 1
+    },
+    {
+      "teamCode": "10",
+      "name": "울산모비스",
+      "shortName": "MOBIS",
+      "fullName": "울산 모비스 피버스",
+      "nameEn": "ULSAN MOBIS PHOEBUS",
+      "logoName": "hd2004",
+      "order": 2
+    },
+    {
+      "teamCode": "35",
+      "name": "서울삼성",
+      "shortName": "SAMSUNG",
+      "fullName": "서울 삼성 썬더스",
+      "nameEn": "SEOUL SAMSUNG THUNDERS",
+      "logoName": "ss2001",
+      "order": 3
+    },
+    {
+      "teamCode": "55",
+      "name": "서울SK",
+      "shortName": "SK",
+      "fullName": "서울 SK 나이츠",
+      "nameEn": "SEOUL SK KNIGHTS",
+      "logoName": "sk",
+      "order": 4
+    },
+    {
+      "teamCode": "50",
+      "name": "창원LG",
+      "shortName": "LG",
+      "fullName": "창원 LG 세이커스",
+      "nameEn": "CHANGWON LG SAKERS",
+      "logoName": "lg1997",
+      "order": 5
+    },
+    {
+      "teamCode": "30",
+      "name": "고양오리온스",
+      "shortName": "ORIONS",
+      "fullName": "고양 오리온스",
+      "nameEn": "GOYANG ORIONS",
+      "logoName": "or2011",
+      "order": 6
+    },
+    {
+      "teamCode": "65",
+      "name": "인천전자랜드",
+      "shortName": "ELEC-LAND",
+      "fullName": "인천 전자랜드 엘리펀츠",
+      "nameEn": "INCHEON ELEC-LAND ELEPHANTS",
+      "logoName": "zz2009",
+      "order": 7
+    },
+    {
+      "teamCode": "60",
+      "name": "전주KCC",
+      "shortName": "KCC",
+      "fullName": "전주 KCC 이지스",
+      "nameEn": "JEONJU KCC EGIS",
+      "logoName": "kcc",
+      "order": 8
+    },
+    {
+      "teamCode": "70",
+      "name": "안양 KGC",
+      "shortName": "KGC",
+      "fullName": "안양 KGC 인삼공사",
+      "nameEn": "ANYANG KGC",
+      "logoName": "kgc2011",
+      "order": 9
+    },
+    {
+      "teamCode": "06",
+      "name": "부산KT",
+      "shortName": "KT",
+      "fullName": "부산 KT 소닉붐",
+      "nameEn": "BUSAN KT SONICBOOM",
+      "logoName": "kt2011-2",
+      "order": 10
+    }
+  ],
   "players": [
     {
       "playerNo": "290733",
