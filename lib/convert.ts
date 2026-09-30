@@ -60,6 +60,8 @@ export function toCardPlayers(season: SeasonData, photoOf: PhotoLookup = () => n
     efgPct: p.efgPct ?? 0,
     tovPct: p.tovPct ?? 0,
     astTo: p.astTo ?? 0,
+    // 주 공격 유형 (슛 구역 비중) — 카드 유형 라벨 옆 작은 칩. 슛 데이터 없는 시즌·선수는 null
+    offenseType: p.shotZones?.offenseType ?? null,
   }));
 }
 

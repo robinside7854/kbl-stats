@@ -14,10 +14,11 @@
     "typecheck": "tsc --noEmit -p tsconfig.scripts.json && tsc --noEmit -p tsconfig.json",
     "test:metrics": "tsx tests/metrics.test.ts",
     "test:leaders": "tsx tests/leaders.test.ts",
-    "test": "npm run test:metrics && npm run test:leaders && npm run test:card && npm run test:player && npm run test:teams && npm run test:roster && npm run test:cardview && npm run test:highs && npm run test:badges && npm run test:gamelogs && npm run test:shots",
+    "test": "npm run test:metrics && npm run test:leaders && npm run test:card && npm run test:player && npm run test:teams && npm run test:roster && npm run test:cardview && npm run test:highs && npm run test:badges && npm run test:gamelogs && npm run test:shots && npm run test:shotzones",
     "test:card": "tsx tests/card.test.ts",
-    "prebuild": "tsx scripts/build-search-index.ts && tsx scripts/build-cards.ts",
-    "predev": "tsx scripts/build-search-index.ts && tsx scripts/build-cards.ts",
+    "prebuild": "tsx scripts/build-search-index.ts && tsx scripts/build-cards.ts && tsx scripts/build-shots.ts",
+    "predev": "tsx scripts/build-search-index.ts && tsx scripts/build-cards.ts && tsx scripts/build-shots.ts",
+    "build:shots": "tsx scripts/build-shots.ts",
     "build:search": "tsx scripts/build-search-index.ts",
     "test:player": "tsx tests/player.test.ts",
     "test:teams": "tsx tests/teams.test.ts",
@@ -30,7 +31,8 @@
     "backfill:gamelogs": "tsx scripts/backfill-gamelogs.ts",
     "test:gamelogs": "tsx tests/gamelogs.test.ts",
     "backfill:shots": "tsx scripts/backfill-shots.ts",
-    "test:shots": "tsx tests/shots.test.ts"
+    "test:shots": "tsx tests/shots.test.ts",
+    "test:shotzones": "tsx tests/shots-zones.test.ts"
   },
   "engines": {
     "node": ">=20"

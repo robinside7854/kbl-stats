@@ -2,6 +2,9 @@
 // KBL 원본 필드명(kname, fgRt 등)은 scripts/process.ts에서 여기 이름으로 한 번만 변환한다.
 // app/ 은 이 타입과 data/processed/*.json 만 안다.
 
+import type { ShotZoneSummary, ZoneCounts } from "./shots";
+import type { OffenseTypeKey } from "./glossary";
+
 // ─────────────────────────────────────────────
 // 선수 프로필 — 서버 B 선수 마스터(data/raw/players/players.json)에서 playerNo 로 조인 (scripts/player-master.ts)
 // 마스터 파일이 없거나 마스터에 없는 선수면 전부 null. 마스터는 "지금" 기준 한 장이라
@@ -134,6 +137,12 @@ export interface Player extends PlayerProfile {
 
   /** 이 시즌 한 경기 최다 (정규시즌). 그 시즌 raw(data/raw/highs)가 없으면 null — 옛 processed 파일엔 필드가 없다 */
   seasonHighs?: HighsSet | null;
+
+  /**
+   * 슛 구역 집계 (정규시즌 슛 차트 좌표로 계산, lib/shots.ts zoneSummary). 그 시즌 슛 차트 raw 가 없거나 이 선수 슛이 0개면 null.
+   * 점 좌표는 data/processed/{시즌}/shots.json 에 따로 있다.
+   */
+  shotZones?: ShotZoneSummary | null;
 }
 
 /**
@@ -149,6 +158,8 @@ export interface SeasonCoverage {
   goodDef: boolean;
   /** 스크린 어시스트·디플렉션 — 둘 모두 통과해야 true */
   hustle: boolean;
+  /** 슛 차트 — 선수 50% 이상에 슛 좌표가 있으면 true (process.ts, lib/metrics seasonCoverage 가 아니라 슛 raw 로 판정). 옛 파일엔 없음 */
+  shots?: boolean;
 }
 
 /**
@@ -185,6 +196,8 @@ export interface SeasonData {
   players: Player[];
   /** 부문별 시즌 하이 1위 (기록 부문 11개). 그 시즌 한 경기 최다 raw 가 없으면 null — 옛 processed 파일엔 필드가 없다 */
   seasonHighLeaders?: SeasonHighLeaders | null;
+  /** 슛 구역 리그 합계 (그 시즌 전 선수 합, lib/shots leagueZoneAverages). 슛 차트 raw 가 없으면 null */
+  shotZoneLeague?: ZoneCounts | null;
 }
 
 // ─────────────────────────────────────────────
@@ -263,6 +276,8 @@ export interface CardPlayer {
   efgPct: number;
   tovPct: number;
   astTo: number;
+  /** 주 공격 유형 (슛 구역 비중, lib/shots offenseType). 슛 데이터가 없거나 50개 미만이면 null. 옛 카드 파일엔 없음 */
+  offenseType?: OffenseTypeKey | null;
 }
 
 /** 화면으로 넘기는 팀 정보 (로고·색만) */

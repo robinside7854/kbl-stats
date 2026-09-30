@@ -18,6 +18,7 @@ import { decodeSeasonCards, encodeSeasonCards, type SeasonCards, type SeasonCard
 import { toCardPlayers as convertCardPlayers, toCardTeams, toLeaderPlayers as convertLeaderPlayers } from "./convert";
 import { buildSeasonHighCards, type SeasonHighCard } from "./highs";
 import { careerHighAchievements, careerHighTabs, type CareerHighRow, type HighAchievement, type HighsTab } from "./career";
+import { buildPlayerShotsFile, type PlayerShotsFile, type ShotPoint } from "./shots";
 import { buildBadgeIndex, playerBadges, type BadgeCareer, type BadgeIndex, type BadgeSeasonRow, type PlayerBadge } from "./badges";
 
 const PROCESSED_DIR = path.join(process.cwd(), "data", "processed");
@@ -269,4 +270,31 @@ export function loadTopBadgeLabels(): Record<string, string> {
     if (top) out[e.id] = top.label;
   }
   return out;
+}
+
+// ─────────────────────────────────────────────
+// 슛 차트 (data/processed/{시즌}/shots.json — 선수별 점 좌표). 브라우저는 public/shots/{시즌}/{선수}.json(빌드 전 생성)을 받고,
+// 선수 상세 첫 화면(최신 시즌)은 여기서 같은 형식(lib/shots buildPlayerShotsFile)으로 정적 HTML 에 넣는다.
+// ─────────────────────────────────────────────
+
+const shotsCache = new Map<number, Record<string, ShotPoint[]> | null>();
+
+function loadSeasonShotPoints(seasonCode: number): Record<string, ShotPoint[]> | null {
+  if (shotsCache.has(seasonCode)) return shotsCache.get(seasonCode)!;
+  const file = path.join(String(seasonCode), "shots.json");
+  const data = fs.existsSync(path.join(PROCESSED_DIR, file)) ? readJson<Record<string, ShotPoint[]>>(file) : null;
+  shotsCache.set(seasonCode, data);
+  return data;
+}
+
+/** 한 선수·한 시즌 슛 파일. 그 시즌 슛 데이터가 없거나 선수 슛이 0개면 null */
+export function loadPlayerShots(seasonCode: number, playerNo: string): PlayerShotsFile | null {
+  const season = loadSeasonData(seasonCode);
+  if (!season) return null;
+  return buildPlayerShotsFile(season, playerNo, loadSeasonShotPoints(seasonCode)?.[playerNo]);
+}
+
+/** 그 선수 슛 차트가 있는 시즌 코드 (시즌 파일의 shotZones 기준) — 화면이 없는 시즌은 받지 않고 바로 "기록 없음" */
+export function playerShotSeasons(playerNo: string, seasonCodes: readonly number[]): number[] {
+  return seasonCodes.filter((c) => !!loadSeasonData(c)?.players.find((p) => p.playerNo === playerNo)?.shotZones);
 }

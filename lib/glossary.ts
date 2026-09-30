@@ -26,7 +26,9 @@ export type GlossaryKey =
   | "attempts"
   | "gameHigh"
   | "playerTypes"
-  | "badges";
+  | "badges"
+  | "shotZones"
+  | "offenseTypes";
 
 export interface GlossaryEntry {
   key: GlossaryKey;
@@ -203,6 +205,26 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     brief: "시즌 수·팀 수·부문 1위·커리어 하이·트리플더블 등 기록에서 센다",
     note: "우리 사이트 규칙입니다(lib/badges.ts playerBadges). 추정·주관 판단은 넣지 않습니다. 정규시즌 기록만 셉니다. 팀은 팀 코드 기준이라 이름만 바뀐 구단(KT&G → 정관장)은 같은 팀입니다. 이름 아래에는 우선순위 순서로 5개까지 보이고 나머지는 +n 으로 접습니다.",
   },
+  {
+    key: "shotZones",
+    name: "슛 구역",
+    short: "슛 차트 점을 5구역으로 나눠 센다. 좌표로 계산한 값이라 공식 3점 기록과 조금 다를 수 있고, 성공률이 리그 평균보다 높으면 굵게 표시한다",
+    formula:
+      "골밑 = 바스켓 중심 1.5m 안 · 페인트 = 베이스라인에서 5.8m, 좌우 2.45m 안(골밑 제외) · 미드레인지 = 나머지 2점 · 코너 3점 = 3점이고 베이스라인에서 3.0m 안 · 아크 3점 = 나머지 3점 · 3점 판정 = 바스켓에서 좌우 6.5m 이상(코너 직선) 또는 약 6.75m 호 바깥",
+    source: null,
+    brief: "골밑 1.5m · 페인트(5.8 × 4.9m) · 미드레인지 · 코너 3점(베이스라인 3m 안) · 아크 3점",
+    note:
+      "우리 계산입니다(lib/shots.ts). KBL 공식 홈페이지 경기 슛 차트의 점 좌표(코트 그림 픽셀, 약 24.9px = 1m)를 FIBA 코트 규격에 맞춰 미터로 바꿔 나눕니다. 2025-26 시즌으로 맞춰 보니 점 개수는 공식 야투 시도와 98%, 성공 점은 공식 야투 성공과 99.7% 일치했지만, 3점 라인 근처 슛은 좌표로 가른 3점 시도가 공식 3점 시도보다 약 2.4% 많았습니다(라인 위 2점을 3점으로 세는 쪽). 그래서 구역별 숫자는 공식 3점 기록과 조금 다를 수 있습니다. 리그 평균은 그 시즌 전 선수 슛을 합쳐 낸 성공률입니다. 정규시즌 경기만 셉니다.",
+  },
+  {
+    key: "offenseTypes",
+    name: "주 공격 유형",
+    short: "슛을 어느 구역에서 많이 던졌는지로 붙이는 라벨 (골밑 공격형·3점 슈터형 등)",
+    formula: "시즌 슛 50개 이상일 때, 위에서부터 먼저 맞는 규칙: 골밑+페인트 비중 ≥ 55% → 골밑 공격형 · 3점 비중 ≥ 50% → 3점 슈터형 · 미드레인지 ≥ 30% → 미드레인지형 · 3점 ≥ 35% 이고 골밑+페인트 ≥ 35% → 인사이드-아웃형 · 그 외 → 균형형",
+    source: null,
+    brief: "슛 50개 이상 · 골밑+페인트 ≥ 55% 골밑형 · 3점 ≥ 50% 슈터형 · 미드 ≥ 30% 미드레인지형",
+    note: "우리 사이트 규칙입니다(lib/shots.ts offenseType, 문턱은 lib/glossary.ts OFFENSE_TYPES). 성공률이 아니라 시도 비중만 봅니다 — 잘 넣는지는 구역표의 성공률·리그 평균으로 봅니다. 슛이 50개 미만이면 붙이지 않습니다. 아래 '주 공격 유형' 표에 전체 목록이 있습니다.",
+  },
 ];
 
 const BY_KEY = new Map(GLOSSARY.map((e) => [e.key, e]));
@@ -236,6 +258,8 @@ export const GLOSSARY_ANCHORS: Record<GlossaryKey, string> = {
   gameHigh: "game-high",
   playerTypes: "types",
   badges: "badges",
+  shotZones: "shot-zones",
+  offenseTypes: "offense-types",
 };
 
 /** 도움말 팝오버 한 개의 내용 (app/components/HelpPopover — 그 자리에서 뜨는 ⓘ 설명) */
@@ -360,4 +384,89 @@ export function playerTypeHref(key: PlayerTypeKey): string {
 /** 칭호 배지 한 줄의 용어 탭 앵커, 예: /glossary#badge-oneClub */
 export function badgeHref(key: string): string {
   return `/glossary#badge-${key}`;
+}
+
+// ─────────────────────────────────────────────
+// 주 공격 유형 (슛 구역 시도 비중) — 라벨·조건·문턱은 여기 한 곳. lib/shots.ts offenseType 이 이 표와 상수를 읽는다.
+// 근거: 구역 시도 비중만 쓰는 단순 규칙(우리 사이트 규칙, 문턱은 2026-09-30 사용자 결정). 리그 비중(2025-26 전 선수 슛 합계)은
+// 골밑 16.6% · 페인트 26.7% · 미드레인지 15.6% · 코너 3점 5.8% · 아크 3점 35.3% 라서
+//   - 골밑+페인트 ≥ 55%: 리그(43%)보다 확실히 안쪽 — 빅맨·돌파형
+//   - 3점 ≥ 50%: 슛 절반 이상이 3점(리그 41%) — 슈터
+//   - 미드레인지 ≥ 30%: 리그(16%)의 두 배 가까이
+//   - 3점 ≥ 35% 이고 골밑+페인트 ≥ 35%: 안팎을 다 쓰고 미드는 적은 선수
+// 결과(2025-26, 슛 50개 이상 125명): 3점 슈터형 56 · 골밑 공격형 23 · 인사이드-아웃형 22 · 균형형 19 · 미드레인지형 5.
+// ─────────────────────────────────────────────
+
+/** 유형을 붙이는 최소 슛 시도 수 (그 시즌 정규시즌) */
+export const OFFENSE_MIN_ATTEMPTS = 50;
+/** 골밑 공격형: 골밑+페인트 시도 비중 문턱 */
+export const OFFENSE_INSIDE_MIN = 0.55;
+/** 3점 슈터형: 3점(코너+아크) 시도 비중 문턱 */
+export const OFFENSE_SHOOTER_MIN = 0.5;
+/** 미드레인지형: 미드레인지 시도 비중 문턱 */
+export const OFFENSE_MID_MIN = 0.3;
+/** 인사이드-아웃형: 3점 비중과 골밑+페인트 비중이 둘 다 이 값 이상 */
+export const OFFENSE_INSIDE_OUT_MIN = 0.35;
+
+export type OffenseTypeKey = "inside" | "shooter" | "midrange" | "insideOut" | "balanced";
+
+export interface OffenseTypeDef {
+  key: OffenseTypeKey;
+  label: string;
+  condition: string;
+  short: string;
+}
+
+const pctText = (v: number) => `${Math.round(v * 100)}%`;
+
+/** 배열 순서 = 판정 순서이자 용어 탭 표 순서 */
+export const OFFENSE_TYPES: readonly OffenseTypeDef[] = [
+  {
+    key: "inside",
+    label: "골밑 공격형",
+    condition: `골밑+페인트 시도 비중 ${pctText(OFFENSE_INSIDE_MIN)} 이상`,
+    short: "슛 대부분을 페인트 안에서 — 포스트업·돌파·풋백",
+  },
+  {
+    key: "shooter",
+    label: "3점 슈터형",
+    condition: `3점(코너+아크) 시도 비중 ${pctText(OFFENSE_SHOOTER_MIN)} 이상`,
+    short: "던지는 슛의 절반 이상이 3점",
+  },
+  {
+    key: "midrange",
+    label: "미드레인지형",
+    condition: `미드레인지 시도 비중 ${pctText(OFFENSE_MID_MIN)} 이상`,
+    short: "페인트 밖·3점 라인 안의 중거리 슛을 즐겨 쏜다",
+  },
+  {
+    key: "insideOut",
+    label: "인사이드-아웃형",
+    condition: `3점 ${pctText(OFFENSE_INSIDE_OUT_MIN)} 이상 그리고 골밑+페인트 ${pctText(OFFENSE_INSIDE_OUT_MIN)} 이상`,
+    short: "안쪽과 3점을 모두 쓰고 중거리는 적다",
+  },
+  {
+    key: "balanced",
+    label: "균형형",
+    condition: "위 조건에 해당하지 않음",
+    short: "구역별 시도가 고르게 퍼져 있다",
+  },
+];
+
+const OFFENSE_BY_KEY = new Map(OFFENSE_TYPES.map((t) => [t.key, t]));
+
+/** 공격 유형 키 → 정의 */
+export function offenseTypeDef(key: OffenseTypeKey): OffenseTypeDef {
+  return OFFENSE_BY_KEY.get(key)!;
+}
+
+/** 공격 유형 한 줄의 용어 탭 앵커, 예: /glossary#offense-inside */
+export function offenseTypeHref(key: OffenseTypeKey): string {
+  return `/glossary#offense-${key}`;
+}
+
+/** 공격 유형 칩 → 팝오버 내용 (조건 한 줄 + 용어 페이지 표) */
+export function offenseTypeHelp(key: OffenseTypeKey): HelpContent {
+  const d = offenseTypeDef(key);
+  return { title: `주 공격 유형: ${d.label}`, short: d.short, formula: `${d.condition} (슛 ${OFFENSE_MIN_ATTEMPTS}개 이상)`, href: offenseTypeHref(key) };
 }

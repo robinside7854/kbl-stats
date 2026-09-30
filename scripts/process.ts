@@ -4,13 +4,15 @@
 //   (+ data/raw/highs/{season}/{playerNo}.json 한 경기 최다 — 선수 seasonHighs, 시즌 seasonHighLeaders, 색인 careerHighs)
 //   (+ data/raw/profiles/{playerNo}.json 프로필 — 색인 birthday·country·school)
 //   (+ data/raw/gamelogs/{season}/{playerNo}.json 경기별 기록 — 한 경기 최다 3점·자유투·야투 성공에 그 경기 attempts·pct)
+//   (+ data/raw/shots/{season}/{gmkey}.json 슛 차트 + data/raw/games/{season}/list.json 경기 목록 — 정규시즌 경기의 슛 좌표를
+//      선수별로 모아 players[].shotZones·시즌 shotZoneLeague·coverage.shots, 점 좌표는 data/processed/{season}/shots.json)
 //   → data/processed/{season}/players.json (lib/types.ts의 SeasonData 형태: coverage·teams·players)
 // 모든 시즌을 가공한 뒤
 //   → data/processed/seasons.json (시즌 목록), data/processed/players-index.json (선수 색인)
 //
 // raw 파일은 절대 수정하지 않는다. 이 스크립트는 몇 번 다시 돌려도 같은 결과가 나와야 한다.
 
-import { readdir, readFile, mkdir, writeFile } from "node:fs/promises";
+import { readdir, readFile, mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { DATA_DIR, SEASON_CODES_FALLBACK } from "./config.js";
 import { seasonCoverage, usgFromKbl } from "../lib/metrics.js";
@@ -20,6 +22,8 @@ import { buildProfileMap, EMPTY_PROFILE, EMPTY_PROFILE_EXTRA, isForeignPlayer, p
 import { hasCareerHighs, parseMostGame, type ParsedMostGame } from "./highs.js";
 import { attachShotAttempts, parseGameLog, type GameLogRow } from "./gamelogs.js";
 import { computeSeasonHighLeaders, SHOT_HIGH_KEYS } from "../lib/highs.js";
+import { regularGamesOf } from "./shots.js";
+import { leagueZoneAverages, normalizeShot, toShotPoint, zoneSummary, type NormalizedShot } from "../lib/shots.js";
 import type { CareerHighs, HighsSet, Player, PlayerIndexEntry, PlayerProfile, SeasonData, Team, TeamColor } from "../lib/types.js";
 
 type Raw = Record<string, any>;
@@ -107,6 +111,67 @@ function withShots(set: HighsSet | null, playerNo: string, fallbackSeason: numbe
     if (r.attempts === null) shotStats.missing++;
     else shotStats.attached++;
   }
+  return out;
+}
+
+/** 슛 차트를 읽은 시즌 수·점 수 (로그용) */
+const shotChartStats = { seasons: 0, points: 0, skipped: 0 };
+
+/**
+ * 한 시즌의 슛 차트 raw → 선수 번호 → 정규화한 점 목록 (lib/shots normalizeShot). 폴더가 없거나 점이 0개면 null.
+ * 대상 경기: 경기 목록(data/raw/games/{시즌}/list.json)에서 seasonCode 가 같고 gameCode "01"(정규시즌)인 gmkey.
+ * 목록이 없으면 gmkey 모양(S{시즌}G01N…)으로 거른다. 깨진 파일·형식이 다른 파일은 건너뛴다.
+ */
+async function readSeasonShots(seasonCode: number): Promise<Map<string, NormalizedShot[]> | null> {
+  const dir = join(DATA_DIR, "raw", "shots", String(seasonCode));
+  let files: string[];
+  try {
+    files = (await readdir(dir)).filter((f) => f.endsWith(".json"));
+  } catch {
+    return null;
+  }
+  let isRegular: (gmkey: string) => boolean;
+  try {
+    const list = JSON.parse(await readFile(join(DATA_DIR, "raw", "games", String(seasonCode), "list.json"), "utf8"));
+    const keys = new Set(regularGamesOf(list, seasonCode).map((g) => g.gmkey));
+    isRegular = (k) => keys.has(k);
+  } catch {
+    console.warn(`[${seasonCode}] 경기 목록 없음 → 슛 차트 gmkey 모양(S${seasonCode}G01N…)으로 정규시즌을 거름`);
+    const re = new RegExp(`^S${seasonCode}G01N\\d+$`);
+    isRegular = (k) => re.test(k);
+  }
+  const out = new Map<string, NormalizedShot[]>();
+  let points = 0;
+  for (const f of files.sort()) {
+    const gmkey = f.replace(/\.json$/, "");
+    if (!isRegular(gmkey)) continue;
+    let body: unknown;
+    try {
+      body = JSON.parse(await readFile(join(dir, f), "utf8"));
+      if (typeof body === "string") body = JSON.parse(body);
+    } catch {
+      console.warn(`[${seasonCode}] 슛 차트 파일 읽기 실패: ${f}`);
+      continue;
+    }
+    const log = (body as Raw | null)?.shootLog;
+    if (!Array.isArray(log)) continue;
+    for (const p of log as Raw[]) {
+      const playerNo = String(p?.pcode ?? "").trim();
+      if (!playerNo || !Array.isArray(p.logs)) continue;
+      let list = out.get(playerNo);
+      if (!list) out.set(playerNo, (list = []));
+      for (const l of p.logs as Raw[]) {
+        const s = normalizeShot(l as never);
+        if (s) {
+          list.push(s);
+          points++;
+        } else shotChartStats.skipped++;
+      }
+    }
+  }
+  if (points === 0) return null;
+  shotChartStats.seasons++;
+  shotChartStats.points += points;
   return out;
 }
 
@@ -313,23 +378,42 @@ async function processSeason(seasonCode: number): Promise<SeasonData> {
     if (missing.length) console.warn(`[${seasonCode}] teams.json에 없는 선수 팀 코드: ${missing.join(", ")}`);
   }
 
+  // 슛 차트: 선수별 구역 집계(없으면 null) + 리그 합계 + 커버리지(선수 50% 이상에 슛 좌표) — lib/shots.ts
+  const shots = await readSeasonShots(seasonCode);
+  for (const p of players) {
+    const list = shots?.get(p.playerNo);
+    p.shotZones = list && list.length > 0 ? zoneSummary(list) : null;
+  }
+  const shotPlayers = players.filter((p) => p.shotZones).length;
+
   const out: SeasonData = {
     seasonCode,
     seasonLabel: SEASON_CODES_FALLBACK[seasonCode] ?? String(seasonCode),
     gameType: "regular",
     fetchedAt: new Date().toISOString(),
-    coverage: seasonCoverage(players),
+    coverage: { ...seasonCoverage(players), shots: players.length > 0 && shotPlayers / players.length >= 0.5 },
     teams,
     players,
     // 부문별 시즌 하이 1위 (기록 부문 11개, 동률은 먼저 달성) — raw 가 없으면 null (lib/highs.ts)
     seasonHighLeaders: computeSeasonHighLeaders(players),
+    shotZoneLeague: shots ? leagueZoneAverages(players.map((p) => p.shotZones)) : null,
   };
 
   const outDir = join(DATA_DIR, "processed", String(seasonCode));
   await mkdir(outDir, { recursive: true });
   await writeFile(join(outDir, "players.json"), JSON.stringify(out, null, 2), "utf8");
+  // 선수별 점 좌표 — 한 줄 = 선수 한 명 (git diff 가 읽히게). 시즌 선수 명단에 있는 선수만. 슛이 없으면 파일을 지운다(재실행해도 같은 결과)
+  const shotsFile = join(outDir, "shots.json");
+  if (shots && shotPlayers > 0) {
+    const lines = players
+      .filter((p) => p.shotZones)
+      .map((p) => `${JSON.stringify(p.playerNo)}:${JSON.stringify(shots.get(p.playerNo)!.map(toShotPoint))}`);
+    await writeFile(shotsFile, `{\n${lines.join(",\n")}\n}\n`, "utf8");
+  } else {
+    await rm(shotsFile, { force: true });
+  }
   const cov = Object.entries(out.coverage).filter(([, v]) => v).map(([k]) => k).join(",") || "-";
-  const highsNote = highs.size > 0 ? `, 한 경기 최다 ${highs.size}명` : "";
+  const highsNote = (highs.size > 0 ? `, 한 경기 최다 ${highs.size}명` : "") + (shotPlayers > 0 ? `, 슛 차트 ${shotPlayers}명` : "");
   console.log(`[${out.seasonLabel}] ${players.length}명, 팀 ${teams.length}개, coverage: ${cov}${highsNote} → ${join(outDir, "players.json")}`);
   return out;
 }
@@ -436,6 +520,8 @@ async function main() {
   if (highsSeasonCount === 0) console.warn("한 경기 최다 raw 없음(data/raw/highs) → seasonHighs·seasonHighLeaders·careerHighs 는 null");
   else console.log(`한 경기 최다: ${highsSeasonCount}개 시즌, 통산 ${careerHighsByPlayer.size}명`);
   if (gameLogs.size > 0) console.log(`한 경기 최다 슛 시도 수: 붙임 ${shotStats.attached} · 그날 경기 못 찾음 ${shotStats.missing} (시즌별·통산 합계, 중복 포함)`);
+  if (shotChartStats.seasons === 0) console.warn("슛 차트 raw 없음(data/raw/shots) → shotZones·shotZoneLeague 는 null, coverage.shots false");
+  else console.log(`슛 차트: ${shotChartStats.seasons}개 시즌, 점 ${shotChartStats.points}개${shotChartStats.skipped ? ` (좌표 이상으로 건너뜀 ${shotChartStats.skipped})` : ""}`);
   if (unknownHighsKeys.size > 0) console.warn(`한 경기 최다 응답의 모르는 배열(무시함): ${[...unknownHighsKeys].join(", ")}`);
 
   // 팀 한글 약칭 점검표 (teamName1 → shortNameKo, 등장 시즌) — 이상한 값이 없는지 눈으로 확인
