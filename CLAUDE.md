@@ -99,26 +99,28 @@ kbl-stats/
 │   └── config.ts        ← 엔드포인트, 시즌 목록, 요청 간격
 ├── tests/
 │   ├── metrics.test.ts  ← lib/metrics.ts 검증 (npm run test:metrics)
-│   └── leaders.test.ts  ← lib/leaders.ts 검증 (npm run test:leaders, 둘 다: npm test)
+│   ├── leaders.test.ts  ← lib/leaders.ts 검증 (npm run test:leaders)
+│   └── card.test.ts     ← 플레이어 카드 스탯·순위 검증 (npm run test:card, 셋 다: npm test)
 ├── data/
 │   ├── codes/           ← 시즌·팀·경기구분 코드표 (API에서 받아 저장) + team-colors.json(팀 색, 손으로 관리하는 유일한 예외)
 │   ├── raw/{seasonCode}/traditional.json, advanced.json, ...
 │   └── processed/seasons.json, players-index.json(전 시즌 선수 색인: 번호·이름·photoUrl·시즌별 팀·경기), {seasonCode}/players.json(coverage·teams(logoUrl·color)·players)
 ├── lib/
-│   ├── metrics.ts       ← 파생 지표 계산 (순수 함수만: 백분위, 경기당·40분당 환산, 커버리지 판정, 레이더 축 세트 modern/classic, 유형 라벨, 표본 프리셋 QUALIFY_PRESETS — 레이더·순위표 공용)
+│   ├── metrics.ts       ← 파생 지표 계산 (순수 함수만: 백분위, 경기당·40분당 환산, 커버리지 판정, 레이더 축 세트 modern/classic, 유형 라벨, 표본 프리셋 QUALIFY_PRESETS — 카드·순위표 공용, 플레이어 카드 스탯 9개 CARD_STATS·시즌 순위 cardStats(동점 1,2,2,4 / 턴오버 오름차순 / 성공률 시도 기준)·메달 단계 rankTier)
 │   ├── leaders.ts       ← 순위표 규칙 (순수 함수: 부문 정의, 필터·정렬·순위, 열 순서, 숫자 표기, 주소 쿼리)
 │   ├── data.ts          ← 빌드 시점에 data/processed 읽기 (서버 전용, loadPlayersIndex·toCardPlayers·toCardTeams·toLeaderPlayers)
-│   ├── images.ts        ← 공식 이미지 스위치 officialImagesEnabled() (NEXT_PUBLIC_OFFICIAL_IMAGES=off 면 끔) + 대체 디자인 글자 규칙(teamMark) + 표용 팀 약칭(teamShortLabel: 9글자 넘으면 머리글자)
+│   ├── images.ts        ← 공식 이미지 스위치 officialImagesEnabled() (NEXT_PUBLIC_OFFICIAL_IMAGES=off 면 끔) + 대체 디자인 글자 규칙(teamMark) + 표용 팀 약칭(teamShortLabel: 9글자 넘으면 머리글자) + 색 섞기 mixHex(카드 그라데이션)
 │   └── types.ts         ← Player, SeasonData(coverage·teams), Team(logoUrl·color), TeamColor, PlayerIndexEntry(photoUrl), CardPlayer, CardTeam, LeaderPlayer(순위표용 최소 필드) 등 타입 정의
 ├── app/                 ← Next.js 화면 (App Router)
 │   ├── layout.tsx, globals.css (색 토큰: 라이트/다크)
-│   ├── page.tsx         ← 최신 시즌 레이더 카드 (정적)
-│   ├── season/[seasonCode]/page.tsx  ← 시즌별 레이더 카드 정적 페이지
+│   ├── page.tsx         ← 최신 시즌 플레이어 카드 (정적)
+│   ├── season/[seasonCode]/page.tsx  ← 시즌별 플레이어 카드 정적 페이지
 │   ├── season/[seasonCode]/leaders/page.tsx  ← 시즌 순위표 정적 페이지 (1~3위 표지 카드 + 정렬 표)
 │   ├── not-found.tsx
-│   └── components/      ← SiteNav(상단: 사이트 이름·시즌 선택·화면 메뉴, 모든 화면 공통), SeasonView, RadarExplorer, RadarCard,
+│   └── components/      ← SiteNav(상단: 사이트 이름·시즌 선택·화면 메뉴, 모든 화면 공통), SeasonView, CardExplorer(선수 선택·비교·이미지 저장),
+│                           PlayerCard(게임식 플레이어 카드: 팀 색 상단+큰 사진 / 스탯 9개+시즌 순위 / 작은 레이더),
 │                           LeadersView(순위표), PlayerPicker, SourceFooter, useThemeColors,
-│                           PlayerAvatar·TeamLogo(공식 이미지+대체 디자인, 저장 카드 영역 밖에서만), useOfficialImage
+│                           PlayerAvatar(circle·portrait)·TeamLogo(공식 이미지+대체 디자인, official={false}면 대체만), useOfficialImage(저장 filter excludeOfficialImages)
 └── .github/workflows/fetch.yml, backfill.yml  ← 매일 새벽 수집 / 전체 재수집
 ```
 
@@ -139,6 +141,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-09-30 (플레이어 카드): 사용자 피드백("사진·로고가 너무 작다, 게임 카드처럼")으로 레이더 카드를 플레이어 카드로 개편. 상단 팀 색 그라데이션+큰 세로 사진(208px)+로고 칩, 중단 경기당 스탯 9개(득점·리바·어시·스틸·블록·턴오버·야투·3점·자유투) 3×3 + 시즌 순위(1~3위 SVG 메달, 4~10위 팀 색 강조), 하단 작은 백분위 레이더+표. 순위 규칙은 lib/metrics.ts(동점 같은 순위, 턴오버 오름차순, 표본 미달 → "표본 미달"). 결정: 성공률은 표본 기준만으로는 1/1=100%가 1위가 되어 **경기당 시도 기준(야투 4·3점 1.5·자유투 1회)** 추가 → 미달은 "시도 부족"(KBL 공식 규정 아님, 우리 규칙). 이미지 저장은 화면 밖에 공식 이미지 없는 사본(exportMode)을 그려 PNG로 + filter 로 `<img data-official-image>` 제외 — Playwright로 PNG 생성 확인(한 장 808×1524, 비교 두 장 1592×1524 @2x). 카드 비율은 레이더를 남기느라 약 1:2(358×752)로 목표(2:3)보다 길다. 비교는 카드 두 장 나란히(겹친 레이더 제거). 메뉴 이름 "플레이어 카드".
 - 2026-09-30 (순위표): PLAN.md ② 완료. `/season/[코드]/leaders` 30개 시즌 정적 생성 — 부문 칩 → 1~3위 팀 색 표지 카드(1위 크게) → 정렬 표(순위·선수 열 고정, 표만 가로 스크롤, 390px에서 페이지 가로 스크롤 없음 확인). 경기당/합계·전체/국내/외국인·팀·표본 기준, 상태는 주소 쿼리. 상단 `SiteNav`로 시즌 선택을 옮겨 레이더·순위표·홈 공통. USG%·PIE는 coverage.advanced 시즌만. 표본 프리셋을 metrics.ts로 옮겨 두 화면 공유. 기본 부문 경기당 득점. 발견: 현 시즌 약칭도 "HYUNDAI MOBIS"·"JUNG KWAN JANG"이라 표에선 HM·JKJ로 보임 → 한글 약칭이 필요하면 process.ts에서 teamName1 기반 약칭을 따로 만들지 검토.
 - 2026-09-30 (①-b 이미지): PLAN.md §5-5 완료. `scripts/image-urls.ts`가 사진·로고 주소 생성 → 시즌 파일 `teams[]`에 `logoUrl`·`color`, `players-index.json`에 `photoUrl`(색인 약 536KB). 팀 색은 `data/codes/team-colors.json`(현재 10개 구단 근사값, 보조색 포함 사용자 확인 필요, 나머지 회색). 공통 컴포넌트 PlayerAvatar·TeamLogo(대체 디자인 기본, onError·하이드레이션 전 실패도 대체), 스위치 `NEXT_PUBLIC_OFFICIAL_IMAGES=off`(빌드 시 반영, off 빌드에서 <img>·사진 출처 줄 0개 확인). PlayerPicker 목록과 카드 위 선수 줄에만 적용 — 저장 카드(html-to-image) 안에는 CORS 때문에 넣지 않음. 발견: 정관장(70)의 현재 logoName은 `kgc`(ic-kgc.svg)라 jkj 예외는 현재 데이터에 안 쓰임. teamCode 10은 1997 부산 기아도 같은 코드라 현대모비스 색이 옛 시즌에도 칠해짐.
 - 2026-09-30 (이미지 조사): 세션 환경은 kbl.or.kr 차단이라 조사용 워크플로(`claude/probe-images` 브랜치, 푸시로 실행)를 만들어 Actions 러너에서 확인. 선수 사진·현재/옛 팀 로고 주소 형식 확정, raw teams.json 의 teamLogoName 47개가 공홈 CSS 규칙과 전부 일치. 방향: 매거진형 팬페이지, 핫링크+대체 디자인+끄기 스위치. PLAN.md §5 추가. GitHub 앱 권한상 workflow_dispatch 는 403 → 푸시 트리거만 가능.
