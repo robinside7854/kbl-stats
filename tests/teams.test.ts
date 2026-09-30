@@ -108,12 +108,12 @@ assert.equal(teamEmphasis("16", ["55"]), "dim");
 
 // 쿼리 왕복 + 잘못된 값은 기본값
 const ctx = { teamCodes: ["55", "16", "10"], playerIds: new Set(["p1"]) };
-const st = { teams: ["55", "16"], yKey: "tsPct" as const, presetIdx: 1, playerId: "p1" };
-assert.equal(distributionQueryString(st), "?teams=55,16&y=ts&q=1&p=p1");
+const st = { teams: ["55", "16"], yKey: "tsPct" as const, presetIdx: 1, playerId: "p1", position: "C" as const };
+assert.equal(distributionQueryString(st), "?teams=55,16&y=ts&q=1&pos=c&p=p1");
 assert.deepEqual(parseDistributionQuery(distributionQueryString(st), ctx), st);
 assert.equal(distributionQueryString(DEFAULT_DISTRIBUTION_STATE), "");
-assert.deepEqual(parseDistributionQuery("?teams=99,55,55,16,10&y=pie&q=9&p=zz", ctx), {
-  teams: ["55", "16"], yKey: "per", presetIdx: 0, playerId: null,
+assert.deepEqual(parseDistributionQuery("?teams=99,55,55,16,10&y=pie&q=9&p=zz&pos=x", ctx), {
+  teams: ["55", "16"], yKey: "per", presetIdx: 0, playerId: null, position: "all",
 });
 assert.equal(parseDistributionQuery(`?q=${QUALIFY_PRESETS.length - 1}`, ctx).presetIdx, QUALIFY_PRESETS.length - 1);
 

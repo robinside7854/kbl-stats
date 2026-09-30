@@ -13,17 +13,7 @@ import type {
   SeasonData,
   SeasonOption,
 } from "./types";
-import {
-  attemptsNote,
-  axisSetFor,
-  buildCardContext,
-  buildCardEntry,
-  DEFAULT_QUALIFY,
-  qualifyLabel,
-  type CardContext,
-  type CardEntryOf,
-  type RadarAxisSet,
-} from "./metrics";
+import { decodeSeasonCards, encodeSeasonCards, type SeasonCards, type SeasonCardsFile } from "./cards";
 import { toCardPlayers as convertCardPlayers, toCardTeams, toLeaderPlayers as convertLeaderPlayers } from "./convert";
 
 const PROCESSED_DIR = path.join(process.cwd(), "data", "processed");
@@ -142,46 +132,36 @@ export function loadPlayerCareer(playerNo: string): PlayerCareer | null {
   return { entry, seasons };
 }
 
-/** 선수 페이지에 넣을 플레이어 카드 한 장 — 서버에서 계산해 결과만 넘긴다 (시즌 선수 전체를 보내지 않기 위해) */
-export interface PlayerCardData {
-  entry: CardEntryOf<CardPlayer>;
-  team: CardTeam | null;
-  seasonCode: number;
-  seasonLabel: string;
-  axisSet: RadarAxisSet;
-  ruleLabel: string;
-  qualifiedCount: number;
-  attemptsLabel: string;
-}
+// ─────────────────────────────────────────────
+// 시즌 카드 데이터 — public/cards/{코드}.json 과 똑같은 내용 (scripts/build-cards.ts 와 같은 encode)
+// ─────────────────────────────────────────────
 
-const cardSeasonCache = new Map<number, { players: Map<string, CardPlayer>; ctx: CardContext }>();
+const cardsFileCache = new Map<number, SeasonCardsFile | null>();
+const cardsCache = new Map<number, SeasonCards | null>();
 
 /**
- * 그 시즌 플레이어 카드: 비교 집단은 플레이어 카드 화면의 기본값(DEFAULT_QUALIFY)과 같다 →
- * 같은 선수·시즌이면 /season/[코드] 의 기본 카드와 순위·등급이 같다.
+ * 시즌 카드 파일 내용(열 형식). 선수 탭은 최신 시즌 것을 정적 HTML에 그대로 넣고, 다른 시즌은 브라우저가
+ * public/cards 에서 같은 형식을 받는다 → 서버·브라우저가 같은 decode·계산(lib/cardview)을 거친다.
  */
-export function loadPlayerCard(playerNo: string, seasonCode: number): PlayerCardData | null {
+export function loadSeasonCardsFile(seasonCode: number): SeasonCardsFile | null {
+  if (cardsFileCache.has(seasonCode)) return cardsFileCache.get(seasonCode)!;
   const season = loadSeasonData(seasonCode);
-  if (!season) return null;
-  let c = cardSeasonCache.get(seasonCode);
-  if (!c) {
-    const players = toCardPlayers(season);
-    c = {
-      players: new Map(players.map((p) => [p.id, p])),
-      ctx: buildCardContext(players, DEFAULT_QUALIFY, axisSetFor(season.coverage)),
-    };
-    cardSeasonCache.set(seasonCode, c);
-  }
-  const p = c.players.get(playerNo);
-  if (!p) return null;
-  return {
-    entry: buildCardEntry(p, c.ctx),
-    team: seasonTeams(season).find((t) => t.teamCode === p.teamCode) ?? null,
-    seasonCode,
-    seasonLabel: season.seasonLabel,
-    axisSet: c.ctx.set,
-    ruleLabel: qualifyLabel(c.ctx.rule),
-    qualifiedCount: c.ctx.qualifiedCount,
-    attemptsLabel: attemptsNote(c.ctx.thresholds),
-  };
+  const file =
+    season && season.players.length > 0
+      ? encodeSeasonCards(
+          { seasonCode: season.seasonCode, seasonLabel: season.seasonLabel, coverage: season.coverage, teams: seasonTeams(season) },
+          toCardPlayers(season),
+        )
+      : null;
+  cardsFileCache.set(seasonCode, file);
+  return file;
+}
+
+/** 풀어낸 시즌 카드 데이터 (선수 상세·비교 탭의 첫 화면 카드 계산용, lib/cardview buildSeasonCardView) */
+export function loadSeasonCards(seasonCode: number): SeasonCards | null {
+  if (cardsCache.has(seasonCode)) return cardsCache.get(seasonCode)!;
+  const file = loadSeasonCardsFile(seasonCode);
+  const cards = file ? decodeSeasonCards(file) : null;
+  cardsCache.set(seasonCode, cards);
+  return cards;
 }

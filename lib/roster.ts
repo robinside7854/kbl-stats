@@ -81,3 +81,29 @@ export function filterByNationality<T extends { nationality: Nationality | null;
   if (kind === "all") return [...players];
   return players.filter((p) => nationalityOf(p) === kind);
 }
+
+// ─────────────────────────────────────────────
+// 주소 쿼리 값 (순위표 ?pos=&origin=, 선수 탭, 팀 분포가 같은 표기를 쓴다)
+// ─────────────────────────────────────────────
+
+const POSITION_PARAM: Record<PositionFilter, string> = { all: "all", G: "g", F: "f", C: "c" };
+const NATIONALITY_PARAM: Record<NationalityFilter, string> = { all: "all", domestic: "dom", foreign: "for", asia: "asia" };
+
+/** 포지션 필터 → 쿼리 값 (g/f/c, 전체는 "all") */
+export const positionParam = (f: PositionFilter) => POSITION_PARAM[f];
+/** 국적 필터 → 쿼리 값 (dom/for/asia, 전체는 "all") */
+export const nationalityParam = (f: NationalityFilter) => NATIONALITY_PARAM[f];
+
+/** 쿼리 값 → 포지션 필터. 모르는 값·없음이면 "all" */
+export function positionFromParam(v: string | null | undefined): PositionFilter {
+  return POSITION_FILTERS.find((k) => POSITION_PARAM[k] === v) ?? "all";
+}
+
+/** 쿼리 값 → 국적 필터. 모르는 값·없음이면 "all" */
+export function nationalityFromParam(v: string | null | undefined): NationalityFilter {
+  return NATIONALITY_FILTERS.find((k) => NATIONALITY_PARAM[k] === v) ?? "all";
+}
+
+/** 필터 버튼 표기: "all" → "전체", 나머지는 한글 이름 */
+export const positionFilterLabel = (f: PositionFilter) => (f === "all" ? "전체" : POSITION_GROUP_LABELS[f]);
+export const nationalityFilterLabel = (f: NationalityFilter) => (f === "all" ? "전체" : NATIONALITY_LABELS[f]);

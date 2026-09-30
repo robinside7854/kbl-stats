@@ -1,5 +1,6 @@
 // 선수 페이지·검색 검증 (lib/metrics careerSummary·buildCardEntry, lib/career, lib/search). 실행: npm run test:player
 import assert from "node:assert/strict";
+import { profileFacts } from "../lib/career";
 import {
   buildCardContext,
   buildCardEntry,
@@ -100,7 +101,7 @@ console.log("player: 카드 계산 통과");
 // ── 검색 ──
 assert.equal(normalizeName(" Guy Terrance. Rucker "), "guyterrancerucker");
 const mkS = (id: string, nameKo: string, nameEn: string, last: number): SearchEntry => ({
-  id, nameKo, nameEn, team: "SK", from: "2019-20", to: "2025-26", last, photoUrl: "", positionGroup: null, positionLabel: null,
+  id, nameKo, nameEn, team: "SK", from: "2019-20", to: "2025-26", last, seasons: [last], photoUrl: "", positionGroup: null, positionLabel: null,
   color: { primary: "#000", text: "#fff" },
 });
 const idx: SearchEntry[] = [
@@ -142,8 +143,24 @@ const pIdx: PlayerIndexEntry[] = [
 const built = buildSearchIndex(pIdx, (c) => (c === 43 ? "2023-2024" : "2025-2026"), (t) => (t === "35" ? { primary: "#00f", text: "#fff" } : undefined));
 assert.equal(built.length, 1); // 시즌 없는 선수는 제외
 assert.deepEqual(built[0], {
-  id: "9", nameKo: "가", nameEn: "Ga", team: "삼성", from: "2023-24", to: "2025-26", last: 47, photoUrl: "p9",
+  id: "9", nameKo: "가", nameEn: "Ga", team: "삼성", from: "2023-24", to: "2025-26", last: 47, seasons: [43, 47], photoUrl: "p9",
   positionGroup: "G", positionLabel: "가드-포워드",
   color: { primary: "#00f", text: "#fff" },
 });
 console.log("player: 검색 매칭·색인 통과");
+
+// 프로필 한 줄 (히어로)
+assert.deepEqual(
+  profileFacts({ positionLabel: "센터", heightCm: 199, weightKg: 118, backNumber: "00", draft: { year: 2015, round: 1, pick: 3 } }),
+  [
+    { label: "포지션", value: "센터" },
+    { label: "키", value: "199cm" },
+    { label: "몸무게", value: "118kg" },
+    { label: "등번호", value: "#00" },
+    { label: "드래프트", value: "2015 1라운드 3순위" },
+  ],
+);
+assert.deepEqual(profileFacts({ positionLabel: null, heightCm: null, weightKg: null, backNumber: null, draft: { year: 1998, round: null, pick: null } }), [
+  { label: "드래프트", value: "1998" },
+]);
+console.log("player: 프로필 표기 통과");

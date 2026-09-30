@@ -4,6 +4,7 @@
 // USG%·PIE 는 쓰지 않는다 (2025-26에만 있고, 사용자가 어려운 지표라 빼 달라고 함 — 2026-09-30).
 
 import { isQualified, perGame, QUALIFY_PRESETS, type QualifyRule } from "./metrics";
+import { positionFromParam, positionParam, type PositionFilter } from "./roster";
 
 export type ScatterYKey = "per" | "tsPct" | "points";
 
@@ -91,7 +92,7 @@ export function teamEmphasis(teamCode: string, selected: readonly string[]): Emp
 }
 
 // ─────────────────────────────────────────────
-// 주소 쿼리 (?teams=55,16&y=ts&q=1&p=선수번호) — 기본값 항목은 생략
+// 주소 쿼리 (?teams=55,16&y=ts&q=1&pos=g&p=선수번호) — 기본값 항목은 생략
 // ─────────────────────────────────────────────
 
 export interface DistributionState {
@@ -101,9 +102,11 @@ export interface DistributionState {
   presetIdx: number;
   /** 눌러서 고른 선수 (하단 카드) */
   playerId: string | null;
+  /** 포지션 묶음 (쿼리 pos=g|f|c) — 점만 거른다. 팀 의존도 카드는 팀 전체 기준 그대로 */
+  position: PositionFilter;
 }
 
-export const DEFAULT_DISTRIBUTION_STATE: DistributionState = { teams: [], yKey: "per", presetIdx: 0, playerId: null };
+export const DEFAULT_DISTRIBUTION_STATE: DistributionState = { teams: [], yKey: "per", presetIdx: 0, playerId: null, position: "all" };
 
 /** 쿼리 → 상태. 이 시즌에 없는 팀·선수, 모르는 지표는 버리거나 기본값으로 */
 export function parseDistributionQuery(
@@ -125,6 +128,7 @@ export function parseDistributionQuery(
     yKey: metric?.key ?? d.yKey,
     presetIdx: qs.has("q") && Number.isInteger(q) && q >= 0 && q < QUALIFY_PRESETS.length ? q : d.presetIdx,
     playerId: p && ctx.playerIds.has(p) ? p : null,
+    position: positionFromParam(qs.get("pos")),
   };
 }
 
@@ -135,6 +139,7 @@ export function distributionQueryString(s: DistributionState): string {
   if (s.teams.length) qs.set("teams", s.teams.join(","));
   if (s.yKey !== d.yKey) qs.set("y", scatterMetric(s.yKey).param);
   if (s.presetIdx !== d.presetIdx) qs.set("q", String(s.presetIdx));
+  if (s.position !== d.position) qs.set("pos", positionParam(s.position));
   if (s.playerId) qs.set("p", s.playerId);
   const str = qs.toString().replace(/%2C/g, ",");
   return str ? `?${str}` : "";

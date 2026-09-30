@@ -163,3 +163,55 @@ const BY_KEY = new Map(GLOSSARY.map((e) => [e.key, e]));
 export function glossaryEntry(key: GlossaryKey): GlossaryEntry | undefined {
   return BY_KEY.get(key);
 }
+
+// ─────────────────────────────────────────────
+// 용어 탭(/glossary) 앵커 — 카드 등급 영역·순위표 열 머리글의 ⓘ 아이콘이 여기로 연결한다
+// ─────────────────────────────────────────────
+
+/** 용어 → 주소 앵커 (짧은 영문, 예: /glossary#ts). 한 번 공유된 주소가 깨지지 않게 바꾸지 않는다 */
+export const GLOSSARY_ANCHORS: Record<GlossaryKey, string> = {
+  per: "per",
+  tsPct: "ts",
+  efgPct: "efg",
+  usgPct: "usg",
+  astPct: "ast",
+  rebPct: "reb",
+  tovPct: "tov",
+  astTo: "ast-to",
+  ratings: "rtg",
+  pace: "pace",
+  per40: "per40",
+  percentileGrade: "grade",
+  qualify: "qualify",
+  attempts: "attempts",
+};
+
+/** 용어 탭 링크, 예: glossaryHref("tsPct") → "/glossary#ts" */
+export function glossaryHref(key: GlossaryKey): string {
+  return `/glossary#${GLOSSARY_ANCHORS[key]}`;
+}
+
+/**
+ * 순위표 열(lib/leaders LeaderStatKey) → 풀이할 용어. 없는 열(득점 등 누구나 아는 기록)은 ⓘ 를 달지 않는다.
+ * 성공률 열은 "시도 기준"(1개 던져 100% 가 1위가 되지 않게 하는 규칙)을 풀이한다.
+ * 키를 문자열로 받는 이유: leaders.ts ↔ glossary.ts 순환 import 를 피하려고.
+ */
+export const LEADER_COLUMN_GLOSSARY: Readonly<Record<string, GlossaryKey>> = {
+  tsPct: "tsPct",
+  per: "per",
+  fgPct: "attempts",
+  tpPct: "attempts",
+  ftPct: "attempts",
+};
+
+/** 레이더 축(lib/metrics RadarAxis) → 용어. 40분당 축 셋은 "40분당 환산" 하나로 */
+export const RADAR_AXIS_GLOSSARY: Readonly<Record<string, GlossaryKey>> = {
+  usgPct: "usgPct",
+  tsPct: "tsPct",
+  astPct: "astPct",
+  rebPct: "rebPct",
+  per: "per",
+  pts40: "per40",
+  ast40: "per40",
+  reb40: "per40",
+};

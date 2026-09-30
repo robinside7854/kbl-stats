@@ -156,3 +156,37 @@ export function trendRows<T extends TrendInput & { seasonCode: number; seasonLab
     };
   });
 }
+
+// ─────────────────────────────────────────────
+// 선수 프로필 (히어로의 포지션·키·몸무게·등번호·드래프트) — 값은 선수 마스터(lib/types PlayerProfile)
+// ─────────────────────────────────────────────
+
+export interface ProfileFact {
+  label: string;
+  value: string;
+}
+
+/**
+ * 프로필 한 줄씩: 포지션 · 키 · 몸무게 · 등번호 · 드래프트. 값이 없는 항목은 뺀다.
+ * 드래프트 표기: "2015 1라운드 3순위" (라운드·순위가 없으면 있는 것만). 등번호는 "0"과 "00"을 구분하려고 문자열 그대로.
+ */
+export function profileFacts(p: {
+  positionLabel: string | null;
+  heightCm: number | null;
+  weightKg: number | null;
+  backNumber: string | null;
+  draft: { year: number; round: number | null; pick: number | null } | null;
+}): ProfileFact[] {
+  const out: ProfileFact[] = [];
+  if (p.positionLabel) out.push({ label: "포지션", value: p.positionLabel });
+  if (p.heightCm) out.push({ label: "키", value: `${p.heightCm}cm` });
+  if (p.weightKg) out.push({ label: "몸무게", value: `${p.weightKg}kg` });
+  if (p.backNumber) out.push({ label: "등번호", value: `#${p.backNumber}` });
+  if (p.draft) {
+    const parts = [`${p.draft.year}`];
+    if (p.draft.round) parts.push(`${p.draft.round}라운드`);
+    if (p.draft.pick) parts.push(`${p.draft.pick}순위`);
+    out.push({ label: "드래프트", value: parts.join(" ") });
+  }
+  return out;
+}

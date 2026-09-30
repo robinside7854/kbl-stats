@@ -271,6 +271,7 @@ export interface SearchEntry {
   from: string;           // 첫 시즌 짧은 표기, 예: "2019-20"
   to: string;             // 마지막 시즌 짧은 표기
   last: number;           // 마지막 시즌 코드 (검색 결과 정렬: 최근 선수 먼저)
+  seasons: number[];      // 뛴 시즌 코드 전부 (오름차순) — 비교 탭 시즌 칩
   photoUrl: string;       // process.ts 가 만든 주소 그대로 (화면은 KBL 주소를 모른다)
   positionGroup: PositionGroup | null; // 선수 마스터 (없으면 null)
   positionLabel: string | null;        // 예: "가드-포워드"

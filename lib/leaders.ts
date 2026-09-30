@@ -13,7 +13,16 @@ import {
   type AttemptThresholds,
   type QualifyRule,
 } from "./metrics";
-import { filterByNationality, filterByPosition, type NationalityFilter, type PositionFilter } from "./roster";
+import {
+  filterByNationality,
+  filterByPosition,
+  nationalityFromParam,
+  nationalityParam,
+  positionFromParam,
+  positionParam,
+  type NationalityFilter,
+  type PositionFilter,
+} from "./roster";
 import type { LeaderPlayer } from "./types";
 
 // ─────────────────────────────────────────────
@@ -294,9 +303,6 @@ export const DEFAULT_LEADERS_STATE: LeadersState = {
   presetIdx: 0,
 };
 
-const ORIGIN_PARAM: Record<OriginFilter, string> = { all: "all", domestic: "dom", foreign: "for", asia: "asia" };
-const POSITION_PARAM: Record<PositionFilter, string> = { all: "all", G: "g", F: "f", C: "c" };
-
 /**
  * 쿼리 문자열 → 상태. 모르는 값·이 시즌에 없는 팀·없는 부문(예: 예전 주소의 cat=pie)은 기본값으로.
  * 형식: ?cat=reb&mode=total&origin=dom&pos=g&team=55&q=1 (기본값인 항목은 생략)
@@ -308,15 +314,13 @@ export function parseLeadersQuery(
   const qs = new URLSearchParams(search);
   const d = DEFAULT_LEADERS_STATE;
   const cat = qs.get("cat") as LeaderStatKey | null;
-  const origin = (Object.keys(ORIGIN_PARAM) as OriginFilter[]).find((o) => ORIGIN_PARAM[o] === qs.get("origin"));
-  const position = (Object.keys(POSITION_PARAM) as PositionFilter[]).find((k) => POSITION_PARAM[k] === qs.get("pos"));
   const team = qs.get("team");
   const q = Number(qs.get("q"));
   return {
     category: cat && LEADER_CATEGORIES.includes(cat) ? cat : d.category,
     mode: qs.get("mode") === "total" ? "total" : d.mode,
-    origin: origin ?? d.origin,
-    position: position ?? d.position,
+    origin: nationalityFromParam(qs.get("origin")),
+    position: positionFromParam(qs.get("pos")),
     teamCode: team && ctx.teamCodes.includes(team) ? team : d.teamCode,
     presetIdx: Number.isInteger(q) && q >= 0 && q < QUALIFY_PRESETS.length ? q : d.presetIdx,
   };
@@ -328,8 +332,8 @@ export function leadersQueryString(s: LeadersState): string {
   const qs = new URLSearchParams();
   if (s.category !== d.category) qs.set("cat", s.category);
   if (s.mode !== d.mode) qs.set("mode", s.mode);
-  if (s.origin !== d.origin) qs.set("origin", ORIGIN_PARAM[s.origin]);
-  if (s.position !== d.position) qs.set("pos", POSITION_PARAM[s.position]);
+  if (s.origin !== d.origin) qs.set("origin", nationalityParam(s.origin));
+  if (s.position !== d.position) qs.set("pos", positionParam(s.position));
   if (s.teamCode !== d.teamCode && s.teamCode !== null) qs.set("team", s.teamCode);
   if (s.presetIdx !== d.presetIdx) qs.set("q", String(s.presetIdx));
   const str = qs.toString();
