@@ -139,7 +139,7 @@ kbl-stats/
 │   ├── images.ts        ← 공식 이미지 스위치 officialImagesEnabled() (NEXT_PUBLIC_OFFICIAL_IMAGES=off 면 끔) + 대체 디자인 글자 규칙(teamMark) + 표용 팀 약칭(teamShortLabel: 9글자 넘으면 머리글자) + 색 섞기 mixHex(카드 그라데이션)
 │   └── types.ts         ← Player, SeasonData(coverage·teams), Team(shortNameKo·logoUrl·color), TeamColor, PlayerIndexEntry(photoUrl), CardPlayer, CardTeam, LeaderPlayer(순위표용 최소 필드), CareerSeason·PlayerCareer(선수 페이지), SearchEntry(검색 색인) 등 타입 정의
 ├── app/                 ← Next.js 화면 (App Router)
-│   ├── layout.tsx, globals.css (색 토큰: 라이트/다크, 범주형 --cat-1…8)
+│   ├── layout.tsx, globals.css (색 토큰: 라이트/다크, 범주형 --cat-1…8, 포커스 링 유틸 focus-ring·focus-ring-inset)
 │   ├── page.tsx         ← 홈 "이번 시즌 한눈에" (개막 전 안내·득점 1위 표지·부문별 1~3위·화면 버튼(선수·순위표·팀 분포·비교·용어·검색)·시즌 목록, 정적)
 │   ├── players/page.tsx ← 선수 탭 (큰 검색창 + 시즌·포지션·국적·팀 칩 + 선수 그리드, 최신 시즌 정적 HTML, 다른 시즌은 /cards)
 │   ├── player/[playerNo]/page.tsx  ← 선수 상세 정적 1,329개 (히어로(프로필·국적) → 시즌 칩·순위 범위·시즌 비교 카드 → 추이 그래프 → 시즌별 기록표)
@@ -149,11 +149,12 @@ kbl-stats/
 │   ├── season/[seasonCode]/teams/page.tsx  ← 팀별 선수 분포 정적 페이지 (산점도(포지션 칩) + 팀별 핵심 의존도)
 │   ├── (옛 /season/[코드] 플레이어 카드 탭은 없앰 → next.config.mjs redirects: ?p= 있으면 /player/번호?season=코드, 없으면 순위표)
 │   ├── not-found.tsx
-│   └── components/      ← SiteNav(상단: 사이트 이름·검색창·시즌 선택(순위표·팀 분포·선수 탭만)·메뉴 홈/선수/순위표/팀 분포/비교/용어), PlayerSearch(상단·큰 검색창·onSelect 선택 모드), useSearchIndex(/search-index.json 한 번 fetch — 우리 정적 파일),
+│   └── components/      ← SiteNav(상단: 사이트 이름·검색창(선수 탭은 hideSearch)·시즌 선택(순위표·팀 분포·선수 탭만)·메뉴 홈/선수/순위표/팀 분포/비교/용어), PlayerSearch(상단·큰 검색창·onSelect 선택 모드), useSearchIndex(/search-index.json 한 번 fetch — 우리 정적 파일),
+│                           RowList(표 대신: 모바일 행 카드 펼침 / PC 전체 표, 가로 스크롤 없음, pageSize "더 보기" — 순위표·기록표·팀 분포 표), FilterSheet(필터 버튼+요약 칩 → 모바일 바텀시트 / PC 인라인 패널, FilterGroup), icons(인라인 SVG 모음 16/20/24),
 │                           useSeasonCards(/cards/{코드}.json fetch·캐시, useCardView), PlayersView(선수 탭), PlayerSeasonCards(선수 상세 카드 영역), CompareView(비교 탭), CardDeck(카드 1~2장 + PNG 저장), CompareTable(비교표·증감), ChipRow, InfoLink(ⓘ → 용어),
 │                           PlayerHero·CareerTrend(Recharts LineChart)·CareerTable(선수 페이지), Segmented, useCardSave(카드 PNG 저장), useMedia,
 │                           PlayerCard(게임식 플레이어 카드: 팀 색 상단+큰 사진 / 스탯 9개+순위(전체 또는 "가드 중") / 파울·출전 줄 / 레이더+등급, 입력은 SeasonCardView 하나),
-│                           LeadersView(순위표), TeamsView(팀 분포 산점도·팀 요약), HomeView·FocusSearchButton(홈), SourceFooter, useThemeColors,
+│                           LeadersView(순위표), TeamsView(팀 분포 산점도·팀 요약), HomeView(홈), SourceFooter, useThemeColors,
 │                           PlayerAvatar(circle·portrait)·TeamLogo(공식 이미지+대체 디자인, official={false}면 대체만), useOfficialImage(저장 filter excludeOfficialImages)
 └── .github/workflows/fetch.yml, backfill.yml  ← 매일 새벽 수집 / 전체 재수집
 ```
@@ -175,6 +176,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-09-30 (디자인 반영 1·2단계): docs/design-review-2026-09-30.md A1~A7. 표 가로 스크롤 제거 — 공통 `RowList`(모바일 행 카드 펼침 / PC 전체 표 992px 안), 순위표 25행·선수 그리드 20장 "더 보기", `FilterSheet`(모바일 바텀시트·PC 인라인 패널·요약 칩, 1차 컨트롤만 노출), 선수 탭 상단 검색·본문 시즌 칩 제거, 설명 문구 축약, 홈 바로가기 큰 버튼 2개 + 링크 줄. lib 추가: takeFirst·rowSummaryKeys·formatSummaryStat·leaderFilterChips(leaders), GRID_PAGE_SIZE·gridFilterChips(cardview), distributionFilterChips(distribution) + 테스트. 측정: 390px 순위표 8,314→2,472px, 선수 탭 16,903→2,256px, 표·카드 가로 넘침 0(남은 건 의도한 칩 줄·Recharts 내부 래퍼), 콘솔 에러 0. 다음: 3단계(폰트·위계·반경·그림자·등급 색).
 - 2026-09-30 (2차 개편 화면층): 사용자 피드백 9건 반영 — 메뉴 홈/선수/순위표/팀 분포/비교/용어, "플레이어 카드" 탭 폐지(선수 상세로 통합, `/season/[코드]`는 next.config redirects로 순위표 또는 `?p=`면 `/player/번호?season=코드`). 선수 탭 `/players`(큰 검색창·시즌/포지션/국적/팀 칩·등급→PER 그리드, 다른 시즌은 public/cards fetch), 선수 상세에 시즌 칩·순위 범위(전체/같은 포지션 "가드 중 3위")·시즌 비교(카드 2장+증감 표)·프로필(포지션·키·몸무게·등번호·드래프트·국적 배지), 비교 탭 `/compare?a=번호:코드&b=번호:코드`(검색 → 뛴 시즌 칩, 다른 시즌·같은 선수 가능, 각자 시즌 안 순위 안내), 용어 탭 `/glossary`(앵커, 카드 등급·순위표 열 ⓘ에서 연결). 순위표 포지션·국적 4단 칩·포지션 배지, 팀 분포 포지션 칩, 카드 파울·출전 줄. 계산은 새 `lib/cardview.ts`(서버도 public/cards와 같은 encode→decode로 계산해 첫 HTML과 브라우저 결과가 같다). 검색 색인에 뛴 시즌 코드 추가(370KB). 검증: typecheck·test(7개)·build 36.8초(정적 1,396쪽), Playwright 390/1280 8개 화면 가로 스크롤 0·콘솔 에러 0, 카드 PNG 저장 확인. `grep kbl.or.kr app lib` 0, `grep PIE app` 0.
 - 2026-09-30 (2차 개편 데이터층): 선수 마스터 API(서버 B /api/v1/players) 수집·조인 추가 — `data/raw/players/players.json` → 선수 색인·시즌 players[]에 position·positionGroup·nationality·heightCm·weightKg·backNumber·draft (마스터 없으면 null + 경고 한 줄, isForeign은 이름 추정 유지). USG% ×5(표준 척도, 원값 usgPctRaw), PIE 미사용(레이더 modern 축 PIE→PER, coverage.advanced는 USG·AST·REB 판정 — 결과 동일), 카드 스탯에 파울(경기당·순위 없음), 순위표 열에 파울, 포지션·국적 필터(lib/roster.ts), 용어집(lib/glossary.ts), 비교 탭용 public/cards/{시즌}.json(열 형식, 최대 44KB). 세션 환경은 KBL 차단이라 마스터 수집은 미검증 — 다음 Actions 실행에서 확인. TOV%·AST/TO 도 우리 데이터로 검산 일치 확인.
 - 2026-09-30 (팀 분포·홈): PLAN.md ④⑤ 완료. `/season/[코드]/teams` 30개 시즌 — 산점도(가로 경기당 출전, 세로 PER/TS%/경기당 득점, 표본 충족만), 팀 칩이 범례·필터 겸용(전체/한 팀 강조/두 팀 비교), 점 누르면 하단 선수 카드(PC는 툴팁도), 표로 보기, 팀별 핵심 의존도 카드(상위 3명 득점 비중·표본 충족 수, 선수 기록 합산이라 공식 팀 기록 아님 안내). 홈은 "이번 시즌 한눈에"로 교체(득점 1위 표지·부문별 1~3위·네 화면 버튼·시즌 목록), 지금은 2026-27이 0명이라 "개막 전 · 직전 시즌" 안내가 뜬다. 발견: 팀 색 10개는 산점도 전체 보기에서 서로 구분되지 않는다(dataviz 검증기: 산점도는 3색까지만 통과, SK·정관장 빨강 ΔE<15, 현대모비스·KCC·가스공사 남색) → 강조/비교가 기본 읽는 방법, 비교 두 팀 색이 비슷하면 파랑·주황으로 바꾸고 두 번째 팀은 네모 점. KT 검정은 다크 바탕에서 밝게 보정. 검증: Playwright 390·1280px 가로 스크롤 0, 팀 선택·지표 전환·점 클릭·쿼리 유지 확인.
