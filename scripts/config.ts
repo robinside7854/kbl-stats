@@ -7,6 +7,17 @@ export const STATS_API = "https://api-stats.kbl.or.kr";
 /** 서버 B: 시즌리더·공통 코드표 (Sports2i 운영) */
 export const CODES_API = "https://kbl-api.sports2i.com";
 
+/**
+ * 선수 마스터 (서버 B, 2026-09-30 Actions 러너에서 확인): 은퇴 선수 포함 전체 선수 명단 + 포지션·국적·신장·드래프트.
+ * GET /api/v1/players?regSc=N&pageNo={n}&listCn={≤255} → { totalCn: "2061", playerList: [...] }
+ * regSc=Y 면 현역 등록 선수만(186명) — 우리는 옛 시즌 선수도 조인해야 해서 N(전체).
+ * Referer·Origin·Accept 헤더가 없으면 빈 응답 (fetch.ts getJson 헤더 그대로 쓰면 됨). 단건 상세 API 는 없음.
+ */
+export const PLAYER_MASTER_PATH = "/api/v1/players";
+export const PLAYER_MASTER_REG_SC = "N";
+/** 선수 마스터 페이지 수 상한 (200명 × 50쪽 = 10,000명) — 응답 이상으로 끝없이 넘기는 일 방지 */
+export const PLAYER_MASTER_MAX_PAGES = 50;
+
 /** 경기 구분 코드 — 1차 범위는 정규시즌만 */
 export const GAME_CODE = {
   regular: "01",

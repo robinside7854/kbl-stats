@@ -4,12 +4,14 @@
 //       npm run fetch:all        → 코드표에 있는 모든 시즌
 //
 // 원칙(CLAUDE.md): 응답은 가공하지 않고 data/raw/{seasonCode}/ 에 그대로 저장한다.
+// 시즌 수집 전에 선수 마스터(서버 B)를 전부 받아 data/raw/players/players.json 에 저장한다 (실패해도 시즌 수집은 계속).
 
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import {
   STATS_API, CODES_API, GAME_CODE, SEASON_CODES_FALLBACK,
   DEFAULT_SEASONS, REQUEST_INTERVAL_MS, PAGE_SIZE, DATA_DIR,
+  PLAYER_MASTER_PATH, PLAYER_MASTER_REG_SC, PLAYER_MASTER_MAX_PAGES,
 } from "./config.js";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -31,7 +33,7 @@ async function getJson(url: string): Promise<unknown> {
   return res.json();
 }
 
-async function saveRaw(seasonCode: number, name: string, body: unknown) {
+async function saveRaw(seasonCode: number | string, name: string, body: unknown) {
   const dir = join(DATA_DIR, "raw", String(seasonCode));
   await mkdir(dir, { recursive: true });
   const file = join(dir, `${name}.json`);
@@ -96,6 +98,39 @@ async function fetchCodes(): Promise<number[]> {
   return seasons;
 }
 
+/**
+ * 선수 마스터 전 페이지 수집 → data/raw/players/players.json.
+ * 저장 형태: 페이지 응답을 받은 그대로 배열로 모은 것 [{ totalCn, playerList: [...] }, ...] (원칙 2: 가공하지 않음).
+ * 첫 페이지의 totalCn 만큼 모이거나, 빈 페이지가 오거나, 페이지 상한에 닿으면 멈춘다.
+ * 한 페이지라도 실패하면 파일을 쓰지 않고 에러 — 기존 파일(전날 수집분)이 그대로 남는다.
+ */
+async function fetchPlayerMaster(): Promise<void> {
+  type MasterPage = { totalCn?: string | number; playerList?: unknown[] };
+  const url = (pageNo: number) =>
+    `${CODES_API}${PLAYER_MASTER_PATH}?${new URLSearchParams({ regSc: PLAYER_MASTER_REG_SC, pageNo: String(pageNo), listCn: String(PAGE_SIZE) })}`;
+  const asPage = (body: unknown): MasterPage => (typeof body === "string" ? JSON.parse(body) : body) as MasterPage;
+
+  const pages: unknown[] = [];
+  let count = 0;
+  let total = Infinity;
+  for (let page = 1; page <= PLAYER_MASTER_MAX_PAGES && count < total; page++) {
+    if (page > 1) await sleep(REQUEST_INTERVAL_MS);
+    const body = await getJson(url(page));
+    const parsed = asPage(body);
+    const list = Array.isArray(parsed?.playerList) ? parsed.playerList : null;
+    if (!list) throw new Error(`선수 마스터 ${page}쪽: 예상 밖 응답 (playerList 없음)`);
+    if (list.length === 0) break;
+    if (page === 1) total = Number(parsed.totalCn) || Infinity;
+    pages.push(body);
+    count += list.length;
+  }
+  if (count === 0) throw new Error("선수 마스터: 0명 (헤더 누락 등으로 빈 응답)");
+  if (Number.isFinite(total) && count < total) console.warn(`선수 마스터: ${count}/${total}명만 받음 (페이지 상한 또는 빈 페이지)`);
+  await saveRaw("players", "players", pages);
+  console.log(`[선수 마스터] ${count}명 (${pages.length}쪽)`);
+  await sleep(REQUEST_INTERVAL_MS);
+}
+
 async function fetchSeason(seasonCode: number) {
   const label = SEASON_CODES_FALLBACK[seasonCode] ?? String(seasonCode);
   const results: string[] = [];
@@ -136,8 +171,18 @@ async function main() {
   const knownSeasons = await fetchCodes();
   const targets = all ? knownSeasons : explicit.length > 0 ? explicit : DEFAULT_SEASONS;
 
-  console.log(`수집 대상 시즌 코드: ${targets.join(", ")}`);
   const failed: string[] = [];
+
+  // 선수 마스터 (포지션·국적·신장·드래프트) — 실패해도 시즌 수집은 계속하고 실패 목록에 남긴다
+  try {
+    await fetchPlayerMaster();
+  } catch (e) {
+    failed.push(`players(선수 마스터): ${(e as Error).message}`);
+    console.error(`[선수 마스터] 실패: ${(e as Error).message}`);
+    await sleep(REQUEST_INTERVAL_MS);
+  }
+
+  console.log(`수집 대상 시즌 코드: ${targets.join(", ")}`);
 
   for (const seasonCode of targets) {
     try {
