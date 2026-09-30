@@ -9,7 +9,7 @@ import { PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart, Responsi
 import Link from "next/link";
 import type { CardPlayer, TeamColor } from "@/lib/types";
 import { cardFootStats, rankHeading, rankPhrase, type SeasonCardView } from "@/lib/cardview";
-import { glossaryHref } from "@/lib/glossary";
+import { glossaryHref, playerTypeDef, playerTypeHref } from "@/lib/glossary";
 import { nationalityOf, NATIONALITY_LABELS, positionLabel } from "@/lib/roster";
 import {
   RADAR_AXES,
@@ -436,13 +436,38 @@ export default function PlayerCard({ view, colors, size = "sm", seriesColor, exp
               <TeamLogo logoUrl={team?.logoUrl} shortName={teamShort} color={color} size={d.logo} official={official} />
             </span>
             <OverallBadge entry={entry} color={color} colors={colors} size={size} />
+            {!exportMode && (
+              <Link
+                href={glossaryHref("radarAxes")}
+                className="focus-ring -mx-2 inline-flex h-10 w-10 items-center justify-center rounded-control transition-colors duration-200 hover:bg-black/15"
+                style={{ color: color.text }}
+                aria-label="종합 등급 계산 방법 (용어 풀이: 레이더 5축)"
+                title="종합 등급 = 5축 백분위 평균에 등급 컷을 그대로 적용"
+              >
+                <IconInfo size={16} />
+              </Link>
+            )}
           </div>
           <span className="font-medium" style={{ opacity: 0.85, fontSize: d.statLabel }}>
             {seasonLabel} 정규시즌
           </span>
-          <span className="rounded-control px-2 py-1 font-bold leading-tight" style={{ background: "rgba(0,0,0,0.28)", fontSize: d.statLabel + 1 }}>
-            {entry.type.label}
-          </span>
+          {exportMode ? (
+            <span className="rounded-control px-2 py-1 font-bold leading-tight" style={{ background: "rgba(0,0,0,0.28)", fontSize: d.statLabel + 1 }}>
+              {entry.type.label}
+            </span>
+          ) : (
+            // 유형 라벨을 누르면 용어 탭 "선수 유형 라벨" 표의 그 줄로 (라벨·조건은 lib/glossary PLAYER_TYPES)
+            <Link
+              href={playerTypeHref(entry.type.key)}
+              className="focus-ring inline-flex min-h-10 items-center gap-1 rounded-control px-2 font-bold leading-tight underline-offset-4 transition-colors duration-200 hover:underline"
+              style={{ background: "rgba(0,0,0,0.28)", fontSize: d.statLabel + 1, color: color.text }}
+              title={`${entry.type.label}: ${playerTypeDef(entry.type.key).condition}`}
+              aria-label={`선수 유형 ${entry.type.label} — 유형 라벨 기준 보기`}
+            >
+              {entry.type.label}
+              <IconInfo size={16} />
+            </Link>
+          )}
         </div>
 
         {/* 하단: 이름 (사진 아래쪽을 덮는 어두운 띠 위) */}
@@ -515,7 +540,7 @@ export default function PlayerCard({ view, colors, size = "sm", seriesColor, exp
               <IconInfo size={16} />
             </Link>
           )}
-          <span className="font-normal text-ink-3">S 상위 10% · A 25% · B 45% · C 65% · D 85%</span>
+          <span className="font-normal text-ink-3">S 상위 10% · A 25% · B 45% · C 65% · D 85% · 종합 = 5축 평균</span>
         </p>
         <div aria-hidden style={{ height: d.radarH }}>
           {radarWidth ? (

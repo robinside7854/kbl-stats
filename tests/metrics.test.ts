@@ -1,6 +1,8 @@
 // lib/metrics.ts 간단 검증. 실행: npm run test:metrics
 import assert from "node:assert/strict";
+import { PLAYER_TYPES, TYPE_ALLROUNDER_MIN, TYPE_ROLE_MAX } from "../lib/glossary";
 import {
+  percentileGrade,
   activeRadarComponents,
   buildGradingContext,
   componentValue,
@@ -187,7 +189,17 @@ assert.equal(gs.groups.foreign?.count, 3);
 assert.equal(overallScore({ offense: 90, defense: 80, three: 70, hustle: 60, efficiency: 50 }), 70);
 assert.equal(overallScore({ offense: 90, defense: null, three: 70, hustle: null, efficiency: 50 }), 70);
 assert.equal(overallScore({}), null);
-// 종합 백분위: 집단 안에서 다시 순위 → 같은 선수가 모든 축 1위면 집단 최고
+// 종합 점수 = 5축 백분위(axes) 평균 그대로 — 집단 안에서 다시 순위 매기지 않는다 (2026-09-30 피드백 3차)
+for (const p of pool) {
+  const r = radarScore(p, g);
+  assert.equal(r.overall, overallScore(r.axes));
+}
+// 한 축만 S(99)이고 나머지가 평범하면 종합은 S 가 아니다: (99 + 70 + 20 + 70 + 70) / 5 = 65.8 → B
+assert.equal(percentileGrade(overallScore({ offense: 99, defense: 70, three: 20, hustle: 70, efficiency: 70 })), "B");
+// 종합 S 는 5축 평균 90 이상 = 여러 축이 동시에 높아야 한다
+assert.equal(percentileGrade(overallScore({ offense: 95, defense: 90, three: 88, hustle: 92, efficiency: 90 })), "S");
+assert.equal(percentileGrade(overallScore({ offense: 99, defense: 99, three: 99, hustle: 99, efficiency: 50 })), "A"); // 89.2
+// 모든 축 1위(집단 밖 선수라 백분위 100)면 종합도 100
 assert.ok(radarScore(rp({ points: 900, ast: 200, stl: 60, blk: 40, dreb: 200, oreb: 80, tpm: 80, tpa: 160, per: 30, tsPct: 70, efgPct: 65, astTo: 4, tovPct: 5, fouls: 10, twoPPct: 70, tpPct: 50, plusMinus: 200, goodDef: 40, deflections: 60, screenAst: 40, usgPct: 35 }), g).overall! >= 99.9);
 
 // 유형 라벨 (5축)
@@ -201,6 +213,30 @@ assert.equal(playerType({ offense: 10, defense: 20, three: 30, hustle: 9, effici
 assert.equal(playerType({ offense: 80, defense: 80, three: 30, hustle: 9, efficiency: 5 }).axis, "offense"); // 동점 → 앞 축
 assert.equal(playerType({ offense: 70, defense: null, three: 95, hustle: 61, efficiency: 90 }).label, "슈터"); // null 축 있으면 올라운더 아님
 assert.equal(playerType({ offense: null, defense: null, three: null, hustle: null, efficiency: null }).label, "분석 불가");
+// 라벨은 lib/glossary PLAYER_TYPES 한 곳에서 읽는다: 모든 키가 판정 결과로 나올 수 있고, 라벨이 표와 같다
+{
+  const seen = new Map<string, string>();
+  const samples = [
+    { offense: 70, defense: 65, three: 80, hustle: 61, efficiency: 90 },
+    { offense: 10, defense: 20, three: 30, hustle: 39, efficiency: 5 },
+    { offense: 95, defense: 20, three: 30, hustle: 39, efficiency: 5 },
+    { offense: 50, defense: 90, three: 30, hustle: 39, efficiency: 5 },
+    { offense: 50, defense: 20, three: 90, hustle: 39, efficiency: 5 },
+    { offense: 50, defense: 20, three: 30, hustle: 90, efficiency: 5 },
+    { offense: 10, defense: 20, three: 30, hustle: 9, efficiency: 88 },
+    {},
+  ];
+  for (const s of samples) {
+    const t = playerType(s);
+    seen.set(t.key, t.label);
+  }
+  assert.equal(seen.size, PLAYER_TYPES.length);
+  for (const d of PLAYER_TYPES) assert.equal(seen.get(d.key), d.label);
+  // 문턱 경계: 5축 모두 정확히 60 → 올라운더, 최고 축 정확히 40 → 롤 플레이어 아님
+  assert.equal(playerType({ offense: TYPE_ALLROUNDER_MIN, defense: 60, three: 60, hustle: 60, efficiency: 60 }).key, "allRounder");
+  assert.equal(playerType({ offense: TYPE_ROLE_MAX, defense: 10, three: 10, hustle: 10, efficiency: 10 }).key, "scorer");
+  assert.equal(playerType({ offense: 39.9, defense: 10, three: 10, hustle: 10, efficiency: 10 }).key, "role");
+}
 
 console.log("metrics: 모든 검사 통과");
 

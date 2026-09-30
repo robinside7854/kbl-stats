@@ -6,6 +6,7 @@
 // 레이더 5축(공격·수비·3점·허슬·효율 — 구성 요소 백분위 평균), 국적 집단별 등급, 유형 라벨, 카드 스탯 순위를 만든다.
 
 import type { Nationality, SeasonCoverage } from "./types";
+import { PLAYER_TYPES, playerTypeDef, TYPE_ALLROUNDER_MIN, TYPE_ROLE_MAX, type PlayerTypeKey } from "./glossary";
 
 // ─────────────────────────────────────────────
 // 표본 기준 (백분위 비교 집단)
@@ -388,8 +389,6 @@ export interface GradeGroupRef {
   comp: Partial<Record<RadarComponentKey, number[]>>;
   /** 축별 원점수 배열 (표본 충족 선수, null 제외) */
   axisRaw: Record<RadarAxis, number[]>;
-  /** 종합 원점수(5축 백분위 평균) 배열 */
-  overallRaw: number[];
 }
 
 /** 한 시즌·한 표본 기준의 등급 재료 (리그 전체 선수로 만든다 — 카드 순위 범위와 관계없다) */
@@ -417,7 +416,10 @@ export interface RadarScore {
   raw: Record<RadarAxis, number | null>;
   /** 축별 구성 요소 (활성 요소만, 순서 = RADAR_AXIS_COMPONENTS) */
   components: Record<RadarAxis, RadarComponentScore[]>;
-  /** 종합 백분위 (종합 등급) */
+  /**
+   * 종합 점수 (종합 등급) = 5축 백분위(axes)의 단순 평균 — 다시 순위 매기지 않는다 (overallScore).
+   * 0~100 척도라 등급 컷(GRADE_CUTS)을 그대로 대면 S 는 "5축 평균 90 이상" = 여러 축이 동시에 높은 선수만 받는다.
+   */
   overall: number | null;
 }
 
@@ -451,16 +453,19 @@ function axisRawScores(
   return { raw, components };
 }
 
-/** 축 원점수 → 축 백분위(집단 안) + 종합 원점수 */
+/** 축 원점수 → 축 백분위(집단 안에서 다시 순위) */
 function axisPercentiles(raw: Record<RadarAxis, number | null>, g: Pick<GradeGroupRef, "axisRaw">) {
   const axes = emptyAxes<number | null>(() => null);
   for (const a of RADAR_AXES) axes[a] = raw[a] === null ? null : percentileRank(raw[a]!, g.axisRaw[a]);
-  return { axes, overallRaw: overallScore(axes) };
+  return axes;
 }
 
 /**
- * 종합 원점수 = 5축 백분위의 단순 평균 (null 축은 빼고, 전부 null 이면 null). 가중치 없이 5축을 같은 비중으로 본다.
- * 종합 등급은 이 값을 같은 집단 안에서 다시 순위 매긴 백분위(RadarScore.overall)로 정한다.
+ * 종합 점수 = 5축 백분위의 단순 평균 (null 축은 빼고, 전부 null 이면 null). 가중치 없이 5축을 같은 비중으로 본다.
+ * 종합 등급 = 이 값에 등급 컷(GRADE_CUTS 90/75/55/35/15)을 **직접** 댄다 — 집단 안에서 다시 순위 매기지 않는다.
+ * (2026-09-30 피드백 3차: 다시 순위를 매기면 "평균이 집단 상위 10%"만 되면 S 라, 한 축만 뛰어나도 S 가 나왔다 —
+ *  예: 강성욱 2025-26 축 S·A·D·A·A → 재순위 종합 S. 평균에 컷을 직접 대면 S 는 5축 평균 90 이상 = 여러 축이 동시에 높아야 한다.)
+ * 축 등급은 그대로 "구성 요소 백분위 평균 → 집단 안 재순위" (백분위 몇 개의 평균은 50 근처로 모이기 때문).
  */
 export function overallScore(axes: Partial<Record<RadarAxis, number | null>>): number | null {
   return mean(RADAR_AXES.map((a) => axes[a]).filter((v): v is number => v !== null && v !== undefined && Number.isFinite(v)));
@@ -493,10 +498,7 @@ export function buildGradingContext(
     const raws = members.map((p) => axisRawScores(p, { comp }, { active, thresholds }).raw);
     const axisRaw = emptyAxes<number[]>(() => []);
     for (const r of raws) for (const a of RADAR_AXES) if (r[a] !== null) axisRaw[a].push(r[a]!);
-    const overallRaw = raws
-      .map((r) => axisPercentiles(r, { axisRaw }).overallRaw)
-      .filter((v): v is number => v !== null);
-    groups[key] = { key, count: members.length, comp, axisRaw, overallRaw };
+    groups[key] = { key, count: members.length, comp, axisRaw };
   }
   return { rule, active, thresholds, mergeAsia, advanced: coverage.advanced, groups };
 }
@@ -504,11 +506,11 @@ export function buildGradingContext(
 /** 한 선수의 레이더·종합 점수 (그 선수 국적 집단 기준). 표본 미달 선수도 집단에 대어 계산한다 */
 export function radarScore(p: GradeInput, ctx: GradingContext): RadarScore {
   const g = ctx.groups[gradeGroupOf(p, ctx.mergeAsia)];
-  const empty: GradeGroupRef = { key: "domestic", count: 0, comp: {}, axisRaw: emptyAxes<number[]>(() => []), overallRaw: [] };
+  const empty: GradeGroupRef = { key: "domestic", count: 0, comp: {}, axisRaw: emptyAxes<number[]>(() => []) };
   const ref = g ?? empty;
   const { raw, components } = axisRawScores(p, ref, ctx);
-  const { axes, overallRaw } = axisPercentiles(raw, ref);
-  return { axes, raw, components, overall: overallRaw === null ? null : percentileRank(overallRaw, ref.overallRaw) };
+  const axes = axisPercentiles(raw, ref);
+  return { axes, raw, components, overall: overallScore(axes) };
 }
 
 /** 시즌에 기록이 없어 빠진 구성 요소 이름 (카드 아래 안내, 예: ["USG%", "40분당 디플렉션"]) */
@@ -521,24 +523,24 @@ export function missingComponentLabels(ctx: Pick<GradingContext, "active">): str
 // ─────────────────────────────────────────────
 
 export interface PlayerType {
+  /** 유형 키 (lib/glossary PLAYER_TYPES) — 용어 탭 앵커 /glossary#type-{key} */
+  key: PlayerTypeKey;
   label: string;
   /** 라벨을 정한 근거 축 (올라운더·롤플레이어면 null) */
   axis: RadarAxis | null;
 }
 
-const TYPE_BY_AXIS: Record<RadarAxis, string> = {
-  offense: "득점원",
-  defense: "수비수",
-  three: "슈터",
-  hustle: "허슬 플레이어",
-  efficiency: "효율형",
-};
+/** 유형 키 → PlayerType (라벨은 lib/glossary PLAYER_TYPES 한 곳에서 읽는다) */
+function typeOf(key: PlayerTypeKey): PlayerType {
+  const d = playerTypeDef(key);
+  return { key, label: d.label, axis: d.axis };
+}
 
 /**
- * 5축 백분위 → 한 줄 유형 라벨. 규칙 (위에서부터 먼저 맞는 것):
- *  1) 5개 축이 모두 60 이상          → "올라운더"      (고르게 상위권)
- *  2) 가장 높은 축이 40 미만          → "궂은일 담당 롤 플레이어" (어느 축도 두드러지지 않음)
- *  3) 그 외: 가장 높은 축의 유형       → 공격 "득점원" · 수비 "수비수" · 3점 "슈터" · 허슬 "허슬 플레이어" · 효율 "효율형"
+ * 5축 백분위 → 한 줄 유형 라벨. 규칙 (위에서부터 먼저 맞는 것, 라벨·문턱값은 lib/glossary PLAYER_TYPES·TYPE_*):
+ *  1) 5개 축이 모두 TYPE_ALLROUNDER_MIN(60) 이상 → "올라운더"      (고르게 상위권)
+ *  2) 가장 높은 축이 TYPE_ROLE_MAX(40) 미만      → "궂은일 담당 롤 플레이어" (어느 축도 두드러지지 않음)
+ *  3) 그 외: 가장 높은 축의 유형                  → 공격 "득점원" · 수비 "수비수" · 3점 "슈터" · 허슬 "허슬 플레이어" · 효율 "효율형"
  *     동점이면 축 순서(공격 → 수비 → 3점 → 허슬 → 효율)로 먼저 나온 축.
  * null 축은 무시(올라운더 판정에서는 5축이 모두 있어야 한다). 전부 null이면 "분석 불가".
  */
@@ -546,12 +548,13 @@ export function playerType(pct: Partial<Record<RadarAxis, number | null>>): Play
   const entries = RADAR_AXES.map((a) => [a, pct[a] ?? null] as const).filter(
     (e): e is readonly [RadarAxis, number] => e[1] !== null,
   );
-  if (entries.length === 0) return { label: "분석 불가", axis: null };
-  if (entries.length === RADAR_AXES.length && entries.every(([, v]) => v >= 60)) return { label: "올라운더", axis: null };
+  if (entries.length === 0) return typeOf("unknown");
+  if (entries.length === RADAR_AXES.length && entries.every(([, v]) => v >= TYPE_ALLROUNDER_MIN)) return typeOf("allRounder");
   let top = entries[0];
   for (const e of entries) if (e[1] > top[1]) top = e;
-  if (top[1] < 40) return { label: "궂은일 담당 롤 플레이어", axis: null };
-  return { label: TYPE_BY_AXIS[top[0]], axis: top[0] };
+  if (top[1] < TYPE_ROLE_MAX) return typeOf("role");
+  const def = PLAYER_TYPES.find((t) => t.axis === top[0])!;
+  return typeOf(def.key);
 }
 
 // ─────────────────────────────────────────────
@@ -847,9 +850,9 @@ export interface CardEntryOf<T> {
   pct: Record<RadarAxis, number | null>;
   /** 축별 등급 (percentileGrade) */
   grades: Record<RadarAxis, Grade | "-">;
-  /** 종합 등급 (종합 백분위 → percentileGrade) */
+  /** 종합 등급 (5축 백분위 평균 → percentileGrade, 재순위 없음) */
   overall: Grade | "-";
-  /** 종합 백분위 */
+  /** 종합 점수 = 5축 백분위 평균 (0~100) */
   overallPct: number | null;
   /** 축별 구성 요소 값·백분위 (툴팁·표 보기) */
   radar: RadarScore;
@@ -894,15 +897,41 @@ export interface CareerSummary {
   points: number;
   reb: number;
   ast: number;
+  stl: number;
+  blk: number;
+  /** 통산 야투율 = 전 시즌 야투 성공 합계 ÷ 시도 합계 × 100. 시도 0이면 null */
+  fgPct: number | null;
+  /** 통산 3점 성공률 = 전 시즌 3점 성공 합계 ÷ 시도 합계 × 100. 시도 0이면 null */
+  tpPct: number | null;
+}
+
+/** 통산 요약 입력 (시즌 합계 — 순위표 행 LeaderPlayer·CareerSeason 과 같은 필드) */
+export interface CareerSummaryInput {
+  games: number;
+  points: number;
+  reb: number;
+  ast: number;
+  stl: number;
+  blk: number;
+  fgm: number;
+  fga: number;
+  tpm: number;
+  tpa: number;
+}
+
+/** 성공 합계 ÷ 시도 합계 × 100 (시도 0이면 null) */
+export function madePct(made: number, att: number): number | null {
+  return att > 0 ? (made / att) * 100 : null;
 }
 
 /**
  * 통산 요약. 경기당 값은 "합계 ÷ 합계 경기"(perGame)로 계산한다 —
  * 시즌 평균들의 평균을 내면 몇 경기 안 뛴 시즌이 한 시즌 전체와 같은 비중이 되어 값이 왜곡된다.
  * (Basketball-Reference 통산 Per Game 과 같은 방식)
+ * 성공률도 같은 이유로 시즌 성공률의 평균이 아니라 "성공 합계 ÷ 시도 합계"(Basketball-Reference 통산 FG% 와 같음).
  */
-export function careerSummary(seasons: readonly { games: number; points: number; reb: number; ast: number }[]): CareerSummary {
-  const sum = (k: "games" | "points" | "reb" | "ast") => seasons.reduce((s, x) => s + (Number.isFinite(x[k]) ? x[k] : 0), 0);
+export function careerSummary(seasons: readonly CareerSummaryInput[]): CareerSummary {
+  const sum = (k: keyof CareerSummaryInput) => seasons.reduce((s, x) => s + (Number.isFinite(x[k]) ? x[k] : 0), 0);
   const games = sum("games");
   return {
     seasons: seasons.length,
@@ -910,5 +939,9 @@ export function careerSummary(seasons: readonly { games: number; points: number;
     points: perGame(sum("points"), games),
     reb: perGame(sum("reb"), games),
     ast: perGame(sum("ast"), games),
+    stl: perGame(sum("stl"), games),
+    blk: perGame(sum("blk"), games),
+    fgPct: madePct(sum("fgm"), sum("fga")),
+    tpPct: madePct(sum("tpm"), sum("tpa")),
   };
 }

@@ -23,16 +23,24 @@ import { buildSearchIndex, matchScore, normalizeName, searchPlayers, searchSpanL
 import type { PlayerIndexEntry, SearchEntry } from "../lib/types";
 
 // ── 통산: 합계 ÷ 합계 경기 (시즌 평균의 평균이 아님) ──
+const z = { stl: 0, blk: 0, fgm: 0, fga: 0, tpm: 0, tpa: 0 };
 const sum = careerSummary([
-  { games: 50, points: 1000, reb: 500, ast: 100 }, // 20.0 / 10.0 / 2.0
-  { games: 2, points: 2, reb: 0, ast: 0 },         // 1.0 (몇 경기 안 뛴 시즌)
+  { games: 50, points: 1000, reb: 500, ast: 100, stl: 50, blk: 25, fgm: 400, fga: 800, tpm: 50, tpa: 150 }, // 20.0 / 10.0 / 2.0 · 50% · 33.3%
+  { games: 2, points: 2, reb: 0, ast: 0, stl: 2, blk: 0, fgm: 1, fga: 10, tpm: 0, tpa: 5 },             // 1.0 (몇 경기 안 뛴 시즌) · 10% · 0%
 ]);
 assert.equal(sum.seasons, 2);
 assert.equal(sum.games, 52);
 assert.equal(sum.points, 1002 / 52);                // ≈ 19.27 (평균의 평균이면 10.5)
 assert.equal(sum.reb, 500 / 52);
 assert.equal(sum.ast, 100 / 52);
-assert.deepEqual(careerSummary([]), { seasons: 0, games: 0, points: 0, reb: 0, ast: 0 });
+assert.equal(sum.stl, 52 / 52);
+assert.equal(sum.blk, 25 / 52);
+// 통산 성공률 = 성공 합계 ÷ 시도 합계 (시즌 성공률 평균 (50 + 10) / 2 = 30 이 아니다)
+assert.equal(sum.fgPct, (401 / 810) * 100);          // ≈ 49.5
+assert.equal(sum.tpPct, (50 / 155) * 100);           // ≈ 32.3 (평균이면 16.7)
+// 시도 0 → null (3점을 한 번도 안 던진 센터 등)
+assert.equal(careerSummary([{ games: 10, points: 40, reb: 50, ast: 5, ...z, fgm: 20, fga: 40 }]).tpPct, null);
+assert.deepEqual(careerSummary([]), { seasons: 0, games: 0, points: 0, reb: 0, ast: 0, stl: 0, blk: 0, fgPct: null, tpPct: null });
 console.log("player: 통산 계산 통과");
 
 // ── 시즌 표기 ──
