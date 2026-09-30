@@ -112,7 +112,7 @@ export default function FilterSheet({ chips, onReset, resultText, children, trai
       <button
         type="button"
         onClick={close}
-        className="focus-ring h-11 flex-1 cursor-pointer rounded-lg bg-ink px-4 text-body font-semibold text-bg transition-opacity duration-200 hover:opacity-90"
+        className="focus-ring h-11 flex-1 cursor-pointer rounded-lg bg-ink px-4 text-body font-semibold text-bg transition-colors duration-200 hover:bg-ink/85"
       >
         {resultText}
       </button>

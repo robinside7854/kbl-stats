@@ -9,7 +9,7 @@ import { seasonShortLabel } from "@/lib/career";
 import { mixHex, teamShortLabel } from "@/lib/images";
 import { playerHref } from "@/lib/cardview";
 import { nationalityOf, NATIONALITY_LABELS, positionLabel } from "@/lib/roster";
-import { IconChevronRight } from "./icons";
+import { IconArrowRight, IconChevronDown, IconChevronRight } from "./icons";
 import PlayerAvatar from "./PlayerAvatar";
 import TeamLogo from "./TeamLogo";
 
@@ -84,7 +84,9 @@ export default function HomeView({ season, fetchedLabel, upcoming, categories, t
             </li>
           ))}
         </ul>
-        <p className="mt-1 text-sub text-ink-3 md:hidden">옆으로 밀면 부문이 더 있습니다 →</p>
+        <p className="mt-1 flex items-center gap-1 text-sub text-ink-3 md:hidden">
+          옆으로 밀어 {categories.length}개 부문 보기 <IconArrowRight size={16} />
+        </p>
       </section>
 
       {/* 화면 바로가기: 큰 버튼 2개 + 작은 링크 줄 */}
@@ -126,8 +128,11 @@ export default function HomeView({ season, fetchedLabel, upcoming, categories, t
         </h2>
         <SeasonChips seasons={recentSeasons} className="mt-3" />
         {olderSeasons.length > 0 && (
-          <details className="mt-2">
-            <summary className="cursor-pointer text-body font-semibold text-ink-2">전체 보기 ({olderSeasons.length}개 시즌 더)</summary>
+          <details className="group mt-2">
+            <summary className="focus-ring inline-flex h-10 cursor-pointer list-none items-center gap-1 rounded-lg text-body font-semibold text-ink-2 transition-colors duration-200 hover:text-ink [&::-webkit-details-marker]:hidden">
+              전체 보기 ({olderSeasons.length}개 시즌 더)
+              <IconChevronDown size={16} className="transition-transform duration-200 group-open:rotate-180" />
+            </summary>
             <SeasonChips seasons={olderSeasons} className="mt-2" />
           </details>
         )}
@@ -146,7 +151,7 @@ function SeasonChips({ seasons, className = "" }: { seasons: SeasonOption[]; cla
         <li key={s.seasonCode}>
           <Link
             href={`/season/${s.seasonCode}/leaders`}
-            className="inline-flex h-10 items-center rounded-lg border border-line bg-surface px-3 text-body font-semibold text-ink-2 hover:bg-surface-2"
+            className="focus-ring inline-flex h-10 items-center rounded-lg border border-line bg-surface px-3 text-body font-semibold text-ink-2 transition-colors duration-200 hover:bg-surface-2 hover:text-ink"
           >
             {seasonShortLabel(s.seasonLabel)}
           </Link>
@@ -183,7 +188,7 @@ function Hero({ entry, team, seasonCode }: { entry: LeaderEntry<LeaderPlayer>; t
               득점 1위
             </p>
             <h2 className="mt-3 text-[2.1rem] font-black leading-[1.05] tracking-tight [overflow-wrap:anywhere] sm:text-6xl">
-              <Link href={`/player/${p.id}`} className="underline-offset-4 hover:underline">
+              <Link href={`/player/${p.id}`} className="focus-ring rounded-lg underline-offset-4 hover:underline">
                 {p.nameKo}
               </Link>
             </h2>
@@ -194,14 +199,14 @@ function Hero({ entry, team, seasonCode }: { entry: LeaderEntry<LeaderPlayer>; t
               {teamShortLabel(teamName)}
               {positionLabel(p.position) ? ` · ${positionLabel(p.position)}` : ""} · {NATIONALITY_LABELS[nationalityOf(p)]}
             </p>
-            <p className="mt-4 leading-none">
+            <p className="tabular mt-4 leading-none">
               <span className="text-5xl font-black tracking-tight sm:text-6xl">{value}</span>
               <span className="ml-1 text-lg font-bold">점</span>
             </p>
             <p className="mt-1.5 text-body font-semibold opacity-90">경기당 {value}점 · 득점 1위</p>
             <Link
               href={playerHref(p.id, seasonCode)}
-              className="focus-ring mt-4 inline-flex h-11 items-center gap-1 rounded-lg bg-white px-4 text-body font-bold text-[#0b0b0b] transition-opacity duration-200 hover:opacity-90"
+              className="focus-ring mt-4 inline-flex h-11 items-center gap-1 rounded-lg bg-white px-4 text-body font-bold text-[#0b0b0b] transition-colors duration-200 hover:bg-white/85"
             >
               선수 카드 보기 <IconChevronRight size={16} />
             </Link>
@@ -232,41 +237,46 @@ function LeaderCard({
   const def = LEADER_STATS[category.key];
   const unit = HOME_UNITS[category.key] ?? "";
   return (
-    <article className="surface-card h-full rounded-2xl p-3">
-      <h3 className="flex items-baseline justify-between">
-        <Link href={leadersHref(seasonCode, category.key)} className="text-body font-bold text-ink underline-offset-4 hover:underline">
-          {def.label} ›
+    <article className="surface-card tabular h-full rounded-2xl p-3">
+      <h3 className="flex items-center justify-between">
+        <Link
+          href={leadersHref(seasonCode, category.key)}
+          className="focus-ring -ml-1 inline-flex h-10 items-center gap-0.5 rounded-lg px-1 text-body font-bold text-ink underline-offset-4 transition-colors duration-200 hover:underline"
+        >
+          {def.label}
+          <IconChevronRight size={16} />
         </Link>
         <span className="text-caption text-ink-3">경기당</span>
       </h3>
       {category.entries.length === 0 ? (
         <p className="mt-3 text-sub text-ink-3">기준을 채운 선수가 없습니다</p>
       ) : (
-        <ol className="mt-2 space-y-2">
+        <ol className="mt-1">
           {category.entries.map((e) => {
             const t = teamByCode.get(e.player.teamCode);
             return (
-              <li key={e.player.id} className="flex min-w-0 items-center gap-2">
-                <span className={`w-4 shrink-0 text-center text-sub ${e.rank === 1 ? "font-black text-ink" : "font-semibold text-ink-3"}`}>
-                  {e.rank}
-                </span>
-                <PlayerAvatar photoUrl={e.player.photoUrl} nameKo={e.player.nameKo} color={t?.color} size={e.rank === 1 ? 40 : 32} />
-                <span className="min-w-0 flex-1">
-                  <Link
-                    href={`/player/${e.player.id}`}
-                    className="block truncate text-body font-semibold text-ink underline-offset-2 hover:underline"
-                  >
-                    {e.player.nameKo}
-                  </Link>
-                  <span className="block truncate text-caption text-ink-3">
-                    {teamShortLabel(t?.shortName ?? e.player.teamShort)}
-                    {e.player.position ? ` · ${positionLabel(e.player.position)}` : ""}
+              <li key={e.player.id}>
+                {/* 한 줄 전체가 선수 페이지 링크 (누르는 영역 48px 이상, 디자인 점검 C1) */}
+                <Link
+                  href={`/player/${e.player.id}`}
+                  className="focus-ring -mx-1 flex min-h-12 min-w-0 items-center gap-2 rounded-lg px-1 transition-colors duration-200 hover:bg-surface-2"
+                >
+                  <span className={`w-4 shrink-0 text-center text-sub ${e.rank === 1 ? "font-black text-ink" : "font-semibold text-ink-3"}`}>
+                    {e.rank}
                   </span>
-                </span>
-                <span className={`shrink-0 font-bold tracking-tight text-ink ${e.rank === 1 ? "text-lg" : "text-body"}`}>
-                  {formatStat(e.value, category.key, "perGame")}
-                  <span className="ml-0.5 text-caption font-medium text-ink-3">{unit}</span>
-                </span>
+                  <PlayerAvatar photoUrl={e.player.photoUrl} nameKo={e.player.nameKo} color={t?.color} size={e.rank === 1 ? 40 : 32} />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-body font-semibold leading-tight text-ink">{e.player.nameKo}</span>
+                    <span className="block truncate text-caption text-ink-3">
+                      {teamShortLabel(t?.shortName ?? e.player.teamShort)}
+                      {e.player.position ? ` · ${positionLabel(e.player.position)}` : ""}
+                    </span>
+                  </span>
+                  <span className={`shrink-0 font-bold tracking-tight text-ink ${e.rank === 1 ? "text-lg" : "text-body"}`}>
+                    {formatStat(e.value, category.key, "perGame")}
+                    <span className="ml-0.5 text-caption font-medium text-ink-3">{unit}</span>
+                  </span>
+                </Link>
               </li>
             );
           })}

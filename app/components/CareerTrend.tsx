@@ -95,7 +95,7 @@ export default function CareerTrend({ seasons, allSeasons }: Props) {
             type="button"
             aria-pressed={m.key === key}
             onClick={() => setKey(m.key)}
-            className={`h-10 rounded-lg border px-3 text-sub font-semibold ${
+            className={`focus-ring h-10 rounded-lg border px-3 text-body font-semibold transition-colors duration-200 ${
               m.key === key ? "border-ink bg-ink text-bg" : "border-line bg-surface text-ink-2 hover:bg-surface-2"
             }`}
           >

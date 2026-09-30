@@ -55,7 +55,7 @@ export default function SiteNav({ seasons, seasonCode, view, onSeasonChange, wid
     <header className="border-b border-line bg-surface">
       <div className={`mx-auto ${wide ? "max-w-5xl" : "max-w-3xl"} px-4`}>
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 pt-3">
-          <Link href="/" className="order-1 shrink-0 text-base font-bold tracking-tight text-ink">
+          <Link href="/" className="focus-ring order-1 inline-flex h-10 shrink-0 items-center rounded-lg text-body font-bold tracking-tight text-ink">
             KBL 팬 스탯
           </Link>
           {!hideSearch && <PlayerSearch className="order-3 w-full sm:order-2 sm:w-auto sm:max-w-xs sm:flex-1" />}
@@ -64,7 +64,7 @@ export default function SiteNav({ seasons, seasonCode, view, onSeasonChange, wid
               <span className="shrink-0">시즌</span>
               <select
                 aria-label="시즌 선택"
-                className="focus-ring h-10 min-w-0 cursor-pointer rounded-lg border border-line bg-surface px-2 text-body text-ink"
+                className="focus-ring h-10 min-w-0 cursor-pointer rounded-lg border border-line bg-surface px-2 text-base text-ink"
                 value={seasonCode}
                 onChange={(e) => changeSeason(Number(e.target.value))}
               >
@@ -86,8 +86,8 @@ export default function SiteNav({ seasons, seasonCode, view, onSeasonChange, wid
                 key={m.label}
                 href={m.href(seasonCode)}
                 aria-current={active ? "page" : undefined}
-                className={`-mb-px shrink-0 whitespace-nowrap border-b-2 px-2 py-2 text-body font-semibold sm:px-3 ${
-                  active ? "border-ink text-ink" : "border-transparent text-ink-3 hover:text-ink-2"
+                className={`focus-ring-inset -mb-px flex h-11 shrink-0 items-center whitespace-nowrap border-b-2 px-2 text-body font-semibold transition-colors duration-200 sm:px-3 ${
+                  active ? "border-ink text-ink" : "border-transparent text-ink-2 hover:text-ink"
                 }`}
               >
                 {m.label}

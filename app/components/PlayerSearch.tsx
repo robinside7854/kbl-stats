@@ -12,6 +12,7 @@ import { searchPlayers, searchSpanLabel } from "@/lib/search";
 import { teamShortLabel } from "@/lib/images";
 import { IconSearch } from "./icons";
 import PlayerAvatar from "./PlayerAvatar";
+import Skeleton from "./Skeleton";
 import { loadSearchIndex } from "./useSearchIndex";
 
 interface Props {
@@ -135,7 +136,7 @@ export default function PlayerSearch({
         autoComplete="off"
         enterKeyHint="search"
         placeholder={placeholder}
-        className={`w-full min-w-0 border border-line bg-surface text-base text-ink placeholder:text-ink-3 focus:outline-2 focus:outline-focus ${
+        className={`w-full min-w-0 border border-line bg-surface text-base text-ink placeholder:text-ink-3 focus-visible:outline-offset-0 ${
           lg ? "h-12 rounded-lg pl-11 pr-3 shadow-card" : "h-10 rounded-lg pl-8 pr-2"
         }`}
         value={query}
@@ -159,9 +160,24 @@ export default function PlayerSearch({
           aria-label="검색 결과"
           className="absolute right-0 z-40 mt-1 max-h-[70vh] w-full min-w-[17rem] overflow-y-auto surface-card rounded-lg py-1"
         >
-          {status === "loading" && !entries && <li className="px-3 py-2 text-body text-ink-3">선수 목록을 불러오는 중…</li>}
-          {status === "error" && <li className="px-3 py-2 text-body text-ink-3">선수 목록을 불러오지 못했습니다. 다시 눌러 주세요.</li>}
-          {entries && results.length === 0 && <li className="px-3 py-2 text-body text-ink-3">검색 결과가 없습니다</li>}
+          {status === "loading" && !entries && (
+            <li role="status" className="px-3 py-2">
+              <span className="sr-only">선수 목록 불러오는 중</span>
+              {[0, 1, 2].map((i) => (
+                <span key={i} className="flex items-center gap-2 py-1.5">
+                  <Skeleton className="h-7 w-7 shrink-0 rounded-full" />
+                  <Skeleton className="h-4 flex-1" />
+                </span>
+              ))}
+            </li>
+          )}
+          {status === "error" && <li className="px-3 py-2 text-body text-ink-2">선수 목록을 불러오지 못했습니다. 검색창을 다시 눌러 주세요.</li>}
+          {entries && results.length === 0 && (
+            <li className="px-3 py-2.5 text-body text-ink-2">
+              ‘{query.trim()}’와 맞는 선수가 없습니다.
+              <span className="mt-0.5 block text-sub text-ink-3">이름 일부(한글·영문)로 찾아 보세요. 띄어쓰기는 무시합니다.</span>
+            </li>
+          )}
           {results.map((e, i) => (
             <li key={e.id} role="presentation">
               {onSelect ? (
@@ -173,7 +189,7 @@ export default function PlayerSearch({
                   onMouseDown={(ev) => ev.preventDefault()}
                   onClick={() => go(e)}
                   onMouseEnter={() => setActive(i)}
-                  className={`flex w-full items-center gap-2 px-3 py-2 text-left ${i === active ? "bg-surface-2" : ""}`}
+                  className={`focus-ring-inset flex min-h-12 w-full items-center gap-2 px-3 py-1.5 text-left transition-colors duration-200 ${i === active ? "bg-surface-2" : ""}`}
                 >
                   {option(e)}
                 </button>
@@ -189,7 +205,7 @@ export default function PlayerSearch({
                     setQuery("");
                   }}
                   onMouseEnter={() => setActive(i)}
-                  className={`flex items-center gap-2 px-3 py-2 ${i === active ? "bg-surface-2" : ""}`}
+                  className={`focus-ring-inset flex min-h-12 items-center gap-2 px-3 py-1.5 transition-colors duration-200 ${i === active ? "bg-surface-2" : ""}`}
                 >
                   {option(e)}
                 </Link>

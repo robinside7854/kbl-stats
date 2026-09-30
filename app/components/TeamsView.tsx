@@ -213,7 +213,7 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
               onChange={(v) => update({ position: v })}
             />
           </FilterGroup>
-          <FilterGroup label="표본 기준 (고급)" hint={<>이 기준을 넘긴 선수만 점으로 찍습니다 <InfoLink term="qualify" className="h-5 w-5" /></>}>
+          <FilterGroup label="표본 기준 (고급)" hint={<>이 기준을 넘긴 선수만 점으로 찍습니다 <InfoLink term="qualify" /></>}>
             <select
               aria-label="표본 기준"
               className="focus-ring h-11 w-full min-w-0 max-w-xs cursor-pointer rounded-lg border border-line bg-surface px-2 text-base text-ink"
@@ -348,6 +348,19 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
           </ResponsiveContainer>
         </div>
 
+        {points.length === 0 && (
+          <div className="rounded-xl bg-surface-2 px-3 py-4 text-center">
+            <p className="text-body font-semibold text-ink">이 조건에 맞는 선수가 없습니다</p>
+            <button
+              type="button"
+              onClick={() => update({ position: "all", presetIdx: DEFAULT_DISTRIBUTION_STATE.presetIdx })}
+              className="focus-ring mt-3 h-11 rounded-lg border border-line bg-surface px-4 text-body font-semibold text-ink transition-colors duration-200 hover:bg-surface-2"
+            >
+              필터 초기화
+            </button>
+          </div>
+        )}
+
         {/* 고른 선수 카드 (모바일은 툴팁 대신 이것) */}
         <div className="mt-2 min-h-16" aria-live="polite">
           {selectedPoint ? (
@@ -387,7 +400,7 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
                   rowHeader: true,
                   className: "font-normal",
                   cell: (d) => (
-                    <Link href={`/player/${d.player.id}`} className="focus-ring rounded font-semibold text-ink underline-offset-2 hover:underline">
+                    <Link href={`/player/${d.player.id}`} className="focus-ring rounded-lg font-semibold text-ink underline-offset-2 hover:underline">
                       {d.player.nameKo}
                     </Link>
                   ),
@@ -442,7 +455,7 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
           팀별 핵심 의존도
         </h2>
         <p className="mt-1 text-sub text-ink-3">팀 득점 1~3위의 득점 합 ÷ 팀 전체 득점. 높을수록 소수에게 기댑니다.</p>
-        <ul className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+        <ul className="tabular mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
           {deps.map(({ team: t, dep }) => {
             const on = selected.includes(t.teamCode);
             const share = dep.topShare ?? 0;
@@ -452,7 +465,7 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
                   type="button"
                   aria-pressed={on}
                   onClick={() => update({ teams: toggleTeam(selected, t.teamCode) })}
-                  className={`flex h-full w-full min-w-0 flex-col rounded-xl border bg-surface p-3 text-left hover:bg-surface-2 ${
+                  className={`focus-ring flex h-full w-full min-w-0 flex-col rounded-2xl border bg-surface p-3 text-left shadow-card transition-colors duration-200 hover:bg-surface-2 ${
                     on ? "border-ink ring-1 ring-ink" : "border-line"
                   }`}
                 >
@@ -528,7 +541,7 @@ function SelectedCard({
       {/* 모바일은 아래 줄 전체 폭, 640px 이상은 같은 줄 오른쪽 */}
       <Link
         href={`/player/${p.id}`}
-        className="w-full shrink-0 rounded-lg bg-ink px-2.5 py-2 text-center text-sub font-semibold text-bg hover:opacity-90 sm:w-auto"
+        className="focus-ring flex h-10 w-full shrink-0 items-center justify-center rounded-lg bg-ink px-3 text-sub font-semibold text-bg transition-colors duration-200 hover:bg-ink/85 sm:w-auto"
       >
         선수 기록 보기
       </Link>

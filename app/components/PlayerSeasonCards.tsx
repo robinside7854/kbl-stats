@@ -23,7 +23,9 @@ import Link from "next/link";
 import CardDeck from "./CardDeck";
 import ChipRow from "./ChipRow";
 import CompareTable from "./CompareTable";
+import { IconChevronRight } from "./icons";
 import InfoLink from "./InfoLink";
+import { PlayerCardSkeleton } from "./PlayerCard";
 import Segmented from "./Segmented";
 import { useCardView } from "./useSeasonCards";
 import { useThemeColors } from "./useThemeColors";
@@ -100,9 +102,18 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
       {cards.length > 0 ? (
         <CardDeck cards={cards} fileName={fileName} />
       ) : (
-        <p className="surface-card rounded-2xl px-4 py-8 text-center text-body text-ink-2">
-          {a.status === "error" ? "시즌 기록을 불러오지 못했습니다. 다시 시도해 주세요." : "시즌 기록 불러오는 중…"}
-        </p>
+        a.status === "error" ? (
+          <p role="alert" className="surface-card rounded-2xl px-4 py-8 text-center text-body text-ink-2">
+            시즌 기록을 불러오지 못했습니다. 시즌을 다시 눌러 주세요.
+          </p>
+        ) : (
+          <div className="mx-auto w-full max-w-[420px] md:max-w-[500px]">
+            <p role="status" className="sr-only">
+              시즌 기록 불러오는 중
+            </p>
+            <PlayerCardSkeleton />
+          </div>
+        )
       )}
       {(a.status === "error" || b.status === "error") && cards.length > 0 && (
         <p role="alert" className="mt-2 text-body text-ink-2">
@@ -135,7 +146,7 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
               type="button"
               aria-pressed={comparing}
               onClick={toggleCompare}
-              className={`h-10 rounded-lg border px-3 text-body font-semibold ${
+              className={`focus-ring h-10 rounded-lg border px-3 text-body font-semibold transition-colors duration-200 ${
                 comparing ? "border-ink bg-ink text-bg" : "border-line bg-surface text-ink-2 hover:bg-surface-2"
               }`}
             >
@@ -156,12 +167,13 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
               onChange={(v) => setState((s) => ({ ...s, vs: v }))}
               scroll
             />
-            <p className="mt-1.5 text-sub">
+            <p className="mt-1 text-sub">
               <Link
                 href={compareHref({ id: playerId, seasonCode: season }, { id: playerId, seasonCode: vs })}
-                className="font-semibold text-ink-2 underline underline-offset-4 hover:text-ink"
+                className="focus-ring inline-flex h-10 items-center gap-0.5 rounded-lg font-semibold text-ink-2 underline underline-offset-4 transition-colors duration-200 hover:text-ink"
               >
-                비교 탭에서 다른 선수와도 비교하기 ›
+                비교 탭에서 다른 선수와 비교
+                <IconChevronRight size={16} />
               </Link>
             </p>
           </div>
@@ -199,7 +211,7 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
         {classic
           ? "2차 스탯(USG%·AST%·REB%)이 없는 시즌은 40분당 환산과 TS%·PER로 그렸습니다(고전 축)"
           : "USG%는 표준 척도(KBL 원값×5), 용어 참고"}
-        {classic ? <InfoLink term="per40" className="ml-0.5" /> : <InfoLink term="usgPct" className="ml-0.5" />}
+        {" "}{classic ? <InfoLink term="per40" /> : <InfoLink term="usgPct" />}
         {mixedAxes && ". 두 시즌의 레이더 축이 달라 모양은 비교하지 않습니다"}.
       </p>
     </div>

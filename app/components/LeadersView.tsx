@@ -60,7 +60,7 @@ import Link from "next/link";
 import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
 import ChipRow from "./ChipRow";
 import FilterSheet, { FilterGroup } from "./FilterSheet";
-import { IconChevronRight } from "./icons";
+import { IconChevronDown, IconChevronRight, IconChevronUp } from "./icons";
 import InfoLink from "./InfoLink";
 import PlayerAvatar from "./PlayerAvatar";
 import RowList, { type RowColumn } from "./RowList";
@@ -123,7 +123,7 @@ function CoverCard({
   const lowerIsBetter = LEADER_STATS[category].better === "low";
   return (
     <article
-      className={`relative overflow-hidden rounded-2xl ${hero ? "col-span-2 p-4 sm:p-5" : "p-3"}`}
+      className={`tabular relative overflow-hidden rounded-2xl ${hero ? "col-span-2 p-4 sm:p-5" : "p-3"}`}
       style={{ background: color.primary, color: color.text }}
       aria-label={`${entry.rank}위 ${p.nameKo} ${teamLabel} ${statTitle(category, mode)} ${formatStat(entry.value, category, mode)}`}
     >
@@ -147,7 +147,7 @@ function CoverCard({
         <div className="min-w-0">
           <p className={`font-semibold opacity-85 ${hero ? "text-sub" : "text-caption"}`}>{entry.rank}위</p>
           <h3 className={`font-bold leading-tight break-keep ${hero ? "truncate text-2xl" : "line-clamp-2 text-base"}`} title={p.nameKo}>
-            <Link href={`/player/${p.id}`} className="underline-offset-4 hover:underline">
+            <Link href={`/player/${p.id}`} className="focus-ring rounded-lg underline-offset-4 hover:underline">
               {p.nameKo}
             </Link>
           </h3>
@@ -262,23 +262,24 @@ export default function LeadersView({ seasonLabel, players, teams }: Props) {
       cell: (p) => {
         const team = teamByCode.get(p.teamCode);
         return (
-          <span className="flex min-w-0 items-center gap-2">
+          // 칸 전체(사진·이름·팀)가 선수 페이지 링크 — 누르는 영역 40px 이상 (디자인 점검 C1)
+          <Link
+            href={`/player/${p.id}`}
+            className="focus-ring group flex min-h-10 min-w-0 items-center gap-2 rounded-lg"
+            title={`${p.nameKo} 선수 페이지`}
+          >
             <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={team?.color} size={28} />
             <span className="min-w-0">
-              <Link
-                href={`/player/${p.id}`}
-                className="focus-ring block max-w-32 truncate font-semibold leading-tight text-ink underline-offset-2 hover:underline"
-                title={`${p.nameKo} 선수 페이지`}
-              >
+              <span className="block max-w-32 truncate font-semibold leading-tight text-ink underline-offset-2 group-hover:underline">
                 {p.nameKo}
-              </Link>
+              </span>
               <span className="flex min-w-0 items-center gap-1 text-caption text-ink-3">
                 <TeamLogo logoUrl={team?.logoUrl} shortName={team?.shortName ?? p.teamShort} color={team?.color} size={16} />
                 <span className="max-w-20 truncate">{teamShortLabel(team?.shortName ?? p.teamShort)}</span>
                 <PosBadge p={p} />
               </span>
             </span>
-          </span>
+          </Link>
         );
       },
     },
@@ -292,20 +293,16 @@ export default function LeadersView({ seasonLabel, players, teams }: Props) {
         headerClassName: "p-0",
         header: (
           <span className="flex items-center justify-end">
-            {term && <InfoLink term={term} className="-mr-1 h-8 w-4 text-caption" />}
+            {term && <InfoLink term={term} compact />}
             <button
               type="button"
               onClick={() => clickHeader(key)}
               title={`${statTitle(key, mode)}로 정렬`}
-              className="focus-ring flex cursor-pointer items-center justify-end gap-0.5 whitespace-nowrap rounded-lg px-1 py-2 font-semibold transition-colors duration-200 hover:text-ink"
+              className="focus-ring flex h-10 cursor-pointer items-center justify-end gap-0.5 whitespace-nowrap rounded-lg px-1 font-semibold transition-colors duration-200 hover:text-ink"
             >
               {LEADER_STATS[key].short}
               {/* 정렬 방향 표시는 지금 정렬 중인 열에만 (빈 자리를 두지 않아 14개 열이 992px 안에 들어간다) */}
-              {active && (
-                <span aria-hidden className="text-[9px]">
-                  {sortDir === "desc" ? "▼" : "▲"}
-                </span>
-              )}
+              {active && (sortDir === "desc" ? <IconChevronDown size={16} className="-mx-0.5" /> : <IconChevronUp size={16} className="-mx-0.5" />)}
             </button>
           </span>
         ),
@@ -380,7 +377,7 @@ export default function LeadersView({ seasonLabel, players, teams }: Props) {
               </select>
             </span>
           </FilterGroup>
-          <FilterGroup label="표본 기준 (고급)" hint={<>이 기준을 넘긴 선수만 순위에 넣습니다 <InfoLink term="qualify" className="h-5 w-5" /></>}>
+          <FilterGroup label="표본 기준 (고급)" hint={<>이 기준을 넘긴 선수만 순위에 넣습니다 <InfoLink term="qualify" /></>}>
             <select
               aria-label="표본 기준"
               className="focus-ring h-11 w-full min-w-0 max-w-xs cursor-pointer rounded-lg border border-line bg-surface px-2 text-base text-ink"
@@ -424,9 +421,17 @@ export default function LeadersView({ seasonLabel, players, teams }: Props) {
             ))}
           </div>
         ) : (
-          <p className="surface-card rounded-2xl px-4 py-8 text-center text-body text-ink-2">
-            조건에 맞는 선수가 없습니다. 필터를 줄이거나 표본 기준을 낮춰 보세요.
-          </p>
+          <div className="surface-card rounded-2xl px-4 py-8 text-center">
+            <p className="text-body font-semibold text-ink">조건에 맞는 선수가 없습니다</p>
+            <p className="mt-1 text-sub text-ink-2">필터를 줄이거나 표본 기준을 낮춰 보세요.</p>
+            <button
+              type="button"
+              onClick={() => setState((s) => resetLeaderFilters(s))}
+              className="focus-ring mt-4 h-11 rounded-lg border border-line bg-surface px-4 text-body font-semibold text-ink transition-colors duration-200 hover:bg-surface-2"
+            >
+              필터 초기화
+            </button>
+          </div>
         )}
       </section>
 
@@ -532,7 +537,7 @@ export default function LeadersView({ seasonLabel, players, teams }: Props) {
           />
           <p className="mt-2 text-sub leading-relaxed text-ink-3">
             성공률 아래 작은 숫자는 시즌 합계 성공/시도. 경기당 시도가 리그 평균({note})에 못 미치면 순위 “–”
-            <InfoLink term="attempts" className="ml-0.5 h-5 w-5" />
+            {" "}<InfoLink term="attempts" />
           </p>
         </section>
       )}

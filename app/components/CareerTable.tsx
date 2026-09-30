@@ -36,7 +36,9 @@ const SUMMARY_KEYS: LeaderStatKey[] = ["points", "reb", "ast"];
 /** 위 카드를 그 시즌으로 바꾸고 카드로 스크롤 */
 function showSeasonCard(seasonCode: number) {
   window.dispatchEvent(new CustomEvent(PLAYER_SEASON_EVENT, { detail: seasonCode }));
-  document.getElementById("season-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  // 움직임 줄이기 설정이면 바로 이동 (디자인 점검 C4)
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  document.getElementById("season-card")?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
 }
 
 export default function CareerTable({ seasons }: { seasons: CareerSeason[] }) {
@@ -61,7 +63,7 @@ export default function CareerTable({ seasons }: { seasons: CareerSeason[] }) {
             ev.preventDefault();
             showSeasonCard(s.seasonCode);
           }}
-          className="focus-ring whitespace-nowrap rounded text-ink underline decoration-line underline-offset-4 hover:decoration-ink"
+          className="focus-ring whitespace-nowrap rounded-lg text-ink underline decoration-line underline-offset-4 hover:decoration-ink"
           title={`${seasonShortLabel(s.seasonLabel)} 선수 카드`}
         >
           {seasonShortLabel(s.seasonLabel)}
@@ -116,7 +118,7 @@ export default function CareerTable({ seasons }: { seasons: CareerSeason[] }) {
         }
         summary={(s) => (
           <>
-            <span className="w-12 shrink-0 text-body font-bold text-ink">{seasonShortLabel(s.seasonLabel)}</span>
+            <span className="tabular w-[4.25rem] shrink-0 whitespace-nowrap text-body font-bold text-ink">{seasonShortLabel(s.seasonLabel)}</span>
             <span className="min-w-0 flex-1">
               <span className="flex min-w-0 items-center gap-1.5 text-body text-ink-2">
                 <TeamLogo logoUrl={s.team?.logoUrl} shortName={teamOf(s)} color={s.team?.color} size={20} />

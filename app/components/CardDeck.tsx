@@ -3,9 +3,10 @@
 // - 두 장이면 나란히(화면 폭 768px 이상), 모바일은 위아래. 레이더 선 색은 시리즈 1(파랑)·2(주황)로 두 카드를 구분.
 // - 카드 크기: 한 장이면 768px 이상에서 lg(약 500px), 두 장이면 1024px 이상에서만 lg.
 // - 이미지 저장: 화면 밖에 공식 사진·로고 없는 사본(PlayerCard exportMode)을 그려 PNG로 (useCardSave — KBL 이미지는 CORS 헤더가 없다).
-// - loading: 시즌 데이터를 받는 동안 이전 카드를 옅게 보여 주고 "불러오는 중" 표시.
+// - loading: 시즌 데이터를 받는 동안 같은 크기의 스켈레톤 카드(PlayerCardSkeleton)를 보여 준다 (디자인 점검 C3).
+// - pending: 아직 카드 값이 하나도 없는 자리 수 (비교 탭이 공유 주소로 열릴 때) — 스켈레톤만 그린다.
 import type { SeasonCardView } from "@/lib/cardview";
-import PlayerCard, { type CardSize } from "./PlayerCard";
+import PlayerCard, { PlayerCardSkeleton, type CardSize } from "./PlayerCard";
 import { useCardSave } from "./useCardSave";
 import { useMedia } from "./useMedia";
 import { useThemeColors } from "./useThemeColors";
@@ -22,17 +23,19 @@ interface Props {
   cards: DeckCard[];
   /** 저장 파일 이름 (확장자 포함) */
   fileName: string;
+  /** 값이 아직 없는 카드 자리 수 (스켈레톤) */
+  pending?: number;
 }
 
-export default function CardDeck({ cards, fileName }: Props) {
+export default function CardDeck({ cards, fileName, pending = 0 }: Props) {
   const colors = useThemeColors();
   const isMd = useMedia("(min-width: 768px)");
   const isLg = useMedia("(min-width: 1024px)");
-  const pair = cards.length > 1;
+  const pair = cards.length + pending > 1;
   const size: CardSize = isMd && (!pair || isLg) ? "lg" : "sm";
   const series = [colors.series1, colors.series2];
   const { exportRef, saving, saveError, save } = useCardSave(colors.surface);
-  const busy = cards.some((c) => c.loading);
+  const busy = pending > 0 || cards.some((c) => c.loading);
   // 한 장일 때 가운데 폭 (sm 420px, lg 500px)
   const single = "mx-auto w-full max-w-[420px] md:max-w-[500px]";
 
@@ -40,18 +43,25 @@ export default function CardDeck({ cards, fileName }: Props) {
     <div>
       <div className={pair ? "grid gap-4 md:grid-cols-2" : single}>
         {cards.map((c, i) => (
-          <div key={`${c.view.entry.player.id}-${c.view.seasonCode}-${i}`} className="relative min-w-0">
-            <div className={c.loading ? "opacity-50 transition-opacity" : "transition-opacity"} aria-busy={c.loading || undefined}>
+          <div key={`${c.view.entry.player.id}-${c.view.seasonCode}-${i}`} className="min-w-0" aria-busy={c.loading || undefined}>
+            {c.loading ? (
+              <>
+                <p role="status" className="sr-only">
+                  시즌 기록 불러오는 중
+                </p>
+                <PlayerCardSkeleton size={size} />
+              </>
+            ) : (
               <PlayerCard view={c.view} colors={colors} size={size} seriesColor={series[i]} nameHref={c.nameHref} />
-            </div>
-            {c.loading && (
-              <p
-                role="status"
-                className="absolute left-1/2 top-24 -translate-x-1/2 rounded-full bg-ink px-3 py-1.5 text-sub font-semibold text-bg shadow"
-              >
-                시즌 기록 불러오는 중…
-              </p>
             )}
+          </div>
+        ))}
+        {Array.from({ length: pending }, (_, i) => (
+          <div key={`pending-${i}`} className="min-w-0" aria-busy>
+            <p role="status" className="sr-only">
+              선수 카드 불러오는 중
+            </p>
+            <PlayerCardSkeleton size={size} />
           </div>
         ))}
       </div>
@@ -61,11 +71,11 @@ export default function CardDeck({ cards, fileName }: Props) {
           type="button"
           onClick={() => save(fileName)}
           disabled={saving || busy}
-          className="h-11 rounded-lg bg-ink px-4 text-body font-semibold text-surface hover:opacity-90 disabled:opacity-60"
+          className="focus-ring h-11 rounded-lg bg-ink px-4 text-body font-semibold text-bg transition-colors duration-200 hover:bg-ink/85 disabled:cursor-default disabled:opacity-60"
         >
           {saving ? "저장 중…" : pair ? "카드 두 장 이미지 저장" : "이미지 저장"}
         </button>
-        <p className="text-sub text-ink-3">저장 이미지에는 사진·로고가 들어가지 않습니다 (팀 색·이니셜로 대신 그림)</p>
+        <p className="text-sub text-ink-3">저장 이미지에는 사진·로고 대신 팀 색과 이니셜이 들어갑니다</p>
         {saveError && (
           <p role="alert" className="w-full text-body text-ink-2">
             {saveError}

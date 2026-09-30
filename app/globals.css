@@ -109,10 +109,9 @@ body {
 
 body {
   font-family: var(--font-sans);
-  /* 본문 15px(모바일) / 16px(PC). 숫자는 전부 고정폭 숫자 — 표·스탯 타일·순위·차트 축이 자리를 맞춘다 */
+  /* 본문 15px(모바일) / 16px(PC). 숫자 고정폭은 데이터 자리에만(.tabular) — 문장 속 숫자까지 고정폭이면 "1" 앞뒤가 벌어져 보인다 */
   font-size: 0.9375rem;
   line-height: 1.55;
-  font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
 }
 @media (width >= 64rem) {
@@ -121,8 +120,9 @@ body {
   }
 }
 
-/* 숫자 고정폭 — body 전체에 이미 걸려 있지만, 인라인 style 로 글꼴을 바꾸는 곳(SVG 등)에 명시용 */
-.tabular {
+/* 숫자 고정폭 (B1) — 스탯 타일·표·행 카드·카드 격자·순위에 붙인다. 차트 축·툴팁(Recharts)은 아래 규칙으로 전부 */
+.tabular,
+.recharts-wrapper {
   font-variant-numeric: tabular-nums;
 }
 

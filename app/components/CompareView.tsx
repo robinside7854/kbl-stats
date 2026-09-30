@@ -91,6 +91,8 @@ export default function CompareView({ seasons, initialA, initialB }: Props) {
   const cards: DeckCard[] = [];
   if (a && va.view) cards.push({ view: va.view, loading: va.status === "loading", nameHref: playerHref(a.id, va.view.seasonCode) });
   if (b && vb.view) cards.push({ view: vb.view, loading: vb.status === "loading", nameHref: playerHref(b.id, vb.view.seasonCode) });
+  // 공유 주소로 열려 아직 값이 없는 자리 → 스켈레톤 (디자인 점검 C3)
+  const pending = [a && !va.view && va.status === "loading", b && !vb.view && vb.status === "loading"].filter(Boolean).length;
   const both = cards.length === 2 ? ([cards[0].view, cards[1].view] as const) : null;
   const tag = (v: SeasonCardView) => `${v.entry.player.nameKo} ${labelOf(v.seasonCode)}`;
 
@@ -121,7 +123,7 @@ export default function CompareView({ seasons, initialA, initialB }: Props) {
             <button
               type="button"
               onClick={() => set({ ...other, season: other.seasons.find((c) => c !== other.season) ?? other.season })}
-              className="mt-1.5 text-sub font-semibold text-ink-2 underline underline-offset-4 hover:text-ink"
+              className="focus-ring mt-1 inline-flex h-10 items-center rounded-lg text-sub font-semibold text-ink-2 underline underline-offset-4 transition-colors duration-200 hover:text-ink"
             >
               {other.nameKo}의 다른 시즌과 비교하기
             </button>
@@ -154,9 +156,10 @@ export default function CompareView({ seasons, initialA, initialB }: Props) {
       )}
 
       <div className="mt-5 space-y-6">
-        {cards.length > 0 && (
+        {cards.length + pending > 0 && (
           <CardDeck
             cards={cards}
+            pending={pending}
             fileName={`${cards.map((c) => `${c.view.entry.player.nameKo}_${labelOf(c.view.seasonCode)}`).join("_vs_")}_플레이어카드.png`}
           />
         )}

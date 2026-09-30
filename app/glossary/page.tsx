@@ -4,6 +4,7 @@
 import type { Metadata } from "next";
 import { listSeasonsWithPlayers, loadSeasonData } from "@/lib/data";
 import { GLOSSARY, GLOSSARY_ANCHORS } from "@/lib/glossary";
+import { IconExternal } from "@/app/components/icons";
 import SiteNav from "@/app/components/SiteNav";
 import SourceFooter from "@/app/components/SourceFooter";
 
@@ -41,7 +42,7 @@ export default function GlossaryPage() {
             <a
               key={g.key}
               href={`#${GLOSSARY_ANCHORS[g.key]}`}
-              className="inline-flex h-10 items-center rounded-lg border border-line bg-surface px-3 text-sub font-semibold text-ink-2 hover:bg-surface-2"
+              className="focus-ring inline-flex h-10 items-center rounded-lg border border-line bg-surface px-3 text-sub font-semibold text-ink-2 transition-colors duration-200 hover:bg-surface-2 hover:text-ink"
             >
               {g.name}
             </a>
@@ -86,9 +87,11 @@ export default function GlossaryPage() {
                         href={g.source}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="font-semibold text-ink-2 underline underline-offset-4 hover:text-ink"
+                        className="focus-ring rounded-lg font-semibold text-ink-2 underline underline-offset-4 transition-colors duration-200 hover:text-ink"
                       >
-                        {sourceName(g.source)} ↗
+                        {sourceName(g.source)}
+                        <IconExternal size={16} className="ml-0.5 inline align-[-3px]" />
+                        <span className="sr-only"> (새 창)</span>
                       </a>
                     ) : (
                       <span className="text-ink-3">이 사이트 규칙</span>

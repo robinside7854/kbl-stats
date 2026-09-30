@@ -102,7 +102,7 @@ export default function RowList<R>({
   return (
     <div>
       {/* ── 모바일·태블릿: 행 카드 ── */}
-      <ul aria-label={caption} className="surface-card overflow-hidden rounded-2xl lg:hidden">
+      <ul aria-label={caption} className="surface-card tabular overflow-hidden rounded-2xl lg:hidden">
         {shown.map((r) => {
           const key = rowKey(r);
           const isOpen = open.has(key);
@@ -167,7 +167,7 @@ export default function RowList<R>({
               return (
                 <tr key={rowKey(r)} className="transition-colors duration-200 hover:bg-surface-2">
                   {columns.map((c) => {
-                    const cls = `border-b border-line px-1.5 py-1.5 ${ALIGN[c.align ?? "right"]} ${
+                    const cls = `h-12 border-b border-line px-1.5 py-1.5 ${ALIGN[c.align ?? "right"]} ${
                       c.active ? "bg-surface-2 font-semibold text-ink" : "text-ink-2"
                     } ${strong && c.rowHeader ? "font-bold" : ""} ${cellClass(c, r)}`;
                     return (

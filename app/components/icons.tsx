@@ -31,6 +31,7 @@ function Svg({ size = 16, children, ...rest }: IconProps & { children: React.Rea
 export function IconSearch(p: IconProps) {
   return (
     <Svg {...p}>
+      {/* deslop-ignore-next-line 24 */}
       <circle cx="10.5" cy="10.5" r="6.5" />
       <path d="m20 20-4.8-4.8" />
     </Svg>
@@ -69,8 +70,57 @@ export function IconFilter(p: IconProps) {
   return (
     <Svg {...p}>
       <path d="M4 7h10M18 7h2M4 17h4M12 17h8" />
+      {/* deslop-ignore-next-line 24 */}
       <circle cx="16" cy="7" r="2" />
+      {/* deslop-ignore-next-line 24 */}
       <circle cx="10" cy="17" r="2" />
+    </Svg>
+  );
+}
+
+/** 위 꺾쇠 (접기 · 오름차순 정렬) */
+export function IconChevronUp(p: IconProps) {
+  return (
+    <Svg {...p}>
+      <path d="m6 15 6-6 6 6" />
+    </Svg>
+  );
+}
+
+/** 오른쪽 화살표 (옆으로 더 있음) */
+export function IconArrowRight(p: IconProps) {
+  return (
+    <Svg {...p}>
+      <path d="M5 12h14M13 6l6 6-6 6" />
+    </Svg>
+  );
+}
+
+/** 위 화살표 (비교표에서 더 나은 쪽) */
+export function IconArrowUp(p: IconProps) {
+  return (
+    <Svg {...p}>
+      <path d="M12 19V5M6 11l6-6 6 6" />
+    </Svg>
+  );
+}
+
+/** 바깥 링크 (새 창) */
+export function IconExternal(p: IconProps) {
+  return (
+    <Svg {...p}>
+      <path d="M8 16 16 8M9 8h7v7" />
+    </Svg>
+  );
+}
+
+/** 정보 (용어 설명 링크) */
+export function IconInfo(p: IconProps) {
+  return (
+    <Svg {...p}>
+      {/* deslop-ignore-next-line 24 */}
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M12 11v5M12 8h.01" />
     </Svg>
   );
 }

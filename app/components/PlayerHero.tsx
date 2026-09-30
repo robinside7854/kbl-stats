@@ -100,7 +100,7 @@ export default function PlayerHero({ entry, seasons }: Props) {
 
       {/* ── 통산 요약 + 소속 이력 ── */}
       <div className="mx-auto max-w-5xl px-4">
-        <dl className="-mt-px grid grid-cols-4 overflow-hidden rounded-b-2xl border border-t-0 border-line bg-surface shadow-card">
+        <dl className="tabular -mt-px grid grid-cols-4 overflow-hidden rounded-b-2xl border border-t-0 border-line bg-surface shadow-card">
           {tiles.map((t, i) => (
             <div key={t.label} className={`min-w-0 px-2 py-3 text-center sm:px-4 ${i > 0 ? "border-l border-line" : ""}`}>
               <dt className="truncate text-caption font-medium text-ink-3 sm:text-sub">

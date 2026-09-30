@@ -44,6 +44,7 @@ import { IconChevronDown } from "./icons";
 import InfoLink from "./InfoLink";
 import PlayerAvatar from "./PlayerAvatar";
 import PlayerSearch from "./PlayerSearch";
+import Skeleton from "./Skeleton";
 import Segmented from "./Segmented";
 import SiteNav from "./SiteNav";
 import TeamLogo from "./TeamLogo";
@@ -82,7 +83,7 @@ function GridCard({ e, team, seasonCode, colors }: { e: GridEntry; team?: CardTe
   return (
     <Link
       href={playerHref(p.id, seasonCode)}
-      className="focus-ring surface-card flex h-full min-w-0 flex-col rounded-2xl p-3 transition-colors duration-200 hover:bg-surface-2"
+      className="focus-ring surface-card tabular flex h-full min-w-0 flex-col rounded-2xl p-3 transition-colors duration-200 hover:bg-surface-2"
       aria-label={`${p.nameKo}, ${team?.shortName ?? p.teamShort}${pos ? `, ${pos}` : ""}, 종합 등급 ${e.overall === "-" ? "표본 미달" : e.overall}, 경기당 ${formatCardValue(e.ppg, false)}점`}
     >
       <span className="flex items-start justify-between gap-2">
@@ -202,12 +203,12 @@ export default function PlayersView({ seasons, latest, initialFile }: Props) {
               {seasonShortLabel(seasonLabel)} 시즌 선수 <span className="font-normal text-ink-3">{filtered.length}명</span>
             </h2>
             <p className="text-sub text-ink-3">
-              종합 등급 순, 같은 등급은 PER 순 <InfoLink term="percentileGrade" className="h-5 w-5" />
+              종합 등급 순, 같은 등급은 PER 순 <InfoLink term="percentileGrade" />
             </p>
           </div>
           {status === "loading" && (
-            <p role="status" className="mb-2 text-body font-semibold text-ink-2">
-              시즌 기록 불러오는 중…
+            <p role="status" className="sr-only">
+              시즌 기록 불러오는 중
             </p>
           )}
           {status === "error" && (
@@ -215,8 +216,23 @@ export default function PlayersView({ seasons, latest, initialFile }: Props) {
               시즌 기록을 불러오지 못했습니다. 시즌을 다시 골라 주세요.
             </p>
           )}
-          {shown.length > 0 ? (
-            <ul className={`grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 ${status === "loading" ? "opacity-50" : ""}`}>
+          {status === "loading" ? (
+            // 다른 시즌을 받는 동안: 그리드 모양 그대로 스켈레톤 (디자인 점검 C3)
+            <ul aria-hidden className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+              {Array.from({ length: Math.min(GRID_PAGE_SIZE, Math.max(shown.length, 10)) }, (_, i) => (
+                <li key={i} className="surface-card flex h-[168px] flex-col rounded-2xl p-3">
+                  <span className="flex items-start justify-between">
+                    <Skeleton className="h-[52px] w-[52px] rounded-full" />
+                    <Skeleton className="h-7 w-7" />
+                  </span>
+                  <Skeleton className="mt-2 h-4 w-20" />
+                  <Skeleton className="mt-1.5 h-3.5 w-24" />
+                  <Skeleton className="mt-auto h-4 w-16" />
+                </li>
+              ))}
+            </ul>
+          ) : shown.length > 0 ? (
+            <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
               {shown.map((e) => (
                 <li key={e.player.id} className="min-w-0">
                   <GridCard e={e} team={teamByCode.get(e.player.teamCode)} seasonCode={shownSeason} colors={colors} />
@@ -224,11 +240,19 @@ export default function PlayersView({ seasons, latest, initialFile }: Props) {
               ))}
             </ul>
           ) : (
-            <p className="surface-card rounded-2xl px-4 py-8 text-center text-body text-ink-2">
-              조건에 맞는 선수가 없습니다. 필터를 줄여 보세요.
-            </p>
+            <div className="surface-card rounded-2xl px-4 py-8 text-center">
+              <p className="text-body font-semibold text-ink">조건에 맞는 선수가 없습니다</p>
+              <p className="mt-1 text-sub text-ink-2">포지션·국적·팀 중 하나를 풀어 보세요.</p>
+              <button
+                type="button"
+                onClick={() => update({ position: "all", origin: "all", teamCode: null })}
+                className="focus-ring mt-4 h-11 rounded-lg border border-line bg-surface px-4 text-body font-semibold text-ink transition-colors duration-200 hover:bg-surface-2"
+              >
+                필터 초기화
+              </button>
+            </div>
           )}
-          {remaining > 0 && (
+          {remaining > 0 && status !== "loading" && (
             <button
               type="button"
               onClick={() => setLimit((n) => n + GRID_PAGE_SIZE)}

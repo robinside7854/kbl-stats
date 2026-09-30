@@ -25,7 +25,9 @@ import {
 } from "@/lib/metrics";
 import { mixHex, teamShortLabel } from "@/lib/images";
 import { desaturate, FALLBACK_TEAM_COLOR, gradeTone, readableInk } from "@/lib/teams";
+import { IconInfo } from "./icons";
 import PlayerAvatar from "./PlayerAvatar";
+import Skeleton from "./Skeleton";
 import TeamLogo from "./TeamLogo";
 import type { ThemeColors } from "./useThemeColors";
 import { SOURCE_LINE } from "./SourceFooter";
@@ -320,6 +322,39 @@ function OverallBadge({
 }
 
 // ─────────────────────────────────────────────
+// 불러오는 중 카드 (디자인 점검 C3) — 같은 크기(DIM)의 머리·3×3 격자·레이더 자리
+// ─────────────────────────────────────────────
+
+export function PlayerCardSkeleton({ size = "sm" }: { size?: CardSize }) {
+  const d = DIM[size];
+  const cellH = Math.round(d.statLabel * 1.45 + d.statVal * 1.25 + d.rank * 1.5 + (size === "lg" ? 20 : 16));
+  return (
+    <div aria-hidden className="surface-card w-full overflow-hidden rounded-2xl">
+      <Skeleton className="rounded-none" style={{ height: d.header }} />
+      <div style={{ padding: d.pad }}>
+        <Skeleton className="mb-2 h-4 w-32" />
+        <div className={`grid grid-cols-3 ${size === "lg" ? "gap-2" : "gap-1.5"}`}>
+          {Array.from({ length: 9 }, (_, i) => (
+            <Skeleton key={i} className="rounded-xl" style={{ height: cellH }} />
+          ))}
+        </div>
+        <Skeleton className="mt-2 h-4 w-48" />
+      </div>
+      <div className="border-t border-line" style={{ padding: d.pad }}>
+        <Skeleton className="h-4 w-40" />
+        <div className="flex items-center justify-center" style={{ height: d.radarH }}>
+          <Skeleton className="rounded-xl" style={{ width: d.radarH * 0.62, height: d.radarH * 0.62 }} />
+        </div>
+      </div>
+      <div className="border-t border-line" style={{ padding: d.pad }}>
+        <Skeleton className="h-3 w-full" />
+        <Skeleton className="mt-1.5 h-3 w-2/3" />
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
 // 카드
 // ─────────────────────────────────────────────
 
@@ -370,7 +405,7 @@ export default function PlayerCard({ view, colors, size = "sm", seriesColor, exp
 
   return (
     <article
-      className="surface-card w-full overflow-hidden rounded-2xl"
+      className="surface-card tabular w-full overflow-hidden rounded-2xl"
       style={exportMode ? { width: CARD_LG_WIDTH } : undefined}
       aria-label={`${p.nameKo} 플레이어 카드`}
     >
@@ -421,7 +456,7 @@ export default function PlayerCard({ view, colors, size = "sm", seriesColor, exp
           </div>
           <h2 className="font-black tracking-tight [overflow-wrap:anywhere]" style={{ fontSize: d.name, lineHeight: 1.1 }}>
             {nameHref && !exportMode ? (
-              <Link href={nameHref} className="underline-offset-4 hover:underline" title={`${p.nameKo} 선수 페이지`}>
+              <Link href={nameHref} className="focus-ring rounded-lg underline-offset-4 hover:underline" title={`${p.nameKo} 선수 페이지`}>
                 {p.nameKo}
               </Link>
             ) : (
@@ -471,11 +506,11 @@ export default function PlayerCard({ view, colors, size = "sm", seriesColor, exp
           {!exportMode && (
             <Link
               href={glossaryHref("percentileGrade")}
-              className="-my-2 inline-flex h-8 w-6 items-center justify-center font-normal text-ink-3 hover:text-ink"
+              className="focus-ring -mx-3 -my-3 inline-flex h-10 w-10 items-center justify-center rounded-lg font-normal text-ink-3 transition-colors duration-200 hover:text-ink"
               aria-label="등급 계산 방법 (용어 풀이)"
               title="등급 계산 방법"
             >
-              ⓘ
+              <IconInfo size={16} />
             </Link>
           )}
           <span className="font-normal text-ink-3">S 상위 10% · A 25% · B 45% · C 65% · D 85%</span>
