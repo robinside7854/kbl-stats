@@ -1,6 +1,8 @@
 // raw → processed 변환
 // data/raw/{season}/traditional_regular.json + advanced_regular.json + teams.json
 //   (+ data/raw/players/players.json 선수 마스터 — 있으면 playerNo 로 조인해 포지션·국적·신장 등 프로필을 붙인다)
+//   (+ data/raw/highs/{season}/{playerNo}.json 한 경기 최다 — 선수 seasonHighs, 시즌 seasonHighLeaders, 색인 careerHighs)
+//   (+ data/raw/profiles/{playerNo}.json 프로필 — 색인 birthday·country·school)
 //   → data/processed/{season}/players.json (lib/types.ts의 SeasonData 형태: coverage·teams·players)
 // 모든 시즌을 가공한 뒤
 //   → data/processed/seasons.json (시즌 목록), data/processed/players-index.json (선수 색인)
@@ -13,8 +15,10 @@ import { DATA_DIR, SEASON_CODES_FALLBACK } from "./config.js";
 import { seasonCoverage, usgFromKbl } from "../lib/metrics.js";
 import { playerPhotoUrl, teamLogoUrl } from "./image-urls.js";
 import { teamShortNameKo } from "../lib/teams.js";
-import { buildProfileMap, EMPTY_PROFILE, isForeignPlayer } from "./player-master.js";
-import type { Player, PlayerIndexEntry, PlayerProfile, SeasonData, Team, TeamColor } from "../lib/types.js";
+import { buildProfileMap, EMPTY_PROFILE, EMPTY_PROFILE_EXTRA, isForeignPlayer, profileExtraFrom, type ProfileExtra } from "./player-master.js";
+import { hasCareerHighs, parseMostGame, type ParsedMostGame } from "./highs.js";
+import { computeSeasonHighLeaders } from "../lib/highs.js";
+import type { CareerHighs, Player, PlayerIndexEntry, PlayerProfile, SeasonData, Team, TeamColor } from "../lib/types.js";
 
 type Raw = Record<string, any>;
 
@@ -22,6 +26,40 @@ const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : N
 
 /** 선수 마스터 (playerNo → 프로필). main() 이 파일을 읽어 채운다. 파일이 없으면 빈 Map → 모두 EMPTY_PROFILE */
 let profiles = new Map<string, PlayerProfile>();
+
+/**
+ * 통산 한 경기 최다 (playerNo → 그 선수의 가장 최근 시즌 raw 의 AllTimes). processSeason 이 시즌 오름차순으로 채우므로
+ * 나중 시즌이 덮어쓴다 = 최신 시즌 raw 우선.
+ */
+const careerHighsByPlayer = new Map<string, CareerHighs>();
+/** 한 경기 최다 raw 가 있었던 시즌 수 (경고 한 줄용) */
+let highsSeasonCount = 0;
+const unknownHighsKeys = new Set<string>();
+
+/**
+ * 한 시즌의 한 경기 최다 raw (data/raw/highs/{season}/*.json) → playerNo → 파싱 결과. 폴더가 없으면 빈 Map.
+ * 깨진 파일은 건너뛴다(그 선수만 null).
+ */
+async function readSeasonHighs(seasonCode: number): Promise<Map<string, ParsedMostGame>> {
+  const dir = join(DATA_DIR, "raw", "highs", String(seasonCode));
+  const out = new Map<string, ParsedMostGame>();
+  let files: string[];
+  try {
+    files = (await readdir(dir)).filter((f) => f.endsWith(".json"));
+  } catch {
+    return out;
+  }
+  for (const f of files) {
+    try {
+      const parsed = parseMostGame(JSON.parse(await readFile(join(dir, f), "utf8")));
+      parsed.unknownKeys.forEach((k) => unknownHighsKeys.add(k));
+      out.set(f.replace(/\.json$/, ""), parsed);
+    } catch {
+      console.warn(`[${seasonCode}] 한 경기 최다 파일 읽기 실패: ${f}`);
+    }
+  }
+  return out;
+}
 
 function toPlayer(t: Raw, a: Raw | undefined): Player {
   const profile = profiles.get(String(t.playerNo)) ?? EMPTY_PROFILE;
@@ -174,6 +212,15 @@ async function processSeason(seasonCode: number): Promise<SeasonData> {
 
   const players: Player[] = (trad.data ?? []).map((t: Raw) => toPlayer(t, advByPlayer.get(String(t.playerNo))));
 
+  // 한 경기 최다: 그 시즌 raw 가 있는 선수만 seasonHighs, 없으면 null. 통산은 최신 시즌 raw 가 이긴다
+  const highs = await readSeasonHighs(seasonCode);
+  if (highs.size > 0) highsSeasonCount++;
+  for (const p of players) {
+    const h = highs.get(p.playerNo);
+    p.seasonHighs = h?.season ?? null;
+    if (h && hasCareerHighs(h.career)) careerHighsByPlayer.set(p.playerNo, h.career);
+  }
+
   const rawTeams = await readRawTeams(rawDir);
   const teams =
     rawTeams && rawTeams.length > 0
@@ -196,13 +243,16 @@ async function processSeason(seasonCode: number): Promise<SeasonData> {
     coverage: seasonCoverage(players),
     teams,
     players,
+    // 부문별 시즌 하이 1위 (기록 부문 11개, 동률은 먼저 달성) — raw 가 없으면 null (lib/highs.ts)
+    seasonHighLeaders: computeSeasonHighLeaders(players),
   };
 
   const outDir = join(DATA_DIR, "processed", String(seasonCode));
   await mkdir(outDir, { recursive: true });
   await writeFile(join(outDir, "players.json"), JSON.stringify(out, null, 2), "utf8");
   const cov = Object.entries(out.coverage).filter(([, v]) => v).map(([k]) => k).join(",") || "-";
-  console.log(`[${out.seasonLabel}] ${players.length}명, 팀 ${teams.length}개, coverage: ${cov} → ${join(outDir, "players.json")}`);
+  const highsNote = highs.size > 0 ? `, 한 경기 최다 ${highs.size}명` : "";
+  console.log(`[${out.seasonLabel}] ${players.length}명, 팀 ${teams.length}개, coverage: ${cov}${highsNote} → ${join(outDir, "players.json")}`);
   return out;
 }
 
@@ -224,6 +274,8 @@ function buildPlayersIndex(seasons: SeasonData[]): PlayerIndexEntry[] {
           isForeign: p.isForeign,
           photoUrl: playerPhotoUrl(p.playerNo),
           ...(profiles.get(p.playerNo) ?? EMPTY_PROFILE),
+          ...(profileExtras.get(p.playerNo) ?? EMPTY_PROFILE_EXTRA),
+          careerHighs: careerHighsByPlayer.get(p.playerNo) ?? null,
           seasons: [],
           latest: -1,
         };
@@ -260,9 +312,35 @@ async function readProfiles(): Promise<Map<string, PlayerProfile>> {
   }
 }
 
+/** 프로필 raw (playerNo → 생년월일·국가·출신교). main() 이 채운다 */
+let profileExtras = new Map<string, ProfileExtra>();
+
+/** data/raw/profiles/*.json 전부 읽기. 폴더가 없으면 경고 한 줄 → 빈 Map (색인의 birthday·country·school 은 null) */
+async function readProfileExtras(): Promise<Map<string, ProfileExtra>> {
+  const dir = join(DATA_DIR, "raw", "profiles");
+  const out = new Map<string, ProfileExtra>();
+  let files: string[];
+  try {
+    files = (await readdir(dir)).filter((f) => f.endsWith(".json"));
+  } catch {
+    console.warn(`선수 프로필 없음(${dir}) → 생년월일·국가·출신교는 null`);
+    return out;
+  }
+  for (const f of files) {
+    try {
+      out.set(f.replace(/\.json$/, ""), profileExtraFrom(JSON.parse(await readFile(join(dir, f), "utf8"))));
+    } catch {
+      console.warn(`프로필 파일 읽기 실패: ${f}`);
+    }
+  }
+  console.log(`선수 프로필: ${out.size}명`);
+  return out;
+}
+
 async function main() {
   teamColors = await readTeamColors();
   profiles = await readProfiles();
+  profileExtras = await readProfileExtras();
   const seasons = (await readdir(join(DATA_DIR, "raw"), { withFileTypes: true }))
     .filter((d) => d.isDirectory() && /^\d+$/.test(d.name))
     .map((d) => Number(d.name))
@@ -274,6 +352,10 @@ async function main() {
     try { done.push(await processSeason(s)); }
     catch (e) { failed.push(`${s}: ${(e as Error).message}`); }
   }
+
+  if (highsSeasonCount === 0) console.warn("한 경기 최다 raw 없음(data/raw/highs) → seasonHighs·seasonHighLeaders·careerHighs 는 null");
+  else console.log(`한 경기 최다: ${highsSeasonCount}개 시즌, 통산 ${careerHighsByPlayer.size}명`);
+  if (unknownHighsKeys.size > 0) console.warn(`한 경기 최다 응답의 모르는 배열(무시함): ${[...unknownHighsKeys].join(", ")}`);
 
   // 팀 한글 약칭 점검표 (teamName1 → shortNameKo, 등장 시즌) — 이상한 값이 없는지 눈으로 확인
   const koTable = new Map<string, { ko: string; seasons: number[] }>();

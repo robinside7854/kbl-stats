@@ -2,6 +2,8 @@
 // 통산 경기당 계산은 lib/metrics.ts careerSummary, 경기당 환산은 metrics.perGame 을 쓴다.
 
 import { perGame } from "./metrics";
+import { formatHighDate, formatHighTimes, formatHighValue, HIGH_DEFS } from "./highs";
+import type { CareerHighs, HighKey, HighsSet } from "./types";
 
 // ─────────────────────────────────────────────
 // 시즌 표기
@@ -194,4 +196,99 @@ export function profileFacts(p: {
     out.push({ label: "드래프트", value: parts.join(" ") });
   }
   return out;
+}
+
+// ─────────────────────────────────────────────
+// 나이·국가·출신교 (히어로) — 값은 서버 B 프로필(색인 birthday·country·school)
+// ─────────────────────────────────────────────
+
+/** 한국 시간 기준 오늘 날짜 "YYYY-MM-DD". 정적 사이트라 "오늘" = 빌드 시각 (매일 데이터 커밋 → 재배포로 갱신) */
+export function seoulDateIso(now: Date): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
+}
+
+/**
+ * 만 나이: 생년월일 "1994-01-31" 과 오늘 "2026-09-30" → 32. 올해 생일 전이면 한 살 적게.
+ * 형식이 다르거나 오늘보다 늦은 생일이면 null.
+ */
+export function ageOn(birthday: string | null | undefined, today: string): number | null {
+  const b = birthday ? /^(\d{4})-(\d{2})-(\d{2})$/.exec(birthday) : null;
+  const t = /^(\d{4})-(\d{2})-(\d{2})$/.exec(today);
+  if (!b || !t) return null;
+  let age = Number(t[1]) - Number(b[1]);
+  if (`${t[2]}${t[3]}` < `${b[2]}${b[3]}`) age--;
+  return age >= 0 ? age : null;
+}
+
+/**
+ * 히어로 프로필 한 줄 추가분: 나이("만 32세") · 국적(국가명) · 출신교. 값이 없는 항목은 뺀다.
+ * 은퇴 선수도 "지금 나이"를 보여 준다 (생년월일 대신 나이만 — 한 줄이 짧게).
+ */
+export function personalFacts(
+  p: { birthday?: string | null; country?: string | null; school?: string | null },
+  today: string,
+): ProfileFact[] {
+  const out: ProfileFact[] = [];
+  const age = ageOn(p.birthday, today);
+  if (age !== null) out.push({ label: "나이", value: `만 ${age}세` });
+  if (p.country) out.push({ label: "국적", value: p.country });
+  if (p.school) out.push({ label: "출신교", value: p.school });
+  return out;
+}
+
+// ─────────────────────────────────────────────
+// 커리어 하이 표 (선수 페이지 "커리어 하이" 섹션) — 통산 한 경기 최다, 정규시즌/플레이오프/챔프전 탭
+// ─────────────────────────────────────────────
+
+export type HighsTab = "regular" | "playoff" | "finals";
+
+export const HIGHS_TABS: readonly { key: HighsTab; label: string }[] = [
+  { key: "regular", label: "정규시즌" },
+  { key: "playoff", label: "플레이오프" },
+  { key: "finals", label: "챔프전" },
+];
+
+export interface CareerHighRow {
+  key: HighKey;
+  label: string;          // 부문, 예: "득점"
+  value: string;          // "46" / "66.7%"
+  opponent: string;       // 상대 팀 한글 약칭 (모르면 코드, 코드도 없으면 "–")
+  date: string;           // "2023.10.21"
+  times: string;          // "3회" / "–"
+  rate: boolean;          // 성공률 부문 (시도 수 조건 없음 — 화면에서 흐리게·안내)
+}
+
+/**
+ * 한 구분의 통산 세트 → 표 행 (부문 순서 = lib/highs HIGH_DEFS, 기록 없는 부문·값 0 은 뺀다).
+ * teamName(코드, 달성 시즌) → 한글 약칭. 그 시즌 팀 목록에 없으면 null → 코드를 그대로 쓴다.
+ */
+export function careerHighRows(
+  set: HighsSet | null | undefined,
+  teamName: (teamCode: string, seasonCode: number | null) => string | null,
+): CareerHighRow[] {
+  if (!set) return [];
+  const out: CareerHighRow[] = [];
+  for (const d of HIGH_DEFS) {
+    const r = set[d.key];
+    if (!r || !(r.value > 0)) continue;
+    out.push({
+      key: d.key,
+      label: d.label,
+      value: formatHighValue(r.value, d.key),
+      opponent: r.opponentTeamCode ? (teamName(r.opponentTeamCode, r.seasonCode) ?? r.opponentTeamCode) : "–",
+      date: formatHighDate(r.date),
+      times: formatHighTimes(r.times),
+      rate: d.kind === "rate",
+    });
+  }
+  return out;
+}
+
+/** 세 탭의 행을 한 번에. 행이 없는 탭은 빠진다 → 결과가 빈 배열이면 섹션을 숨긴다 */
+export function careerHighTabs(
+  highs: CareerHighs | null | undefined,
+  teamName: (teamCode: string, seasonCode: number | null) => string | null,
+): { key: HighsTab; label: string; rows: CareerHighRow[] }[] {
+  if (!highs) return [];
+  return HIGHS_TABS.map((t) => ({ ...t, rows: careerHighRows(highs[t.key], teamName) })).filter((t) => t.rows.length > 0);
 }
