@@ -14,13 +14,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: 8차 조사 — players API 범위(은퇴 선수 포함 여부)·필드 값 분포
+      - name: 9차 조사(헤더 추가) — players API 범위(은퇴 선수 포함 여부)·필드 값 분포
         shell: bash
         run: |
           set +e
           UA="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/128 Safari/537.36"
           B="https://kbl-api.sports2i.com/api/v1/players"
-          q() { echo; echo "--- $1"; curl -sS --max-time 25 -A "$UA" "$1" > r.json; echo "bytes=$(wc -c < r.json)"; python3 - <<'PY'
+          q() { echo; echo "--- $1"; curl -sS --max-time 25 -A "$UA" -H "Accept: application/json" -H "Referer: https://kbl.or.kr/" -H "Origin: https://kbl.or.kr" "$1" > r.json; echo "bytes=$(wc -c < r.json)"; python3 - <<'PY'
           import json
           try:
               d=json.load(open('r.json'))
