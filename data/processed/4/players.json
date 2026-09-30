@@ -2,7 +2,7 @@
   "seasonCode": 4,
   "seasonLabel": "1999-2000",
   "gameType": "regular",
-  "fetchedAt": "2026-09-30T14:25:39.905Z",
+  "fetchedAt": "2026-09-30T15:51:48.218Z",
   "coverage": {
     "advanced": false,
     "plusMinus": true,
@@ -602,7 +602,9 @@
           "date": "1999-12-02",
           "opponentTeamCode": "40",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 24,
+          "pct": 66.7
         },
         "fgPct": {
           "value": 100,
@@ -630,7 +632,9 @@
           "date": "2000-03-04",
           "opponentTeamCode": "30",
           "times": 45,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": null,
+          "pct": null
         },
         "tpPct": {
           "value": 0,
@@ -644,7 +648,9 @@
           "date": "1999-12-11",
           "opponentTeamCode": "35",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 16,
+          "pct": 87.5
         },
         "ftPct": {
           "value": 100,
@@ -952,7 +958,9 @@
           "date": "1999-12-18",
           "opponentTeamCode": "40",
           "times": 2,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 20,
+          "pct": 65
         },
         "fgPct": {
           "value": 76.92307692307692,
@@ -980,7 +988,9 @@
           "date": "1999-11-21",
           "opponentTeamCode": "15",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 5,
+          "pct": 60
         },
         "tpPct": {
           "value": 100,
@@ -994,7 +1004,9 @@
           "date": "1999-12-05",
           "opponentTeamCode": "37",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 17,
+          "pct": 88.2
         },
         "ftPct": {
           "value": 100,
@@ -1127,7 +1139,9 @@
           "date": "1999-11-13",
           "opponentTeamCode": "40",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 21,
+          "pct": 71.4
         },
         "fgPct": {
           "value": 80,
@@ -1155,7 +1169,9 @@
           "date": "1999-12-18",
           "opponentTeamCode": "45",
           "times": 2,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 3,
+          "pct": 66.7
         },
         "tpPct": {
           "value": 100,
@@ -1169,7 +1185,9 @@
           "date": "1999-12-18",
           "opponentTeamCode": "45",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 15,
+          "pct": 80
         },
         "ftPct": {
           "value": 100,
@@ -1302,7 +1320,9 @@
           "date": "2000-02-12",
           "opponentTeamCode": "10",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 23,
+          "pct": 69.6
         },
         "fgPct": {
           "value": 83.33333333333333,
@@ -1330,7 +1350,9 @@
           "date": "2000-01-08",
           "opponentTeamCode": "45",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 3,
+          "pct": 100
         },
         "tpPct": {
           "value": 100,
@@ -1344,7 +1366,9 @@
           "date": "2000-02-13",
           "opponentTeamCode": "55",
           "times": 2,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 11,
+          "pct": 81.8
         },
         "ftPct": {
           "value": 100,
@@ -1477,7 +1501,9 @@
           "date": "2000-02-13",
           "opponentTeamCode": "37",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 26,
+          "pct": 57.7
         },
         "fgPct": {
           "value": 71.42857142857143,
@@ -1505,7 +1531,9 @@
           "date": "2000-01-20",
           "opponentTeamCode": "50",
           "times": 3,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 5,
+          "pct": 80
         },
         "tpPct": {
           "value": 100,
@@ -1519,7 +1547,9 @@
           "date": "1999-12-19",
           "opponentTeamCode": "45",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 16,
+          "pct": 81.3
         },
         "ftPct": {
           "value": 100,
@@ -1831,7 +1861,9 @@
           "date": "2000-02-17",
           "opponentTeamCode": "40",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 20,
+          "pct": 80
         },
         "fgPct": {
           "value": 81.81818181818181,
@@ -1859,7 +1891,9 @@
           "date": "1999-12-25",
           "opponentTeamCode": "45",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 4,
+          "pct": 75
         },
         "tpPct": {
           "value": 100,
@@ -1873,7 +1907,9 @@
           "date": "2000-02-26",
           "opponentTeamCode": "50",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 10,
+          "pct": 90
         },
         "ftPct": {
           "value": 100,
@@ -2006,7 +2042,9 @@
           "date": "1999-11-25",
           "opponentTeamCode": "15",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 18,
+          "pct": 66.7
         },
         "fgPct": {
           "value": 81.81818181818181,
@@ -2034,7 +2072,9 @@
           "date": "1999-11-25",
           "opponentTeamCode": "15",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 11,
+          "pct": 63.6
         },
         "tpPct": {
           "value": 100,
@@ -2048,7 +2088,9 @@
           "date": "1999-11-14",
           "opponentTeamCode": "55",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 16,
+          "pct": 93.8
         },
         "ftPct": {
           "value": 100,
@@ -2181,7 +2223,9 @@
           "date": "2000-02-19",
           "opponentTeamCode": "37",
           "times": 2,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 18,
+          "pct": 77.8
         },
         "fgPct": {
           "value": 100,
@@ -2209,7 +2253,9 @@
           "date": "2000-03-02",
           "opponentTeamCode": "55",
           "times": 45,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": null,
+          "pct": null
         },
         "tpPct": {
           "value": 0,
@@ -2223,7 +2269,9 @@
           "date": "1999-12-21",
           "opponentTeamCode": "35",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 12,
+          "pct": 75
         },
         "ftPct": {
           "value": 100,
@@ -2531,7 +2579,9 @@
           "date": "2000-01-18",
           "opponentTeamCode": "55",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 22,
+          "pct": 59.1
         },
         "fgPct": {
           "value": 69.23076923076923,
@@ -2559,7 +2609,9 @@
           "date": "2000-01-18",
           "opponentTeamCode": "55",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 14,
+          "pct": 64.3
         },
         "tpPct": {
           "value": 100,
@@ -2573,7 +2625,9 @@
           "date": "1999-12-25",
           "opponentTeamCode": "45",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 12,
+          "pct": 75
         },
         "ftPct": {
           "value": 100,
@@ -2706,7 +2760,9 @@
           "date": "2000-01-08",
           "opponentTeamCode": "30",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 21,
+          "pct": 66.7
         },
         "fgPct": {
           "value": 75,
@@ -2734,7 +2790,9 @@
           "date": "2000-01-08",
           "opponentTeamCode": "30",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 15,
+          "pct": 66.7
         },
         "tpPct": {
           "value": 80,
@@ -2748,7 +2806,9 @@
           "date": "2000-02-01",
           "opponentTeamCode": "50",
           "times": 2,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 8,
+          "pct": 100
         },
         "ftPct": {
           "value": 100,
@@ -2881,7 +2941,9 @@
           "date": "2000-01-15",
           "opponentTeamCode": "40",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 22,
+          "pct": 77.3
         },
         "fgPct": {
           "value": 84.21052631578948,
@@ -2909,7 +2971,9 @@
           "date": "2000-01-11",
           "opponentTeamCode": "10",
           "times": 2,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 4,
+          "pct": 75
         },
         "tpPct": {
           "value": 100,
@@ -2923,7 +2987,9 @@
           "date": "2000-02-16",
           "opponentTeamCode": "50",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 8,
+          "pct": 75
         },
         "ftPct": {
           "value": 100,
@@ -3235,7 +3301,9 @@
           "date": "1999-12-18",
           "opponentTeamCode": "15",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 19,
+          "pct": 68.4
         },
         "fgPct": {
           "value": 100,
@@ -3263,7 +3331,9 @@
           "date": "2000-03-02",
           "opponentTeamCode": "37",
           "times": 45,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": null,
+          "pct": null
         },
         "tpPct": {
           "value": 0,
@@ -3277,7 +3347,9 @@
           "date": "1999-12-19",
           "opponentTeamCode": "35",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 22,
+          "pct": 45.5
         },
         "ftPct": {
           "value": 100,
@@ -3410,7 +3482,9 @@
           "date": "1999-12-18",
           "opponentTeamCode": "05",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 22,
+          "pct": 81.8
         },
         "fgPct": {
           "value": 89.47368421052632,
@@ -3438,7 +3512,9 @@
           "date": "1999-12-28",
           "opponentTeamCode": "45",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 1,
+          "pct": 100
         },
         "tpPct": {
           "value": 100,
@@ -3452,7 +3528,9 @@
           "date": "1999-11-27",
           "opponentTeamCode": "40",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 11,
+          "pct": 63.6
         },
         "ftPct": {
           "value": 100,
@@ -3760,7 +3838,9 @@
           "date": "2000-02-04",
           "opponentTeamCode": "55",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 19,
+          "pct": 63.2
         },
         "fgPct": {
           "value": 83.33333333333333,
@@ -3788,7 +3868,9 @@
           "date": "2000-02-27",
           "opponentTeamCode": "35",
           "times": 3,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 5,
+          "pct": 80
         },
         "tpPct": {
           "value": 100,
@@ -3802,7 +3884,9 @@
           "date": "2000-01-23",
           "opponentTeamCode": "40",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 11,
+          "pct": 90.9
         },
         "ftPct": {
           "value": 100,
@@ -4285,7 +4369,9 @@
           "date": "1999-12-19",
           "opponentTeamCode": "50",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 20,
+          "pct": 60
         },
         "fgPct": {
           "value": 90,
@@ -4313,7 +4399,9 @@
           "date": "1999-12-25",
           "opponentTeamCode": "15",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 7,
+          "pct": 57.1
         },
         "tpPct": {
           "value": 66.66666666666667,
@@ -4327,7 +4415,9 @@
           "date": "1999-11-11",
           "opponentTeamCode": "45",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 6,
+          "pct": 100
         },
         "ftPct": {
           "value": 100,
@@ -4635,7 +4725,9 @@
           "date": "1999-12-02",
           "opponentTeamCode": "35",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 28,
+          "pct": 53.6
         },
         "fgPct": {
           "value": 71.42857142857143,
@@ -4663,7 +4755,9 @@
           "date": "1999-12-02",
           "opponentTeamCode": "35",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 15,
+          "pct": 46.7
         },
         "tpPct": {
           "value": 100,
@@ -4677,7 +4771,9 @@
           "date": "1999-11-21",
           "opponentTeamCode": "35",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 13,
+          "pct": 92.3
         },
         "ftPct": {
           "value": 100,
@@ -4989,7 +5085,9 @@
           "date": "1999-12-23",
           "opponentTeamCode": "40",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 14,
+          "pct": 71.4
         },
         "fgPct": {
           "value": 100,
@@ -5017,7 +5115,9 @@
           "date": "2000-02-04",
           "opponentTeamCode": "10",
           "times": 3,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 5,
+          "pct": 100
         },
         "tpPct": {
           "value": 100,
@@ -5031,7 +5131,9 @@
           "date": "1999-12-23",
           "opponentTeamCode": "40",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 13,
+          "pct": 76.9
         },
         "ftPct": {
           "value": 100,
@@ -5697,7 +5799,9 @@
           "date": "2000-01-06",
           "opponentTeamCode": "10",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 22,
+          "pct": 63.6
         },
         "fgPct": {
           "value": 64.28571428571429,
@@ -5725,7 +5829,9 @@
           "date": "2000-01-06",
           "opponentTeamCode": "10",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 3,
+          "pct": 66.7
         },
         "tpPct": {
           "value": 100,
@@ -5739,7 +5845,9 @@
           "date": "2000-01-01",
           "opponentTeamCode": "35",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 14,
+          "pct": 78.6
         },
         "ftPct": {
           "value": 100,
@@ -5872,7 +5980,9 @@
           "date": "1999-11-14",
           "opponentTeamCode": "15",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 17,
+          "pct": 76.5
         },
         "fgPct": {
           "value": 87.5,
@@ -5900,7 +6010,9 @@
           "date": "2000-02-04",
           "opponentTeamCode": "55",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 6,
+          "pct": 83.3
         },
         "tpPct": {
           "value": 100,
@@ -5914,7 +6026,9 @@
           "date": "2000-02-01",
           "opponentTeamCode": "45",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 11,
+          "pct": 72.7
         },
         "ftPct": {
           "value": 100,
@@ -6222,7 +6336,9 @@
           "date": "2000-02-13",
           "opponentTeamCode": "45",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 17,
+          "pct": 64.7
         },
         "fgPct": {
           "value": 81.81818181818181,
@@ -6250,7 +6366,9 @@
           "date": "2000-01-18",
           "opponentTeamCode": "10",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 8,
+          "pct": 62.5
         },
         "tpPct": {
           "value": 100,
@@ -6264,7 +6382,9 @@
           "date": "2000-01-08",
           "opponentTeamCode": "40",
           "times": 2,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 8,
+          "pct": 75
         },
         "ftPct": {
           "value": 100,
@@ -6572,7 +6692,9 @@
           "date": "1999-11-13",
           "opponentTeamCode": "15",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 35,
+          "pct": 65.7
         },
         "fgPct": {
           "value": 77.77777777777777,
@@ -6600,7 +6722,9 @@
           "date": "1999-12-26",
           "opponentTeamCode": "50",
           "times": 3,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 3,
+          "pct": 66.7
         },
         "tpPct": {
           "value": 100,
@@ -6614,7 +6738,9 @@
           "date": "1999-12-26",
           "opponentTeamCode": "50",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 13,
+          "pct": 76.9
         },
         "ftPct": {
           "value": 100,
@@ -7101,7 +7227,9 @@
           "date": "1999-12-05",
           "opponentTeamCode": "55",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 19,
+          "pct": 47.4
         },
         "fgPct": {
           "value": 70,
@@ -7129,7 +7257,9 @@
           "date": "1999-12-28",
           "opponentTeamCode": "45",
           "times": 2,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 8,
+          "pct": 62.5
         },
         "tpPct": {
           "value": 100,
@@ -7143,7 +7273,9 @@
           "date": "1999-12-28",
           "opponentTeamCode": "45",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 14,
+          "pct": 85.7
         },
         "ftPct": {
           "value": 100,
@@ -7984,7 +8116,9 @@
           "date": "2000-02-12",
           "opponentTeamCode": "15",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 13,
+          "pct": 69.2
         },
         "fgPct": {
           "value": 100,
@@ -8012,7 +8146,9 @@
           "date": "1999-12-28",
           "opponentTeamCode": "55",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 2,
+          "pct": 100
         },
         "tpPct": {
           "value": 100,
@@ -8026,7 +8162,9 @@
           "date": "2000-01-13",
           "opponentTeamCode": "45",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": null,
+          "pct": null
         },
         "ftPct": {
           "value": 100,
@@ -8163,7 +8301,9 @@
           "date": "1999-12-21",
           "opponentTeamCode": "15",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 15,
+          "pct": 86.7
         },
         "fgPct": {
           "value": 100,
@@ -8191,7 +8331,9 @@
           "date": "2000-03-04",
           "opponentTeamCode": "05",
           "times": 41,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": null,
+          "pct": null
         },
         "tpPct": {
           "value": 0,
@@ -8205,7 +8347,9 @@
           "date": "2000-02-08",
           "opponentTeamCode": "40",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 10,
+          "pct": 90
         },
         "ftPct": {
           "value": 100,
@@ -8338,7 +8482,9 @@
           "date": "2000-02-13",
           "opponentTeamCode": "10",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 9,
+          "pct": 88.9
         },
         "fgPct": {
           "value": 100,
@@ -8366,7 +8512,9 @@
           "date": "2000-01-06",
           "opponentTeamCode": "45",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 7,
+          "pct": 57.1
         },
         "tpPct": {
           "value": 100,
@@ -8380,7 +8528,9 @@
           "date": "1999-12-01",
           "opponentTeamCode": "37",
           "times": 2,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 8,
+          "pct": 100
         },
         "ftPct": {
           "value": 100,
@@ -8517,7 +8667,9 @@
           "date": "1999-11-21",
           "opponentTeamCode": "40",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 20,
+          "pct": 55
         },
         "fgPct": {
           "value": 80,
@@ -8545,7 +8697,9 @@
           "date": "2000-01-27",
           "opponentTeamCode": "30",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 7,
+          "pct": 71.4
         },
         "tpPct": {
           "value": 80,
@@ -8559,7 +8713,9 @@
           "date": "2000-02-19",
           "opponentTeamCode": "15",
           "times": 2,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 4,
+          "pct": 100
         },
         "ftPct": {
           "value": 100,
@@ -9221,7 +9377,9 @@
           "date": "1999-12-05",
           "opponentTeamCode": "55",
           "times": 2,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 10,
+          "pct": 60
         },
         "fgPct": {
           "value": 100,
@@ -9249,7 +9407,9 @@
           "date": "1999-12-05",
           "opponentTeamCode": "55",
           "times": 2,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 9,
+          "pct": 55.6
         },
         "tpPct": {
           "value": 100,
@@ -9263,7 +9423,9 @@
           "date": "1999-12-14",
           "opponentTeamCode": "15",
           "times": 3,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 4,
+          "pct": 75
         },
         "ftPct": {
           "value": 100,
@@ -9396,7 +9558,9 @@
           "date": "2000-01-23",
           "opponentTeamCode": "15",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 11,
+          "pct": 72.7
         },
         "fgPct": {
           "value": 100,
@@ -9424,7 +9588,9 @@
           "date": "2000-03-04",
           "opponentTeamCode": "40",
           "times": 45,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": null,
+          "pct": null
         },
         "tpPct": {
           "value": 0,
@@ -9438,7 +9604,9 @@
           "date": "1999-11-20",
           "opponentTeamCode": "05",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 6,
+          "pct": 100
         },
         "ftPct": {
           "value": 100,
@@ -9571,7 +9739,9 @@
           "date": "1999-11-13",
           "opponentTeamCode": "15",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 21,
+          "pct": 61.9
         },
         "fgPct": {
           "value": 75,
@@ -9599,7 +9769,9 @@
           "date": "1999-12-12",
           "opponentTeamCode": "55",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 1,
+          "pct": 100
         },
         "tpPct": {
           "value": 100,
@@ -9613,7 +9785,9 @@
           "date": "1999-11-27",
           "opponentTeamCode": "10",
           "times": 2,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 8,
+          "pct": 87.5
         },
         "ftPct": {
           "value": 100,
@@ -9750,7 +9924,9 @@
           "date": "1999-12-11",
           "opponentTeamCode": "10",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 16,
+          "pct": 56.3
         },
         "fgPct": {
           "value": 100,
@@ -9778,7 +9954,9 @@
           "date": "1999-12-11",
           "opponentTeamCode": "10",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 11,
+          "pct": 45.5
         },
         "tpPct": {
           "value": 100,
@@ -9792,7 +9970,9 @@
           "date": "2000-01-20",
           "opponentTeamCode": "50",
           "times": 4,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 4,
+          "pct": 100
         },
         "ftPct": {
           "value": 100,
@@ -9925,7 +10105,9 @@
           "date": "2000-01-11",
           "opponentTeamCode": "40",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 12,
+          "pct": 66.7
         },
         "fgPct": {
           "value": 75,
@@ -9953,7 +10135,9 @@
           "date": "2000-01-11",
           "opponentTeamCode": "40",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 7,
+          "pct": 57.1
         },
         "tpPct": {
           "value": 60,
@@ -9967,7 +10151,9 @@
           "date": "2000-01-01",
           "opponentTeamCode": "45",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 10,
+          "pct": 80
         },
         "ftPct": {
           "value": 100,
@@ -10629,7 +10815,9 @@
           "date": "2000-01-22",
           "opponentTeamCode": "05",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 17,
+          "pct": 76.5
         },
         "fgPct": {
           "value": 77.77777777777777,
@@ -10657,7 +10845,9 @@
           "date": "2000-01-27",
           "opponentTeamCode": "45",
           "times": 15,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": null,
+          "pct": null
         },
         "tpPct": {
           "value": 0,
@@ -10671,7 +10861,9 @@
           "date": "2000-01-08",
           "opponentTeamCode": "50",
           "times": 2,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 9,
+          "pct": 44.4
         },
         "ftPct": {
           "value": 100,
@@ -10983,7 +11175,9 @@
           "date": "2000-02-10",
           "opponentTeamCode": "45",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": null,
+          "pct": null
         },
         "fgPct": {
           "value": 100,
@@ -11011,7 +11205,9 @@
           "date": "2000-02-10",
           "opponentTeamCode": "45",
           "times": 3,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": null,
+          "pct": null
         },
         "tpPct": {
           "value": 100,
@@ -11025,7 +11221,9 @@
           "date": "2000-02-20",
           "opponentTeamCode": "35",
           "times": 2,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 4,
+          "pct": 75
         },
         "ftPct": {
           "value": 100,
@@ -11683,7 +11881,9 @@
           "date": "2000-01-09",
           "opponentTeamCode": "35",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 14,
+          "pct": 42.9
         },
         "fgPct": {
           "value": 100,
@@ -11711,7 +11911,9 @@
           "date": "2000-01-18",
           "opponentTeamCode": "50",
           "times": 3,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 4,
+          "pct": 50
         },
         "tpPct": {
           "value": 100,
@@ -11725,7 +11927,9 @@
           "date": "2000-01-05",
           "opponentTeamCode": "30",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 5,
+          "pct": 80
         },
         "ftPct": {
           "value": 100,
@@ -11862,7 +12066,9 @@
           "date": "2000-01-27",
           "opponentTeamCode": "45",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 10,
+          "pct": 70
         },
         "fgPct": {
           "value": 100,
@@ -11890,7 +12096,9 @@
           "date": "2000-03-02",
           "opponentTeamCode": "45",
           "times": 3,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 4,
+          "pct": 75
         },
         "tpPct": {
           "value": 100,
@@ -11904,7 +12112,9 @@
           "date": "2000-01-27",
           "opponentTeamCode": "45",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 4,
+          "pct": 100
         },
         "ftPct": {
           "value": 100,
@@ -12212,7 +12422,9 @@
           "date": "2000-03-02",
           "opponentTeamCode": "15",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 13,
+          "pct": 61.5
         },
         "fgPct": {
           "value": 100,
@@ -12240,7 +12452,9 @@
           "date": "2000-03-02",
           "opponentTeamCode": "15",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 7,
+          "pct": 71.4
         },
         "tpPct": {
           "value": 100,
@@ -12254,7 +12468,9 @@
           "date": "2000-02-08",
           "opponentTeamCode": "37",
           "times": 2,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 4,
+          "pct": 100
         },
         "ftPct": {
           "value": 100,
@@ -12391,7 +12607,9 @@
           "date": "2000-01-11",
           "opponentTeamCode": "55",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 8,
+          "pct": 62.5
         },
         "fgPct": {
           "value": 100,
@@ -12419,7 +12637,9 @@
           "date": "2000-01-16",
           "opponentTeamCode": "10",
           "times": 2,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 6,
+          "pct": 66.7
         },
         "tpPct": {
           "value": 100,
@@ -12433,7 +12653,9 @@
           "date": "2000-02-27",
           "opponentTeamCode": "35",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 6,
+          "pct": 83.3
         },
         "ftPct": {
           "value": 100,
@@ -12741,7 +12963,9 @@
           "date": "1999-11-13",
           "opponentTeamCode": "15",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 9,
+          "pct": 66.7
         },
         "fgPct": {
           "value": 100,
@@ -12769,7 +12993,9 @@
           "date": "1999-11-23",
           "opponentTeamCode": "45",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 5,
+          "pct": 40
         },
         "tpPct": {
           "value": 100,
@@ -12783,7 +13009,9 @@
           "date": "2000-03-04",
           "opponentTeamCode": "35",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 4,
+          "pct": 75
         },
         "ftPct": {
           "value": 100,
@@ -12916,7 +13144,9 @@
           "date": "2000-02-27",
           "opponentTeamCode": "15",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 17,
+          "pct": 58.8
         },
         "fgPct": {
           "value": 58.8235294117647,
@@ -12944,7 +13174,9 @@
           "date": "2000-02-29",
           "opponentTeamCode": "45",
           "times": 2,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 6,
+          "pct": 33.3
         },
         "tpPct": {
           "value": 50,
@@ -12958,7 +13190,9 @@
           "date": "2000-02-27",
           "opponentTeamCode": "15",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 4,
+          "pct": 100
         },
         "ftPct": {
           "value": 100,
@@ -13266,7 +13500,9 @@
           "date": "2000-01-18",
           "opponentTeamCode": "05",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 16,
+          "pct": 50
         },
         "fgPct": {
           "value": 75,
@@ -13294,7 +13530,9 @@
           "date": "2000-01-18",
           "opponentTeamCode": "05",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 8,
+          "pct": 37.5
         },
         "tpPct": {
           "value": 100,
@@ -13308,7 +13546,9 @@
           "date": "2000-01-09",
           "opponentTeamCode": "05",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 4,
+          "pct": 100
         },
         "ftPct": {
           "value": 100,
@@ -13616,7 +13856,9 @@
           "date": "2000-02-10",
           "opponentTeamCode": "30",
           "times": 2,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 6,
+          "pct": 66.7
         },
         "fgPct": {
           "value": 100,
@@ -13644,7 +13886,9 @@
           "date": "2000-02-10",
           "opponentTeamCode": "30",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 5,
+          "pct": 60
         },
         "tpPct": {
           "value": 100,
@@ -13658,7 +13902,9 @@
           "date": "2000-02-24",
           "opponentTeamCode": "30",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 8,
+          "pct": 100
         },
         "ftPct": {
           "value": 100,
@@ -14674,7 +14920,9 @@
           "date": "1999-11-16",
           "opponentTeamCode": "37",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 12,
+          "pct": 41.7
         },
         "fgPct": {
           "value": 100,
@@ -14702,7 +14950,9 @@
           "date": "2000-01-08",
           "opponentTeamCode": "05",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 3,
+          "pct": 100
         },
         "tpPct": {
           "value": 100,
@@ -14716,7 +14966,9 @@
           "date": "2000-02-15",
           "opponentTeamCode": "45",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 6,
+          "pct": 83.3
         },
         "ftPct": {
           "value": 100,
@@ -14849,7 +15101,9 @@
           "date": "2000-01-09",
           "opponentTeamCode": "30",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 9,
+          "pct": 66.7
         },
         "fgPct": {
           "value": 100,
@@ -14877,7 +15131,9 @@
           "date": "2000-03-04",
           "opponentTeamCode": "35",
           "times": 45,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": null,
+          "pct": null
         },
         "tpPct": {
           "value": 0,
@@ -14891,7 +15147,9 @@
           "date": "2000-01-15",
           "opponentTeamCode": "15",
           "times": 2,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 2,
+          "pct": 100
         },
         "ftPct": {
           "value": 100,
@@ -15024,7 +15282,9 @@
           "date": "1999-12-11",
           "opponentTeamCode": "50",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 10,
+          "pct": 40
         },
         "fgPct": {
           "value": 100,
@@ -15052,7 +15312,9 @@
           "date": "1999-12-11",
           "opponentTeamCode": "50",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 8,
+          "pct": 37.5
         },
         "tpPct": {
           "value": 100,
@@ -15066,7 +15328,9 @@
           "date": "2000-02-17",
           "opponentTeamCode": "40",
           "times": 4,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 2,
+          "pct": 100
         },
         "ftPct": {
           "value": 100,
@@ -15374,7 +15638,9 @@
           "date": "2000-02-12",
           "opponentTeamCode": "10",
           "times": 2,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 4,
+          "pct": 100
         },
         "fgPct": {
           "value": 100,
@@ -15402,7 +15668,9 @@
           "date": "2000-02-12",
           "opponentTeamCode": "10",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 3,
+          "pct": 100
         },
         "tpPct": {
           "value": 100,
@@ -15416,7 +15684,9 @@
           "date": "2000-02-26",
           "opponentTeamCode": "50",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 2,
+          "pct": 100
         },
         "ftPct": {
           "value": 100,
@@ -16603,7 +16873,9 @@
           "date": "1999-11-20",
           "opponentTeamCode": "35",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 6,
+          "pct": 83.3
         },
         "fgPct": {
           "value": 100,
@@ -16631,7 +16903,9 @@
           "date": "1999-11-27",
           "opponentTeamCode": "15",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 2,
+          "pct": 100
         },
         "tpPct": {
           "value": 100,
@@ -16645,7 +16919,9 @@
           "date": "1999-12-21",
           "opponentTeamCode": "40",
           "times": 3,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 2,
+          "pct": 100
         },
         "ftPct": {
           "value": 100,
@@ -16778,7 +17054,9 @@
           "date": "2000-02-24",
           "opponentTeamCode": "45",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 9,
+          "pct": 55.6
         },
         "fgPct": {
           "value": 100,
@@ -16806,7 +17084,9 @@
           "date": "2000-02-24",
           "opponentTeamCode": "45",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 5,
+          "pct": 80
         },
         "tpPct": {
           "value": 80,
@@ -16820,7 +17100,9 @@
           "date": "2000-01-16",
           "opponentTeamCode": "05",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 2,
+          "pct": 100
         },
         "ftPct": {
           "value": 100,
@@ -17303,7 +17585,9 @@
           "date": "1999-12-25",
           "opponentTeamCode": "45",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 6,
+          "pct": 83.3
         },
         "fgPct": {
           "value": 100,
@@ -17331,7 +17615,9 @@
           "date": "2000-02-29",
           "opponentTeamCode": "15",
           "times": 44,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": null,
+          "pct": null
         },
         "tpPct": {
           "value": 0,
@@ -17345,7 +17631,9 @@
           "date": "1999-12-26",
           "opponentTeamCode": "55",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 4,
+          "pct": 100
         },
         "ftPct": {
           "value": 100,
@@ -17653,7 +17941,9 @@
           "date": "2000-03-04",
           "opponentTeamCode": "30",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 6,
+          "pct": 83.3
         },
         "fgPct": {
           "value": 83.33333333333333,
@@ -17681,7 +17971,9 @@
           "date": "2000-03-04",
           "opponentTeamCode": "30",
           "times": 24,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": null,
+          "pct": null
         },
         "tpPct": {
           "value": 0,
@@ -17695,7 +17987,9 @@
           "date": "1999-11-28",
           "opponentTeamCode": "35",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 4,
+          "pct": 100
         },
         "ftPct": {
           "value": 100,
@@ -18178,7 +18472,9 @@
           "date": "2000-02-13",
           "opponentTeamCode": "50",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 4,
+          "pct": 50
         },
         "fgPct": {
           "value": 100,
@@ -18206,7 +18502,9 @@
           "date": "2000-02-17",
           "opponentTeamCode": "05",
           "times": 4,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 1,
+          "pct": 100
         },
         "tpPct": {
           "value": 100,
@@ -18220,7 +18518,9 @@
           "date": "1999-12-11",
           "opponentTeamCode": "35",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 2,
+          "pct": 100
         },
         "ftPct": {
           "value": 100,
@@ -19057,7 +19357,9 @@
           "date": "2000-02-27",
           "opponentTeamCode": "40",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 3,
+          "pct": 66.7
         },
         "fgPct": {
           "value": 100,
@@ -19085,7 +19387,9 @@
           "date": "2000-02-27",
           "opponentTeamCode": "40",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 2,
+          "pct": 100
         },
         "tpPct": {
           "value": 100,
@@ -19099,7 +19403,9 @@
           "date": "2000-02-27",
           "opponentTeamCode": "40",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 4,
+          "pct": 75
         },
         "ftPct": {
           "value": 75,
@@ -19236,7 +19542,9 @@
           "date": "2000-02-10",
           "opponentTeamCode": "30",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": null,
+          "pct": null
         },
         "fgPct": {
           "value": 100,
@@ -19264,7 +19572,9 @@
           "date": "2000-03-02",
           "opponentTeamCode": "37",
           "times": 45,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": null,
+          "pct": null
         },
         "tpPct": {
           "value": 0,
@@ -19278,7 +19588,9 @@
           "date": "2000-02-05",
           "opponentTeamCode": "05",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 2,
+          "pct": 50
         },
         "ftPct": {
           "value": 50,
@@ -20119,7 +20431,9 @@
           "date": "2000-02-27",
           "opponentTeamCode": "40",
           "times": 2,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 1,
+          "pct": 100
         },
         "fgPct": {
           "value": 100,
@@ -20147,7 +20461,9 @@
           "date": "2000-02-27",
           "opponentTeamCode": "40",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 1,
+          "pct": 100
         },
         "tpPct": {
           "value": 100,
@@ -20161,7 +20477,9 @@
           "date": "2000-02-27",
           "opponentTeamCode": "40",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 6,
+          "pct": 50
         },
         "ftPct": {
           "value": 100,
@@ -20469,7 +20787,9 @@
           "date": "2000-02-24",
           "opponentTeamCode": "45",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 4,
+          "pct": 25
         },
         "fgPct": {
           "value": 25,
@@ -20497,7 +20817,9 @@
           "date": "2000-02-24",
           "opponentTeamCode": "45",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 3,
+          "pct": 33.3
         },
         "tpPct": {
           "value": 33.333333333333336,
@@ -20511,7 +20833,9 @@
           "date": "2000-02-24",
           "opponentTeamCode": "45",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 4,
+          "pct": 100
         },
         "ftPct": {
           "value": 100,
@@ -20644,7 +20968,9 @@
           "date": "2000-02-08",
           "opponentTeamCode": "55",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 4,
+          "pct": 50
         },
         "fgPct": {
           "value": 50,
@@ -20672,7 +20998,9 @@
           "date": "2000-02-08",
           "opponentTeamCode": "55",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 3,
+          "pct": 66.7
         },
         "tpPct": {
           "value": 66.66666666666667,
@@ -20686,7 +21014,9 @@
           "date": "2000-03-04",
           "opponentTeamCode": "55",
           "times": 45,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": null,
+          "pct": null
         },
         "ftPct": {
           "value": 0,
@@ -21177,7 +21507,9 @@
           "date": "2000-03-04",
           "opponentTeamCode": "35",
           "times": 2,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 1,
+          "pct": 100
         },
         "fgPct": {
           "value": 100,
@@ -21205,7 +21537,9 @@
           "date": "2000-02-15",
           "opponentTeamCode": "45",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 3,
+          "pct": 33.3
         },
         "tpPct": {
           "value": 33.333333333333336,
@@ -21219,7 +21553,9 @@
           "date": "2000-03-04",
           "opponentTeamCode": "35",
           "times": 11,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": null,
+          "pct": null
         },
         "ftPct": {
           "value": 0,
@@ -21885,7 +22221,9 @@
           "date": "2000-03-04",
           "opponentTeamCode": "55",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 1,
+          "pct": 100
         },
         "fgPct": {
           "value": 100,
@@ -21913,7 +22251,9 @@
           "date": "2000-03-04",
           "opponentTeamCode": "55",
           "times": 45,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": null,
+          "pct": null
         },
         "tpPct": {
           "value": 0,
@@ -21927,7 +22267,9 @@
           "date": "2000-03-04",
           "opponentTeamCode": "55",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 2,
+          "pct": 50
         },
         "ftPct": {
           "value": 50,
@@ -22064,7 +22406,9 @@
           "date": "2000-02-27",
           "opponentTeamCode": "05",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 1,
+          "pct": 100
         },
         "fgPct": {
           "value": 100,
@@ -22092,7 +22436,9 @@
           "date": "2000-03-04",
           "opponentTeamCode": "15",
           "times": 22,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": null,
+          "pct": null
         },
         "tpPct": {
           "value": 0,
@@ -22106,7 +22452,9 @@
           "date": "2000-02-26",
           "opponentTeamCode": "37",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 2,
+          "pct": 50
         },
         "ftPct": {
           "value": 50,
@@ -22414,7 +22762,9 @@
           "date": "2000-02-10",
           "opponentTeamCode": "45",
           "times": 19,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": null,
+          "pct": null
         },
         "fgPct": {
           "value": 0,
@@ -22442,7 +22792,9 @@
           "date": "2000-02-10",
           "opponentTeamCode": "45",
           "times": 19,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": null,
+          "pct": null
         },
         "tpPct": {
           "value": 0,
@@ -22456,7 +22808,9 @@
           "date": "2000-02-10",
           "opponentTeamCode": "45",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": null,
+          "pct": null
         },
         "ftPct": {
           "value": 100,
@@ -22593,7 +22947,9 @@
           "date": "2000-03-04",
           "opponentTeamCode": "35",
           "times": 2,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": null,
+          "pct": null
         },
         "fgPct": {
           "value": 0,
@@ -22621,7 +22977,9 @@
           "date": "2000-03-04",
           "opponentTeamCode": "35",
           "times": 2,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": null,
+          "pct": null
         },
         "tpPct": {
           "value": 0,
@@ -22635,7 +22993,9 @@
           "date": "2000-03-04",
           "opponentTeamCode": "35",
           "times": 1,
-          "seasonCode": 4
+          "seasonCode": 4,
+          "attempts": 2,
+          "pct": 100
         },
         "ftPct": {
           "value": 100,
@@ -25019,7 +25379,9 @@
       "date": "1999-11-13",
       "opponentTeamCode": "15",
       "times": 1,
-      "seasonCode": 4
+      "seasonCode": 4,
+      "attempts": 35,
+      "pct": 65.7
     },
     "twoPm": {
       "playerNo": "240042",
@@ -25035,7 +25397,9 @@
       "date": "2000-01-08",
       "opponentTeamCode": "30",
       "times": 1,
-      "seasonCode": 4
+      "seasonCode": 4,
+      "attempts": 15,
+      "pct": 66.7
     },
     "ftm": {
       "playerNo": "225019",
@@ -25043,7 +25407,9 @@
       "date": "1999-11-14",
       "opponentTeamCode": "55",
       "times": 1,
-      "seasonCode": 4
+      "seasonCode": 4,
+      "attempts": 16,
+      "pct": 93.8
     },
     "oreb": {
       "playerNo": "245032",
