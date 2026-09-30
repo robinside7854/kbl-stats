@@ -103,7 +103,8 @@ kbl-stats/
 │   ├── metrics.test.ts  ← lib/metrics.ts 검증 (npm run test:metrics)
 │   ├── leaders.test.ts  ← lib/leaders.ts 검증 (npm run test:leaders)
 │   ├── card.test.ts     ← 플레이어 카드 스탯·순위 검증 (npm run test:card)
-│   └── player.test.ts   ← 통산 계산·추이·카드 계산·검색 매칭 검증 (npm run test:player, 넷 다: npm test)
+│   ├── player.test.ts   ← 통산 계산·추이·카드 계산·검색 매칭 검증 (npm run test:player)
+│   └── teams.test.ts    ← 팀 색 배정·핵심 의존도·산점도 쿼리·홈 시즌 고르기 검증 (npm run test:teams, 다섯 다: npm test)
 ├── public/search-index.json ← 빌드 전 생성되는 검색 색인 (id·이름·최근 팀·첫/마지막 시즌·photoUrl·팀 색, 약 290KB / gzip 약 41KB). git 제외
 ├── data/
 │   ├── codes/           ← 시즌·팀·경기구분 코드표 (API에서 받아 저장) + team-colors.json(팀 색, 손으로 관리하는 유일한 예외)
@@ -114,21 +115,24 @@ kbl-stats/
 │   ├── career.ts        ← 선수 페이지 규칙 (순수 함수: 시즌 짧은 표기 seasonShortLabel, 활동 기간, 소속 팀 구간 teamStints, 추이 지표 TREND_METRICS·trendRows(빈 시즌 null))
 │   ├── search.ts        ← 선수 검색 (순수 함수: normalizeName(공백 무시)·matchScore·searchPlayers(최대 10명, 최근 선수 먼저)·buildSearchIndex)
 │   ├── leaders.ts       ← 순위표 규칙 (순수 함수: 부문 정의(better high/low), 필터·정렬·순위(성공률 시도 기준), 열 순서, 성공/시도·숫자 표기, 주소 쿼리)
-│   ├── teams.ts         ← 팀 한글 약칭 teamShortNameKo (연고지 지명 목록 HOME_CITIES — 하드코딩 예외, 이유 주석)
-│   ├── data.ts          ← 빌드 시점에 data/processed 읽기 (서버 전용, loadPlayersIndex·toCardPlayers·toCardTeams·toLeaderPlayers·loadPlayerCareer(선수 전 시즌 행)·loadPlayerCard(최근 시즌 카드를 서버에서 계산))
+│   ├── teams.ts         ← 팀 한글 약칭 teamShortNameKo (연고지 지명 목록 HOME_CITIES — 하드코딩 예외, 이유 주석), 팀 색 배정 assignTeamColors(회색 기본값 팀 → 범주형 팔레트, 팀 순서, 순환 금지)·ensureMarkContrast·comparePairColors(OKLab 거리 < 15면 팔레트 1·2번), 핵심 의존도 teamDependency(상위 3명 득점 비중·표본 충족 수)
+│   ├── distribution.ts  ← 팀 분포 산점도 규칙 (지표 SCATTER_METRICS PER·TS%·경기당 득점, scatterPoints(표본 충족만), toggleTeam(최대 2팀), 주소 쿼리 ?teams=&y=&q=&p=)
+│   ├── home.ts          ← 홈 규칙 (HOME_CATEGORIES, pickHomeSeason(코드표 최신 시즌이 0명이면 직전 시즌 + 개막 전 안내), splitRecentSeasons)
+│   ├── data.ts          ← 빌드 시점에 data/processed 읽기 (서버 전용, listAllSeasons(코드표 전체)·loadPlayersIndex·toCardPlayers·toCardTeams·toLeaderPlayers·loadPlayerCareer(선수 전 시즌 행)·loadPlayerCard(최근 시즌 카드를 서버에서 계산))
 │   ├── images.ts        ← 공식 이미지 스위치 officialImagesEnabled() (NEXT_PUBLIC_OFFICIAL_IMAGES=off 면 끔) + 대체 디자인 글자 규칙(teamMark) + 표용 팀 약칭(teamShortLabel: 9글자 넘으면 머리글자) + 색 섞기 mixHex(카드 그라데이션)
 │   └── types.ts         ← Player, SeasonData(coverage·teams), Team(shortNameKo·logoUrl·color), TeamColor, PlayerIndexEntry(photoUrl), CardPlayer, CardTeam, LeaderPlayer(순위표용 최소 필드), CareerSeason·PlayerCareer(선수 페이지), SearchEntry(검색 색인) 등 타입 정의
 ├── app/                 ← Next.js 화면 (App Router)
-│   ├── layout.tsx, globals.css (색 토큰: 라이트/다크)
-│   ├── page.tsx         ← 최신 시즌 플레이어 카드 (정적)
+│   ├── layout.tsx, globals.css (색 토큰: 라이트/다크, 범주형 --cat-1…8)
+│   ├── page.tsx         ← 홈 "이번 시즌 한눈에" (개막 전 안내·득점 1위 표지·부문별 1~3위·네 화면 버튼·시즌 목록, 정적)
 │   ├── season/[seasonCode]/page.tsx  ← 시즌별 플레이어 카드 정적 페이지
 │   ├── season/[seasonCode]/leaders/page.tsx  ← 시즌 순위표 정적 페이지 (1~3위 표지 카드 + 정렬 표)
+│   ├── season/[seasonCode]/teams/page.tsx  ← 팀별 선수 분포 정적 페이지 (산점도 + 팀별 핵심 의존도)
 │   ├── player/[playerNo]/page.tsx  ← 선수 페이지 정적 1,329개 (히어로·최근 시즌 카드·추이 그래프·시즌별 기록표)
 │   ├── not-found.tsx
 │   └── components/      ← SiteNav(상단: 사이트 이름·검색창·시즌 선택·화면 메뉴, 모든 화면 공통), PlayerSearch(첫 포커스 때 /search-index.json 한 번 fetch — 우리 정적 파일),
 │                           PlayerHero·PlayerCardPanel·CareerTrend(Recharts LineChart)·CareerTable(선수 페이지), Segmented, useCardSave(카드 PNG 저장), useMedia, SeasonView, CardExplorer(선수 선택·비교·이미지 저장),
 │                           PlayerCard(게임식 플레이어 카드: 팀 색 상단+큰 사진 / 스탯 9개+시즌 순위 / 작은 레이더),
-│                           LeadersView(순위표), PlayerPicker, SourceFooter, useThemeColors,
+│                           LeadersView(순위표), TeamsView(팀 분포 산점도·팀 요약), HomeView·FocusSearchButton(홈), PlayerPicker, SourceFooter, useThemeColors,
 │                           PlayerAvatar(circle·portrait)·TeamLogo(공식 이미지+대체 디자인, official={false}면 대체만), useOfficialImage(저장 filter excludeOfficialImages)
 └── .github/workflows/fetch.yml, backfill.yml  ← 매일 새벽 수집 / 전체 재수집
 ```
@@ -150,6 +154,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-09-30 (팀 분포·홈): PLAN.md ④⑤ 완료. `/season/[코드]/teams` 30개 시즌 — 산점도(가로 경기당 출전, 세로 PER/TS%/경기당 득점, 표본 충족만), 팀 칩이 범례·필터 겸용(전체/한 팀 강조/두 팀 비교), 점 누르면 하단 선수 카드(PC는 툴팁도), 표로 보기, 팀별 핵심 의존도 카드(상위 3명 득점 비중·표본 충족 수, 선수 기록 합산이라 공식 팀 기록 아님 안내). 홈은 "이번 시즌 한눈에"로 교체(득점 1위 표지·부문별 1~3위·네 화면 버튼·시즌 목록), 지금은 2026-27이 0명이라 "개막 전 · 직전 시즌" 안내가 뜬다. 발견: 팀 색 10개는 산점도 전체 보기에서 서로 구분되지 않는다(dataviz 검증기: 산점도는 3색까지만 통과, SK·정관장 빨강 ΔE<15, 현대모비스·KCC·가스공사 남색) → 강조/비교가 기본 읽는 방법, 비교 두 팀 색이 비슷하면 파랑·주황으로 바꾸고 두 번째 팀은 네모 점. KT 검정은 다크 바탕에서 밝게 보정. 검증: Playwright 390·1280px 가로 스크롤 0, 팀 선택·지표 전환·점 클릭·쿼리 유지 확인.
 - 2026-09-30 (③ 선수 페이지·검색): `/player/[선수번호]` 1,329개 정적 생성 + SiteNav 검색창. 구성: 팀 색 히어로(사진·로고·국내/외국인·활동 기간·통산 경기/경기당 득점·리바·어시 = 합계 ÷ 합계 경기·소속 이력) → 최근 시즌 플레이어 카드(서버에서 buildCardEntry 로 계산해 결과만 전달, 기본 표본 기준이라 /season 카드와 같은 순위·등급, 저장 동작) → 추이 선 그래프(득점·리바·어시·야투%·TS%·PER, 점 색 = 그 시즌 팀, 이적 시즌은 큰 점, 뛰지 않은 시즌은 선이 끊김, 1시즌이면 안내문) → 시즌별 기록표(경기당/합계, 시즌 → `/season/코드?p=`). 검색 색인은 prebuild 에서 `public/search-index.json` 생성(git 제외). 순위표·카드 이름·PlayerPicker "기록 ›"에 선수 페이지 링크. 빌드 약 33초(정적 1,393쪽), 선수 페이지 HTML 50~115KB(gzip 약 14KB). 검증: typecheck·test·build, Playwright 390/1280 가로 스크롤 0, 검색→이동, 카드 PNG 저장.
 - 2026-09-30 (피드백 반영): ① 순위표 — 출전시간을 경기 오른쪽으로, 3점 성공·USG%·PIE 삭제, 턴오버·3점%·자유투% 추가, 성공률 칸 아래 시즌 합계 성공/시도. 턴오버 부문은 적은 순(카드·순위·기본 정렬). ② 성공률 시도 기준을 "표본 충족 선수의 경기당 시도 리그 평균 이상"으로(`lib/metrics.ts attemptThresholds`, 카드·순위표 공용, 2025-26: 야투 5.8·3점 2.4·자유투 1.3). ③ 팀 한글 약칭 `teams[].shortNameKo`(`lib/teams.ts`, 연고지 지명 제거) → 화면 전부 한글. ④ 플레이어 카드: PC(≥768px) 500px 확대, 팀 필터(`?team=`), 레이더 크게 + 꼭짓점 등급 S~F(`percentileGrade`: 90/75/55/35/15), 헤더 종합 등급(5축 평균). **발견·수정: KBL `fg/fgA/fgRt`는 2점슛, `fdg/fdgA/fdgRt`가 전체 야투였다**(fdg = fg + threep, 득점 = 2·fg + 3·3점 + 자유투, 3개 시즌 전원 일치) → process.ts 매핑을 바로잡아 야투율이 전 시즌 바뀜(예: 워니 49.9 → 44.2%).
 - 2026-09-30 (플레이어 카드): 사용자 피드백("사진·로고가 너무 작다, 게임 카드처럼")으로 레이더 카드를 플레이어 카드로 개편. 상단 팀 색 그라데이션+큰 세로 사진(208px)+로고 칩, 중단 경기당 스탯 9개(득점·리바·어시·스틸·블록·턴오버·야투·3점·자유투) 3×3 + 시즌 순위(1~3위 SVG 메달, 4~10위 팀 색 강조), 하단 작은 백분위 레이더+표. 순위 규칙은 lib/metrics.ts(동점 같은 순위, 턴오버 오름차순, 표본 미달 → "표본 미달"). 결정: 성공률은 표본 기준만으로는 1/1=100%가 1위가 되어 **경기당 시도 기준(야투 4·3점 1.5·자유투 1회)** 추가 → 미달은 "시도 부족"(KBL 공식 규정 아님, 우리 규칙). 이미지 저장은 화면 밖에 공식 이미지 없는 사본(exportMode)을 그려 PNG로 + filter 로 `<img data-official-image>` 제외 — Playwright로 PNG 생성 확인(한 장 808×1524, 비교 두 장 1592×1524 @2x). 카드 비율은 레이더를 남기느라 약 1:2(358×752)로 목표(2:3)보다 길다. 비교는 카드 두 장 나란히(겹친 레이더 제거). 메뉴 이름 "플레이어 카드".
