@@ -2,7 +2,7 @@
   "seasonCode": 43,
   "seasonLabel": "2023-2024",
   "gameType": "regular",
-  "fetchedAt": "2026-09-30T02:08:09.788Z",
+  "fetchedAt": "2026-09-30T04:20:13.334Z",
   "coverage": {
     "advanced": false,
     "plusMinus": true,
@@ -17,7 +17,13 @@
       "fullName": "원주 DB 프로미",
       "nameEn": "WONJU DB PROMY",
       "logoName": "db",
-      "order": 1
+      "order": 1,
+      "logoUrl": "https://kbl.or.kr/assets/img/ico/logo/ic-db.svg",
+      "color": {
+        "primary": "#00703C",
+        "secondary": "#A5ACAF",
+        "text": "#fff"
+      }
     },
     {
       "teamCode": "35",
@@ -26,7 +32,13 @@
       "fullName": "서울 삼성 썬더스",
       "nameEn": "SEOUL SAMSUNG THUNDERS",
       "logoName": "ss",
-      "order": 2
+      "order": 2,
+      "logoUrl": "https://kbl.or.kr/assets/img/ico/logo/ic-ss.svg",
+      "color": {
+        "primary": "#0053A6",
+        "secondary": "#A5ACAF",
+        "text": "#fff"
+      }
     },
     {
       "teamCode": "66",
@@ -35,7 +47,13 @@
       "fullName": "고양 소노 스카이거너스",
       "nameEn": "GOYANG SONO SKY GUNNERS",
       "logoName": "sono",
-      "order": 3
+      "order": 3,
+      "logoUrl": "https://kbl.or.kr/assets/img/ico/logo/ic-sono.svg",
+      "color": {
+        "primary": "#00A0E9",
+        "secondary": "#1B2A4A",
+        "text": "#fff"
+      }
     },
     {
       "teamCode": "55",
@@ -44,7 +62,13 @@
       "fullName": "서울 SK 나이츠",
       "nameEn": "SEOUL SK KNIGHTS",
       "logoName": "sk",
-      "order": 4
+      "order": 4,
+      "logoUrl": "https://kbl.or.kr/assets/img/ico/logo/ic-sk.svg",
+      "color": {
+        "primary": "#E4002B",
+        "secondary": "#1A1A1A",
+        "text": "#fff"
+      }
     },
     {
       "teamCode": "50",
@@ -53,7 +77,13 @@
       "fullName": "창원 LG 세이커스",
       "nameEn": "CHANGWON LG SAKERS",
       "logoName": "lg",
-      "order": 5
+      "order": 5,
+      "logoUrl": "https://kbl.or.kr/assets/img/ico/logo/ic-lg.svg",
+      "color": {
+        "primary": "#7A1B33",
+        "secondary": "#C4A15A",
+        "text": "#fff"
+      }
     },
     {
       "teamCode": "70",
@@ -62,7 +92,13 @@
       "fullName": "안양 정관장 레드부스터스",
       "nameEn": "ANYANG JUNG KWAN JANG RED BOOSTERS",
       "logoName": "kgc",
-      "order": 6
+      "order": 6,
+      "logoUrl": "https://kbl.or.kr/assets/img/ico/logo/ic-kgc.svg",
+      "color": {
+        "primary": "#C8102E",
+        "secondary": "#1A1A1A",
+        "text": "#fff"
+      }
     },
     {
       "teamCode": "60",
@@ -71,7 +107,13 @@
       "fullName": "부산 KCC 이지스",
       "nameEn": "BUSAN KCC EGIS",
       "logoName": "kcc",
-      "order": 7
+      "order": 7,
+      "logoUrl": "https://kbl.or.kr/assets/img/ico/logo/ic-kcc.svg",
+      "color": {
+        "primary": "#003A70",
+        "secondary": "#D6A461",
+        "text": "#fff"
+      }
     },
     {
       "teamCode": "06",
@@ -80,7 +122,13 @@
       "fullName": "수원 KT 소닉붐",
       "nameEn": "SUWON KT SONICBOOM",
       "logoName": "kt",
-      "order": 8
+      "order": 8,
+      "logoUrl": "https://kbl.or.kr/assets/img/ico/logo/ic-kt.svg",
+      "color": {
+        "primary": "#111111",
+        "secondary": "#E60012",
+        "text": "#fff"
+      }
     },
     {
       "teamCode": "64",
@@ -89,7 +137,13 @@
       "fullName": "대구 한국가스공사 페가수스",
       "nameEn": "DAEGU KOREAGASCORPORATION PEGASUS",
       "logoName": "pega",
-      "order": 9
+      "order": 9,
+      "logoUrl": "https://kbl.or.kr/assets/img/ico/logo/ic-pega.svg",
+      "color": {
+        "primary": "#0B2E6B",
+        "secondary": "#00A0E9",
+        "text": "#fff"
+      }
     },
     {
       "teamCode": "10",
@@ -98,7 +152,13 @@
       "fullName": "울산 현대모비스 피버스",
       "nameEn": "ULSAN HYUNDAI MOBIS PHOEBUS",
       "logoName": "hd",
-      "order": 10
+      "order": 10,
+      "logoUrl": "https://kbl.or.kr/assets/img/ico/logo/ic-hd.svg",
+      "color": {
+        "primary": "#003E7E",
+        "secondary": "#E4002B",
+        "text": "#fff"
+      }
     }
   ],
   "players": [
