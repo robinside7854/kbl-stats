@@ -1,10 +1,11 @@
 // 용어 탭 (/glossary): lib/glossary.ts 항목을 표로 — 이름 · 한 줄 설명 · 계산식(고정폭) · 비고(검산 여부·KBL 특이사항) · 출처.
 // 메뉴에는 없다(2026-09-30 피드백 5차) — 각 화면 ⓘ 팝오버(HelpPopover)의 "자세히"가 여기 앵커(/glossary#ts 등, GLOSSARY_ANCHORS)로 연결된다 — 앵커 줄은 강조된다.
-// 그 아래 "선수 유형 라벨"(lib/glossary PLAYER_TYPES, 앵커 #type-{키})·"칭호 배지"(lib/badges BADGE_DEFS, 앵커 #badge-{키}) 규칙 표.
+// 그 아래 "선수 유형 라벨"(lib/glossary PLAYER_TYPES, 앵커 #type-{키})·"슛 구역"(lib/shots SHOT_ZONES, #zone-{키})·"주 공격 유형"(OFFENSE_TYPES, #offense-{키})·"칭호 배지"(lib/badges BADGE_DEFS, 앵커 #badge-{키}) 규칙 표.
 // 모바일(768px 미만)은 표의 한 줄을 카드처럼 세로로 쌓는다 (같은 표 마크업, CSS만 다름 — 가로 스크롤 없음).
 import type { Metadata } from "next";
 import { listSeasonsWithPlayers, loadSeasonData } from "@/lib/data";
-import { GLOSSARY, GLOSSARY_ANCHORS, PLAYER_TYPES } from "@/lib/glossary";
+import { GLOSSARY, GLOSSARY_ANCHORS, OFFENSE_MIN_ATTEMPTS, OFFENSE_TYPES, PLAYER_TYPES } from "@/lib/glossary";
+import { SHOT_ZONES } from "@/lib/shots";
 import { BADGE_DEFS } from "@/lib/badges";
 import { IconExternal } from "@/app/components/icons";
 import SiteNav from "@/app/components/SiteNav";
@@ -161,6 +162,22 @@ export default function GlossaryPage() {
           intro="플레이어 카드 위쪽 라벨. 레이더 5축 백분위(같은 국적 집단 안)로 위에서부터 먼저 맞는 규칙을 씁니다."
           head="라벨"
           rows={PLAYER_TYPES.map((t) => ({ id: `type-${t.key}`, label: t.label, condition: t.condition, short: t.short }))}
+        />
+
+        <RuleTable
+          id="shot-zone-list"
+          title="슛 구역"
+          intro="선수 상세 슛 차트의 구역표. 공홈 슛 차트 좌표로 계산해 공식 3점 기록과 조금 다를 수 있습니다."
+          head="구역"
+          rows={SHOT_ZONES.map((z) => ({ id: `zone-${z.key}`, label: z.label, condition: z.condition, short: z.desc }))}
+        />
+
+        <RuleTable
+          id="offense-list"
+          title="주 공격 유형"
+          intro={`슛 차트 제목 옆·플레이어 카드 칩. 그 시즌 정규시즌 슛 ${OFFENSE_MIN_ATTEMPTS}개 이상일 때 구역 시도 비중으로 위에서부터 먼저 맞는 규칙을 씁니다.`}
+          head="유형"
+          rows={OFFENSE_TYPES.map((t) => ({ id: `offense-${t.key}`, label: t.label, condition: t.condition, short: t.short }))}
         />
 
         <RuleTable

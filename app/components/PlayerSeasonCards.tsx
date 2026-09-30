@@ -9,6 +9,7 @@
 // - PC(1024px 이상)는 가로 카드(왼쪽 사진·가운데 스탯·오른쪽 레이더, 높이 520px 이하) 한 줄 → 그 아래
 //   시즌별 추이(원래 높이) + 오른쪽 좁은 열에 하이라이트 카드 3개 세로(그 시즌 순위 1~10위 부문, 없으면 커리어 하이).
 //   (피드백 5차 #1: 세로 카드 옆에 추이를 카드 높이만큼 늘이던 배치를 없앴다.) 모바일은 세로 카드 → 추이 → 하이라이트 3개 가로.
+// - 추이·하이라이트 아래 슛 차트(ShotChart) — 같은 시즌 칩을 따른다 (PLAN.md §14).
 // - 시즌별 기록표(CareerTable)의 시즌을 누르면 "player-season" 이벤트로 여기 시즌을 바꾼다.
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -26,6 +27,8 @@ import { careerHighlights, seasonHighlights, type SeasonCardView } from "@/lib/c
 import type { CareerHighRow } from "@/lib/career";
 import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
 import HighlightCards from "./HighlightCards";
+import ShotChart from "./ShotChart";
+import type { PlayerShotsFile } from "@/lib/shots";
 
 /** 시즌별 기록표 등 다른 컴포넌트가 카드 시즌을 바꿀 때 보내는 이벤트 이름 */
 export const PLAYER_SEASON_EVENT = "player-season";
@@ -43,9 +46,13 @@ interface Props {
   aside?: React.ReactNode;
   /** 정규시즌 커리어 하이 행 (시즌 순위 1~10위가 없을 때 하이라이트 대체용). 없으면 [] */
   careerHighRows: CareerHighRow[];
+  /** 슛 차트가 있는 시즌 코드 */
+  shotSeasons: number[];
+  /** 서버가 넣은 최신 시즌 슛 파일 (없으면 null) */
+  initialShots: PlayerShotsFile | null;
 }
 
-export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, groupLabel, aside, careerHighRows }: Props) {
+export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, groupLabel, aside, careerHighRows, shotSeasons, initialShots }: Props) {
   const codes = useMemo(() => seasons.map((s) => s.seasonCode), [seasons]);
   const labelOf = (code: number) => seasonShortLabel(seasons.find((s) => s.seasonCode === code)?.seasonLabel ?? String(code));
   const [state, setState] = useState<PlayerViewState>({ season: initial.seasonCode, scope: "all" });
@@ -145,6 +152,17 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
       <div className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start">
         <div className="min-w-0">{aside}</div>
         <HighlightCards title={highlight.title} items={highlight.items} teamPrimary={view?.team?.color.primary ?? FALLBACK_TEAM_COLOR.primary} />
+      </div>
+      {/* 슛 차트: 카드와 같은 시즌을 따른다 (팀 색도 그 시즌 카드의 팀) */}
+      <div className="mt-8">
+        <ShotChart
+          playerId={playerId}
+          seasonCode={season}
+          seasonShort={labelOf(season)}
+          available={shotSeasons}
+          initial={initialShots}
+          teamPrimary={view?.team?.color.primary ?? FALLBACK_TEAM_COLOR.primary}
+        />
       </div>
     </div>
   );

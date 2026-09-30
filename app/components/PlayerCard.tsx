@@ -14,7 +14,7 @@ import { PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart } from "r
 import Link from "next/link";
 import type { CardPlayer, TeamColor } from "@/lib/types";
 import { cardFootStats, radarGeometry, rankHeading, rankPhrase, type SeasonCardView } from "@/lib/cardview";
-import { playerTypeHelp } from "@/lib/glossary";
+import { offenseTypeDef, playerTypeHelp } from "@/lib/glossary";
 import { nationalityOf, NATIONALITY_LABELS, positionLabel } from "@/lib/roster";
 import {
   RADAR_AXES,
@@ -475,6 +475,7 @@ export default function PlayerCard({ view, colors, size = "sm", seriesColor, exp
   const mid = mixHex(color.primary, "#000000", 0.3);
   const official = !exportMode;
   const teamShort = team?.shortName ?? p.teamShort;
+  const offense = p.offenseType ? offenseTypeDef(p.offenseType).label : null;
 
   // ── 팀 색 판 (세로 카드 위쪽 / 가로 카드 왼쪽) ──
   const hero = (
@@ -523,22 +524,34 @@ export default function PlayerCard({ view, colors, size = "sm", seriesColor, exp
         <span className="font-medium" style={{ opacity: 0.85, fontSize: d.statLabel }}>
           {seasonLabel} 정규시즌
         </span>
-        {exportMode ? (
-          <span className="rounded-control px-2 py-1 font-bold leading-tight" style={{ background: "rgba(0,0,0,0.28)", fontSize: d.statLabel + 1 }}>
-            {entry.type.label}
-          </span>
-        ) : (
-          // 유형 라벨을 누르면 그 자리에서 조건 팝오버 (라벨·조건은 lib/glossary PLAYER_TYPES)
-          <HelpPopover
-            content={playerTypeHelp(entry.type.key)}
-            ariaLabel={`선수 유형 ${entry.type.label} — 유형 라벨 기준 보기`}
-            className="inline-flex min-h-10 items-center gap-1 rounded-control px-2 text-left font-bold leading-tight underline-offset-4 transition-colors duration-200 hover:underline"
-            style={{ background: "rgba(0,0,0,0.28)", fontSize: d.statLabel + 1, color: color.text }}
-          >
-            {entry.type.label}
-            <IconInfo size={16} />
-          </HelpPopover>
-        )}
+        <div className="flex flex-wrap items-center gap-1">
+          {exportMode ? (
+            <span className="rounded-control px-2 py-1 font-bold leading-tight" style={{ background: "rgba(0,0,0,0.28)", fontSize: d.statLabel + 1 }}>
+              {entry.type.label}
+            </span>
+          ) : (
+            // 유형 라벨을 누르면 그 자리에서 조건 팝오버 (라벨·조건은 lib/glossary PLAYER_TYPES)
+            <HelpPopover
+              content={playerTypeHelp(entry.type.key)}
+              ariaLabel={`선수 유형 ${entry.type.label} — 유형 라벨 기준 보기`}
+              className="inline-flex min-h-10 items-center gap-1 rounded-control px-2 text-left font-bold leading-tight underline-offset-4 transition-colors duration-200 hover:underline"
+              style={{ background: "rgba(0,0,0,0.28)", fontSize: d.statLabel + 1, color: color.text }}
+            >
+              {entry.type.label}
+              <IconInfo size={16} />
+            </HelpPopover>
+          )}
+          {/* 주 공격 유형 (슛 구역 비중, lib/shots offenseType) — 있을 때만 작은 칩. 설명은 선수 상세 슛 차트 섹션의 팝오버에 */}
+          {offense && (
+            <span
+              className="rounded-control border px-1.5 py-0.5 font-semibold leading-tight"
+              style={{ borderColor: "currentColor", background: "rgba(0,0,0,0.18)", fontSize: d.statLabel }}
+              aria-label={`주 공격 유형 ${offense}`}
+            >
+              {offense}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* 하단: 이름 (사진 아래쪽을 덮는 어두운 띠 위). 띠 위쪽 투명 부분이 유형 라벨 버튼을 덮지 않게 누르기는 통과시키고 이름 링크만 받는다 */}
