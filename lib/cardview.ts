@@ -353,6 +353,19 @@ export function compareCardEntries(a: EntryLike, b: EntryLike): CompareRow[] {
   return rows;
 }
 
+/**
+ * 모바일 좌우 비교(A값 | 항목 | B값)의 막대 길이: 두 값 중 큰 쪽을 1 로 한 비율 (0~1).
+ * 값이 없거나 둘 다 0 이하·등급 줄이면 null(막대 없음). 음수(+/- 같은 값)는 막대로 그리지 않는다.
+ * 턴오버·파울처럼 낮을수록 좋은 항목도 막대는 값 크기 그대로 — 어느 쪽이 나은지는 굵은 글자·화살표(better)로 전한다.
+ */
+export function compareBarShares(row: Pick<CompareRow, "a" | "b">): { a: number; b: number } | null {
+  const { a, b } = row;
+  if (a === null || b === null || !Number.isFinite(a) || !Number.isFinite(b)) return null;
+  const max = Math.max(a, b);
+  if (!(max > 0) || a < 0 || b < 0) return null;
+  return { a: a / max, b: b / max };
+}
+
 /** 순위 칸 짧은 표기: "3위" / "표본 미달" / "시도 부족" / "" (순위 없는 스탯) */
 export function rankShort(r: CardStatRank | null): string {
   if (!r) return "";
@@ -540,4 +553,45 @@ export function careerHighlights(
       note: [r.shot ?? "", r.date, r.opponent !== "–" ? `상대 ${r.opponent}` : ""].filter(Boolean).join(" · "),
       rank: null,
     }));
+}
+
+// ─────────────────────────────────────────────
+// 레이더 차트 배치 (2026-09-30 피드백 5차 #6: 모바일에서 위 꼭짓점 "공격" 등급 칩이 잘렸다)
+// ─────────────────────────────────────────────
+
+/** Recharts PolarAngleAxis 가 꼭짓점 라벨을 그리는 위치 = 꼭짓점에서 바깥으로 tickSize(기본 8px) 더 나간 곳 */
+export const RADAR_TICK_GAP = 8;
+const COS18 = Math.cos((18 * Math.PI) / 180); // 옆 꼭짓점(공격에서 72°) 가로 성분
+const SIN54 = Math.sin((54 * Math.PI) / 180); // 아래 꼭짓점(공격에서 144°) 세로 성분
+
+export interface RadarGeometry {
+  /** 레이더 반지름 (px) */
+  outer: number;
+  /** 중심 세로 위치 (px, 차트 위에서부터) */
+  cy: number;
+}
+
+/**
+ * 오각형 레이더(첫 축이 위 꼭짓점) + 꼭짓점 바깥 라벨 상자(block: 폭·높이 px)가 width × height 안에 모두 들어가는
+ * 가장 큰 반지름과 중심 높이. 라벨 상자는 PlayerCard GradeTick 처럼 "라벨 기준점에서 바깥으로 반 칸 + 2px" 밀어 그린다고 본다.
+ * - 세로: 위 꼭짓점 라벨 위끝 ~ 아래 두 꼭짓점 라벨 아래끝이 height − 2·margin 안.
+ * - 가로: 옆 두 꼭짓점 라벨 바깥끝이 width − 2·margin 안.
+ * 예전에는 반지름 = 높이 × 0.34, 중심 54% 로 고정해 기준점 간격(8px)만큼 위 칩이 차트 밖(−3.5px)으로 나갔다.
+ */
+export function radarGeometry(width: number, height: number, block: { w: number; h: number }, margin = 8, tickGap = RADAR_TICK_GAP): RadarGeometry {
+  const halfW = block.w / 2 + 2;
+  const halfH = block.h / 2 + 2;
+  // 위: 기준점(R + gap) 에서 위로 halfH 가 상자 중심, 거기서 block.h/2 더 → 위끝 = R + gap + halfH + block.h/2
+  const upConst = tickGap + halfH + block.h / 2;
+  // 아래: 기준점 세로 성분 SIN54·(R + gap), 상자 중심은 SIN54·halfH 더, 아래끝은 block.h/2 더
+  const downConst = SIN54 * tickGap + SIN54 * halfH + block.h / 2;
+  const rByH = (height - 2 * margin - upConst - downConst) / (1 + SIN54);
+  // 옆: 기준점 가로 성분 COS18·(R + gap), 상자 중심 COS18·halfW 더, 바깥끝 block.w/2 더
+  const sideConst = COS18 * tickGap + COS18 * halfW + block.w / 2;
+  const rByW = (width / 2 - margin - sideConst) / COS18;
+  const outer = Math.max(30, Math.floor(Math.min(rByH, rByW)));
+  // 남는 세로 공간은 위아래로 똑같이 나눈다
+  const used = outer * (1 + SIN54) + upConst + downConst;
+  const cy = Math.round((height - used) / 2 + outer + upConst);
+  return { outer, cy };
 }

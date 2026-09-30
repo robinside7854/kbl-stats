@@ -250,3 +250,39 @@ console.log("cardview: 카드 범위·그리드·비교표·주소·용어 앵�
   assert.equal(shot[0].note, "8/12 · 66.7% · 2023.10.21 · 상대 KCC");
   console.log("cardview: 하이라이트 카드 통과");
 }
+
+// ── 레이더 배치: 5개 꼭짓점 라벨 상자가 차트 안에 (피드백 5차 #6) ──
+{
+  const { radarGeometry, RADAR_TICK_GAP } = await import("../lib/cardview");
+  const block = { w: 50.6, h: 53.5 };
+  for (const [w, h] of [[332, 316], [262, 316], [320, 330], [468, 380]] as const) {
+    const g = radarGeometry(w, h, block);
+    const cx = w / 2;
+    for (let i = 0; i < 5; i++) {
+      const deg = 90 - 72 * i; // 위 꼭짓점부터 시계 방향 (Recharts 기본 startAngle 90)
+      const rad = (deg * Math.PI) / 180;
+      const ux = Math.cos(rad);
+      const uy = -Math.sin(rad);
+      const x = cx + ux * (g.outer + RADAR_TICK_GAP);
+      const y = g.cy + uy * (g.outer + RADAR_TICK_GAP);
+      const bx = x + ux * (block.w / 2 + 2);
+      const by = y + uy * (block.h / 2 + 2);
+      assert.ok(by - block.h / 2 >= 7.9, `위끝 ${w}×${h} 축 ${i}: ${by - block.h / 2}`);
+      assert.ok(by + block.h / 2 <= h - 7.9, `아래끝 ${w}×${h} 축 ${i}`);
+      assert.ok(bx - block.w / 2 >= 7.9 && bx + block.w / 2 <= w - 7.9, `옆 ${w}×${h} 축 ${i}`);
+    }
+    assert.ok(g.outer >= 60, `반지름 ${g.outer}`);
+  }
+  console.log("cardview: 레이더 배치 통과");
+}
+
+// ── 모바일 좌우 비교 막대 (피드백 5차 #6) ──
+{
+  const { compareBarShares } = await import("../lib/cardview");
+  assert.deepEqual(compareBarShares({ a: 20, b: 10 }), { a: 1, b: 0.5 });
+  assert.deepEqual(compareBarShares({ a: 0, b: 4 }), { a: 0, b: 1 });
+  assert.equal(compareBarShares({ a: null, b: 3 }), null); // 등급 줄·없는 값
+  assert.equal(compareBarShares({ a: 0, b: 0 }), null);
+  assert.equal(compareBarShares({ a: -2, b: 3 }), null);
+  console.log("cardview: 비교 막대 통과");
+}

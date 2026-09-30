@@ -1,5 +1,6 @@
 // 선수 상세 하이라이트 카드 3개 (피드백 3차 #6): 그 시즌 순위 1~10위 부문(lib/cardview seasonHighlights),
 // 없으면 정규시즌 커리어 하이(careerHighlights). 계산은 lib/cardview — 여기서는 그리기만 한다.
+// 모바일은 3개 가로, PC(1024px 이상)는 추이 그래프 오른쪽 좁은 열에 세로로 쌓는다.
 // 데이터 숫자는 tabular, 1위만 팀 색 옅은 바탕(순위 칸과 같은 --rank-tint 규칙).
 import type { Highlight } from "@/lib/cardview";
 import { desaturate } from "@/lib/teams";
@@ -18,7 +19,7 @@ export default function HighlightCards({ title, items, teamPrimary }: Props) {
       <h3 id="highlight-title" className="mb-2 text-body font-bold text-ink">
         {title}
       </h3>
-      <ul className="tabular grid grid-cols-3 gap-2">
+      <ul className="tabular grid grid-cols-3 gap-2 lg:grid-cols-1">
         {items.map((h) => (
           <li
             key={h.key}

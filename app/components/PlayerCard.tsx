@@ -4,12 +4,17 @@
 // 입력은 lib/cardview buildSeasonCardView 결과(SeasonCardView) 하나: 시즌·순위 범위(전체/같은 포지션)·팀 색·로고가 그 시즌 것.
 // 사진은 선수당 한 장(시즌별 사진이 없다)이라 어느 시즌 카드든 같은 사진을 쓰고, 팀 색·로고만 그 시즌 것을 쓴다.
 // size: "sm"(모바일, 폭 100%) / "lg"(PC·저장 이미지, 폭 약 500px) — 글자·사진·격자·레이더를 비례해 키운다.
+// layout: "vertical"(세로 카드 — 모바일·비교 탭·저장 이미지) / "horizontal"(PC 1024px 이상 선수 상세, 2026-09-30 피드백 5차 #1):
+//   왼쪽 = 팀 색 + 큰 세로 사진 + 이름·소속·포지션·배지·종합 등급, 가운데 = 스탯 3×3 + 파울·출전 줄, 오른쪽 = 레이더.
+//   1280×800 한 화면에 들어가게 높이 520px 이하(실측은 PLAN.md §13). 치수는 DIM.h.
+// ⓘ(종합 등급·등급 기준)와 유형 라벨은 그 자리 팝오버(HelpPopover) — 용어 페이지로 이동하지 않는다.
 // exportMode(이미지 저장 사본)에서는 공식 사진·로고를 쓰지 않고 대체 디자인(팀 색·이니셜·약칭)으로 그린다.
-import { PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart, ResponsiveContainer } from "recharts";
+import { useEffect, useRef, useState } from "react";
+import { PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart } from "recharts";
 import Link from "next/link";
 import type { CardPlayer, TeamColor } from "@/lib/types";
-import { cardFootStats, rankHeading, rankPhrase, type SeasonCardView } from "@/lib/cardview";
-import { glossaryHref, playerTypeDef, playerTypeHref } from "@/lib/glossary";
+import { cardFootStats, radarGeometry, rankHeading, rankPhrase, type SeasonCardView } from "@/lib/cardview";
+import { playerTypeHelp } from "@/lib/glossary";
 import { nationalityOf, NATIONALITY_LABELS, positionLabel } from "@/lib/roster";
 import {
   RADAR_AXES,
@@ -24,6 +29,7 @@ import {
 } from "@/lib/metrics";
 import { mixHex, teamShortLabel } from "@/lib/images";
 import { desaturate, FALLBACK_TEAM_COLOR, gradeTone, readableInk } from "@/lib/teams";
+import HelpPopover from "./HelpPopover";
 import { IconInfo } from "./icons";
 import PlayerAvatar from "./PlayerAvatar";
 import Skeleton from "./Skeleton";
@@ -35,6 +41,7 @@ import { SOURCE_LINE } from "./SourceFooter";
 export type CardEntry = CardEntryOf<CardPlayer>;
 
 export type CardSize = "sm" | "lg";
+export type CardLayout = "vertical" | "horizontal";
 
 interface Props {
   /** 카드 한 장의 값 — 시즌·순위 범위·팀 (lib/cardview buildSeasonCardView) */
@@ -47,6 +54,8 @@ interface Props {
   exportMode?: boolean;
   /** 이름에 걸 링크 (없으면 링크 없음 — 선수 페이지 안의 카드·저장 사본) */
   nameHref?: string;
+  /** 세로(기본) / 가로(PC 선수 상세). 저장 사본은 늘 세로 */
+  layout?: CardLayout;
 }
 
 const FALLBACK_COLOR: TeamColor = FALLBACK_TEAM_COLOR;
@@ -57,9 +66,36 @@ const fmtPct = (n: number | null | undefined) => (n === null || n === undefined 
 
 /** 크기별 치수 (px). lg 는 sm 의 약 1.3배 */
 const DIM = {
-  sm: { header: 226, photo: 208, logo: 40, name: 28, nameEn: 12, statVal: 22, statPct: 13, statLabel: 12, rank: 12, ovr: 34, radarH: 300, gradeChip: 26, tickLabel: 11, tickValue: 10.5, pad: 12 },
+  sm: { header: 226, photo: 208, logo: 40, name: 28, nameEn: 12, statVal: 22, statPct: 13, statLabel: 12, rank: 12, ovr: 34, radarH: 316, gradeChip: 26, tickLabel: 11, tickValue: 10.5, pad: 12 },
   lg: { header: 296, photo: 276, logo: 52, name: 36, nameEn: 13, statVal: 29, statPct: 16, statLabel: 13, rank: 13.5, ovr: 46, radarH: 380, gradeChip: 34, tickLabel: 13, tickValue: 11.5, pad: 16 },
+  // 가로 카드(PC): header 는 쓰지 않고(왼쪽 판이 카드 높이를 채움) 사진 높이만. 레이더 높이는 오른쪽 열 폭에 맞춘다
+  h: { header: 0, photo: 330, logo: 46, name: 34, nameEn: 13, statVal: 27, statPct: 15, statLabel: 13, rank: 13, ovr: 42, radarH: 340, gradeChip: 30, tickLabel: 13, tickValue: 11.5, pad: 16 },
 } as const;
+type Dim = (typeof DIM)[keyof typeof DIM];
+/** 가로 카드 열 폭 (왼쪽 판 · 오른쪽 레이더). 가운데 스탯 열이 나머지 */
+const H_LEFT = 280;
+const H_RIGHT = 320;
+
+/** 레이더 꼭짓점 라벨 상자 크기 (GradeTick 과 같은 계산 — 차트 배치 radarGeometry 입력) */
+function tickBlock(d: Dim): { w: number; h: number } {
+  return { w: Math.max(d.gradeChip, d.tickLabel * 4.6), h: d.gradeChip + 4 + d.tickLabel + 2 + d.tickValue };
+}
+
+/** 요소 폭 (ResizeObserver). 첫 렌더·정적 HTML 은 fallback */
+function useWidth<T extends HTMLElement>(fallback: number): [React.RefObject<T | null>, number] {
+  const ref = useRef<T>(null);
+  const [w, setW] = useState(fallback);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const on = () => setW(Math.round(el.clientWidth) || fallback);
+    on();
+    const ro = new ResizeObserver(on);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [fallback]);
+  return [ref, w];
+}
 /** lg 카드 폭 (저장 이미지·PC 한 장 보기) */
 export const CARD_LG_WIDTH = 500;
 
@@ -150,13 +186,12 @@ function cellStyle(tier: RankTier, color: TeamColor): React.CSSProperties | unde
   };
 }
 
-function StatCell({ entry, color, size, group }: { entry: CardStatEntry; color: TeamColor; size: CardSize; group: string | null }) {
-  const d = DIM[size];
+function StatCell({ entry, color, d, roomy, group }: { entry: CardStatEntry; color: TeamColor; d: Dim; roomy: boolean; group: string | null }) {
   const { def, value } = entry;
   const tier = rankTier(entry.rank.rank);
   return (
     <div
-      className={`flex min-w-0 flex-col rounded-card border border-line ${size === "lg" ? "px-2.5 py-2" : "px-2 py-1.5"}`}
+      className={`flex min-w-0 flex-col rounded-card border border-line ${roomy ? "px-2.5 py-2" : "px-2 py-1.5"}`}
       style={cellStyle(tier, color)}
     >
       <span className="truncate font-medium text-ink-2" style={{ fontSize: d.statLabel }}>
@@ -199,18 +234,16 @@ function GradeTick(props: {
   entry: CardEntry;
   color: TeamColor;
   colors: ThemeColors;
-  size: CardSize;
+  d: Dim;
 }) {
-  const { x = 0, y = 0, payload, axes, entry, color, colors, size } = props;
-  const d = DIM[size];
+  const { x = 0, y = 0, payload, axes, entry, color, colors, d } = props;
   const idx = props.index ?? payload?.index ?? 0;
   const axis = axes[idx];
   if (!axis) return null;
   const grade = entry.grades[axis] ?? "-";
   const tone = gradeTone(grade, color, colors);
   const chip = d.gradeChip;
-  const blockW = Math.max(chip, d.tickLabel * 4.6);
-  const blockH = chip + 4 + d.tickLabel + 2 + d.tickValue;
+  const { w: blockW, h: blockH } = tickBlock(d);
   // 꼭짓점 각도(도, 반시계·오른쪽 0) → 바깥쪽 단위 벡터. 블록 중심을 바깥으로 반 칸 민다
   const rad = ((payload?.coordinate ?? 90) * Math.PI) / 180;
   const ux = Math.cos(rad);
@@ -278,14 +311,13 @@ function OverallBadge({
   entry,
   color,
   colors,
-  size,
+  d,
 }: {
   entry: CardEntry;
   color: TeamColor;
   colors: ThemeColors;
-  size: CardSize;
+  d: Dim;
 }) {
-  const d = DIM[size];
   if (!entry.qualified) {
     return (
       <span
@@ -321,31 +353,52 @@ function OverallBadge({
   );
 }
 
+
 // ─────────────────────────────────────────────
 // 불러오는 중 카드 (디자인 점검 C3) — 같은 크기(DIM)의 머리·3×3 격자·레이더 자리
 // ─────────────────────────────────────────────
 
-export function PlayerCardSkeleton({ size = "sm" }: { size?: CardSize }) {
-  const d = DIM[size];
-  const cellH = Math.round(d.statLabel * 1.45 + d.statVal * 1.25 + d.rank * 1.5 + (size === "lg" ? 20 : 16));
+export function PlayerCardSkeleton({ size = "sm", layout = "vertical" }: { size?: CardSize; layout?: CardLayout }) {
+  const horizontal = layout === "horizontal";
+  const d: Dim = horizontal ? DIM.h : DIM[size];
+  const roomy = horizontal || size === "lg";
+  const cellH = Math.round(d.statLabel * 1.45 + d.statVal * 1.25 + d.rank * 1.5 + (roomy ? 20 : 16));
+  const grid = (
+    <div style={{ padding: d.pad }}>
+      <Skeleton className="mb-2 h-4 w-32" />
+      <div className={`grid grid-cols-3 ${roomy ? "gap-2" : "gap-1.5"}`}>
+        {Array.from({ length: 9 }, (_, i) => (
+          <Skeleton key={i} className="rounded-card" style={{ height: cellH }} />
+        ))}
+      </div>
+      <Skeleton className="mt-2 h-4 w-48" />
+    </div>
+  );
+  const radar = (
+    <div style={{ padding: d.pad }}>
+      <Skeleton className="h-4 w-40" />
+      <div className="flex items-center justify-center" style={{ height: d.radarH }}>
+        <Skeleton className="rounded-card" style={{ width: d.radarH * 0.62, height: d.radarH * 0.62 }} />
+      </div>
+    </div>
+  );
+  if (horizontal) {
+    return (
+      <div aria-hidden className="surface-card grid w-full overflow-hidden rounded-container" style={{ gridTemplateColumns: `${H_LEFT}px minmax(0,1fr) ${H_RIGHT}px` }}>
+        <Skeleton className="row-span-2 rounded-none" style={{ minHeight: 440 }} />
+        {grid}
+        <div className="border-l border-line">{radar}</div>
+        <div className="col-span-2 border-t border-line" style={{ padding: d.pad }}>
+          <Skeleton className="h-3 w-full" />
+        </div>
+      </div>
+    );
+  }
   return (
     <div aria-hidden className="surface-card w-full overflow-hidden rounded-container">
       <Skeleton className="rounded-none" style={{ height: d.header }} />
-      <div style={{ padding: d.pad }}>
-        <Skeleton className="mb-2 h-4 w-32" />
-        <div className={`grid grid-cols-3 ${size === "lg" ? "gap-2" : "gap-1.5"}`}>
-          {Array.from({ length: 9 }, (_, i) => (
-            <Skeleton key={i} className="rounded-card" style={{ height: cellH }} />
-          ))}
-        </div>
-        <Skeleton className="mt-2 h-4 w-48" />
-      </div>
-      <div className="border-t border-line" style={{ padding: d.pad }}>
-        <Skeleton className="h-4 w-40" />
-        <div className="flex items-center justify-center" style={{ height: d.radarH }}>
-          <Skeleton className="rounded-card" style={{ width: d.radarH * 0.62, height: d.radarH * 0.62 }} />
-        </div>
-      </div>
+      {grid}
+      <div className="border-t border-line">{radar}</div>
       <div className="border-t border-line" style={{ padding: d.pad }}>
         <Skeleton className="h-3 w-full" />
         <Skeleton className="mt-1.5 h-3 w-2/3" />
@@ -355,213 +408,224 @@ export function PlayerCardSkeleton({ size = "sm" }: { size?: CardSize }) {
 }
 
 // ─────────────────────────────────────────────
+// 레이더 (폭을 재서 반지름·중심을 정한다 — 5개 꼭짓점 라벨·등급 칩이 차트 밖으로 나가지 않게, lib/cardview radarGeometry)
+// ─────────────────────────────────────────────
+
+function CardRadar({
+  entry,
+  color,
+  colors,
+  d,
+  seriesColor,
+  fixedWidth,
+}: {
+  entry: CardEntry;
+  color: TeamColor;
+  colors: ThemeColors;
+  d: Dim;
+  seriesColor: string;
+  /** 저장 사본처럼 폭이 정해진 경우 (재지 않는다) */
+  fixedWidth?: number;
+}) {
+  const [ref, measured] = useWidth<HTMLDivElement>(fixedWidth ?? 320);
+  const width = fixedWidth ?? measured;
+  const { outer, cy } = radarGeometry(width, d.radarH, tickBlock(d));
+  const radarData = RADAR_AXES.map((axis) => ({ axis, label: RADAR_AXIS_LABELS[axis], v: entry.pct[axis] ?? 0 }));
+  return (
+    <div ref={ref} aria-hidden style={{ height: d.radarH }}>
+      <RadarChart width={width} height={d.radarH} data={radarData} outerRadius={outer} cx={width / 2} cy={cy} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+        <PolarGrid stroke={colors.grid} />
+        <PolarAngleAxis
+          dataKey="label"
+          tick={(tp: object) => <GradeTick {...tp} axes={RADAR_AXES} entry={entry} color={color} colors={colors} d={d} />}
+        />
+        <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
+        <Radar
+          dataKey="v"
+          stroke={seriesColor}
+          strokeWidth={2}
+          fill={seriesColor}
+          fillOpacity={0.22}
+          dot={{ r: d.radarH >= 340 ? 4 : 3, fill: seriesColor, stroke: colors.surface, strokeWidth: 2 }}
+          isAnimationActive={false}
+        />
+      </RadarChart>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
 // 카드
 // ─────────────────────────────────────────────
 
-export default function PlayerCard({ view, colors, size = "sm", seriesColor, exportMode = false, nameHref }: Props) {
+export default function PlayerCard({ view, colors, size = "sm", seriesColor, exportMode = false, nameHref, layout = "vertical" }: Props) {
   const { entry, seasonLabel, ruleLabel, qualifiedCount, attemptsLabel, groupLabel, gradeLabel, missingComponents } = view;
   const team = view.team ?? undefined;
   const p = entry.player;
   const foot = cardFootStats(p);
   const pos = positionLabel(p.position);
-  const d = DIM[size];
+  // 저장 사본은 늘 세로
+  const horizontal = layout === "horizontal" && !exportMode;
+  const d: Dim = horizontal ? DIM.h : DIM[size];
+  const roomy = horizontal || size === "lg";
+  const small = roomy ? 12.5 : 11;
   const color = team?.color ?? FALLBACK_COLOR;
   // 상단 그라데이션: 팀 primary → 검정 쪽으로 어둡게. 이름이 놓이는 아래쪽이 가장 어둡다 (글자는 color.text)
   const dark = mixHex(color.primary, "#000000", 0.62);
   const mid = mixHex(color.primary, "#000000", 0.3);
   const official = !exportMode;
-  const axes = RADAR_AXES;
-  const radarData = axes.map((axis) => ({ axis, label: RADAR_AXIS_LABELS[axis], v: entry.pct[axis] ?? 0 }));
   const teamShort = team?.shortName ?? p.teamShort;
-  // 레이더 반지름: 차트 높이의 약 1/3 (꼭짓점 바깥에 등급 블록 자리를 남긴다)
-  const outer = Math.round(d.radarH * 0.34);
-  const radarWidth = exportMode ? CARD_LG_WIDTH - 2 * d.pad : undefined;
 
-  const radar = (
-    <RadarChart
-      {...(radarWidth ? { width: radarWidth, height: d.radarH } : {})}
-      data={radarData}
-      outerRadius={outer}
-      cy="54%"
-      margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
+  // ── 팀 색 판 (세로 카드 위쪽 / 가로 카드 왼쪽) ──
+  const hero = (
+    <div
+      className={`relative overflow-hidden ${horizontal ? "row-span-2 h-full" : ""}`}
+      style={{
+        height: horizontal ? undefined : d.header,
+        minHeight: horizontal ? 420 : undefined,
+        background: `linear-gradient(165deg, ${color.primary} 0%, ${mid} 55%, ${dark} 100%)`,
+        color: color.text,
+      }}
     >
-      <PolarGrid stroke={colors.grid} />
-      <PolarAngleAxis
-        dataKey="label"
-        tick={(tp: object) => <GradeTick {...tp} axes={axes} entry={entry} color={color} colors={colors} size={size} />}
-      />
-      <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
-      <Radar
-        dataKey="v"
-        stroke={seriesColor}
-        strokeWidth={2}
-        fill={seriesColor}
-        fillOpacity={0.22}
-        dot={{ r: size === "lg" ? 4 : 3, fill: seriesColor, stroke: colors.surface, strokeWidth: 2 }}
-        isAnimationActive={false}
-      />
-    </RadarChart>
+      {/* 장식: 팀 약칭 큰 글씨 */}
+      <span
+        aria-hidden
+        // deslop-ignore-next-line 11
+        className="pointer-events-none absolute -right-2 top-1 select-none whitespace-nowrap font-black leading-none tracking-tighter"
+        style={{ opacity: 0.1, fontSize: Math.round((horizontal ? 300 : d.header) * 0.39) }}
+      >
+        {teamShortLabel(teamShort, 5)}
+      </span>
+
+      {/* 사진: 오른쪽 아래에 붙여 하단이 카드 경계에 걸치게 */}
+      <div className={`absolute bottom-0 ${horizontal ? "right-0" : "right-1"}`}>
+        <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={color} variant="portrait" size={d.photo} official={official} />
+      </div>
+
+      {/* 좌상단: 로고 + 종합 등급 · 시즌 · 유형 */}
+      <div className="absolute flex max-w-[60%] flex-col items-start gap-1.5" style={{ left: d.pad + 2, top: d.pad + 2 }}>
+        <div className="flex items-center gap-2">
+          <span className="inline-flex rounded-control bg-white p-1 shadow-card">
+            <TeamLogo logoUrl={team?.logoUrl} shortName={teamShort} color={color} size={d.logo} official={official} />
+          </span>
+          <OverallBadge entry={entry} color={color} colors={colors} d={d} />
+          {!exportMode && (
+            <HelpPopover
+              term="radarAxes"
+              ariaLabel="종합 등급 계산 방법"
+              className="-mx-2 inline-flex h-10 w-10 items-center justify-center rounded-control transition-colors duration-200 hover:bg-black/15"
+              style={{ color: color.text }}
+            >
+              <IconInfo size={16} />
+            </HelpPopover>
+          )}
+        </div>
+        <span className="font-medium" style={{ opacity: 0.85, fontSize: d.statLabel }}>
+          {seasonLabel} 정규시즌
+        </span>
+        {exportMode ? (
+          <span className="rounded-control px-2 py-1 font-bold leading-tight" style={{ background: "rgba(0,0,0,0.28)", fontSize: d.statLabel + 1 }}>
+            {entry.type.label}
+          </span>
+        ) : (
+          // 유형 라벨을 누르면 그 자리에서 조건 팝오버 (라벨·조건은 lib/glossary PLAYER_TYPES)
+          <HelpPopover
+            content={playerTypeHelp(entry.type.key)}
+            ariaLabel={`선수 유형 ${entry.type.label} — 유형 라벨 기준 보기`}
+            className="inline-flex min-h-10 items-center gap-1 rounded-control px-2 text-left font-bold leading-tight underline-offset-4 transition-colors duration-200 hover:underline"
+            style={{ background: "rgba(0,0,0,0.28)", fontSize: d.statLabel + 1, color: color.text }}
+          >
+            {entry.type.label}
+            <IconInfo size={16} />
+          </HelpPopover>
+        )}
+      </div>
+
+      {/* 하단: 이름 (사진 아래쪽을 덮는 어두운 띠 위). 띠 위쪽 투명 부분이 유형 라벨 버튼을 덮지 않게 누르기는 통과시키고 이름 링크만 받는다 */}
+      <div
+        className="pointer-events-none absolute inset-x-0 bottom-0 pt-10"
+        // deslop-ignore-next-line 06
+        style={{ paddingLeft: d.pad + 2, paddingRight: d.pad + 2, paddingBottom: d.pad, background: `linear-gradient(to top, ${dark} 0%, ${dark}e6 40%, ${dark}00 100%)` }}
+      >
+        <div className="mb-1 flex flex-wrap gap-1">
+          <HeroBadge fs={d.statLabel}>{NATIONALITY_LABELS[nationalityOf(p)]}</HeroBadge>
+          {pos && <HeroBadge fs={d.statLabel}>{pos}</HeroBadge>}
+          {!entry.qualified && <HeroBadge fs={d.statLabel}>표본 부족</HeroBadge>}
+        </div>
+        <h2 className="font-black tracking-tight [overflow-wrap:anywhere]" style={{ fontSize: d.name, lineHeight: 1.1 }}>
+          {nameHref && !exportMode ? (
+            <Link href={nameHref} className="focus-ring pointer-events-auto rounded-control underline-offset-4 hover:underline" title={`${p.nameKo} 선수 페이지`}>
+              {p.nameKo}
+            </Link>
+          ) : (
+            p.nameKo
+          )}
+        </h2>
+        <p className="mt-0.5 truncate font-medium" style={{ opacity: 0.85, fontSize: d.nameEn }}>
+          {p.nameEn} · {p.teamName}
+        </p>
+      </div>
+    </div>
   );
 
-  return (
-    <article
-      className="surface-card tabular w-full overflow-hidden rounded-container"
-      style={exportMode ? { width: CARD_LG_WIDTH } : undefined}
-      aria-label={`${p.nameKo} 플레이어 카드`}
-    >
-      {/* ── 상단: 팀 색 + 큰 사진 ── */}
-      <div
-        className="relative overflow-hidden"
-        style={{ height: d.header, background: `linear-gradient(165deg, ${color.primary} 0%, ${mid} 55%, ${dark} 100%)`, color: color.text }}
-      >
-        {/* 장식: 팀 약칭 큰 글씨 */}
-        <span
-          aria-hidden
-          // deslop-ignore-next-line 11
-          className="pointer-events-none absolute -right-2 top-1 select-none whitespace-nowrap font-black leading-none tracking-tighter"
-          style={{ opacity: 0.1, fontSize: Math.round(d.header * 0.39) }}
-        >
-          {teamShortLabel(teamShort, 5)}
+  // ── 메인 스탯 9개 + 시즌 순위 + 파울·출전 줄 ──
+  const stats = (
+    <div style={{ paddingLeft: d.pad, paddingRight: d.pad, paddingTop: d.pad, paddingBottom: horizontal ? d.pad : 0 }}>
+      <div className="mb-1.5 flex items-baseline justify-between gap-2">
+        <h3 className="font-bold text-ink" style={{ fontSize: d.statLabel + 1 }}>
+          경기당 기록 <span className="font-medium text-ink-3">· {p.games}경기</span>
+        </h3>
+        <span className={groupLabel ? "font-semibold text-ink-2" : "text-ink-3"} style={{ fontSize: d.statLabel }}>
+          {rankHeading(groupLabel)}
         </span>
-
-        {/* 사진: 오른쪽 아래에 붙여 하단이 카드 경계에 걸치게 */}
-        <div className="absolute bottom-0 right-1">
-          <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={color} variant="portrait" size={d.photo} official={official} />
-        </div>
-
-        {/* 좌상단: 로고 + 종합 등급 · 시즌 · 유형 */}
-        <div className="absolute flex max-w-[60%] flex-col items-start gap-1.5" style={{ left: d.pad + 2, top: d.pad + 2 }}>
-          <div className="flex items-center gap-2">
-            <span className="inline-flex rounded-control bg-white p-1 shadow-card">
-              <TeamLogo logoUrl={team?.logoUrl} shortName={teamShort} color={color} size={d.logo} official={official} />
-            </span>
-            <OverallBadge entry={entry} color={color} colors={colors} size={size} />
-            {!exportMode && (
-              <Link
-                href={glossaryHref("radarAxes")}
-                className="focus-ring -mx-2 inline-flex h-10 w-10 items-center justify-center rounded-control transition-colors duration-200 hover:bg-black/15"
-                style={{ color: color.text }}
-                aria-label="종합 등급 계산 방법 (용어 풀이: 레이더 5축)"
-                title="종합 등급 = 5축 백분위 평균에 등급 컷을 그대로 적용"
-              >
-                <IconInfo size={16} />
-              </Link>
-            )}
-          </div>
-          <span className="font-medium" style={{ opacity: 0.85, fontSize: d.statLabel }}>
-            {seasonLabel} 정규시즌
-          </span>
-          {exportMode ? (
-            <span className="rounded-control px-2 py-1 font-bold leading-tight" style={{ background: "rgba(0,0,0,0.28)", fontSize: d.statLabel + 1 }}>
-              {entry.type.label}
-            </span>
-          ) : (
-            // 유형 라벨을 누르면 용어 탭 "선수 유형 라벨" 표의 그 줄로 (라벨·조건은 lib/glossary PLAYER_TYPES)
-            <Link
-              href={playerTypeHref(entry.type.key)}
-              className="focus-ring inline-flex min-h-10 items-center gap-1 rounded-control px-2 font-bold leading-tight underline-offset-4 transition-colors duration-200 hover:underline"
-              style={{ background: "rgba(0,0,0,0.28)", fontSize: d.statLabel + 1, color: color.text }}
-              title={`${entry.type.label}: ${playerTypeDef(entry.type.key).condition}`}
-              aria-label={`선수 유형 ${entry.type.label} — 유형 라벨 기준 보기`}
-            >
-              {entry.type.label}
-              <IconInfo size={16} />
-            </Link>
-          )}
-        </div>
-
-        {/* 하단: 이름 (사진 아래쪽을 덮는 어두운 띠 위) */}
-        <div
-          className="absolute inset-x-0 bottom-0 pt-10"
-          // deslop-ignore-next-line 06
-          style={{ paddingLeft: d.pad + 2, paddingRight: d.pad + 2, paddingBottom: d.pad, background: `linear-gradient(to top, ${dark} 0%, ${dark}e6 40%, ${dark}00 100%)` }}
-        >
-          <div className="mb-1 flex flex-wrap gap-1">
-            <HeroBadge fs={d.statLabel}>{NATIONALITY_LABELS[nationalityOf(p)]}</HeroBadge>
-            {pos && <HeroBadge fs={d.statLabel}>{pos}</HeroBadge>}
-            {!entry.qualified && <HeroBadge fs={d.statLabel}>표본 부족</HeroBadge>}
-          </div>
-          <h2 className="font-black tracking-tight [overflow-wrap:anywhere]" style={{ fontSize: d.name, lineHeight: 1.1 }}>
-            {nameHref && !exportMode ? (
-              <Link href={nameHref} className="focus-ring rounded-control underline-offset-4 hover:underline" title={`${p.nameKo} 선수 페이지`}>
-                {p.nameKo}
-              </Link>
-            ) : (
-              p.nameKo
-            )}
-          </h2>
-          <p className="mt-0.5 truncate font-medium" style={{ opacity: 0.85, fontSize: d.nameEn }}>
-            {p.nameEn} · {p.teamName}
-          </p>
-        </div>
       </div>
-
-      {/* ── 중단: 메인 스탯 9개 + 시즌 순위 ── */}
-      <div style={{ paddingLeft: d.pad, paddingRight: d.pad, paddingTop: d.pad }}>
-        <div className="mb-1.5 flex items-baseline justify-between gap-2">
-          <h3 className="font-bold text-ink" style={{ fontSize: d.statLabel + 1 }}>
-            경기당 기록 <span className="font-medium text-ink-3">· {p.games}경기</span>
-          </h3>
-          <span className={groupLabel ? "font-semibold text-ink-2" : "text-ink-3"} style={{ fontSize: d.statLabel }}>
-            {rankHeading(groupLabel)}
-          </span>
-        </div>
-        <div className={`grid grid-cols-3 ${size === "lg" ? "gap-2" : "gap-1.5"}`}>
-          {/* 3×3 격자는 순위 있는 9개만. 파울(ranked: false)은 아래 작은 줄에 출전시간과 함께 (순위 없음) */}
-          {entry.stats.filter((s) => s.def.ranked).map((s) => (
-            <StatCell key={s.def.key} entry={s} color={color} size={size} group={groupLabel} />
-          ))}
-        </div>
-        <p className="mt-1.5 flex flex-wrap items-baseline gap-x-2 text-ink-2" style={{ fontSize: d.statLabel }}>
-          <span>
-            파울 <b className="font-bold text-ink">{fmt1(foot.fouls)}</b>
-          </span>
-          <span aria-hidden className="text-ink-3">·</span>
-          <span>
-            출전시간 <b className="font-bold text-ink">{fmt1(foot.minutes)}</b>분
-          </span>
-          <span className="text-ink-3" style={{ fontSize: d.statLabel - 1 }}>
-            경기당 · 순위 없음
-          </span>
-        </p>
+      <div className={`grid grid-cols-3 ${roomy ? "gap-2" : "gap-1.5"}`}>
+        {/* 3×3 격자는 순위 있는 9개만. 파울(ranked: false)은 아래 작은 줄에 출전시간과 함께 (순위 없음) */}
+        {entry.stats.filter((s) => s.def.ranked).map((s) => (
+          <StatCell key={s.def.key} entry={s} color={color} d={d} roomy={roomy} group={groupLabel} />
+        ))}
       </div>
+      <p className="mt-1.5 flex flex-wrap items-baseline gap-x-2 text-ink-2" style={{ fontSize: d.statLabel }}>
+        <span>
+          파울 <b className="font-bold text-ink">{fmt1(foot.fouls)}</b>
+        </span>
+        <span aria-hidden className="text-ink-3">·</span>
+        <span>
+          출전시간 <b className="font-bold text-ink">{fmt1(foot.minutes)}</b>분
+        </span>
+        <span className="text-ink-3" style={{ fontSize: d.statLabel - 1 }}>
+          경기당 · 순위 없음
+        </span>
+      </p>
+    </div>
+  );
 
-      {/* ── 하단: 레이더(크게) + 꼭짓점마다 등급 S~F ── */}
-      <div className="mt-3 border-t border-line" style={{ paddingLeft: d.pad, paddingRight: d.pad, paddingTop: 8 }}>
-        <p className="flex flex-wrap items-center gap-1.5 font-semibold text-ink-2" style={{ fontSize: d.statLabel }}>
-          등급 기준: {gradeLabel}
-          {!exportMode && (
-            <Link
-              href={glossaryHref("radarAxes")}
-              className="focus-ring -mx-3 -my-3 inline-flex h-10 w-10 items-center justify-center rounded-control font-normal text-ink-3 transition-colors duration-200 hover:text-ink"
-              aria-label="레이더 5축과 등급 계산 방법 (용어 풀이)"
-              title="레이더 5축과 등급 계산 방법"
-            >
-              <IconInfo size={16} />
-            </Link>
-          )}
+  // ── 레이더 + 꼭짓점마다 등급 S~F ──
+  // 등급 컷 안내는 화면에서는 ⓘ 팝오버 안에만(상시 문구를 늘리지 않는다), 저장 이미지에는 글로 남긴다.
+  const radarBlock = (
+    <div
+      className={horizontal ? "border-l border-line" : "mt-3 border-t border-line"}
+      style={{ paddingLeft: d.pad, paddingRight: d.pad, paddingTop: horizontal ? d.pad : 8, paddingBottom: horizontal ? 4 : 0 }}
+    >
+      <p className="flex flex-wrap items-center gap-1.5 font-semibold text-ink-2" style={{ fontSize: d.statLabel }}>
+        등급 기준: {gradeLabel}
+        {!exportMode && <HelpPopover term="percentileGrade" ariaLabel="등급 컷과 계산 방법" className="font-normal" />}
+        {exportMode && (
           <span className="font-normal text-ink-3">축 S 상위 10% · A 25% · B 45% · C 65% · D 85% · 종합 = 5축 평균 S 85 · A 70 · B 55 · C 40 · D 25</span>
-        </p>
-        <div aria-hidden style={{ height: d.radarH }}>
-          {radarWidth ? (
-            radar
-          ) : (
-            <ResponsiveContainer width="100%" height={d.radarH} initialDimension={{ width: 320, height: d.radarH }}>
-              {radar}
-            </ResponsiveContainer>
-          )}
-        </div>
-        {missingComponents.length > 0 && (
-          <p className="pb-1 leading-snug text-ink-3" style={{ fontSize: size === "lg" ? 12.5 : 11 }}>
-            이 시즌 기록이 없어 뺀 항목: {missingComponents.join("·")}
-          </p>
         )}
-        {/* 스크린리더·표 보기: 축별 백분위·등급·구성 요소. 표는 sr-only 폭(1px)을 무시하고 늘어나므로 div 로 감싼다 */}
-        <div className="sr-only">
+      </p>
+      <CardRadar entry={entry} color={color} colors={colors} d={d} seriesColor={seriesColor} fixedWidth={exportMode ? CARD_LG_WIDTH - 2 * d.pad : undefined} />
+      {missingComponents.length > 0 && (
+        <p className="pb-1 leading-snug text-ink-3" style={{ fontSize: small }}>
+          이 시즌 기록이 없어 뺀 항목: {missingComponents.join("·")}
+        </p>
+      )}
+      {/* 스크린리더·표 보기: 축별 백분위·등급·구성 요소. 표는 sr-only 폭(1px)을 무시하고 늘어나므로 div 로 감싼다 */}
+      <div className="sr-only">
         <table>
           <caption>레이더 5축: 축 백분위(0~100, {gradeLabel}), 등급, 구성 요소 값과 백분위</caption>
           <tbody>
-            {axes.map((axis) => (
+            {RADAR_AXES.map((axis) => (
               <tr key={axis}>
                 <th scope="row">{RADAR_AXIS_LABELS[axis]}</th>
                 <td>{fmtPct(entry.pct[axis])}</td>
@@ -571,17 +635,49 @@ export default function PlayerCard({ view, colors, size = "sm", seriesColor, exp
             ))}
           </tbody>
         </table>
-        </div>
       </div>
+    </div>
+  );
 
-      {/* ── 기준·출처 (저장 이미지에도 남는다) ── */}
-      <div className="border-t border-line py-2 leading-snug text-ink-3" style={{ paddingLeft: d.pad + 2, paddingRight: d.pad + 2, fontSize: size === "lg" ? 12.5 : 11 }}>
-        <p>
-          순위: {seasonLabel} {groupLabel ? `${groupLabel} 중 ` : ""}
-          {ruleLabel} {qualifiedCount}명 중 · 등급: {gradeLabel} · 턴오버는 적을수록 상위 · 성공률 순위는 경기당 시도가 리그 평균({attemptsLabel}) 이상인 선수만
-        </p>
-        <p className="mt-1 font-medium text-ink-2">{SOURCE_LINE}</p>
-      </div>
+  // ── 기준·출처 (저장 이미지에도 남는다) ──
+  const footer = (
+    <div
+      className={`border-t border-line py-2 leading-snug text-ink-3 ${horizontal ? "col-span-2" : ""}`}
+      style={{ paddingLeft: d.pad + 2, paddingRight: d.pad + 2, fontSize: small }}
+    >
+      <p>
+        순위: {seasonLabel} {groupLabel ? `${groupLabel} 중 ` : ""}
+        {ruleLabel} {qualifiedCount}명 중 · 등급: {gradeLabel} · 턴오버는 적을수록 상위 · 성공률 순위는 경기당 시도가 리그 평균({attemptsLabel}) 이상인 선수만
+      </p>
+      <p className="mt-1 font-medium text-ink-2">{SOURCE_LINE}</p>
+    </div>
+  );
+
+  if (horizontal) {
+    return (
+      <article
+        className="surface-card tabular grid w-full overflow-hidden rounded-container"
+        style={{ gridTemplateColumns: `${H_LEFT}px minmax(0,1fr) ${H_RIGHT}px` }}
+        aria-label={`${p.nameKo} 플레이어 카드`}
+      >
+        {hero}
+        {stats}
+        {radarBlock}
+        {footer}
+      </article>
+    );
+  }
+
+  return (
+    <article
+      className="surface-card tabular w-full overflow-hidden rounded-container"
+      style={exportMode ? { width: CARD_LG_WIDTH } : undefined}
+      aria-label={`${p.nameKo} 플레이어 카드`}
+    >
+      {hero}
+      {stats}
+      {radarBlock}
+      {footer}
     </article>
   );
 }

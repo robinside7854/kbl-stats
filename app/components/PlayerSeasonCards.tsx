@@ -6,7 +6,9 @@
 // - 순위 범위: 전체 / 같은 포지션 — 카드의 순위 비교 집단만 바꾼다 ("가드 중 3위"). 등급은 항상 같은 국적 집단 안.
 // - 같은 선수 "시즌 비교"는 없앴다(2026-09-30 사용자 피드백) — 두 시즌·두 선수 비교는 비교 탭 링크로.
 // - 상태는 주소 ?season=&scope=pos 에 남긴다 (window.location — 정적 HTML은 기본 상태로 그려진다).
-// - PC 는 카드 오른쪽 열 = 시즌별 추이(카드 높이를 채움) + 하이라이트 카드 3개(그 시즌 순위 1~10위 부문, 없으면 커리어 하이).
+// - PC(1024px 이상)는 가로 카드(왼쪽 사진·가운데 스탯·오른쪽 레이더, 높이 520px 이하) 한 줄 → 그 아래
+//   시즌별 추이(원래 높이) + 오른쪽 좁은 열에 하이라이트 카드 3개 세로(그 시즌 순위 1~10위 부문, 없으면 커리어 하이).
+//   (피드백 5차 #1: 세로 카드 옆에 추이를 카드 높이만큼 늘이던 배치를 없앴다.) 모바일은 세로 카드 → 추이 → 하이라이트 3개 가로.
 // - 시즌별 기록표(CareerTable)의 시즌을 누르면 "player-season" 이벤트로 여기 시즌을 바꾼다.
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -37,7 +39,7 @@ interface Props {
   initial: SeasonCardView;
   /** 포지션 묶음 이름 (예: "가드"). 모르면 null → 같은 포지션 범위 버튼을 끈다 */
   groupLabel: string | null;
-  /** PC 에서 카드 오른쪽에 둘 내용 (시즌별 추이 그래프 — fill 로 카드 높이를 채운다) */
+  /** 카드 아래에 둘 내용 (시즌별 추이 그래프 — PC 는 하이라이트 3개가 그 오른쪽 열) */
   aside?: React.ReactNode;
   /** 정규시즌 커리어 하이 행 (시즌 순위 1~10위가 없을 때 하이라이트 대체용). 없으면 [] */
   careerHighRows: CareerHighRow[];
@@ -85,7 +87,7 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
   const deck = (
     <section id="season-card" aria-label="시즌 플레이어 카드" className="scroll-mt-4">
       {view ? (
-        <CardDeck cards={[{ view, loading: a.status === "loading" }]} fileName={fileName} />
+        <CardDeck cards={[{ view, loading: a.status === "loading" }]} fileName={fileName} wideLayout />
       ) : a.status === "error" ? (
         <p role="alert" className="surface-card rounded-container px-4 py-8 text-center text-body text-ink-2">
           시즌 기록을 불러오지 못했습니다. 시즌을 다시 눌러 주세요.
@@ -135,21 +137,15 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
         {!groupLabel && <p className="text-sub text-ink-3">포지션 정보가 없는 선수라 순위 범위는 전체만 볼 수 있습니다.</p>}
       </section>
 
-      {/* ── 카드 (PC 는 오른쪽에 추이 그래프) ── */}
-      {/* PC: 오른쪽 열이 카드 높이만큼 늘어나고(stretch), 추이 그래프가 남는 높이를 채운 뒤 아래에 하이라이트 3개 */}
-      <div className="mt-4 grid gap-6 lg:grid-cols-[500px_minmax(0,1fr)] lg:items-stretch">
-        {deck}
-        <div className="flex min-w-0 flex-col gap-4">
-          {aside}
-          <HighlightCards title={highlight.title} items={highlight.items} teamPrimary={view?.team?.color.primary ?? FALLBACK_TEAM_COLOR.primary} />
-        </div>
-      </div>
-
-      <p className="mt-4 max-w-3xl text-sub leading-relaxed text-ink-3">
-        레이더 5축(공격·수비·3점·허슬·효율)은 축마다 관련 기록 여러 개의 백분위를 평균한 값이고, 꼭짓점 글자가 등급입니다{" "}
-        <InfoLink term="radarAxes" />. 등급은 같은 국적 집단(국내·외국·아시아쿼터) 안에서, 순위는 리그 전체
-        {groupLabel ? "(또는 같은 포지션)" : ""} 안에서 매깁니다. 사진은 모든 시즌에 같은 한 장을 쓰고, 팀 색과 로고만 그 시즌 팀을 따릅니다.
+      {/* ── 카드 (PC 가로 카드 한 줄) → 추이 + 하이라이트 ── */}
+      <div className="mt-4">{deck}</div>
+      <p className="mt-3 text-sub leading-relaxed text-ink-3">
+        등급은 같은 국적 집단 안, 순위는 리그 전체{groupLabel ? "(또는 같은 포지션)" : ""} 기준입니다 <InfoLink term="radarAxes" />. 사진은 모든 시즌에 같은 한 장입니다.
       </p>
+      <div className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start">
+        <div className="min-w-0">{aside}</div>
+        <HighlightCards title={highlight.title} items={highlight.items} teamPrimary={view?.team?.color.primary ?? FALLBACK_TEAM_COLOR.primary} />
+      </div>
     </div>
   );
 }
