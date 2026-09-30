@@ -3,6 +3,7 @@
 // - 더 나은 쪽 값은 굵게 + ▲ 표시(색만으로 구분하지 않는다). 턴오버·파울은 낮은 쪽이 낫다.
 // - showDelta: 같은 선수 시즌 비교에서 "증감"(두 번째 − 첫 번째) 열을 보인다.
 // - 순위·등급은 각 카드가 자기 시즌(자기 비교 집단) 안에서 매긴 것 — 표 아래 안내.
+// - 열이 기록·A·B(·증감) 3~4개라 390px 폭에 그대로 들어간다 → 가로 스크롤 상자를 두지 않는다 (디자인 점검 A1, 실측 확인).
 import { compareCardEntries, rankShort, type SeasonCardView } from "@/lib/cardview";
 import { seasonShortLabel } from "@/lib/career";
 
@@ -45,7 +46,7 @@ export default function CompareTable({ a, b, aLabel, bLabel, seriesA, seriesB, s
 
   return (
     <section aria-label={caption}>
-      <div className="overflow-x-auto rounded-xl border border-line bg-surface">
+      <div className="rounded-2xl border border-line bg-surface">
         <table className="tabular w-full border-separate border-spacing-0 text-sm">
           <caption className="sr-only">{caption}</caption>
           <thead>
@@ -87,9 +88,8 @@ export default function CompareTable({ a, b, aLabel, bLabel, seriesA, seriesB, s
         </table>
       </div>
       <p className="mt-2 text-xs leading-relaxed text-ink-3">
-        ▲ = 더 나은 쪽 (턴오버·파울은 적은 쪽). 순위·등급은 각 카드가 <b className="font-semibold text-ink-2">자기 시즌 안에서</b> 매긴
-        것입니다 — {aLabel}: {groupNote(a, aLabel)}, {bLabel}: {groupNote(b, bLabel)}. 시즌이 다르면 리그 수준·경기 수가 달라 값보다 순위·등급을 보는 편이
-        공정합니다.{showDelta && " 증감 = 두 번째 시즌 − 첫 번째 시즌 (성공률은 %p)."}
+        ▲ 더 나은 쪽(턴오버·파울은 적은 쪽). 순위·등급은 각자 자기 시즌 안에서 매겼습니다: {aLabel} {groupNote(a, aLabel)}, {bLabel}{" "}
+        {groupNote(b, bLabel)}. 시즌이 다르면 값보다 순위·등급을 보세요.{showDelta && " 증감 = 두 번째 시즌 − 첫 번째 시즌(성공률은 %p)."}
       </p>
     </section>
   );

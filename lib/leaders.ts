@@ -10,14 +10,17 @@ import {
   PCT_ATTEMPTS,
   perGame,
   QUALIFY_PRESETS,
+  qualifyShort,
   type AttemptThresholds,
   type QualifyRule,
 } from "./metrics";
 import {
   filterByNationality,
   filterByPosition,
+  nationalityFilterLabel as nationalityFilterLabelOf,
   nationalityFromParam,
   nationalityParam,
+  positionFilterLabel as positionFilterLabelOf,
   positionFromParam,
   positionParam,
   type NationalityFilter,
@@ -338,4 +341,78 @@ export function leadersQueryString(s: LeadersState): string {
   if (s.presetIdx !== d.presetIdx) qs.set("q", String(s.presetIdx));
   const str = qs.toString();
   return str ? `?${str}` : "";
+}
+
+// ─────────────────────────────────────────────
+// 행 카드·더 보기 (모바일 순위표·기록표 — 2026-09-30 디자인 점검 A1·A3)
+// ─────────────────────────────────────────────
+
+/** 순위표 첫 화면 행 수. "더 보기"를 누를 때마다 이만큼 더 */
+export const LEADERS_PAGE_SIZE = 25;
+
+/**
+ * 앞에서 limit 개만 자른다 + 남은 개수. 목록 화면의 "더 보기 (남은 n명)" 공용.
+ * limit 이 0 이하이면 빈 목록.
+ */
+export function takeFirst<T>(rows: readonly T[], limit: number): { shown: T[]; remaining: number } {
+  const n = Math.max(0, Math.min(rows.length, Math.floor(limit)));
+  return { shown: rows.slice(0, n), remaining: rows.length - n };
+}
+
+/**
+ * 모바일 행 카드의 보조값 열쇠 (접힌 상태에서 이름 아래 작게).
+ * 경기 · 출전 · 다음 핵심(득점, 지금 기준이 득점이면 리바) 중 지금 정렬 기준(key)을 뺀 앞 3개.
+ */
+export function rowSummaryKeys(key: LeaderStatKey): LeaderStatKey[] {
+  const pool: LeaderStatKey[] = ["games", "minutes", "points", "reb", "ast"];
+  return pool.filter((k) => k !== key).slice(0, 3);
+}
+
+/** 보조값 한 토막, 예: "54경기" · "32.1분" · "득점 25.3" */
+export function formatSummaryStat(p: LeaderPlayer, key: LeaderStatKey, mode: StatMode): string {
+  const text = formatStat(statValue(p, key, mode), key, mode);
+  if (key === "games") return `${text}경기`;
+  if (key === "minutes") return `${text}분`;
+  return `${LEADER_STATS[key].short} ${text}`;
+}
+
+// ─────────────────────────────────────────────
+// 적용 중 필터 요약 칩 (필터 시트 옆 한 줄 — 디자인 점검 A2)
+// ─────────────────────────────────────────────
+
+/** 순위표에서 "필터" 시트 안에 들어가는 항목 (부문은 항상 보이는 1차 컨트롤이라 제외) */
+export type LeaderFilterField = "mode" | "position" | "origin" | "teamCode" | "presetIdx";
+
+export interface FilterChipInfo<F extends string> {
+  field: F;
+  /** 칩 글자, 예: "가드" · "국내" · "20경기·300분+" */
+  label: string;
+}
+
+/**
+ * 기본값이 아닌 필터만 칩으로. 순서 = 시트 안 순서.
+ * teamLabel: 팀 코드 → 표시 이름 (화면이 팀 목록으로 만든다)
+ */
+export function leaderFilterChips(
+  s: LeadersState,
+  teamLabel: (code: string) => string,
+): FilterChipInfo<LeaderFilterField>[] {
+  const d = DEFAULT_LEADERS_STATE;
+  const out: FilterChipInfo<LeaderFilterField>[] = [];
+  if (s.mode !== d.mode) out.push({ field: "mode", label: s.mode === "total" ? "시즌 합계" : "경기당" });
+  if (s.position !== d.position) out.push({ field: "position", label: positionFilterLabelOf(s.position) });
+  if (s.origin !== d.origin) out.push({ field: "origin", label: nationalityFilterLabelOf(s.origin) });
+  if (s.teamCode !== null) out.push({ field: "teamCode", label: teamLabel(s.teamCode) });
+  if (s.presetIdx !== d.presetIdx) out.push({ field: "presetIdx", label: qualifyShort(QUALIFY_PRESETS[s.presetIdx]) });
+  return out;
+}
+
+/** 칩의 ✕: 그 항목만 기본값으로 */
+export function clearLeaderFilter(s: LeadersState, field: LeaderFilterField): LeadersState {
+  return { ...s, [field]: DEFAULT_LEADERS_STATE[field] };
+}
+
+/** 필터 시트의 "초기화": 부문은 그대로 두고 나머지를 기본값으로 */
+export function resetLeaderFilters(s: LeadersState): LeadersState {
+  return { ...DEFAULT_LEADERS_STATE, category: s.category };
 }

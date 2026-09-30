@@ -107,6 +107,21 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* 키보드 포커스 링 — 버튼·행·칩 공통 (디자인 점검 C2). 마우스 클릭에는 보이지 않는다 */
+@utility focus-ring {
+  &:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+}
+/* 목록 행처럼 테두리 안쪽에 그려야 잘리지 않는 경우 */
+@utility focus-ring-inset {
+  &:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: -2px;
+  }
+}
+
 /* 팀 분포 산점도: 점을 누르면 Recharts 레이어(g)에 브라우저 포커스 테두리가 생긴다.
    차트는 aria-hidden 이고 같은 내용을 "표로 보기"가 제공하므로 차트 안 포커스 테두리만 숨긴다 */
 .scatter-plot :focus {

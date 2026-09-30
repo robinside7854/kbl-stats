@@ -17,6 +17,13 @@ import {
   statTitle,
   statValue,
   topLeaders,
+  takeFirst,
+  rowSummaryKeys,
+  formatSummaryStat,
+  leaderFilterChips,
+  clearLeaderFilter,
+  resetLeaderFilters,
+  LEADERS_PAGE_SIZE,
 } from "../lib/leaders";
 import { attemptThresholds, DEFAULT_QUALIFY, QUALIFY_PRESETS } from "../lib/metrics";
 import { teamShortLabel } from "../lib/images";
@@ -196,5 +203,31 @@ assert.equal(teamShortNameKo("경남LG"), "LG");
 assert.equal(teamShortNameKo("서울"), "서울"); // 지명만 → 전체
 assert.equal(teamShortNameKo("KCC이지스"), "KCC이지스"); // 지명 없음 → 그대로
 assert.equal(teamShortNameKo("  "), "");
+
+// 더 보기: 앞 n개 + 남은 수
+assert.equal(LEADERS_PAGE_SIZE, 25);
+assert.deepEqual(takeFirst([1, 2, 3, 4], 3), { shown: [1, 2, 3], remaining: 1 });
+assert.deepEqual(takeFirst([1, 2], 25), { shown: [1, 2], remaining: 0 });
+assert.deepEqual(takeFirst([1, 2], 0), { shown: [], remaining: 2 });
+// 행 카드 보조값: 경기·출전·득점, 정렬 기준은 빼고 다음 핵심으로 채운다
+assert.deepEqual(rowSummaryKeys("reb"), ["games", "minutes", "points"]);
+assert.deepEqual(rowSummaryKeys("points"), ["games", "minutes", "reb"]);
+assert.deepEqual(rowSummaryKeys("games"), ["minutes", "points", "reb"]);
+const sp = mk({ id: "s", games: 10, minutes: 321, points: 250 });
+assert.equal(formatSummaryStat(sp, "games", "perGame"), "10경기");
+assert.equal(formatSummaryStat(sp, "minutes", "perGame"), "32.1분");
+assert.equal(formatSummaryStat(sp, "points", "perGame"), "득점 25.0");
+assert.equal(formatSummaryStat(sp, "points", "total"), "득점 250");
+// 적용 중 필터 칩: 기본값이 아닌 것만, 시트 순서대로. ✕ 는 그 항목만 기본값으로, 초기화는 부문 유지
+const fs0 = { ...DEFAULT_LEADERS_STATE, category: "reb" as const, mode: "total" as const, position: "G" as const, origin: "domestic" as const, teamCode: "55", presetIdx: 1 };
+assert.deepEqual(
+  leaderFilterChips(fs0, (c) => (c === "55" ? "SK" : c)).map((c) => `${c.field}:${c.label}`),
+  ["mode:시즌 합계", "position:가드", "origin:국내", "teamCode:SK", "presetIdx:20경기·300분+"],
+);
+assert.deepEqual(leaderFilterChips(DEFAULT_LEADERS_STATE, String), []);
+assert.equal(clearLeaderFilter(fs0, "teamCode").teamCode, null);
+assert.equal(clearLeaderFilter(fs0, "position").position, "all");
+assert.equal(clearLeaderFilter(fs0, "position").origin, "domestic");
+assert.deepEqual(resetLeaderFilters(fs0), { ...DEFAULT_LEADERS_STATE, category: "reb" });
 
 console.log("leaders: 모든 검사 통과");

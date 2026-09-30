@@ -1,6 +1,7 @@
 "use client";
 // 칩 줄: 여러 값 중 하나를 고르는 둥근 버튼 묶음 (시즌·포지션·국적·팀 칩 공용).
 // scroll: 칩이 많을 때(시즌 30개 등) 줄바꿈 대신 이 줄만 옆으로 민다 — 페이지 전체는 가로로 밀리지 않는다.
+//   음수 여백(-mx)으로 화면 끝까지 늘이지 않는다: 부모 상자가 넘쳐 보이는 문제가 생겨서(2026-09-30 가로 스크롤 점검).
 
 export interface Chip<T extends string | number> {
   value: T;
@@ -23,7 +24,7 @@ export default function ChipRow<T extends string | number>({ label, chips, value
     <div
       role="group"
       aria-label={label}
-      className={`flex gap-1.5 ${scroll ? "-mx-4 overflow-x-auto px-4 pb-1 [scrollbar-width:thin]" : "flex-wrap"} ${className}`}
+      className={`flex gap-1.5 ${scroll ? "overflow-x-auto pb-1 [scrollbar-width:thin]" : "flex-wrap"} ${className}`}
     >
       {chips.map((c) => {
         const on = c.value === value;
@@ -34,7 +35,7 @@ export default function ChipRow<T extends string | number>({ label, chips, value
             aria-pressed={on}
             aria-label={c.aria}
             onClick={() => onChange(c.value)}
-            className={`flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3 text-sm font-semibold ${
+            className={`focus-ring-inset flex h-10 shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-full border px-3 text-sm font-semibold transition-colors duration-200 ${
               on ? "border-ink bg-ink text-bg" : "border-line bg-surface text-ink-2 hover:bg-surface-2"
             }`}
           >
