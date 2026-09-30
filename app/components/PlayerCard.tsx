@@ -1,11 +1,16 @@
 "use client";
-// 플레이어 카드 한 장 (게임 카드처럼): 팀 색 상단 + 큰 사진 + 종합 등급 → 메인 스탯 9개(시즌 순위) → 레이더 + 축별 등급(S~F).
-// 값·순위·백분위·등급 계산은 전부 lib/metrics.ts — 이 파일은 배치와 표기만 맡는다.
+// 플레이어 카드 한 장 (게임 카드처럼): 팀 색 상단 + 큰 사진 + 종합 등급 → 메인 스탯 9개(시즌 순위) + 파울·출전 줄
+// → 레이더 + 축별 등급(S~F). 값·순위·백분위·등급 계산은 전부 lib/metrics.ts·lib/cardview.ts — 이 파일은 배치와 표기만 맡는다.
+// 입력은 lib/cardview buildSeasonCardView 결과(SeasonCardView) 하나: 시즌·순위 범위(전체/같은 포지션)·팀 색·로고가 그 시즌 것.
+// 사진은 선수당 한 장(시즌별 사진이 없다)이라 어느 시즌 카드든 같은 사진을 쓰고, 팀 색·로고만 그 시즌 것을 쓴다.
 // size: "sm"(모바일, 폭 100%) / "lg"(PC·저장 이미지, 폭 약 500px) — 글자·사진·격자·레이더를 비례해 키운다.
 // exportMode(이미지 저장 사본)에서는 공식 사진·로고를 쓰지 않고 대체 디자인(팀 색·이니셜·약칭)으로 그린다.
 import { PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart, ResponsiveContainer } from "recharts";
 import Link from "next/link";
-import type { CardPlayer, CardTeam, TeamColor } from "@/lib/types";
+import type { CardPlayer, TeamColor } from "@/lib/types";
+import { cardFootStats, rankHeading, rankPhrase, type SeasonCardView } from "@/lib/cardview";
+import { glossaryHref } from "@/lib/glossary";
+import { nationalityOf, NATIONALITY_LABELS, positionLabel } from "@/lib/roster";
 import {
   axisValue,
   radarAxes,
@@ -16,7 +21,6 @@ import {
   type CardStatEntry,
   type Grade,
   type RadarAxis,
-  type RadarAxisSet,
   type RankTier,
 } from "@/lib/metrics";
 import { mixHex, teamShortLabel } from "@/lib/images";
@@ -31,22 +35,16 @@ export type CardEntry = CardEntryOf<CardPlayer>;
 export type CardSize = "sm" | "lg";
 
 interface Props {
-  entry: CardEntry;
-  team?: CardTeam;
-  seasonLabel: string;
-  axisSet: RadarAxisSet;
-  ruleLabel: string;
-  qualifiedCount: number;
+  /** 카드 한 장의 값 — 시즌·순위 범위·팀 (lib/cardview buildSeasonCardView) */
+  view: SeasonCardView;
   colors: ThemeColors;
-  /** 성공률 시도 기준 표기, 예: "야투 7.1·3점 2.6·자유투 2.0" (lib/metrics attemptsNote) */
-  attemptsLabel: string;
   size?: CardSize;
   /** 레이더 선 색 (비교 시 선수 구분: series1 / series2) */
   seriesColor: string;
   /** 이미지 저장 사본: 공식 이미지 없이 대체 디자인만 */
   exportMode?: boolean;
-  /** 이름을 선수 페이지 링크로 (기본 true, 선수 페이지 안의 카드·저장 사본은 false) */
-  linkName?: boolean;
+  /** 이름에 걸 링크 (없으면 링크 없음 — 선수 페이지 안의 카드·저장 사본) */
+  nameHref?: string;
 }
 
 const FALLBACK_COLOR: TeamColor = { primary: "#6B7280", secondary: "#9CA3AF", text: "#fff" };
@@ -87,7 +85,7 @@ function Medal({ tier, rank, px }: { tier: "gold" | "silver" | "bronze"; rank: n
   );
 }
 
-function RankLine({ entry, color, fs }: { entry: CardStatEntry; color: TeamColor; fs: number }) {
+function RankLine({ entry, color, fs, group }: { entry: CardStatEntry; color: TeamColor; fs: number; group: string | null }) {
   const r = entry.rank;
   const small = { fontSize: fs - 1 };
   if (r.reason === "unranked") return null;
@@ -106,7 +104,7 @@ function RankLine({ entry, color, fs }: { entry: CardStatEntry; color: TeamColor
   );
   if (tier === "gold" || tier === "silver" || tier === "bronze") {
     return (
-      <span className="inline-flex items-center gap-1" aria-label={`${MEDAL[tier].name} 시즌 ${r.rank}위, ${r.of}명 중`}>
+      <span className="inline-flex items-center gap-1" aria-label={`${MEDAL[tier].name} ${rankPhrase(r.rank, r.of, group)}`}>
         <Medal tier={tier} rank={r.rank} px={Math.round(fs * 1.5)} />
         <span className="font-bold text-ink" style={{ fontSize: fs }}>
           {r.rank}위
@@ -117,7 +115,7 @@ function RankLine({ entry, color, fs }: { entry: CardStatEntry; color: TeamColor
   }
   if (tier === "top10") {
     return (
-      <span className="inline-flex items-center gap-1" aria-label={`시즌 ${r.rank}위, ${r.of}명 중`}>
+      <span className="inline-flex items-center gap-1" aria-label={rankPhrase(r.rank, r.of, group)}>
         <span
           className="rounded-full px-1.5 py-px font-bold"
           style={{ fontSize: fs - 1, lineHeight: 1.35, background: color.primary, color: color.text, boxShadow: "0 0 0 1px var(--rank-pill-ring)" }}
@@ -129,7 +127,7 @@ function RankLine({ entry, color, fs }: { entry: CardStatEntry; color: TeamColor
     );
   }
   return (
-    <span className="text-ink-2" style={small} aria-label={`시즌 ${r.rank}위, ${r.of}명 중`}>
+    <span className="text-ink-2" style={small} aria-label={rankPhrase(r.rank, r.of, group)}>
       {r.rank}위{of}
     </span>
   );
@@ -144,7 +142,7 @@ function cellStyle(tier: RankTier, color: TeamColor): React.CSSProperties | unde
   };
 }
 
-function StatCell({ entry, color, size }: { entry: CardStatEntry; color: TeamColor; size: CardSize }) {
+function StatCell({ entry, color, size, group }: { entry: CardStatEntry; color: TeamColor; size: CardSize; group: string | null }) {
   const d = DIM[size];
   const { def, value } = entry;
   const tier = rankTier(entry.rank.rank);
@@ -165,7 +163,7 @@ function StatCell({ entry, color, size }: { entry: CardStatEntry; color: TeamCol
         )}
       </span>
       <span className="mt-0.5 flex items-center" style={{ height: Math.round(d.rank * 1.5) }}>
-        <RankLine entry={entry} color={color} fs={d.rank} />
+        <RankLine entry={entry} color={color} fs={d.rank} group={group} />
       </span>
     </div>
   );
@@ -346,21 +344,12 @@ function OverallBadge({
 // 카드
 // ─────────────────────────────────────────────
 
-export default function PlayerCard({
-  entry,
-  team,
-  seasonLabel,
-  axisSet,
-  ruleLabel,
-  qualifiedCount,
-  colors,
-  attemptsLabel,
-  size = "sm",
-  seriesColor,
-  exportMode = false,
-  linkName = true,
-}: Props) {
+export default function PlayerCard({ view, colors, size = "sm", seriesColor, exportMode = false, nameHref }: Props) {
+  const { entry, seasonLabel, axisSet, ruleLabel, qualifiedCount, attemptsLabel, groupLabel } = view;
+  const team = view.team ?? undefined;
   const p = entry.player;
+  const foot = cardFootStats(p);
+  const pos = positionLabel(p.position);
   const d = DIM[size];
   const color = team?.color ?? FALLBACK_COLOR;
   // 상단 그라데이션: 팀 primary → 검정 쪽으로 어둡게. 이름이 놓이는 아래쪽이 가장 어둡다 (글자는 color.text)
@@ -447,12 +436,13 @@ export default function PlayerCard({
           style={{ paddingLeft: d.pad + 2, paddingRight: d.pad + 2, paddingBottom: d.pad, background: `linear-gradient(to top, ${dark} 0%, ${dark}e6 40%, ${dark}00 100%)` }}
         >
           <div className="mb-1 flex flex-wrap gap-1">
-            <HeroBadge fs={d.statLabel}>{p.isForeign ? "외국인" : "국내"}</HeroBadge>
+            <HeroBadge fs={d.statLabel}>{NATIONALITY_LABELS[nationalityOf(p)]}</HeroBadge>
+            {pos && <HeroBadge fs={d.statLabel}>{pos}</HeroBadge>}
             {!entry.qualified && <HeroBadge fs={d.statLabel}>표본 부족</HeroBadge>}
           </div>
           <h2 className="font-black tracking-tight [overflow-wrap:anywhere]" style={{ fontSize: d.name, lineHeight: 1.1 }}>
-            {linkName && !exportMode ? (
-              <Link href={`/player/${p.id}`} className="underline-offset-4 hover:underline" title={`${p.nameKo} 선수 페이지`}>
+            {nameHref && !exportMode ? (
+              <Link href={nameHref} className="underline-offset-4 hover:underline" title={`${p.nameKo} 선수 페이지`}>
                 {p.nameKo}
               </Link>
             ) : (
@@ -471,22 +461,45 @@ export default function PlayerCard({
           <h3 className="font-bold text-ink" style={{ fontSize: d.statLabel + 1 }}>
             경기당 기록 <span className="font-medium text-ink-3">· {p.games}경기</span>
           </h3>
-          <span className="text-ink-3" style={{ fontSize: d.statLabel }}>
-            시즌 순위
+          <span className={groupLabel ? "font-semibold text-ink-2" : "text-ink-3"} style={{ fontSize: d.statLabel }}>
+            {rankHeading(groupLabel)}
           </span>
         </div>
         <div className={`grid grid-cols-3 ${size === "lg" ? "gap-2" : "gap-1.5"}`}>
-          {/* 3×3 격자는 순위 있는 9개만. 파울(ranked: false)의 배치는 다음 화면 개편에서 정한다 */}
+          {/* 3×3 격자는 순위 있는 9개만. 파울(ranked: false)은 아래 작은 줄에 출전시간과 함께 (순위 없음) */}
           {entry.stats.filter((s) => s.def.ranked).map((s) => (
-            <StatCell key={s.def.key} entry={s} color={color} size={size} />
+            <StatCell key={s.def.key} entry={s} color={color} size={size} group={groupLabel} />
           ))}
         </div>
+        <p className="mt-1.5 flex flex-wrap items-baseline gap-x-2 text-ink-2" style={{ fontSize: d.statLabel }}>
+          <span>
+            파울 <b className="font-bold text-ink">{fmt1(foot.fouls)}</b>
+          </span>
+          <span aria-hidden className="text-ink-3">·</span>
+          <span>
+            출전시간 <b className="font-bold text-ink">{fmt1(foot.minutes)}</b>분
+          </span>
+          <span className="text-ink-3" style={{ fontSize: d.statLabel - 1 }}>
+            경기당 · 순위 없음
+          </span>
+        </p>
       </div>
 
       {/* ── 하단: 레이더(크게) + 꼭짓점마다 등급 S~F ── */}
       <div className="mt-3 border-t border-line" style={{ paddingLeft: d.pad, paddingRight: d.pad, paddingTop: 8 }}>
         <p className="flex flex-wrap items-center gap-1.5 font-semibold text-ink-2" style={{ fontSize: d.statLabel }}>
-          시즌 내 등급 <span className="font-normal text-ink-3">S 상위 10% · A 25% · B 45% · C 65% · D 85%</span>
+          {groupLabel ? `${groupLabel} 중 등급` : "시즌 내 등급"}
+          {!exportMode && (
+            <Link
+              href={glossaryHref("percentileGrade")}
+              className="-my-2 inline-flex h-8 w-6 items-center justify-center font-normal text-ink-3 hover:text-ink"
+              aria-label="등급 계산 방법 (용어 풀이)"
+              title="등급 계산 방법"
+            >
+              ⓘ
+            </Link>
+          )}
+          <span className="font-normal text-ink-3">S 상위 10% · A 25% · B 45% · C 65% · D 85%</span>
           {axisSet === "classic" && <ClassicAxesBadge />}
         </p>
         <div aria-hidden style={{ height: d.radarH }}>
@@ -517,7 +530,8 @@ export default function PlayerCard({
       {/* ── 기준·출처 (저장 이미지에도 남는다) ── */}
       <div className="border-t border-line py-2 leading-snug text-ink-3" style={{ paddingLeft: d.pad + 2, paddingRight: d.pad + 2, fontSize: size === "lg" ? 11.5 : 10 }}>
         <p>
-          순위·등급: {seasonLabel} {ruleLabel} {qualifiedCount}명 중 · 턴오버는 적을수록 상위 · 성공률 순위는 경기당 시도가 리그 평균({attemptsLabel}) 이상인 선수만
+          순위·등급: {seasonLabel} {groupLabel ? `${groupLabel} 중 ` : ""}
+          {ruleLabel} {qualifiedCount}명 중 · 턴오버는 적을수록 상위 · 성공률 순위는 경기당 시도가 리그 평균({attemptsLabel}) 이상인 선수만
         </p>
         <p className="mt-1 font-medium text-ink-2">{SOURCE_LINE}</p>
       </div>

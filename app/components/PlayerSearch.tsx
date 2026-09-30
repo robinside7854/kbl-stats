@@ -1,35 +1,43 @@
 "use client";
-// 상단 검색창: 이름(한글·영문, 공백 무시, 부분 일치)으로 선수를 찾아 선수 페이지로 이동.
-// 검색 데이터는 우리 사이트의 정적 파일 /search-index.json (빌드 전 scripts/build-search-index.ts 가 생성).
-// 검색창에 처음 포커스가 갈 때 한 번만 받아 모듈 변수에 둔다 — KBL 서버 호출이 아니므로 원칙 1·3 위반 아님.
+// 선수 검색창: 이름(한글·영문, 공백 무시, 부분 일치)으로 선수를 찾는다.
+// - 기본: 고르면 선수 페이지로 이동 (상단 SiteNav, 선수 탭의 큰 검색창)
+// - onSelect 를 주면 이동하지 않고 고른 선수를 넘긴다 (비교 탭 슬롯)
+// 검색 데이터는 우리 사이트의 정적 파일 /search-index.json (useSearchIndex) — KBL 서버 호출 아님.
 // 매칭·정렬 규칙은 lib/search.ts searchPlayers.
-// 입력창의 data-site-search 속성은 홈의 "선수 검색" 버튼이 포커스를 옮길 때 찾는 표시다 (FocusSearchButton).
-import { useId, useMemo, useRef, useState } from "react";
+// 입력창의 data-site-search 속성은 홈의 "선수 검색" 버튼이 포커스를 옮길 때 찾는 표시다 (FocusSearchButton) — 상단 검색창에만 단다.
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { SearchEntry } from "@/lib/types";
 import { searchPlayers, searchSpanLabel } from "@/lib/search";
 import { teamShortLabel } from "@/lib/images";
 import PlayerAvatar from "./PlayerAvatar";
+import { loadSearchIndex } from "./useSearchIndex";
 
-let indexPromise: Promise<SearchEntry[]> | null = null;
-
-function loadIndex(): Promise<SearchEntry[]> {
-  if (!indexPromise) {
-    indexPromise = fetch("/search-index.json")
-      .then((r) => {
-        if (!r.ok) throw new Error(String(r.status));
-        return r.json() as Promise<SearchEntry[]>;
-      })
-      .catch((e) => {
-        indexPromise = null; // 실패하면 다음 포커스 때 다시 시도
-        throw e;
-      });
-  }
-  return indexPromise;
+interface Props {
+  className?: string;
+  /** sm: 상단 막대(높이 36px) / lg: 선수 탭·비교 탭의 큰 검색창(높이 48px) */
+  size?: "sm" | "lg";
+  /** 주면 선수 페이지로 이동하지 않고 고른 선수를 넘긴다 */
+  onSelect?: (e: SearchEntry) => void;
+  /** PC(마우스·키보드 환경, 폭 1024px 이상)에서만 처음에 포커스 — 모바일은 키보드가 화면을 가리므로 하지 않는다 */
+  autoFocusDesktop?: boolean;
+  placeholder?: string;
+  /** 스크린리더 이름 */
+  label?: string;
+  /** 상단 검색창 표시 (홈 "선수 검색" 버튼이 찾는다) */
+  siteSearch?: boolean;
 }
 
-export default function PlayerSearch({ className = "" }: { className?: string }) {
+export default function PlayerSearch({
+  className = "",
+  size = "sm",
+  onSelect,
+  autoFocusDesktop = false,
+  placeholder = "선수 이름 검색 (예: 워니)",
+  label = "선수 검색",
+  siteSearch = false,
+}: Props) {
   const id = useId();
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -42,7 +50,7 @@ export default function PlayerSearch({ className = "" }: { className?: string })
   function ensureIndex() {
     if (entries || status === "loading") return;
     setStatus("loading");
-    loadIndex()
+    loadSearchIndex()
       .then((list) => {
         setEntries(list);
         setStatus("idle");
@@ -52,11 +60,19 @@ export default function PlayerSearch({ className = "" }: { className?: string })
 
   const results = useMemo(() => (entries && query.trim() ? searchPlayers(entries, query, 10) : []), [entries, query]);
 
+  useEffect(() => {
+    if (autoFocusDesktop && window.matchMedia("(min-width: 1024px) and (pointer: fine)").matches) {
+      inputRef.current?.focus({ preventScroll: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   function go(e: SearchEntry) {
     setOpen(false);
     setQuery("");
     inputRef.current?.blur();
-    router.push(`/player/${e.id}`);
+    if (onSelect) onSelect(e);
+    else router.push(`/player/${e.id}`);
   }
 
   function onKeyDown(ev: React.KeyboardEvent<HTMLInputElement>) {
@@ -75,16 +91,40 @@ export default function PlayerSearch({ className = "" }: { className?: string })
     }
   }
 
+  const lg = size === "lg";
   const listId = `${id}-list`;
   const showList = open && query.trim().length > 0;
+
+  // 결과 한 줄: 사진 · 이름 · 최근 팀 · 포지션 · 활동 기간 (동명이인 구분)
+  const option = (e: SearchEntry) => (
+    <>
+      <PlayerAvatar
+        photoUrl={e.photoUrl}
+        nameKo={e.nameKo}
+        color={{ primary: e.color.primary, secondary: e.color.primary, text: e.color.text }}
+        size={28}
+      />
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-sm">
+          <span className="font-semibold text-ink">{e.nameKo}</span>{" "}
+          <span className="text-xs text-ink-3">{e.nameEn}</span>
+        </span>
+        {/* 동명이인 구분: 최근 팀 · 활동 기간 */}
+        <span className="block truncate text-xs text-ink-2">
+          {teamShortLabel(e.team)}
+          {e.positionLabel ? ` · ${e.positionLabel}` : ""} · {searchSpanLabel(e)}
+        </span>
+      </span>
+    </>
+  );
 
   return (
     <div className={`relative ${className}`} role="search">
       <label htmlFor={id} className="sr-only">
-        선수 검색
+        {label}
       </label>
-      <span aria-hidden className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-3">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+      <span aria-hidden className={`pointer-events-none absolute top-1/2 -translate-y-1/2 text-ink-3 ${lg ? "left-3.5" : "left-2.5"}`}>
+        <svg width={lg ? 20 : 16} height={lg ? 20 : 16} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
           <circle cx="7" cy="7" r="4.75" />
           <path d="M10.5 10.5 14 14" />
         </svg>
@@ -92,7 +132,7 @@ export default function PlayerSearch({ className = "" }: { className?: string })
       <input
         ref={inputRef}
         id={id}
-        data-site-search=""
+        data-site-search={siteSearch ? "" : undefined}
         type="search"
         role="combobox"
         aria-expanded={showList}
@@ -101,8 +141,10 @@ export default function PlayerSearch({ className = "" }: { className?: string })
         aria-activedescendant={showList && results[active] ? `${id}-opt-${results[active].id}` : undefined}
         autoComplete="off"
         enterKeyHint="search"
-        placeholder="선수 이름 검색 (예: 워니)"
-        className="h-9 w-full min-w-0 rounded-lg border border-line bg-surface pl-8 pr-2 text-base text-ink placeholder:text-ink-3 focus:outline-2 focus:outline-focus sm:text-sm"
+        placeholder={placeholder}
+        className={`w-full min-w-0 border border-line bg-surface text-base text-ink placeholder:text-ink-3 focus:outline-2 focus:outline-focus ${
+          lg ? "h-12 rounded-xl pl-11 pr-3 shadow-sm" : "h-9 rounded-lg pl-8 pr-2 sm:text-sm"
+        }`}
         value={query}
         onChange={(e) => {
           setQuery(e.target.value);
@@ -129,36 +171,36 @@ export default function PlayerSearch({ className = "" }: { className?: string })
           {entries && results.length === 0 && <li className="px-3 py-2 text-sm text-ink-3">검색 결과가 없습니다</li>}
           {results.map((e, i) => (
             <li key={e.id} role="presentation">
-              <Link
-                id={`${id}-opt-${e.id}`}
-                role="option"
-                aria-selected={i === active}
-                href={`/player/${e.id}`}
-                onMouseDown={(ev) => ev.preventDefault()}
-                onClick={() => {
-                  setOpen(false);
-                  setQuery("");
-                }}
-                onMouseEnter={() => setActive(i)}
-                className={`flex items-center gap-2 px-3 py-2 ${i === active ? "bg-surface-2" : ""}`}
-              >
-                <PlayerAvatar
-                  photoUrl={e.photoUrl}
-                  nameKo={e.nameKo}
-                  color={{ primary: e.color.primary, secondary: e.color.primary, text: e.color.text }}
-                  size={28}
-                />
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm">
-                    <span className="font-semibold text-ink">{e.nameKo}</span>{" "}
-                    <span className="text-xs text-ink-3">{e.nameEn}</span>
-                  </span>
-                  {/* 동명이인 구분: 최근 팀 · 활동 기간 */}
-                  <span className="block truncate text-xs text-ink-2">
-                    {teamShortLabel(e.team)} · {searchSpanLabel(e)}
-                  </span>
-                </span>
-              </Link>
+              {onSelect ? (
+                <button
+                  type="button"
+                  id={`${id}-opt-${e.id}`}
+                  role="option"
+                  aria-selected={i === active}
+                  onMouseDown={(ev) => ev.preventDefault()}
+                  onClick={() => go(e)}
+                  onMouseEnter={() => setActive(i)}
+                  className={`flex w-full items-center gap-2 px-3 py-2 text-left ${i === active ? "bg-surface-2" : ""}`}
+                >
+                  {option(e)}
+                </button>
+              ) : (
+                <Link
+                  id={`${id}-opt-${e.id}`}
+                  role="option"
+                  aria-selected={i === active}
+                  href={`/player/${e.id}`}
+                  onMouseDown={(ev) => ev.preventDefault()}
+                  onClick={() => {
+                    setOpen(false);
+                    setQuery("");
+                  }}
+                  onMouseEnter={() => setActive(i)}
+                  className={`flex items-center gap-2 px-3 py-2 ${i === active ? "bg-surface-2" : ""}`}
+                >
+                  {option(e)}
+                </Link>
+              )}
             </li>
           ))}
         </ul>

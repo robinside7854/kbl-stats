@@ -1,11 +1,13 @@
 // 홈 "이번 시즌 한눈에" (PLAN.md §2-4, §3 ⑤, §5-4). 서버 컴포넌트 — 계산은 app/page.tsx 가 lib/ 함수로 끝내고 결과만 받는다.
-// 구성(모바일 우선): 개막 전 안내 → 히어로(득점 1위 표지) → 부문별 1~3위 카드 줄 → 네 화면 큰 버튼 → 시즌 목록.
+// 구성(모바일 우선): 개막 전 안내 → 히어로(득점 1위 표지) → 부문별 1~3위 카드 줄 → 화면 큰 버튼(선수·순위표·팀 분포·비교·용어·검색) → 시즌 목록.
 import Link from "next/link";
 import type { CardTeam, LeaderPlayer, SeasonOption, TeamColor } from "@/lib/types";
 import { formatStat, LEADER_STATS, type LeaderEntry, type LeaderStatKey } from "@/lib/leaders";
 import { HOME_UNITS } from "@/lib/home";
 import { seasonShortLabel } from "@/lib/career";
 import { mixHex, teamShortLabel } from "@/lib/images";
+import { playerHref } from "@/lib/cardview";
+import { nationalityOf, NATIONALITY_LABELS, positionLabel } from "@/lib/roster";
 import FocusSearchButton from "./FocusSearchButton";
 import PlayerAvatar from "./PlayerAvatar";
 import TeamLogo from "./TeamLogo";
@@ -39,9 +41,11 @@ export default function HomeView({ season, fetchedLabel, upcoming, categories, t
   const scoring = categories.find((c) => c.key === "points")?.entries[0] ?? null;
 
   const screens = [
-    { href: `/season/${code}`, title: "플레이어 카드", desc: "게임 카드처럼 보고 비교·저장" },
-    { href: `/season/${code}/leaders`, title: "순위표", desc: "부문별 순위, 국내·외국인 따로" },
+    { href: "/players", title: "선수", desc: "포지션·국적·팀별로 둘러보고 플레이어 카드로" },
+    { href: `/season/${code}/leaders`, title: "순위표", desc: "부문별 순위, 포지션·국적 따로" },
     { href: `/season/${code}/teams`, title: "팀 분포", desc: "우리 팀은 몇 명에게 기댈까" },
+    { href: "/compare", title: "비교", desc: "두 선수, 두 시즌 카드를 나란히" },
+    { href: "/glossary", title: "용어", desc: "PER·TS%·등급은 어떻게 계산할까" },
   ];
 
   return (
@@ -84,7 +88,7 @@ export default function HomeView({ season, fetchedLabel, upcoming, categories, t
         <h2 id="screens-title" className="text-lg font-bold">
           더 보기
         </h2>
-        <ul className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <ul className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-3">
           {screens.map((s) => (
             <li key={s.href}>
               <Link href={s.href} className={BIG_BUTTON}>
@@ -174,7 +178,8 @@ function Hero({ entry, team, seasonCode }: { entry: LeaderEntry<LeaderPlayer>; t
               <span className="inline-flex rounded-md bg-white p-0.5">
                 <TeamLogo logoUrl={team?.logoUrl} shortName={teamName} color={color} size={20} />
               </span>
-              {teamShortLabel(teamName)} · {p.isForeign ? "외국인" : "국내"}
+              {teamShortLabel(teamName)}
+              {positionLabel(p.position) ? ` · ${positionLabel(p.position)}` : ""} · {NATIONALITY_LABELS[nationalityOf(p)]}
             </p>
             <p className="mt-4 leading-none">
               <span className="text-5xl font-black tracking-tight sm:text-6xl">{value}</span>
@@ -182,7 +187,7 @@ function Hero({ entry, team, seasonCode }: { entry: LeaderEntry<LeaderPlayer>; t
             </p>
             <p className="mt-1.5 text-sm font-semibold opacity-90">경기당 {value}점 · 득점 1위</p>
             <Link
-              href={`/season/${seasonCode}?p=${p.id}`}
+              href={playerHref(p.id, seasonCode)}
               className="mt-4 inline-flex h-10 items-center rounded-full bg-white px-4 text-sm font-bold text-[#0b0b0b] hover:opacity-90"
             >
               플레이어 카드 보기 ›
@@ -240,7 +245,10 @@ function LeaderCard({
                   >
                     {e.player.nameKo}
                   </Link>
-                  <span className="block truncate text-[11px] text-ink-3">{teamShortLabel(t?.shortName ?? e.player.teamShort)}</span>
+                  <span className="block truncate text-[11px] text-ink-3">
+                    {teamShortLabel(t?.shortName ?? e.player.teamShort)}
+                    {e.player.position ? ` · ${positionLabel(e.player.position)}` : ""}
+                  </span>
                 </span>
                 <span className={`shrink-0 font-bold tracking-tight text-ink ${e.rank === 1 ? "text-lg" : "text-sm"}`}>
                   {formatStat(e.value, category.key, "perGame")}

@@ -1,8 +1,11 @@
 // 선수 페이지 머리말 (PLAN.md §2-2 ①, §5-4): 최근 시즌 팀 색 배경 + 큰 세로 사진 + 로고 + 이름·소속·활동 기간,
+// 이름 아래 국적 배지(국내/외국/아시아쿼터)·활동 기간, 프로필 한 줄(포지션·키·몸무게·등번호·드래프트 — 선수 마스터),
 // 그 아래 통산 요약 4칸과 소속 팀 이력. 계산은 lib/metrics careerSummary, 표기는 lib/career.
+// 머리말 팀 색은 가장 최근 시즌 팀 (카드 영역은 고른 시즌 팀 색을 따로 쓴다).
 import type { CareerSeason, PlayerIndexEntry, TeamColor } from "@/lib/types";
 import { careerSummary } from "@/lib/metrics";
-import { activeSpanLabel, seasonShortLabel, teamStints } from "@/lib/career";
+import { activeSpanLabel, profileFacts, seasonShortLabel, teamStints } from "@/lib/career";
+import { nationalityOf, NATIONALITY_LABELS } from "@/lib/roster";
 import { mixHex, teamShortLabel } from "@/lib/images";
 import PlayerAvatar from "./PlayerAvatar";
 import TeamLogo from "./TeamLogo";
@@ -28,6 +31,7 @@ export default function PlayerHero({ entry, seasons }: Props) {
   const sum = careerSummary(seasons);
   const span = first && latest ? activeSpanLabel(first.seasonLabel, latest.seasonLabel, seasons.length) : "";
   const stints = teamStints(seasons);
+  const facts = profileFacts(entry);
   const tiles = [
     { label: "통산 경기", value: NF0.format(sum.games), unit: "경기" },
     { label: "경기당 득점", value: NF1.format(sum.points), unit: "" },
@@ -65,12 +69,22 @@ export default function PlayerHero({ entry, seasons }: Props) {
             <p className="mt-1 truncate text-xs font-medium uppercase tracking-wide opacity-80 sm:text-sm">{entry.nameEn}</p>
             <div className="mt-3 flex flex-wrap gap-1.5 text-xs font-semibold">
               <span className="rounded-full px-2 py-0.5" style={{ background: "rgba(255,255,255,0.18)" }}>
-                {entry.isForeign ? "외국인" : "국내"}
+                {NATIONALITY_LABELS[nationalityOf(entry)]}
               </span>
               <span className="rounded-full px-2 py-0.5" style={{ background: "rgba(0,0,0,0.25)" }}>
                 {span}
               </span>
             </div>
+            {facts.length > 0 && (
+              <dl className="mt-3 flex max-w-md flex-wrap gap-x-3 gap-y-1 text-xs sm:text-sm">
+                {facts.map((f) => (
+                  <div key={f.label} className="flex items-baseline gap-1">
+                    <dt className="opacity-75">{f.label}</dt>
+                    <dd className="font-bold">{f.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            )}
           </div>
           <div className="relative -mr-2 shrink-0 self-end sm:mr-4">
             <span className="sm:hidden">

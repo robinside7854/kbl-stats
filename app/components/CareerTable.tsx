@@ -2,7 +2,7 @@
 // 선수 페이지 시즌별 기록표 (PLAN.md §2-2 ②): 한 줄 = 한 시즌(최근이 위), 경기당/합계 전환.
 // 행 모양이 순위표 행(LeaderPlayer)과 같아 값·표기는 lib/leaders.ts(statValue·formatStat·madeAttempts)를 그대로 쓴다.
 // 모바일에서는 표 영역만 가로 스크롤, 시즌 열은 고정 (순위표와 같은 방식).
-// 시즌을 누르면 그 시즌 플레이어 카드(/season/[코드]?p=선수번호)로.
+// 시즌을 누르면 위 카드 영역(PlayerSeasonCards)이 그 시즌 카드로 바뀌고 카드로 스크롤한다 ("player-season" 이벤트).
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import type { CareerSeason } from "@/lib/types";
@@ -17,6 +17,8 @@ import {
 } from "@/lib/leaders";
 import { seasonShortLabel } from "@/lib/career";
 import { teamShortLabel } from "@/lib/images";
+import { playerHref } from "@/lib/cardview";
+import { PLAYER_SEASON_EVENT } from "./PlayerSeasonCards";
 import Segmented from "./Segmented";
 import TeamLogo from "./TeamLogo";
 
@@ -71,7 +73,13 @@ export default function CareerTable({ seasons }: { seasons: CareerSeason[] }) {
                     className="sticky left-0 z-10 w-18 min-w-18 border-b border-r border-line bg-surface px-2 py-1.5 text-left font-semibold group-hover:bg-surface-2"
                   >
                     <Link
-                      href={`/season/${s.seasonCode}?p=${s.id}`}
+                      href={`${playerHref(s.id, s.seasonCode)}#season-card`}
+                      scroll={false}
+                      onClick={(ev) => {
+                        ev.preventDefault();
+                        window.dispatchEvent(new CustomEvent(PLAYER_SEASON_EVENT, { detail: s.seasonCode }));
+                        document.getElementById("season-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                      }}
                       className="whitespace-nowrap text-ink underline decoration-line underline-offset-4 hover:decoration-ink"
                       title={`${seasonShortLabel(s.seasonLabel)} 플레이어 카드`}
                     >
@@ -104,7 +112,7 @@ export default function CareerTable({ seasons }: { seasons: CareerSeason[] }) {
       </div>
       <p className="mt-2 text-xs text-ink-3">
         정규시즌만. 경기당 모드에서 출전시간·득점 등 누적 기록은 경기 수로 나눈 값입니다. 야투%·3점%·자유투%·TS%·PER는
-        KBL 계산값 그대로이고, 성공률 아래 작은 숫자는 시즌 합계 성공/시도입니다. 시즌을 누르면 그 시즌 플레이어 카드로 갑니다.
+        KBL 계산값 그대로이고, 성공률 아래 작은 숫자는 시즌 합계 성공/시도입니다. 시즌을 누르면 위 카드가 그 시즌 카드로 바뀝니다.
       </p>
     </section>
   );
