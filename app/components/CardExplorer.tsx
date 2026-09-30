@@ -50,7 +50,7 @@ export default function CardExplorer({ seasonLabel, players, teams, coverage }: 
     [players, teamCode],
   );
 
-  // 기본 선수: 표본 충족 선수 중 종합 기여도 축(modern: PIE, classic: PER) 1위
+  // 기본 선수: 표본 충족 선수 중 종합 기여도 축(PER) 1위
   const defaultId = useMemo(() => pickDefaultPlayer(players, axisSet) ?? players[0]?.id ?? "", [players, axisSet]);
 
   const exists = (id: string | null) => !!id && players.some((p) => p.id === id);
@@ -235,8 +235,8 @@ export default function CardExplorer({ seasonLabel, players, teams, coverage }: 
             10%, A 상위 25%, B 상위 45%, C 상위 65%, D 상위 85%, F 그 아래. 종합 등급은 5개 축 백분위 평균의 등급입니다.
             성공률 순위는 경기당 시도가 리그 평균({attemptsLabel}) 이상인 선수만 매깁니다.{" "}
             {axisSet === "classic"
-              ? "이 시즌은 KBL이 USG%·AST%·REB%·PIE를 제공하지 않아 40분당 환산(누적 ÷ 출전시간 × 40)과 TS%·PER로 그렸습니다(고전 축). 2차 스탯이 있는 시즌의 카드와는 축이 달라 직접 비교할 수 없습니다."
-              : "2차 스탯은 KBL 계산값 그대로입니다(NBA 공식과 척도가 다를 수 있음)."}
+              ? "이 시즌은 KBL이 USG%·AST%·REB%를 제공하지 않아 40분당 환산(누적 ÷ 출전시간 × 40)과 TS%·PER로 그렸습니다(고전 축). 2차 스탯이 있는 시즌의 카드와는 축이 달라 직접 비교할 수 없습니다."
+              : "2차 스탯은 KBL 계산값 그대로입니다(USG%만 표준 척도로 ×5 — KBL 원값이 표준식의 1/5로 확인됨)."}
           </p>
 
           {/* 저장할 때만 화면 밖에 그리는 사본 (공식 이미지 없음) */}

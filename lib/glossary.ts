@@ -1,0 +1,165 @@
+// 용어 설명 데이터 — 화면의 "이 지표가 뭐예요?" 풀이가 읽는다. 계산은 하지 않는다(계산은 lib/metrics.ts).
+// 공식은 Basketball-Reference 용어집 표기를 따르고, KBL 값과 우리 데이터로 맞춰 본 결과를 note 에 적는다.
+// (검산: 2026-09-30, 2025-26 정규시즌 processed 데이터. 예: 워니 TS 49.8 = 1158 / (2 × (1091 + 0.44 × 161)))
+
+const BREF_GLOSSARY = "https://www.basketball-reference.com/about/glossary.html";
+const BREF_PER = "https://www.basketball-reference.com/about/per.html";
+const BREF_RATINGS = "https://www.basketball-reference.com/about/ratings.html";
+const BREF_PER36 = "https://www.basketball-reference.com/about/glossary.html#per_minute";
+const WIKI_PERCENTILE_RANK = "https://en.wikipedia.org/wiki/Percentile_rank";
+
+export type GlossaryKey =
+  | "per"
+  | "tsPct"
+  | "efgPct"
+  | "usgPct"
+  | "astPct"
+  | "rebPct"
+  | "tovPct"
+  | "astTo"
+  | "ratings"
+  | "pace"
+  | "per40"
+  | "percentileGrade"
+  | "qualify"
+  | "attempts";
+
+export interface GlossaryEntry {
+  key: GlossaryKey;
+  /** 지표 이름 (화면 표기) */
+  name: string;
+  /** 팬 눈높이 한 줄 설명 */
+  short: string;
+  /** 계산식 (사람이 읽는 문자열) */
+  formula: string;
+  /** 출처 URL. 우리 사이트 규칙이라 외부 출처가 없으면 null */
+  source: string | null;
+  /** KBL 값과의 관계·검산 결과·주의 사항 */
+  note: string;
+}
+
+/** 배열 순서 = 용어 풀이 화면 표시 순서 */
+export const GLOSSARY: readonly GlossaryEntry[] = [
+  {
+    key: "per",
+    name: "PER",
+    short: "출전 시간 대비 얼마나 많은 걸 해냈나를 한 숫자로 — 리그 평균이 약 15",
+    formula: "득점·리바운드·어시스트·스틸·블록 등 좋은 기록에서 놓친 슛·턴오버·파울을 빼고 분당·리그 평균으로 맞춘 값 (Hollinger)",
+    source: BREF_PER,
+    note: "KBL 계산값 그대로 씁니다. KBL이 계산식을 공개하지 않아 우리 데이터로 검산할 수 없습니다.",
+  },
+  {
+    key: "tsPct",
+    name: "TS%",
+    short: "2점·3점·자유투를 모두 합친 진짜 슈팅 효율",
+    formula: "TS% = 득점 ÷ (2 × (야투 시도 + 0.44 × 자유투 시도)) × 100",
+    source: BREF_GLOSSARY,
+    note: "KBL 계산값 그대로이며, 우리 데이터로 검산해 일치합니다.",
+  },
+  {
+    key: "efgPct",
+    name: "eFG%",
+    short: "3점슛을 1.5개로 쳐 준 야투 성공률",
+    formula: "eFG% = (야투 성공 + 0.5 × 3점 성공) ÷ 야투 시도 × 100",
+    source: BREF_GLOSSARY,
+    note: "KBL 계산값 그대로이며, 우리 데이터로 검산해 일치합니다.",
+  },
+  {
+    key: "usgPct",
+    name: "USG%",
+    short: "코트에 있을 때 팀 공격을 몇 %나 자기 손으로 끝냈나",
+    formula:
+      "USG% = 100 × ((야투 시도 + 0.44 × 자유투 시도 + 턴오버) × (팀 출전시간 ÷ 5)) ÷ (출전시간 × (팀 야투 시도 + 0.44 × 팀 자유투 시도 + 팀 턴오버))",
+    source: BREF_GLOSSARY,
+    note: "KBL 원값은 표준식의 1/5로 확인되어(2025-26 500분 이상 선수 전원 비율 4.95~5.06) ×5로 표시합니다. 원값은 usgPctRaw 로 보존합니다.",
+  },
+  {
+    key: "astPct",
+    name: "AST%",
+    short: "코트에 있을 때 동료 야투 성공 중 몇 %를 어시스트했나",
+    formula: "AST% = 100 × 어시스트 ÷ (((출전시간 ÷ (팀 출전시간 ÷ 5)) × 팀 야투 성공) − 야투 성공)",
+    source: BREF_GLOSSARY,
+    note: "KBL 계산값 그대로이며, 우리 데이터로 검산해 일치합니다. 2025-26 시즌에만 제공됩니다.",
+  },
+  {
+    key: "rebPct",
+    name: "REB% (OREB% / DREB%)",
+    short: "코트에 있을 때 잡을 수 있던 리바운드 중 몇 %를 잡았나 (공격·수비 따로도)",
+    formula:
+      "REB% = 100 × (리바운드 × (팀 출전시간 ÷ 5)) ÷ (출전시간 × (팀 리바운드 + 상대 리바운드)) · OREB%·DREB% 는 공격(팀 공격 + 상대 수비)·수비(팀 수비 + 상대 공격) 리바운드로 같은 식",
+    source: BREF_GLOSSARY,
+    note: "KBL 계산값 그대로 씁니다(팀·상대 리바운드가 없어 우리 쪽 검산은 못 함). 2025-26 시즌에만 제공됩니다.",
+  },
+  {
+    key: "tovPct",
+    name: "TOV%",
+    short: "공격 100번 중 몇 번을 턴오버로 날렸나",
+    formula: "TOV% = 100 × 턴오버 ÷ (야투 시도 + 0.44 × 자유투 시도 + 턴오버)",
+    source: BREF_GLOSSARY,
+    note: "KBL 계산값 그대로이며, 우리 데이터로 검산해 일치합니다.",
+  },
+  {
+    key: "astTo",
+    name: "AST/TO",
+    short: "턴오버 1개당 어시스트 몇 개 — 높을수록 안정적인 볼 핸들러",
+    formula: "AST/TO = 어시스트 ÷ 턴오버",
+    source: BREF_GLOSSARY,
+    note: "KBL 계산값 그대로이며, 우리 데이터로 검산해 일치합니다.",
+  },
+  {
+    key: "ratings",
+    name: "ORtg / DRtg / NetRtg",
+    short: "100번 공격(수비)당 만든(내준) 득점, 그리고 그 차이",
+    formula: "ORtg = 100 공격 기회당 득점 생산, DRtg = 100 수비 기회당 실점, NetRtg = ORtg − DRtg (Dean Oliver)",
+    source: BREF_RATINGS,
+    note: "KBL 계산값 그대로 씁니다. ORtg 는 전 시즌, DRtg·NetRtg 는 2025-26 시즌에만 제공됩니다.",
+  },
+  {
+    key: "pace",
+    name: "PACE",
+    short: "경기당 공격 횟수 — 높을수록 빠른 농구",
+    formula: "PACE = 공격 횟수를 한 경기(KBL 40분) 기준으로 환산한 값",
+    source: BREF_GLOSSARY,
+    note: "KBL 계산값 그대로 씁니다(NBA 는 48분 기준). 2025-26 시즌에만 제공됩니다.",
+  },
+  {
+    key: "per40",
+    name: "40분당 환산",
+    short: "풀타임(40분)을 뛰었다면 몇 개였을까 — 출전 시간이 다른 선수끼리 비교용",
+    formula: "40분당 값 = 시즌 누적 ÷ 누적 출전시간(분) × 40",
+    source: BREF_PER36,
+    note: "우리 계산입니다(lib/metrics.ts per40). NBA 의 36분당 환산을 KBL 경기 시간(40분)에 맞췄습니다. 출전이 아주 적으면 값이 튀어 표본 기준으로 거릅니다.",
+  },
+  {
+    key: "percentileGrade",
+    name: "백분위 · S~F 등급",
+    short: "같은 시즌 선수들 사이에서 몇 번째쯤인가 (0~100)와 그걸 글자로",
+    formula:
+      "백분위 = (나보다 낮은 선수 수 + 0.5 × 같은 값 선수 수) ÷ 비교 집단 수 × 100 · 등급 S ≥ 90, A ≥ 75, B ≥ 55, C ≥ 35, D ≥ 15, F < 15 · 종합 등급 = 레이더 5개 축 백분위 평균의 등급",
+    source: WIKI_PERCENTILE_RANK,
+    note: "우리 사이트 규칙입니다(lib/metrics.ts percentileRank·GRADE_CUTS). 비교 집단은 표본 기준을 넘긴 같은 시즌 선수입니다.",
+  },
+  {
+    key: "qualify",
+    name: "표본 기준",
+    short: "몇 경기·몇 분 이상 뛴 선수만 순위·등급에 넣는가",
+    formula: "기본 10경기 이상 AND 누적 100분 이상 (선택: 20경기·300분, 30경기·500분, 5경기·50분)",
+    source: null,
+    note: "우리 사이트 규칙입니다(lib/metrics.ts QUALIFY_PRESETS). 기준 미달 선수도 값은 보여 주지만 순위는 '표본 미달'로 표시합니다.",
+  },
+  {
+    key: "attempts",
+    name: "성공률 시도 기준",
+    short: "1개 던져 1개 넣은 100%가 1위가 되지 않도록, 충분히 던진 선수만 성공률 순위에",
+    formula: "기준 = 그 시즌 표본 기준 충족 선수의 경기당 시도 수 평균 (야투·3점·자유투 각각) · 경기당 시도 ≥ 기준이면 순위 대상",
+    source: null,
+    note: "우리 사이트 규칙이며 KBL 공식 규정이 아닙니다(lib/metrics.ts attemptThresholds). 참고로 NBA 는 시즌 성공 수(야투 300·3점 82·자유투 125개)로 자격을 정합니다.",
+  },
+];
+
+const BY_KEY = new Map(GLOSSARY.map((e) => [e.key, e]));
+
+/** 키로 용어 한 개 찾기 (없으면 undefined) */
+export function glossaryEntry(key: GlossaryKey): GlossaryEntry | undefined {
+  return BY_KEY.get(key);
+}

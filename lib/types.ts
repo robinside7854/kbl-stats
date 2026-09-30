@@ -2,14 +2,44 @@
 // KBL 원본 필드명(kname, fgRt 등)은 scripts/process.ts에서 여기 이름으로 한 번만 변환한다.
 // app/ 은 이 타입과 data/processed/*.json 만 안다.
 
-export interface Player {
+// ─────────────────────────────────────────────
+// 선수 프로필 — 서버 B 선수 마스터(data/raw/players/players.json)에서 playerNo 로 조인 (scripts/player-master.ts)
+// 마스터 파일이 없거나 마스터에 없는 선수면 전부 null. 마스터는 "지금" 기준 한 장이라
+// backNumber·heightCm 등은 시즌별 값이 아니라 현재(또는 마지막 등록) 값이다.
+// ─────────────────────────────────────────────
+
+/** 포지션: G 가드, F 포워드, C 센터, GF 가드-포워드, FC 포워드-센터 (KBL pos 코드 GD·FD·C·GF·FC) */
+export type Position = "G" | "F" | "C" | "GF" | "FC";
+/** 비교용 포지션 묶음 — GF→G, FC→F (첫 글자 기준, lib/roster.ts positionGroupOf) */
+export type PositionGroup = "G" | "F" | "C";
+/** 국적 구분: KBL playerFlagCode2 "0" 국내 · "1" 외국 · "2" 아시아쿼터 */
+export type Nationality = "domestic" | "foreign" | "asia";
+
+export interface DraftInfo {
+  year: number;           // 드래프트 연도 (yearNo)
+  round: number | null;   // 라운드 (roundNo)
+  pick: number | null;    // 순위 (rankNo)
+}
+
+export interface PlayerProfile {
+  position: Position | null;
+  positionLabel: string | null;       // "가드" / "포워드" / "센터" / "가드-포워드" / "포워드-센터"
+  positionGroup: PositionGroup | null;
+  nationality: Nationality | null;
+  heightCm: number | null;            // pHeight
+  weightKg: number | null;            // pWeight
+  backNumber: string | null;          // backNum (현재 등번호, "0"과 "00"을 구분하려고 문자열)
+  draft: DraftInfo | null;            // 외국 선수 등 드래프트 기록이 없으면 null
+}
+
+export interface Player extends PlayerProfile {
   playerNo: string;
   nameKo: string;
   nameEn: string;
   teamCode: string;
   teamName: string;       // 예: "서울 SK"
   teamShort: string;      // 예: "SK"
-  isForeign: boolean;     // 외국인 선수 여부 (이름 패턴 기반 추정 — process.ts 주석 참고)
+  isForeign: boolean;     // 외국 선수 여부: 마스터가 있으면 nationality !== "domestic"(아시아쿼터 포함), 없으면 이름 추정 (process.ts)
 
   // 출전
   games: number;
@@ -40,9 +70,16 @@ export interface Player {
   efgPct: number; tsPct: number;
   astPct: number; astTo: number; astRatio: number;
   orebPct: number; drebPct: number; rebPct: number;
+  /**
+   * USG% — **표준 척도(KBL 원값 × 5)**. KBL 값은 Basketball-Reference 표준식의 정확히 1/5 로 확인됨
+   * (2025-26 500분 이상 전원 표준식/KBL 비율 4.95~5.06, 팀 출전시간/5 항이 빠진 것으로 추정). CLAUDE.md 참고.
+   */
   usgPct: number;
+  /** KBL 원값 그대로 (usgPct / 5) — 원본 보존용 */
+  usgPctRaw: number;
   pace: number;
   tovPct: number; toRatio: number;
+  /** KBL 원값 그대로 보존만 한다. 화면용 타입·레이더·커버리지 판정에서는 쓰지 않는다(2026-09-30 결정) */
   pie: number;
   poss: number;
 }
@@ -52,7 +89,7 @@ export interface Player {
  * 화면은 시즌 코드가 아니라 이 플래그를 보고 열·축을 켜고 끈다.
  */
 export interface SeasonCoverage {
-  /** USG%·PIE·AST%·REB% (그리고 같이 생긴 OREB/DREB%·DEF/NET RTG·PACE·POSS) — 넷 모두 통과해야 true */
+  /** USG%·AST%·REB% (그리고 같이 생긴 OREB/DREB%·DEF/NET RTG·PACE·POSS) — 셋 모두 통과해야 true (PIE 는 판정에서 뺌) */
   advanced: boolean;
   /** +/- (margin) */
   plusMinus: boolean;
@@ -107,11 +144,11 @@ export interface PlayerIndexSeason {
   games: number;
 }
 
-export interface PlayerIndexEntry {
+export interface PlayerIndexEntry extends PlayerProfile {
   id: string;             // playerNo (시즌이 바뀌어도 같다. 동명이인이 있으므로 이름 대신 이것으로 식별)
   nameKo: string;         // 가장 최근 시즌 표기
   nameEn: string;         // 가장 최근 시즌 표기
-  isForeign: boolean;     // 가장 최근 시즌 값
+  isForeign: boolean;     // 가장 최근 시즌 값 (마스터가 있으면 nationality 기준)
   photoUrl: string;       // 공식 프로필 사진 주소 (process.ts가 생성). 사진이 없을 수 있으므로 화면은 실패 시 대체 디자인
   seasons: PlayerIndexSeason[]; // seasonCode 오름차순
 }
@@ -129,6 +166,9 @@ export interface CardPlayer {
   teamShort: string;      // 팀 한글 약칭 (Team.shortNameKo)
   teamCode: string;
   isForeign: boolean;
+  position: Position | null;          // 이하 3개: 선수 마스터 (없으면 null). 포지션 표기는 lib/roster.ts positionLabel
+  positionGroup: PositionGroup | null;
+  nationality: Nationality | null;
   photoUrl: string | null; // 선수 색인에서 조회 (lib/data.ts). 저장 카드 영역에는 쓰지 않는다(CORS)
   games: number;
   minutes: number;        // 시즌 누적 (분)
@@ -138,6 +178,7 @@ export interface CardPlayer {
   stl: number;            // 이하 3개 시즌 누적 (플레이어 카드 메인 스탯)
   blk: number;
   tov: number;
+  fouls: number;          // 시즌 누적 파울 (카드에는 경기당, 순위 없음)
   fga: number;            // 시즌 누적 시도 — 성공률 순위의 시도 기준용 (lib/metrics.ts attemptThresholds)
   tpa: number;
   fta: number;
@@ -149,7 +190,6 @@ export interface CardPlayer {
   tsPct: number;
   astPct: number;
   rebPct: number;
-  pie: number;
 }
 
 /** 화면으로 넘기는 팀 정보 (로고·색만) */
@@ -176,6 +216,9 @@ export interface LeaderPlayer {
   teamCode: string;
   teamShort: string;      // 팀 한글 약칭 (Team.shortNameKo) — 팀 목록에 없는 경우의 대체 표기용
   isForeign: boolean;
+  position: Position | null;          // 이하 3개: 선수 마스터 (없으면 null)
+  positionGroup: PositionGroup | null;
+  nationality: Nationality | null;
   photoUrl: string | null;
   games: number;
   minutes: number;        // 시즌 누적 (분)
@@ -185,6 +228,7 @@ export interface LeaderPlayer {
   stl: number;
   blk: number;
   tov: number;
+  fouls: number;
   fgm: number; fga: number; // 이하 성공/시도 시즌 누적 — 성공률 셀 아래 "성공/시도" 표기와 시도 기준용
   tpm: number; tpa: number;
   ftm: number; fta: number;
@@ -228,5 +272,7 @@ export interface SearchEntry {
   to: string;             // 마지막 시즌 짧은 표기
   last: number;           // 마지막 시즌 코드 (검색 결과 정렬: 최근 선수 먼저)
   photoUrl: string;       // process.ts 가 만든 주소 그대로 (화면은 KBL 주소를 모른다)
+  positionGroup: PositionGroup | null; // 선수 마스터 (없으면 null)
+  positionLabel: string | null;        // 예: "가드-포워드"
   color: { primary: string; text: string }; // 최근 팀 색 (아바타 대체 디자인)
 }

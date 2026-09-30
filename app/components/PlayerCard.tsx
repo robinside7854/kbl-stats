@@ -90,6 +90,7 @@ function Medal({ tier, rank, px }: { tier: "gold" | "silver" | "bronze"; rank: n
 function RankLine({ entry, color, fs }: { entry: CardStatEntry; color: TeamColor; fs: number }) {
   const r = entry.rank;
   const small = { fontSize: fs - 1 };
+  if (r.reason === "unranked") return null;
   if (r.rank === null) {
     return (
       <span className="font-medium text-ink-3" style={small}>
@@ -475,7 +476,8 @@ export default function PlayerCard({
           </span>
         </div>
         <div className={`grid grid-cols-3 ${size === "lg" ? "gap-2" : "gap-1.5"}`}>
-          {entry.stats.map((s) => (
+          {/* 3×3 격자는 순위 있는 9개만. 파울(ranked: false)의 배치는 다음 화면 개편에서 정한다 */}
+          {entry.stats.filter((s) => s.def.ranked).map((s) => (
             <StatCell key={s.def.key} entry={s} color={color} size={size} />
           ))}
         </div>

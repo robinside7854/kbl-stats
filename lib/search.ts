@@ -77,6 +77,9 @@ export function buildSearchIndex(
         to: seasonShortLabel(seasonLabel(last.seasonCode)),
         last: last.seasonCode,
         photoUrl: e.photoUrl,
+        // 선수 마스터 포지션 (옛 색인 파일이면 필드가 없을 수 있어 null)
+        positionGroup: e.positionGroup ?? null,
+        positionLabel: e.positionLabel ?? null,
         color: { primary: c.primary, text: c.text },
       };
     });

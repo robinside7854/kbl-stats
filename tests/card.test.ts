@@ -23,7 +23,7 @@ import { mixHex } from "../lib/images";
 
 const mk = (o: Partial<CardStatInput> = {}): CardStatInput => ({
   games: 20, minutes: 400,
-  points: 200, reb: 100, ast: 50, stl: 10, blk: 5, tov: 40,
+  points: 200, reb: 100, ast: 50, stl: 10, blk: 5, tov: 40, fouls: 50,
   fgPct: 45, tpPct: 35, ftPct: 75,
   fga: 160, tpa: 60, fta: 40,
   ...o,
@@ -31,8 +31,10 @@ const mk = (o: Partial<CardStatInput> = {}): CardStatInput => ({
 const def = (k: CardStatKey) => CARD_STATS.find((d) => d.key === k)!;
 const byKey = (entries: ReturnType<typeof cardStats>) => Object.fromEntries(entries.map((e) => [e.def.key, e]));
 
-// 9개 스탯, 격자 순서 고정
-assert.deepEqual(CARD_STATS.map((d) => d.key), ["points", "reb", "ast", "stl", "blk", "tov", "fgPct", "tpPct", "ftPct"]);
+// 10개 스탯, 격자 순서 고정 (앞 9개 3×3 + 파울). 파울만 순위 없음
+assert.deepEqual(CARD_STATS.map((d) => d.key), ["points", "reb", "ast", "stl", "blk", "tov", "fgPct", "tpPct", "ftPct", "fouls"]);
+assert.deepEqual(CARD_STATS.filter((d) => !d.ranked).map((d) => d.key), ["fouls"]);
+assert.equal(cardStatValue(mk(), def("fouls")), 2.5); // 경기당 파울 50 / 20
 
 // 값: 누적은 경기당, 성공률은 그대로
 assert.equal(cardStatValue(mk(), def("points")), 10);
@@ -63,6 +65,7 @@ const players = [a, b, c, d];
 const pools = buildCardStatPools(players, DEFAULT_QUALIFY, T);
 assert.deepEqual(pools.points, [20, 15, 15]); // d 제외
 assert.deepEqual(pools.fgPct, [50, 60]); // c 는 시도 부족으로 성공률 집단에서 제외
+assert.deepEqual(pools.fouls, []); // 순위 없는 스탯은 집단도 없음
 
 const ra = byKey(cardStats(a, pools, DEFAULT_QUALIFY, T));
 const rb = byKey(cardStats(b, pools, DEFAULT_QUALIFY, T));
@@ -79,8 +82,12 @@ assert.equal(rb.tov.rank.rank, 3);
 assert.equal(rb.fgPct.rank.rank, 1);
 assert.equal(ra.fgPct.rank.rank, 2);
 assert.deepEqual(rc.fgPct.rank, { rank: null, of: 2, reason: "attempts" });
-// 표본 미달이면 모든 스탯이 sample (값은 그대로 보여 준다)
-assert.ok(Object.values(rd).every((e) => e.rank.rank === null && e.rank.reason === "sample"));
+// 파울: 표본과 관계없이 순위 없음, 값은 경기당
+assert.deepEqual(ra.fouls.rank, { rank: null, of: 0, reason: "unranked" });
+assert.deepEqual(rd.fouls.rank, { rank: null, of: 0, reason: "unranked" });
+assert.equal(ra.fouls.value, 2.5);
+// 표본 미달이면 순위 있는 모든 스탯이 sample (값은 그대로 보여 준다)
+assert.ok(Object.values(rd).filter((e) => e.def.ranked).every((e) => e.rank.rank === null && e.rank.reason === "sample"));
 assert.equal(rd.points.value, 100);
 
 assert.equal(attemptsNote(T), "야투 4.0·3점 1.5·자유투 1.0");
@@ -105,15 +112,19 @@ assert.equal(percentileGrade(NaN), "-");
 assert.equal(overallPercentile({ pts40: 90, tsPct: 80, ast40: 70, reb40: 60, per: 50 }, "classic"), 70);
 assert.equal(overallPercentile({ pts40: 90, tsPct: null, ast40: 70, reb40: null, per: 50 }, "classic"), 70);
 assert.equal(overallPercentile({}, "modern"), null);
-assert.equal(percentileGrade(overallPercentile({ usgPct: 95, tsPct: 92, astPct: 90, rebPct: 91, pie: 99 }, "modern")), "S");
+assert.equal(percentileGrade(overallPercentile({ usgPct: 95, tsPct: 92, astPct: 90, rebPct: 91, per: 99 }, "modern")), "S");
+// modern 도 PIE 없이 PER 로 5축 평균
+assert.equal(overallPercentile({ usgPct: 50, tsPct: 50, astPct: 50, rebPct: 50, per: 100 }, "modern"), 60);
 
 // 기본 선수: 표본 충족 선수 중 PER(classic) 1위, 빈 목록이면 null
 const rp = (id: string, per: number, games = 20) => ({
-  id, games, minutes: games * 20, points: 0, reb: 0, ast: 0, per, usgPct: 0, tsPct: 0, astPct: 0, rebPct: 0, pie: 0,
+  id, games, minutes: games * 20, points: 0, reb: 0, ast: 0, per, usgPct: 0, tsPct: 0, astPct: 0, rebPct: 0,
 });
 assert.equal(pickDefaultPlayer([rp("x", 10), rp("y", 20), rp("z", 99, 2)], "classic"), "y");
 assert.equal(pickDefaultPlayer([rp("z", 99, 2)], "classic"), "z");
 assert.equal(pickDefaultPlayer([], "classic"), null);
+// modern 도 PER 1위 (예전에는 PIE) — USG% 가 높아도 PER 로 고른다
+assert.equal(pickDefaultPlayer([{ ...rp("u", 10), usgPct: 99 }, rp("v", 20)], "modern"), "v");
 
 // 강조 단계
 assert.deepEqual([1, 2, 3, 4, 10, 11, null].map(rankTier), ["gold", "silver", "bronze", "top10", "top10", null, null]);

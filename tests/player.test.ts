@@ -80,7 +80,7 @@ console.log("player: 시즌 표기·팀 이력·추이 통과");
 const mkCard = (o: Partial<CardInput> & { id: string }): CardInput & { id: string } => ({
   games: 20, minutes: 400, points: 200, reb: 100, ast: 50, stl: 10, blk: 5, tov: 30,
   fga: 160, tpa: 60, fta: 40, fgPct: 45, tpPct: 35, ftPct: 75,
-  per: 15, usgPct: 0, tsPct: 55, astPct: 0, rebPct: 0, pie: 0, ...o,
+  per: 15, usgPct: 0, tsPct: 55, astPct: 0, rebPct: 0, fouls: 40, ...o,
 });
 const players = [mkCard({ id: "a", points: 400, per: 25 }), mkCard({ id: "b" }), mkCard({ id: "c", games: 2, minutes: 10 })];
 const ctx = buildCardContext(players, DEFAULT_QUALIFY, "classic");
@@ -89,7 +89,9 @@ const ea = buildCardEntry(players[0], ctx);
 assert.equal(ea.player.id, "a");
 assert.equal(ea.qualified, true);
 assert.equal(ea.stats[0].rank.rank, 1); // 경기당 득점 1위
-assert.equal(ea.stats.length, 9);
+assert.equal(ea.stats.length, 10); // 9개 + 파울
+assert.deepEqual(ea.stats[9].rank, { rank: null, of: 0, reason: "unranked" }); // 파울은 순위 없음
+assert.equal(ea.stats[9].value, 2); // 경기당 파울 40 / 20
 const ec = buildCardEntry(players[2], ctx);
 assert.equal(ec.qualified, false);
 assert.equal(ec.stats[0].rank.reason, "sample");
@@ -98,7 +100,8 @@ console.log("player: 카드 계산 통과");
 // ── 검색 ──
 assert.equal(normalizeName(" Guy Terrance. Rucker "), "guyterrancerucker");
 const mkS = (id: string, nameKo: string, nameEn: string, last: number): SearchEntry => ({
-  id, nameKo, nameEn, team: "SK", from: "2019-20", to: "2025-26", last, photoUrl: "", color: { primary: "#000", text: "#fff" },
+  id, nameKo, nameEn, team: "SK", from: "2019-20", to: "2025-26", last, photoUrl: "", positionGroup: null, positionLabel: null,
+  color: { primary: "#000", text: "#fff" },
 });
 const idx: SearchEntry[] = [
   mkS("1", "자밀 워니", "Jameel Warney", 47),
@@ -125,17 +128,22 @@ assert.equal(searchSpanLabel({ from: "2025-26", to: "2025-26" }), "2025-26");
 assert.equal(searchSpanLabel({ from: "2019-20", to: "2025-26" }), "2019-20 ~ 2025-26");
 
 // 색인 → 검색용 경량 색인
+const noProfile = {
+  position: null, positionLabel: null, positionGroup: null, nationality: null,
+  heightCm: null, weightKg: null, backNumber: null, draft: null,
+} as const;
 const pIdx: PlayerIndexEntry[] = [
-  { id: "9", nameKo: "가", nameEn: "Ga", isForeign: false, photoUrl: "p9", seasons: [
+  { id: "9", nameKo: "가", nameEn: "Ga", isForeign: false, photoUrl: "p9", ...noProfile, position: "GF", positionLabel: "가드-포워드", positionGroup: "G", seasons: [
     { seasonCode: 43, teamCode: "55", teamShort: "SK", games: 1 },
     { seasonCode: 47, teamCode: "35", teamShort: "삼성", games: 2 },
   ] },
-  { id: "8", nameKo: "나", nameEn: "Na", isForeign: true, photoUrl: "p8", seasons: [] },
+  { id: "8", nameKo: "나", nameEn: "Na", isForeign: true, photoUrl: "p8", ...noProfile, seasons: [] },
 ];
 const built = buildSearchIndex(pIdx, (c) => (c === 43 ? "2023-2024" : "2025-2026"), (t) => (t === "35" ? { primary: "#00f", text: "#fff" } : undefined));
 assert.equal(built.length, 1); // 시즌 없는 선수는 제외
 assert.deepEqual(built[0], {
   id: "9", nameKo: "가", nameEn: "Ga", team: "삼성", from: "2023-24", to: "2025-26", last: 47, photoUrl: "p9",
+  positionGroup: "G", positionLabel: "가드-포워드",
   color: { primary: "#00f", text: "#fff" },
 });
 console.log("player: 검색 매칭·색인 통과");

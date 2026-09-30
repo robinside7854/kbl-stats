@@ -1,5 +1,6 @@
 // raw → processed 변환
 // data/raw/{season}/traditional_regular.json + advanced_regular.json + teams.json
+//   (+ data/raw/players/players.json 선수 마스터 — 있으면 playerNo 로 조인해 포지션·국적·신장 등 프로필을 붙인다)
 //   → data/processed/{season}/players.json (lib/types.ts의 SeasonData 형태: coverage·teams·players)
 // 모든 시즌을 가공한 뒤
 //   → data/processed/seasons.json (시즌 목록), data/processed/players-index.json (선수 색인)
@@ -9,25 +10,21 @@
 import { readdir, readFile, mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { DATA_DIR, SEASON_CODES_FALLBACK } from "./config.js";
-import { seasonCoverage } from "../lib/metrics.js";
+import { seasonCoverage, usgFromKbl } from "../lib/metrics.js";
 import { playerPhotoUrl, teamLogoUrl } from "./image-urls.js";
 import { teamShortNameKo } from "../lib/teams.js";
-import type { Player, PlayerIndexEntry, SeasonData, Team, TeamColor } from "../lib/types.js";
+import { buildProfileMap, EMPTY_PROFILE, isForeignPlayer } from "./player-master.js";
+import type { Player, PlayerIndexEntry, PlayerProfile, SeasonData, Team, TeamColor } from "../lib/types.js";
 
 type Raw = Record<string, any>;
 
 const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : Number(v) || 0);
 
-/**
- * 외국인 선수 판별 — KBL API에 국적 필드가 없어 이름으로 추정한다.
- * 한글 이름이 2~4자이고 공백이 없으면 국내 선수, 그 외(공백 포함 음역 이름)는 외국인으로 본다.
- * 예외: 귀화·혼혈 선수(라건아 등)는 한글 3자라 국내로 분류된다. 정확한 국적 데이터가 생기면 교체.
- */
-function guessForeign(nameKo: string): boolean {
-  return !/^[가-힣]{2,4}$/.test(nameKo.trim());
-}
+/** 선수 마스터 (playerNo → 프로필). main() 이 파일을 읽어 채운다. 파일이 없으면 빈 Map → 모두 EMPTY_PROFILE */
+let profiles = new Map<string, PlayerProfile>();
 
 function toPlayer(t: Raw, a: Raw | undefined): Player {
+  const profile = profiles.get(String(t.playerNo)) ?? EMPTY_PROFILE;
   return {
     playerNo: String(t.playerNo),
     nameKo: t.kname ?? "",
@@ -35,7 +32,9 @@ function toPlayer(t: Raw, a: Raw | undefined): Player {
     teamCode: String(t.teamCode ?? ""),
     teamName: t.teamName1 ?? "",
     teamShort: t.teamName4 ?? "",
-    isForeign: guessForeign(t.kname ?? ""),
+    // 마스터 국적이 있으면 nationality !== "domestic", 없으면 이름 추정 (scripts/player-master.ts isForeignPlayer)
+    isForeign: isForeignPlayer(profile.nationality, t.kname ?? ""),
+    ...profile,
 
     games: num(t.gameCount),
     wins: num(t.win),
@@ -66,7 +65,9 @@ function toPlayer(t: Raw, a: Raw | undefined): Player {
     efgPct: num(a?.efgRt), tsPct: num(a?.tsRt),
     astPct: num(a?.astRt), astTo: num(a?.astTo), astRatio: num(a?.astRatio),
     orebPct: num(a?.orebRt), drebPct: num(a?.drebRt), rebPct: num(a?.rebRt),
-    usgPct: num(a?.usgRt),
+    // KBL USG% 는 표준식의 1/5 → 표준 척도로 (lib/metrics.ts usgFromKbl 주석). 원값은 usgPctRaw
+    usgPct: usgFromKbl(num(a?.usgRt)),
+    usgPctRaw: num(a?.usgRt),
     pace: num(a?.pace),
     tovPct: num(a?.tovRt), toRatio: num(a?.toRatio),
     pie: num(a?.pie),
@@ -222,6 +223,7 @@ function buildPlayersIndex(seasons: SeasonData[]): PlayerIndexEntry[] {
           nameEn: p.nameEn,
           isForeign: p.isForeign,
           photoUrl: playerPhotoUrl(p.playerNo),
+          ...(profiles.get(p.playerNo) ?? EMPTY_PROFILE),
           seasons: [],
           latest: -1,
         };
@@ -241,8 +243,26 @@ function buildPlayersIndex(seasons: SeasonData[]): PlayerIndexEntry[] {
     .sort((a, b) => a.nameKo.localeCompare(b.nameKo, "ko") || a.id.localeCompare(b.id));
 }
 
+/**
+ * 선수 마스터 raw 읽기 (data/raw/players/players.json, fetch.ts 가 저장). 없거나 깨졌으면 경고 한 줄 → 빈 Map
+ * (프로필 필드는 전부 null, isForeign 은 이름 추정). 빌드는 계속된다.
+ */
+async function readProfiles(): Promise<Map<string, PlayerProfile>> {
+  const file = join(DATA_DIR, "raw", "players", "players.json");
+  try {
+    const map = buildProfileMap(JSON.parse(await readFile(file, "utf8")));
+    if (map.size === 0) console.warn(`선수 마스터 비어 있음(${file}) → 포지션·국적 등은 null, 외국 선수는 이름 추정`);
+    else console.log(`선수 마스터: ${map.size}명`);
+    return map;
+  } catch {
+    console.warn(`선수 마스터 없음(${file}) → 포지션·국적 등은 null, 외국 선수는 이름 추정`);
+    return new Map();
+  }
+}
+
 async function main() {
   teamColors = await readTeamColors();
+  profiles = await readProfiles();
   const seasons = (await readdir(join(DATA_DIR, "raw"), { withFileTypes: true }))
     .filter((d) => d.isDirectory() && /^\d+$/.test(d.name))
     .map((d) => Number(d.name))

@@ -24,6 +24,7 @@ import {
   type CardEntryOf,
   type RadarAxisSet,
 } from "./metrics";
+import { toCardPlayers as convertCardPlayers, toCardTeams, toLeaderPlayers as convertLeaderPlayers } from "./convert";
 
 const PROCESSED_DIR = path.join(process.cwd(), "data", "processed");
 
@@ -60,89 +61,19 @@ export function listSeasonsWithPlayers(): SeasonOption[] {
     .sort((a, b) => b.seasonCode - a.seasonCode);
 }
 
-/** 팀 코드 → 한글 약칭 (Team.shortNameKo). 팀 목록에 없는 선수 팀은 선수 기록의 약칭 그대로 */
-function koShortOf(season: SeasonData): (p: { teamCode: string; teamShort: string }) => string {
-  const byCode = new Map(season.teams.map((t) => [t.teamCode, t.shortNameKo || t.shortName]));
-  return (p) => byCode.get(p.teamCode) ?? p.teamShort;
-}
+const photoOf = (playerNo: string) => findPlayerIndexEntry(playerNo)?.photoUrl ?? null;
 
-/** 화면에 넘길 최소 필드만 추린다. 사진 주소는 선수 색인(players-index.json)에서 playerNo로 찾는다 */
+/** 화면에 넘길 최소 필드만 추린다 (규칙은 lib/convert.ts). 사진 주소는 선수 색인(players-index.json)에서 playerNo로 찾는다 */
 export function toCardPlayers(season: SeasonData): CardPlayer[] {
-  const koShort = koShortOf(season);
-  return season.players.map((p) => ({
-    id: p.playerNo,
-    nameKo: p.nameKo,
-    nameEn: p.nameEn,
-    teamName: p.teamName,
-    teamShort: koShort(p),
-    teamCode: p.teamCode,
-    isForeign: p.isForeign,
-    photoUrl: findPlayerIndexEntry(p.playerNo)?.photoUrl ?? null,
-    games: p.games,
-    minutes: p.minutes,
-    points: p.points,
-    reb: p.reb,
-    ast: p.ast,
-    stl: p.stl,
-    blk: p.blk,
-    tov: p.tov,
-    fga: p.fga,
-    tpa: p.tpa,
-    fta: p.fta,
-    fgPct: p.fgPct,
-    tpPct: p.tpPct,
-    ftPct: p.ftPct,
-    per: p.per,
-    usgPct: p.usgPct,
-    tsPct: p.tsPct,
-    astPct: p.astPct,
-    rebPct: p.rebPct,
-    pie: p.pie,
-  }));
+  return convertCardPlayers(season, photoOf);
 }
 
 /** 순위표에 넘길 최소 필드만 추린다 (Player 전체를 클라이언트로 보내지 않는다) */
 export function toLeaderPlayers(season: SeasonData): LeaderPlayer[] {
-  const koShort = koShortOf(season);
-  return season.players.map((p) => ({
-    id: p.playerNo,
-    nameKo: p.nameKo,
-    nameEn: p.nameEn,
-    teamCode: p.teamCode,
-    teamShort: koShort(p),
-    isForeign: p.isForeign,
-    photoUrl: findPlayerIndexEntry(p.playerNo)?.photoUrl ?? null,
-    games: p.games,
-    minutes: p.minutes,
-    points: p.points,
-    reb: p.reb,
-    ast: p.ast,
-    stl: p.stl,
-    blk: p.blk,
-    tov: p.tov,
-    fgm: p.fgm,
-    fga: p.fga,
-    tpm: p.tpm,
-    tpa: p.tpa,
-    ftm: p.ftm,
-    fta: p.fta,
-    fgPct: p.fgPct,
-    tpPct: p.tpPct,
-    ftPct: p.ftPct,
-    tsPct: p.tsPct,
-    per: p.per,
-  }));
+  return convertLeaderPlayers(season, photoOf);
 }
 
-/** 화면에 넘길 팀 정보 (한글 약칭·로고·색만). 옛 processed 파일(shortNameKo 없음)이면 영문 약칭으로 */
-export function toCardTeams(season: SeasonData): CardTeam[] {
-  return season.teams.map((t) => ({
-    teamCode: t.teamCode,
-    shortName: t.shortNameKo || t.shortName,
-    logoUrl: t.logoUrl ?? null,
-    color: t.color,
-  }));
-}
+export { toCardTeams };
 
 let playersIndexCache: PlayerIndexEntry[] | null = null;
 

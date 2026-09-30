@@ -13,6 +13,7 @@ import {
   type AttemptThresholds,
   type QualifyRule,
 } from "./metrics";
+import { filterByNationality, filterByPosition, type NationalityFilter, type PositionFilter } from "./roster";
 import type { LeaderPlayer } from "./types";
 
 // ─────────────────────────────────────────────
@@ -28,6 +29,7 @@ export type LeaderStatKey =
   | "stl"
   | "blk"
   | "tov"
+  | "fouls"
   | "fgPct"
   | "tpPct"
   | "ftPct"
@@ -36,8 +38,11 @@ export type LeaderStatKey =
 
 /** 경기당 / 시즌 합계 */
 export type StatMode = "perGame" | "total";
-/** 전체 / 국내 / 외국인 */
-export type OriginFilter = "all" | "domestic" | "foreign";
+/**
+ * 전체 / 국내 / 외국 / 아시아쿼터 — 선수 마스터 국적(nationality) 기준 (lib/roster.ts filterByNationality).
+ * 마스터가 없으면 이름 추정 isForeign 으로 국내/외국만 갈린다(아시아쿼터는 빈 목록).
+ */
+export type OriginFilter = NationalityFilter;
 export type SortDir = "desc" | "asc";
 
 export interface LeaderStatDef {
@@ -65,6 +70,8 @@ export const LEADER_STATS: Record<LeaderStatKey, LeaderStatDef> = {
   stl: { key: "stl", label: "스틸", short: "스틸", kind: "count", better: "high" },
   blk: { key: "blk", label: "블록", short: "블록", kind: "count", better: "high" },
   tov: { key: "tov", label: "턴오버", short: "턴오버", kind: "count", better: "low" },
+  // 파울: 표 열로만 (부문 1~3위 카드에는 넣지 않는다). 정렬 기본 방향은 적은 순
+  fouls: { key: "fouls", label: "파울", short: "파울", kind: "count", better: "low" },
   fgPct: { key: "fgPct", label: "야투율", short: "야투%", kind: "rate", better: "high" },
   tpPct: { key: "tpPct", label: "3점 성공률", short: "3점%", kind: "rate", better: "high" },
   ftPct: { key: "ftPct", label: "자유투 성공률", short: "자유투%", kind: "rate", better: "high" },
@@ -82,7 +89,7 @@ export const DEFAULT_CATEGORY: LeaderStatKey = "points";
 
 /** 표 열 기본 순서. 앞의 CORE_COLUMNS 는 모바일 첫 화면에 들어가는 핵심 열 (출전시간은 경기 바로 오른쪽) */
 export const TABLE_COLUMNS: readonly LeaderStatKey[] = [
-  "games", "minutes", "points", "reb", "ast", "stl", "blk", "tov", "fgPct", "tpPct", "ftPct", "tsPct", "per",
+  "games", "minutes", "points", "reb", "ast", "stl", "blk", "tov", "fouls", "fgPct", "tpPct", "ftPct", "tsPct", "per",
 ];
 export const CORE_COLUMNS: readonly LeaderStatKey[] = ["games", "minutes", "points", "reb", "ast"];
 
@@ -128,18 +135,17 @@ export function isRankEligible(p: LeaderPlayer, key: LeaderStatKey, t?: AttemptT
 
 export interface LeaderFilter {
   origin: OriginFilter;
+  /** 포지션 묶음 (없으면 전체) — lib/roster.ts filterByPosition */
+  position?: PositionFilter;
   /** null 이면 전체 팀 */
   teamCode: string | null;
   rule: QualifyRule;
 }
 
-/** 국내/외국인 · 팀 · 표본 기준(lib/metrics isQualified)으로 거른다 */
+/** 국적(nationality 기반) · 포지션 · 팀 · 표본 기준(lib/metrics isQualified)으로 거른다 */
 export function filterLeaders<T extends LeaderPlayer>(players: readonly T[], f: LeaderFilter): T[] {
-  return players.filter(
-    (p) =>
-      (f.origin === "all" || (f.origin === "foreign") === p.isForeign) &&
-      (f.teamCode === null || p.teamCode === f.teamCode) &&
-      isQualified(p, f.rule),
+  return filterByPosition(filterByNationality(players, f.origin), f.position ?? "all").filter(
+    (p) => (f.teamCode === null || p.teamCode === f.teamCode) && isQualified(p, f.rule),
   );
 }
 
@@ -272,6 +278,8 @@ export interface LeadersState {
   category: LeaderStatKey;
   mode: StatMode;
   origin: OriginFilter;
+  /** 포지션 묶음 (쿼리 pos=g|f|c) */
+  position: PositionFilter;
   teamCode: string | null;
   /** QUALIFY_PRESETS 의 번호 */
   presetIdx: number;
@@ -281,15 +289,17 @@ export const DEFAULT_LEADERS_STATE: LeadersState = {
   category: DEFAULT_CATEGORY,
   mode: "perGame",
   origin: "all",
+  position: "all",
   teamCode: null,
   presetIdx: 0,
 };
 
-const ORIGIN_PARAM: Record<OriginFilter, string> = { all: "all", domestic: "dom", foreign: "for" };
+const ORIGIN_PARAM: Record<OriginFilter, string> = { all: "all", domestic: "dom", foreign: "for", asia: "asia" };
+const POSITION_PARAM: Record<PositionFilter, string> = { all: "all", G: "g", F: "f", C: "c" };
 
 /**
  * 쿼리 문자열 → 상태. 모르는 값·이 시즌에 없는 팀·없는 부문(예: 예전 주소의 cat=pie)은 기본값으로.
- * 형식: ?cat=reb&mode=total&origin=dom&team=55&q=1 (기본값인 항목은 생략)
+ * 형식: ?cat=reb&mode=total&origin=dom&pos=g&team=55&q=1 (기본값인 항목은 생략)
  */
 export function parseLeadersQuery(
   search: string,
@@ -299,12 +309,14 @@ export function parseLeadersQuery(
   const d = DEFAULT_LEADERS_STATE;
   const cat = qs.get("cat") as LeaderStatKey | null;
   const origin = (Object.keys(ORIGIN_PARAM) as OriginFilter[]).find((o) => ORIGIN_PARAM[o] === qs.get("origin"));
+  const position = (Object.keys(POSITION_PARAM) as PositionFilter[]).find((k) => POSITION_PARAM[k] === qs.get("pos"));
   const team = qs.get("team");
   const q = Number(qs.get("q"));
   return {
     category: cat && LEADER_CATEGORIES.includes(cat) ? cat : d.category,
     mode: qs.get("mode") === "total" ? "total" : d.mode,
     origin: origin ?? d.origin,
+    position: position ?? d.position,
     teamCode: team && ctx.teamCodes.includes(team) ? team : d.teamCode,
     presetIdx: Number.isInteger(q) && q >= 0 && q < QUALIFY_PRESETS.length ? q : d.presetIdx,
   };
@@ -317,6 +329,7 @@ export function leadersQueryString(s: LeadersState): string {
   if (s.category !== d.category) qs.set("cat", s.category);
   if (s.mode !== d.mode) qs.set("mode", s.mode);
   if (s.origin !== d.origin) qs.set("origin", ORIGIN_PARAM[s.origin]);
+  if (s.position !== d.position) qs.set("pos", POSITION_PARAM[s.position]);
   if (s.teamCode !== d.teamCode && s.teamCode !== null) qs.set("team", s.teamCode);
   if (s.presetIdx !== d.presetIdx) qs.set("q", String(s.presetIdx));
   const str = qs.toString();

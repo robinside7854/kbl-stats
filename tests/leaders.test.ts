@@ -25,7 +25,8 @@ import type { LeaderPlayer } from "../lib/types";
 
 const mk = (o: Partial<LeaderPlayer> & { id: string }): LeaderPlayer => ({
   nameKo: o.id, nameEn: "", teamCode: "55", teamShort: "SK", isForeign: false, photoUrl: null,
-  games: 20, minutes: 400, points: 200, reb: 100, ast: 50, stl: 10, blk: 5, tov: 30,
+  position: null, positionGroup: null, nationality: null,
+  games: 20, minutes: 400, points: 200, reb: 100, ast: 50, stl: 10, blk: 5, tov: 30, fouls: 40,
   fgm: 72, fga: 160, tpm: 20, tpa: 60, ftm: 30, fta: 40,
   fgPct: 45, tpPct: 33.3, ftPct: 75, tsPct: 55, per: 15,
   ...o,
@@ -50,6 +51,22 @@ assert.deepEqual(ids(filterLeaders(players, { origin: "all", teamCode: null, rul
 assert.deepEqual(ids(filterLeaders(players, { origin: "domestic", teamCode: null, rule: DEFAULT_QUALIFY })), ["d1"]);
 assert.deepEqual(ids(filterLeaders(players, { origin: "foreign", teamCode: null, rule: DEFAULT_QUALIFY })), ["f1"]);
 assert.deepEqual(ids(filterLeaders(players, { origin: "all", teamCode: "60", rule: QUALIFY_PRESETS[3] })), ["f1", "d2"]);
+// 마스터 국적이 있으면 nationality 기준 (이름 추정 isForeign 보다 우선) — 아시아쿼터는 외국과 따로
+const natPlayers = [
+  mk({ id: "n-dom", nationality: "domestic", isForeign: true }), // 이름은 외국인처럼 보여도 마스터가 국내(귀화 등)
+  mk({ id: "n-for", nationality: "foreign", isForeign: true }),
+  mk({ id: "n-asia", nationality: "asia", isForeign: true, position: "G", positionGroup: "G" }),
+  mk({ id: "n-none", nationality: null, isForeign: false, position: "C", positionGroup: "C" }), // 마스터 없음 → 이름 추정
+];
+const f = (o: Partial<Parameters<typeof filterLeaders>[1]>) =>
+  ids(filterLeaders(natPlayers, { origin: "all", teamCode: null, rule: DEFAULT_QUALIFY, ...o }));
+assert.deepEqual(f({ origin: "domestic" }), ["n-dom", "n-none"]);
+assert.deepEqual(f({ origin: "foreign" }), ["n-for"]);
+assert.deepEqual(f({ origin: "asia" }), ["n-asia"]);
+assert.deepEqual(f({ position: "G" }), ["n-asia"]);
+assert.deepEqual(f({ position: "C", origin: "domestic" }), ["n-none"]);
+assert.deepEqual(f({ position: "F" }), []);
+assert.deepEqual(f({ position: "all" }), ["n-dom", "n-for", "n-asia", "n-none"]);
 
 // 정렬: 경기당/합계에 따라 순서가 달라진다
 const p1 = mk({ id: "p1", games: 10, points: 200 }); // 경기당 20, 합계 200
@@ -93,6 +110,11 @@ assert.deepEqual(cols.slice(cols.indexOf("fgPct"), cols.indexOf("fgPct") + 3), [
 assert.deepEqual(columnOrder("per").slice(0, 3), ["per", "games", "minutes"]);
 assert.equal(columnOrder("per").filter((k) => k === "per").length, 1);
 assert.ok(!(columnOrder("points") as string[]).includes("usgPct"));
+// 파울: 표 열(턴오버 바로 뒤)에는 있고 부문에는 없다. 경기당 환산, 적은 순이 기본 방향
+assert.equal(cols[cols.indexOf("tov") + 1], "fouls");
+assert.ok(!(LEADER_CATEGORIES as readonly string[]).includes("fouls"));
+assert.equal(statValue(mk({ id: "pf", games: 20, fouls: 50 }), "fouls", "perGame"), 2.5);
+assert.equal(defaultSortDir("fouls"), "asc");
 
 // 턴오버: 1~3위 카드·순위는 적은 순, 기본 정렬 방향도 오름차순
 assert.equal(defaultSortDir("tov"), "asc");
@@ -147,8 +169,10 @@ assert.equal(statTitle("tsPct", "total"), "TS%");
 // 쿼리: 왕복, 잘못된 값은 기본값
 const ctx = { teamCodes: ["55", "60"] };
 assert.equal(leadersQueryString(DEFAULT_LEADERS_STATE), "");
-const st = { category: "reb", mode: "total", origin: "foreign", teamCode: "60", presetIdx: 2 } as const;
+const st = { category: "reb", mode: "total", origin: "foreign", position: "C", teamCode: "60", presetIdx: 2 } as const;
 assert.deepEqual(parseLeadersQuery(leadersQueryString(st), ctx), st);
+assert.equal(leadersQueryString({ ...DEFAULT_LEADERS_STATE, origin: "asia", position: "G" }), "?origin=asia&pos=g");
+assert.equal(parseLeadersQuery("?pos=x", ctx).position, "all");
 assert.deepEqual(parseLeadersQuery("?cat=pie&mode=x&origin=zz&team=99&q=9", ctx), DEFAULT_LEADERS_STATE);
 assert.equal(parseLeadersQuery("?cat=tpm", ctx).category, "points"); // 없어진 부문(예전 주소)은 기본값
 assert.equal(parseLeadersQuery("?cat=tov", ctx).category, "tov");

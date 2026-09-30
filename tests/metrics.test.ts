@@ -16,7 +16,11 @@ import {
   qualifyShort,
   radarAxes,
   radarPercentiles,
+  RADAR_AXIS_LABELS,
+  RADAR_IMPACT_AXIS,
   seasonCoverage,
+  usgFromKbl,
+  USG_KBL_SCALE,
 } from "../lib/metrics";
 
 const close = (a: number | null, b: number) => assert.ok(a !== null && Math.abs(a - b) < 1e-9, `${a} ≠ ${b}`);
@@ -56,19 +60,30 @@ assert.equal(coverageFlag([-3, NaN, 0, 0]), false); // 음수는 값 있음, NaN
 assert.equal(coverageFlag([1, 0, 0, 0], 0.25), true);
 assert.equal(coverageFlag([1, 0, 0, 0], 0.3), false);
 
-// 시즌 커버리지: advanced는 USG%·PIE·AST%·REB% 넷 모두 통과해야 true
+// 시즌 커버리지: advanced는 USG%·AST%·REB% 셋 모두 통과해야 true (PIE 는 판정에서 뺌)
 const cov = (o: Partial<Record<string, number>>) => ({
   usgPct: 1, pie: 1, astPct: 1, rebPct: 1, plusMinus: 1, goodDef: 1, screenAst: 1, deflections: 1, ...o,
 });
 assert.deepEqual(seasonCoverage([cov({}), cov({})]), { advanced: true, plusMinus: true, goodDef: true, hustle: true });
-assert.equal(seasonCoverage([cov({ pie: 0 }), cov({ pie: 0 })]).advanced, false); // PIE만 비어도 false
+assert.equal(seasonCoverage([cov({ pie: 0 }), cov({ pie: 0 })]).advanced, true); // PIE 가 비어도 영향 없음
+assert.equal(seasonCoverage([cov({ astPct: 0 }), cov({ astPct: 0 })]).advanced, false); // AST% 가 비면 false
+assert.equal(seasonCoverage([cov({ usgPct: 0 }), cov({ usgPct: 0 })]).advanced, false);
 assert.equal(seasonCoverage([cov({ deflections: 0 }), cov({ deflections: 0 })]).hustle, false);
 assert.deepEqual(seasonCoverage([]), { advanced: false, plusMinus: false, goodDef: false, hustle: false });
 assert.equal(axisSetFor({ advanced: true }), "modern");
 assert.equal(axisSetFor({ advanced: false }), "classic");
 
 // 축 세트
-assert.deepEqual([...radarAxes("modern")], ["usgPct", "tsPct", "astPct", "rebPct", "pie"]);
+assert.deepEqual([...radarAxes("modern")], ["usgPct", "tsPct", "astPct", "rebPct", "per"]); // PIE 없음
+assert.ok(!(Object.keys(RADAR_AXIS_LABELS) as string[]).includes("pie"));
+assert.equal(RADAR_IMPACT_AXIS.modern, "per");
+
+// USG% 표준 척도: KBL 원값 × 5
+assert.equal(USG_KBL_SCALE, 5);
+close(usgFromKbl(3.5), 17.5);
+close(usgFromKbl(7.2396748061173195), 36.198374030586598);
+assert.equal(usgFromKbl(0), 0);
+assert.equal(usgFromKbl(NaN), 0);
 assert.deepEqual([...radarAxes("classic")], ["pts40", "tsPct", "ast40", "reb40", "per"]);
 
 // 비교 집단은 표본 충족 선수만 (modern 세트)
@@ -84,7 +99,8 @@ assert.equal(r.pts40, undefined); // 세트 밖 축은 없음
 const pct = radarPercentiles(players[0], r, "modern");
 close(pct.usgPct!, 75);
 close(pct.tsPct!, 25);
-assert.equal(pct.per, undefined);
+close(pct.per!, 50); // PER 전원 0 → 동점 50
+assert.equal(pct.pts40, undefined);
 
 // classic 세트: 40분당 값으로 백분위 (2차 스탯이 0인 옛 시즌 가정)
 const old = { usgPct: 0, astPct: 0, rebPct: 0, pie: 0 };
@@ -116,12 +132,13 @@ assert.equal(playerType(pc0, "classic").label, "득점원"); // 동점(pts40·re
 assert.equal(playerType(pc0, "classic").axis, "pts40");
 
 // 유형 라벨 (modern)
-assert.equal(playerType({ usgPct: 70, tsPct: 65, astPct: 80, rebPct: 61, pie: 90 }, "modern").label, "올라운더");
-assert.equal(playerType({ usgPct: 10, tsPct: 20, astPct: 30, rebPct: 39, pie: 5 }, "modern").label, "궂은일 담당 롤 플레이어");
-assert.equal(playerType({ usgPct: 95, tsPct: 20, astPct: 30, rebPct: 39, pie: 5 }, "modern").label, "볼 핸들러형 득점원");
-assert.equal(playerType({ usgPct: 50, tsPct: 20, astPct: 30, rebPct: 90, pie: 5 }, "modern").label, "리바운더");
-assert.equal(playerType({ usgPct: 80, tsPct: 80, astPct: 30, rebPct: 9, pie: 5 }, "modern").axis, "usgPct"); // 동점 → 앞 축
-assert.equal(playerType({ usgPct: null, tsPct: null, astPct: null, rebPct: null, pie: null }, "modern").label, "분석 불가");
+assert.equal(playerType({ usgPct: 70, tsPct: 65, astPct: 80, rebPct: 61, per: 90 }, "modern").label, "올라운더");
+assert.equal(playerType({ usgPct: 10, tsPct: 20, astPct: 30, rebPct: 39, per: 5 }, "modern").label, "궂은일 담당 롤 플레이어");
+assert.equal(playerType({ usgPct: 95, tsPct: 20, astPct: 30, rebPct: 39, per: 5 }, "modern").label, "볼 핸들러형 득점원");
+assert.equal(playerType({ usgPct: 50, tsPct: 20, astPct: 30, rebPct: 90, per: 5 }, "modern").label, "리바운더");
+assert.equal(playerType({ usgPct: 10, tsPct: 20, astPct: 30, rebPct: 9, per: 88 }, "modern").label, "코트 위 임팩트형"); // PER 이 최고
+assert.equal(playerType({ usgPct: 80, tsPct: 80, astPct: 30, rebPct: 9, per: 5 }, "modern").axis, "usgPct"); // 동점 → 앞 축
+assert.equal(playerType({ usgPct: null, tsPct: null, astPct: null, rebPct: null, per: null }, "modern").label, "분석 불가");
 
 // 유형 라벨 (classic) — 세트 밖 축 값은 무시
 assert.equal(playerType({ pts40: 20, tsPct: 30, ast40: 90, reb40: 10, per: 50 }, "classic").label, "플레이메이커");
@@ -130,8 +147,8 @@ assert.equal(playerType({ pts40: 20, tsPct: 30, ast40: 10, reb40: 5, per: 88 }, 
 assert.equal(playerType({ pts40: 95, tsPct: 30, ast40: 10, reb40: 5, per: 50 }, "classic").label, "득점원");
 assert.equal(playerType({ pts40: 60, tsPct: 70, ast40: 61, reb40: 80, per: 99 }, "classic").label, "올라운더");
 assert.equal(playerType({ pts40: 10, tsPct: 20, ast40: 30, reb40: 39, per: 5 }, "classic").label, "궂은일 담당 롤 플레이어");
-assert.equal(playerType({ usgPct: 99, pie: 99, pts40: 10, tsPct: 20, ast40: 30, reb40: 39, per: 5 }, "classic").label, "궂은일 담당 롤 플레이어");
-assert.equal(playerType({ usgPct: 90, pie: 90 }, "classic").label, "분석 불가"); // classic 축이 하나도 없음
+assert.equal(playerType({ usgPct: 99, astPct: 99, pts40: 10, tsPct: 20, ast40: 30, reb40: 39, per: 5 }, "classic").label, "궂은일 담당 롤 플레이어");
+assert.equal(playerType({ usgPct: 90, astPct: 90 }, "classic").label, "분석 불가"); // classic 축이 하나도 없음
 
 console.log("metrics: 모든 검사 통과");
 

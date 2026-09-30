@@ -1,6 +1,7 @@
 // 파생 지표 계산 — 순수 함수만 둔다 (CLAUDE.md 원칙 5).
 // 화면 컴포넌트는 여기 함수를 부르기만 하고, 직접 계산하지 않는다.
-// 2차 스탯(USG%, TS%, AST%, REB%, PIE, PER)은 KBL이 계산한 값을 그대로 쓰고,
+// 2차 스탯(TS%, AST%, REB%, PER)은 KBL이 계산한 값을 그대로 쓰고(USG%만 표준 척도로 ×5 — usgFromKbl),
+// PIE 는 쓰지 않는다(2026-09-30 결정: 팬이 읽기 어렵고 2025-26에만 있음 — processed 에는 원값 보존).
 // 여기서는 "그 값이 시즌 안에서 몇 번째쯤인가"(백분위), 경기당·40분당 환산,
 // 시즌 커버리지 판정, 레이더 축 세트(modern/classic), 유형 라벨만 만든다.
 
@@ -10,13 +11,13 @@ import type { SeasonCoverage } from "./types";
 // 레이더 축 세트
 // ─────────────────────────────────────────────
 // 시즌마다 채워진 2차 스탯이 다르다(CLAUDE.md "시즌별 데이터 커버리지").
-// - modern : KBL 2차 스탯(USG%·AST%·REB%·PIE)이 있는 시즌용 — 기존 축
+// - modern : KBL 2차 스탯(USG%·AST%·REB%)이 있는 시즌용 — 2차 스탯 3개 + 전 시즌에 있는 TS%·PER
 // - classic: 2차 스탯이 없는 시즌용 "전 시즌 공통 축" — 1차 스탯 40분 환산 + 전 시즌에 있는 TS%·PER
 // 어느 세트를 쓸지는 시즌 코드가 아니라 시즌 파일의 coverage.advanced 로 정한다 (axisSetFor).
 
 /** 축 세트별 5개 축. 배열 순서가 곧 레이더 꼭짓점 순서다. */
 export const RADAR_AXIS_SETS = {
-  modern: ["usgPct", "tsPct", "astPct", "rebPct", "pie"],
+  modern: ["usgPct", "tsPct", "astPct", "rebPct", "per"],
   classic: ["pts40", "tsPct", "ast40", "reb40", "per"],
 } as const;
 export type RadarAxisSet = keyof typeof RADAR_AXIS_SETS;
@@ -32,9 +33,9 @@ export function axisSetFor(coverage: { advanced: boolean }): RadarAxisSet {
   return coverage.advanced ? "modern" : "classic";
 }
 
-/** 세트마다 "종합 기여도" 역할을 하는 축 — 기본 선수(1위) 고르기 등에 쓴다 */
+/** 세트마다 "종합 기여도" 역할을 하는 축 — 기본 선수(1위) 고르기 등에 쓴다. PIE 를 뺀 뒤로 두 세트 모두 PER */
 export const RADAR_IMPACT_AXIS: Record<RadarAxisSet, RadarAxis> = {
-  modern: "pie",
+  modern: "per",
   classic: "per",
 };
 
@@ -43,7 +44,6 @@ export const RADAR_AXIS_LABELS: Record<RadarAxis, string> = {
   tsPct: "TS%",
   astPct: "AST%",
   rebPct: "REB%",
-  pie: "PIE",
   pts40: "40분당 득점",
   ast40: "40분당 AST",
   reb40: "40분당 REB",
@@ -56,7 +56,6 @@ export const RADAR_AXIS_SHORT_LABELS: Record<RadarAxis, string> = {
   tsPct: "TS%",
   astPct: "AST%",
   rebPct: "REB%",
-  pie: "PIE",
   pts40: "득점",
   ast40: "AST",
   reb40: "REB",
@@ -75,7 +74,6 @@ export interface RadarInput {
   tsPct: number;
   astPct: number;
   rebPct: number;
-  pie: number;
 }
 
 /**
@@ -178,6 +176,23 @@ export function buildReference<T extends RadarInput>(
 }
 
 // ─────────────────────────────────────────────
+// USG% 척도 보정
+// ─────────────────────────────────────────────
+
+/**
+ * KBL USG% → 표준 척도 배수. KBL usgRt 는 Basketball-Reference 표준식
+ *   USG% = 100 × ((FGA + 0.44×FTA + TOV) × (팀 출전시간 / 5)) / (출전시간 × (팀 FGA + 0.44×팀 FTA + 팀 TOV))
+ * 의 정확히 1/5 로 확인됐다 (2026-09-30, 2025-26 정규시즌 500분 이상 선수 전원 표준식/KBL 비율 4.95~5.06 —
+ * "팀 출전시간 / 5" 항이 빠진 것으로 추정). 출처: https://www.basketball-reference.com/about/glossary.html
+ */
+export const USG_KBL_SCALE = 5;
+
+/** KBL USG% 원값 → 표준 척도 (× 5). scripts/process.ts 가 processed usgPct 에 저장할 때 쓴다 (원값은 usgPctRaw) */
+export function usgFromKbl(raw: number): number {
+  return Number.isFinite(raw) ? raw * USG_KBL_SCALE : 0;
+}
+
+// ─────────────────────────────────────────────
 // 경기당 환산
 // ─────────────────────────────────────────────
 
@@ -234,7 +249,6 @@ export function coverageFlag(values: readonly number[], threshold = 0.5): boolea
 /** 커버리지 판정에 쓰는 선수 필드 (lib/types.ts Player의 부분집합) */
 export interface CoverageInput {
   usgPct: number;
-  pie: number;
   astPct: number;
   rebPct: number;
   plusMinus: number;
@@ -248,7 +262,8 @@ export function seasonCoverage(players: readonly CoverageInput[], threshold = 0.
   const flag = (...keys: (keyof CoverageInput)[]) =>
     keys.every((k) => coverageFlag(players.map((p) => p[k]), threshold));
   return {
-    advanced: flag("usgPct", "pie", "astPct", "rebPct"),
+    // PIE 는 판정에서 뺐다(화면에서 쓰지 않음). 실제 데이터에서는 PIE 도 같은 시즌에만 채워져 결과는 같다
+    advanced: flag("usgPct", "astPct", "rebPct"),
     plusMinus: flag("plusMinus"),
     goodDef: flag("goodDef"),
     hustle: flag("screenAst", "deflections"),
@@ -270,7 +285,6 @@ const TYPE_BY_AXIS: Record<RadarAxis, string> = {
   tsPct: "효율형 슈터",
   astPct: "플레이메이커",
   rebPct: "리바운더",
-  pie: "코트 위 임팩트형",
   pts40: "득점원",
   ast40: "플레이메이커",
   reb40: "리바운더",
@@ -282,7 +296,7 @@ const TYPE_BY_AXIS: Record<RadarAxis, string> = {
  *  1) 5개 축이 모두 60 이상          → "올라운더"      (고르게 상위권)
  *  2) 가장 높은 축이 40 미만          → "궂은일 담당 롤 플레이어" (어느 축도 두드러지지 않음)
  *  3) 그 외: 가장 높은 축의 유형       → TYPE_BY_AXIS
- *     동점이면 세트 축 순서(modern: USG → TS → AST → REB → PIE, classic: 득점 → TS → AST → REB → PER)로 먼저 나온 축.
+ *     동점이면 세트 축 순서(modern: USG → TS → AST → REB → PER, classic: 득점 → TS → AST → REB → PER)로 먼저 나온 축.
  * 백분위가 null(또는 없음)인 축은 무시. 전부 null이면 "분석 불가".
  * 의도: 재미용 한 줄. 정교한 분류(클러스터링 등)는 하지 않는다.
  */
@@ -302,15 +316,15 @@ export function playerType(pct: RadarPercentiles, set: RadarAxisSet): PlayerType
 }
 
 // ─────────────────────────────────────────────
-// 플레이어 카드 메인 스탯 9개 + 시즌 순위
+// 플레이어 카드 메인 스탯 10개 + 시즌 순위
 // ─────────────────────────────────────────────
-// 카드 중단 3×3 격자: 득점·리바운드·어시스트 / 스틸·블록·턴오버 / 야투율·3점 성공률·자유투 성공률.
+// 카드 중단 3×3 격자: 득점·리바운드·어시스트 / 스틸·블록·턴오버 / 야투율·3점 성공률·자유투 성공률 + 파울(순위 없음).
 // 누적 스탯은 경기당(perGame), 성공률은 KBL 계산값(0~100) 그대로.
 // 순위 비교 집단 = 현재 표본 기준(QUALIFY_PRESETS 중 선택된 것)을 충족한 선수.
 // 성공률은 여기에 "경기당 시도 수" 기준을 더한다 — 표본 기준만으로는 1/1(100%) 같은 선수가 1위가 되기 때문.
 // 시도 기준은 시즌마다 데이터에서 계산한다(attemptThresholds). 플레이어 카드와 순위표(lib/leaders.ts)가 같은 함수를 쓴다.
 
-export type CardStatKey = "points" | "reb" | "ast" | "stl" | "blk" | "tov" | "fgPct" | "tpPct" | "ftPct";
+export type CardStatKey = "points" | "reb" | "ast" | "stl" | "blk" | "tov" | "fgPct" | "tpPct" | "ftPct" | "fouls";
 
 /** 성공률 지표 → 시도 필드 (야투율 = 야투 시도, 3점 성공률 = 3점 시도, 자유투 성공률 = 자유투 시도) */
 export type PctKey = "fgPct" | "tpPct" | "ftPct";
@@ -368,29 +382,36 @@ export interface CardStatDef {
   kind: "perGame" | "pct";
   /** high: 클수록 1위 / low: 작을수록 1위 (턴오버) */
   better: "high" | "low";
+  /**
+   * 시즌 순위를 매기는가. false 면 값만 보여 주고 순위 집단도 만들지 않는다(rank.reason = "unranked").
+   * 파울: 많을수록 나쁘다고도 좋다고도 할 수 없어(수비 적극성·출전시간 영향) 순위를 매기지 않는다.
+   */
+  ranked: boolean;
 }
 
 /**
- * 카드 9개 스탯. 배열 순서 = 격자 순서.
+ * 카드 스탯 10개. 배열 순서 = 격자 순서 (앞 9개가 3×3, 파울은 마지막).
  * - 턴오버(tov)는 적을수록 좋으므로 오름차순 순위(가장 적은 선수가 1위).
  *   주의: 경기당 값이라 출전시간이 적은 선수가 유리하다 — 표본 기준으로 최소 출전은 거른다.
  * - 성공률(kind "pct")은 attemptThresholds 기준 충족 선수만 순위 집단에 넣는다.
+ * - 파울(fouls)은 경기당 값만, 순위 없음(ranked: false).
  */
 export const CARD_STATS: readonly CardStatDef[] = [
-  { key: "points", label: "득점", kind: "perGame", better: "high" },
-  { key: "reb", label: "리바운드", kind: "perGame", better: "high" },
-  { key: "ast", label: "어시스트", kind: "perGame", better: "high" },
-  { key: "stl", label: "스틸", kind: "perGame", better: "high" },
-  { key: "blk", label: "블록", kind: "perGame", better: "high" },
-  { key: "tov", label: "턴오버", kind: "perGame", better: "low" },
-  { key: "fgPct", label: "야투율", kind: "pct", better: "high" },
-  { key: "tpPct", label: "3점 성공률", kind: "pct", better: "high" },
-  { key: "ftPct", label: "자유투 성공률", kind: "pct", better: "high" },
+  { key: "points", label: "득점", kind: "perGame", better: "high", ranked: true },
+  { key: "reb", label: "리바운드", kind: "perGame", better: "high", ranked: true },
+  { key: "ast", label: "어시스트", kind: "perGame", better: "high", ranked: true },
+  { key: "stl", label: "스틸", kind: "perGame", better: "high", ranked: true },
+  { key: "blk", label: "블록", kind: "perGame", better: "high", ranked: true },
+  { key: "tov", label: "턴오버", kind: "perGame", better: "low", ranked: true },
+  { key: "fgPct", label: "야투율", kind: "pct", better: "high", ranked: true },
+  { key: "tpPct", label: "3점 성공률", kind: "pct", better: "high", ranked: true },
+  { key: "ftPct", label: "자유투 성공률", kind: "pct", better: "high", ranked: true },
+  { key: "fouls", label: "파울", kind: "perGame", better: "low", ranked: false },
 ];
 
 /** 카드 스탯 계산에 필요한 최소 필드 (lib/types.ts CardPlayer 의 부분집합) */
 export interface CardStatInput extends AttemptInput {
-  points: number; reb: number; ast: number; stl: number; blk: number; tov: number; // 시즌 누적
+  points: number; reb: number; ast: number; stl: number; blk: number; tov: number; fouls: number; // 시즌 누적
   fgPct: number; tpPct: number; ftPct: number; // KBL 계산값 (0~100)
 }
 
@@ -422,7 +443,10 @@ export function competitionRank(value: number, pool: readonly number[], better: 
 /** 스탯별 순위 집단 값 배열 */
 export type CardStatPools = Record<CardStatKey, number[]>;
 
-/** 표본 기준(+ 성공률은 시도 기준 t)을 충족한 선수들의 스탯별 값 배열. t 는 같은 rule 로 만든 attemptThresholds() */
+/**
+ * 표본 기준(+ 성공률은 시도 기준 t)을 충족한 선수들의 스탯별 값 배열. t 는 같은 rule 로 만든 attemptThresholds().
+ * 순위 없는 스탯(ranked: false)은 빈 배열.
+ */
 export function buildCardStatPools(
   players: readonly CardStatInput[],
   rule: QualifyRule,
@@ -431,7 +455,7 @@ export function buildCardStatPools(
   const qualified = players.filter((p) => isQualified(p, rule));
   const out = {} as CardStatPools;
   for (const def of CARD_STATS) {
-    out[def.key] = qualified.filter((p) => meetsAttempts(p, def, t)).map((p) => cardStatValue(p, def));
+    out[def.key] = def.ranked ? qualified.filter((p) => meetsAttempts(p, def, t)).map((p) => cardStatValue(p, def)) : [];
   }
   return out;
 }
@@ -441,10 +465,11 @@ export function buildCardStatPools(
  * - rank: 순위 (1부터), of: 순위 집단 크기
  * - rank=null, reason="sample": 표본 기준 미달 → 화면은 "표본 미달"
  * - rank=null, reason="attempts": 표본은 되지만 성공률 시도 기준 미달 → 화면은 "시도 부족"
+ * - rank=null, reason="unranked": 순위를 매기지 않는 스탯(파울) → 화면은 순위 자리를 비운다 (of 는 0)
  */
 export type CardStatRank =
   | { rank: number; of: number; reason: null }
-  | { rank: null; of: number; reason: "sample" | "attempts" };
+  | { rank: null; of: number; reason: "sample" | "attempts" | "unranked" };
 
 export interface CardStatEntry {
   def: CardStatDef;
@@ -452,7 +477,7 @@ export interface CardStatEntry {
   rank: CardStatRank;
 }
 
-/** 한 선수의 카드 9개 스탯 값 + 시즌 순위. pools·t 는 같은 rule 로 만든 buildCardStatPools()·attemptThresholds() 결과 */
+/** 한 선수의 카드 스탯 값 + 시즌 순위. pools·t 는 같은 rule 로 만든 buildCardStatPools()·attemptThresholds() 결과 */
 export function cardStats(
   p: CardStatInput,
   pools: CardStatPools,
@@ -464,7 +489,8 @@ export function cardStats(
     const value = cardStatValue(p, def);
     const pool = pools[def.key];
     let rank: CardStatRank;
-    if (!qualified) rank = { rank: null, of: pool.length, reason: "sample" };
+    if (!def.ranked) rank = { rank: null, of: 0, reason: "unranked" };
+    else if (!qualified) rank = { rank: null, of: pool.length, reason: "sample" };
     else if (!meetsAttempts(p, def, t)) rank = { rank: null, of: pool.length, reason: "attempts" };
     else rank = { rank: competitionRank(value, pool, def.better), of: pool.length, reason: null };
     return { def, value, rank };
@@ -529,7 +555,7 @@ export function overallPercentile(pct: RadarPercentiles, set: RadarAxisSet): num
 // ─────────────────────────────────────────────
 
 /**
- * 카드 첫 화면에 띄울 선수 id: 기본 표본 기준 충족 선수 중 세트의 "종합 기여도" 축(modern: PIE, classic: PER) 1위.
+ * 카드 첫 화면에 띄울 선수 id: 기본 표본 기준 충족 선수 중 세트의 "종합 기여도" 축(두 세트 모두 PER) 1위.
  * 충족 선수가 없으면 전체 중 1위. 목록이 비면 null. (팀을 고른 경우 그 팀 선수 목록을 넘긴다)
  */
 export function pickDefaultPlayer<T extends RadarInput & { id: string }>(
@@ -560,8 +586,19 @@ export interface CardContext {
   qualifiedCount: number;
 }
 
-export function buildCardContext(players: readonly CardInput[], rule: QualifyRule, set: RadarAxisSet): CardContext {
-  const thresholds = attemptThresholds(players, rule);
+/**
+ * 카드 비교 재료. players 가 곧 비교 집단이다 — 포지션·국적으로 집단을 좁히려면 lib/roster.ts
+ * filterByPosition·filterByNationality 결과를 넘긴다 (표본 기준 rule 은 여기서 다시 적용).
+ * opts.thresholds: 성공률 시도 기준을 따로 줄 때 (예: 집단을 좁혀도 시도 기준은 리그 전체 값으로 유지 —
+ * 센터 집단만으로 3점 시도 평균을 내면 기준이 너무 낮아진다). 없으면 players 로 계산.
+ */
+export function buildCardContext(
+  players: readonly CardInput[],
+  rule: QualifyRule,
+  set: RadarAxisSet,
+  opts: { thresholds?: AttemptThresholds } = {},
+): CardContext {
+  const thresholds = opts.thresholds ?? attemptThresholds(players, rule);
   return {
     rule,
     set,
@@ -582,7 +619,7 @@ export interface CardEntryOf<T> {
   overall: Grade | "-";
   type: PlayerType;
   qualified: boolean;
-  /** 메인 스탯 9개 (CARD_STATS 순서) + 시즌 순위 */
+  /** 메인 스탯 (CARD_STATS 순서, 파울 포함 10개) + 시즌 순위 */
   stats: CardStatEntry[];
 }
 
