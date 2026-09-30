@@ -14,39 +14,40 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: 2차 조사 — 사진 URL 존재 확인, 팀 로고 경로, 번들 문맥
+      - name: 3차 조사 — 사진 파일 크기(플레이스홀더 판별), CSS의 팀 엠블럼 주소, 팀코드→클래스 매핑
         shell: bash
         run: |
           set +e
           UA="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/128 Safari/537.36"
           OUT=probe-images.txt
-          head_of() { curl -sS -o /dev/null -I --max-time 20 -A "$UA" -w "%{http_code} %{content_type} %{size_download}B redirect=%{redirect_url}" "$1"; echo "  <- $1"; sleep 1.5; }
           {
-            echo "=== A. 선수 사진 존재 여부 (현역 / 2014-15 / 1997)"
-            for no in 291248 290524 215026; do
-              head_of "https://kbl.or.kr/files/kbl/players-photo/$no.png"
+            echo "=== A. 선수 사진 GET 크기·타입 (현역 워니 / 2000-01 조성원 / 2008-09 서장훈 / 2014-15 문태영 / 라건아 / 존재하지 않는 번호 999999)"
+            for no in 291248 245027 255032 290280 290524 999999; do
+              curl -sS -o photo_$no.bin --max-time 20 -A "$UA" -w "%{http_code} %{content_type} %{size_download}B" "https://kbl.or.kr/files/kbl/players-photo/$no.png"
+              echo "  sha=$(sha256sum photo_$no.bin | cut -c1-12) dims=$(python3 -c "import struct,sys;d=open('photo_$no.bin','rb').read(32);print(struct.unpack('>II',d[16:24]) if d[:8]==b'\\x89PNG\\r\\n\\x1a\\n' else 'not-png')")  <- $no"
+              sleep 1.5
             done
 
-            echo; echo "=== B. 번들 문맥: players-photo 와 팀 로고 템플릿 문자열 (앞뒤 120자)"
+            echo; echo "=== B. 페이지의 CSS 파일과 그 안의 ic-emblem 규칙"
+            curl -sSL --max-time 20 -A "$UA" "https://kbl.or.kr/player/list" > page.html; sleep 1.5
+            grep -oE '(href|src)="[^"]+\.css[^"]*"' page.html | sort -u
+            for css in $(grep -oE 'href="[^"]+\.css[^"]*"' page.html | sed 's/href="//;s/"$//' | sort -u | head -3); do
+              case "$css" in http*) url="$css";; /*) url="https://kbl.or.kr$css";; *) url="https://kbl.or.kr/$css";; esac
+              echo "--- $url"
+              curl -sSL --max-time 20 -A "$UA" "$url" > style.css; sleep 1.5
+              echo "css bytes: $(wc -c < style.css)"
+              grep -oE '\.ic-emblem[^{]*\{[^}]*\}' style.css | head -40
+              echo "--- css 안의 emblem/logo 이미지 경로"
+              grep -oE '[A-Za-z0-9_./-]*(emblem|logo)[A-Za-z0-9_./-]*\.(png|svg|webp)' style.css | sort -u | head -40
+            done
+
+            echo; echo "=== C. 번들의 teamClassCd / getTeamEmblemClass 함수 본문"
             curl -sSL --max-time 20 -A "$UA" "https://kbl.or.kr/assets/index-BYeGquu0.js" > bundle.js; sleep 1.5
-            echo "bundle bytes: $(wc -c < bundle.js)"
-            grep -oE '.{0,120}players-photo.{0,120}' bundle.js | sort -u | head -8
-            echo "--- teamLogoName / emblem / team-logo 문맥"
-            grep -oE '.{0,120}(teamLogoName|team-logo|teamlogo|emblem|team_logo).{0,120}' bundle.js | sort -u | head -12
-            echo "--- files/kbl/ 하위 경로 전체"
-            grep -oE 'files/kbl/[A-Za-z0-9_./${}-]+' bundle.js | sort -u | head -40
-
-            echo; echo "=== C. 팀 로고 후보 URL 존재 확인 (teamLogoName=sk, db)"
-            for u in \
-              "https://kbl.or.kr/files/kbl/team-logo/sk.png" \
-              "https://kbl.or.kr/files/kbl/teams-logo/sk.png" \
-              "https://kbl.or.kr/files/kbl/team/sk.png" \
-              "https://kbl.or.kr/assets/img/team/sk.png" \
-              "https://kbl.or.kr/assets/img/team/logo-sk.png" \
-              "https://kbl.or.kr/assets/img/emblem/sk.png" \
-              "https://kbl.or.kr/assets/img/logo/sk.svg"; do
-              head_of "$u"
-            done
+            grep -oE 'function teamClassCd\([^)]*\)\{.{0,600}' bundle.js | head -1
+            echo "---"
+            grep -oE '(const|function) getTeamEmblemClass[^{]*\{.{0,400}' bundle.js | head -1
+            echo "---"
+            grep -oE '(const|function) getTeamShortName[^{]*\{.{0,400}' bundle.js | head -1
           } | tee "$OUT"
       - uses: actions/upload-artifact@v4
         with:
