@@ -5,6 +5,9 @@ name: 이미지 출처 조사
 
 on:
   workflow_dispatch:
+  push:
+    branches: [claude/probe-images]
+    paths: [".github/workflows/probe-images.yml"]
 
 jobs:
   probe:
