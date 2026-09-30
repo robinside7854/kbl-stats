@@ -18,6 +18,7 @@ KBL 공홈은 화면을 그릴 때 아래 두 서버에서 JSON을 받아온다.
 - 공통 파라미터: `seasonCode`, `gameCode`, `sortDataSc`(정렬 기준, 예: SCORE), `sortOrderSc`(asc/desc), `listCn`(페이지 크기, 200이면 전체), `pageNo`, `ruleCk=0&perCn=0&lastCn=0&partIfList=0&draftNo=0`
 - 응답 형태: `{ resultCode, message, data: [ {row}, ... ] }` — `data`가 바로 배열
 - traditional 주요 필드: `playerNo, kname, ename, teamCode, teamName1, teamName4, gameCount, win, lose, playSec, score, fg, fgA, fgRt, threep, threepA, threepRt, fdg, fdgA, fdgRt, ft, ftA, ftRt, dk, dkA, oR, dR, rb, aS, sT, gd, bS, tO, foulTot, dd2, td3, margin, sA, df, totalCn`
+- ⚠️ 필드 뜻 주의: `fg/fgA/fgRt`는 **2점슛**, `fdg/fdgA/fdgRt`가 **전체 야투**(2점+3점). fdg = fg + threep, score = 2×fg + 3×threep + ft 로 확인(2026-09-30). process.ts가 fgm←fdg, twoPm←fg 로 변환
 - advanced 주요 필드: `perRt, offrtg, defrtg, netrtg, efgRt, tsRt, astRt, astTo, astRatio, orebRt, drebRt, rebRt, usgRt, pace, tovRt, toRatio, pie, poss`
 - 주의: `sortDataSc`에 존재하지 않는 열 이름을 넣으면 500 에러 (예: advanced에 `PER` 넣으면 실패). 정렬은 우리 쪽에서 하고 API 정렬은 기본값(SCORE)만 쓴다.
 - 주의: `listCn`은 **255 이하**만 허용 (서버가 tinyint로 변환, 300이면 500 에러). 200으로 두고 `totalCn`으로 페이지를 넘긴다.
@@ -106,11 +107,12 @@ kbl-stats/
 │   ├── raw/{seasonCode}/traditional.json, advanced.json, ...
 │   └── processed/seasons.json, players-index.json(전 시즌 선수 색인: 번호·이름·photoUrl·시즌별 팀·경기), {seasonCode}/players.json(coverage·teams(logoUrl·color)·players)
 ├── lib/
-│   ├── metrics.ts       ← 파생 지표 계산 (순수 함수만: 백분위, 경기당·40분당 환산, 커버리지 판정, 레이더 축 세트 modern/classic, 유형 라벨, 표본 프리셋 QUALIFY_PRESETS — 카드·순위표 공용, 플레이어 카드 스탯 9개 CARD_STATS·시즌 순위 cardStats(동점 1,2,2,4 / 턴오버 오름차순 / 성공률 시도 기준)·메달 단계 rankTier)
-│   ├── leaders.ts       ← 순위표 규칙 (순수 함수: 부문 정의, 필터·정렬·순위, 열 순서, 숫자 표기, 주소 쿼리)
+│   ├── metrics.ts       ← 파생 지표 계산 (순수 함수만: 백분위, 경기당·40분당 환산, 커버리지 판정, 레이더 축 세트 modern/classic, 유형 라벨, 표본 프리셋 QUALIFY_PRESETS — 카드·순위표 공용, 플레이어 카드 스탯 9개 CARD_STATS·시즌 순위 cardStats(동점 1,2,2,4 / 턴오버 오름차순 / 성공률 시도 기준 attemptThresholds = 경기당 시도 리그 평균, 순위표 공용)·메달 단계 rankTier, 등급 percentileGrade(S~F)·종합 overallPercentile·기본 선수 pickDefaultPlayer)
+│   ├── leaders.ts       ← 순위표 규칙 (순수 함수: 부문 정의(better high/low), 필터·정렬·순위(성공률 시도 기준), 열 순서, 성공/시도·숫자 표기, 주소 쿼리)
+│   ├── teams.ts         ← 팀 한글 약칭 teamShortNameKo (연고지 지명 목록 HOME_CITIES — 하드코딩 예외, 이유 주석)
 │   ├── data.ts          ← 빌드 시점에 data/processed 읽기 (서버 전용, loadPlayersIndex·toCardPlayers·toCardTeams·toLeaderPlayers)
 │   ├── images.ts        ← 공식 이미지 스위치 officialImagesEnabled() (NEXT_PUBLIC_OFFICIAL_IMAGES=off 면 끔) + 대체 디자인 글자 규칙(teamMark) + 표용 팀 약칭(teamShortLabel: 9글자 넘으면 머리글자) + 색 섞기 mixHex(카드 그라데이션)
-│   └── types.ts         ← Player, SeasonData(coverage·teams), Team(logoUrl·color), TeamColor, PlayerIndexEntry(photoUrl), CardPlayer, CardTeam, LeaderPlayer(순위표용 최소 필드) 등 타입 정의
+│   └── types.ts         ← Player, SeasonData(coverage·teams), Team(shortNameKo·logoUrl·color), TeamColor, PlayerIndexEntry(photoUrl), CardPlayer, CardTeam, LeaderPlayer(순위표용 최소 필드) 등 타입 정의
 ├── app/                 ← Next.js 화면 (App Router)
 │   ├── layout.tsx, globals.css (색 토큰: 라이트/다크)
 │   ├── page.tsx         ← 최신 시즌 플레이어 카드 (정적)
@@ -141,6 +143,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-09-30 (피드백 반영): ① 순위표 — 출전시간을 경기 오른쪽으로, 3점 성공·USG%·PIE 삭제, 턴오버·3점%·자유투% 추가, 성공률 칸 아래 시즌 합계 성공/시도. 턴오버 부문은 적은 순(카드·순위·기본 정렬). ② 성공률 시도 기준을 "표본 충족 선수의 경기당 시도 리그 평균 이상"으로(`lib/metrics.ts attemptThresholds`, 카드·순위표 공용, 2025-26: 야투 5.8·3점 2.4·자유투 1.3). ③ 팀 한글 약칭 `teams[].shortNameKo`(`lib/teams.ts`, 연고지 지명 제거) → 화면 전부 한글. ④ 플레이어 카드: PC(≥768px) 500px 확대, 팀 필터(`?team=`), 레이더 크게 + 꼭짓점 등급 S~F(`percentileGrade`: 90/75/55/35/15), 헤더 종합 등급(5축 평균). **발견·수정: KBL `fg/fgA/fgRt`는 2점슛, `fdg/fdgA/fdgRt`가 전체 야투였다**(fdg = fg + threep, 득점 = 2·fg + 3·3점 + 자유투, 3개 시즌 전원 일치) → process.ts 매핑을 바로잡아 야투율이 전 시즌 바뀜(예: 워니 49.9 → 44.2%).
 - 2026-09-30 (플레이어 카드): 사용자 피드백("사진·로고가 너무 작다, 게임 카드처럼")으로 레이더 카드를 플레이어 카드로 개편. 상단 팀 색 그라데이션+큰 세로 사진(208px)+로고 칩, 중단 경기당 스탯 9개(득점·리바·어시·스틸·블록·턴오버·야투·3점·자유투) 3×3 + 시즌 순위(1~3위 SVG 메달, 4~10위 팀 색 강조), 하단 작은 백분위 레이더+표. 순위 규칙은 lib/metrics.ts(동점 같은 순위, 턴오버 오름차순, 표본 미달 → "표본 미달"). 결정: 성공률은 표본 기준만으로는 1/1=100%가 1위가 되어 **경기당 시도 기준(야투 4·3점 1.5·자유투 1회)** 추가 → 미달은 "시도 부족"(KBL 공식 규정 아님, 우리 규칙). 이미지 저장은 화면 밖에 공식 이미지 없는 사본(exportMode)을 그려 PNG로 + filter 로 `<img data-official-image>` 제외 — Playwright로 PNG 생성 확인(한 장 808×1524, 비교 두 장 1592×1524 @2x). 카드 비율은 레이더를 남기느라 약 1:2(358×752)로 목표(2:3)보다 길다. 비교는 카드 두 장 나란히(겹친 레이더 제거). 메뉴 이름 "플레이어 카드".
 - 2026-09-30 (순위표): PLAN.md ② 완료. `/season/[코드]/leaders` 30개 시즌 정적 생성 — 부문 칩 → 1~3위 팀 색 표지 카드(1위 크게) → 정렬 표(순위·선수 열 고정, 표만 가로 스크롤, 390px에서 페이지 가로 스크롤 없음 확인). 경기당/합계·전체/국내/외국인·팀·표본 기준, 상태는 주소 쿼리. 상단 `SiteNav`로 시즌 선택을 옮겨 레이더·순위표·홈 공통. USG%·PIE는 coverage.advanced 시즌만. 표본 프리셋을 metrics.ts로 옮겨 두 화면 공유. 기본 부문 경기당 득점. 발견: 현 시즌 약칭도 "HYUNDAI MOBIS"·"JUNG KWAN JANG"이라 표에선 HM·JKJ로 보임 → 한글 약칭이 필요하면 process.ts에서 teamName1 기반 약칭을 따로 만들지 검토.
 - 2026-09-30 (①-b 이미지): PLAN.md §5-5 완료. `scripts/image-urls.ts`가 사진·로고 주소 생성 → 시즌 파일 `teams[]`에 `logoUrl`·`color`, `players-index.json`에 `photoUrl`(색인 약 536KB). 팀 색은 `data/codes/team-colors.json`(현재 10개 구단 근사값, 보조색 포함 사용자 확인 필요, 나머지 회색). 공통 컴포넌트 PlayerAvatar·TeamLogo(대체 디자인 기본, onError·하이드레이션 전 실패도 대체), 스위치 `NEXT_PUBLIC_OFFICIAL_IMAGES=off`(빌드 시 반영, off 빌드에서 <img>·사진 출처 줄 0개 확인). PlayerPicker 목록과 카드 위 선수 줄에만 적용 — 저장 카드(html-to-image) 안에는 CORS 때문에 넣지 않음. 발견: 정관장(70)의 현재 logoName은 `kgc`(ic-kgc.svg)라 jkj 예외는 현재 데이터에 안 쓰임. teamCode 10은 1997 부산 기아도 같은 코드라 현대모비스 색이 옛 시즌에도 칠해짐.
