@@ -36,7 +36,6 @@ export default async function LeadersPage({ params }: { params: Params }) {
         seasonLabel={season.seasonLabel}
         players={toLeaderPlayers(season)}
         teams={toCardTeams(season)}
-        coverage={season.coverage}
       />
       <SourceFooter fetchedAt={season.fetchedAt} wide />
     </>

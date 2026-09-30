@@ -76,7 +76,8 @@ export interface TeamColor {
 export interface Team {
   teamCode: string;       // 예: "55" (팀명이 바뀌어도 유지, 구단 매각 시 새 코드)
   name: string;           // teamName1, 예: "서울 SK"
-  shortName: string;      // teamName4, 예: "SK"
+  shortName: string;      // teamName4, 예: "SK" (옛 시즌은 영문 대문자, 예: "DAEWOO SECURITIES")
+  shortNameKo: string;    // 한글 약칭 (lib/teams.ts teamShortNameKo), 예: "현대모비스". 화면은 이 값을 쓴다
   fullName: string;       // teamName2, 예: "서울 SK 나이츠"
   nameEn: string;         // teamName3, 예: "SEOUL SK KNIGHTS"
   logoName: string;       // teamLogoName, 예: "sk" (teams.json이 없어 선수 데이터로 대체한 경우 "")
@@ -102,7 +103,7 @@ export interface SeasonData {
 export interface PlayerIndexSeason {
   seasonCode: number;
   teamCode: string;
-  teamShort: string;
+  teamShort: string;      // 그 시즌 팀 한글 약칭 (Team.shortNameKo)
   games: number;
 }
 
@@ -125,7 +126,7 @@ export interface CardPlayer {
   nameKo: string;
   nameEn: string;
   teamName: string;
-  teamShort: string;
+  teamShort: string;      // 팀 한글 약칭 (Team.shortNameKo)
   teamCode: string;
   isForeign: boolean;
   photoUrl: string | null; // 선수 색인에서 조회 (lib/data.ts). 저장 카드 영역에는 쓰지 않는다(CORS)
@@ -137,7 +138,7 @@ export interface CardPlayer {
   stl: number;            // 이하 3개 시즌 누적 (플레이어 카드 메인 스탯)
   blk: number;
   tov: number;
-  fga: number;            // 시즌 누적 시도 — 성공률 순위의 시도 기준용 (lib/metrics.ts CARD_STATS)
+  fga: number;            // 시즌 누적 시도 — 성공률 순위의 시도 기준용 (lib/metrics.ts attemptThresholds)
   tpa: number;
   fta: number;
   fgPct: number;          // 이하 KBL 계산 성공률 그대로 (0~100)
@@ -154,7 +155,7 @@ export interface CardPlayer {
 /** 화면으로 넘기는 팀 정보 (로고·색만) */
 export interface CardTeam {
   teamCode: string;
-  shortName: string;
+  shortName: string;      // 한글 약칭 (Team.shortNameKo, 예: "현대모비스") — 화면 표기·로고 대체 글자에 쓴다
   logoUrl: string | null;
   color: TeamColor;
 }
@@ -173,7 +174,7 @@ export interface LeaderPlayer {
   nameKo: string;
   nameEn: string;
   teamCode: string;
-  teamShort: string;      // 팀 목록에 없는 경우의 대체 표기용
+  teamShort: string;      // 팀 한글 약칭 (Team.shortNameKo) — 팀 목록에 없는 경우의 대체 표기용
   isForeign: boolean;
   photoUrl: string | null;
   games: number;
@@ -183,10 +184,13 @@ export interface LeaderPlayer {
   ast: number;
   stl: number;
   blk: number;
-  tpm: number;            // 3점 성공
+  tov: number;
+  fgm: number; fga: number; // 이하 성공/시도 시즌 누적 — 성공률 셀 아래 "성공/시도" 표기와 시도 기준용
+  tpm: number; tpa: number;
+  ftm: number; fta: number;
   fgPct: number;          // 이하 KBL 계산값 그대로 (0~100)
+  tpPct: number;
+  ftPct: number;
   tsPct: number;
   per: number;
-  usgPct: number;         // coverage.advanced 시즌에만 의미 있음
-  pie: number;
 }

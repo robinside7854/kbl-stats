@@ -1,9 +1,19 @@
 // 시즌 순위표의 정렬·필터·순위·표기 규칙 — 순수 함수만 둔다 (CLAUDE.md 원칙 5).
 // 화면(app/components/LeadersView)은 여기 함수를 부르기만 하고 직접 계산하지 않는다.
-// 경기당 환산은 lib/metrics.ts 의 perGame 을 그대로 쓴다. 비율 지표(야투%·TS%·PER·USG%·PIE)는 KBL 계산값 그대로.
+// 경기당 환산은 lib/metrics.ts 의 perGame 을 그대로 쓴다. 비율 지표(야투%·3점%·자유투%·TS%·PER)는 KBL 계산값 그대로.
+// 성공률(야투·3점·자유투)의 시도 기준은 lib/metrics.ts attemptThresholds — 플레이어 카드와 같은 함수.
 
-import { isQualified, perGame, QUALIFY_PRESETS, type QualifyRule } from "./metrics";
-import type { LeaderPlayer, SeasonCoverage } from "./types";
+import {
+  isPctKey,
+  isQualified,
+  meetsAttemptThreshold,
+  PCT_ATTEMPTS,
+  perGame,
+  QUALIFY_PRESETS,
+  type AttemptThresholds,
+  type QualifyRule,
+} from "./metrics";
+import type { LeaderPlayer } from "./types";
 
 // ─────────────────────────────────────────────
 // 지표 정의
@@ -17,12 +27,12 @@ export type LeaderStatKey =
   | "ast"
   | "stl"
   | "blk"
-  | "tpm"
+  | "tov"
   | "fgPct"
+  | "tpPct"
+  | "ftPct"
   | "tsPct"
-  | "per"
-  | "usgPct"
-  | "pie";
+  | "per";
 
 /** 경기당 / 시즌 합계 */
 export type StatMode = "perGame" | "total";
@@ -34,7 +44,7 @@ export interface LeaderStatDef {
   key: LeaderStatKey;
   /** 부문 이름, 예: "득점" */
   label: string;
-  /** 표 열 제목(짧게), 예: "득점" / "3점" */
+  /** 표 열 제목(짧게), 예: "득점" / "3점%" */
   short: string;
   /**
    * count: 시즌 누적값 → 경기당 모드면 perGame 환산
@@ -42,53 +52,53 @@ export interface LeaderStatDef {
    * rate : KBL 계산 비율·지수 — 모드와 관계없이 그대로
    */
   kind: "count" | "games" | "rate";
-  /** true 면 coverage.advanced 시즌에만 보인다 */
-  advanced?: boolean;
+  /** high: 클수록 상위(기본) / low: 작을수록 상위 (턴오버) — 1~3위 카드·순위·기본 정렬 방향 */
+  better: "high" | "low";
 }
 
 export const LEADER_STATS: Record<LeaderStatKey, LeaderStatDef> = {
-  games: { key: "games", label: "경기", short: "경기", kind: "games" },
-  minutes: { key: "minutes", label: "출전시간", short: "출전(분)", kind: "count" },
-  points: { key: "points", label: "득점", short: "득점", kind: "count" },
-  reb: { key: "reb", label: "리바운드", short: "리바", kind: "count" },
-  ast: { key: "ast", label: "어시스트", short: "어시", kind: "count" },
-  stl: { key: "stl", label: "스틸", short: "스틸", kind: "count" },
-  blk: { key: "blk", label: "블록", short: "블록", kind: "count" },
-  tpm: { key: "tpm", label: "3점 성공", short: "3점", kind: "count" },
-  fgPct: { key: "fgPct", label: "야투율", short: "야투%", kind: "rate" },
-  tsPct: { key: "tsPct", label: "TS%", short: "TS%", kind: "rate" },
-  per: { key: "per", label: "PER", short: "PER", kind: "rate" },
-  usgPct: { key: "usgPct", label: "USG%", short: "USG%", kind: "rate", advanced: true },
-  pie: { key: "pie", label: "PIE", short: "PIE", kind: "rate", advanced: true },
+  games: { key: "games", label: "경기", short: "경기", kind: "games", better: "high" },
+  minutes: { key: "minutes", label: "출전시간", short: "출전(분)", kind: "count", better: "high" },
+  points: { key: "points", label: "득점", short: "득점", kind: "count", better: "high" },
+  reb: { key: "reb", label: "리바운드", short: "리바", kind: "count", better: "high" },
+  ast: { key: "ast", label: "어시스트", short: "어시", kind: "count", better: "high" },
+  stl: { key: "stl", label: "스틸", short: "스틸", kind: "count", better: "high" },
+  blk: { key: "blk", label: "블록", short: "블록", kind: "count", better: "high" },
+  tov: { key: "tov", label: "턴오버", short: "턴오버", kind: "count", better: "low" },
+  fgPct: { key: "fgPct", label: "야투율", short: "야투%", kind: "rate", better: "high" },
+  tpPct: { key: "tpPct", label: "3점 성공률", short: "3점%", kind: "rate", better: "high" },
+  ftPct: { key: "ftPct", label: "자유투 성공률", short: "자유투%", kind: "rate", better: "high" },
+  tsPct: { key: "tsPct", label: "TS%", short: "TS%", kind: "rate", better: "high" },
+  per: { key: "per", label: "PER", short: "PER", kind: "rate", better: "high" },
 };
 
 /** 상단 부문 선택지 (1~3위 카드). 순서 = 화면 표시 순서 */
 export const LEADER_CATEGORIES: readonly LeaderStatKey[] = [
-  "points", "reb", "ast", "stl", "blk", "tpm", "fgPct", "tsPct", "per", "usgPct", "pie",
+  "points", "reb", "ast", "stl", "blk", "tov", "fgPct", "tpPct", "ftPct", "tsPct", "per",
 ];
 
 /** 기본 부문: 팬이 가장 먼저 찾는 "득점왕" */
 export const DEFAULT_CATEGORY: LeaderStatKey = "points";
 
-/** 표 열 기본 순서. 앞의 CORE_COLUMNS 는 모바일 첫 화면에 들어가는 핵심 열 */
+/** 표 열 기본 순서. 앞의 CORE_COLUMNS 는 모바일 첫 화면에 들어가는 핵심 열 (출전시간은 경기 바로 오른쪽) */
 export const TABLE_COLUMNS: readonly LeaderStatKey[] = [
-  "games", "points", "reb", "ast", "minutes", "stl", "blk", "tpm", "fgPct", "tsPct", "per", "usgPct", "pie",
+  "games", "minutes", "points", "reb", "ast", "stl", "blk", "tov", "fgPct", "tpPct", "ftPct", "tsPct", "per",
 ];
-export const CORE_COLUMNS: readonly LeaderStatKey[] = ["games", "points", "reb", "ast"];
-
-/** 시즌 커버리지에 맞는 지표만 남긴다 (advanced 지표는 coverage.advanced 일 때만). 시즌 코드로 판단하지 않는다 */
-export function availableStats(keys: readonly LeaderStatKey[], coverage: Pick<SeasonCoverage, "advanced">): LeaderStatKey[] {
-  return keys.filter((k) => !LEADER_STATS[k].advanced || coverage.advanced);
-}
+export const CORE_COLUMNS: readonly LeaderStatKey[] = ["games", "minutes", "points", "reb", "ast"];
 
 /**
  * 표 열 순서. 선택한 부문(focus)이 핵심 열이 아니면 선수 열 바로 뒤(맨 앞)로 끌어온다 —
  * 모바일에서 가로 스크롤 없이도 지금 보는 부문의 값이 보이게.
  */
-export function columnOrder(focus: LeaderStatKey, coverage: Pick<SeasonCoverage, "advanced">): LeaderStatKey[] {
-  const cols = availableStats(TABLE_COLUMNS, coverage);
+export function columnOrder(focus: LeaderStatKey): LeaderStatKey[] {
+  const cols = [...TABLE_COLUMNS];
   if (!cols.includes(focus) || CORE_COLUMNS.includes(focus)) return cols;
   return [focus, ...cols.filter((k) => k !== focus)];
+}
+
+/** 그 지표의 "상위" 방향 정렬 (high → desc, low → asc). 부문 선택·열 제목 첫 클릭의 기본 방향 */
+export function defaultSortDir(key: LeaderStatKey): SortDir {
+  return LEADER_STATS[key].better === "low" ? "asc" : "desc";
 }
 
 // ─────────────────────────────────────────────
@@ -105,6 +115,15 @@ export function statValue(p: LeaderPlayer, key: LeaderStatKey, mode: StatMode): 
 /** 비율 지표는 경기당/합계 전환의 영향을 받지 않는다 */
 export function isModeIndependent(key: LeaderStatKey): boolean {
   return LEADER_STATS[key].kind !== "count";
+}
+
+/**
+ * 이 지표의 순위에 들 수 있는가. 성공률(야투·3점·자유투)은 경기당 시도가 기준(t) 이상이어야 한다.
+ * t 를 넘기지 않으면(undefined) 시도 기준 없이 모두 true.
+ */
+export function isRankEligible(p: LeaderPlayer, key: LeaderStatKey, t?: AttemptThresholds): boolean {
+  if (!t || !isPctKey(key)) return true;
+  return meetsAttemptThreshold(p, key, t);
 }
 
 export interface LeaderFilter {
@@ -127,17 +146,20 @@ export function filterLeaders<T extends LeaderPlayer>(players: readonly T[], f: 
 /**
  * key 기준 정렬 (새 배열). 동점이면 경기 수 많은 순 → 한글 이름순 → 선수 번호순으로 항상 같은 순서.
  * NaN 등 숫자가 아닌 값은 방향과 관계없이 맨 뒤.
+ * t(시도 기준)를 넘기면 성공률 지표에서 시도 기준 미달 선수는 방향과 관계없이 충족 선수 뒤로 보낸다.
  */
 export function sortLeaders<T extends LeaderPlayer>(
   players: readonly T[],
   key: LeaderStatKey,
   dir: SortDir,
   mode: StatMode,
+  t?: AttemptThresholds,
 ): T[] {
   const sign = dir === "desc" ? -1 : 1;
   return players
-    .map((p) => ({ p, v: statValue(p, key, mode) }))
+    .map((p) => ({ p, v: statValue(p, key, mode), ok: isRankEligible(p, key, t) }))
     .sort((a, b) => {
+      if (a.ok !== b.ok) return a.ok ? -1 : 1;
       const af = Number.isFinite(a.v);
       const bf = Number.isFinite(b.v);
       if (af !== bf) return af ? -1 : 1;
@@ -148,11 +170,17 @@ export function sortLeaders<T extends LeaderPlayer>(
 }
 
 /**
- * key 기준 순위 (높은 값이 1위, 동점은 같은 순위 · 다음 순위는 건너뜀: 1, 2, 2, 4).
- * 정렬 방향과 관계없이 "그 부문 몇 위"를 보여 주기 위한 것. 반환: 선수 id → 순위
+ * key 기준 순위 ("상위" 방향이 1위: 대부분 높은 값, 턴오버는 낮은 값. 동점은 같은 순위 · 다음 순위는 건너뜀: 1, 2, 2, 4).
+ * 정렬 방향과 관계없이 "그 부문 몇 위"를 보여 주기 위한 것. 반환: 선수 id → 순위.
+ * t 를 넘기면 성공률 지표의 시도 기준 미달 선수는 순위가 없다(맵에 없음 → 화면은 "–").
  */
-export function rankMap(players: readonly LeaderPlayer[], key: LeaderStatKey, mode: StatMode): Map<string, number> {
-  const sorted = sortLeaders(players, key, "desc", mode);
+export function rankMap(
+  players: readonly LeaderPlayer[],
+  key: LeaderStatKey,
+  mode: StatMode,
+  t?: AttemptThresholds,
+): Map<string, number> {
+  const sorted = sortLeaders(players, key, defaultSortDir(key), mode, t).filter((p) => isRankEligible(p, key, t));
   const out = new Map<string, number>();
   let prev = NaN;
   let rank = 0;
@@ -171,17 +199,41 @@ export interface LeaderEntry<T extends LeaderPlayer = LeaderPlayer> {
   rank: number;
 }
 
-/** 부문 상위 n명 (1~3위 카드용). 동점으로 n명을 넘길 수 있지만 카드 수는 n개로 자른다 */
+/**
+ * 부문 상위 n명 (1~3위 카드용). "상위" 방향으로 — 턴오버는 적은 순.
+ * 성공률은 t(시도 기준) 충족 선수만. 동점으로 n명을 넘길 수 있지만 카드 수는 n개로 자른다.
+ */
 export function topLeaders<T extends LeaderPlayer>(
   players: readonly T[],
   key: LeaderStatKey,
   mode: StatMode,
   n = 3,
+  t?: AttemptThresholds,
 ): LeaderEntry<T>[] {
-  const ranks = rankMap(players, key, mode);
-  return sortLeaders(players, key, "desc", mode)
+  const ranks = rankMap(players, key, mode, t);
+  return sortLeaders(players, key, defaultSortDir(key), mode, t)
+    .filter((p) => ranks.has(p.id))
     .slice(0, n)
     .map((p) => ({ player: p, value: statValue(p, key, mode), rank: ranks.get(p.id)! }));
+}
+
+/** 성공률 열의 시즌 합계 성공/시도 (예: { made: 396, att: 794 }). 성공률이 아닌 지표는 null */
+export function madeAttempts(p: LeaderPlayer, key: LeaderStatKey): { made: number; att: number } | null {
+  switch (key) {
+    case "fgPct":
+      return { made: p.fgm, att: p.fga };
+    case "tpPct":
+      return { made: p.tpm, att: p.tpa };
+    case "ftPct":
+      return { made: p.ftm, att: p.fta };
+    default:
+      return null;
+  }
+}
+
+/** 성공률 지표의 시도 필드 이름 (예: "야투"). 성공률이 아니면 null */
+export function attemptName(key: LeaderStatKey): string | null {
+  return isPctKey(key) ? PCT_ATTEMPTS[key].name : null;
 }
 
 // ─────────────────────────────────────────────
@@ -191,6 +243,11 @@ export function topLeaders<T extends LeaderPlayer>(
 const nf = (d: number) => new Intl.NumberFormat("ko-KR", { minimumFractionDigits: d, maximumFractionDigits: d });
 const NF0 = nf(0);
 const NF1 = nf(1);
+
+/** 성공/시도 표기, 예: "396/794" (시즌 합계 — 경기당 모드에서도 합계 그대로) */
+export function formatMadeAttempts(m: { made: number; att: number }): string {
+  return `${NF0.format(m.made)}/${NF0.format(m.att)}`;
+}
 
 /** 숫자 표기: 경기 수·합계 누적은 정수(천 단위 쉼표), 경기당·비율은 소수 1자리 */
 export function formatStat(value: number, key: LeaderStatKey, mode: StatMode): string {
@@ -231,12 +288,12 @@ export const DEFAULT_LEADERS_STATE: LeadersState = {
 const ORIGIN_PARAM: Record<OriginFilter, string> = { all: "all", domestic: "dom", foreign: "for" };
 
 /**
- * 쿼리 문자열 → 상태. 모르는 값·이 시즌에 없는 팀·커버리지 밖 부문은 기본값으로.
+ * 쿼리 문자열 → 상태. 모르는 값·이 시즌에 없는 팀·없는 부문(예: 예전 주소의 cat=pie)은 기본값으로.
  * 형식: ?cat=reb&mode=total&origin=dom&team=55&q=1 (기본값인 항목은 생략)
  */
 export function parseLeadersQuery(
   search: string,
-  ctx: { teamCodes: readonly string[]; coverage: Pick<SeasonCoverage, "advanced"> },
+  ctx: { teamCodes: readonly string[] },
 ): LeadersState {
   const qs = new URLSearchParams(search);
   const d = DEFAULT_LEADERS_STATE;
@@ -245,7 +302,7 @@ export function parseLeadersQuery(
   const team = qs.get("team");
   const q = Number(qs.get("q"));
   return {
-    category: cat && availableStats(LEADER_CATEGORIES, ctx.coverage).includes(cat) ? cat : d.category,
+    category: cat && LEADER_CATEGORIES.includes(cat) ? cat : d.category,
     mode: qs.get("mode") === "total" ? "total" : d.mode,
     origin: origin ?? d.origin,
     teamCode: team && ctx.teamCodes.includes(team) ? team : d.teamCode,

@@ -308,8 +308,58 @@ export function playerType(pct: RadarPercentiles, set: RadarAxisSet): PlayerType
 // 누적 스탯은 경기당(perGame), 성공률은 KBL 계산값(0~100) 그대로.
 // 순위 비교 집단 = 현재 표본 기준(QUALIFY_PRESETS 중 선택된 것)을 충족한 선수.
 // 성공률은 여기에 "경기당 시도 수" 기준을 더한다 — 표본 기준만으로는 1/1(100%) 같은 선수가 1위가 되기 때문.
+// 시도 기준은 시즌마다 데이터에서 계산한다(attemptThresholds). 플레이어 카드와 순위표(lib/leaders.ts)가 같은 함수를 쓴다.
 
 export type CardStatKey = "points" | "reb" | "ast" | "stl" | "blk" | "tov" | "fgPct" | "tpPct" | "ftPct";
+
+/** 성공률 지표 → 시도 필드 (야투율 = 야투 시도, 3점 성공률 = 3점 시도, 자유투 성공률 = 자유투 시도) */
+export type PctKey = "fgPct" | "tpPct" | "ftPct";
+export type AttemptField = "fga" | "tpa" | "fta";
+export const PCT_ATTEMPTS: Record<PctKey, { field: AttemptField; name: string }> = {
+  fgPct: { field: "fga", name: "야투" },
+  tpPct: { field: "tpa", name: "3점" },
+  ftPct: { field: "fta", name: "자유투" },
+};
+export const isPctKey = (k: string): k is PctKey => k in PCT_ATTEMPTS;
+
+/** 시도 기준: 시도 필드별 경기당 최소 시도 수 */
+export type AttemptThresholds = Record<AttemptField, number>;
+
+/** 시도 기준 계산에 필요한 최소 필드 */
+export interface AttemptInput {
+  games: number;
+  minutes: number;
+  fga: number; tpa: number; fta: number; // 시즌 누적 시도
+}
+
+/**
+ * 성공률 순위의 시도 기준 = "그 시즌 표본 기준(rule) 충족 선수의 경기당 시도 수 리그 평균".
+ *   threshold[field] = mean( 선수별 누적 시도 ÷ 출전 경기 )   (표본 충족 선수만)
+ * - 선수별 경기당 값의 단순 평균이다(총 시도 ÷ 총 경기가 아님) → "보통 선수만큼은 던진 선수"라는 뜻.
+ * - 시즌 길이·시대(3점 시도가 적던 옛 시즌 등)가 달라도 그 시즌 안에서 같은 잣대가 된다. 숫자를 박지 않는다.
+ * - 우리 규칙이며 KBL 공식 규정이 아니다. (참고: NBA는 시즌 성공 수로 자격을 정한다 — 야투 300·3점 82·자유투 125개)
+ * - 표본 충족 선수가 없으면 0 (= 시도 기준 없음).
+ */
+export function attemptThresholds(players: readonly AttemptInput[], rule: QualifyRule): AttemptThresholds {
+  const q = players.filter((p) => isQualified(p, rule) && p.games > 0);
+  const mean = (f: AttemptField) => (q.length ? q.reduce((s, p) => s + p[f] / p.games, 0) / q.length : 0);
+  return { fga: mean("fga"), tpa: mean("tpa"), fta: mean("fta") };
+}
+
+/** 성공률 시도 기준 충족 여부: 경기당 시도 ≥ 기준 (0경기면 false) */
+export function meetsAttemptThreshold(p: AttemptInput, key: PctKey, t: AttemptThresholds): boolean {
+  const field = PCT_ATTEMPTS[key].field;
+  return p.games > 0 && p[field] / p.games >= t[field];
+}
+
+const NF_ATT = new Intl.NumberFormat("ko-KR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
+/** 시도 기준 짧은 표기, 예: "야투 7.1·3점 2.6·자유투 2.0" (카드 하단·순위표 안내문) */
+export function attemptsNote(t: AttemptThresholds): string {
+  return (Object.keys(PCT_ATTEMPTS) as PctKey[])
+    .map((k) => `${PCT_ATTEMPTS[k].name} ${NF_ATT.format(t[PCT_ATTEMPTS[k].field])}`)
+    .join("·");
+}
 
 export interface CardStatDef {
   key: CardStatKey;
@@ -318,17 +368,13 @@ export interface CardStatDef {
   kind: "perGame" | "pct";
   /** high: 클수록 1위 / low: 작을수록 1위 (턴오버) */
   better: "high" | "low";
-  /** 성공률 순위의 시도 기준 — 경기당 시도 수가 min 이상인 선수만 순위 집단에 넣는다 */
-  attempts?: { field: "fga" | "tpa" | "fta"; minPerGame: number; name: string };
 }
 
 /**
  * 카드 9개 스탯. 배열 순서 = 격자 순서.
  * - 턴오버(tov)는 적을수록 좋으므로 오름차순 순위(가장 적은 선수가 1위).
  *   주의: 경기당 값이라 출전시간이 적은 선수가 유리하다 — 표본 기준으로 최소 출전은 거른다.
- * - 성공률 시도 기준(우리 규칙, KBL 공식 규정 아님): 야투 경기당 4회, 3점 경기당 1.5회, 자유투 경기당 1회 이상.
- *   2025-26 기본 표본(142명) 기준 각각 약 53명·90명·62명이 순위 집단이 된다.
- *   참고: NBA는 시즌 성공 수(야투 300·3점 82·자유투 125개)로 자격을 정한다 — 여기선 시즌 길이가 달라도 같은 잣대가 되도록 경기당 시도 수로.
+ * - 성공률(kind "pct")은 attemptThresholds 기준 충족 선수만 순위 집단에 넣는다.
  */
 export const CARD_STATS: readonly CardStatDef[] = [
   { key: "points", label: "득점", kind: "perGame", better: "high" },
@@ -337,24 +383,15 @@ export const CARD_STATS: readonly CardStatDef[] = [
   { key: "stl", label: "스틸", kind: "perGame", better: "high" },
   { key: "blk", label: "블록", kind: "perGame", better: "high" },
   { key: "tov", label: "턴오버", kind: "perGame", better: "low" },
-  { key: "fgPct", label: "야투율", kind: "pct", better: "high", attempts: { field: "fga", minPerGame: 4, name: "야투" } },
-  { key: "tpPct", label: "3점 성공률", kind: "pct", better: "high", attempts: { field: "tpa", minPerGame: 1.5, name: "3점" } },
-  { key: "ftPct", label: "자유투 성공률", kind: "pct", better: "high", attempts: { field: "fta", minPerGame: 1, name: "자유투" } },
+  { key: "fgPct", label: "야투율", kind: "pct", better: "high" },
+  { key: "tpPct", label: "3점 성공률", kind: "pct", better: "high" },
+  { key: "ftPct", label: "자유투 성공률", kind: "pct", better: "high" },
 ];
 
-/** 성공률 시도 기준 짧은 표기, 예: "경기당 야투 4·3점 1.5·자유투 1회" (카드 하단 기준 줄) */
-export function attemptsNote(defs: readonly CardStatDef[] = CARD_STATS): string {
-  const parts = defs.filter((d) => d.attempts).map((d) => `${d.attempts!.name} ${d.attempts!.minPerGame}`);
-  return parts.length ? `경기당 ${parts.join("·")}회` : "";
-}
-
 /** 카드 스탯 계산에 필요한 최소 필드 (lib/types.ts CardPlayer 의 부분집합) */
-export interface CardStatInput {
-  games: number;
-  minutes: number;
+export interface CardStatInput extends AttemptInput {
   points: number; reb: number; ast: number; stl: number; blk: number; tov: number; // 시즌 누적
   fgPct: number; tpPct: number; ftPct: number; // KBL 계산값 (0~100)
-  fga: number; tpa: number; fta: number;       // 시즌 누적 시도
 }
 
 /** 카드에 보이는 값: 누적 스탯은 perGame(누적, 경기), 성공률은 그대로 */
@@ -362,10 +399,9 @@ export function cardStatValue(p: CardStatInput, def: CardStatDef): number {
   return def.kind === "perGame" ? perGame(p[def.key], p.games) : p[def.key];
 }
 
-/** 성공률 시도 기준 충족 여부 (시도 기준이 없는 스탯은 항상 true) */
-export function meetsAttempts(p: CardStatInput, def: CardStatDef): boolean {
-  if (!def.attempts) return true;
-  return p.games > 0 && p[def.attempts.field] / p.games >= def.attempts.minPerGame;
+/** 성공률 시도 기준 충족 여부 (성공률이 아닌 스탯은 항상 true) */
+export function meetsAttempts(p: CardStatInput, def: CardStatDef, t: AttemptThresholds): boolean {
+  return !isPctKey(def.key) || meetsAttemptThreshold(p, def.key, t);
 }
 
 /**
@@ -386,12 +422,16 @@ export function competitionRank(value: number, pool: readonly number[], better: 
 /** 스탯별 순위 집단 값 배열 */
 export type CardStatPools = Record<CardStatKey, number[]>;
 
-/** 표본 기준(+ 성공률은 시도 기준)을 충족한 선수들의 스탯별 값 배열 */
-export function buildCardStatPools(players: readonly CardStatInput[], rule: QualifyRule): CardStatPools {
+/** 표본 기준(+ 성공률은 시도 기준 t)을 충족한 선수들의 스탯별 값 배열. t 는 같은 rule 로 만든 attemptThresholds() */
+export function buildCardStatPools(
+  players: readonly CardStatInput[],
+  rule: QualifyRule,
+  t: AttemptThresholds,
+): CardStatPools {
   const qualified = players.filter((p) => isQualified(p, rule));
   const out = {} as CardStatPools;
   for (const def of CARD_STATS) {
-    out[def.key] = qualified.filter((p) => meetsAttempts(p, def)).map((p) => cardStatValue(p, def));
+    out[def.key] = qualified.filter((p) => meetsAttempts(p, def, t)).map((p) => cardStatValue(p, def));
   }
   return out;
 }
@@ -412,15 +452,20 @@ export interface CardStatEntry {
   rank: CardStatRank;
 }
 
-/** 한 선수의 카드 9개 스탯 값 + 시즌 순위. pools 는 같은 rule 로 만든 buildCardStatPools() 결과 */
-export function cardStats(p: CardStatInput, pools: CardStatPools, rule: QualifyRule): CardStatEntry[] {
+/** 한 선수의 카드 9개 스탯 값 + 시즌 순위. pools·t 는 같은 rule 로 만든 buildCardStatPools()·attemptThresholds() 결과 */
+export function cardStats(
+  p: CardStatInput,
+  pools: CardStatPools,
+  rule: QualifyRule,
+  t: AttemptThresholds,
+): CardStatEntry[] {
   const qualified = isQualified(p, rule);
   return CARD_STATS.map((def) => {
     const value = cardStatValue(p, def);
     const pool = pools[def.key];
     let rank: CardStatRank;
     if (!qualified) rank = { rank: null, of: pool.length, reason: "sample" };
-    else if (!meetsAttempts(p, def)) rank = { rank: null, of: pool.length, reason: "attempts" };
+    else if (!meetsAttempts(p, def, t)) rank = { rank: null, of: pool.length, reason: "attempts" };
     else rank = { rank: competitionRank(value, pool, def.better), of: pool.length, reason: null };
     return { def, value, rank };
   });
@@ -436,4 +481,64 @@ export function rankTier(rank: number | null): RankTier {
   if (rank === 3) return "bronze";
   if (rank <= 10) return "top10";
   return null;
+}
+
+// ─────────────────────────────────────────────
+// 등급 (S~F) — 백분위를 팬이 읽기 쉬운 글자로
+// ─────────────────────────────────────────────
+
+export type Grade = "S" | "A" | "B" | "C" | "D" | "F";
+
+/**
+ * 등급 경계 (백분위 이상이면 그 등급). 위에서부터 먼저 맞는 것.
+ * 근거: 상위 10% / 25% / 45% / 65% / 85% 컷 — S는 시즌 최상위 10%, A는 상위 4분의 1,
+ * B·C는 중간(45~65%)을 기준으로 위아래, D는 하위권, F는 하위 15%.
+ * 게임 카드처럼 S가 희소하고, 평균 선수(백분위 50)가 B와 C 사이에 오도록 잡았다.
+ */
+export const GRADE_CUTS: readonly (readonly [Grade, number])[] = [
+  ["S", 90],
+  ["A", 75],
+  ["B", 55],
+  ["C", 35],
+  ["D", 15],
+  ["F", -Infinity],
+];
+
+/** 백분위(0~100) → 등급. null·NaN → "-" */
+export function percentileGrade(pct: number | null | undefined): Grade | "-" {
+  if (pct === null || pct === undefined || !Number.isFinite(pct)) return "-";
+  for (const [g, cut] of GRADE_CUTS) if (pct >= cut) return g;
+  return "F";
+}
+
+/**
+ * 종합 백분위 = 세트 5개 축 백분위의 단순 평균 (null 축은 빼고 평균, 전부 null이면 null).
+ * 카드 헤더의 종합 등급(percentileGrade(종합 백분위))에 쓴다. 가중치 없이 5축을 같은 비중으로 본다 —
+ * "여러 면에서 고르게 상위권"일수록 높다. 축 하나만 뛰어난 선수는 평균이 낮아질 수 있다(재미용 한 글자).
+ */
+export function overallPercentile(pct: RadarPercentiles, set: RadarAxisSet): number | null {
+  const vals = radarAxes(set)
+    .map((a) => pct[a])
+    .filter((v): v is number => v !== null && v !== undefined && Number.isFinite(v));
+  if (vals.length === 0) return null;
+  return vals.reduce((s, v) => s + v, 0) / vals.length;
+}
+
+// ─────────────────────────────────────────────
+// 기본 선수 고르기
+// ─────────────────────────────────────────────
+
+/**
+ * 카드 첫 화면에 띄울 선수 id: 기본 표본 기준 충족 선수 중 세트의 "종합 기여도" 축(modern: PIE, classic: PER) 1위.
+ * 충족 선수가 없으면 전체 중 1위. 목록이 비면 null. (팀을 고른 경우 그 팀 선수 목록을 넘긴다)
+ */
+export function pickDefaultPlayer<T extends RadarInput & { id: string }>(
+  players: readonly T[],
+  set: RadarAxisSet,
+): string | null {
+  if (players.length === 0) return null;
+  const impact = RADAR_IMPACT_AXIS[set];
+  const pool = players.filter((p) => isQualified(p, DEFAULT_QUALIFY));
+  const list = pool.length ? pool : players;
+  return list.reduce((best, p) => (axisValue(p, impact) > axisValue(best, impact) ? p : best), list[0]).id;
 }

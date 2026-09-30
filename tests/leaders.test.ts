@@ -1,13 +1,16 @@
 // lib/leaders.ts 검증 (순위표 정렬·필터·순위·쿼리). 실행: npm run test:leaders
 import assert from "node:assert/strict";
 import {
-  availableStats,
   columnOrder,
   DEFAULT_LEADERS_STATE,
+  defaultSortDir,
   filterLeaders,
+  formatMadeAttempts,
   formatStat,
+  isRankEligible,
   LEADER_CATEGORIES,
   leadersQueryString,
+  madeAttempts,
   parseLeadersQuery,
   rankMap,
   sortLeaders,
@@ -15,14 +18,16 @@ import {
   statValue,
   topLeaders,
 } from "../lib/leaders";
-import { DEFAULT_QUALIFY, QUALIFY_PRESETS } from "../lib/metrics";
+import { attemptThresholds, DEFAULT_QUALIFY, QUALIFY_PRESETS } from "../lib/metrics";
 import { teamShortLabel } from "../lib/images";
+import { teamShortNameKo } from "../lib/teams";
 import type { LeaderPlayer } from "../lib/types";
 
 const mk = (o: Partial<LeaderPlayer> & { id: string }): LeaderPlayer => ({
   nameKo: o.id, nameEn: "", teamCode: "55", teamShort: "SK", isForeign: false, photoUrl: null,
-  games: 20, minutes: 400, points: 200, reb: 100, ast: 50, stl: 10, blk: 5, tpm: 20,
-  fgPct: 45, tsPct: 55, per: 15, usgPct: 3, pie: 10,
+  games: 20, minutes: 400, points: 200, reb: 100, ast: 50, stl: 10, blk: 5, tov: 30,
+  fgm: 72, fga: 160, tpm: 20, tpa: 60, ftm: 30, fta: 40,
+  fgPct: 45, tpPct: 33.3, ftPct: 75, tsPct: 55, per: 15,
   ...o,
 });
 
@@ -78,16 +83,56 @@ const top = topLeaders([p1, p2, mk({ id: "p3", games: 20, points: 500 })], "poin
 assert.deepEqual(top.map((e) => [e.player.id, e.value, e.rank]), [["p3", 25, 1], ["p1", 20, 2], ["p2", 15, 3]]);
 assert.equal(topLeaders([], "points", "perGame").length, 0);
 
-// 커버리지: advanced 지표(USG%·PIE)는 coverage.advanced 일 때만
-assert.ok(!availableStats(LEADER_CATEGORIES, { advanced: false }).includes("usgPct"));
-assert.ok(!availableStats(LEADER_CATEGORIES, { advanced: false }).includes("pie"));
-assert.ok(availableStats(LEADER_CATEGORIES, { advanced: true }).includes("pie"));
+// 부문: 3점 성공·USG%·PIE 없음, 턴오버·3점%·자유투% 있음
+assert.deepEqual([...LEADER_CATEGORIES], ["points", "reb", "ast", "stl", "blk", "tov", "fgPct", "tpPct", "ftPct", "tsPct", "per"]);
 
-// 열 순서: 핵심 열 밖의 부문은 맨 앞으로
-assert.deepEqual(columnOrder("points", { advanced: false }).slice(0, 4), ["games", "points", "reb", "ast"]);
-assert.deepEqual(columnOrder("per", { advanced: false }).slice(0, 3), ["per", "games", "points"]);
-assert.equal(columnOrder("per", { advanced: false }).filter((k) => k === "per").length, 1);
-assert.ok(!columnOrder("points", { advanced: false }).includes("usgPct"));
+// 열 순서: 출전시간은 경기 바로 오른쪽, 야투% 옆에 3점%·자유투%, 핵심 열 밖의 부문은 맨 앞으로
+assert.deepEqual(columnOrder("points").slice(0, 5), ["games", "minutes", "points", "reb", "ast"]);
+const cols = columnOrder("points");
+assert.deepEqual(cols.slice(cols.indexOf("fgPct"), cols.indexOf("fgPct") + 3), ["fgPct", "tpPct", "ftPct"]);
+assert.deepEqual(columnOrder("per").slice(0, 3), ["per", "games", "minutes"]);
+assert.equal(columnOrder("per").filter((k) => k === "per").length, 1);
+assert.ok(!(columnOrder("points") as string[]).includes("usgPct"));
+
+// 턴오버: 1~3위 카드·순위는 적은 순, 기본 정렬 방향도 오름차순
+assert.equal(defaultSortDir("tov"), "asc");
+assert.equal(defaultSortDir("points"), "desc");
+const tv = [mk({ id: "t-many", tov: 90 }), mk({ id: "t-few", tov: 10 }), mk({ id: "t-mid", tov: 40 }), mk({ id: "t-mid2", tov: 40 })];
+assert.deepEqual(topLeaders(tv, "tov", "perGame").map((e) => [e.player.id, e.rank]), [["t-few", 1], ["t-mid", 2], ["t-mid2", 2]]);
+assert.equal(rankMap(tv, "tov", "total").get("t-many"), 4);
+// 표는 "높은 순"으로도 볼 수 있다 (순위 숫자는 그대로 적은 순 기준)
+assert.equal(sortLeaders(tv, "tov", "desc", "total")[0].id, "t-many");
+
+// 성공률 시도 기준 (리그 평균 이상) — 순위표와 카드가 같은 attemptThresholds 를 쓴다
+const shooters = [
+  mk({ id: "vol", fga: 200, fgPct: 50, tpa: 100, tpPct: 38 }), // 경기당 야투 10, 3점 5
+  mk({ id: "low", fga: 40, fgPct: 70, tpa: 0, tpPct: 0 }),     // 경기당 야투 2 → 평균 미달
+  mk({ id: "mid", fga: 120, fgPct: 45, tpa: 20, tpPct: 40 }),  // 경기당 야투 6, 3점 1
+];
+const th = attemptThresholds(shooters, DEFAULT_QUALIFY);
+assert.ok(Math.abs(th.fga - 6) < 1e-9); // (10 + 2 + 6) / 3
+assert.ok(Math.abs(th.tpa - 2) < 1e-9); // (5 + 0 + 1) / 3
+assert.equal(isRankEligible(shooters[1], "fgPct", th), false);
+assert.equal(isRankEligible(shooters[2], "fgPct", th), true); // 평균과 같으면 포함
+assert.equal(isRankEligible(shooters[1], "points", th), true); // 성공률이 아니면 항상
+assert.equal(isRankEligible(shooters[1], "fgPct"), true); // 기준을 안 넘기면 제한 없음
+// 1~3위 카드: 야투율 70% 인 low 는 시도 부족이라 빠진다
+assert.deepEqual(topLeaders(shooters, "fgPct", "perGame", 3, th).map((e) => e.player.id), ["vol", "mid"]);
+// 3점%: mid(40%)는 경기당 3점 1회 < 평균 2회 → vol 만
+assert.deepEqual(topLeaders(shooters, "tpPct", "perGame", 3, th).map((e) => e.player.id), ["vol"]);
+// 표: 미달 선수는 정렬 방향과 관계없이 뒤, 순위 없음
+assert.equal(sortLeaders(shooters, "fgPct", "desc", "total", th).at(-1)!.id, "low");
+assert.equal(sortLeaders(shooters, "fgPct", "asc", "total", th).at(-1)!.id, "low");
+assert.equal(rankMap(shooters, "fgPct", "total", th).has("low"), false);
+// 표본 미달 선수는 평균 계산에서 빠진다
+const th2 = attemptThresholds([...shooters, mk({ id: "tiny", games: 2, minutes: 10, fga: 100 })], DEFAULT_QUALIFY);
+assert.deepEqual(th2, th);
+assert.deepEqual(attemptThresholds([], DEFAULT_QUALIFY), { fga: 0, tpa: 0, fta: 0 });
+
+// 성공/시도 (시즌 합계)
+assert.deepEqual(madeAttempts(mk({ id: "m", fgm: 396, fga: 794 }), "fgPct"), { made: 396, att: 794 });
+assert.equal(madeAttempts(mk({ id: "m" }), "points"), null);
+assert.equal(formatMadeAttempts({ made: 1396, att: 2794 }), "1,396/2,794");
 
 // 표기
 assert.equal(formatStat(1234, "points", "total"), "1,234");
@@ -100,12 +145,13 @@ assert.equal(statTitle("reb", "total"), "시즌 합계 리바운드");
 assert.equal(statTitle("tsPct", "total"), "TS%");
 
 // 쿼리: 왕복, 잘못된 값은 기본값
-const ctx = { teamCodes: ["55", "60"], coverage: { advanced: false } };
+const ctx = { teamCodes: ["55", "60"] };
 assert.equal(leadersQueryString(DEFAULT_LEADERS_STATE), "");
 const st = { category: "reb", mode: "total", origin: "foreign", teamCode: "60", presetIdx: 2 } as const;
 assert.deepEqual(parseLeadersQuery(leadersQueryString(st), ctx), st);
 assert.deepEqual(parseLeadersQuery("?cat=pie&mode=x&origin=zz&team=99&q=9", ctx), DEFAULT_LEADERS_STATE);
-assert.equal(parseLeadersQuery("?cat=pie", { ...ctx, coverage: { advanced: true } }).category, "pie");
+assert.equal(parseLeadersQuery("?cat=tpm", ctx).category, "points"); // 없어진 부문(예전 주소)은 기본값
+assert.equal(parseLeadersQuery("?cat=tov", ctx).category, "tov");
 
 // 팀 약칭 줄이기 (TeamLogo 대체 표기와 같은 규칙)
 assert.equal(teamShortLabel("SK"), "SK");
@@ -113,5 +159,18 @@ assert.equal(teamShortLabel("TG SAMBO"), "TG SAMBO");
 assert.equal(teamShortLabel("HYUNDAI MOBIS"), "HM");
 assert.equal(teamShortLabel("DAEWOO SECURITIES"), "DS");
 assert.equal(teamShortLabel("KOREATENDER"), "KOR");
+
+// 팀 한글 약칭 (lib/teams.ts): 공백이 있으면 첫 공백 뒤, 없으면 연고지 접두어 제거
+assert.equal(teamShortNameKo("울산 현대모비스"), "현대모비스");
+assert.equal(teamShortNameKo("서울 SK"), "SK");
+assert.equal(teamShortNameKo("여수 코리아텐더"), "코리아텐더");
+assert.equal(teamShortNameKo("부산기아"), "기아");
+assert.equal(teamShortNameKo("인천대우증권"), "대우증권");
+assert.equal(teamShortNameKo("원주TG삼보"), "TG삼보");
+assert.equal(teamShortNameKo("안양한국인삼공사"), "한국인삼공사");
+assert.equal(teamShortNameKo("경남LG"), "LG");
+assert.equal(teamShortNameKo("서울"), "서울"); // 지명만 → 전체
+assert.equal(teamShortNameKo("KCC이지스"), "KCC이지스"); // 지명 없음 → 그대로
+assert.equal(teamShortNameKo("  "), "");
 
 console.log("leaders: 모든 검사 통과");

@@ -4,18 +4,22 @@
 // 선택 상태는 주소 쿼리(?cat=&mode=&origin=&team=&q=)에 남긴다. useSearchParams 대신 window.location 을 읽어
 // 정적 HTML에 기본 상태(경기당 득점)의 카드·표가 그대로 렌더링되게 한다 (CardExplorer 와 같은 방식).
 import { useEffect, useMemo, useState } from "react";
-import type { CardTeam, LeaderPlayer, SeasonCoverage } from "@/lib/types";
-import { QUALIFY_PRESETS, qualifyLabel, qualifyShort } from "@/lib/metrics";
+import type { CardTeam, LeaderPlayer } from "@/lib/types";
+import { attemptsNote, attemptThresholds, QUALIFY_PRESETS, qualifyLabel, qualifyShort } from "@/lib/metrics";
 import {
-  availableStats,
+  attemptName,
   columnOrder,
   DEFAULT_LEADERS_STATE,
+  defaultSortDir,
   filterLeaders,
+  formatMadeAttempts,
   formatStat,
   isModeIndependent,
+  isRankEligible,
   LEADER_CATEGORIES,
   LEADER_STATS,
   leadersQueryString,
+  madeAttempts,
   parseLeadersQuery,
   rankMap,
   sortLeaders,
@@ -37,7 +41,6 @@ interface Props {
   seasonLabel: string;
   players: LeaderPlayer[];
   teams: CardTeam[];
-  coverage: SeasonCoverage;
 }
 
 const MODE_OPTIONS: { value: StatMode; label: string }[] = [
@@ -107,6 +110,7 @@ function CoverCard({
   const p = entry.player;
   const color = team?.color ?? { primary: "#6B7280", secondary: "#9CA3AF", text: "#fff" };
   const teamLabel = teamShortLabel(team?.shortName ?? p.teamShort);
+  const lowerIsBetter = LEADER_STATS[category].better === "low";
   return (
     <article
       className={`relative overflow-hidden rounded-2xl ${hero ? "col-span-2 p-4 sm:p-5" : "p-3"}`}
@@ -143,7 +147,10 @@ function CoverCard({
         </div>
       </div>
       <p className={`relative ${hero ? "mt-4" : "mt-2.5"}`}>
-        <span className={`block font-semibold opacity-85 ${hero ? "text-xs" : "text-[11px]"}`}>{statTitle(category, mode)}</span>
+        <span className={`block font-semibold opacity-85 ${hero ? "text-xs" : "text-[11px]"}`}>
+          {statTitle(category, mode)}
+          {lowerIsBetter && <span className="whitespace-nowrap"> · 적을수록 상위</span>}
+        </span>
         <span className={`block font-bold leading-none tracking-tight ${hero ? "mt-1 text-5xl" : "mt-0.5 text-3xl"}`}>
           {formatStat(entry.value, category, mode)}
         </span>
@@ -152,16 +159,16 @@ function CoverCard({
   );
 }
 
-export default function LeadersView({ seasonLabel, players, teams, coverage }: Props) {
+export default function LeadersView({ seasonLabel, players, teams }: Props) {
   const [state, setState] = useState<LeadersState>(DEFAULT_LEADERS_STATE);
-  // 표 정렬 (null 이면 선택한 부문 내림차순)
+  // 표 정렬 (null 이면 선택한 부문의 "상위" 방향 — 턴오버는 적은 순)
   const [sort, setSort] = useState<{ key: LeaderStatKey; dir: SortDir } | null>(null);
   const teamByCode = useMemo(() => new Map(teams.map((t) => [t.teamCode, t])), [teams]);
   const teamCodes = useMemo(() => teams.map((t) => t.teamCode), [teams]);
 
   // 공유 링크로 들어온 상태 반영 (이 시즌에 없는 팀·부문은 기본값)
   useEffect(() => {
-    setState(parseLeadersQuery(window.location.search, { teamCodes, coverage }));
+    setState(parseLeadersQuery(window.location.search, { teamCodes }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -173,18 +180,29 @@ export default function LeadersView({ seasonLabel, players, teams, coverage }: P
   const update = (patch: Partial<LeadersState>) => setState((s) => ({ ...s, ...patch }));
   const { category, mode, origin, teamCode, presetIdx } = state;
   const rule = QUALIFY_PRESETS[presetIdx];
-  const categories = availableStats(LEADER_CATEGORIES, coverage);
-  const columns = columnOrder(category, coverage);
+  const categories = LEADER_CATEGORIES;
+  const columns = columnOrder(category);
   const sortKey = sort?.key ?? category;
-  const sortDir = sort?.dir ?? "desc";
+  const sortDir = sort?.dir ?? defaultSortDir(category);
+
+  // 성공률 시도 기준: 이 시즌 표본 충족 선수(국내/외국인·팀 필터 전 전체)의 경기당 시도 평균 — 플레이어 카드와 같은 함수
+  const thresholds = useMemo(() => attemptThresholds(players, rule), [players, rule]);
 
   const filtered = useMemo(
     () => filterLeaders(players, { origin, teamCode, rule }),
     [players, origin, teamCode, rule],
   );
-  const top = useMemo(() => topLeaders(filtered, category, mode, 3), [filtered, category, mode]);
-  const rows = useMemo(() => sortLeaders(filtered, sortKey, sortDir, mode), [filtered, sortKey, sortDir, mode]);
-  const ranks = useMemo(() => rankMap(filtered, sortKey, mode), [filtered, sortKey, mode]);
+  const top = useMemo(
+    () => topLeaders(filtered, category, mode, 3, thresholds),
+    [filtered, category, mode, thresholds],
+  );
+  const rows = useMemo(
+    () => sortLeaders(filtered, sortKey, sortDir, mode, thresholds),
+    [filtered, sortKey, sortDir, mode, thresholds],
+  );
+  const ranks = useMemo(() => rankMap(filtered, sortKey, mode, thresholds), [filtered, sortKey, mode, thresholds]);
+  const categoryAttempt = attemptName(category);
+  const note = attemptsNote(thresholds);
 
   function chooseCategory(key: LeaderStatKey) {
     update({ category: key });
@@ -192,7 +210,7 @@ export default function LeadersView({ seasonLabel, players, teams, coverage }: P
   }
 
   function clickHeader(key: LeaderStatKey) {
-    setSort(key === sortKey ? { key, dir: sortDir === "desc" ? "asc" : "desc" } : { key, dir: "desc" });
+    setSort(key === sortKey ? { key, dir: sortDir === "desc" ? "asc" : "desc" } : { key, dir: defaultSortDir(key) });
   }
 
   const selectedTeam = teamCode ? teamByCode.get(teamCode) : undefined;
@@ -270,7 +288,13 @@ export default function LeadersView({ seasonLabel, players, teams, coverage }: P
         <p className="text-xs text-ink-3">
           {qualifyLabel(rule)} 출전한 선수 {filtered.length}명
           {isModeIndependent(category) && " · 이 부문은 비율 지표라 경기당/합계 전환과 관계없습니다"}
+          {LEADER_STATS[category].better === "low" && " · 턴오버는 적을수록 상위입니다"}
         </p>
+        {categoryAttempt && (
+          <p className="text-xs text-ink-3">
+            성공률 순위는 경기당 시도가 리그 평균({note}) 이상인 선수만
+          </p>
+        )}
       </section>
 
       {/* 매거진 표지: 선택 부문 1~3위 */}
@@ -346,15 +370,17 @@ export default function LeadersView({ seasonLabel, players, teams, coverage }: P
               <tbody>
                 {rows.map((p) => {
                   const team = teamByCode.get(p.teamCode);
-                  const rank = ranks.get(p.id) ?? 0;
+                  const rank = ranks.get(p.id);
+                  const eligible = isRankEligible(p, sortKey, thresholds);
                   return (
                     <tr key={p.id} className="group">
                       <td
                         className={`sticky left-0 z-10 border-b border-line bg-surface px-1 py-1.5 text-center group-hover:bg-surface-2 ${
-                          rank <= 3 ? "font-bold text-ink" : "text-ink-2"
+                          rank !== undefined && rank <= 3 ? "font-bold text-ink" : "text-ink-2"
                         }`}
+                        title={eligible ? undefined : `${attemptName(sortKey)} 시도 부족 — 순위 제외`}
                       >
-                        {rank}
+                        {rank ?? "–"}
                       </td>
                       <td className="sticky left-9 z-10 w-34 min-w-34 max-w-34 border-b border-r border-line bg-surface px-2 py-1.5 group-hover:bg-surface-2 sm:w-44 sm:min-w-44 sm:max-w-44">
                         <span className="flex min-w-0 items-center gap-2">
@@ -370,16 +396,25 @@ export default function LeadersView({ seasonLabel, players, teams, coverage }: P
                           </span>
                         </span>
                       </td>
-                      {columns.map((key) => (
-                        <td
-                          key={key}
-                          className={`border-b border-line px-1.5 py-1.5 text-right whitespace-nowrap ${
-                            key === sortKey ? "bg-surface-2 font-semibold text-ink" : "text-ink-2"
-                          }`}
-                        >
-                          {formatStat(statValue(p, key, mode), key, mode)}
-                        </td>
-                      ))}
+                      {columns.map((key) => {
+                        const ma = madeAttempts(p, key);
+                        const dim = key === sortKey && !eligible;
+                        return (
+                          <td
+                            key={key}
+                            className={`border-b border-line px-1.5 py-1.5 text-right whitespace-nowrap ${
+                              key === sortKey ? "bg-surface-2 font-semibold text-ink" : "text-ink-2"
+                            } ${dim ? "opacity-60" : ""}`}
+                          >
+                            <span className="block leading-tight">{formatStat(statValue(p, key, mode), key, mode)}</span>
+                            {ma && (
+                              <span className="block text-[10px] font-normal leading-tight text-ink-3">
+                                {formatMadeAttempts(ma)}
+                              </span>
+                            )}
+                          </td>
+                        );
+                      })}
                     </tr>
                   );
                 })}
@@ -387,9 +422,9 @@ export default function LeadersView({ seasonLabel, players, teams, coverage }: P
             </table>
           </div>
           <p className="mt-2 text-xs text-ink-3">
-            경기당 모드에서 출전시간·득점 등 누적 기록은 경기 수로 나눈 값입니다. 야투%·TS%·PER
-            {coverage.advanced && "·USG%·PIE"}는 KBL 계산값 그대로입니다
-            {coverage.advanced && " (USG%·PIE는 KBL 척도라 NBA 수치와 크기가 다릅니다)"}.
+            경기당 모드에서 출전시간·득점 등 누적 기록은 경기 수로 나눈 값입니다. 야투%·3점%·자유투%·TS%·PER는 KBL
+            계산값 그대로이고, 성공률 아래 작은 숫자는 시즌 합계 성공/시도입니다. 성공률 순위는 경기당 시도가 리그
+            평균({note}) 이상인 선수만 매기며, 미달 선수는 순위 “–”로 표 아래쪽에 둡니다. 턴오버는 적을수록 상위입니다.
           </p>
         </section>
       )}
