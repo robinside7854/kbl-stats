@@ -95,11 +95,11 @@ kbl-stats/
 ├── data/
 │   ├── codes/           ← 시즌·팀·경기구분 코드표 (API에서 받아 저장)
 │   ├── raw/{seasonCode}/traditional.json, advanced.json, ...
-│   └── processed/seasons.json, {seasonCode}/players.json
+│   └── processed/seasons.json, players-index.json(전 시즌 선수 색인: 번호·이름·시즌별 팀·경기), {seasonCode}/players.json(coverage·teams·players)
 ├── lib/
-│   ├── metrics.ts       ← 파생 지표 계산 (순수 함수만: 백분위, 경기당, 유형 라벨)
-│   ├── data.ts          ← 빌드 시점에 data/processed 읽기 (서버 전용)
-│   └── types.ts         ← Player, SeasonData, CardPlayer 등 타입 정의
+│   ├── metrics.ts       ← 파생 지표 계산 (순수 함수만: 백분위, 경기당·40분당 환산, 커버리지 판정, 레이더 축 세트 modern/classic, 유형 라벨)
+│   ├── data.ts          ← 빌드 시점에 data/processed 읽기 (서버 전용, loadPlayersIndex 포함)
+│   └── types.ts         ← Player, SeasonData(coverage·teams), Team, PlayerIndexEntry, CardPlayer 등 타입 정의
 ├── app/                 ← Next.js 화면 (App Router)
 │   ├── layout.tsx, globals.css (색 토큰: 라이트/다크)
 │   ├── page.tsx         ← 최신 시즌 레이더 카드 (정적)
@@ -126,6 +126,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-09-30 (3차): PLAN.md ① 데이터 기반 정비 완료. 시즌 파일에 `coverage`(advanced·plusMinus·goodDef·hustle, 선수 50% 이상 0 아님 기준)·`teams` 추가, `players-index.json`(1,329명, 약 440KB) 생성. 레이더 축 세트 2벌 — coverage.advanced면 modern(USG%·TS%·AST%·REB%·PIE), 아니면 classic(40분당 득점·TS%·40분당 AST·40분당 REB·PER) + "고전 축" 배지. 결과: advanced는 2025-26만 true(2023-24·2024-25는 11%라 false), +/-는 1997-98부터, 굿디펜스는 2000-01부터, hustle은 2025-26만. 발견: raw teams.json은 JSON 문자열이 한 번 더 감싸져 저장됨(process.ts에서 두 번 파싱), teamName4(약칭)는 옛 시즌·일부 팀이 영문 대문자(예: "DAEWOO SECURITIES", "HYUNDAI MOBIS").
 - 2026-09-30 (설계): 대시보드 화면 구성 확정 → PLAN.md 작성. 화면 5개(레이더·순위표·선수 페이지+검색·팀 분포·홈), 작업 순서 ①~⑤. 발견: 2차 스탯(USG%·PIE·AST%·REB% 등)은 2025-26만 존재, 이전 29개 시즌은 0 → 옛 시즌 레이더가 잘못된 그림(전원 50점). ①에서 커버리지 플래그 + 전 시즌 공통 축(40분당 환산)으로 고치기로. SCOPE.md 보류 목록 4건 추가.
 - 2026-09-30 (배포): Vercel 프로젝트 kbl-stats 생성·배포 완료. 공개 주소 **https://kbl-stats-mu.vercel.app** (kbl-stats.vercel.app은 타인 소유). main 푸시 시 자동 재배포 → 매일 새벽 데이터 커밋도 자동 반영. 개발 작업은 Opus 5.5 에이전트에 위임하는 방식으로 진행(사용자 요청).
 - 2026-09-30 (2차): 첫 화면 "선수 유형 레이더 카드" 구현 — Next.js 15 + Tailwind v4 + Recharts 3, 30개 시즌 정적 생성(선수 0명 시즌 제외), next build 성공. 결정: 백분위는 mid-rank, 비교 집단 기본 10경기·100분 이상(프리셋 4개), 유형 라벨은 최고 백분위 축 기준 단순 규칙(전 축 60↑ 올라운더, 최고 40↓ 롤 플레이어), 이미지 저장은 html-to-image. tsconfig를 화면용/스크립트용으로 분리. 발견: KBL USG%·PIE 값 척도가 NBA와 다름(USG 중앙값 ~3.5) → 원값 그대로 표기하고 주석 안내. 출전 적은 선수는 advanced가 0으로 들어와 백분위 0으로 보임(표본 부족 배지로 구분).
