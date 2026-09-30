@@ -61,6 +61,10 @@ assert.deepEqual(endedRegularGmkeys([{ gmkey: "S47G01N7", gameCode: 1, isEnded: 
 assert.equal(isEndedGame({ isEnded: "N" }), false);
 assert.equal(isEndedGame({ isEnded: "1" }), true);
 assert.equal(isEndedGame({ isEnded: 0 }), false);
+assert.equal(isEndedGame({ isEnded: 0, scoreH: 80, scoreA: 75, gameDate: "20051021" }, "2026-09-30"), true); // 옛 시즌: isEnded 0 이어도 점수+지난 날짜면 끝남
+assert.equal(isEndedGame({ isEnded: 0, scoreH: 80, scoreA: 75, gameDate: "20051021" }), false);              // today 없으면 판정 안 함
+assert.equal(isEndedGame({ isEnded: 0, scoreH: null, scoreA: null, gameDate: "20051021" }, "2026-09-30"), false); // 점수 없으면 아직
+assert.equal(isEndedGame({ isEnded: 0, scoreH: 0, scoreA: 0, gameDate: "20991021" }, "2026-09-30"), false);   // 미래 날짜
 assert.equal(isEndedGame({ gameDate: "20251003" }, "2025-10-04"), true);               // isEnded 없음 → 날짜로
 assert.equal(isEndedGame({ gameDate: "20251004" }, "2025-10-04"), false);              // 오늘 경기는 아직
 assert.equal(isEndedGame({ gameDate: "20251003" }), false);

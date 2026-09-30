@@ -86,16 +86,27 @@ export function mergeMatchLists(bodies: readonly unknown[]): unknown[] {
   return out;
 }
 
-/** 경기가 끝났는가. isEnded 가 있으면 그 값(true·"Y"·"1"·1·"true"), 없으면 경기 날짜가 오늘보다 앞이면 끝난 것으로 본다 */
+/**
+ * 경기가 끝났는가. isEnded 가 참(true·"Y"·"1"·1·"true")이면 끝난 것.
+ * isEnded 가 거짓·없음이어도 **양 팀 점수가 있고 경기 날짜가 오늘보다 앞이면** 끝난 것으로 본다
+ * (2026-09-30 확인: 2005-06 이전 시즌은 목록 전부 isEnded 0 인데 점수는 들어 있다 — 옛 데이터 입력 방식 차이).
+ */
 export function isEndedGame(item: Raw, today?: string): boolean {
   const v = item?.isEnded;
   if (v !== undefined && v !== null && v !== "") {
-    if (typeof v === "boolean") return v;
-    return ["y", "1", "true", "t"].includes(String(v).trim().toLowerCase());
+    const ended = typeof v === "boolean" ? v : ["y", "1", "true", "t"].includes(String(v).trim().toLowerCase());
+    if (ended) return true;
+    if (!hasScore(item)) return false;
   }
   if (!today) return false;
   const d = String(item?.gameDate ?? "").replace(/\D/g, "");
   return d.length === 8 && d < today.replace(/-/g, "");
+}
+
+/** 양 팀 점수가 숫자로 들어 있는가 (옛 시즌은 isEnded 0 이라 이것으로 끝남을 판정) */
+function hasScore(item: Raw): boolean {
+  const h = item?.scoreH, a = item?.scoreA;
+  return h !== null && h !== undefined && h !== "" && a !== null && a !== undefined && a !== "" && !Number.isNaN(Number(h)) && !Number.isNaN(Number(a));
 }
 
 export interface RegularGame {
