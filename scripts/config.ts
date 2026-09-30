@@ -39,6 +39,16 @@ export const PLAYER_PROFILE_PATH = "/api/v1/players/profile/0";
  */
 export const PLAYER_GAMES_PATH = "/api/v1/players/categories/game";
 
+/**
+ * 서버 C: 공홈 자체 API (경기 목록·슛 차트, 2026-09-30 Actions 러너에서 확인). 헤더는 http.ts 공용.
+ * 경기 목록 GET /match/list?fromDate=YYYYMMDD&toDate=YYYYMMDD&tcodeList=all → 배열 (월 단위로 잘라 받는다)
+ * 슛 차트  GET /match/{gmkey}/match-chart → { shootLog: [...] } — 경기당 1회. 형식·대상 선정은 scripts/shots.ts.
+ */
+export const SITE_API = "https://api.kbl.or.kr";
+export const matchListUrl = (fromDate: string, toDate: string) =>
+  `${SITE_API}/match/list?${new URLSearchParams({ fromDate, toDate, tcodeList: "all" })}`;
+export const matchChartUrl = (gmkey: string) => `${SITE_API}/match/${encodeURIComponent(gmkey)}/match-chart`;
+
 export const playerHighsUrl = (seasonCode: number | string, playerNo: string) =>
   `${CODES_API}${PLAYER_HIGHS_PATH}/${seasonCode}/${encodeURIComponent(playerNo)}`;
 export const playerGamesUrl = (seasonCode: number | string, playerNo: string) =>

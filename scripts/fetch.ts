@@ -3,6 +3,10 @@
 //       npm run fetch -- 45 47   → 지정 시즌만 (+ 한 경기 최다·프로필 — 대상 시즌은 규칙대로, 지정 시즌과 무관)
 //       npm run fetch:all        → 코드표에 있는 모든 시즌 (한 경기 최다는 받지 않는다 — 과거 전체는 backfill-highs)
 //       --no-highs               → 한 경기 최다·경기별 기록·프로필 건너뜀
+//       --no-shots               → 슛 차트 건너뜀 (fetch:all 도 건너뜀)
+//
+// 슛 차트(서버 C, scripts/shots.ts·collect-shots.ts): 같은 대상 시즌의 경기 목록(오늘까지 달, 1~10회)을 다시 받아
+// data/raw/games/{시즌}/list.json 에 저장하고, 끝난 정규시즌 경기 중 raw 가 없는 것만 data/raw/shots/{시즌}/{gmkey}.json (보통 하루 0~5회).
 //
 // 한 경기 최다·경기별 기록·프로필 대상(scripts/highs.ts highsTargetSeasons): 현재 시즌 선수만(~200명 × 3회, 1.5초 간격 ≈ 15분).
 // 경기별 기록은 시즌 하이의 3점·자유투 성공에 그 경기 시도 수를 붙이는 데 쓴다 (scripts/gamelogs.ts).
@@ -20,7 +24,9 @@ import {
 } from "./config.js";
 import { getJson, saveRaw, sleep } from "./http.js";
 import { collectGameLogs, collectHighs, collectProfiles } from "./collect-extras.js";
+import { collectSeasonShots } from "./collect-shots.js";
 import { highsTargetSeasons, playerNosFromTraditional, todayKst, updateFirstSeen } from "./highs.js";
+import { seasonLabelOf } from "./shots.js";
 
 async function saveCodes(name: string, body: unknown) {
   const dir = join(DATA_DIR, "codes");
@@ -129,10 +135,10 @@ async function rawPlayerNos(seasonCode: number): Promise<string[]> {
 }
 
 /**
- * 현재 시즌 선수의 한 경기 최다 + 경기별 기록 + 프로필. 시즌 수집이 끝난 뒤 raw traditional 의 선수 목록으로 돈다.
- * 반환: 실패 요약 (선수별 실패는 개수만 — 목록이 길어지지 않게)
+ * 매일 추가 수집(한 경기 최다·경기별 기록·프로필·슛 차트)의 대상 시즌 — 시즌 첫 수집일 파일도 여기서 갱신한다.
+ * 규칙은 scripts/highs.ts highsTargetSeasons (현재 시즌 + 개막 후 30일은 직전 시즌).
  */
-async function fetchHighsAndProfiles(knownSeasons: number[], fetchedToday: number[]): Promise<string[]> {
+async function dailyTargetSeasons(knownSeasons: number[], fetchedToday: number[]) {
   const today = todayKst();
   let firstSeen = await readJsonOr<Record<string, string>>(FIRST_SEEN_FILE, {});
   const seasons: { seasonCode: number; playerCount: number }[] = [];
@@ -145,8 +151,14 @@ async function fetchHighsAndProfiles(knownSeasons: number[], fetchedToday: numbe
     if (fetchedToday.includes(code)) firstSeen = updateFirstSeen(firstSeen, code, nos.length, today);
   }
   await writeFile(FIRST_SEEN_FILE, JSON.stringify(firstSeen, null, 2) + "\n", "utf8");
+  return { today, targets: highsTargetSeasons({ seasons, firstSeen, today }), nosBySeason };
+}
 
-  const targets = highsTargetSeasons({ seasons, firstSeen, today });
+/**
+ * 현재 시즌 선수의 한 경기 최다 + 경기별 기록 + 프로필. 시즌 수집이 끝난 뒤 raw traditional 의 선수 목록으로 돈다.
+ * 반환: 실패 요약 (선수별 실패는 개수만 — 목록이 길어지지 않게)
+ */
+async function fetchHighsAndProfiles(targets: number[], nosBySeason: Map<number, string[]>): Promise<string[]> {
   console.log(`\n한 경기 최다·경기별 기록·프로필 대상 시즌: ${targets.join(", ") || "없음"}`);
   const failed: string[] = [];
   const profileNos = new Set<string>();
@@ -162,6 +174,26 @@ async function fetchHighsAndProfiles(knownSeasons: number[], fetchedToday: numbe
   if (profileNos.size > 0) {
     const r = await collectProfiles([...profileNos], { skipExisting: false });
     if (r.failed.length) failed.push(`profiles: ${r.failed.length}명 실패${r.aborted ? "(중단)" : ""} — 예: ${r.failed[0]}`);
+  }
+  return failed;
+}
+
+/**
+ * 현재 시즌 슛 차트: 경기 목록(오늘까지 달, 1~10회)을 다시 받고 끝난 정규시즌 경기 중 raw 없는 것만 (보통 하루 0~5회).
+ * 대상 시즌은 한 경기 최다와 같다. 반환: 실패 요약
+ */
+async function fetchShots(targets: number[], today: string): Promise<string[]> {
+  const codesFile = await readJsonOr<unknown>(join(DATA_DIR, "codes", "seasons.json"), null);
+  const failed: string[] = [];
+  console.log(`\n슛 차트 대상 시즌: ${targets.join(", ") || "없음"}`);
+  for (const code of targets) {
+    const label = seasonLabelOf(code, codesFile, SEASON_CODES_FALLBACK);
+    if (!label) {
+      failed.push(`shots ${code}: 시즌 라벨 없음`);
+      continue;
+    }
+    const r = await collectSeasonShots({ seasonCode: code, label, today, mode: "daily" });
+    if (r.failed.length) failed.push(`shots ${code}: ${r.failed.length}건 실패${r.aborted ? "(중단)" : ""} — 예: ${r.failed[0]}`);
   }
   return failed;
 }
@@ -204,6 +236,7 @@ async function main() {
   const explicit = args.filter((a) => /^\d+$/.test(a)).map(Number);
 
   const skipHighs = all || args.includes("--no-highs");
+  const skipShots = all || args.includes("--no-shots");
   const knownSeasons = await fetchCodes();
   const targets = all ? knownSeasons : explicit.length > 0 ? explicit : DEFAULT_SEASONS;
 
@@ -230,12 +263,26 @@ async function main() {
     }
   }
 
-  // 한 경기 최다·경기별 기록·프로필 (현재 시즌 선수) — 실패해도 시즌 기록은 이미 저장됨
-  if (!skipHighs) {
+  // 한 경기 최다·경기별 기록·프로필 (현재 시즌 선수)·슛 차트 (현재 시즌 경기) — 실패해도 시즌 기록은 이미 저장됨
+  if (!skipHighs || !skipShots) {
     try {
-      failed.push(...(await fetchHighsAndProfiles(knownSeasons, targets)));
+      const daily = await dailyTargetSeasons(knownSeasons, targets);
+      if (!skipHighs) {
+        try {
+          failed.push(...(await fetchHighsAndProfiles(daily.targets, daily.nosBySeason)));
+        } catch (e) {
+          failed.push(`highs: ${(e as Error).message}`);
+        }
+      }
+      if (!skipShots) {
+        try {
+          failed.push(...(await fetchShots(daily.targets, daily.today)));
+        } catch (e) {
+          failed.push(`shots: ${(e as Error).message}`);
+        }
+      }
     } catch (e) {
-      failed.push(`highs: ${(e as Error).message}`);
+      failed.push(`daily targets: ${(e as Error).message}`);
     }
   }
 

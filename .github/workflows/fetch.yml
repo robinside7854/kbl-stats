@@ -2,6 +2,8 @@
 # 수동 실행: GitHub → Actions → "KBL 기록 수집" → Run workflow
 # 시즌 기록 뒤에 현재 시즌 선수의 한 경기 최다·경기별 기록·프로필도 받는다(약 200명 × 3회, 1.5초 간격 ≈ 15분,
 # 개막 후 30일 동안은 직전 시즌 선수도(≈ 30분) — scripts/highs.ts highsTargetSeasons). 과거는 backfill-highs.yml·backfill-gamelogs.yml.
+# 슛 차트(서버 C): 같은 대상 시즌의 경기 목록(1~10회) + 새로 끝난 정규시즌 경기(보통 하루 0~5회, 1분 안쪽).
+#   백필 전 첫 실행은 그 시즌 약 270경기를 한꺼번에 받아 약 7분 더 걸린다 — 90분 제한 안. 과거는 backfill-shots.yml.
 name: KBL 기록 수집
 
 on:
