@@ -2,13 +2,13 @@
   "seasonCode": 25,
   "seasonLabel": "2014-2015",
   "gameType": "regular",
-  "fetchedAt": "2026-09-30T16:57:25.361Z",
+  "fetchedAt": "2026-09-30T19:39:00.955Z",
   "coverage": {
     "advanced": false,
     "plusMinus": true,
     "goodDef": true,
     "hustle": false,
-    "shots": false
+    "shots": true
   },
   "teams": [
     {
@@ -347,7 +347,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 711,
+          "made": 473
+        },
+        "zones": {
+          "rim": {
+            "a": 248,
+            "m": 196
+          },
+          "paint": {
+            "a": 318,
+            "m": 208
+          },
+          "mid": {
+            "a": 137,
+            "m": 68
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 8,
+            "m": 1
+          }
+        },
+        "offenseType": "inside"
+      }
     },
     {
       "playerNo": "290261",
@@ -529,7 +557,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 820,
+          "made": 423
+        },
+        "zones": {
+          "rim": {
+            "a": 142,
+            "m": 98
+          },
+          "paint": {
+            "a": 342,
+            "m": 192
+          },
+          "mid": {
+            "a": 300,
+            "m": 125
+          },
+          "corner3": {
+            "a": 5,
+            "m": 0
+          },
+          "arc3": {
+            "a": 31,
+            "m": 8
+          }
+        },
+        "offenseType": "inside"
+      }
     },
     {
       "playerNo": "290797",
@@ -711,7 +767,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 816,
+          "made": 368
+        },
+        "zones": {
+          "rim": {
+            "a": 179,
+            "m": 110
+          },
+          "paint": {
+            "a": 226,
+            "m": 120
+          },
+          "mid": {
+            "a": 129,
+            "m": 42
+          },
+          "corner3": {
+            "a": 8,
+            "m": 2
+          },
+          "arc3": {
+            "a": 274,
+            "m": 94
+          }
+        },
+        "offenseType": "balanced"
+      }
     },
     {
       "playerNo": "290800",
@@ -893,7 +977,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 743,
+          "made": 396
+        },
+        "zones": {
+          "rim": {
+            "a": 180,
+            "m": 126
+          },
+          "paint": {
+            "a": 251,
+            "m": 146
+          },
+          "mid": {
+            "a": 147,
+            "m": 65
+          },
+          "corner3": {
+            "a": 2,
+            "m": 2
+          },
+          "arc3": {
+            "a": 163,
+            "m": 57
+          }
+        },
+        "offenseType": "inside"
+      }
     },
     {
       "playerNo": "290731",
@@ -1075,7 +1187,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 728,
+          "made": 416
+        },
+        "zones": {
+          "rim": {
+            "a": 229,
+            "m": 169
+          },
+          "paint": {
+            "a": 334,
+            "m": 201
+          },
+          "mid": {
+            "a": 140,
+            "m": 44
+          },
+          "corner3": {
+            "a": 2,
+            "m": 0
+          },
+          "arc3": {
+            "a": 23,
+            "m": 2
+          }
+        },
+        "offenseType": "inside"
+      }
     },
     {
       "playerNo": "290241",
@@ -1251,7 +1391,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 702,
+          "made": 347
+        },
+        "zones": {
+          "rim": {
+            "a": 113,
+            "m": 82
+          },
+          "paint": {
+            "a": 314,
+            "m": 174
+          },
+          "mid": {
+            "a": 136,
+            "m": 45
+          },
+          "corner3": {
+            "a": 8,
+            "m": 2
+          },
+          "arc3": {
+            "a": 131,
+            "m": 44
+          }
+        },
+        "offenseType": "inside"
+      }
     },
     {
       "playerNo": "290733",
@@ -1433,7 +1601,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 652,
+          "made": 330
+        },
+        "zones": {
+          "rim": {
+            "a": 156,
+            "m": 100
+          },
+          "paint": {
+            "a": 265,
+            "m": 151
+          },
+          "mid": {
+            "a": 94,
+            "m": 32
+          },
+          "corner3": {
+            "a": 6,
+            "m": 1
+          },
+          "arc3": {
+            "a": 131,
+            "m": 46
+          }
+        },
+        "offenseType": "inside"
+      }
     },
     {
       "playerNo": "290280",
@@ -1609,7 +1805,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 714,
+          "made": 336
+        },
+        "zones": {
+          "rim": {
+            "a": 144,
+            "m": 98
+          },
+          "paint": {
+            "a": 183,
+            "m": 89
+          },
+          "mid": {
+            "a": 324,
+            "m": 131
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 63,
+            "m": 18
+          }
+        },
+        "offenseType": "midrange"
+      }
     },
     {
       "playerNo": "290395",
@@ -1785,7 +2009,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 593,
+          "made": 355
+        },
+        "zones": {
+          "rim": {
+            "a": 146,
+            "m": 117
+          },
+          "paint": {
+            "a": 260,
+            "m": 156
+          },
+          "mid": {
+            "a": 165,
+            "m": 73
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 22,
+            "m": 9
+          }
+        },
+        "offenseType": "inside"
+      }
     },
     {
       "playerNo": "290371",
@@ -1961,7 +2213,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 649,
+          "made": 350
+        },
+        "zones": {
+          "rim": {
+            "a": 162,
+            "m": 120
+          },
+          "paint": {
+            "a": 289,
+            "m": 159
+          },
+          "mid": {
+            "a": 180,
+            "m": 65
+          },
+          "corner3": {
+            "a": 3,
+            "m": 1
+          },
+          "arc3": {
+            "a": 15,
+            "m": 5
+          }
+        },
+        "offenseType": "inside"
+      }
     },
     {
       "playerNo": "290518",
@@ -2137,7 +2417,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 505,
+          "made": 272
+        },
+        "zones": {
+          "rim": {
+            "a": 110,
+            "m": 75
+          },
+          "paint": {
+            "a": 199,
+            "m": 110
+          },
+          "mid": {
+            "a": 180,
+            "m": 81
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 16,
+            "m": 6
+          }
+        },
+        "offenseType": "inside"
+      }
     },
     {
       "playerNo": "290781",
@@ -2323,7 +2631,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 574,
+          "made": 298
+        },
+        "zones": {
+          "rim": {
+            "a": 133,
+            "m": 85
+          },
+          "paint": {
+            "a": 230,
+            "m": 127
+          },
+          "mid": {
+            "a": 197,
+            "m": 83
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 14,
+            "m": 3
+          }
+        },
+        "offenseType": "inside"
+      }
     },
     {
       "playerNo": "290472",
@@ -2505,7 +2841,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 611,
+          "made": 275
+        },
+        "zones": {
+          "rim": {
+            "a": 99,
+            "m": 60
+          },
+          "paint": {
+            "a": 220,
+            "m": 108
+          },
+          "mid": {
+            "a": 191,
+            "m": 71
+          },
+          "corner3": {
+            "a": 3,
+            "m": 1
+          },
+          "arc3": {
+            "a": 98,
+            "m": 35
+          }
+        },
+        "offenseType": "midrange"
+      }
     },
     {
       "playerNo": "215053",
@@ -2685,7 +3049,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 484,
+          "made": 254
+        },
+        "zones": {
+          "rim": {
+            "a": 115,
+            "m": 84
+          },
+          "paint": {
+            "a": 181,
+            "m": 98
+          },
+          "mid": {
+            "a": 132,
+            "m": 50
+          },
+          "corner3": {
+            "a": 2,
+            "m": 0
+          },
+          "arc3": {
+            "a": 54,
+            "m": 22
+          }
+        },
+        "offenseType": "inside"
+      }
     },
     {
       "playerNo": "210074",
@@ -2865,7 +3257,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 536,
+          "made": 242
+        },
+        "zones": {
+          "rim": {
+            "a": 76,
+            "m": 54
+          },
+          "paint": {
+            "a": 99,
+            "m": 58
+          },
+          "mid": {
+            "a": 156,
+            "m": 65
+          },
+          "corner3": {
+            "a": 8,
+            "m": 1
+          },
+          "arc3": {
+            "a": 197,
+            "m": 64
+          }
+        },
+        "offenseType": "balanced"
+      }
     },
     {
       "playerNo": "290407",
@@ -3045,7 +3465,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 529,
+          "made": 230
+        },
+        "zones": {
+          "rim": {
+            "a": 87,
+            "m": 56
+          },
+          "paint": {
+            "a": 141,
+            "m": 73
+          },
+          "mid": {
+            "a": 73,
+            "m": 21
+          },
+          "corner3": {
+            "a": 19,
+            "m": 7
+          },
+          "arc3": {
+            "a": 209,
+            "m": 73
+          }
+        },
+        "offenseType": "insideOut"
+      }
     },
     {
       "playerNo": "290377",
@@ -3221,7 +3669,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 465,
+          "made": 217
+        },
+        "zones": {
+          "rim": {
+            "a": 58,
+            "m": 35
+          },
+          "paint": {
+            "a": 100,
+            "m": 63
+          },
+          "mid": {
+            "a": 77,
+            "m": 32
+          },
+          "corner3": {
+            "a": 14,
+            "m": 5
+          },
+          "arc3": {
+            "a": 216,
+            "m": 82
+          }
+        },
+        "offenseType": "balanced"
+      }
     },
     {
       "playerNo": "290736",
@@ -3403,7 +3879,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 495,
+          "made": 233
+        },
+        "zones": {
+          "rim": {
+            "a": 40,
+            "m": 27
+          },
+          "paint": {
+            "a": 90,
+            "m": 49
+          },
+          "mid": {
+            "a": 203,
+            "m": 99
+          },
+          "corner3": {
+            "a": 4,
+            "m": 1
+          },
+          "arc3": {
+            "a": 158,
+            "m": 57
+          }
+        },
+        "offenseType": "midrange"
+      }
     },
     {
       "playerNo": "290147",
@@ -3579,7 +4083,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 504,
+          "made": 242
+        },
+        "zones": {
+          "rim": {
+            "a": 105,
+            "m": 68
+          },
+          "paint": {
+            "a": 240,
+            "m": 111
+          },
+          "mid": {
+            "a": 141,
+            "m": 60
+          },
+          "corner3": {
+            "a": 1,
+            "m": 0
+          },
+          "arc3": {
+            "a": 17,
+            "m": 3
+          }
+        },
+        "offenseType": "inside"
+      }
     },
     {
       "playerNo": "290787",
@@ -3759,7 +4291,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 450,
+          "made": 223
+        },
+        "zones": {
+          "rim": {
+            "a": 65,
+            "m": 43
+          },
+          "paint": {
+            "a": 114,
+            "m": 63
+          },
+          "mid": {
+            "a": 98,
+            "m": 41
+          },
+          "corner3": {
+            "a": 8,
+            "m": 5
+          },
+          "arc3": {
+            "a": 165,
+            "m": 71
+          }
+        },
+        "offenseType": "insideOut"
+      }
     },
     {
       "playerNo": "290799",
@@ -3941,7 +4501,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 505,
+          "made": 219
+        },
+        "zones": {
+          "rim": {
+            "a": 124,
+            "m": 80
+          },
+          "paint": {
+            "a": 190,
+            "m": 92
+          },
+          "mid": {
+            "a": 77,
+            "m": 15
+          },
+          "corner3": {
+            "a": 6,
+            "m": 4
+          },
+          "arc3": {
+            "a": 108,
+            "m": 28
+          }
+        },
+        "offenseType": "inside"
+      }
     },
     {
       "playerNo": "290119",
@@ -4121,7 +4709,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 463,
+          "made": 207
+        },
+        "zones": {
+          "rim": {
+            "a": 68,
+            "m": 40
+          },
+          "paint": {
+            "a": 101,
+            "m": 55
+          },
+          "mid": {
+            "a": 73,
+            "m": 31
+          },
+          "corner3": {
+            "a": 33,
+            "m": 17
+          },
+          "arc3": {
+            "a": 188,
+            "m": 64
+          }
+        },
+        "offenseType": "insideOut"
+      }
     },
     {
       "playerNo": "290114",
@@ -4307,7 +4923,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 380,
+          "made": 171
+        },
+        "zones": {
+          "rim": {
+            "a": 25,
+            "m": 19
+          },
+          "paint": {
+            "a": 55,
+            "m": 30
+          },
+          "mid": {
+            "a": 92,
+            "m": 36
+          },
+          "corner3": {
+            "a": 19,
+            "m": 6
+          },
+          "arc3": {
+            "a": 189,
+            "m": 80
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "290227",
@@ -4493,7 +5137,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 436,
+          "made": 201
+        },
+        "zones": {
+          "rim": {
+            "a": 80,
+            "m": 54
+          },
+          "paint": {
+            "a": 119,
+            "m": 65
+          },
+          "mid": {
+            "a": 93,
+            "m": 36
+          },
+          "corner3": {
+            "a": 13,
+            "m": 3
+          },
+          "arc3": {
+            "a": 131,
+            "m": 43
+          }
+        },
+        "offenseType": "balanced"
+      }
     },
     {
       "playerNo": "290505",
@@ -4673,7 +5345,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 411,
+          "made": 174
+        },
+        "zones": {
+          "rim": {
+            "a": 80,
+            "m": 47
+          },
+          "paint": {
+            "a": 96,
+            "m": 49
+          },
+          "mid": {
+            "a": 98,
+            "m": 42
+          },
+          "corner3": {
+            "a": 11,
+            "m": 2
+          },
+          "arc3": {
+            "a": 126,
+            "m": 34
+          }
+        },
+        "offenseType": "balanced"
+      }
     },
     {
       "playerNo": "290248",
@@ -4853,7 +5553,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 345,
+          "made": 190
+        },
+        "zones": {
+          "rim": {
+            "a": 137,
+            "m": 82
+          },
+          "paint": {
+            "a": 199,
+            "m": 107
+          },
+          "mid": {
+            "a": 8,
+            "m": 0
+          },
+          "corner3": {
+            "a": 1,
+            "m": 1
+          },
+          "arc3": {
+            "a": 0,
+            "m": 0
+          }
+        },
+        "offenseType": "inside"
+      }
     },
     {
       "playerNo": "290732",
@@ -5035,7 +5763,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 316,
+          "made": 203
+        },
+        "zones": {
+          "rim": {
+            "a": 180,
+            "m": 120
+          },
+          "paint": {
+            "a": 132,
+            "m": 81
+          },
+          "mid": {
+            "a": 3,
+            "m": 2
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 1,
+            "m": 0
+          }
+        },
+        "offenseType": "inside"
+      }
     },
     {
       "playerNo": "290118",
@@ -5221,7 +5977,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 386,
+          "made": 164
+        },
+        "zones": {
+          "rim": {
+            "a": 75,
+            "m": 48
+          },
+          "paint": {
+            "a": 104,
+            "m": 46
+          },
+          "mid": {
+            "a": 50,
+            "m": 17
+          },
+          "corner3": {
+            "a": 20,
+            "m": 9
+          },
+          "arc3": {
+            "a": 137,
+            "m": 44
+          }
+        },
+        "offenseType": "insideOut"
+      }
     },
     {
       "playerNo": "290750",
@@ -5401,7 +6185,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 359,
+          "made": 193
+        },
+        "zones": {
+          "rim": {
+            "a": 120,
+            "m": 84
+          },
+          "paint": {
+            "a": 83,
+            "m": 47
+          },
+          "mid": {
+            "a": 136,
+            "m": 56
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 20,
+            "m": 6
+          }
+        },
+        "offenseType": "inside"
+      }
     },
     {
       "playerNo": "290765",
@@ -5587,7 +6399,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 369,
+          "made": 158
+        },
+        "zones": {
+          "rim": {
+            "a": 62,
+            "m": 36
+          },
+          "paint": {
+            "a": 117,
+            "m": 69
+          },
+          "mid": {
+            "a": 92,
+            "m": 23
+          },
+          "corner3": {
+            "a": 13,
+            "m": 4
+          },
+          "arc3": {
+            "a": 85,
+            "m": 26
+          }
+        },
+        "offenseType": "balanced"
+      }
     },
     {
       "playerNo": "290115",
@@ -5767,7 +6607,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 367,
+          "made": 174
+        },
+        "zones": {
+          "rim": {
+            "a": 16,
+            "m": 13
+          },
+          "paint": {
+            "a": 89,
+            "m": 44
+          },
+          "mid": {
+            "a": 144,
+            "m": 66
+          },
+          "corner3": {
+            "a": 2,
+            "m": 1
+          },
+          "arc3": {
+            "a": 116,
+            "m": 50
+          }
+        },
+        "offenseType": "midrange"
+      }
     },
     {
       "playerNo": "290380",
@@ -5947,7 +6815,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 416,
+          "made": 181
+        },
+        "zones": {
+          "rim": {
+            "a": 77,
+            "m": 57
+          },
+          "paint": {
+            "a": 125,
+            "m": 62
+          },
+          "mid": {
+            "a": 111,
+            "m": 36
+          },
+          "corner3": {
+            "a": 3,
+            "m": 0
+          },
+          "arc3": {
+            "a": 100,
+            "m": 26
+          }
+        },
+        "offenseType": "balanced"
+      }
     },
     {
       "playerNo": "290218",
@@ -6127,7 +7023,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 385,
+          "made": 177
+        },
+        "zones": {
+          "rim": {
+            "a": 83,
+            "m": 55
+          },
+          "paint": {
+            "a": 112,
+            "m": 65
+          },
+          "mid": {
+            "a": 55,
+            "m": 15
+          },
+          "corner3": {
+            "a": 25,
+            "m": 6
+          },
+          "arc3": {
+            "a": 110,
+            "m": 36
+          }
+        },
+        "offenseType": "insideOut"
+      }
     },
     {
       "playerNo": "290239",
@@ -6307,7 +7231,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 357,
+          "made": 148
+        },
+        "zones": {
+          "rim": {
+            "a": 57,
+            "m": 38
+          },
+          "paint": {
+            "a": 73,
+            "m": 40
+          },
+          "mid": {
+            "a": 41,
+            "m": 7
+          },
+          "corner3": {
+            "a": 14,
+            "m": 4
+          },
+          "arc3": {
+            "a": 172,
+            "m": 59
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "290287",
@@ -6483,7 +7435,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 345,
+          "made": 152
+        },
+        "zones": {
+          "rim": {
+            "a": 40,
+            "m": 27
+          },
+          "paint": {
+            "a": 74,
+            "m": 38
+          },
+          "mid": {
+            "a": 82,
+            "m": 31
+          },
+          "corner3": {
+            "a": 17,
+            "m": 7
+          },
+          "arc3": {
+            "a": 132,
+            "m": 49
+          }
+        },
+        "offenseType": "balanced"
+      }
     },
     {
       "playerNo": "290450",
@@ -6663,7 +7643,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 370,
+          "made": 170
+        },
+        "zones": {
+          "rim": {
+            "a": 67,
+            "m": 48
+          },
+          "paint": {
+            "a": 141,
+            "m": 67
+          },
+          "mid": {
+            "a": 149,
+            "m": 51
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 13,
+            "m": 4
+          }
+        },
+        "offenseType": "inside"
+      }
     },
     {
       "playerNo": "230061",
@@ -6843,7 +7851,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 366,
+          "made": 149
+        },
+        "zones": {
+          "rim": {
+            "a": 35,
+            "m": 23
+          },
+          "paint": {
+            "a": 35,
+            "m": 19
+          },
+          "mid": {
+            "a": 105,
+            "m": 45
+          },
+          "corner3": {
+            "a": 18,
+            "m": 1
+          },
+          "arc3": {
+            "a": 173,
+            "m": 61
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "290284",
@@ -7023,7 +8059,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 292,
+          "made": 143
+        },
+        "zones": {
+          "rim": {
+            "a": 26,
+            "m": 18
+          },
+          "paint": {
+            "a": 46,
+            "m": 26
+          },
+          "mid": {
+            "a": 69,
+            "m": 25
+          },
+          "corner3": {
+            "a": 34,
+            "m": 20
+          },
+          "arc3": {
+            "a": 117,
+            "m": 54
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "290100",
@@ -7203,7 +8267,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 387,
+          "made": 168
+        },
+        "zones": {
+          "rim": {
+            "a": 70,
+            "m": 47
+          },
+          "paint": {
+            "a": 113,
+            "m": 53
+          },
+          "mid": {
+            "a": 177,
+            "m": 61
+          },
+          "corner3": {
+            "a": 1,
+            "m": 0
+          },
+          "arc3": {
+            "a": 26,
+            "m": 7
+          }
+        },
+        "offenseType": "midrange"
+      }
     },
     {
       "playerNo": "240064",
@@ -7383,7 +8475,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 308,
+          "made": 130
+        },
+        "zones": {
+          "rim": {
+            "a": 30,
+            "m": 20
+          },
+          "paint": {
+            "a": 43,
+            "m": 22
+          },
+          "mid": {
+            "a": 19,
+            "m": 7
+          },
+          "corner3": {
+            "a": 19,
+            "m": 10
+          },
+          "arc3": {
+            "a": 197,
+            "m": 71
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "290792",
@@ -7563,7 +8683,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 343,
+          "made": 133
+        },
+        "zones": {
+          "rim": {
+            "a": 28,
+            "m": 17
+          },
+          "paint": {
+            "a": 46,
+            "m": 20
+          },
+          "mid": {
+            "a": 45,
+            "m": 16
+          },
+          "corner3": {
+            "a": 24,
+            "m": 10
+          },
+          "arc3": {
+            "a": 200,
+            "m": 70
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "290558",
@@ -7739,7 +8887,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 231,
+          "made": 151
+        },
+        "zones": {
+          "rim": {
+            "a": 66,
+            "m": 50
+          },
+          "paint": {
+            "a": 139,
+            "m": 85
+          },
+          "mid": {
+            "a": 25,
+            "m": 16
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 1,
+            "m": 0
+          }
+        },
+        "offenseType": "inside"
+      }
     },
     {
       "playerNo": "290726",
@@ -7921,7 +9097,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 294,
+          "made": 127
+        },
+        "zones": {
+          "rim": {
+            "a": 60,
+            "m": 43
+          },
+          "paint": {
+            "a": 81,
+            "m": 43
+          },
+          "mid": {
+            "a": 44,
+            "m": 13
+          },
+          "corner3": {
+            "a": 45,
+            "m": 13
+          },
+          "arc3": {
+            "a": 64,
+            "m": 15
+          }
+        },
+        "offenseType": "insideOut"
+      }
     },
     {
       "playerNo": "220194",
@@ -8101,7 +9305,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 243,
+          "made": 107
+        },
+        "zones": {
+          "rim": {
+            "a": 17,
+            "m": 11
+          },
+          "paint": {
+            "a": 34,
+            "m": 22
+          },
+          "mid": {
+            "a": 52,
+            "m": 24
+          },
+          "corner3": {
+            "a": 18,
+            "m": 5
+          },
+          "arc3": {
+            "a": 122,
+            "m": 45
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "235075",
@@ -8281,7 +9513,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 311,
+          "made": 120
+        },
+        "zones": {
+          "rim": {
+            "a": 33,
+            "m": 22
+          },
+          "paint": {
+            "a": 48,
+            "m": 24
+          },
+          "mid": {
+            "a": 37,
+            "m": 16
+          },
+          "corner3": {
+            "a": 45,
+            "m": 13
+          },
+          "arc3": {
+            "a": 148,
+            "m": 45
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "290738",
@@ -8461,7 +9721,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 301,
+          "made": 126
+        },
+        "zones": {
+          "rim": {
+            "a": 33,
+            "m": 18
+          },
+          "paint": {
+            "a": 54,
+            "m": 37
+          },
+          "mid": {
+            "a": 53,
+            "m": 27
+          },
+          "corner3": {
+            "a": 15,
+            "m": 4
+          },
+          "arc3": {
+            "a": 146,
+            "m": 40
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "290501",
@@ -8641,7 +9929,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 302,
+          "made": 117
+        },
+        "zones": {
+          "rim": {
+            "a": 67,
+            "m": 37
+          },
+          "paint": {
+            "a": 79,
+            "m": 31
+          },
+          "mid": {
+            "a": 37,
+            "m": 12
+          },
+          "corner3": {
+            "a": 25,
+            "m": 7
+          },
+          "arc3": {
+            "a": 94,
+            "m": 30
+          }
+        },
+        "offenseType": "insideOut"
+      }
     },
     {
       "playerNo": "250067",
@@ -8821,7 +10137,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 228,
+          "made": 106
+        },
+        "zones": {
+          "rim": {
+            "a": 26,
+            "m": 16
+          },
+          "paint": {
+            "a": 59,
+            "m": 31
+          },
+          "mid": {
+            "a": 30,
+            "m": 14
+          },
+          "corner3": {
+            "a": 3,
+            "m": 1
+          },
+          "arc3": {
+            "a": 110,
+            "m": 44
+          }
+        },
+        "offenseType": "insideOut"
+      }
     },
     {
       "playerNo": "290106",
@@ -9007,7 +10351,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 298,
+          "made": 102
+        },
+        "zones": {
+          "rim": {
+            "a": 20,
+            "m": 10
+          },
+          "paint": {
+            "a": 63,
+            "m": 22
+          },
+          "mid": {
+            "a": 42,
+            "m": 12
+          },
+          "corner3": {
+            "a": 6,
+            "m": 2
+          },
+          "arc3": {
+            "a": 167,
+            "m": 56
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "290552",
@@ -9193,7 +10565,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 279,
+          "made": 116
+        },
+        "zones": {
+          "rim": {
+            "a": 39,
+            "m": 27
+          },
+          "paint": {
+            "a": 43,
+            "m": 27
+          },
+          "mid": {
+            "a": 48,
+            "m": 17
+          },
+          "corner3": {
+            "a": 20,
+            "m": 4
+          },
+          "arc3": {
+            "a": 129,
+            "m": 41
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "290372",
@@ -9373,7 +10773,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 271,
+          "made": 105
+        },
+        "zones": {
+          "rim": {
+            "a": 33,
+            "m": 20
+          },
+          "paint": {
+            "a": 40,
+            "m": 19
+          },
+          "mid": {
+            "a": 45,
+            "m": 15
+          },
+          "corner3": {
+            "a": 25,
+            "m": 10
+          },
+          "arc3": {
+            "a": 128,
+            "m": 41
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "290491",
@@ -9559,7 +10987,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 247,
+          "made": 118
+        },
+        "zones": {
+          "rim": {
+            "a": 47,
+            "m": 25
+          },
+          "paint": {
+            "a": 66,
+            "m": 32
+          },
+          "mid": {
+            "a": 119,
+            "m": 54
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 15,
+            "m": 7
+          }
+        },
+        "offenseType": "midrange"
+      }
     },
     {
       "playerNo": "290539",
@@ -9739,7 +11195,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 253,
+          "made": 120
+        },
+        "zones": {
+          "rim": {
+            "a": 86,
+            "m": 51
+          },
+          "paint": {
+            "a": 85,
+            "m": 45
+          },
+          "mid": {
+            "a": 79,
+            "m": 23
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 3,
+            "m": 1
+          }
+        },
+        "offenseType": "inside"
+      }
     },
     {
       "playerNo": "230080",
@@ -9915,7 +11399,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 255,
+          "made": 109
+        },
+        "zones": {
+          "rim": {
+            "a": 62,
+            "m": 40
+          },
+          "paint": {
+            "a": 91,
+            "m": 47
+          },
+          "mid": {
+            "a": 63,
+            "m": 14
+          },
+          "corner3": {
+            "a": 1,
+            "m": 0
+          },
+          "arc3": {
+            "a": 38,
+            "m": 8
+          }
+        },
+        "offenseType": "inside"
+      }
     },
     {
       "playerNo": "290488",
@@ -10095,7 +11607,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 262,
+          "made": 109
+        },
+        "zones": {
+          "rim": {
+            "a": 20,
+            "m": 15
+          },
+          "paint": {
+            "a": 53,
+            "m": 33
+          },
+          "mid": {
+            "a": 43,
+            "m": 14
+          },
+          "corner3": {
+            "a": 17,
+            "m": 4
+          },
+          "arc3": {
+            "a": 129,
+            "m": 43
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "290111",
@@ -10275,7 +11815,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 262,
+          "made": 122
+        },
+        "zones": {
+          "rim": {
+            "a": 44,
+            "m": 29
+          },
+          "paint": {
+            "a": 81,
+            "m": 32
+          },
+          "mid": {
+            "a": 132,
+            "m": 59
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 5,
+            "m": 2
+          }
+        },
+        "offenseType": "midrange"
+      }
     },
     {
       "playerNo": "290108",
@@ -10455,7 +12023,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 304,
+          "made": 104
+        },
+        "zones": {
+          "rim": {
+            "a": 25,
+            "m": 17
+          },
+          "paint": {
+            "a": 84,
+            "m": 29
+          },
+          "mid": {
+            "a": 124,
+            "m": 42
+          },
+          "corner3": {
+            "a": 5,
+            "m": 1
+          },
+          "arc3": {
+            "a": 66,
+            "m": 15
+          }
+        },
+        "offenseType": "midrange"
+      }
     },
     {
       "playerNo": "290798",
@@ -10637,7 +12233,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 219,
+          "made": 119
+        },
+        "zones": {
+          "rim": {
+            "a": 103,
+            "m": 58
+          },
+          "paint": {
+            "a": 111,
+            "m": 60
+          },
+          "mid": {
+            "a": 5,
+            "m": 1
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 0,
+            "m": 0
+          }
+        },
+        "offenseType": "inside"
+      }
     },
     {
       "playerNo": "210080",
@@ -10817,7 +12441,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 254,
+          "made": 94
+        },
+        "zones": {
+          "rim": {
+            "a": 26,
+            "m": 15
+          },
+          "paint": {
+            "a": 27,
+            "m": 14
+          },
+          "mid": {
+            "a": 37,
+            "m": 10
+          },
+          "corner3": {
+            "a": 35,
+            "m": 14
+          },
+          "arc3": {
+            "a": 129,
+            "m": 41
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "290485",
@@ -10997,7 +12649,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 290,
+          "made": 105
+        },
+        "zones": {
+          "rim": {
+            "a": 63,
+            "m": 36
+          },
+          "paint": {
+            "a": 105,
+            "m": 38
+          },
+          "mid": {
+            "a": 118,
+            "m": 30
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 4,
+            "m": 1
+          }
+        },
+        "offenseType": "inside"
+      }
     },
     {
       "playerNo": "290740",
@@ -11177,7 +12857,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 208,
+          "made": 92
+        },
+        "zones": {
+          "rim": {
+            "a": 23,
+            "m": 17
+          },
+          "paint": {
+            "a": 30,
+            "m": 20
+          },
+          "mid": {
+            "a": 32,
+            "m": 9
+          },
+          "corner3": {
+            "a": 16,
+            "m": 8
+          },
+          "arc3": {
+            "a": 107,
+            "m": 38
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "290285",
@@ -11357,7 +13065,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 231,
+          "made": 85
+        },
+        "zones": {
+          "rim": {
+            "a": 12,
+            "m": 7
+          },
+          "paint": {
+            "a": 64,
+            "m": 31
+          },
+          "mid": {
+            "a": 46,
+            "m": 12
+          },
+          "corner3": {
+            "a": 6,
+            "m": 1
+          },
+          "arc3": {
+            "a": 103,
+            "m": 34
+          }
+        },
+        "offenseType": "balanced"
+      }
     },
     {
       "playerNo": "290790",
@@ -11537,7 +13273,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 209,
+          "made": 93
+        },
+        "zones": {
+          "rim": {
+            "a": 40,
+            "m": 26
+          },
+          "paint": {
+            "a": 79,
+            "m": 35
+          },
+          "mid": {
+            "a": 10,
+            "m": 3
+          },
+          "corner3": {
+            "a": 16,
+            "m": 4
+          },
+          "arc3": {
+            "a": 64,
+            "m": 25
+          }
+        },
+        "offenseType": "inside"
+      }
     },
     {
       "playerNo": "290544",
@@ -11717,7 +13481,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 209,
+          "made": 91
+        },
+        "zones": {
+          "rim": {
+            "a": 18,
+            "m": 9
+          },
+          "paint": {
+            "a": 52,
+            "m": 33
+          },
+          "mid": {
+            "a": 37,
+            "m": 14
+          },
+          "corner3": {
+            "a": 4,
+            "m": 1
+          },
+          "arc3": {
+            "a": 98,
+            "m": 34
+          }
+        },
+        "offenseType": "balanced"
+      }
     },
     {
       "playerNo": "230056",
@@ -11897,7 +13689,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 170,
+          "made": 79
+        },
+        "zones": {
+          "rim": {
+            "a": 35,
+            "m": 24
+          },
+          "paint": {
+            "a": 25,
+            "m": 12
+          },
+          "mid": {
+            "a": 9,
+            "m": 4
+          },
+          "corner3": {
+            "a": 7,
+            "m": 5
+          },
+          "arc3": {
+            "a": 94,
+            "m": 34
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "235058",
@@ -12083,7 +13903,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 240,
+          "made": 87
+        },
+        "zones": {
+          "rim": {
+            "a": 10,
+            "m": 7
+          },
+          "paint": {
+            "a": 39,
+            "m": 19
+          },
+          "mid": {
+            "a": 81,
+            "m": 29
+          },
+          "corner3": {
+            "a": 9,
+            "m": 3
+          },
+          "arc3": {
+            "a": 101,
+            "m": 29
+          }
+        },
+        "offenseType": "midrange"
+      }
     },
     {
       "playerNo": "290223",
@@ -12263,7 +14111,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 212,
+          "made": 88
+        },
+        "zones": {
+          "rim": {
+            "a": 33,
+            "m": 25
+          },
+          "paint": {
+            "a": 41,
+            "m": 18
+          },
+          "mid": {
+            "a": 36,
+            "m": 15
+          },
+          "corner3": {
+            "a": 14,
+            "m": 4
+          },
+          "arc3": {
+            "a": 88,
+            "m": 26
+          }
+        },
+        "offenseType": "balanced"
+      }
     },
     {
       "playerNo": "290242",
@@ -12449,7 +14325,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 180,
+          "made": 70
+        },
+        "zones": {
+          "rim": {
+            "a": 4,
+            "m": 1
+          },
+          "paint": {
+            "a": 19,
+            "m": 8
+          },
+          "mid": {
+            "a": 38,
+            "m": 13
+          },
+          "corner3": {
+            "a": 26,
+            "m": 11
+          },
+          "arc3": {
+            "a": 93,
+            "m": 37
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "290528",
@@ -12629,7 +14533,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 181,
+          "made": 67
+        },
+        "zones": {
+          "rim": {
+            "a": 31,
+            "m": 17
+          },
+          "paint": {
+            "a": 33,
+            "m": 15
+          },
+          "mid": {
+            "a": 19,
+            "m": 4
+          },
+          "corner3": {
+            "a": 14,
+            "m": 6
+          },
+          "arc3": {
+            "a": 84,
+            "m": 25
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "290537",
@@ -12809,7 +14741,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 196,
+          "made": 80
+        },
+        "zones": {
+          "rim": {
+            "a": 13,
+            "m": 9
+          },
+          "paint": {
+            "a": 27,
+            "m": 17
+          },
+          "mid": {
+            "a": 56,
+            "m": 24
+          },
+          "corner3": {
+            "a": 13,
+            "m": 3
+          },
+          "arc3": {
+            "a": 87,
+            "m": 27
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "290507",
@@ -12995,7 +14955,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 169,
+          "made": 76
+        },
+        "zones": {
+          "rim": {
+            "a": 15,
+            "m": 9
+          },
+          "paint": {
+            "a": 28,
+            "m": 18
+          },
+          "mid": {
+            "a": 38,
+            "m": 14
+          },
+          "corner3": {
+            "a": 7,
+            "m": 4
+          },
+          "arc3": {
+            "a": 81,
+            "m": 31
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "290744",
@@ -13175,7 +15163,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 181,
+          "made": 78
+        },
+        "zones": {
+          "rim": {
+            "a": 29,
+            "m": 18
+          },
+          "paint": {
+            "a": 39,
+            "m": 20
+          },
+          "mid": {
+            "a": 14,
+            "m": 3
+          },
+          "corner3": {
+            "a": 11,
+            "m": 3
+          },
+          "arc3": {
+            "a": 88,
+            "m": 34
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "290763",
@@ -13355,7 +15371,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 177,
+          "made": 78
+        },
+        "zones": {
+          "rim": {
+            "a": 11,
+            "m": 7
+          },
+          "paint": {
+            "a": 24,
+            "m": 10
+          },
+          "mid": {
+            "a": 43,
+            "m": 19
+          },
+          "corner3": {
+            "a": 17,
+            "m": 8
+          },
+          "arc3": {
+            "a": 82,
+            "m": 34
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "290420",
@@ -13541,7 +15585,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 180,
+          "made": 72
+        },
+        "zones": {
+          "rim": {
+            "a": 18,
+            "m": 13
+          },
+          "paint": {
+            "a": 29,
+            "m": 12
+          },
+          "mid": {
+            "a": 36,
+            "m": 15
+          },
+          "corner3": {
+            "a": 13,
+            "m": 6
+          },
+          "arc3": {
+            "a": 84,
+            "m": 26
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "290776",
@@ -13721,7 +15793,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 170,
+          "made": 69
+        },
+        "zones": {
+          "rim": {
+            "a": 42,
+            "m": 24
+          },
+          "paint": {
+            "a": 24,
+            "m": 12
+          },
+          "mid": {
+            "a": 36,
+            "m": 13
+          },
+          "corner3": {
+            "a": 13,
+            "m": 5
+          },
+          "arc3": {
+            "a": 55,
+            "m": 15
+          }
+        },
+        "offenseType": "insideOut"
+      }
     },
     {
       "playerNo": "290754",
@@ -13901,7 +16001,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 194,
+          "made": 78
+        },
+        "zones": {
+          "rim": {
+            "a": 38,
+            "m": 26
+          },
+          "paint": {
+            "a": 55,
+            "m": 25
+          },
+          "mid": {
+            "a": 55,
+            "m": 18
+          },
+          "corner3": {
+            "a": 2,
+            "m": 1
+          },
+          "arc3": {
+            "a": 44,
+            "m": 8
+          }
+        },
+        "offenseType": "balanced"
+      }
     },
     {
       "playerNo": "290122",
@@ -14081,7 +16209,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 184,
+          "made": 63
+        },
+        "zones": {
+          "rim": {
+            "a": 8,
+            "m": 6
+          },
+          "paint": {
+            "a": 15,
+            "m": 9
+          },
+          "mid": {
+            "a": 77,
+            "m": 27
+          },
+          "corner3": {
+            "a": 8,
+            "m": 2
+          },
+          "arc3": {
+            "a": 76,
+            "m": 19
+          }
+        },
+        "offenseType": "midrange"
+      }
     },
     {
       "playerNo": "290547",
@@ -14261,7 +16417,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 157,
+          "made": 65
+        },
+        "zones": {
+          "rim": {
+            "a": 10,
+            "m": 8
+          },
+          "paint": {
+            "a": 18,
+            "m": 9
+          },
+          "mid": {
+            "a": 41,
+            "m": 14
+          },
+          "corner3": {
+            "a": 12,
+            "m": 3
+          },
+          "arc3": {
+            "a": 76,
+            "m": 31
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "290101",
@@ -14441,7 +16625,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 176,
+          "made": 57
+        },
+        "zones": {
+          "rim": {
+            "a": 14,
+            "m": 7
+          },
+          "paint": {
+            "a": 7,
+            "m": 4
+          },
+          "mid": {
+            "a": 19,
+            "m": 3
+          },
+          "corner3": {
+            "a": 25,
+            "m": 11
+          },
+          "arc3": {
+            "a": 111,
+            "m": 32
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "290529",
@@ -14621,7 +16833,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 171,
+          "made": 62
+        },
+        "zones": {
+          "rim": {
+            "a": 30,
+            "m": 14
+          },
+          "paint": {
+            "a": 38,
+            "m": 15
+          },
+          "mid": {
+            "a": 26,
+            "m": 7
+          },
+          "corner3": {
+            "a": 9,
+            "m": 4
+          },
+          "arc3": {
+            "a": 68,
+            "m": 22
+          }
+        },
+        "offenseType": "insideOut"
+      }
     },
     {
       "playerNo": "290556",
@@ -14807,7 +17047,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 153,
+          "made": 59
+        },
+        "zones": {
+          "rim": {
+            "a": 10,
+            "m": 4
+          },
+          "paint": {
+            "a": 18,
+            "m": 13
+          },
+          "mid": {
+            "a": 30,
+            "m": 10
+          },
+          "corner3": {
+            "a": 19,
+            "m": 4
+          },
+          "arc3": {
+            "a": 76,
+            "m": 28
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "290804",
@@ -14989,7 +17257,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 106,
+          "made": 53
+        },
+        "zones": {
+          "rim": {
+            "a": 36,
+            "m": 24
+          },
+          "paint": {
+            "a": 51,
+            "m": 25
+          },
+          "mid": {
+            "a": 18,
+            "m": 4
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 1,
+            "m": 0
+          }
+        },
+        "offenseType": "inside"
+      }
     },
     {
       "playerNo": "255044",
@@ -15169,7 +17465,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 137,
+          "made": 61
+        },
+        "zones": {
+          "rim": {
+            "a": 5,
+            "m": 3
+          },
+          "paint": {
+            "a": 24,
+            "m": 11
+          },
+          "mid": {
+            "a": 27,
+            "m": 14
+          },
+          "corner3": {
+            "a": 19,
+            "m": 8
+          },
+          "arc3": {
+            "a": 62,
+            "m": 25
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "290801",
@@ -15351,7 +17675,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 141,
+          "made": 63
+        },
+        "zones": {
+          "rim": {
+            "a": 37,
+            "m": 21
+          },
+          "paint": {
+            "a": 53,
+            "m": 24
+          },
+          "mid": {
+            "a": 29,
+            "m": 10
+          },
+          "corner3": {
+            "a": 3,
+            "m": 0
+          },
+          "arc3": {
+            "a": 19,
+            "m": 8
+          }
+        },
+        "offenseType": "inside"
+      }
     },
     {
       "playerNo": "290381",
@@ -15531,7 +17883,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 141,
+          "made": 50
+        },
+        "zones": {
+          "rim": {
+            "a": 13,
+            "m": 7
+          },
+          "paint": {
+            "a": 25,
+            "m": 12
+          },
+          "mid": {
+            "a": 28,
+            "m": 10
+          },
+          "corner3": {
+            "a": 8,
+            "m": 2
+          },
+          "arc3": {
+            "a": 67,
+            "m": 19
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "290421",
@@ -15717,7 +18097,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 164,
+          "made": 58
+        },
+        "zones": {
+          "rim": {
+            "a": 40,
+            "m": 21
+          },
+          "paint": {
+            "a": 35,
+            "m": 18
+          },
+          "mid": {
+            "a": 23,
+            "m": 3
+          },
+          "corner3": {
+            "a": 20,
+            "m": 5
+          },
+          "arc3": {
+            "a": 46,
+            "m": 11
+          }
+        },
+        "offenseType": "insideOut"
+      }
     },
     {
       "playerNo": "290283",
@@ -15897,7 +18305,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 111,
+          "made": 49
+        },
+        "zones": {
+          "rim": {
+            "a": 11,
+            "m": 9
+          },
+          "paint": {
+            "a": 21,
+            "m": 10
+          },
+          "mid": {
+            "a": 13,
+            "m": 5
+          },
+          "corner3": {
+            "a": 14,
+            "m": 4
+          },
+          "arc3": {
+            "a": 52,
+            "m": 21
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "220166",
@@ -16073,7 +18509,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 148,
+          "made": 56
+        },
+        "zones": {
+          "rim": {
+            "a": 26,
+            "m": 16
+          },
+          "paint": {
+            "a": 48,
+            "m": 18
+          },
+          "mid": {
+            "a": 57,
+            "m": 17
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 17,
+            "m": 5
+          }
+        },
+        "offenseType": "midrange"
+      }
     },
     {
       "playerNo": "250038",
@@ -16259,7 +18723,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 126,
+          "made": 54
+        },
+        "zones": {
+          "rim": {
+            "a": 9,
+            "m": 6
+          },
+          "paint": {
+            "a": 21,
+            "m": 14
+          },
+          "mid": {
+            "a": 27,
+            "m": 11
+          },
+          "corner3": {
+            "a": 4,
+            "m": 3
+          },
+          "arc3": {
+            "a": 65,
+            "m": 20
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "290243",
@@ -16439,7 +18931,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 126,
+          "made": 59
+        },
+        "zones": {
+          "rim": {
+            "a": 41,
+            "m": 28
+          },
+          "paint": {
+            "a": 20,
+            "m": 11
+          },
+          "mid": {
+            "a": 24,
+            "m": 5
+          },
+          "corner3": {
+            "a": 3,
+            "m": 2
+          },
+          "arc3": {
+            "a": 38,
+            "m": 13
+          }
+        },
+        "offenseType": "balanced"
+      }
     },
     {
       "playerNo": "650023",
@@ -16619,7 +19139,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 91,
+          "made": 41
+        },
+        "zones": {
+          "rim": {
+            "a": 4,
+            "m": 2
+          },
+          "paint": {
+            "a": 8,
+            "m": 3
+          },
+          "mid": {
+            "a": 11,
+            "m": 4
+          },
+          "corner3": {
+            "a": 17,
+            "m": 9
+          },
+          "arc3": {
+            "a": 51,
+            "m": 23
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "290783",
@@ -16799,7 +19347,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 127,
+          "made": 47
+        },
+        "zones": {
+          "rim": {
+            "a": 9,
+            "m": 7
+          },
+          "paint": {
+            "a": 18,
+            "m": 9
+          },
+          "mid": {
+            "a": 16,
+            "m": 3
+          },
+          "corner3": {
+            "a": 28,
+            "m": 7
+          },
+          "arc3": {
+            "a": 56,
+            "m": 21
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "290788",
@@ -16979,7 +19555,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 137,
+          "made": 56
+        },
+        "zones": {
+          "rim": {
+            "a": 25,
+            "m": 15
+          },
+          "paint": {
+            "a": 52,
+            "m": 25
+          },
+          "mid": {
+            "a": 23,
+            "m": 5
+          },
+          "corner3": {
+            "a": 5,
+            "m": 1
+          },
+          "arc3": {
+            "a": 32,
+            "m": 10
+          }
+        },
+        "offenseType": "inside"
+      }
     },
     {
       "playerNo": "290368",
@@ -17159,7 +19763,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 144,
+          "made": 43
+        },
+        "zones": {
+          "rim": {
+            "a": 10,
+            "m": 5
+          },
+          "paint": {
+            "a": 21,
+            "m": 8
+          },
+          "mid": {
+            "a": 21,
+            "m": 5
+          },
+          "corner3": {
+            "a": 11,
+            "m": 2
+          },
+          "arc3": {
+            "a": 81,
+            "m": 23
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "290383",
@@ -17339,7 +19971,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 123,
+          "made": 44
+        },
+        "zones": {
+          "rim": {
+            "a": 14,
+            "m": 9
+          },
+          "paint": {
+            "a": 18,
+            "m": 6
+          },
+          "mid": {
+            "a": 20,
+            "m": 7
+          },
+          "corner3": {
+            "a": 10,
+            "m": 1
+          },
+          "arc3": {
+            "a": 61,
+            "m": 21
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "240074",
@@ -17519,7 +20179,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 103,
+          "made": 52
+        },
+        "zones": {
+          "rim": {
+            "a": 21,
+            "m": 14
+          },
+          "paint": {
+            "a": 26,
+            "m": 13
+          },
+          "mid": {
+            "a": 45,
+            "m": 22
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 11,
+            "m": 3
+          }
+        },
+        "offenseType": "midrange"
+      }
     },
     {
       "playerNo": "290425",
@@ -17699,7 +20387,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 93,
+          "made": 41
+        },
+        "zones": {
+          "rim": {
+            "a": 14,
+            "m": 11
+          },
+          "paint": {
+            "a": 27,
+            "m": 14
+          },
+          "mid": {
+            "a": 11,
+            "m": 1
+          },
+          "corner3": {
+            "a": 4,
+            "m": 0
+          },
+          "arc3": {
+            "a": 37,
+            "m": 15
+          }
+        },
+        "offenseType": "insideOut"
+      }
     },
     {
       "playerNo": "215012",
@@ -17875,7 +20591,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 126,
+          "made": 36
+        },
+        "zones": {
+          "rim": {
+            "a": 8,
+            "m": 3
+          },
+          "paint": {
+            "a": 32,
+            "m": 10
+          },
+          "mid": {
+            "a": 10,
+            "m": 3
+          },
+          "corner3": {
+            "a": 6,
+            "m": 3
+          },
+          "arc3": {
+            "a": 70,
+            "m": 17
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "235070",
@@ -18055,7 +20799,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 112,
+          "made": 41
+        },
+        "zones": {
+          "rim": {
+            "a": 13,
+            "m": 11
+          },
+          "paint": {
+            "a": 30,
+            "m": 9
+          },
+          "mid": {
+            "a": 36,
+            "m": 11
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 33,
+            "m": 10
+          }
+        },
+        "offenseType": "midrange"
+      }
     },
     {
       "playerNo": "290116",
@@ -18241,7 +21013,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 127,
+          "made": 37
+        },
+        "zones": {
+          "rim": {
+            "a": 24,
+            "m": 11
+          },
+          "paint": {
+            "a": 32,
+            "m": 13
+          },
+          "mid": {
+            "a": 0,
+            "m": 0
+          },
+          "corner3": {
+            "a": 10,
+            "m": 2
+          },
+          "arc3": {
+            "a": 61,
+            "m": 11
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "290803",
@@ -18423,7 +21223,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 87,
+          "made": 38
+        },
+        "zones": {
+          "rim": {
+            "a": 22,
+            "m": 10
+          },
+          "paint": {
+            "a": 31,
+            "m": 12
+          },
+          "mid": {
+            "a": 11,
+            "m": 5
+          },
+          "corner3": {
+            "a": 1,
+            "m": 0
+          },
+          "arc3": {
+            "a": 22,
+            "m": 11
+          }
+        },
+        "offenseType": "inside"
+      }
     },
     {
       "playerNo": "290794",
@@ -18603,7 +21431,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 79,
+          "made": 34
+        },
+        "zones": {
+          "rim": {
+            "a": 11,
+            "m": 6
+          },
+          "paint": {
+            "a": 16,
+            "m": 5
+          },
+          "mid": {
+            "a": 7,
+            "m": 3
+          },
+          "corner3": {
+            "a": 2,
+            "m": 2
+          },
+          "arc3": {
+            "a": 43,
+            "m": 18
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "290225",
@@ -18789,7 +21645,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 93,
+          "made": 36
+        },
+        "zones": {
+          "rim": {
+            "a": 19,
+            "m": 12
+          },
+          "paint": {
+            "a": 20,
+            "m": 8
+          },
+          "mid": {
+            "a": 24,
+            "m": 6
+          },
+          "corner3": {
+            "a": 4,
+            "m": 0
+          },
+          "arc3": {
+            "a": 26,
+            "m": 10
+          }
+        },
+        "offenseType": "balanced"
+      }
     },
     {
       "playerNo": "290232",
@@ -18975,7 +21859,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 79,
+          "made": 37
+        },
+        "zones": {
+          "rim": {
+            "a": 9,
+            "m": 7
+          },
+          "paint": {
+            "a": 14,
+            "m": 10
+          },
+          "mid": {
+            "a": 10,
+            "m": 1
+          },
+          "corner3": {
+            "a": 6,
+            "m": 2
+          },
+          "arc3": {
+            "a": 40,
+            "m": 17
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "290802",
@@ -19157,7 +22069,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 84,
+          "made": 42
+        },
+        "zones": {
+          "rim": {
+            "a": 40,
+            "m": 26
+          },
+          "paint": {
+            "a": 38,
+            "m": 15
+          },
+          "mid": {
+            "a": 6,
+            "m": 1
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 0,
+            "m": 0
+          }
+        },
+        "offenseType": "inside"
+      }
     },
     {
       "playerNo": "290548",
@@ -19337,7 +22277,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 96,
+          "made": 35
+        },
+        "zones": {
+          "rim": {
+            "a": 15,
+            "m": 7
+          },
+          "paint": {
+            "a": 20,
+            "m": 8
+          },
+          "mid": {
+            "a": 23,
+            "m": 7
+          },
+          "corner3": {
+            "a": 3,
+            "m": 0
+          },
+          "arc3": {
+            "a": 35,
+            "m": 13
+          }
+        },
+        "offenseType": "insideOut"
+      }
     },
     {
       "playerNo": "290412",
@@ -19517,7 +22485,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 57,
+          "made": 39
+        },
+        "zones": {
+          "rim": {
+            "a": 24,
+            "m": 20
+          },
+          "paint": {
+            "a": 21,
+            "m": 16
+          },
+          "mid": {
+            "a": 12,
+            "m": 3
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 0,
+            "m": 0
+          }
+        },
+        "offenseType": "inside"
+      }
     },
     {
       "playerNo": "235057",
@@ -19697,7 +22693,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 93,
+          "made": 36
+        },
+        "zones": {
+          "rim": {
+            "a": 9,
+            "m": 7
+          },
+          "paint": {
+            "a": 10,
+            "m": 6
+          },
+          "mid": {
+            "a": 18,
+            "m": 8
+          },
+          "corner3": {
+            "a": 13,
+            "m": 4
+          },
+          "arc3": {
+            "a": 43,
+            "m": 11
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "210068",
@@ -19877,7 +22901,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 59,
+          "made": 20
+        },
+        "zones": {
+          "rim": {
+            "a": 2,
+            "m": 1
+          },
+          "paint": {
+            "a": 4,
+            "m": 1
+          },
+          "mid": {
+            "a": 2,
+            "m": 0
+          },
+          "corner3": {
+            "a": 3,
+            "m": 0
+          },
+          "arc3": {
+            "a": 48,
+            "m": 18
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "290291",
@@ -20063,7 +23115,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 86,
+          "made": 22
+        },
+        "zones": {
+          "rim": {
+            "a": 6,
+            "m": 1
+          },
+          "paint": {
+            "a": 9,
+            "m": 4
+          },
+          "mid": {
+            "a": 5,
+            "m": 1
+          },
+          "corner3": {
+            "a": 29,
+            "m": 9
+          },
+          "arc3": {
+            "a": 37,
+            "m": 7
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "290796",
@@ -20243,7 +23323,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 59,
+          "made": 27
+        },
+        "zones": {
+          "rim": {
+            "a": 13,
+            "m": 8
+          },
+          "paint": {
+            "a": 19,
+            "m": 8
+          },
+          "mid": {
+            "a": 26,
+            "m": 11
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 1,
+            "m": 0
+          }
+        },
+        "offenseType": "midrange"
+      }
     },
     {
       "playerNo": "290742",
@@ -20423,7 +23531,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 77,
+          "made": 23
+        },
+        "zones": {
+          "rim": {
+            "a": 8,
+            "m": 6
+          },
+          "paint": {
+            "a": 13,
+            "m": 5
+          },
+          "mid": {
+            "a": 13,
+            "m": 3
+          },
+          "corner3": {
+            "a": 3,
+            "m": 0
+          },
+          "arc3": {
+            "a": 40,
+            "m": 9
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "290785",
@@ -20603,7 +23739,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 55,
+          "made": 26
+        },
+        "zones": {
+          "rim": {
+            "a": 16,
+            "m": 14
+          },
+          "paint": {
+            "a": 18,
+            "m": 7
+          },
+          "mid": {
+            "a": 10,
+            "m": 3
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 11,
+            "m": 2
+          }
+        },
+        "offenseType": "inside"
+      }
     },
     {
       "playerNo": "260005",
@@ -20783,7 +23947,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 53,
+          "made": 28
+        },
+        "zones": {
+          "rim": {
+            "a": 8,
+            "m": 6
+          },
+          "paint": {
+            "a": 14,
+            "m": 8
+          },
+          "mid": {
+            "a": 27,
+            "m": 12
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 4,
+            "m": 2
+          }
+        },
+        "offenseType": "midrange"
+      }
     },
     {
       "playerNo": "255085",
@@ -20963,7 +24155,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 56,
+          "made": 20
+        },
+        "zones": {
+          "rim": {
+            "a": 8,
+            "m": 4
+          },
+          "paint": {
+            "a": 18,
+            "m": 7
+          },
+          "mid": {
+            "a": 10,
+            "m": 3
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 20,
+            "m": 6
+          }
+        },
+        "offenseType": "insideOut"
+      }
     },
     {
       "playerNo": "650014",
@@ -21143,7 +24363,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 50,
+          "made": 21
+        },
+        "zones": {
+          "rim": {
+            "a": 12,
+            "m": 9
+          },
+          "paint": {
+            "a": 8,
+            "m": 3
+          },
+          "mid": {
+            "a": 7,
+            "m": 3
+          },
+          "corner3": {
+            "a": 4,
+            "m": 2
+          },
+          "arc3": {
+            "a": 19,
+            "m": 4
+          }
+        },
+        "offenseType": "insideOut"
+      }
     },
     {
       "playerNo": "290349",
@@ -21325,7 +24573,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 48,
+          "made": 23
+        },
+        "zones": {
+          "rim": {
+            "a": 17,
+            "m": 12
+          },
+          "paint": {
+            "a": 11,
+            "m": 5
+          },
+          "mid": {
+            "a": 18,
+            "m": 5
+          },
+          "corner3": {
+            "a": 1,
+            "m": 0
+          },
+          "arc3": {
+            "a": 1,
+            "m": 1
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "290478",
@@ -21505,7 +24781,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 45,
+          "made": 18
+        },
+        "zones": {
+          "rim": {
+            "a": 4,
+            "m": 2
+          },
+          "paint": {
+            "a": 6,
+            "m": 2
+          },
+          "mid": {
+            "a": 11,
+            "m": 4
+          },
+          "corner3": {
+            "a": 4,
+            "m": 1
+          },
+          "arc3": {
+            "a": 20,
+            "m": 9
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "290553",
@@ -21685,7 +24989,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 50,
+          "made": 18
+        },
+        "zones": {
+          "rim": {
+            "a": 7,
+            "m": 4
+          },
+          "paint": {
+            "a": 3,
+            "m": 2
+          },
+          "mid": {
+            "a": 14,
+            "m": 5
+          },
+          "corner3": {
+            "a": 5,
+            "m": 1
+          },
+          "arc3": {
+            "a": 21,
+            "m": 6
+          }
+        },
+        "offenseType": "shooter"
+      }
     },
     {
       "playerNo": "290551",
@@ -21871,7 +25203,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 43,
+          "made": 16
+        },
+        "zones": {
+          "rim": {
+            "a": 5,
+            "m": 3
+          },
+          "paint": {
+            "a": 3,
+            "m": 2
+          },
+          "mid": {
+            "a": 2,
+            "m": 0
+          },
+          "corner3": {
+            "a": 10,
+            "m": 4
+          },
+          "arc3": {
+            "a": 23,
+            "m": 7
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "290376",
@@ -22057,7 +25417,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 50,
+          "made": 17
+        },
+        "zones": {
+          "rim": {
+            "a": 7,
+            "m": 5
+          },
+          "paint": {
+            "a": 20,
+            "m": 8
+          },
+          "mid": {
+            "a": 7,
+            "m": 0
+          },
+          "corner3": {
+            "a": 3,
+            "m": 1
+          },
+          "arc3": {
+            "a": 13,
+            "m": 3
+          }
+        },
+        "offenseType": "balanced"
+      }
     },
     {
       "playerNo": "290234",
@@ -22237,7 +25625,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 51,
+          "made": 16
+        },
+        "zones": {
+          "rim": {
+            "a": 8,
+            "m": 4
+          },
+          "paint": {
+            "a": 7,
+            "m": 3
+          },
+          "mid": {
+            "a": 11,
+            "m": 3
+          },
+          "corner3": {
+            "a": 2,
+            "m": 0
+          },
+          "arc3": {
+            "a": 23,
+            "m": 6
+          }
+        },
+        "offenseType": "balanced"
+      }
     },
     {
       "playerNo": "290139",
@@ -22413,7 +25829,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 37,
+          "made": 18
+        },
+        "zones": {
+          "rim": {
+            "a": 14,
+            "m": 8
+          },
+          "paint": {
+            "a": 21,
+            "m": 10
+          },
+          "mid": {
+            "a": 2,
+            "m": 0
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 0,
+            "m": 0
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "290292",
@@ -22593,7 +26037,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 41,
+          "made": 16
+        },
+        "zones": {
+          "rim": {
+            "a": 8,
+            "m": 5
+          },
+          "paint": {
+            "a": 4,
+            "m": 2
+          },
+          "mid": {
+            "a": 6,
+            "m": 3
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 23,
+            "m": 6
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "290778",
@@ -22779,7 +26251,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 24,
+          "made": 14
+        },
+        "zones": {
+          "rim": {
+            "a": 6,
+            "m": 5
+          },
+          "paint": {
+            "a": 8,
+            "m": 5
+          },
+          "mid": {
+            "a": 8,
+            "m": 3
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 2,
+            "m": 1
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "290110",
@@ -22959,7 +26459,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 36,
+          "made": 16
+        },
+        "zones": {
+          "rim": {
+            "a": 10,
+            "m": 4
+          },
+          "paint": {
+            "a": 19,
+            "m": 10
+          },
+          "mid": {
+            "a": 6,
+            "m": 2
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 1,
+            "m": 0
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "290486",
@@ -23145,7 +26673,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 39,
+          "made": 12
+        },
+        "zones": {
+          "rim": {
+            "a": 2,
+            "m": 1
+          },
+          "paint": {
+            "a": 3,
+            "m": 1
+          },
+          "mid": {
+            "a": 5,
+            "m": 2
+          },
+          "corner3": {
+            "a": 10,
+            "m": 3
+          },
+          "arc3": {
+            "a": 19,
+            "m": 5
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "290757",
@@ -23325,7 +26881,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 50,
+          "made": 18
+        },
+        "zones": {
+          "rim": {
+            "a": 5,
+            "m": 2
+          },
+          "paint": {
+            "a": 24,
+            "m": 11
+          },
+          "mid": {
+            "a": 20,
+            "m": 4
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 1,
+            "m": 1
+          }
+        },
+        "offenseType": "inside"
+      }
     },
     {
       "playerNo": "290104",
@@ -23505,7 +27089,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 37,
+          "made": 13
+        },
+        "zones": {
+          "rim": {
+            "a": 3,
+            "m": 2
+          },
+          "paint": {
+            "a": 2,
+            "m": 0
+          },
+          "mid": {
+            "a": 16,
+            "m": 5
+          },
+          "corner3": {
+            "a": 4,
+            "m": 0
+          },
+          "arc3": {
+            "a": 12,
+            "m": 6
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "290295",
@@ -23685,7 +27297,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 29,
+          "made": 12
+        },
+        "zones": {
+          "rim": {
+            "a": 3,
+            "m": 2
+          },
+          "paint": {
+            "a": 6,
+            "m": 2
+          },
+          "mid": {
+            "a": 20,
+            "m": 8
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 0,
+            "m": 0
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "290739",
@@ -23865,7 +27505,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 23,
+          "made": 7
+        },
+        "zones": {
+          "rim": {
+            "a": 5,
+            "m": 3
+          },
+          "paint": {
+            "a": 9,
+            "m": 1
+          },
+          "mid": {
+            "a": 4,
+            "m": 1
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 5,
+            "m": 2
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "290277",
@@ -24045,7 +27713,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 13,
+          "made": 7
+        },
+        "zones": {
+          "rim": {
+            "a": 0,
+            "m": 0
+          },
+          "paint": {
+            "a": 3,
+            "m": 2
+          },
+          "mid": {
+            "a": 8,
+            "m": 4
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 2,
+            "m": 1
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "290779",
@@ -24225,7 +27921,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 13,
+          "made": 7
+        },
+        "zones": {
+          "rim": {
+            "a": 4,
+            "m": 4
+          },
+          "paint": {
+            "a": 3,
+            "m": 2
+          },
+          "mid": {
+            "a": 3,
+            "m": 1
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 3,
+            "m": 0
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "290503",
@@ -24405,7 +28129,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 17,
+          "made": 7
+        },
+        "zones": {
+          "rim": {
+            "a": 1,
+            "m": 1
+          },
+          "paint": {
+            "a": 5,
+            "m": 5
+          },
+          "mid": {
+            "a": 4,
+            "m": 0
+          },
+          "corner3": {
+            "a": 4,
+            "m": 1
+          },
+          "arc3": {
+            "a": 3,
+            "m": 0
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "290540",
@@ -24585,7 +28337,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 22,
+          "made": 6
+        },
+        "zones": {
+          "rim": {
+            "a": 3,
+            "m": 0
+          },
+          "paint": {
+            "a": 2,
+            "m": 2
+          },
+          "mid": {
+            "a": 1,
+            "m": 0
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 16,
+            "m": 4
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "290454",
@@ -24765,7 +28545,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 13,
+          "made": 7
+        },
+        "zones": {
+          "rim": {
+            "a": 2,
+            "m": 2
+          },
+          "paint": {
+            "a": 3,
+            "m": 2
+          },
+          "mid": {
+            "a": 1,
+            "m": 1
+          },
+          "corner3": {
+            "a": 2,
+            "m": 1
+          },
+          "arc3": {
+            "a": 5,
+            "m": 1
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "290378",
@@ -24945,7 +28753,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 22,
+          "made": 8
+        },
+        "zones": {
+          "rim": {
+            "a": 8,
+            "m": 4
+          },
+          "paint": {
+            "a": 7,
+            "m": 3
+          },
+          "mid": {
+            "a": 6,
+            "m": 1
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 1,
+            "m": 0
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "290743",
@@ -25131,7 +28967,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 10,
+          "made": 4
+        },
+        "zones": {
+          "rim": {
+            "a": 2,
+            "m": 1
+          },
+          "paint": {
+            "a": 4,
+            "m": 2
+          },
+          "mid": {
+            "a": 2,
+            "m": 1
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 2,
+            "m": 0
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "290536",
@@ -25311,7 +29175,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 15,
+          "made": 7
+        },
+        "zones": {
+          "rim": {
+            "a": 3,
+            "m": 2
+          },
+          "paint": {
+            "a": 6,
+            "m": 5
+          },
+          "mid": {
+            "a": 2,
+            "m": 0
+          },
+          "corner3": {
+            "a": 1,
+            "m": 0
+          },
+          "arc3": {
+            "a": 3,
+            "m": 0
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "290124",
@@ -25487,7 +29379,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 20,
+          "made": 5
+        },
+        "zones": {
+          "rim": {
+            "a": 1,
+            "m": 0
+          },
+          "paint": {
+            "a": 5,
+            "m": 1
+          },
+          "mid": {
+            "a": 4,
+            "m": 2
+          },
+          "corner3": {
+            "a": 1,
+            "m": 1
+          },
+          "arc3": {
+            "a": 9,
+            "m": 1
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "290519",
@@ -25663,7 +29583,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 14,
+          "made": 4
+        },
+        "zones": {
+          "rim": {
+            "a": 1,
+            "m": 0
+          },
+          "paint": {
+            "a": 9,
+            "m": 3
+          },
+          "mid": {
+            "a": 4,
+            "m": 1
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 0,
+            "m": 0
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "290806",
@@ -25845,7 +29793,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 8,
+          "made": 6
+        },
+        "zones": {
+          "rim": {
+            "a": 4,
+            "m": 4
+          },
+          "paint": {
+            "a": 3,
+            "m": 2
+          },
+          "mid": {
+            "a": 1,
+            "m": 0
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 0,
+            "m": 0
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "290784",
@@ -26025,7 +30001,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 13,
+          "made": 5
+        },
+        "zones": {
+          "rim": {
+            "a": 1,
+            "m": 1
+          },
+          "paint": {
+            "a": 7,
+            "m": 3
+          },
+          "mid": {
+            "a": 2,
+            "m": 1
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 3,
+            "m": 0
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "230068",
@@ -26205,7 +30209,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 10,
+          "made": 3
+        },
+        "zones": {
+          "rim": {
+            "a": 1,
+            "m": 1
+          },
+          "paint": {
+            "a": 1,
+            "m": 1
+          },
+          "mid": {
+            "a": 2,
+            "m": 0
+          },
+          "corner3": {
+            "a": 1,
+            "m": 0
+          },
+          "arc3": {
+            "a": 5,
+            "m": 1
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "290278",
@@ -26385,7 +30417,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 17,
+          "made": 3
+        },
+        "zones": {
+          "rim": {
+            "a": 1,
+            "m": 1
+          },
+          "paint": {
+            "a": 1,
+            "m": 0
+          },
+          "mid": {
+            "a": 3,
+            "m": 1
+          },
+          "corner3": {
+            "a": 5,
+            "m": 1
+          },
+          "arc3": {
+            "a": 7,
+            "m": 0
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "290286",
@@ -26565,7 +30625,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 11,
+          "made": 3
+        },
+        "zones": {
+          "rim": {
+            "a": 3,
+            "m": 1
+          },
+          "paint": {
+            "a": 2,
+            "m": 0
+          },
+          "mid": {
+            "a": 4,
+            "m": 1
+          },
+          "corner3": {
+            "a": 1,
+            "m": 1
+          },
+          "arc3": {
+            "a": 1,
+            "m": 0
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "290805",
@@ -26747,7 +30835,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 7,
+          "made": 2
+        },
+        "zones": {
+          "rim": {
+            "a": 2,
+            "m": 1
+          },
+          "paint": {
+            "a": 0,
+            "m": 0
+          },
+          "mid": {
+            "a": 3,
+            "m": 1
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 2,
+            "m": 0
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "290282",
@@ -26927,7 +31043,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 11,
+          "made": 3
+        },
+        "zones": {
+          "rim": {
+            "a": 3,
+            "m": 0
+          },
+          "paint": {
+            "a": 3,
+            "m": 2
+          },
+          "mid": {
+            "a": 5,
+            "m": 1
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 0,
+            "m": 0
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "290795",
@@ -27113,7 +31257,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 7,
+          "made": 2
+        },
+        "zones": {
+          "rim": {
+            "a": 2,
+            "m": 1
+          },
+          "paint": {
+            "a": 1,
+            "m": 1
+          },
+          "mid": {
+            "a": 1,
+            "m": 0
+          },
+          "corner3": {
+            "a": 2,
+            "m": 0
+          },
+          "arc3": {
+            "a": 1,
+            "m": 0
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "290782",
@@ -27293,7 +31465,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 7,
+          "made": 2
+        },
+        "zones": {
+          "rim": {
+            "a": 0,
+            "m": 0
+          },
+          "paint": {
+            "a": 2,
+            "m": 1
+          },
+          "mid": {
+            "a": 1,
+            "m": 0
+          },
+          "corner3": {
+            "a": 3,
+            "m": 1
+          },
+          "arc3": {
+            "a": 1,
+            "m": 0
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "230071",
@@ -27473,7 +31673,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 3,
+          "made": 2
+        },
+        "zones": {
+          "rim": {
+            "a": 0,
+            "m": 0
+          },
+          "paint": {
+            "a": 0,
+            "m": 0
+          },
+          "mid": {
+            "a": 3,
+            "m": 2
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 0,
+            "m": 0
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "290543",
@@ -27653,7 +31881,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 16,
+          "made": 2
+        },
+        "zones": {
+          "rim": {
+            "a": 0,
+            "m": 0
+          },
+          "paint": {
+            "a": 5,
+            "m": 1
+          },
+          "mid": {
+            "a": 1,
+            "m": 0
+          },
+          "corner3": {
+            "a": 1,
+            "m": 0
+          },
+          "arc3": {
+            "a": 9,
+            "m": 1
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "290789",
@@ -27839,7 +32095,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 4,
+          "made": 0
+        },
+        "zones": {
+          "rim": {
+            "a": 2,
+            "m": 0
+          },
+          "paint": {
+            "a": 0,
+            "m": 0
+          },
+          "mid": {
+            "a": 2,
+            "m": 0
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 0,
+            "m": 0
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "290769",
@@ -28021,7 +32305,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 2,
+          "made": 1
+        },
+        "zones": {
+          "rim": {
+            "a": 0,
+            "m": 0
+          },
+          "paint": {
+            "a": 0,
+            "m": 0
+          },
+          "mid": {
+            "a": 0,
+            "m": 0
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 2,
+            "m": 1
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "290408",
@@ -28201,7 +32513,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 2,
+          "made": 1
+        },
+        "zones": {
+          "rim": {
+            "a": 0,
+            "m": 0
+          },
+          "paint": {
+            "a": 1,
+            "m": 1
+          },
+          "mid": {
+            "a": 0,
+            "m": 0
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 1,
+            "m": 0
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "290231",
@@ -28381,7 +32721,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 5,
+          "made": 1
+        },
+        "zones": {
+          "rim": {
+            "a": 0,
+            "m": 0
+          },
+          "paint": {
+            "a": 4,
+            "m": 1
+          },
+          "mid": {
+            "a": 0,
+            "m": 0
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 1,
+            "m": 0
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "290123",
@@ -28561,7 +32929,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 4,
+          "made": 1
+        },
+        "zones": {
+          "rim": {
+            "a": 0,
+            "m": 0
+          },
+          "paint": {
+            "a": 1,
+            "m": 1
+          },
+          "mid": {
+            "a": 2,
+            "m": 0
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 1,
+            "m": 0
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "290756",
@@ -28741,7 +33137,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 2,
+          "made": 1
+        },
+        "zones": {
+          "rim": {
+            "a": 0,
+            "m": 0
+          },
+          "paint": {
+            "a": 1,
+            "m": 0
+          },
+          "mid": {
+            "a": 1,
+            "m": 1
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 0,
+            "m": 0
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "255083",
@@ -28921,7 +33345,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 2,
+          "made": 1
+        },
+        "zones": {
+          "rim": {
+            "a": 0,
+            "m": 0
+          },
+          "paint": {
+            "a": 0,
+            "m": 0
+          },
+          "mid": {
+            "a": 2,
+            "m": 1
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 0,
+            "m": 0
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "290483",
@@ -29101,7 +33553,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 1,
+          "made": 0
+        },
+        "zones": {
+          "rim": {
+            "a": 0,
+            "m": 0
+          },
+          "paint": {
+            "a": 0,
+            "m": 0
+          },
+          "mid": {
+            "a": 0,
+            "m": 0
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 1,
+            "m": 0
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "230083",
@@ -29281,7 +33761,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 2,
+          "made": 0
+        },
+        "zones": {
+          "rim": {
+            "a": 0,
+            "m": 0
+          },
+          "paint": {
+            "a": 1,
+            "m": 0
+          },
+          "mid": {
+            "a": 0,
+            "m": 0
+          },
+          "corner3": {
+            "a": 1,
+            "m": 0
+          },
+          "arc3": {
+            "a": 0,
+            "m": 0
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "290374",
@@ -29817,7 +34325,35 @@
           "seasonCode": 25
         }
       },
-      "shotZones": null
+      "shotZones": {
+        "total": {
+          "attempts": 1,
+          "made": 0
+        },
+        "zones": {
+          "rim": {
+            "a": 0,
+            "m": 0
+          },
+          "paint": {
+            "a": 0,
+            "m": 0
+          },
+          "mid": {
+            "a": 1,
+            "m": 0
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 0,
+            "m": 0
+          }
+        },
+        "offenseType": null
+      }
     },
     {
       "playerNo": "290480",
@@ -30092,5 +34628,26 @@
       "seasonCode": 25
     }
   },
-  "shotZoneLeague": null
+  "shotZoneLeague": {
+    "rim": {
+      "a": 6111,
+      "m": 4047
+    },
+    "paint": {
+      "a": 9597,
+      "m": 5060
+    },
+    "mid": {
+      "a": 7700,
+      "m": 2869
+    },
+    "corner3": {
+      "a": 1178,
+      "m": 392
+    },
+    "arc3": {
+      "a": 9096,
+      "m": 3043
+    }
+  }
 }
