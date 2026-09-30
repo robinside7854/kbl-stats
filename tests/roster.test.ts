@@ -162,7 +162,7 @@ assert.equal(leaders[1].photoUrl, null);
 assert.equal(leaders[0].position, "GF");
 
 const file = encodeSeasonCards({ seasonCode: 47, seasonLabel: "2025-2026", coverage: season.coverage, teams: [] }, cards);
-assert.equal(file.axisSet, "modern");
+assert.ok(!("axisSet" in file)); // 레이더 축 세트 개념은 없앴다 (구성 요소 단위 커버리지)
 assert.equal(file.defaults.qualifiedCount, 2);
 assert.equal(file.defaults.defaultPlayerId, "1"); // 기준 충족 선수 중 PER 1위
 assert.equal(file.rows.length, 3);
@@ -177,14 +177,14 @@ const partial = decodeSeasonCards({ ...file, fields: ["id", "games"], rows: [["x
 assert.equal((partial.players[0] as CardPlayer).positionGroup, null);
 assert.equal(partial.players[0].fouls, 0);
 assert.equal(partial.players[0].nameKo, "");
-assert.throws(() => decodeSeasonCards({ ...file, v: 2 as 1 }));
+assert.throws(() => decodeSeasonCards({ ...file, v: 1 as 2 }));
 // 파일로 만든 카드 비교 재료 = 서버에서 만든 것과 같은 선수 집단 크기
-const ctx = buildCardContext(decoded.players, file.defaults.rule, file.axisSet, { thresholds: file.defaults.thresholds });
+const ctx = buildCardContext(decoded.players, file.defaults.rule, file.coverage, { thresholds: file.defaults.thresholds });
 assert.equal(ctx.qualifiedCount, 2);
 assert.deepEqual(ctx.thresholds, file.defaults.thresholds);
 // 포지션으로 좁힌 집단 + 리그 시도 기준 유지
 const guards = filterByPosition(decoded.players, "G");
-const gctx = buildCardContext(guards, DEFAULT_QUALIFY, "modern", { thresholds: file.defaults.thresholds });
+const gctx = buildCardContext(guards, DEFAULT_QUALIFY, file.coverage, { thresholds: file.defaults.thresholds, grading: ctx.grading });
 assert.equal(gctx.qualifiedCount, 1);
 assert.deepEqual(gctx.thresholds, file.defaults.thresholds);
 console.log("roster: 카드 파일·변환 통과");

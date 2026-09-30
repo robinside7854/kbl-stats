@@ -1,23 +1,22 @@
 // 비교 탭용 시즌별 카드 데이터 파일(public/cards/{seasonCode}.json)의 형식 — 순수 함수만.
 // 만들기(encodeSeasonCards)는 prebuild 스크립트(scripts/build-search-index.ts)가, 풀기(decodeSeasonCards)는 화면이 쓴다.
 // 크기를 줄이려고 선수 목록을 "열 이름 한 줄 + 선수별 값 배열"(열 형식)로 저장한다 — 키 이름이 선수마다 반복되지 않는다.
-// 비교 재료(백분위 집단·순위 집단)는 파일에 넣지 않는다: 화면이 lib/metrics buildCardContext(players, rule, axisSet)로
-// 다시 만든다(선수 200명 규모라 즉시 계산). 파일의 defaults 는 기본 표본 기준으로 미리 계산한 참고값이다.
+// 비교 재료(국적 집단 백분위·순위 집단)는 파일에 넣지 않는다: 화면이 lib/cardview seasonContext
+// (→ lib/metrics buildGradingContext·buildCardContext)로 다시 만든다(선수 200명 규모라 즉시 계산).
+// 파일의 defaults 는 기본 표본 기준으로 미리 계산한 참고값이다.
 
 import {
   attemptThresholds,
-  axisSetFor,
   DEFAULT_QUALIFY,
   isQualified,
   pickDefaultPlayer,
   type AttemptThresholds,
   type QualifyRule,
-  type RadarAxisSet,
 } from "./metrics";
 import type { CardPlayer, CardTeam, SeasonCoverage } from "./types";
 
-/** 파일 형식 버전 — 필드 구성이 호환되지 않게 바뀌면 올린다 */
-export const CARDS_FILE_VERSION = 1;
+/** 파일 형식 버전 — 필드 구성이 호환되지 않게 바뀌면 올린다 (2: 레이더 5축 구성 요소 열 추가·axisSet 삭제) */
+export const CARDS_FILE_VERSION = 2;
 
 /** 열 순서 (CardPlayer 의 모든 필드). 파일에도 fields 로 같이 저장하므로 순서가 바뀌어도 옛 파일을 읽을 수 있다 */
 export const CARD_FIELDS = [
@@ -25,7 +24,8 @@ export const CARD_FIELDS = [
   "position", "positionGroup", "nationality", "photoUrl",
   "games", "minutes", "points", "reb", "ast", "stl", "blk", "tov", "fouls",
   "fga", "tpa", "fta", "fgPct", "tpPct", "ftPct",
-  "per", "usgPct", "tsPct", "astPct", "rebPct",
+  "twoPa", "twoPPct", "tpm", "oreb", "dreb", "goodDef", "deflections", "screenAst", "plusMinus",
+  "per", "usgPct", "tsPct", "efgPct", "tovPct", "astTo",
 ] as const satisfies readonly (keyof CardPlayer)[];
 
 type CardCell = string | number | boolean | null;
@@ -46,9 +46,8 @@ export interface SeasonCardsFile {
   v: typeof CARDS_FILE_VERSION;
   seasonCode: number;
   seasonLabel: string;
+  /** 항목별 커버리지 — 레이더 구성 요소(USG%·굿디펜스·허슬·+/-)와 USG% 열을 켜고 끈다 */
   coverage: SeasonCoverage;
-  /** 레이더 축 세트 (coverage.advanced → modern, 아니면 classic) */
-  axisSet: RadarAxisSet;
   /** 팀 로고·색·한글 약칭 */
   teams: CardTeam[];
   defaults: SeasonCardsDefaults;
@@ -73,20 +72,18 @@ export function encodeSeasonCards(
   meta: { seasonCode: number; seasonLabel: string; coverage: SeasonCoverage; teams: CardTeam[] },
   players: readonly CardPlayer[],
 ): SeasonCardsFile {
-  const axisSet = axisSetFor(meta.coverage);
   const rule = DEFAULT_QUALIFY;
   return {
     v: CARDS_FILE_VERSION,
     seasonCode: meta.seasonCode,
     seasonLabel: meta.seasonLabel,
     coverage: meta.coverage,
-    axisSet,
     teams: meta.teams,
     defaults: {
       rule,
       thresholds: attemptThresholds(players, rule),
       qualifiedCount: players.filter((p) => isQualified(p, rule)).length,
-      defaultPlayerId: pickDefaultPlayer(players, axisSet),
+      defaultPlayerId: pickDefaultPlayer(players),
     },
     fields: [...CARD_FIELDS],
     rows: players.map((p) =>

@@ -11,6 +11,7 @@ import {
 import {
   activeSpanLabel,
   formatTrend,
+  TREND_METRICS,
   seasonShortLabel,
   seasonTickLabel,
   teamChangedAt,
@@ -59,7 +60,7 @@ assert.equal(teamChangedAt([{ teamCode: "1" }, { teamCode: "2" }], 1), true);
 assert.equal(teamChangedAt([{ teamCode: "1" }, { teamCode: "2" }], 0), false);
 
 // ── 추이: 경기당 환산·빈 시즌 null·이적 표시 ──
-const base = { fgPct: 45, tsPct: 55, per: 15, reb: 100, ast: 50 };
+const base = { fgPct: 45, tpPct: 35, per: 15, reb: 100, ast: 50, stl: 30, blk: 10 };
 const career = [
   { seasonCode: 43, seasonLabel: "2023-2024", teamCode: "55", games: 50, points: 1000, ...base },
   { seasonCode: 47, seasonLabel: "2025-2026", teamCode: "35", games: 40, points: 400, ...base },
@@ -71,6 +72,12 @@ assert.deepEqual(rows.map((r) => r.value), [20, null, 10]);
 assert.deepEqual(rows.map((r) => r.teamChanged), [false, false, true]);
 assert.equal(rows[0].seasonLabel, "2023-2024"); // 선수 기록의 라벨 우선
 assert.equal(trendValue(career[0], "fgPct"), 45); // 비율은 그대로
+assert.equal(trendValue(career[0], "tpPct"), 35);
+assert.equal(trendValue(career[0], "stl"), 0.6); // 30 / 50경기
+assert.equal(trendValue(career[1], "blk"), 0.25);
+// 추이 지표 8개: 득점·리바·어시·스틸·블록·야투%·3점%·PER (TS% 대신 3점%)
+assert.deepEqual(TREND_METRICS.map((m) => m.key), ["points", "reb", "ast", "stl", "blk", "fgPct", "tpPct", "per"]);
+assert.equal(formatTrend(35, "tpPct"), "35.0%");
 assert.equal(trendValue({ ...career[0], games: 0 }, "points"), 0);
 assert.equal(formatTrend(45, "fgPct"), "45.0%");
 assert.equal(formatTrend(20, "points"), "20.0");
@@ -81,10 +88,12 @@ console.log("player: 시즌 표기·팀 이력·추이 통과");
 const mkCard = (o: Partial<CardInput> & { id: string }): CardInput & { id: string } => ({
   games: 20, minutes: 400, points: 200, reb: 100, ast: 50, stl: 10, blk: 5, tov: 30,
   fga: 160, tpa: 60, fta: 40, fgPct: 45, tpPct: 35, ftPct: 75,
-  per: 15, usgPct: 0, tsPct: 55, astPct: 0, rebPct: 0, fouls: 40, ...o,
+  twoPa: 100, twoPPct: 50, tpm: 21, oreb: 20, dreb: 80, goodDef: 0, deflections: 0, screenAst: 0, plusMinus: 0,
+  per: 15, usgPct: 0, tsPct: 55, efgPct: 50, tovPct: 12, astTo: 1.7, fouls: 40,
+  nationality: null, isForeign: false, ...o,
 });
 const players = [mkCard({ id: "a", points: 400, per: 25 }), mkCard({ id: "b" }), mkCard({ id: "c", games: 2, minutes: 10 })];
-const ctx = buildCardContext(players, DEFAULT_QUALIFY, "classic");
+const ctx = buildCardContext(players, DEFAULT_QUALIFY, { advanced: false, plusMinus: false, goodDef: false, hustle: false });
 assert.equal(ctx.qualifiedCount, 2);
 const ea = buildCardEntry(players[0], ctx);
 assert.equal(ea.player.id, "a");
@@ -96,6 +105,9 @@ assert.equal(ea.stats[9].value, 2); // 경기당 파울 40 / 20
 const ec = buildCardEntry(players[2], ctx);
 assert.equal(ec.qualified, false);
 assert.equal(ec.stats[0].rank.reason, "sample");
+assert.equal(ea.usgPct, null); // USG% 없는 시즌
+assert.equal(ea.gradeGroup.label, "국내 선수"); // 마스터 없음 + isForeign false → 국내
+assert.equal(ea.gradeGroup.count, 2);
 console.log("player: 카드 계산 통과");
 
 // ── 검색 ──

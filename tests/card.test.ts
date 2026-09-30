@@ -5,7 +5,6 @@ import {
   attemptsNote,
   attemptThresholds,
   GRADE_CUTS,
-  overallPercentile,
   percentileGrade,
   pickDefaultPlayer,
   type AttemptThresholds,
@@ -108,23 +107,11 @@ assert.equal(percentileGrade(null), "-");
 assert.equal(percentileGrade(undefined), "-");
 assert.equal(percentileGrade(NaN), "-");
 
-// 종합 백분위 = 5축 평균 (null 축은 빼고)
-assert.equal(overallPercentile({ pts40: 90, tsPct: 80, ast40: 70, reb40: 60, per: 50 }, "classic"), 70);
-assert.equal(overallPercentile({ pts40: 90, tsPct: null, ast40: 70, reb40: null, per: 50 }, "classic"), 70);
-assert.equal(overallPercentile({}, "modern"), null);
-assert.equal(percentileGrade(overallPercentile({ usgPct: 95, tsPct: 92, astPct: 90, rebPct: 91, per: 99 }, "modern")), "S");
-// modern 도 PIE 없이 PER 로 5축 평균
-assert.equal(overallPercentile({ usgPct: 50, tsPct: 50, astPct: 50, rebPct: 50, per: 100 }, "modern"), 60);
-
-// 기본 선수: 표본 충족 선수 중 PER(classic) 1위, 빈 목록이면 null
-const rp = (id: string, per: number, games = 20) => ({
-  id, games, minutes: games * 20, points: 0, reb: 0, ast: 0, per, usgPct: 0, tsPct: 0, astPct: 0, rebPct: 0,
-});
-assert.equal(pickDefaultPlayer([rp("x", 10), rp("y", 20), rp("z", 99, 2)], "classic"), "y");
-assert.equal(pickDefaultPlayer([rp("z", 99, 2)], "classic"), "z");
-assert.equal(pickDefaultPlayer([], "classic"), null);
-// modern 도 PER 1위 (예전에는 PIE) — USG% 가 높아도 PER 로 고른다
-assert.equal(pickDefaultPlayer([{ ...rp("u", 10), usgPct: 99 }, rp("v", 20)], "modern"), "v");
+// 기본 선수: 표본 충족 선수 중 PER 1위, 빈 목록이면 null
+const rp = (id: string, per: number, games = 20) => ({ id, games, minutes: games * 20, per });
+assert.equal(pickDefaultPlayer([rp("x", 10), rp("y", 20), rp("z", 99, 2)]), "y");
+assert.equal(pickDefaultPlayer([rp("z", 99, 2)]), "z");
+assert.equal(pickDefaultPlayer([]), null);
 
 // 강조 단계
 assert.deepEqual([1, 2, 3, 4, 10, 11, null].map(rankTier), ["gold", "silver", "bronze", "top10", "top10", null, null]);

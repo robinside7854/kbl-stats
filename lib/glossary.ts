@@ -21,6 +21,7 @@ export type GlossaryKey =
   | "pace"
   | "per40"
   | "percentileGrade"
+  | "radarAxes"
   | "qualify"
   | "attempts";
 
@@ -135,9 +136,20 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     name: "백분위 · S~F 등급",
     short: "같은 시즌 선수 중 위치를 0~100으로 나타낸 값과 그 등급 글자(S~F)",
     formula:
-      "백분위 = (나보다 낮은 선수 수 + 0.5 × 같은 값 선수 수) ÷ 비교 집단 수 × 100 · 등급 S ≥ 90, A ≥ 75, B ≥ 55, C ≥ 35, D ≥ 15, F < 15 · 종합 등급 = 레이더 5개 축 백분위 평균의 등급",
+      "백분위 = (나보다 낮은 선수 수 + 0.5 × 같은 값 선수 수) ÷ 비교 집단 수 × 100 · 등급 S ≥ 90, A ≥ 75, B ≥ 55, C ≥ 35, D ≥ 15, F < 15 · 종합 등급 = 레이더 5축 백분위 평균을 같은 집단 안에서 다시 매긴 백분위의 등급",
     source: WIKI_PERCENTILE_RANK,
-    note: "우리 사이트 규칙입니다(lib/metrics.ts percentileRank·GRADE_CUTS). 비교 집단은 표본 기준을 넘긴 같은 시즌 선수입니다.",
+    note:
+      "우리 사이트 규칙입니다(lib/metrics.ts percentileRank·GRADE_CUTS). 등급의 비교 집단은 같은 시즌·표본 기준을 넘긴 같은 국적 집단(국내 / 외국 / 아시아쿼터) 선수입니다. 외국 선수가 공격 기록을 독점해 리그 전체로 매기면 국내 선수는 잘해야 A~B였기 때문입니다. 아시아쿼터가 8명 미만인 시즌은 외국 선수와 합쳐 계산합니다(아시아쿼터·외국 합산). 순위(n위)는 따로 리그 전체(또는 같은 포지션) 기준입니다.",
+  },
+  {
+    key: "radarAxes",
+    name: "레이더 5축 (공격·수비·3점·허슬·효율)",
+    short: "축마다 관련 기록 여러 개의 백분위를 평균해, 선수가 어느 쪽에 강한지 한눈에 보여 준다",
+    formula:
+      "공격 = 40분당 득점·40분당 어시스트·USG%·2점 성공률 · 수비 = 40분당 스틸·블록·수비 리바운드·굿디펜스·파울(적을수록 좋음) · 3점 = 40분당 3점 성공·3점 성공률·40분당 3점 시도 · 허슬 = 40분당 공격 리바운드·스틸·디플렉션·스크린 어시스트·경기당 +/- · 효율 = TS%·eFG%·TOV%(적을수록 좋음)·AST/TO·PER · 축 점수 = 구성 요소 백분위의 단순 평균(가중치 모두 같음)을 같은 국적 집단 안에서 다시 백분위로",
+    source: null,
+    note:
+      "우리 사이트 규칙입니다(lib/metrics.ts RADAR_AXIS_COMPONENTS). 그 시즌에 기록이 없는 항목(예: 2024-25 이전의 USG%·디플렉션·스크린 어시스트, 2000-01 이전의 굿디펜스)은 빼고 남은 항목으로 평균합니다. 2점·3점 성공률은 경기당 시도가 리그 평균 이상인 선수만 넣습니다. 평균한 값을 다시 백분위로 바꾸는 이유는, 백분위 여러 개를 평균하면 값이 50 근처로 모여 S(상위 10%) 같은 등급이 제 뜻을 잃기 때문입니다.",
   },
   {
     key: "qualify",
@@ -182,6 +194,7 @@ export const GLOSSARY_ANCHORS: Record<GlossaryKey, string> = {
   pace: "pace",
   per40: "per40",
   percentileGrade: "grade",
+  radarAxes: "radar",
   qualify: "qualify",
   attempts: "attempts",
 };
@@ -198,20 +211,18 @@ export function glossaryHref(key: GlossaryKey): string {
  */
 export const LEADER_COLUMN_GLOSSARY: Readonly<Record<string, GlossaryKey>> = {
   tsPct: "tsPct",
+  usgPct: "usgPct",
   per: "per",
   fgPct: "attempts",
   tpPct: "attempts",
   ftPct: "attempts",
 };
 
-/** 레이더 축(lib/metrics RadarAxis) → 용어. 40분당 축 셋은 "40분당 환산" 하나로 */
+/** 레이더 축(lib/metrics RadarAxis) → 용어. 5축 모두 "레이더 5축" 한 항목에서 구성 요소를 풀이한다 */
 export const RADAR_AXIS_GLOSSARY: Readonly<Record<string, GlossaryKey>> = {
-  usgPct: "usgPct",
-  tsPct: "tsPct",
-  astPct: "astPct",
-  rebPct: "rebPct",
-  per: "per",
-  pts40: "per40",
-  ast40: "per40",
-  reb40: "per40",
+  offense: "radarAxes",
+  defense: "radarAxes",
+  three: "radarAxes",
+  hustle: "radarAxes",
+  efficiency: "radarAxes",
 };

@@ -1,96 +1,11 @@
 // 파생 지표 계산 — 순수 함수만 둔다 (CLAUDE.md 원칙 5).
 // 화면 컴포넌트는 여기 함수를 부르기만 하고, 직접 계산하지 않는다.
-// 2차 스탯(TS%, AST%, REB%, PER)은 KBL이 계산한 값을 그대로 쓰고(USG%만 표준 척도로 ×5 — usgFromKbl),
+// 2차 스탯(TS%, eFG%, TOV%, AST/TO, PER)은 KBL이 계산한 값을 그대로 쓰고(USG%만 표준 척도로 ×5 — usgFromKbl),
 // PIE 는 쓰지 않는다(2026-09-30 결정: 팬이 읽기 어렵고 2025-26에만 있음 — processed 에는 원값 보존).
-// 여기서는 "그 값이 시즌 안에서 몇 번째쯤인가"(백분위), 경기당·40분당 환산,
-// 시즌 커버리지 판정, 레이더 축 세트(modern/classic), 유형 라벨만 만든다.
+// 여기서는 "그 값이 비교 집단 안에서 몇 번째쯤인가"(백분위), 경기당·40분당 환산, 시즌 커버리지 판정,
+// 레이더 5축(공격·수비·3점·허슬·효율 — 구성 요소 백분위 평균), 국적 집단별 등급, 유형 라벨, 카드 스탯 순위를 만든다.
 
-import type { SeasonCoverage } from "./types";
-
-// ─────────────────────────────────────────────
-// 레이더 축 세트
-// ─────────────────────────────────────────────
-// 시즌마다 채워진 2차 스탯이 다르다(CLAUDE.md "시즌별 데이터 커버리지").
-// - modern : KBL 2차 스탯(USG%·AST%·REB%)이 있는 시즌용 — 2차 스탯 3개 + 전 시즌에 있는 TS%·PER
-// - classic: 2차 스탯이 없는 시즌용 "전 시즌 공통 축" — 1차 스탯 40분 환산 + 전 시즌에 있는 TS%·PER
-// 어느 세트를 쓸지는 시즌 코드가 아니라 시즌 파일의 coverage.advanced 로 정한다 (axisSetFor).
-
-/** 축 세트별 5개 축. 배열 순서가 곧 레이더 꼭짓점 순서다. */
-export const RADAR_AXIS_SETS = {
-  modern: ["usgPct", "tsPct", "astPct", "rebPct", "per"],
-  classic: ["pts40", "tsPct", "ast40", "reb40", "per"],
-} as const;
-export type RadarAxisSet = keyof typeof RADAR_AXIS_SETS;
-export type RadarAxis = (typeof RADAR_AXIS_SETS)[RadarAxisSet][number];
-
-/** 세트의 축 목록 */
-export function radarAxes(set: RadarAxisSet): readonly RadarAxis[] {
-  return RADAR_AXIS_SETS[set];
-}
-
-/** 시즌 커버리지로 축 세트 선택: 2차 스탯이 충분하면 modern, 아니면 classic */
-export function axisSetFor(coverage: { advanced: boolean }): RadarAxisSet {
-  return coverage.advanced ? "modern" : "classic";
-}
-
-/** 세트마다 "종합 기여도" 역할을 하는 축 — 기본 선수(1위) 고르기 등에 쓴다. PIE 를 뺀 뒤로 두 세트 모두 PER */
-export const RADAR_IMPACT_AXIS: Record<RadarAxisSet, RadarAxis> = {
-  modern: "per",
-  classic: "per",
-};
-
-export const RADAR_AXIS_LABELS: Record<RadarAxis, string> = {
-  usgPct: "USG%",
-  tsPct: "TS%",
-  astPct: "AST%",
-  rebPct: "REB%",
-  pts40: "40분당 득점",
-  ast40: "40분당 AST",
-  reb40: "40분당 REB",
-  per: "PER",
-};
-
-/** 좁은 자리(플레이어 카드의 작은 레이더 꼭짓점)용 짧은 축 이름. 40분당 축은 옆 표에 "40분당"이 적혀 있다 */
-export const RADAR_AXIS_SHORT_LABELS: Record<RadarAxis, string> = {
-  usgPct: "USG%",
-  tsPct: "TS%",
-  astPct: "AST%",
-  rebPct: "REB%",
-  pts40: "득점",
-  ast40: "AST",
-  reb40: "REB",
-  per: "PER",
-};
-
-/** 레이더 계산에 필요한 최소 필드 (lib/types.ts Player·CardPlayer의 부분집합) */
-export interface RadarInput {
-  games: number;
-  minutes: number;        // 시즌 누적 (분)
-  points: number;         // 시즌 누적
-  reb: number;            // 시즌 누적
-  ast: number;            // 시즌 누적
-  per: number;
-  usgPct: number;
-  tsPct: number;
-  astPct: number;
-  rebPct: number;
-}
-
-/**
- * 한 선수의 축 값. KBL 2차 스탯은 그대로, 40분당 축(pts40·ast40·reb40)은 per40()으로 파생한다.
- */
-export function axisValue(p: RadarInput, axis: RadarAxis): number {
-  switch (axis) {
-    case "pts40":
-      return per40(p.points, p.minutes);
-    case "ast40":
-      return per40(p.ast, p.minutes);
-    case "reb40":
-      return per40(p.reb, p.minutes);
-    default:
-      return p[axis];
-  }
-}
+import type { Nationality, SeasonCoverage } from "./types";
 
 // ─────────────────────────────────────────────
 // 표본 기준 (백분위 비교 집단)
@@ -151,28 +66,14 @@ export function percentileRank(value: number, reference: readonly number[]): num
   return ((below + 0.5 * equal) / n) * 100;
 }
 
-/** 세트에 속한 축만 채워진다 (세트 밖 축은 undefined) */
-export type RadarPercentiles = Partial<Record<RadarAxis, number | null>>;
-/** 축별 비교 집단 값 배열. 세트에 속한 축만 채워진다 */
-export type RadarReference = Partial<Record<RadarAxis, number[]>>;
 
-/** 한 선수의 세트 5개 축 백분위. reference 는 같은 세트로 만든 buildReference() 결과를 넘긴다. */
-export function radarPercentiles(p: RadarInput, reference: RadarReference, set: RadarAxisSet): RadarPercentiles {
-  const out: RadarPercentiles = {};
-  for (const axis of radarAxes(set)) out[axis] = percentileRank(axisValue(p, axis), reference[axis] ?? []);
-  return out;
-}
-
-/** 표본 기준을 충족한 선수들의 축별 값 배열 (백분위 비교 집단) */
-export function buildReference<T extends RadarInput>(
-  players: readonly T[],
-  rule: QualifyRule,
-  set: RadarAxisSet,
-): RadarReference {
-  const qualified = players.filter((p) => isQualified(p, rule));
-  const out: RadarReference = {};
-  for (const axis of radarAxes(set)) out[axis] = qualified.map((p) => axisValue(p, axis));
-  return out;
+/**
+ * "낮을수록 좋은" 값의 백분위 (0~100) = 100 − percentileRank. 파울·TOV% 처럼 적은 쪽이 상위인 항목에 쓴다.
+ * mid-rank 규칙이 그대로 뒤집힌다: (나보다 큰 값의 개수 + 0.5 × 같은 값의 개수) / N × 100.
+ */
+export function percentileRankLow(value: number, reference: readonly number[]): number | null {
+  const p = percentileRank(value, reference);
+  return p === null ? null : 100 - p;
 }
 
 // ─────────────────────────────────────────────
@@ -271,6 +172,351 @@ export function seasonCoverage(players: readonly CoverageInput[], threshold = 0.
 }
 
 // ─────────────────────────────────────────────
+// 레이더 5축: 공격 · 수비 · 3점 · 허슬 · 효율 (2026-09-30 등급 체계 2차, PLAN.md §8)
+// ─────────────────────────────────────────────
+// 축 하나 = 관련 스탯 여러 개(구성 요소)의 **백분위 평균**. 볼륨(40분당)과 효율(성공률·지수)을 함께 넣는다.
+//   1) 구성 요소 백분위: 같은 시즌·같은 국적 집단(gradeGroupOf)·표본 기준 충족 선수 안에서 percentileRank.
+//      낮을수록 좋은 항목(40분당 파울·TOV%)은 percentileRankLow(반전).
+//   2) 축 원점수 = 그 선수에게 쓸 수 있는 구성 요소 백분위의 단순 평균(가중치 모두 1).
+//      - 시즌에 기록이 없는 항목은 뺀다(activeRadarComponents: coverage 플래그 + KBL 계산값은 0 아닌 비율 50%).
+//      - 성공률(2점%·3점%)은 그 선수의 경기당 시도가 리그 평균 이상일 때만 넣는다(아니면 그 선수만 그 항목 제외).
+//      - 남은 구성 요소가 0개면 축은 null → 화면 "-".
+//   3) 축 백분위(레이더 값·축 등급) = 축 원점수를 같은 집단 표본 충족 선수들의 축 원점수에 대어 다시 percentileRank.
+//      왜 한 번 더: 백분위 여러 개를 평균하면 값이 50 근처로 모여(상위 10%라도 평균은 70대) S~F 경계(90/75/…)가
+//      "집단 안 위치"라는 뜻을 잃는다. 다시 순위를 매기면 S = 그 집단 상위 10% 가 그대로 지켜진다.
+//   4) 종합 = 5축 백분위 평균(null 축 제외)을 같은 방식으로 집단 안에서 다시 percentileRank → 종합 등급.
+// 가중치: 전부 1(단순 평균). 근거 — 팬이 "무엇이 몇 %"로 바로 이해할 수 있고, 어느 항목을 더 무겁게 볼지에 대한
+// 합의된 기준이 없다. 스틸은 수비·허슬 두 축에 모두 들어간다(사용자 제안 그대로 — 둘 다의 대표 기록이라서).
+// 40분당 환산은 per40, 경기당 +/- 는 perGame.
+
+export const RADAR_AXES = ["offense", "defense", "three", "hustle", "efficiency"] as const;
+export type RadarAxis = (typeof RADAR_AXES)[number];
+
+/** 축 이름 (레이더 꼭짓점·표·용어집) */
+export const RADAR_AXIS_LABELS: Record<RadarAxis, string> = {
+  offense: "공격",
+  defense: "수비",
+  three: "3점",
+  hustle: "허슬",
+  efficiency: "효율",
+};
+
+export type RadarComponentKey =
+  | "pts40" | "ast40" | "usgPct" | "twoPPct"
+  | "stl40" | "blk40" | "dreb40" | "gd40" | "fouls40"
+  | "tpm40" | "tpPct" | "tpa40"
+  | "oreb40" | "defl40" | "screen40" | "pmPerGame"
+  | "tsPct" | "efgPct" | "tovPct" | "astTo" | "per";
+
+export interface RadarComponentDef {
+  key: RadarComponentKey;
+  /** 화면 표기, 예: "40분당 득점" */
+  label: string;
+  /** high: 클수록 상위 / low: 작을수록 상위(백분위 반전) */
+  better: "high" | "low";
+  /** 이 시즌 커버리지 플래그가 true 여야 쓰는 항목 (USG%: advanced, 굿디펜스: goodDef, 허슬: hustle, +/-: plusMinus) */
+  requires?: keyof SeasonCoverage;
+  /** KBL 계산값(없으면 0으로 온다) → 표본 충족 선수 절반 이상이 0 이면 그 시즌엔 뺀다 (coverageFlag) */
+  kblComputed?: boolean;
+  /** 성공률: 경기당 시도(twoPa·tpa)가 리그 평균(radarAttemptThresholds) 이상인 선수만 */
+  attempt?: "twoPa" | "tpa";
+}
+
+/** 구성 요소 정의 (한 요소가 두 축에 들어갈 수 있다 — 40분당 스틸) */
+export const RADAR_COMPONENTS: Record<RadarComponentKey, RadarComponentDef> = {
+  pts40: { key: "pts40", label: "40분당 득점", better: "high" },
+  ast40: { key: "ast40", label: "40분당 어시스트", better: "high" },
+  usgPct: { key: "usgPct", label: "USG%", better: "high", requires: "advanced", kblComputed: true },
+  twoPPct: { key: "twoPPct", label: "2점 성공률", better: "high", attempt: "twoPa" },
+  stl40: { key: "stl40", label: "40분당 스틸", better: "high" },
+  blk40: { key: "blk40", label: "40분당 블록", better: "high" },
+  dreb40: { key: "dreb40", label: "40분당 수비 리바운드", better: "high" },
+  gd40: { key: "gd40", label: "40분당 굿디펜스", better: "high", requires: "goodDef" },
+  fouls40: { key: "fouls40", label: "40분당 파울", better: "low" },
+  tpm40: { key: "tpm40", label: "40분당 3점 성공", better: "high" },
+  tpPct: { key: "tpPct", label: "3점 성공률", better: "high", attempt: "tpa" },
+  tpa40: { key: "tpa40", label: "40분당 3점 시도", better: "high" },
+  oreb40: { key: "oreb40", label: "40분당 공격 리바운드", better: "high" },
+  defl40: { key: "defl40", label: "40분당 디플렉션", better: "high", requires: "hustle" },
+  screen40: { key: "screen40", label: "40분당 스크린 어시스트", better: "high", requires: "hustle" },
+  pmPerGame: { key: "pmPerGame", label: "경기당 +/-", better: "high", requires: "plusMinus" },
+  tsPct: { key: "tsPct", label: "TS%", better: "high", kblComputed: true },
+  efgPct: { key: "efgPct", label: "eFG%", better: "high", kblComputed: true },
+  tovPct: { key: "tovPct", label: "TOV%", better: "low", kblComputed: true },
+  astTo: { key: "astTo", label: "AST/TO", better: "high", kblComputed: true },
+  per: { key: "per", label: "PER", better: "high", kblComputed: true },
+};
+
+/** 축별 구성 요소 (배열 순서 = 설명·표 순서) */
+export const RADAR_AXIS_COMPONENTS: Record<RadarAxis, readonly RadarComponentKey[]> = {
+  offense: ["pts40", "ast40", "usgPct", "twoPPct"],
+  defense: ["stl40", "blk40", "dreb40", "gd40", "fouls40"],
+  three: ["tpm40", "tpPct", "tpa40"],
+  hustle: ["oreb40", "stl40", "defl40", "screen40", "pmPerGame"],
+  efficiency: ["tsPct", "efgPct", "tovPct", "astTo", "per"],
+};
+
+const ALL_COMPONENTS = Object.keys(RADAR_COMPONENTS) as RadarComponentKey[];
+
+/** 레이더 계산에 필요한 선수 필드 (lib/types CardPlayer 의 부분집합, 누적은 시즌 합계) */
+export interface RadarInput {
+  games: number;
+  minutes: number;        // 시즌 누적 (분)
+  points: number; ast: number; stl: number; blk: number; fouls: number;
+  oreb: number; dreb: number;
+  tpm: number; tpa: number; twoPa: number;
+  goodDef: number; deflections: number; screenAst: number; plusMinus: number;
+  twoPPct: number; tpPct: number;              // KBL 계산 성공률 (0~100)
+  usgPct: number; tsPct: number; efgPct: number; tovPct: number; astTo: number; per: number;
+}
+
+/** 한 선수의 구성 요소 값 (40분당 환산·경기당 +/- 는 여기서, 나머지는 KBL 값 그대로) */
+export function componentValue(p: RadarInput, key: RadarComponentKey): number {
+  switch (key) {
+    case "pts40": return per40(p.points, p.minutes);
+    case "ast40": return per40(p.ast, p.minutes);
+    case "stl40": return per40(p.stl, p.minutes);
+    case "blk40": return per40(p.blk, p.minutes);
+    case "dreb40": return per40(p.dreb, p.minutes);
+    case "gd40": return per40(p.goodDef, p.minutes);
+    case "fouls40": return per40(p.fouls, p.minutes);
+    case "tpm40": return per40(p.tpm, p.minutes);
+    case "tpa40": return per40(p.tpa, p.minutes);
+    case "oreb40": return per40(p.oreb, p.minutes);
+    case "defl40": return per40(p.deflections, p.minutes);
+    case "screen40": return per40(p.screenAst, p.minutes);
+    case "pmPerGame": return perGame(p.plusMinus, p.games);
+    default: return p[key];
+  }
+}
+
+/** 레이더 성공률 항목의 시도 기준: 표본 충족 선수의 경기당 2점·3점 시도 평균 (attemptThresholds 와 같은 방식) */
+export interface RadarThresholds {
+  twoPa: number;
+  tpa: number;
+}
+
+export function radarAttemptThresholds(players: readonly RadarInput[], rule: QualifyRule): RadarThresholds {
+  const q = players.filter((p) => isQualified(p, rule) && p.games > 0);
+  const mean = (f: "twoPa" | "tpa") => (q.length ? q.reduce((s, p) => s + p[f] / p.games, 0) / q.length : 0);
+  return { twoPa: mean("twoPa"), tpa: mean("tpa") };
+}
+
+/** 이 선수에게 이 구성 요소를 쓸 수 있나 (성공률은 시도 기준) */
+function componentEligible(p: RadarInput, def: RadarComponentDef, t: RadarThresholds): boolean {
+  if (!def.attempt) return true;
+  return p.games > 0 && p[def.attempt] / p.games >= t[def.attempt];
+}
+
+/**
+ * 시즌에 기록이 있는 구성 요소. requires 플래그가 false 면 빼고, KBL 계산값(kblComputed)은
+ * 표본 충족 선수 중 0 아닌 비율이 50% 미만이면 뺀다(coverageFlag — KBL 은 기록이 없으면 0 을 준다).
+ * 리그 전체 선수로 한 번 정한다(국적 집단마다 달라지지 않게).
+ */
+export function activeRadarComponents(
+  players: readonly RadarInput[],
+  rule: QualifyRule,
+  coverage: SeasonCoverage,
+): RadarComponentKey[] {
+  const q = players.filter((p) => isQualified(p, rule));
+  return ALL_COMPONENTS.filter((k) => {
+    const def = RADAR_COMPONENTS[k];
+    if (def.requires && !coverage[def.requires]) return false;
+    if (def.kblComputed && !coverageFlag(q.map((p) => componentValue(p, k)))) return false;
+    return true;
+  });
+}
+
+// ─────────────────────────────────────────────
+// 등급 비교 집단 = 국적 집단 (국내 / 외국 / 아시아쿼터)
+// ─────────────────────────────────────────────
+// 외국 선수가 공격 볼륨(득점·USG%)을 독점해 리그 전체로 등급을 매기면 국내·아시아쿼터 선수는 잘해야 A~B 였다
+// (2025-26 실측: 국내 표본 충족 109명 중 최고 등급 B). → 등급(백분위)은 같은 국적 집단 안에서 매긴다.
+// 순위("n위/총원")는 지금처럼 리그 전체(또는 같은 포지션)다 — 등급과 순위는 다른 질문에 답한다.
+// 국적은 lib/roster nationalityOf 와 같은 규칙: 선수 마스터 값, 없으면 isForeign(이름 추정)으로 국내/외국 2집단.
+
+/**
+ * 아시아쿼터 집단 최소 인원 (표본 충족 선수 기준). 이보다 적으면 외국 집단과 합쳐 계산한다.
+ * 이유: 몇 명뿐인 집단에서는 한 명이 곧 상위 10~20% 라 등급이 의미 없이 튄다(3명이면 1위가 S, 2위가 B).
+ * 8명이면 한 칸이 약 12%p 로 S(상위 10%)·A(25%) 경계를 겨우 구분할 수 있는 최소 크기다.
+ * 2025-26 아시아쿼터 표본 충족은 10명 → 따로, 도입 초기 시즌(2020-21~)은 몇 명뿐이라 합산.
+ */
+export const MIN_GRADE_GROUP = 8;
+
+export type GradeGroupKey = "domestic" | "foreign" | "asia" | "foreignAsia";
+
+/** 등급 기준 표기에 쓰는 집단 이름 */
+export const GRADE_GROUP_LABELS: Record<GradeGroupKey, string> = {
+  domestic: "국내 선수",
+  foreign: "외국 선수",
+  asia: "아시아쿼터 선수",
+  foreignAsia: "아시아쿼터·외국 합산",
+};
+
+export interface GradeInput extends RadarInput {
+  nationality: Nationality | null;
+  isForeign: boolean;
+}
+
+/** 선수 국적 → 집단 (lib/roster nationalityOf 와 같은 규칙. 순환 import 를 피하려고 여기 한 줄로 둔다) */
+function nationalityKey(p: { nationality: Nationality | null; isForeign: boolean }): Nationality {
+  return p.nationality ?? (p.isForeign ? "foreign" : "domestic");
+}
+
+/** 등급 집단: mergeAsia 면 아시아쿼터·외국을 한 집단으로 */
+export function gradeGroupOf(p: { nationality: Nationality | null; isForeign: boolean }, mergeAsia: boolean): GradeGroupKey {
+  const n = nationalityKey(p);
+  if (n === "domestic") return "domestic";
+  return mergeAsia ? "foreignAsia" : n;
+}
+
+/**
+ * 아시아쿼터를 외국과 합칠지: 그 시즌에 아시아쿼터 선수가 있고, 그중 표본 충족이 MIN_GRADE_GROUP 명 미만이면 합친다.
+ * 아시아쿼터가 아예 없는 시즌(도입 전, 선수 마스터 없는 시즌)은 합치지 않는다 → 외국 선수는 그냥 "외국 선수" 집단.
+ */
+export function shouldMergeAsia(players: readonly GradeInput[], rule: QualifyRule): boolean {
+  const asia = players.filter((p) => nationalityKey(p) === "asia");
+  return asia.length > 0 && asia.filter((p) => isQualified(p, rule)).length < MIN_GRADE_GROUP;
+}
+
+/** 한 국적 집단의 비교 재료 */
+export interface GradeGroupRef {
+  key: GradeGroupKey;
+  /** 집단의 표본 충족 선수 수 */
+  count: number;
+  /** 구성 요소별 값 배열 (표본 충족 + 성공률은 시도 기준 충족) */
+  comp: Partial<Record<RadarComponentKey, number[]>>;
+  /** 축별 원점수 배열 (표본 충족 선수, null 제외) */
+  axisRaw: Record<RadarAxis, number[]>;
+  /** 종합 원점수(5축 백분위 평균) 배열 */
+  overallRaw: number[];
+}
+
+/** 한 시즌·한 표본 기준의 등급 재료 (리그 전체 선수로 만든다 — 카드 순위 범위와 관계없다) */
+export interface GradingContext {
+  rule: QualifyRule;
+  active: RadarComponentKey[];
+  thresholds: RadarThresholds;
+  mergeAsia: boolean;
+  /** USG% 를 쓸 수 있는 시즌인가 (coverage.advanced) */
+  advanced: boolean;
+  groups: Partial<Record<GradeGroupKey, GradeGroupRef>>;
+}
+
+/** 구성 요소 하나의 결과 (pct=null 이면 이 선수에겐 빠진 항목) */
+export interface RadarComponentScore {
+  key: RadarComponentKey;
+  value: number;
+  pct: number | null;
+}
+
+export interface RadarScore {
+  /** 축 백분위 (레이더 값·축 등급) — 집단 안에서 축 원점수를 다시 순위 매긴 값 */
+  axes: Record<RadarAxis, number | null>;
+  /** 축 원점수 = 구성 요소 백분위 평균 */
+  raw: Record<RadarAxis, number | null>;
+  /** 축별 구성 요소 (활성 요소만, 순서 = RADAR_AXIS_COMPONENTS) */
+  components: Record<RadarAxis, RadarComponentScore[]>;
+  /** 종합 백분위 (종합 등급) */
+  overall: number | null;
+}
+
+const mean = (xs: readonly number[]) => (xs.length ? xs.reduce((s, v) => s + v, 0) / xs.length : null);
+const emptyAxes = <T>(f: () => T) => Object.fromEntries(RADAR_AXES.map((a) => [a, f()])) as Record<RadarAxis, T>;
+
+/** 구성 요소 백분위 → 축 원점수 (집단 재료 comp 기준) */
+function axisRawScores(
+  p: RadarInput,
+  g: Pick<GradeGroupRef, "comp">,
+  ctx: Pick<GradingContext, "active" | "thresholds">,
+): { raw: Record<RadarAxis, number | null>; components: Record<RadarAxis, RadarComponentScore[]> } {
+  const raw = emptyAxes<number | null>(() => null);
+  const components = emptyAxes<RadarComponentScore[]>(() => []);
+  for (const axis of RADAR_AXES) {
+    const vals: number[] = [];
+    for (const key of RADAR_AXIS_COMPONENTS[axis]) {
+      if (!ctx.active.includes(key)) continue;
+      const def = RADAR_COMPONENTS[key];
+      const value = componentValue(p, key);
+      let pct: number | null = null;
+      if (componentEligible(p, def, ctx.thresholds)) {
+        const ref = g.comp[key] ?? [];
+        pct = def.better === "low" ? percentileRankLow(value, ref) : percentileRank(value, ref);
+      }
+      components[axis].push({ key, value, pct });
+      if (pct !== null) vals.push(pct);
+    }
+    raw[axis] = mean(vals);
+  }
+  return { raw, components };
+}
+
+/** 축 원점수 → 축 백분위(집단 안) + 종합 원점수 */
+function axisPercentiles(raw: Record<RadarAxis, number | null>, g: Pick<GradeGroupRef, "axisRaw">) {
+  const axes = emptyAxes<number | null>(() => null);
+  for (const a of RADAR_AXES) axes[a] = raw[a] === null ? null : percentileRank(raw[a]!, g.axisRaw[a]);
+  return { axes, overallRaw: overallScore(axes) };
+}
+
+/**
+ * 종합 원점수 = 5축 백분위의 단순 평균 (null 축은 빼고, 전부 null 이면 null). 가중치 없이 5축을 같은 비중으로 본다.
+ * 종합 등급은 이 값을 같은 집단 안에서 다시 순위 매긴 백분위(RadarScore.overall)로 정한다.
+ */
+export function overallScore(axes: Partial<Record<RadarAxis, number | null>>): number | null {
+  return mean(RADAR_AXES.map((a) => axes[a]).filter((v): v is number => v !== null && v !== undefined && Number.isFinite(v)));
+}
+
+/**
+ * 시즌 등급 재료. players = 그 시즌 **리그 전체** 선수. 국적 집단마다 구성 요소·축·종합 원점수 배열을 만든다.
+ */
+export function buildGradingContext(
+  players: readonly GradeInput[],
+  rule: QualifyRule,
+  coverage: SeasonCoverage,
+): GradingContext {
+  const active = activeRadarComponents(players, rule, coverage);
+  const thresholds = radarAttemptThresholds(players, rule);
+  const mergeAsia = shouldMergeAsia(players, rule);
+  const groups: GradingContext["groups"] = {};
+  const byGroup = new Map<GradeGroupKey, GradeInput[]>();
+  for (const p of players) {
+    if (!isQualified(p, rule)) continue;
+    const k = gradeGroupOf(p, mergeAsia);
+    byGroup.set(k, [...(byGroup.get(k) ?? []), p]);
+  }
+  for (const [key, members] of byGroup) {
+    const comp: GradeGroupRef["comp"] = {};
+    for (const k of active) {
+      const def = RADAR_COMPONENTS[k];
+      comp[k] = members.filter((p) => componentEligible(p, def, thresholds)).map((p) => componentValue(p, k));
+    }
+    const raws = members.map((p) => axisRawScores(p, { comp }, { active, thresholds }).raw);
+    const axisRaw = emptyAxes<number[]>(() => []);
+    for (const r of raws) for (const a of RADAR_AXES) if (r[a] !== null) axisRaw[a].push(r[a]!);
+    const overallRaw = raws
+      .map((r) => axisPercentiles(r, { axisRaw }).overallRaw)
+      .filter((v): v is number => v !== null);
+    groups[key] = { key, count: members.length, comp, axisRaw, overallRaw };
+  }
+  return { rule, active, thresholds, mergeAsia, advanced: coverage.advanced, groups };
+}
+
+/** 한 선수의 레이더·종합 점수 (그 선수 국적 집단 기준). 표본 미달 선수도 집단에 대어 계산한다 */
+export function radarScore(p: GradeInput, ctx: GradingContext): RadarScore {
+  const g = ctx.groups[gradeGroupOf(p, ctx.mergeAsia)];
+  const empty: GradeGroupRef = { key: "domestic", count: 0, comp: {}, axisRaw: emptyAxes<number[]>(() => []), overallRaw: [] };
+  const ref = g ?? empty;
+  const { raw, components } = axisRawScores(p, ref, ctx);
+  const { axes, overallRaw } = axisPercentiles(raw, ref);
+  return { axes, raw, components, overall: overallRaw === null ? null : percentileRank(overallRaw, ref.overallRaw) };
+}
+
+/** 시즌에 기록이 없어 빠진 구성 요소 이름 (카드 아래 안내, 예: ["USG%", "40분당 디플렉션"]) */
+export function missingComponentLabels(ctx: Pick<GradingContext, "active">): string[] {
+  return ALL_COMPONENTS.filter((k) => !ctx.active.includes(k)).map((k) => RADAR_COMPONENTS[k].label);
+}
+
+// ─────────────────────────────────────────────
 // 선수 유형 라벨 (재미용, 단순 규칙)
 // ─────────────────────────────────────────────
 
@@ -281,34 +527,27 @@ export interface PlayerType {
 }
 
 const TYPE_BY_AXIS: Record<RadarAxis, string> = {
-  usgPct: "볼 핸들러형 득점원",
-  tsPct: "효율형 슈터",
-  astPct: "플레이메이커",
-  rebPct: "리바운더",
-  pts40: "득점원",
-  ast40: "플레이메이커",
-  reb40: "리바운더",
-  per: "코트 위 임팩트형",
+  offense: "득점원",
+  defense: "수비수",
+  three: "슈터",
+  hustle: "허슬 플레이어",
+  efficiency: "효율형",
 };
 
 /**
- * 백분위 프로필 → 한 줄 유형 라벨. set 의 5개 축만 본다. 규칙 (위에서부터 먼저 맞는 것):
+ * 5축 백분위 → 한 줄 유형 라벨. 규칙 (위에서부터 먼저 맞는 것):
  *  1) 5개 축이 모두 60 이상          → "올라운더"      (고르게 상위권)
  *  2) 가장 높은 축이 40 미만          → "궂은일 담당 롤 플레이어" (어느 축도 두드러지지 않음)
- *  3) 그 외: 가장 높은 축의 유형       → TYPE_BY_AXIS
- *     동점이면 세트 축 순서(modern: USG → TS → AST → REB → PER, classic: 득점 → TS → AST → REB → PER)로 먼저 나온 축.
- * 백분위가 null(또는 없음)인 축은 무시. 전부 null이면 "분석 불가".
- * 의도: 재미용 한 줄. 정교한 분류(클러스터링 등)는 하지 않는다.
+ *  3) 그 외: 가장 높은 축의 유형       → 공격 "득점원" · 수비 "수비수" · 3점 "슈터" · 허슬 "허슬 플레이어" · 효율 "효율형"
+ *     동점이면 축 순서(공격 → 수비 → 3점 → 허슬 → 효율)로 먼저 나온 축.
+ * null 축은 무시(올라운더 판정에서는 5축이 모두 있어야 한다). 전부 null이면 "분석 불가".
  */
-export function playerType(pct: RadarPercentiles, set: RadarAxisSet): PlayerType {
-  const axes = radarAxes(set);
-  const entries = axes
-    .map((a) => [a, pct[a] ?? null] as const)
-    .filter((e): e is readonly [RadarAxis, number] => e[1] !== null);
+export function playerType(pct: Partial<Record<RadarAxis, number | null>>): PlayerType {
+  const entries = RADAR_AXES.map((a) => [a, pct[a] ?? null] as const).filter(
+    (e): e is readonly [RadarAxis, number] => e[1] !== null,
+  );
   if (entries.length === 0) return { label: "분석 불가", axis: null };
-  if (entries.length === axes.length && entries.every(([, v]) => v >= 60)) {
-    return { label: "올라운더", axis: null };
-  }
+  if (entries.length === RADAR_AXES.length && entries.every(([, v]) => v >= 60)) return { label: "올라운더", axis: null };
   let top = entries[0];
   for (const e of entries) if (e[1] > top[1]) top = e;
   if (top[1] < 40) return { label: "궂은일 담당 롤 플레이어", axis: null };
@@ -537,105 +776,110 @@ export function percentileGrade(pct: number | null | undefined): Grade | "-" {
   return "F";
 }
 
-/**
- * 종합 백분위 = 세트 5개 축 백분위의 단순 평균 (null 축은 빼고 평균, 전부 null이면 null).
- * 카드 헤더의 종합 등급(percentileGrade(종합 백분위))에 쓴다. 가중치 없이 5축을 같은 비중으로 본다 —
- * "여러 면에서 고르게 상위권"일수록 높다. 축 하나만 뛰어난 선수는 평균이 낮아질 수 있다(재미용 한 글자).
- */
-export function overallPercentile(pct: RadarPercentiles, set: RadarAxisSet): number | null {
-  const vals = radarAxes(set)
-    .map((a) => pct[a])
-    .filter((v): v is number => v !== null && v !== undefined && Number.isFinite(v));
-  if (vals.length === 0) return null;
-  return vals.reduce((s, v) => s + v, 0) / vals.length;
-}
-
 // ─────────────────────────────────────────────
 // 기본 선수 고르기
 // ─────────────────────────────────────────────
 
 /**
- * 카드 첫 화면에 띄울 선수 id: 기본 표본 기준 충족 선수 중 세트의 "종합 기여도" 축(두 세트 모두 PER) 1위.
+ * 카드 첫 화면에 띄울 선수 id: 기본 표본 기준 충족 선수 중 PER(전 시즌에 있는 종합 생산성 지수) 1위.
  * 충족 선수가 없으면 전체 중 1위. 목록이 비면 null. (팀을 고른 경우 그 팀 선수 목록을 넘긴다)
  */
-export function pickDefaultPlayer<T extends RadarInput & { id: string }>(
+export function pickDefaultPlayer<T extends { id: string; games: number; minutes: number; per: number }>(
   players: readonly T[],
-  set: RadarAxisSet,
 ): string | null {
   if (players.length === 0) return null;
-  const impact = RADAR_IMPACT_AXIS[set];
   const pool = players.filter((p) => isQualified(p, DEFAULT_QUALIFY));
   const list = pool.length ? pool : players;
-  return list.reduce((best, p) => (axisValue(p, impact) > axisValue(best, impact) ? p : best), list[0]).id;
+  return list.reduce((best, p) => (p.per > best.per ? p : best), list[0]).id;
 }
 
 // ─────────────────────────────────────────────
-// 플레이어 카드 한 장의 계산 묶음 — 플레이어 카드 화면(CardExplorer)과 선수 페이지가 같이 쓴다
+// 플레이어 카드 한 장의 계산 묶음 — 선수 상세·선수 탭·비교 탭이 같이 쓴다 (lib/cardview)
 // ─────────────────────────────────────────────
 
-/** 카드 계산에 필요한 선수 필드 (레이더 + 메인 스탯) */
-export type CardInput = RadarInput & CardStatInput;
+/** 카드 계산에 필요한 선수 필드 (레이더 + 메인 스탯 + 국적) */
+export type CardInput = GradeInput & CardStatInput;
 
-/** 한 시즌·한 표본 기준의 비교 재료: 레이더 백분위 집단, 성공률 시도 기준, 스탯 순위 집단, 집단 크기 */
+/** 한 시즌·한 표본 기준의 비교 재료: 순위(스탯 순위 집단·성공률 시도 기준)와 등급(국적 집단) */
 export interface CardContext {
   rule: QualifyRule;
-  set: RadarAxisSet;
-  reference: RadarReference;
   thresholds: AttemptThresholds;
   pools: CardStatPools;
+  /** 순위 집단 중 표본 기준 충족 선수 수 */
   qualifiedCount: number;
+  /** 등급 재료 — 순위 범위(전체/같은 포지션)와 관계없이 리그 전체 선수의 국적 집단 */
+  grading: GradingContext;
 }
 
 /**
- * 카드 비교 재료. players 가 곧 비교 집단이다 — 포지션·국적으로 집단을 좁히려면 lib/roster.ts
- * filterByPosition·filterByNationality 결과를 넘긴다 (표본 기준 rule 은 여기서 다시 적용).
- * opts.thresholds: 성공률 시도 기준을 따로 줄 때 (예: 집단을 좁혀도 시도 기준은 리그 전체 값으로 유지 —
- * 센터 집단만으로 3점 시도 평균을 내면 기준이 너무 낮아진다). 없으면 players 로 계산.
+ * 카드 비교 재료. players 가 곧 **순위** 집단이다 — 포지션으로 좁히려면 lib/roster filterByPosition 결과를 넘긴다.
+ * 등급은 opts.grading(리그 전체로 만든 buildGradingContext)을 쓴다. 없으면 players 와 coverage 로 만든다.
+ * opts.thresholds: 성공률 시도 기준을 따로 줄 때 (집단을 좁혀도 리그 전체 값 유지). 없으면 players 로 계산.
  */
 export function buildCardContext(
   players: readonly CardInput[],
   rule: QualifyRule,
-  set: RadarAxisSet,
-  opts: { thresholds?: AttemptThresholds } = {},
+  coverage: SeasonCoverage,
+  opts: { thresholds?: AttemptThresholds; grading?: GradingContext } = {},
 ): CardContext {
   const thresholds = opts.thresholds ?? attemptThresholds(players, rule);
   return {
     rule,
-    set,
-    reference: buildReference(players, rule, set),
     thresholds,
     pools: buildCardStatPools(players, rule, thresholds),
     qualifiedCount: players.filter((p) => isQualified(p, rule)).length,
+    grading: opts.grading ?? buildGradingContext(players, rule, coverage),
   };
+}
+
+/** 등급 기준 집단 정보 (카드의 "등급 기준: 국내 선수 109명 중") */
+export interface GradeGroupInfo {
+  key: GradeGroupKey;
+  label: string;
+  /** 집단의 표본 충족 선수 수 */
+  count: number;
 }
 
 /** 카드 한 장에 그리는 값 (player 는 화면이 쓰는 선수 객체 그대로) */
 export interface CardEntryOf<T> {
   player: T;
-  pct: RadarPercentiles;
+  /** 5축 백분위 (국적 집단 안) */
+  pct: Record<RadarAxis, number | null>;
   /** 축별 등급 (percentileGrade) */
-  grades: Partial<Record<RadarAxis, Grade | "-">>;
-  /** 종합 등급 (5축 백분위 평균 → percentileGrade) */
+  grades: Record<RadarAxis, Grade | "-">;
+  /** 종합 등급 (종합 백분위 → percentileGrade) */
   overall: Grade | "-";
+  /** 종합 백분위 */
+  overallPct: number | null;
+  /** 축별 구성 요소 값·백분위 (툴팁·표 보기) */
+  radar: RadarScore;
   type: PlayerType;
   qualified: boolean;
   /** 메인 스탯 (CARD_STATS 순서, 파울 포함 10개) + 시즌 순위 */
   stats: CardStatEntry[];
+  gradeGroup: GradeGroupInfo;
+  /** USG% (표준 척도). 그 시즌에 USG% 가 없으면(coverage.advanced 아님) null */
+  usgPct: number | null;
 }
 
 /** 한 선수의 카드 값: 백분위·등급·유형·표본 충족·메인 스탯 순위. ctx 는 같은 시즌 선수로 만든 buildCardContext() */
 export function buildCardEntry<T extends CardInput>(p: T, ctx: CardContext): CardEntryOf<T> {
-  const pct = radarPercentiles(p, ctx.reference, ctx.set);
-  const grades: CardEntryOf<T>["grades"] = {};
-  for (const axis of radarAxes(ctx.set)) grades[axis] = percentileGrade(pct[axis]);
+  const radar = radarScore(p, ctx.grading);
+  const grades = emptyAxes<Grade | "-">(() => "-");
+  for (const a of RADAR_AXES) grades[a] = percentileGrade(radar.axes[a]);
+  const gk = gradeGroupOf(p, ctx.grading.mergeAsia);
   return {
     player: p,
-    pct,
+    pct: radar.axes,
     grades,
-    overall: percentileGrade(overallPercentile(pct, ctx.set)),
-    type: playerType(pct, ctx.set),
+    overall: percentileGrade(radar.overall),
+    overallPct: radar.overall,
+    radar,
+    type: playerType(radar.axes),
     qualified: isQualified(p, ctx.rule),
     stats: cardStats(p, ctx.pools, ctx.rule, ctx.thresholds),
+    gradeGroup: { key: gk, label: GRADE_GROUP_LABELS[gk], count: ctx.grading.groups[gk]?.count ?? 0 },
+    usgPct: ctx.grading.advanced && Number.isFinite(p.usgPct) ? p.usgPct : null,
   };
 }
 

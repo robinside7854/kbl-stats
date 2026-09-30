@@ -13,7 +13,7 @@ export function koShortOf(season: SeasonData): (p: { teamCode: string; teamShort
 }
 
 /**
- * 플레이어 카드용 최소 필드. PIE 는 넘기지 않는다(2026-09-30 결정).
+ * 플레이어 카드용 최소 필드(메인 스탯 + 레이더 5축 구성 요소). PIE·AST%·REB% 는 넘기지 않는다(레이더에서 뺌).
  * 옛 processed 파일(프로필·파울 필드 없음)이어도 깨지지 않게 ?? 로 기본값을 둔다.
  */
 export function toCardPlayers(season: SeasonData, photoOf: PhotoLookup = () => null): CardPlayer[] {
@@ -45,11 +45,21 @@ export function toCardPlayers(season: SeasonData, photoOf: PhotoLookup = () => n
     fgPct: p.fgPct,
     tpPct: p.tpPct,
     ftPct: p.ftPct,
+    twoPa: p.twoPa ?? 0,
+    twoPPct: p.twoPPct ?? 0,
+    tpm: p.tpm ?? 0,
+    oreb: p.oreb ?? 0,
+    dreb: p.dreb ?? 0,
+    goodDef: p.goodDef ?? 0,
+    deflections: p.deflections ?? 0,
+    screenAst: p.screenAst ?? 0,
+    plusMinus: p.plusMinus ?? 0,
     per: p.per,
     usgPct: p.usgPct,
     tsPct: p.tsPct,
-    astPct: p.astPct,
-    rebPct: p.rebPct,
+    efgPct: p.efgPct ?? 0,
+    tovPct: p.tovPct ?? 0,
+    astTo: p.astTo ?? 0,
   }));
 }
 
@@ -86,6 +96,8 @@ export function toLeaderPlayers(season: SeasonData, photoOf: PhotoLookup = () =>
     tpPct: p.tpPct,
     ftPct: p.ftPct,
     tsPct: p.tsPct,
+    // USG% 는 2차 스탯이 있는 시즌(coverage.advanced)만. 그 밖의 시즌은 일부 선수만 값이 있어 비교가 안 되므로 null
+    usgPct: season.coverage?.advanced ? p.usgPct : null,
     per: p.per,
   }));
 }

@@ -11,7 +11,6 @@ import {
   compareCardEntries,
   compareHref,
   compareQueryString,
-  defaultVsSeason,
   filterGridEntries,
   formatDelta,
   parseCompareQuery,
@@ -27,7 +26,7 @@ import {
 } from "../lib/cardview";
 import { glossaryHref, GLOSSARY, GLOSSARY_ANCHORS, LEADER_COLUMN_GLOSSARY, RADAR_AXIS_GLOSSARY } from "../lib/glossary";
 import { TABLE_COLUMNS } from "../lib/leaders";
-import { RADAR_AXIS_SETS } from "../lib/metrics";
+import { RADAR_AXES } from "../lib/metrics";
 import { nationalityFromParam, positionFromParam } from "../lib/roster";
 import type { CardPlayer, PositionGroup } from "../lib/types";
 
@@ -40,7 +39,8 @@ const mk = (o: Partial<CardPlayer> & { positionGroup: PositionGroup | null }): C
     isForeign: false, position: o.positionGroup, nationality: "domestic", photoUrl: null,
     games: 20, minutes: 500, points: 200, reb: 100, ast: 40, stl: 10, blk: 5, tov: 30, fouls: 40,
     fga: 160, tpa: 60, fta: 40, fgPct: 45, tpPct: 33, ftPct: 75,
-    per: 12, usgPct: 20, tsPct: 52, astPct: 15, rebPct: 10,
+    twoPa: 100, twoPPct: 50, tpm: 20, oreb: 20, dreb: 80, goodDef: 10, deflections: 10, screenAst: 5, plusMinus: 20,
+    per: 12, usgPct: 20, tsPct: 52, efgPct: 50, tovPct: 12, astTo: 1.3,
     ...o,
   };
 };
@@ -86,6 +86,15 @@ assert.equal(rankHeading(null), "시즌 순위");
 assert.equal(rankHeading("가드"), "가드 중 순위");
 assert.equal(rankPhrase(3, 34, "가드"), "가드 중 3위, 34명 중");
 assert.equal(rankPhrase(3, 142, null), "시즌 3위, 142명 중");
+// 등급 기준: 순위 범위와 관계없이 같은 국적 집단 (국내 101·102·103·106·107 = 5명, 108 은 표본 미달)
+assert.equal(all.gradeLabel, "국내 선수 5명 중");
+assert.equal(pos.gradeLabel, "국내 선수 5명 중");
+assert.deepEqual(pos.entry.grades, all.entry.grades); // 범위를 바꿔도 등급은 같다
+// 외국 1명 + 아시아쿼터 1명 → 아시아쿼터가 8명 미만이라 합산
+assert.equal(buildSeasonCardView(cards, "105")!.gradeLabel, "아시아쿼터·외국 합산 2명 중");
+assert.equal(buildSeasonCardView(cards, "104")!.entry.gradeGroup.key, "foreignAsia");
+assert.deepEqual(all.missingComponents, []); // 전 항목 커버리지
+assert.deepEqual(all.coverage, coverage);
 // 파울·출전시간 줄 (경기당)
 assert.deepEqual(cardFootStats({ games: 20, minutes: 500, fouls: 40 }), { fouls: 2, minutes: 25 });
 assert.deepEqual(cardFootStats({ games: 0, minutes: 0, fouls: 0 }), { fouls: 0, minutes: 0 });
@@ -109,11 +118,11 @@ assert.deepEqual(ids(filterGridEntries(grid, { position: "all", origin: "foreign
 assert.deepEqual(ids(filterGridEntries(grid, { position: "G", origin: "domestic", teamCode: "16" })), []);
 assert.equal(filterGridEntries(grid, { position: "all", origin: "all", teamCode: null }).length, 8);
 
-// ── 비교표: 10개 스탯 + 종합 등급, 턴오버·파울은 낮은 쪽 ──
+// ── 비교표: 10개 스탯 + USG% + 종합 등급, 턴오버·파울은 낮은 쪽 ──
 const va = buildSeasonCardView(cards, "101")!.entry;
 const vb = buildSeasonCardView(cards, "104")!.entry;
 const rows = compareCardEntries(va, vb);
-assert.deepEqual(rows.map((r) => r.key), ["points", "reb", "ast", "stl", "blk", "tov", "fgPct", "tpPct", "ftPct", "fouls", "overall"]);
+assert.deepEqual(rows.map((r) => r.key), ["points", "reb", "ast", "stl", "blk", "tov", "fgPct", "tpPct", "ftPct", "fouls", "usgPct", "overall"]);
 const row = (k: string) => rows.find((r) => r.key === k)!;
 assert.equal(row("points").better, "a"); // 20.0 > 18.0
 assert.equal(row("points").aText, "20.0");
@@ -127,6 +136,18 @@ assert.equal(row("fgPct").deltaText, "0.0%p");
 assert.deepEqual(row("points").aRank, { rank: 1, of: 7, reason: null });
 assert.equal(rankShort(row("points").aRank), "1위");
 assert.equal(rankShort(row("fouls").aRank), ""); // 파울은 순위 없음
+// USG%: 값만, 우열 없음. 2차 스탯 없는 시즌이면 "–"
+assert.equal(row("usgPct").aText, "20.0%");
+assert.equal(row("usgPct").better, null);
+const oldCards = decodeSeasonCards(
+  encodeSeasonCards({ seasonCode: 13, seasonLabel: "2008-2009", coverage: { ...coverage, advanced: false, hustle: false }, teams }, players),
+);
+const oldView = buildSeasonCardView(oldCards, "101")!;
+assert.equal(oldView.entry.usgPct, null);
+assert.deepEqual(oldView.missingComponents, ["USG%", "40분당 디플렉션", "40분당 스크린 어시스트"]);
+const usgOld = compareCardEntries(va, oldView.entry).find((r) => r.key === "usgPct")!;
+assert.equal(usgOld.bText, "–");
+assert.equal(usgOld.deltaText, "–");
 assert.equal(rankShort({ rank: null, of: 3, reason: "sample" }), "표본 미달");
 // 파울: 적은 쪽이 낫다
 const lowFoul = compareCardEntries(
@@ -155,21 +176,18 @@ assert.equal(compareQueryString({ id: "1", seasonCode: 47 }, null), "?a=1:47");
 assert.equal(compareQueryString(null, null), "");
 assert.equal(compareHref({ id: "1", seasonCode: 47 }, { id: "1", seasonCode: 45 }), "/compare?a=1:47&b=1:45");
 
-// ── 선수 상세 주소 (시즌 칩·시즌 비교·순위 범위) ──
+// ── 선수 상세 주소 (시즌 칩·순위 범위). 시즌 비교(?vs=)는 없앴다 — 예전 주소의 vs 는 무시 ──
 const played = [35, 37, 39, 47];
-assert.deepEqual(parsePlayerQuery("", played), { season: 47, vs: null, scope: "all" });
-assert.deepEqual(parsePlayerQuery("?season=37&vs=47&scope=pos", played), { season: 37, vs: 47, scope: "position" });
-assert.deepEqual(parsePlayerQuery("?season=13&vs=37", played), { season: 47, vs: 37, scope: "all" }); // 안 뛴 시즌 → 최신
-assert.deepEqual(parsePlayerQuery("?season=37&vs=37", played), { season: 37, vs: null, scope: "all" }); // 같은 시즌끼리는 비교 안 함
-assert.equal(playerQueryString({ season: 47, vs: null, scope: "all" }, played), "");
-assert.equal(playerQueryString({ season: 37, vs: 35, scope: "position" }, played), "?season=37&vs=35&scope=pos");
-for (const st of [{ season: 39, vs: 47, scope: "position" as const }, { season: 47, vs: 35, scope: "all" as const }]) {
+assert.deepEqual(parsePlayerQuery("", played), { season: 47, scope: "all" });
+assert.deepEqual(parsePlayerQuery("?season=37&scope=pos", played), { season: 37, scope: "position" });
+assert.deepEqual(parsePlayerQuery("?season=13", played), { season: 47, scope: "all" }); // 안 뛴 시즌 → 최신
+assert.deepEqual(parsePlayerQuery("?season=37&vs=47", played), { season: 37, scope: "all" }); // 옛 vs 무시
+assert.equal(playerQueryString({ season: 47, scope: "all" }, played), "");
+assert.equal(playerQueryString({ season: 37, scope: "position" }, played), "?season=37&scope=pos");
+for (const st of [{ season: 39, scope: "position" as const }, { season: 47, scope: "all" as const }]) {
   assert.deepEqual(parsePlayerQuery(playerQueryString(st, played), played), st); // 왕복
 }
-assert.equal(defaultVsSeason(played, 47), 39); // 바로 전 시즌
-assert.equal(defaultVsSeason(played, 35), 37); // 첫 시즌이면 다음 시즌
-assert.equal(defaultVsSeason([47], 47), null); // 한 시즌뿐
-assert.equal(defaultVsSeason(played, 99), 47);
+assert.equal(compareHref({ id: "1", seasonCode: 47 }), "/compare?a=1:47"); // 선수 상세 → 비교 탭 (A 슬롯만)
 
 // ── 선수 탭 주소 ──
 const pctx = { seasons: [45, 47], latest: 47 };
@@ -185,7 +203,9 @@ assert.equal(nationalityFromParam("for"), "foreign");
 assert.equal(glossaryHref("tsPct"), "/glossary#ts");
 assert.equal(new Set(Object.values(GLOSSARY_ANCHORS)).size, GLOSSARY.length); // 앵커 중복 없음
 for (const k of Object.keys(LEADER_COLUMN_GLOSSARY)) assert.ok((TABLE_COLUMNS as readonly string[]).includes(k), k);
-for (const set of Object.values(RADAR_AXIS_SETS)) for (const a of set) assert.ok(RADAR_AXIS_GLOSSARY[a], a); // 모든 레이더 축에 풀이
+for (const a of RADAR_AXES) assert.ok(RADAR_AXIS_GLOSSARY[a], a); // 모든 레이더 축에 풀이
+assert.equal(glossaryHref("radarAxes"), "/glossary#radar");
+assert.equal(LEADER_COLUMN_GLOSSARY.usgPct, "usgPct"); // USG% 열 ⓘ
 
 // ── 선수 탭 필터 칩 · 더 보기 ──
 assert.equal(GRID_PAGE_SIZE, 20);

@@ -9,7 +9,9 @@ import {
   attemptsNote,
   buildCardContext,
   buildCardEntry,
+  buildGradingContext,
   CARD_STATS,
+  missingComponentLabels,
   perGame,
   qualifyLabel,
   type CardContext,
@@ -17,7 +19,7 @@ import {
   type CardStatKey,
   type CardStatRank,
   type Grade,
-  type RadarAxisSet,
+  type GradingContext,
 } from "./metrics";
 import {
   filterByNationality,
@@ -32,15 +34,16 @@ import {
   type NationalityFilter,
   type PositionFilter,
 } from "./roster";
-import type { CardPlayer, CardTeam } from "./types";
+import type { CardPlayer, CardTeam, SeasonCoverage } from "./types";
 
 // ─────────────────────────────────────────────
 // 카드 한 장 (시즌 + 순위 범위)
 // ─────────────────────────────────────────────
 
 /**
- * 순위·등급 비교 집단: 리그 전체 / 같은 포지션(가드·포워드·센터 묶음, lib/roster positionGroupOf).
+ * 순위 비교 집단: 리그 전체 / 같은 포지션(가드·포워드·센터 묶음, lib/roster positionGroupOf).
  * 포지션을 모르는 선수(선수 마스터에 없음)는 "position" 을 골라도 전체로 계산하고 view.scope 는 "all" 이 된다.
+ * 등급(레이더 5축·종합)은 범위와 관계없이 항상 같은 국적 집단(국내/외국/아시아쿼터) 안에서 매긴다 (lib/metrics buildGradingContext).
  */
 export type CardScope = "all" | "position";
 
@@ -49,11 +52,16 @@ export interface SeasonCardView {
   team: CardTeam | null;
   seasonCode: number;
   seasonLabel: string;
-  axisSet: RadarAxisSet;
+  /** 시즌 항목별 커버리지 (USG% 등) */
+  coverage: SeasonCoverage;
   /** 표본 기준 표기, 예: "10경기·100분 이상" */
   ruleLabel: string;
-  /** 비교 집단 중 표본 기준 충족 선수 수 */
+  /** 순위 집단 중 표본 기준 충족 선수 수 */
   qualifiedCount: number;
+  /** 등급 기준 표기, 예: "국내 선수 109명 중" / "아시아쿼터·외국 합산 31명 중" */
+  gradeLabel: string;
+  /** 이 시즌 기록이 없어 레이더에서 빠진 구성 요소, 예: ["USG%", "40분당 디플렉션"] */
+  missingComponents: string[];
   /** 성공률 시도 기준 표기 (리그 전체 기준 — 집단을 좁혀도 같다) */
   attemptsLabel: string;
   /** 실제로 적용된 범위 (포지션을 모르면 "position" 요청도 "all") */
@@ -64,9 +72,20 @@ export interface SeasonCardView {
 
 // 같은 시즌·같은 집단의 비교 재료는 한 번만 만든다 (선수 페이지 1,329개 빌드·그리드 200명)
 const ctxCache = new WeakMap<SeasonCards, Map<string, CardContext>>();
+const gradingCache = new WeakMap<SeasonCards, GradingContext>();
+
+/** 시즌 등급 재료 (리그 전체 선수 → 국적 집단별). 순위 범위와 관계없이 하나 */
+export function seasonGrading(cards: SeasonCards): GradingContext {
+  let g = gradingCache.get(cards);
+  if (!g) {
+    g = buildGradingContext(cards.players, cards.defaults.rule, cards.coverage);
+    gradingCache.set(cards, g);
+  }
+  return g;
+}
 
 /**
- * 시즌 카드 데이터의 비교 재료. group 이 "all" 이면 리그 전체, 아니면 그 포지션 묶음.
+ * 시즌 카드 데이터의 비교 재료. group 이 "all" 이면 리그 전체, 아니면 그 포지션 묶음(순위만 — 등급은 seasonGrading).
  * 표본 기준은 파일의 기본값(defaults.rule), 성공률 시도 기준은 **항상 리그 전체 값**(defaults.thresholds) —
  * 센터 집단만으로 3점 시도 평균을 내면 기준이 너무 낮아지기 때문 (lib/metrics buildCardContext opts).
  */
@@ -78,12 +97,18 @@ export function seasonContext(cards: SeasonCards, group: PositionFilter = "all")
   }
   let ctx = byGroup.get(group);
   if (!ctx) {
-    ctx = buildCardContext(filterByPosition(cards.players, group), cards.defaults.rule, cards.axisSet, {
+    ctx = buildCardContext(filterByPosition(cards.players, group), cards.defaults.rule, cards.coverage, {
       thresholds: cards.defaults.thresholds,
+      grading: seasonGrading(cards),
     });
     byGroup.set(group, ctx);
   }
   return ctx;
+}
+
+/** 등급 기준 한 줄, 예: "국내 선수 109명 중" (집단 이름 + 표본 충족 인원) */
+export function gradeBasisLabel(g: { label: string; count: number }): string {
+  return `${g.label} ${g.count}명 중`;
 }
 
 /** 한 선수의 시즌 카드. 그 시즌에 없는 선수면 null */
@@ -92,14 +117,17 @@ export function buildSeasonCardView(cards: SeasonCards, playerId: string, scope:
   if (!p) return null;
   const group: PositionFilter = scope === "position" && p.positionGroup ? p.positionGroup : "all";
   const ctx = seasonContext(cards, group);
+  const entry = buildCardEntry(p, ctx);
   return {
-    entry: buildCardEntry(p, ctx),
+    entry,
     team: cards.teams.find((t) => t.teamCode === p.teamCode) ?? null,
     seasonCode: cards.seasonCode,
     seasonLabel: cards.seasonLabel,
-    axisSet: cards.axisSet,
+    coverage: cards.coverage,
     ruleLabel: qualifyLabel(ctx.rule),
     qualifiedCount: ctx.qualifiedCount,
+    gradeLabel: gradeBasisLabel(entry.gradeGroup),
+    missingComponents: missingComponentLabels(ctx.grading),
     attemptsLabel: attemptsNote(ctx.thresholds),
     scope: group === "all" ? "all" : "position",
     groupLabel: group === "all" ? null : POSITION_GROUP_LABELS[group],
@@ -127,7 +155,7 @@ export function rankPhrase(rank: number, of: number, groupLabel: string | null):
 
 export interface GridEntry {
   player: CardPlayer;
-  /** 종합 등급 (리그 전체 기준). 표본 미달이면 "-" */
+  /** 종합 등급 (국적 집단 기준 — 선수 상세 카드와 같다). 표본 미달이면 "-" */
   overall: Grade | "-";
   qualified: boolean;
   /** 경기당 득점 */
@@ -137,7 +165,7 @@ export interface GridEntry {
 /** 등급 정렬 순서 (앞이 위) */
 export const GRADE_ORDER: readonly (Grade | "-")[] = ["S", "A", "B", "C", "D", "F", "-"];
 
-/** 시즌 선수 전원의 그리드 값 (종합 등급은 리그 전체 집단 기준 — 선수 상세 카드의 "전체" 범위와 같다) */
+/** 시즌 선수 전원의 그리드 값 (종합 등급은 국적 집단 기준 — 선수 상세 카드와 같다) */
 export function buildGridEntries(cards: SeasonCards): GridEntry[] {
   const ctx = seasonContext(cards, "all");
   return cards.players.map((p) => {
@@ -199,13 +227,13 @@ export function filterGridEntries(list: readonly GridEntry[], f: GridFilter): Gr
 }
 
 // ─────────────────────────────────────────────
-// 두 카드 비교표 (비교 탭 · 선수 상세 "시즌 비교")
+// 두 카드 비교표 (비교 탭)
 // ─────────────────────────────────────────────
 
 export type CompareSide = "a" | "b" | "tie" | null;
 
 export interface CompareRow {
-  key: CardStatKey | "overall";
+  key: CardStatKey | "usgPct" | "overall";
   label: string;
   /** 표시 값 (경기당·성공률, lib/metrics cardStatValue). 등급 줄은 null */
   a: number | null;
@@ -217,7 +245,7 @@ export interface CompareRow {
   bRank: CardStatRank | null;
   /** 더 나은 쪽 (턴오버·파울은 낮은 쪽). 비교할 수 없으면 null */
   better: CompareSide;
-  /** b − a (같은 선수 시즌 비교의 증감). 등급 줄은 null */
+  /** b − a (같은 선수 두 시즌 비교의 증감). 등급 줄은 null */
   delta: number | null;
   deltaText: string;
   /** 낮을수록 좋은 지표 (턴오버·파울) — 증감 색·문구에 쓴다 */
@@ -255,12 +283,13 @@ function betterGrade(a: Grade | "-", b: Grade | "-"): CompareSide {
   return ia === ib ? "tie" : ia < ib ? "a" : "b";
 }
 
-type EntryLike = Pick<CardEntryOf<CardPlayer>, "stats" | "overall" | "qualified">;
+type EntryLike = Pick<CardEntryOf<CardPlayer>, "stats" | "overall" | "qualified" | "usgPct">;
 
 /**
- * 두 카드의 비교표: 카드 스탯 10개(득점 … 자유투 성공률 + 파울, lib/metrics CARD_STATS 순서) + 종합 등급.
+ * 두 카드의 비교표: 카드 스탯 10개(득점 … 자유투 성공률 + 파울, lib/metrics CARD_STATS 순서) + USG% + 종합 등급.
  * 순위·등급은 각 카드가 자기 시즌·자기 집단 안에서 매긴 값 그대로다 (서로 다른 시즌이면 직접 비교가 아니라 "각자 시즌 안 위치").
  * 더 나은 쪽: 대부분 높은 값, 턴오버·파울(better: "low")은 낮은 값.
+ * USG%(공격 점유율)는 많고 적음이 곧 좋고 나쁨이 아니라 더 나은 쪽을 표시하지 않는다(better null). 없는 시즌은 "–".
  */
 export function compareCardEntries(a: EntryLike, b: EntryLike): CompareRow[] {
   const rows: CompareRow[] = CARD_STATS.map((def) => {
@@ -285,6 +314,23 @@ export function compareCardEntries(a: EntryLike, b: EntryLike): CompareRow[] {
       deltaText: formatDelta(delta, pct),
       lowerIsBetter: lower,
     };
+  });
+  const ua = a.usgPct;
+  const ub = b.usgPct;
+  const usgDelta = ua !== null && ub !== null ? ub - ua : null;
+  rows.push({
+    key: "usgPct",
+    label: "USG%",
+    a: ua,
+    b: ub,
+    aText: formatCardValue(ua, true),
+    bText: formatCardValue(ub, true),
+    aRank: null,
+    bRank: null,
+    better: null,
+    delta: usgDelta,
+    deltaText: formatDelta(usgDelta, true),
+    lowerIsBetter: false,
   });
   const ga = a.qualified ? a.overall : "-";
   const gb = b.qualified ? b.overall : "-";
@@ -348,49 +394,37 @@ export function compareQueryString(a: CompareSlot | null, b: CompareSlot | null)
   return parts.length ? `?${parts.join("&")}` : "";
 }
 
-/** 비교 탭 링크, 예: "/compare?a=291248:47&b=291248:45" */
-export const compareHref = (a: CompareSlot, b: CompareSlot) => `/compare${compareQueryString(a, b)}`;
-
-/** 선수 상세 화면 상태: 고른 시즌 · 시즌 비교(두 번째 시즌) · 순위 범위 */
-export interface PlayerViewState {
-  season: number;
-  /** 시즌 비교가 켜져 있으면 두 번째 시즌, 꺼져 있으면 null */
-  vs: number | null;
-  scope: CardScope;
-}
+/** 비교 탭 링크, 예: "/compare?a=291248:47&b=291248:45" (b 를 비우면 A 슬롯만 채운 비교 탭) */
+export const compareHref = (a: CompareSlot, b: CompareSlot | null = null) => `/compare${compareQueryString(a, b)}`;
 
 /**
- * 시즌 비교를 켰을 때 두 번째 시즌 기본값: 고른 시즌 바로 전에 뛴 시즌, 없으면 바로 다음에 뛴 시즌, 한 시즌뿐이면 null.
- * seasons 는 그 선수가 뛴 시즌 코드 (순서 무관).
+ * 선수 상세 화면 상태: 고른 시즌 · 순위 범위.
+ * (같은 선수 "시즌 비교"는 2026-09-30 사용자 피드백으로 없앴다 — 두 시즌 비교는 비교 탭 /compare 에서.
+ *  예전 주소의 ?vs= 는 읽지 않고, 다음 주소 갱신 때 지워진다.)
  */
-export function defaultVsSeason(seasons: readonly number[], season: number): number | null {
-  const sorted = [...new Set(seasons)].sort((x, y) => x - y);
-  const i = sorted.indexOf(season);
-  if (i < 0) return sorted.length ? sorted[sorted.length - 1] : null;
-  if (i > 0) return sorted[i - 1];
-  return sorted.length > 1 ? sorted[1] : null;
+export interface PlayerViewState {
+  season: number;
+  scope: CardScope;
 }
 
 /** 그 선수가 뛴 시즌 중 가장 최근 (없으면 null) */
 export const latestSeason = (seasons: readonly number[]) => (seasons.length ? Math.max(...seasons) : null);
 
 /**
- * 선수 상세 쿼리 ?season=45&vs=43&scope=pos → 상태. 그 선수가 뛰지 않은 시즌은 버린다.
- * season 이 없거나 틀리면 가장 최근 시즌. vs 가 season 과 같으면 버린다.
+ * 선수 상세 쿼리 ?season=45&scope=pos → 상태. 그 선수가 뛰지 않은 시즌은 버린다.
+ * season 이 없거나 틀리면 가장 최근 시즌.
  */
 export function parsePlayerQuery(search: string, seasons: readonly number[]): PlayerViewState {
   const qs = new URLSearchParams(search);
-  const valid = (v: string | null) => (v && DIGITS.test(v) && seasons.includes(Number(v)) ? Number(v) : null);
-  const season = valid(qs.get("season")) ?? latestSeason(seasons) ?? 0;
-  const vs = valid(qs.get("vs"));
-  return { season, vs: vs !== null && vs !== season ? vs : null, scope: qs.get("scope") === "pos" ? "position" : "all" };
+  const v = qs.get("season");
+  const season = v && DIGITS.test(v) && seasons.includes(Number(v)) ? Number(v) : (latestSeason(seasons) ?? 0);
+  return { season, scope: qs.get("scope") === "pos" ? "position" : "all" };
 }
 
-/** 상태 → 쿼리 ("" 또는 "?..."). 가장 최근 시즌·전체 범위·비교 꺼짐은 생략 */
+/** 상태 → 쿼리 ("" 또는 "?..."). 가장 최근 시즌·전체 범위는 생략 */
 export function playerQueryString(s: PlayerViewState, seasons: readonly number[]): string {
   const qs = new URLSearchParams();
   if (s.season !== latestSeason(seasons)) qs.set("season", String(s.season));
-  if (s.vs !== null) qs.set("vs", String(s.vs));
   if (s.scope === "position") qs.set("scope", "pos");
   const str = qs.toString();
   return str ? `?${str}` : "";

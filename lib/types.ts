@@ -155,7 +155,7 @@ export interface PlayerIndexEntry extends PlayerProfile {
 
 // ─────────────────────────────────────────────
 // 화면(클라이언트)으로 넘기는 최소 필드 — 페이로드를 작게 유지하기 위해
-// Player 전체가 아니라 플레이어 카드(메인 스탯 9개 + 레이더)에 필요한 값만 담는다. (lib/data.ts 에서 변환)
+// Player 전체가 아니라 플레이어 카드(메인 스탯 10개 + 레이더 5축 구성 요소)에 필요한 값만 담는다. (lib/data.ts 에서 변환)
 // ─────────────────────────────────────────────
 
 export interface CardPlayer {
@@ -185,11 +185,22 @@ export interface CardPlayer {
   fgPct: number;          // 이하 KBL 계산 성공률 그대로 (0~100)
   tpPct: number;
   ftPct: number;
+  // 이하 레이더 5축 구성 요소 (lib/metrics RADAR_COMPONENTS) — 누적은 시즌 합계, 비율·지수는 KBL 계산값
+  twoPa: number;          // 2점 시도 (2점 성공률 시도 기준)
+  twoPPct: number;        // 2점 성공률
+  tpm: number;            // 3점 성공
+  oreb: number;
+  dreb: number;
+  goodDef: number;        // 굿디펜스 (coverage.goodDef 시즌만 의미 있음)
+  deflections: number;    // 디플렉션 (coverage.hustle)
+  screenAst: number;      // 스크린 어시스트 (coverage.hustle)
+  plusMinus: number;      // +/- 시즌 합계 (coverage.plusMinus)
   per: number;
-  usgPct: number;
+  usgPct: number;         // 표준 척도(×5). coverage.advanced 가 아니면 0 이거나 일부만 있다
   tsPct: number;
-  astPct: number;
-  rebPct: number;
+  efgPct: number;
+  tovPct: number;
+  astTo: number;
 }
 
 /** 화면으로 넘기는 팀 정보 (로고·색만) */
@@ -236,6 +247,8 @@ export interface LeaderPlayer {
   tpPct: number;
   ftPct: number;
   tsPct: number;
+  /** USG% (표준 척도 ×5). 그 시즌에 USG% 가 없으면(coverage.advanced 아님) null → 화면 "–" */
+  usgPct: number | null;
   per: number;
 }
 
