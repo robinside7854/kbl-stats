@@ -32,13 +32,17 @@ export const PLAYER_HIGHS_PATH = "/api/v1/players/categories/mostgame";
  */
 export const PLAYER_PROFILE_PATH = "/api/v1/players/profile/0";
 /**
- * (참고, 수집하지 않음 — 부하) 경기별 기록: GET /api/v1/players/categories/game/{seasonCode}/01/{playerNo}
- *   → { RegularGameRecords: [{ gameNo, gameDate, awayTeam, win, loss, score, awayScore, playSec, pts, fg, fgA, …, rb, aS, sT, bS, tO, foulTot }] }
+ * 경기별 기록 (서버 B): GET /api/v1/players/categories/game/{seasonCode}/{gameCode}/{playerNo}
+ *   → { RegularGameRecords: [{ gameNo, gameDate, awayTeam, playSec, pts, fg, fgA, threep, threepA, fdg, fdgA, ft, ftA, …, rb, aS, sT, bS, tO, foulTot }] }
+ * 한 경기 최다(3점·자유투 성공)에 그 경기 시도 수를 붙이려고 받는다 (scripts/gamelogs.ts).
+ * 매일: 현재 시즌 선수 전원(한 경기 최다와 같은 대상 시즌). 과거: 커리어 하이가 나온 (선수, 시즌)만 backfill-gamelogs.yml 이 한 번.
  */
 export const PLAYER_GAMES_PATH = "/api/v1/players/categories/game";
 
 export const playerHighsUrl = (seasonCode: number | string, playerNo: string) =>
   `${CODES_API}${PLAYER_HIGHS_PATH}/${seasonCode}/${encodeURIComponent(playerNo)}`;
+export const playerGamesUrl = (seasonCode: number | string, playerNo: string) =>
+  `${CODES_API}${PLAYER_GAMES_PATH}/${seasonCode}/${GAME_CODE.regular}/${encodeURIComponent(playerNo)}`;
 export const playerProfileUrl = (playerNo: string) => `${CODES_API}${PLAYER_PROFILE_PATH}/${encodeURIComponent(playerNo)}`;
 
 /**

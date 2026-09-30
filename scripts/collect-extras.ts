@@ -1,10 +1,12 @@
-// 선수별 추가 수집 — 한 경기 최다(mostgame)·프로필. 매일 수집(fetch.ts)과 백필(backfill-highs.ts)이 같이 쓴다.
-// 저장: data/raw/highs/{seasonCode}/{playerNo}.json, data/raw/profiles/{playerNo}.json — 응답 그대로(한 줄 JSON).
+// 선수별 추가 수집 — 한 경기 최다(mostgame)·프로필·경기별 기록. 매일 수집(fetch.ts)과 백필(backfill-highs.ts·backfill-gamelogs.ts)이 같이 쓴다.
+// 저장: data/raw/highs/{seasonCode}/{playerNo}.json, data/raw/profiles/{playerNo}.json,
+//       data/raw/gamelogs/{seasonCode}/{playerNo}.json — 응답 그대로(한 줄 JSON).
 // 이상한 응답(형식이 다름·빈 응답)은 저장하지 않고 실패로 센다 → 기존 파일이 그대로 남고, 백필은 다음 실행에서 다시 받는다.
 import { existsSync } from "node:fs";
 import { readdir } from "node:fs/promises";
 import { join } from "node:path";
-import { DATA_DIR, MAX_CONSECUTIVE_FAILURES, playerHighsUrl, playerProfileUrl, REQUEST_INTERVAL_MS } from "./config.js";
+import { DATA_DIR, MAX_CONSECUTIVE_FAILURES, playerGamesUrl, playerHighsUrl, playerProfileUrl, REQUEST_INTERVAL_MS } from "./config.js";
+import { isGameLogResponse } from "./gamelogs.js";
 import { getJson, saveRaw, sleep } from "./http.js";
 import { isMostGameResponse, pendingPlayers } from "./highs.js";
 import { isProfileResponse } from "./player-master.js";
@@ -73,6 +75,18 @@ export function collectHighs(seasonCode: number, playerNos: readonly string[], o
     url: (no) => playerHighsUrl(seasonCode, no),
     valid: isMostGameResponse,
     save: (no, body) => saveRaw(join("highs", String(seasonCode)), no, body, true),
+  });
+}
+
+/** 한 시즌 선수들의 경기별 기록 (정규시즌) — 한 경기 최다의 슛 시도 수용 */
+export function collectGameLogs(seasonCode: number, playerNos: readonly string[], opts: Omit<Options, "label">) {
+  return collect(playerNos, {
+    ...opts,
+    label: `경기별 기록 ${seasonCode}`,
+    dir: join(DATA_DIR, "raw", "gamelogs", String(seasonCode)),
+    url: (no) => playerGamesUrl(seasonCode, no),
+    valid: isGameLogResponse,
+    save: (no, body) => saveRaw(join("gamelogs", String(seasonCode)), no, body, true),
   });
 }
 

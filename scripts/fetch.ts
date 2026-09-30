@@ -1,10 +1,11 @@
 // KBL 공식 기록 수집 스크립트
-// 실행: npm run fetch            → 기본 시즌(DEFAULT_SEASONS)만 + 현재 시즌 선수의 한 경기 최다·프로필
+// 실행: npm run fetch            → 기본 시즌(DEFAULT_SEASONS)만 + 현재 시즌 선수의 한 경기 최다·경기별 기록·프로필
 //       npm run fetch -- 45 47   → 지정 시즌만 (+ 한 경기 최다·프로필 — 대상 시즌은 규칙대로, 지정 시즌과 무관)
 //       npm run fetch:all        → 코드표에 있는 모든 시즌 (한 경기 최다는 받지 않는다 — 과거 전체는 backfill-highs)
-//       --no-highs               → 한 경기 최다·프로필 건너뜀
+//       --no-highs               → 한 경기 최다·경기별 기록·프로필 건너뜀
 //
-// 한 경기 최다·프로필 대상(scripts/highs.ts highsTargetSeasons): 현재 시즌 선수만(~200명 × 2회, 1.5초 간격 ≈ 10분).
+// 한 경기 최다·경기별 기록·프로필 대상(scripts/highs.ts highsTargetSeasons): 현재 시즌 선수만(~200명 × 3회, 1.5초 간격 ≈ 15분).
+// 경기별 기록은 시즌 하이의 3점·자유투 성공에 그 경기 시도 수를 붙이는 데 쓴다 (scripts/gamelogs.ts).
 // 직전 시즌은 최신 시즌 첫 수집일(data/season-first-seen.json)부터 30일 동안만 같이 받고, 마감된 옛 시즌은 다시 받지 않는다.
 //
 // 원칙(CLAUDE.md): 응답은 가공하지 않고 data/raw/{seasonCode}/ 에 그대로 저장한다.
@@ -18,7 +19,7 @@ import {
   PLAYER_MASTER_PATH, PLAYER_MASTER_REG_SC, PLAYER_MASTER_MAX_PAGES,
 } from "./config.js";
 import { getJson, saveRaw, sleep } from "./http.js";
-import { collectHighs, collectProfiles } from "./collect-extras.js";
+import { collectGameLogs, collectHighs, collectProfiles } from "./collect-extras.js";
 import { highsTargetSeasons, playerNosFromTraditional, todayKst, updateFirstSeen } from "./highs.js";
 
 async function saveCodes(name: string, body: unknown) {
@@ -128,7 +129,7 @@ async function rawPlayerNos(seasonCode: number): Promise<string[]> {
 }
 
 /**
- * 현재 시즌 선수의 한 경기 최다 + 프로필. 시즌 수집이 끝난 뒤 raw traditional 의 선수 목록으로 돈다.
+ * 현재 시즌 선수의 한 경기 최다 + 경기별 기록 + 프로필. 시즌 수집이 끝난 뒤 raw traditional 의 선수 목록으로 돈다.
  * 반환: 실패 요약 (선수별 실패는 개수만 — 목록이 길어지지 않게)
  */
 async function fetchHighsAndProfiles(knownSeasons: number[], fetchedToday: number[]): Promise<string[]> {
@@ -146,7 +147,7 @@ async function fetchHighsAndProfiles(knownSeasons: number[], fetchedToday: numbe
   await writeFile(FIRST_SEEN_FILE, JSON.stringify(firstSeen, null, 2) + "\n", "utf8");
 
   const targets = highsTargetSeasons({ seasons, firstSeen, today });
-  console.log(`\n한 경기 최다·프로필 대상 시즌: ${targets.join(", ") || "없음"}`);
+  console.log(`\n한 경기 최다·경기별 기록·프로필 대상 시즌: ${targets.join(", ") || "없음"}`);
   const failed: string[] = [];
   const profileNos = new Set<string>();
   for (const code of targets) {
@@ -154,6 +155,9 @@ async function fetchHighsAndProfiles(knownSeasons: number[], fetchedToday: numbe
     nos.forEach((no) => profileNos.add(no));
     const r = await collectHighs(code, nos, { skipExisting: false });
     if (r.failed.length) failed.push(`highs ${code}: ${r.failed.length}명 실패${r.aborted ? "(중단)" : ""} — 예: ${r.failed[0]}`);
+    // 경기별 기록: 시즌 하이 3점·자유투 성공의 시도 수용. 매일 새로 받는다(시즌 중 경기가 늘어난다)
+    const g = await collectGameLogs(code, nos, { skipExisting: false });
+    if (g.failed.length) failed.push(`gamelogs ${code}: ${g.failed.length}명 실패${g.aborted ? "(중단)" : ""} — 예: ${g.failed[0]}`);
   }
   if (profileNos.size > 0) {
     const r = await collectProfiles([...profileNos], { skipExisting: false });
@@ -226,7 +230,7 @@ async function main() {
     }
   }
 
-  // 한 경기 최다·프로필 (현재 시즌 선수) — 실패해도 시즌 기록은 이미 저장됨
+  // 한 경기 최다·경기별 기록·프로필 (현재 시즌 선수) — 실패해도 시즌 기록은 이미 저장됨
   if (!skipHighs) {
     try {
       failed.push(...(await fetchHighsAndProfiles(knownSeasons, targets)));

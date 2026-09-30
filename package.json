@@ -14,7 +14,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.scripts.json && tsc --noEmit -p tsconfig.json",
     "test:metrics": "tsx tests/metrics.test.ts",
     "test:leaders": "tsx tests/leaders.test.ts",
-    "test": "npm run test:metrics && npm run test:leaders && npm run test:card && npm run test:player && npm run test:teams && npm run test:roster && npm run test:cardview && npm run test:highs && npm run test:badges",
+    "test": "npm run test:metrics && npm run test:leaders && npm run test:card && npm run test:player && npm run test:teams && npm run test:roster && npm run test:cardview && npm run test:highs && npm run test:badges && npm run test:gamelogs",
     "test:card": "tsx tests/card.test.ts",
     "prebuild": "tsx scripts/build-search-index.ts && tsx scripts/build-cards.ts",
     "predev": "tsx scripts/build-search-index.ts && tsx scripts/build-cards.ts",
@@ -26,7 +26,9 @@
     "test:cardview": "tsx tests/cardview.test.ts",
     "test:highs": "tsx tests/highs.test.ts",
     "test:badges": "tsx tests/badges.test.ts",
-    "backfill:highs": "tsx scripts/backfill-highs.ts"
+    "backfill:highs": "tsx scripts/backfill-highs.ts",
+    "backfill:gamelogs": "tsx scripts/backfill-gamelogs.ts",
+    "test:gamelogs": "tsx tests/gamelogs.test.ts"
   },
   "engines": {
     "node": ">=20"
