@@ -75,7 +75,11 @@ KBL 공홈은 화면을 그릴 때 아래 두 서버에서 JSON을 받아온다.
   - 대상: 목록에서 `seasonCode` 일치 + `gameCode === "01"` + gmkey 중복 제거 + 끝난 경기(`isEnded` 가 true·"Y"·"1", 필드가 없으면 경기 날짜 < 오늘) 중 raw 가 없는 gmkey
   - 매일(`npm run fetch`, `--no-shots`로 끔, `fetch:all`은 건너뜀): 한 경기 최다와 같은 대상 시즌(`highsTargetSeasons`). 목록은 오늘까지 달만 다시 받고(1~10회), 시즌 달 구간이 끝났고 목록이 전부 끝난 경기면 다시 받지 않는다. 슛 기록이 빈 차트는 저장하지 않는다(다음 날 다시 — 입력 지연 대비). 보통 하루 0~5회
   - 백필: `.github/workflows/backfill-shots.yml` — `# 실행 횟수: N`을 1 올려 푸시, `# 대상 시즌: 47 45`(비우면 선수 raw 가 있는 전체 시즌, 최신 먼저). 시즌당 목록 10회 + 정규시즌 약 270회, 1.5초 간격 ≈ 7분. 이어받기(raw 있는 경기 건너뜀, 전부 끝난 목록이 있으면 목록도 안 받음), 빈 차트도 저장(옛 시즌을 다시 두드리지 않게), 시즌 단위 커밋, 시간 예산 300분(제한 350분). `npm run backfill:shots -- --count`로 남은 요청 수
-  - 연속 10회 실패면 그 시즌 중단(`MAX_CONSECUTIVE_FAILURES`). `npm run process`는 `data/raw/games`·`shots`를 읽지 않는다(숫자 폴더만 시즌으로 봄)
+  - 연속 10회 실패면 그 시즌 중단(`MAX_CONSECUTIVE_FAILURES`). `npm run process`는 `data/raw/games`·`shots`를 시즌 폴더로 보지 않는다(숫자 폴더만 시즌) — 슛 차트는 시즌마다 따로 읽는다(아래)
+- **좌표 체계 (2026-09-30, 2025-26 270경기 raw 로 검증)**: 코트 그림 700×400 픽셀 근사, **1m ≈ 24.9px**. `d="1"` = 공격 바스켓 오른쪽 (668, 205), `d="2"` = 왼쪽 (34, 205). 관측 x 38~692, y 26~385 (반대쪽 바스켓 쪽 점 약 0.4% — 먼 거리 슛). `q` 는 "Q1"~"Q4", 연장 "EQ1"·"EQ2". `pcode` = playerNo
+  - 검증: 선수·경기별 점 개수 = 공식 야투 시도(fdgA) 98% 일치, `o=="O"` 개수 = 야투 성공 99.7% 일치. 시즌 합계 점 35,866 vs 공식 FGA 35,975(47), 36,790 vs 36,782(45)
+  - 3점 판정(FIBA 규격을 픽셀로): dx=|x−bx|, dy=|y−by|, `dy ≥ 162`(코너 직선) 또는 `(dx/168)² + (dy/166)² ≥ 1`. 좌표로 센 3점 시도는 공식보다 약 1.7~2.4% 많다(라인 근처 2점을 3점으로) → 화면 도움말에 "공식 3점 기록과 조금 다를 수 있다"
+  - 가공(`npm run process`): 목록의 정규시즌 gmkey(`regularGamesOf`, 목록이 없으면 `S{시즌}G01N…` 모양) 차트만 → 선수별 `players[].shotZones`(구역 5개 a·m + `offenseType`), 시즌 `shotZoneLeague`(리그 합계)·`coverage.shots`(선수 50% 이상), 점 좌표 `data/processed/{시즌}/shots.json`(한 줄 = 선수, `[x, y, made]` 미터 소수 2자리, 시즌당 약 510KB, 커밋 대상). 규칙은 `lib/shots.ts`(정규화·구역·유형)
 
 ### 서버 A 추가 확인 (2026-09-30)
 - 팀 기록 `GET /api/records/team/general/traditional?seasonCode=&gameCode=01&sortDataSc=WIN_A&sortOrderSc=desc&perCn=0&lastCn=0&partIfList=0&draftNo=0` (화면 열: G W L MIN 승률 PTS 2PM… +/- SAST DFL DD2 TD3). advanced 등 다른 탭 주소는 같은 패턴 추정
@@ -141,6 +145,7 @@ kbl-stats/
 │   ├── image-urls.ts    ← KBL 사진·로고 주소 생성 (playerPhotoUrl, teamLogoUrl) — KBL 이미지 주소는 여기에만
 │   ├── config.ts        ← 엔드포인트(선수 마스터 PLAYER_MASTER_PATH 포함), 시즌 목록, 요청 간격
 │   ├── player-master.ts ← 선수 마스터 raw → 프로필(position·positionGroup·nationality·heightCm·weightKg·backNumber·draft) 순수 함수, isForeignPlayer, 프로필 API raw → birthday·country·school(profileExtraFrom)
+│   ├── build-shots.ts   ← 선수별 슛 차트 파일 public/shots/{seasonCode}/{playerNo}.json 생성 (prebuild·predev, lib/shots PlayerShotsFile: 점·구역·리그 합계, git 제외)
 │   ├── build-search-index.ts ← 검색용 경량 색인 public/search-index.json 생성 (npm prebuild·predev 로 자동 실행, 생성물은 .gitignore)
 │   └── build-cards.ts   ← 비교 탭용 시즌별 카드 데이터 public/cards/{seasonCode}.json 생성 (prebuild·predev, 형식은 lib/cards.ts v2 — 레이더 구성 요소 열 포함, 시즌당 약 28~55KB, git 제외)
 ├── tests/
@@ -152,10 +157,12 @@ kbl-stats/
 │   ├── roster.test.ts   ← 선수 마스터 매핑·포지션/국적 필터·용어집·카드 파일 인코딩 검증 (npm run test:roster)
 │   ├── cardview.test.ts ← 카드 순위 범위(전체/같은 포지션)·선수 그리드 정렬/필터·비교표·선수/선수 탭/비교 탭 주소·용어 앵커 검증 (npm run test:cardview)
 │   ├── badges.test.ts   ← 칭호 배지 조건·우선순위 (npm run test:badges)
+│   ├── shots-zones.test.ts ← lib/shots 정규화(양쪽 d 대칭)·3점 판정·구역 경계·집계·공격 유형·표본 미달·코트 그림 (npm run test:shotzones)
 │   ├── shots.test.ts    ← 슛 차트 월 구간·경기 목록 거르기·끝남 판정·형식 검사·이어받기 (npm run test:shots)
 │   ├── gamelogs.test.ts ← 경기별 기록 파싱·날짜 매칭·시도 수 붙이기·백필 대상 선정 (npm run test:gamelogs)
 │   └── highs.test.ts    ← 한 경기 최다 응답 파싱·프로필·매일 수집 대상 시즌(30일 경계)·백필 이어받기·시즌 하이 1위(동률·RATE 제외)·만 나이·커리어 하이 행 (npm run test:highs, 전부: npm test)
 ├── public/search-index.json ← 빌드 전 생성되는 검색 색인 (id·이름·최근 팀·첫/마지막 시즌·뛴 시즌 코드 seasons·photoUrl·팀 색·positionGroup·positionLabel, 약 370KB). git 제외
+├── public/shots/{seasonCode}/{playerNo}.json ← 빌드 전 생성되는 선수·시즌 슛 파일 (선수 상세 시즌 전환 때 받음, 최대 약 16KB). git 제외
 ├── public/cards/{seasonCode}.json ← 빌드 전 생성되는 시즌 카드 데이터 (선수 탭·선수 상세 시즌 전환·비교 탭이 브라우저에서 받음, lib/cards.ts SeasonCardsFile). git 제외
 ├── data/
 │   ├── codes/           ← 시즌·팀·경기구분 코드표 (API에서 받아 저장) + 손으로 관리하는 예외 둘: team-colors.json(팀 색), photo-overrides.json(사진 숨길 선수 번호 hide)
@@ -163,10 +170,11 @@ kbl-stats/
 │   │    + raw/highs/{seasonCode}/{playerNo}.json(한 경기 최다) + raw/gamelogs/{seasonCode}/{playerNo}.json(경기별 기록) + raw/profiles/{playerNo}.json(프로필)
 │   │    + raw/games/{seasonCode}/list.json(서버 C 경기 목록) + raw/shots/{seasonCode}/{gmkey}.json(슛 차트)
 │   ├── season-first-seen.json ← 시즌별 선수가 처음 수집된 날 (fetch.ts 가 기록, 직전 시즌 30일 판정용 상태 파일)
-│   └── processed/seasons.json, players-index.json(전 시즌 선수 색인: 번호·이름·photoUrl·프로필·birthday·country·school·careerHighs·시즌별 팀·경기), {seasonCode}/players.json(coverage·teams(logoUrl·color)·players(seasonHighs)·seasonHighLeaders)
+│   └── processed/{seasonCode}/shots.json(선수별 슛 좌표, 슛 차트 raw 가 있는 시즌만) + seasons.json, players-index.json(전 시즌 선수 색인: 번호·이름·photoUrl·프로필·birthday·country·school·careerHighs·시즌별 팀·경기), {seasonCode}/players.json(coverage·teams(logoUrl·color)·players(seasonHighs)·seasonHighLeaders)
 ├── lib/
 │   ├── metrics.ts       ← 파생 지표 계산 (순수 함수만: 백분위(반전 percentileRankLow 포함), 경기당·40분당 환산, 커버리지 판정, **레이더 5축 공격·수비·3점·허슬·효율**(RADAR_AXIS_COMPONENTS — 누적 기록은 경기당, 구성 요소 백분위 평균 → 집단 안 다시 백분위, 구성 요소 단위 커버리지·성공률 시도 기준), **등급은 국적 집단(국내/외국/아시아쿼터, 아시아쿼터 8명 미만이면 외국과 합산) 안** buildGradingContext·radarScore, USG% ×5 usgFromKbl, 유형 라벨(5축), 표본 프리셋 QUALIFY_PRESETS — 카드·순위표 공용, 플레이어 카드 스탯 10개 CARD_STATS(파울은 ranked:false)·시즌 순위 cardStats(동점 1,2,2,4 / 턴오버 오름차순 / 성공률 시도 기준 attemptThresholds = 경기당 시도 리그 평균, 순위표 공용)·메달 단계 rankTier, 등급 percentileGrade(S~F, 축 컷 90/75/55/35/15)·종합 등급 overallGrade(OVERALL_GRADE_CUTS 85/70/55/40/25)·기본 선수 pickDefaultPlayer(PER), 카드 한 장 계산 buildCardContext(순위 집단 + 등급 재료)·buildCardEntry, 통산 careerSummary(합계 ÷ 합계 경기))
 │   ├── career.ts        ← 선수 페이지 규칙 (순수 함수: 시즌 짧은 표기 seasonShortLabel, 활동 기간, 소속 팀 구간 teamStints, 추이 지표 TREND_METRICS·trendRows(빈 시즌 null), 프로필 한 줄 profileFacts, 만 나이 ageOn·personalFacts(나이·국적·출신교), 커리어 하이 표 careerHighRows·careerHighTabs, 업적 카드 careerHighAchievements·isSeasonBest)
+│   ├── shots.ts         ← 슛 차트 규칙 (순수: 픽셀→미터 normalizeShot(d=1 은 180° 돌림), 3점 판정 isThreePx, 구역 5개 SHOT_ZONES·shotZone(골밑 1.5m·페인트 5.8×4.9m·미드·코너 3점 베이스라인 3m·아크 3점), zoneSummary·zonePct·shareOf·leagueZoneAverages·zoneRows, 주 공격 유형 offenseType(문턱은 glossary OFFENSE_TYPES, 50개 미만 null), 저장 형식 ShotPoint·PlayerShotsFile·buildPlayerShotsFile, 코트 그림 courtGeometry·courtPoints) — scripts/shots.ts(수집)와 다른 파일
 │   ├── highs.ts         ← 한 경기 최다 규칙 (부문 15개 HIGH_DEFS(record/rate), 1위 계산 부문 11개 SEASON_HIGH_LEADER_KEYS(성공률 제외), **화면 부문 7개 HERO_HIGH_KEYS**(득점·리바·어시·스틸·블록·3점·자유투 성공), 슛 부문 SHOT_HIGH_KEYS·성공/시도 표기 formatHighShot("5/8 · 62.5%"), 시즌 하이 1위 computeSeasonHighLeaders(동률 → 먼저 달성), 표기, 순위표 카드 buildSeasonHighCards, 부문 대응 LEADER_CATEGORY_HIGH)
 │   ├── cardview.ts      ← 시즌 카드 데이터 → 화면 (순수 함수: 레이더 배치 radarGeometry(라벨 상자가 차트 안), 모바일 비교 막대 compareBarShares, 카드 한 장 buildSeasonCardView(시즌·순위 범위 전체/같은 포지션, 시도 기준은 항상 리그 값), 파울·출전 줄 cardFootStats, 선수 그리드 buildGridEntries·sortGridEntries(등급→PER)·filterGridEntries, 비교표 compareCardEntries(턴오버·파울은 낮은 쪽), 주소 쿼리: 선수 상세 ?season=&scope=pos(시즌 비교 ?vs= 는 없앰) · 선수 탭 ?season=&pos=&origin=&team= · 비교 탭 ?a=번호:코드&b=번호:코드)
 │   ├── search.ts        ← 선수 검색 (순수 함수: normalizeName(공백 무시)·matchScore·searchPlayers(최대 10명, 최근 선수 먼저)·buildSearchIndex)
@@ -176,7 +184,7 @@ kbl-stats/
 │   ├── home.ts          ← 홈 규칙 (HOME_CATEGORIES, pickHomeSeason(코드표 최신 시즌이 0명이면 직전 시즌 + 개막 전 안내), splitRecentSeasons)
 │   ├── roster.ts        ← 포지션·국적 규칙 (POSITION_LABELS, positionGroupOf(첫 글자), nationalityOf(마스터 없으면 isForeign)) + 비교 집단 필터 filterByPosition·filterByNationality + 쿼리 값 positionParam/FromParam·nationalityParam/FromParam (순위표·선수 탭·팀 분포 공용)
 │   ├── badges.ts        ← 칭호 배지 (순수: BADGE_DEFS 조건·우선순위, buildBadgeIndex(시즌별 최다 경기·경기당 1위), playerBadges, splitBadges(히어로 5개 + "+n")) — lib/data 가 빌드 시점에 계산
-│   ├── glossary.ts      ← 유형 라벨 PLAYER_TYPES(라벨·조건·설명, 문턱 TYPE_ALLROUNDER_MIN·TYPE_ROLE_MAX — playerType 이 읽음) + 용어 설명 데이터 GLOSSARY (지표별 한 줄 설명·공식·출처 URL·검산 메모) + 용어 탭 앵커 GLOSSARY_ANCHORS·glossaryHref(/glossary#ts)·순위표 열/레이더 축 → 용어 매핑. 계산 없음
+│   ├── glossary.ts      ← 주 공격 유형 OFFENSE_TYPES(라벨·조건·문턱 OFFENSE_*)·offenseTypeHelp + 유형 라벨 PLAYER_TYPES(라벨·조건·설명, 문턱 TYPE_ALLROUNDER_MIN·TYPE_ROLE_MAX — playerType 이 읽음) + 용어 설명 데이터 GLOSSARY (지표별 한 줄 설명·공식·출처 URL·검산 메모) + 용어 탭 앵커 GLOSSARY_ANCHORS·glossaryHref(/glossary#ts)·순위표 열/레이더 축 → 용어 매핑. 계산 없음
 │   ├── convert.ts       ← 시즌 파일 → 화면용 최소 필드 변환 toCardPlayers·toLeaderPlayers·toCardTeams (순수 — data.ts 와 prebuild 스크립트 공용)
 │   ├── cards.ts         ← public/cards 파일 형식 (열 형식 CARD_FIELDS, encodeSeasonCards·decodeSeasonCards, 기본 표본 기준 참고값 defaults)
 │   ├── data.ts          ← 빌드 시점에 data/processed 읽기 (서버 전용, loadSeasonHighCards·loadCareerHighTabs·teamNameInSeason(한 경기 최다, 필드 없으면 빈 배열), listAllSeasons(코드표 전체)·loadPlayersIndex·toCardPlayers·toCardTeams·toLeaderPlayers·loadPlayerCareer(선수 전 시즌 행)·loadSeasonCardsFile/loadSeasonCards(public/cards 와 같은 encode→decode — 정적 HTML 첫 카드용))
@@ -196,7 +204,7 @@ kbl-stats/
 │   └── components/      ← SiteNav(상단: 사이트 이름·검색창(선수 탭은 hideSearch)·시즌 선택(순위표·팀 분포·선수 탭만)·메뉴 홈/선수/순위표/팀 분포/비교 — 용어는 메뉴에서 뺌), PlayerSearch(상단·큰 검색창·onSelect 선택 모드), useSearchIndex(/search-index.json 한 번 fetch — 우리 정적 파일),
 │                           RowList(표 대신: 모바일 행 카드 펼침 / PC 전체 표, 가로 스크롤 없음, pageSize "더 보기" — 순위표·기록표·팀 분포 표), FilterSheet(필터 버튼+요약 칩 → 모바일 바텀시트 / PC 인라인 패널, FilterGroup), icons(인라인 SVG 모음 16/20/24: 검색·닫기·꺾쇠·필터·정보·화살표·바깥 링크), Skeleton(불러오는 중 자리, PlayerCardSkeleton 은 PlayerCard.tsx), webFont(Pretendard CSS 주소 한 곳 + 카드 저장용 글꼴 조각 넣기),
 │                           useSeasonCards(/cards/{코드}.json fetch·캐시, useCardView), PlayersView(선수 탭), PlayerSeasonCards(선수 상세 카드 영역), CompareView(비교 탭), CardDeck(카드 1~2장 + PNG 저장), CompareTable(비교표·증감), ChipRow, InfoLink(ⓘ → HelpPopover), HelpPopover(그 자리 도움말 팝오버: PC 옆 상자·모바일 하단 시트, 한 번에 하나), CompareHeadToHead(비교 탭 모바일 좌우 비교),
-│                           PlayerHero·CareerTrend(Recharts LineChart)·CareerTable·CareerHighs(선수 페이지), SeasonHighStrip(순위표 한 경기 최다 줄), Segmented, useCardSave(카드 PNG 저장), useMedia,
+│                           PlayerHero·CareerTrend(Recharts LineChart)·CareerTable·CareerHighs·ShotChart(직접 그린 하프코트 SVG + 구역표 + 공격 유형 칩, /shots fetch)(선수 페이지), SeasonHighStrip(순위표 한 경기 최다 줄), Segmented, useCardSave(카드 PNG 저장), useMedia,
 │                           PlayerCard(게임식 플레이어 카드: 팀 색 상단+큰 사진 / 스탯 9개+순위(전체 또는 "가드 중") / 파울·출전 줄 / 레이더+등급, 입력은 SeasonCardView 하나),
 │                           LeadersView(순위표), TeamsView(팀 분포 산점도·팀 요약), HomeView(홈), SourceFooter, useThemeColors,
 │                           PlayerAvatar(circle·portrait)·TeamLogo(공식 이미지+대체 디자인, official={false}면 대체만), useOfficialImage(저장 filter excludeOfficialImages)
@@ -231,6 +239,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-09-30 (슛 차트·공격 유형, PLAN.md §14): `lib/shots.ts`(좌표 정규화·3점 판정·구역 5개·집계·주 공격 유형·코트 그림) + `OFFENSE_TYPES`(glossary). process 가 시즌 47·45 슛 raw → `shotZones`·`shotZoneLeague`·`coverage.shots`·`processed/{시즌}/shots.json`(나머지 시즌 null·false, 다른 필드 diff 0). `build-shots.ts` → `public/shots`(383개). 선수 상세 추이 아래 "슛 차트"(하프코트 SVG 점 + 구역표 + 유형 칩 ⓘ, 시즌 칩 연동·없는 시즌 한 줄), 플레이어 카드 유형 라벨 옆 공격 유형 칩(PNG 포함), 용어 탭 "슛 구역"·"주 공격 유형". 결과: 워니 2025-26 슛 1,091(공식 FGA 와 같음) 골밑 132·75.0%/페인트 434·51.2%/미드 214·31.3%/코너 1·0%/아크 310·30.3% → 균형형(안 51.9%), 2024-25 골밑 공격형. 2025-26 유형: 3점 슈터형 56·골밑 23·인사이드-아웃 22·균형 19·미드레인지 5·유형 없음 68(슛 50개 미만 60·슛 없음 8). 검증: typecheck·test(shotzones 추가)·build·slop 0, Playwright 3명 × 390/1024/1280 × 라이트/다크.
 - 2026-09-30 (피드백 5차, PLAN.md §13): ① PC(1024↑) 선수 상세 가로 플레이어 카드(`PlayerCard layout="horizontal"`, 높이 458~493px) + 추이 아래·하이라이트 오른쪽 열 ② 레이더 구성 요소 40분당 → 경기당(`*PerGame`, 2025-26 국내 종합 S 1→8명, 벤치 롤 플레이어 하락 — 함지훈 A→B) ③ 커리어 하이 업적 카드 7장(`careerHighAchievements`: 시즌 최다·40/50득점 칩, PO·챔프전 보조 줄) ④ 메뉴 "용어" 제거 → ⓘ 그 자리 팝오버 `HelpPopover`(InfoLink·칭호 배지·카드 유형 라벨) ⑤ 레이더 위 등급 칩 잘림 원인 = Recharts 라벨 8px 바깥 → `radarGeometry` ⑥ 비교 탭 모바일 좌우 비교 `CompareHeadToHead` + "카드 보기" 토글. 검증: typecheck·test·build·slop 0, Playwright 4화면 × 390/1024/1280/1440 × 라이트/다크 32회 가로 스크롤 0·콘솔 에러 0·레이더 라벨 5개 전부 차트·뷰포트 안, 팝오버 열기/ESC/바깥/하나만/aria-describedby, 카드 PNG 저장.
 - 2026-09-30 (슛 차트 수집): 서버 C 경기 목록(`/match/list`, 월 단위)·슛 차트(`/match/{gmkey}/match-chart`) raw 수집기. 매일은 한 경기 최다와 같은 대상 시즌의 목록을 오늘까지 달만 다시 받고 새로 끝난 정규시즌 경기만(보통 0~5회, 빈 차트는 저장 안 함), 과거는 `backfill-shots.yml`(`# 대상 시즌` 줄로 시즌 지정 — 처음은 47, 시즌당 약 280회 ≈ 7분, 전체 30개 시즌 약 8,400회 ≈ 3.8시간 추정). 가공·화면은 없음(좌표 형식을 실제 raw 로 확인한 뒤). 세션 환경은 KBL 차단(api.kbl.or.kr 403) → 가짜 fetch 로 daily/backfill 흐름·이어받기만 확인. 검증: typecheck·test(shots 추가)·build, raw/games·shots 가 있어도 process 정상. 미확인: `isEnded` 실제 값 형태, 옛 시즌(1997~)이 서버 C 목록·차트에 있는지, 경기당 raw 크기.
 - 2026-09-30 (한 경기 최다 7개·슛 시도 수·종합 컷): PLAN.md §11. ① 커리어 하이 표·순위표 "이 시즌 한 경기 최다"·하이라이트 대체 카드를 7개(`lib/highs HERO_HIGH_KEYS` 득점·리바·어시·스틸·블록·3점·자유투 성공)로 — 나머지 부문은 processed 에 그대로. ② 서버 B 경기별 기록 수집 시작: 매일 현재 시즌 선수 전원(한 경기 최다와 같은 대상 시즌), 과거는 `backfill-gamelogs.yml`(커리어 하이 득점·3점·자유투 시즌만, 1,918회, `# 실행 횟수: 0`). process 가 3점·자유투·야투 성공 하이에 같은 날짜 경기의 `attempts`·`pct`(성공 개수 일치할 때만), 화면은 값 옆 "8/12 · 66.7%". ③ 종합 등급 전용 컷 `OVERALL_GRADE_CUTS` 85/70/55/40/25(축 컷 90/75/55/35/15 그대로) → 2025-26 국내 S 1(이정현)·A 13, 외국 S 0·A 0·B 11, 강성욱 A·워니 B. 검증: typecheck·test(10개)·build, 가짜 경기별 raw 2명(워니·허웅)으로 /player/291248·/season/47/leaders 390/1280 가로 넘침 0·콘솔 에러 0(외부 이미지·CDN 차단 제외) 확인 후 삭제, slop 0. 세션 환경은 KBL 차단 → 경기별 기록 응답의 fg/fdg 뜻은 첫 Actions 실행에서 확인할 것.
