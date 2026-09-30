@@ -12,7 +12,9 @@
     "fetch:all": "tsx scripts/fetch.ts --all",
     "process": "tsx scripts/process.ts",
     "typecheck": "tsc --noEmit -p tsconfig.scripts.json && tsc --noEmit -p tsconfig.json",
-    "test:metrics": "tsx tests/metrics.test.ts"
+    "test:metrics": "tsx tests/metrics.test.ts",
+    "test:leaders": "tsx tests/leaders.test.ts",
+    "test": "npm run test:metrics && npm run test:leaders"
   },
   "engines": {
     "node": ">=20"

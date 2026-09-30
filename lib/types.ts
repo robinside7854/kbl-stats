@@ -154,3 +154,30 @@ export interface SeasonOption {
   seasonCode: number;
   seasonLabel: string;
 }
+
+/**
+ * 시즌 순위표(/season/[코드]/leaders)로 넘기는 최소 필드 (lib/data.ts toLeaderPlayers 에서 변환).
+ * 누적값은 시즌 합계 그대로 넘기고, 경기당 환산은 화면이 lib/leaders.ts(→ metrics.perGame)로 한다.
+ */
+export interface LeaderPlayer {
+  id: string;             // playerNo (동명이인 → key 는 항상 이것)
+  nameKo: string;
+  nameEn: string;
+  teamCode: string;
+  teamShort: string;      // 팀 목록에 없는 경우의 대체 표기용
+  isForeign: boolean;
+  photoUrl: string | null;
+  games: number;
+  minutes: number;        // 시즌 누적 (분)
+  points: number;         // 이하 시즌 누적
+  reb: number;
+  ast: number;
+  stl: number;
+  blk: number;
+  tpm: number;            // 3점 성공
+  fgPct: number;          // 이하 KBL 계산값 그대로 (0~100)
+  tsPct: number;
+  per: number;
+  usgPct: number;         // coverage.advanced 시즌에만 의미 있음
+  pie: number;
+}

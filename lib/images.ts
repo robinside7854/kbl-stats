@@ -29,3 +29,14 @@ export function teamMark(shortName: string): string {
   if (words.length > 1) return words.map((w) => [...w][0]).join("").slice(0, 3).toUpperCase();
   return [...s].slice(0, 3).join("");
 }
+
+/**
+ * 표·목록에 쓰는 팀 약칭. 옛 시즌 약칭은 영문 대문자라 길다(예: "DAEWOO SECURITIES").
+ * maxLength(기본 9) 글자 이하면 그대로, 넘으면 teamMark 와 같은 규칙(여러 단어면 머리글자)으로 줄인다.
+ * 예: "SK" → "SK", "TG SAMBO" → "TG SAMBO", "HYUNDAI MOBIS" → "HM", "DAEWOO SECURITIES" → "DS".
+ */
+export function teamShortLabel(shortName: string, maxLength = 9): string {
+  const s = shortName.trim();
+  if ([...s].length <= maxLength) return s;
+  return teamMark(s);
+}

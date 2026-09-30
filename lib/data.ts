@@ -3,7 +3,7 @@
 import "server-only";
 import fs from "node:fs";
 import path from "node:path";
-import type { CardPlayer, CardTeam, PlayerIndexEntry, SeasonData, SeasonOption } from "./types";
+import type { CardPlayer, CardTeam, LeaderPlayer, PlayerIndexEntry, SeasonData, SeasonOption } from "./types";
 
 const PROCESSED_DIR = path.join(process.cwd(), "data", "processed");
 
@@ -57,6 +57,33 @@ export function toCardPlayers(season: SeasonData): CardPlayer[] {
     tsPct: p.tsPct,
     astPct: p.astPct,
     rebPct: p.rebPct,
+    pie: p.pie,
+  }));
+}
+
+/** 순위표에 넘길 최소 필드만 추린다 (Player 전체를 클라이언트로 보내지 않는다) */
+export function toLeaderPlayers(season: SeasonData): LeaderPlayer[] {
+  const photoById = new Map(loadPlayersIndex().map((e) => [e.id, e.photoUrl]));
+  return season.players.map((p) => ({
+    id: p.playerNo,
+    nameKo: p.nameKo,
+    nameEn: p.nameEn,
+    teamCode: p.teamCode,
+    teamShort: p.teamShort,
+    isForeign: p.isForeign,
+    photoUrl: photoById.get(p.playerNo) ?? null,
+    games: p.games,
+    minutes: p.minutes,
+    points: p.points,
+    reb: p.reb,
+    ast: p.ast,
+    stl: p.stl,
+    blk: p.blk,
+    tpm: p.tpm,
+    fgPct: p.fgPct,
+    tsPct: p.tsPct,
+    per: p.per,
+    usgPct: p.usgPct,
     pie: p.pie,
   }));
 }

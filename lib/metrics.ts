@@ -93,6 +93,21 @@ export interface QualifyRule {
 /** 기본 기준: 10경기 이상 AND 누적 100분 이상. 1997 시즌(팀당 21경기)에서도 절반 수준이라 무리 없음. */
 export const DEFAULT_QUALIFY: QualifyRule = { minGames: 10, minMinutes: 100 };
 
+/**
+ * 표본 기준 프리셋 (첫 번째가 기본값). 레이더 카드의 백분위 비교 집단과 순위표의 표본 필터가
+ * 같은 목록을 쓴다 — 화면마다 기준이 달라 "같은 선수가 한쪽에만 보이는" 일을 막기 위해.
+ */
+export const QUALIFY_PRESETS: readonly QualifyRule[] = [
+  DEFAULT_QUALIFY,
+  { minGames: 20, minMinutes: 300 },
+  { minGames: 30, minMinutes: 500 },
+  { minGames: 5, minMinutes: 50 },
+];
+/** 프리셋 긴 표기, 예: "10경기·100분 이상" */
+export const qualifyLabel = (r: QualifyRule) => `${r.minGames}경기·${r.minMinutes}분 이상`;
+/** 모바일 선택 상자용 짧은 표기, 예: "10경기·100분+" */
+export const qualifyShort = (r: QualifyRule) => `${r.minGames}경기·${r.minMinutes}분+`;
+
 export function isQualified(p: { games: number; minutes: number }, rule: QualifyRule): boolean {
   return p.games >= rule.minGames && p.minutes >= rule.minMinutes;
 }

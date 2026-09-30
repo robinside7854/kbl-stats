@@ -11,6 +11,9 @@ import {
   perGame,
   percentileRank,
   playerType,
+  QUALIFY_PRESETS,
+  qualifyLabel,
+  qualifyShort,
   radarAxes,
   radarPercentiles,
   seasonCoverage,
@@ -131,3 +134,9 @@ assert.equal(playerType({ usgPct: 99, pie: 99, pts40: 10, tsPct: 20, ast40: 30, 
 assert.equal(playerType({ usgPct: 90, pie: 90 }, "classic").label, "분석 불가"); // classic 축이 하나도 없음
 
 console.log("metrics: 모든 검사 통과");
+
+// 표본 기준 프리셋: 첫 번째가 기본값 (레이더·순위표 공용)
+assert.equal(QUALIFY_PRESETS[0], DEFAULT_QUALIFY);
+assert.equal(qualifyLabel(DEFAULT_QUALIFY), "10경기·100분 이상");
+assert.equal(qualifyShort(DEFAULT_QUALIFY), "10경기·100분+");
+console.log("metrics: 표본 프리셋 검사 통과");
