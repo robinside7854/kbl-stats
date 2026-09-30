@@ -14,6 +14,8 @@ import {
 } from "../lib/teams";
 import {
   DEFAULT_DISTRIBUTION_STATE,
+  distributionFilterChips,
+  clearDistributionFilter,
   distributionQueryString,
   formatShare,
   parseDistributionQuery,
@@ -127,5 +129,11 @@ assert.deepEqual(pickHomeSeason([], []), { shown: null, upcoming: null });
 const split = splitRecentSeasons([1, 2, 3, 4, 5, 6, 7, 8].map(S), 6);
 assert.deepEqual(split.recent.map((s) => s.seasonCode), [8, 7, 6, 5, 4, 3]);
 assert.deepEqual(split.older.map((s) => s.seasonCode), [2, 1]);
+
+// 팀 분포 필터 칩: 포지션·표본 기준만 (지표·팀은 1차 컨트롤)
+assert.deepEqual(distributionFilterChips(DEFAULT_DISTRIBUTION_STATE), []);
+const dfs = { ...DEFAULT_DISTRIBUTION_STATE, teams: ["55"], position: "F" as const, presetIdx: 2 };
+assert.deepEqual(distributionFilterChips(dfs).map((c) => `${c.field}:${c.label}`), ["position:포워드", "presetIdx:30경기·500분+"]);
+assert.deepEqual(clearDistributionFilter(dfs, "presetIdx"), { ...dfs, presetIdx: 0 });
 
 console.log("teams.test.ts: 모든 테스트 통과");

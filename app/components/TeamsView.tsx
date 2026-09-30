@@ -4,15 +4,18 @@
 //   팀 칩이 범례와 필터를 겸한다: 전체 / 한 팀 강조 / 두 팀 비교 — 선택 팀만 진하게, 나머지는 옅게.
 //   두 팀 비교 때 색이 비슷하면 팔레트 1·2번으로 바꾸고(comparePairColors), 두 번째 팀 점은 네모 → 모양으로도 구분.
 // - 점을 누르면 아래 작은 카드(이름·팀·값·선수 기록 링크). PC 는 올리면 툴팁도 뜬다. 모바일은 툴팁 없이 카드만.
-// - 포지션 칩(전체/가드/포워드/센터): 점만 거른다 (lib/roster filterByPosition). 팀 의존도 카드는 팀 전체 기준 그대로.
+// - 포지션(전체/가드/포워드/센터)·표본 기준은 "필터" 시트(FilterSheet): 점만 거른다 (lib/roster filterByPosition). 팀 의존도 카드는 팀 전체 기준 그대로.
+// - "표로 보기"는 RowList(모바일 행 카드 / PC 표, 가로 스크롤 없음, 25명씩 더 보기).
 // - 계산은 전부 lib/distribution.ts·lib/teams.ts·lib/roster.ts 순수 함수. 상태는 주소 쿼리(?teams=&y=&q=&pos=&p=)에 남긴다.
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { CartesianGrid, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis } from "recharts";
 import type { CardTeam, LeaderPlayer } from "@/lib/types";
-import { QUALIFY_PRESETS, qualifyLabel, qualifyShort } from "@/lib/metrics";
+import { QUALIFY_PRESETS, qualifyLabel } from "@/lib/metrics";
 import {
+  clearDistributionFilter,
   DEFAULT_DISTRIBUTION_STATE,
+  distributionFilterChips,
   distributionQueryString,
   formatMinutes,
   formatScatterY,
@@ -30,7 +33,11 @@ import {
 import { assignTeamColors, comparePairColors, ensureMarkContrast, teamDependency } from "@/lib/teams";
 import { teamShortLabel } from "@/lib/images";
 import { filterByPosition, POSITION_FILTERS, positionFilterLabel, positionLabel } from "@/lib/roster";
+import FilterSheet, { FilterGroup } from "./FilterSheet";
+import { IconChevronRight, IconClose } from "./icons";
+import InfoLink from "./InfoLink";
 import PlayerAvatar from "./PlayerAvatar";
+import RowList from "./RowList";
 import Segmented from "./Segmented";
 import TeamLogo from "./TeamLogo";
 import { useMedia } from "./useMedia";
@@ -145,49 +152,23 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
       <header className="mb-4">
         <p className="text-xs font-medium text-ink-3">{seasonLabel} KBL 정규시즌</p>
         <h1 className="mt-0.5 text-xl font-bold tracking-tight">팀별 선수 분포</h1>
-        <p className="mt-1 text-sm text-ink-2">
-          점 하나가 선수 한 명입니다. 오른쪽일수록 많이 뛰고, 위쪽일수록 {metric.label} 값이 높습니다. 팀을 고르면 그 팀만
-          진하게, 두 팀을 고르면 나란히 비교합니다.
-        </p>
       </header>
 
-      {/* 조작: 세로축 지표 · 표본 기준 · 팀(범례 겸용) */}
+      {/* 1차 컨트롤: 세로축 지표 + 팀 범례 칩(필터 겸용). 포지션·표본 기준은 FilterSheet (디자인 점검 A2) */}
       <section aria-label="보기 설정" className="space-y-3">
-        <div className="flex flex-wrap items-end gap-2">
-          <Segmented
-            label="세로축 지표"
-            options={SCATTER_METRICS.map((m) => ({ value: m.key, label: m.label }))}
-            value={yKey}
-            onChange={(v) => update({ yKey: v })}
-          />
-          <Segmented
-            label="포지션"
-            options={POSITION_FILTERS.map((f) => ({ value: f, label: positionFilterLabel(f) }))}
-            value={position}
-            onChange={(v) => update({ position: v })}
-          />
-          <label className="flex min-w-0 items-center gap-2 text-xs font-medium text-ink-2">
-            <span className="shrink-0">표본 기준</span>
-            <select
-              className="h-10 min-w-0 rounded-lg border border-line bg-surface px-2 text-base text-ink sm:text-sm"
-              value={presetIdx}
-              onChange={(e) => update({ presetIdx: Number(e.target.value) })}
-            >
-              {QUALIFY_PRESETS.map((r, i) => (
-                <option key={i} value={i}>
-                  {qualifyShort(r)}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
+        <Segmented
+          label="세로축 지표"
+          options={SCATTER_METRICS.map((m) => ({ value: m.key, label: m.label }))}
+          value={yKey}
+          onChange={(v) => update({ yKey: v })}
+        />
 
         <div role="group" aria-label="팀 선택 (최대 두 팀)" className="flex flex-wrap gap-1.5">
           <button
             type="button"
             aria-pressed={selected.length === 0}
             onClick={() => update({ teams: [] })}
-            className={`h-9 rounded-full border px-3 text-sm font-semibold ${
+            className={`focus-ring h-10 cursor-pointer rounded-full border px-3 text-sm font-semibold transition-colors duration-200 ${
               selected.length === 0 ? "border-ink bg-ink text-bg" : "border-line bg-surface text-ink-2 hover:bg-surface-2"
             }`}
           >
@@ -202,7 +183,7 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
                 type="button"
                 aria-pressed={on}
                 onClick={() => update({ teams: toggleTeam(selected, t.teamCode) })}
-                className={`flex h-9 items-center gap-1.5 rounded-full border py-1 pl-1.5 pr-3 text-sm font-semibold ${
+                className={`focus-ring flex h-10 cursor-pointer items-center gap-1.5 rounded-full border py-1 pl-1.5 pr-3 text-sm font-semibold transition-colors duration-200 ${
                   on ? "border-ink bg-surface-2 text-ink ring-1 ring-ink" : "border-line bg-surface text-ink-2 hover:bg-surface-2"
                 } ${dim ? "opacity-60" : ""}`}
               >
@@ -213,11 +194,40 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
             );
           })}
         </div>
-        <p className="text-xs text-ink-3">
-          {qualifyLabel(rule)} 출전한 {position !== "all" ? `${positionFilterLabel(position)} ` : ""}선수 {points.length}명 · {selectionText}
-          {selected.length === 1 && " 강조 · 한 팀을 더 누르면 두 팀 비교"}
-          {selected.length === 2 && " 비교 (두 번째 팀은 네모 점)"}
-        </p>
+
+        <FilterSheet
+          chips={distributionFilterChips(state).map((c) => ({
+            key: c.field,
+            label: c.label,
+            onClear: () => setState((st) => clearDistributionFilter(st, c.field)),
+          }))}
+          onReset={() => update({ position: "all", presetIdx: DEFAULT_DISTRIBUTION_STATE.presetIdx })}
+          resultText={`${points.length}명 보기`}
+          trailing={`${points.length}명 · ${selectionText}${selected.length === 2 ? " (두 번째 팀은 네모)" : ""}`}
+        >
+          <FilterGroup label="포지션" hint="점만 거릅니다. 아래 팀 의존도는 팀 전체 기준">
+            <Segmented
+              label="포지션"
+              options={POSITION_FILTERS.map((f) => ({ value: f, label: positionFilterLabel(f) }))}
+              value={position}
+              onChange={(v) => update({ position: v })}
+            />
+          </FilterGroup>
+          <FilterGroup label="표본 기준 (고급)" hint={<>이 기준을 넘긴 선수만 점으로 찍습니다 <InfoLink term="qualify" className="h-5 w-5" /></>}>
+            <select
+              aria-label="표본 기준"
+              className="focus-ring h-11 w-full min-w-0 max-w-xs cursor-pointer rounded-lg border border-line bg-surface px-2 text-base text-ink"
+              value={presetIdx}
+              onChange={(e) => update({ presetIdx: Number(e.target.value) })}
+            >
+              {QUALIFY_PRESETS.map((r, i) => (
+                <option key={i} value={i}>
+                  {qualifyLabel(r)}
+                </option>
+              ))}
+            </select>
+          </FilterGroup>
+        </FilterSheet>
       </section>
 
       {/* 산점도 */}
@@ -356,40 +366,72 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
           )}
         </div>
         <p className="mt-2 text-[11px] leading-snug text-ink-3">
-          {metric.note}. 가로축 = 시즌 누적 출전시간 ÷ 출전 경기. {qualifyLabel(rule)} 선수만 표시합니다. 팀 색이 비슷한
-          팀끼리는 점 색만으로 구분하기 어려우니 팀을 골라 보세요.
+          {metric.note}. 가로축은 경기당 출전시간, {qualifyLabel(rule)} 선수만. 색이 비슷한 팀은 팀 칩으로 골라 보세요.
         </p>
         <details className="mt-2 text-sm">
-          <summary className="cursor-pointer text-xs font-semibold text-ink-2">
+          <summary className="focus-ring flex h-10 cursor-pointer items-center rounded-lg text-xs font-semibold text-ink-2 hover:text-ink">
             표로 보기 ({selected.length ? selectionText : "전체"} {tableRows.length}명)
           </summary>
-          <div className="mt-2 max-h-80 overflow-auto rounded-lg border border-line">
-            <table className="tabular w-full text-xs">
-              <thead className="sticky top-0 bg-surface-2 text-ink-3">
-                <tr>
-                  <th scope="col" className="px-2 py-1.5 text-left font-medium">선수</th>
-                  <th scope="col" className="px-2 py-1.5 text-left font-medium">팀</th>
-                  <th scope="col" className="px-2 py-1.5 text-right font-medium">출전</th>
-                  <th scope="col" className="px-2 py-1.5 text-right font-medium">{metric.short}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {tableRows.map((d) => (
-                  <tr key={d.player.id} className="border-t border-line">
-                    <td className="px-2 py-1">
-                      <Link href={`/player/${d.player.id}`} className="font-semibold text-ink underline-offset-2 hover:underline">
-                        {d.player.nameKo}
-                      </Link>
-                    </td>
-                    <td className="px-2 py-1 text-ink-2">
-                      {teamShortLabel(teamByCode.get(d.player.teamCode)?.shortName ?? d.player.teamShort)}
-                    </td>
-                    <td className="px-2 py-1 text-right text-ink-2">{formatMinutes(d.x)}</td>
-                    <td className="px-2 py-1 text-right font-semibold text-ink">{formatScatterY(d.y, yKey)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="mt-1">
+            <RowList
+              rows={tableRows}
+              rowKey={(d) => d.player.id}
+              caption={`${seasonLabel} ${metric.label}와 경기당 출전시간, ${selectionText}`}
+              pageSize={25}
+              resetKey={`${distributionQueryString({ ...state, playerId: null })}`}
+              columns={[
+                {
+                  key: "player",
+                  header: "선수",
+                  align: "left",
+                  rowHeader: true,
+                  className: "font-normal",
+                  cell: (d) => (
+                    <Link href={`/player/${d.player.id}`} className="focus-ring rounded font-semibold text-ink underline-offset-2 hover:underline">
+                      {d.player.nameKo}
+                    </Link>
+                  ),
+                },
+                { key: "team", header: "팀", align: "left", cell: (d) => teamShortLabel(teamByCode.get(d.player.teamCode)?.shortName ?? d.player.teamShort) },
+                { key: "pos", header: "포지션", align: "left", cell: (d) => positionLabel(d.player.position) ?? "–" },
+                { key: "games", header: "경기", cell: (d) => d.player.games },
+                { key: "x", header: "출전(분)", cell: (d) => formatMinutes(d.x) },
+                { key: "y", header: metric.short, active: true, cell: (d) => formatScatterY(d.y, yKey) },
+              ]}
+              rowLabel={(d) => `${d.player.nameKo}, ${metric.label} ${formatScatterY(d.y, yKey)}, 자세히`}
+              summary={(d) => {
+                const t = teamByCode.get(d.player.teamCode);
+                return (
+                  <>
+                    <Swatch color={d.color} square={d.square} />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[15px] font-semibold leading-tight text-ink">{d.player.nameKo}</span>
+                      <span className="tabular block truncate text-xs text-ink-3">
+                        {teamShortLabel(t?.shortName ?? d.player.teamShort)} · 출전 {formatMinutes(d.x)}
+                      </span>
+                    </span>
+                    <span className="shrink-0 text-right">
+                      <span className="tabular block text-lg font-bold leading-tight text-ink">{formatScatterY(d.y, yKey)}</span>
+                      <span className="block text-[11px] leading-tight text-ink-3">{metric.short}</span>
+                    </span>
+                  </>
+                );
+              }}
+              details={(d) => [
+                { key: "games", label: "경기", value: d.player.games },
+                { key: "pos", label: "포지션", value: positionLabel(d.player.position) ?? "–" },
+                { key: "x", label: "경기당 출전", value: formatMinutes(d.x) },
+                { key: "y", label: metric.label, value: formatScatterY(d.y, yKey), strong: true },
+              ]}
+              detailFooter={(d) => (
+                <Link
+                  href={`/player/${d.player.id}`}
+                  className="focus-ring inline-flex h-10 items-center gap-1 rounded-lg px-1 text-sm font-semibold text-ink underline-offset-4 hover:underline"
+                >
+                  {d.player.nameKo} 선수 페이지 <IconChevronRight size={16} />
+                </Link>
+              )}
+            />
           </div>
         </details>
       </section>
@@ -399,10 +441,7 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
         <h2 id="dep-title" className="text-base font-bold">
           팀별 핵심 의존도
         </h2>
-        <p className="mt-1 text-xs text-ink-3">
-          상위 3명 득점 비중 = 팀 득점 1~3위 선수의 시즌 득점 합 ÷ 팀 선수 전원의 시즌 득점 합. 높을수록 소수에게 기대는 팀.
-          카드를 누르면 위 산점도에서 그 팀을 강조합니다.
-        </p>
+        <p className="mt-1 text-xs text-ink-3">팀 득점 1~3위의 득점 합 ÷ 팀 전체 득점. 높을수록 소수에게 기댑니다.</p>
         <ul className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
           {deps.map(({ team: t, dep }) => {
             const on = selected.includes(t.teamCode);
@@ -438,7 +477,7 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
           })}
         </ul>
         <p className="mt-2 text-[11px] leading-snug text-ink-3">
-          선수 기록을 합친 값이라 KBL 공식 팀 기록과 다를 수 있습니다(시즌 중 이적한 선수는 KBL 기록상 소속 팀 한 곳으로 집계).
+          선수 기록을 합친 값이라 KBL 공식 팀 기록과 다릅니다(시즌 중 이적한 선수는 KBL 기록상 소속 팀 한 곳으로 집계).
         </p>
       </section>
     </main>
@@ -482,16 +521,16 @@ function SelectedCard({
         type="button"
         onClick={onClose}
         aria-label="선수 카드 닫기"
-        className="-mr-1 flex h-8 w-6 shrink-0 items-center justify-center text-ink-3 hover:text-ink sm:order-last"
+        className="focus-ring -mr-2 flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg text-ink-3 transition-colors duration-200 hover:text-ink sm:order-last"
       >
-        ✕
+        <IconClose size={20} />
       </button>
       {/* 모바일은 아래 줄 전체 폭, 640px 이상은 같은 줄 오른쪽 */}
       <Link
         href={`/player/${p.id}`}
         className="w-full shrink-0 rounded-lg bg-ink px-2.5 py-2 text-center text-xs font-semibold text-bg hover:opacity-90 sm:w-auto"
       >
-        선수 기록 보기 ›
+        선수 기록 보기
       </Link>
     </div>
   );

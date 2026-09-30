@@ -3,8 +3,8 @@
 // 팀 색 배정·의존도는 lib/teams.ts, 경기당 환산은 lib/metrics.ts perGame.
 // USG%·PIE 는 쓰지 않는다 (2025-26에만 있고, 사용자가 어려운 지표라 빼 달라고 함 — 2026-09-30).
 
-import { isQualified, perGame, QUALIFY_PRESETS, type QualifyRule } from "./metrics";
-import { positionFromParam, positionParam, type PositionFilter } from "./roster";
+import { isQualified, perGame, QUALIFY_PRESETS, qualifyShort, type QualifyRule } from "./metrics";
+import { positionFilterLabel, positionFromParam, positionParam, type PositionFilter } from "./roster";
 
 export type ScatterYKey = "per" | "tsPct" | "points";
 
@@ -165,4 +165,24 @@ export function formatMinutes(v: number): string {
 /** 의존도 비중 표기, 예: "62%" (null → "–") */
 export function formatShare(v: number | null): string {
   return v === null || !Number.isFinite(v) ? "–" : `${Math.round(v)}%`;
+}
+
+// ─────────────────────────────────────────────
+// 적용 중 필터 요약 칩 (디자인 점검 A2). 지표·팀은 항상 보이는 1차 컨트롤이라 칩에 넣지 않는다
+// ─────────────────────────────────────────────
+
+export type DistributionFilterField = "position" | "presetIdx";
+
+/** 기본값 아닌 필터만 { field, label } 로 (lib/leaders leaderFilterChips 와 같은 형식) */
+export function distributionFilterChips(s: DistributionState): { field: DistributionFilterField; label: string }[] {
+  const d = DEFAULT_DISTRIBUTION_STATE;
+  const out: { field: DistributionFilterField; label: string }[] = [];
+  if (s.position !== d.position) out.push({ field: "position", label: positionFilterLabel(s.position) });
+  if (s.presetIdx !== d.presetIdx) out.push({ field: "presetIdx", label: qualifyShort(QUALIFY_PRESETS[s.presetIdx]) });
+  return out;
+}
+
+/** 칩의 ✕: 그 항목만 기본값으로 */
+export function clearDistributionFilter(s: DistributionState, field: DistributionFilterField): DistributionState {
+  return { ...s, [field]: DEFAULT_DISTRIBUTION_STATE[field] };
 }
