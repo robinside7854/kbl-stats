@@ -1,12 +1,13 @@
 // 선수 페이지 (PLAN.md §2-2, §3 ③): 선수 색인(players-index.json)의 전원을 빌드 때 정적 생성한다.
-// 구성(모바일 우선): 머리말(팀 색·사진·칭호 배지·프로필·나이·국가·출신교·통산 요약 8칸) → 시즌 칩 + 플레이어 카드(순위 범위) + 시즌별 추이·하이라이트 3개(PC 는 카드 옆 열, 카드 높이에 맞춤)
-// → 시즌별 기록표 → 커리어 하이(통산 한 경기 최다, 데이터 없으면 숨김).
+// 구성(모바일 우선): 머리말(팀 색·사진·칭호 배지·프로필·나이·국가·출신교·통산 요약 8칸) → 시즌 칩 + 플레이어 카드(순위 범위, PC 는 가로 카드) → 시즌별 추이 + 하이라이트 3개(PC 는 추이 오른쪽 열)
+// → 시즌별 기록표 → 커리어 하이(통산 한 경기 최다 업적 카드 7개, 데이터 없으면 숨김).
 // 데이터는 lib/data.ts 가 빌드 시점에 읽어 필요한 필드만 클라이언트 컴포넌트로 넘긴다.
 // 카드: 가장 최근 시즌·전체 범위는 여기서 계산해 정적 HTML에 넣고(lib/cardview), 다른 시즌·범위는 브라우저가 /cards/{코드}.json 으로.
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import {
   listSeasonsWithPlayers,
+  loadCareerHighAchievements,
   loadCareerHighTabs,
   loadPlayerBadges,
   loadPlayerCareer,
@@ -17,6 +18,7 @@ import {
 import { activeSpanLabel, seoulDateIso } from "@/lib/career";
 import { buildSeasonCardView } from "@/lib/cardview";
 import { POSITION_GROUP_LABELS } from "@/lib/roster";
+import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
 import CareerHighs from "@/app/components/CareerHighs";
 import CareerTable from "@/app/components/CareerTable";
 import CareerTrend from "@/app/components/CareerTrend";
@@ -57,7 +59,8 @@ export default async function PlayerPage({ params }: { params: Params }) {
   const card = latestCards ? buildSeasonCardView(latestCards, playerNo, "all") : null;
   const allSeasons = listSeasonsWithPlayers();
   const highTabs = loadCareerHighTabs(entry);
-  const trend = <CareerTrend seasons={seasons} allSeasons={allSeasons} fill={card !== null} />;
+  const achievements = loadCareerHighAchievements(entry);
+  const trend = <CareerTrend seasons={seasons} allSeasons={allSeasons} />;
   // 칭호 배지: 빌드 시점에 계산해 라벨만 넘긴다 (lib/badges via lib/data)
   const badges = loadPlayerBadges(playerNo).map((b) => ({ key: b.key, label: b.label }));
   // 만 나이의 "오늘" = 빌드 시각(한국 시간). 정적 페이지라 매일 데이터 커밋 → 재배포 때 갱신된다
@@ -86,9 +89,9 @@ export default async function PlayerPage({ params }: { params: Params }) {
         <div className="mx-auto mt-8 max-w-5xl px-4">
           <CareerTable seasons={seasons} />
         </div>
-        {highTabs.length > 0 && (
+        {achievements.length > 0 && (
           <div className="mx-auto mt-8 max-w-5xl px-4">
-            <CareerHighs tabs={highTabs} />
+            <CareerHighs items={achievements} teamPrimary={latest.team?.color.primary ?? FALLBACK_TEAM_COLOR.primary} />
           </div>
         )}
       </main>

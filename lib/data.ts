@@ -17,7 +17,7 @@ import type {
 import { decodeSeasonCards, encodeSeasonCards, type SeasonCards, type SeasonCardsFile } from "./cards";
 import { toCardPlayers as convertCardPlayers, toCardTeams, toLeaderPlayers as convertLeaderPlayers } from "./convert";
 import { buildSeasonHighCards, type SeasonHighCard } from "./highs";
-import { careerHighTabs, type CareerHighRow, type HighsTab } from "./career";
+import { careerHighAchievements, careerHighTabs, type CareerHighRow, type HighAchievement, type HighsTab } from "./career";
 import { buildBadgeIndex, playerBadges, type BadgeCareer, type BadgeIndex, type BadgeSeasonRow, type PlayerBadge } from "./badges";
 
 const PROCESSED_DIR = path.join(process.cwd(), "data", "processed");
@@ -185,6 +185,17 @@ export function teamNameInSeason(teamCode: string, seasonCode: number | null): s
 export function loadSeasonHighCards(season: SeasonData): SeasonHighCard[] {
   return buildSeasonHighCards(season.seasonHighLeaders, toLeaderPlayers(season), (code) =>
     teamNameInSeason(code, season.seasonCode),
+  );
+}
+
+/** 선수 페이지 커리어 하이 업적 카드 (lib/career careerHighAchievements). 데이터 없으면 [] */
+export function loadCareerHighAchievements(entry: PlayerIndexEntry): HighAchievement[] {
+  const labels = new Map(listAllSeasons().map((s) => [s.seasonCode, s.seasonLabel]));
+  return careerHighAchievements(
+    entry.careerHighs,
+    teamNameInSeason,
+    (code, key) => loadSeasonData(code)?.seasonHighLeaders?.[key] ?? null,
+    (code) => labels.get(code) ?? null,
   );
 }
 

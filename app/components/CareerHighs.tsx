@@ -1,92 +1,106 @@
 "use client";
-// 선수 페이지 "커리어 하이" (통산 한 경기 최다): 탭(정규시즌/플레이오프/챔프전) + 행 목록(부문 · 기록 · 상대 · 날짜 · 횟수).
-// 3점·자유투 성공은 기록 옆에 그 경기 성공/시도·성공률을 작게("8/12 · 66.7%") — 경기별 기록에서 못 찾았으면 개수만.
-// 행은 서버에서 lib/career careerHighTabs 로 다 만들어 넘긴다 — 이 파일은 탭 상태와 배치만.
-// RowList: 모바일(<1024px) 행 카드(누르면 상대·날짜·횟수), PC 표 — 가로 스크롤 없음.
-// 기록 없는 탭은 부르는 쪽에서 이미 빠져 있고, 탭이 하나도 없으면 이 컴포넌트를 그리지 않는다.
-import { useState } from "react";
-import type { CareerHighRow, HighsTab } from "@/lib/career";
+// 선수 페이지 "커리어 하이" — 업적 카드 격자 (2026-09-30 피드백 5차 #3: KBL 공홈 표와 같은 표 → 업적처럼).
+// 카드 = 부문 7개(lib/highs HERO_HIGH_KEYS). 정규시즌 기록을 큰 숫자로, 아래 "vs 상대 · 날짜" 작은 글자, 오른쪽 위 횟수 배지.
+// 플레이오프·챔프전은 탭 대신 카드 아래 보조 숫자 한 줄("PO 32 · 챔프전 28") — 세 구분을 3열로 두면 7장 × 3숫자가 되어 밀도가 과했다.
+// 강조(색은 팀 색 하나): 그 시즌 리그 한 경기 최다와 같은 기록이면 카드 바탕을 팀 색으로 옅게 + "2023-24 시즌 최다" 칩,
+// 배지 조건과 겹치면(득점 40·50 이상) 히어로 칭호 배지와 같은 색의 칩("40득점 클럽").
+// 모바일 2열, PC(1024px 이상) 4열. 숫자는 tabular. 계산은 서버에서 lib/career careerHighAchievements — 여기서는 그리기만.
+import type { HighAchievement } from "@/lib/career";
+import { BADGE_DEFS } from "@/lib/badges";
+import { desaturate, readableInk } from "@/lib/teams";
+import { badgeStyle } from "./BadgeRow";
 import InfoLink from "./InfoLink";
-import RowList, { type RowColumn } from "./RowList";
-import Segmented from "./Segmented";
 
-interface Tab {
-  key: HighsTab;
-  label: string;
-  rows: CareerHighRow[];
+const BADGE_LABEL = new Map(BADGE_DEFS.map((d) => [d.key, d.label]));
+
+interface Props {
+  items: HighAchievement[];
+  /** 강조 색 (가장 최근 시즌 팀 색) */
+  teamPrimary: string;
 }
 
-const COLUMNS: RowColumn<CareerHighRow>[] = [
-  { key: "label", header: "부문", align: "left", rowHeader: true, headerClassName: "w-36", className: "font-semibold text-ink", cell: (r) => r.label },
-  {
-    key: "value",
-    header: "기록",
-    headerClassName: "w-40",
-    className: (r) => `text-base font-bold ${r.rate ? "text-ink-2" : "text-ink"}`,
-    cell: (r) => (
-      <>
-        {r.value}
-        {r.shot && <span className="ml-1.5 text-caption font-medium text-ink-3">{r.shot}</span>}
-      </>
-    ),
-  },
-  { key: "opponent", header: "상대", align: "left", headerClassName: "pl-4", className: "pl-4", cell: (r) => r.opponent },
-  { key: "date", header: "날짜", cell: (r) => r.date },
-  { key: "times", header: "횟수", cell: (r) => r.times },
-];
-
-export default function CareerHighs({ tabs }: { tabs: Tab[] }) {
-  const [tabKey, setTabKey] = useState<HighsTab>(tabs[0]?.key ?? "regular");
-  const tab = tabs.find((t) => t.key === tabKey) ?? tabs[0];
-  if (!tab) return null;
+export default function CareerHighs({ items, teamPrimary }: Props) {
+  if (items.length === 0) return null;
+  const tint = desaturate(teamPrimary, 0.2);
+  const hasPost = items.some((a) => a.playoff || a.finals);
 
   return (
     <section aria-labelledby="career-highs-title">
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+      <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
         <h2 id="career-highs-title" className="flex items-center gap-1 text-h2 font-bold">
           커리어 하이 <InfoLink term="gameHigh" className="ml-1" />
         </h2>
-        {tabs.length > 1 ? (
-          <Segmented label="경기 구분" options={tabs.map((t) => ({ value: t.key, label: t.label }))} value={tab.key} onChange={setTabKey} />
-        ) : (
-          <span className="text-sub font-semibold text-ink-3">{tab.label}</span>
-        )}
+        <span className="text-sub text-ink-3">정규시즌 한 경기 최다{hasPost ? " · 아래 줄은 플레이오프·챔프전" : ""}</span>
       </div>
-      {/* PC 표는 열이 5개뿐이라 전체 폭으로 늘이면 칸 사이가 벌어진다 → 폭 제한 */}
-      <div className="lg:max-w-3xl">
-        <RowList
-          rows={tab.rows}
-          rowKey={(r) => r.key}
-          caption={`${tab.label} 통산 한 경기 최다 기록`}
-          columns={COLUMNS}
-          resetKey={tab.key}
-          unit="개"
-          rowLabel={(r) => `${r.label} ${r.value}${r.shot ? ` (${r.shot})` : ""}, ${r.date}, 자세히`}
-          summary={(r) => (
-            <>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-body font-semibold leading-tight text-ink">{r.label}</span>
-                <span className="tabular mt-0.5 block truncate text-sub text-ink-3">
-                  {r.opponent !== "–" ? `상대 ${r.opponent} · ` : ""}
-                  {r.date}
-                </span>
-              </span>
-              <span className="shrink-0 text-right">
-                <span className={`tabular block text-lg font-bold leading-tight tracking-tight ${r.rate ? "text-ink-2" : "text-ink"}`}>{r.value}</span>
-                <span className="tabular block text-caption leading-tight text-ink-3">{r.shot ? `${r.shot} · ${r.times}` : r.times}</span>
-              </span>
-            </>
-          )}
-          details={(r) => [
-            { key: "opponent", label: "상대", value: r.opponent },
-            { key: "date", label: "날짜", value: r.date },
-            { key: "times", label: "횟수", value: r.times },
-          ]}
-        />
-      </div>
-      <p className="mt-2 text-sub leading-relaxed text-ink-3">
-        통산 한 경기 최고 기록. 횟수는 그 기록을 낸 경기 수. 3점·자유투 옆 작은 글자는 그 경기의 성공/시도와 성공률.
-      </p>
+      <ul className="tabular grid grid-cols-2 gap-2 lg:grid-cols-4">
+        {items.map((a) => {
+          const best = a.seasonBest !== null;
+          return (
+            <li
+              key={a.key}
+              className="surface-card flex min-w-0 flex-col rounded-card px-3 py-2.5"
+              style={
+                best
+                  ? {
+                      background: `color-mix(in srgb, ${tint} var(--rank-tint), var(--surface))`,
+                      borderColor: `color-mix(in srgb, ${tint} var(--rank-border), var(--surface))`,
+                    }
+                  : undefined
+              }
+            >
+              <div className="flex items-start justify-between gap-2">
+                <h3 className="text-sub font-semibold text-ink-2">{a.label}</h3>
+                {a.times !== null && (
+                  <span className="shrink-0 rounded-control border border-line px-1.5 text-caption font-semibold leading-5 text-ink-2" aria-label={`${a.times}번 달성`}>
+                    {a.times}회
+                  </span>
+                )}
+              </div>
+              <p className="mt-0.5 flex flex-wrap items-baseline gap-x-1.5">
+                <span className="text-h1 font-bold tracking-tight text-ink">{a.value ?? "–"}</span>
+                {a.shot && <span className="text-caption font-medium text-ink-3">{a.shot}</span>}
+              </p>
+              <p className="mt-0.5 text-caption text-ink-3 [overflow-wrap:anywhere]">
+                {a.value === null ? "정규시즌 기록 없음" : `${a.opponent ? `vs ${a.opponent} · ` : ""}${a.date}`}
+              </p>
+              {(best || a.milestone) && (
+                <div className="mt-1.5 flex flex-wrap gap-1">
+                  {best && (
+                    <span
+                      className="inline-flex h-6 items-center rounded-control px-1.5 text-caption font-bold"
+                      style={{ background: tint, color: readableInk(tint, "#ffffff") }}
+                    >
+                      {a.seasonBest} 시즌 최다
+                    </span>
+                  )}
+                  {a.milestone && (
+                    <span className="inline-flex h-6 items-center whitespace-nowrap rounded-control border px-1.5 text-caption font-semibold" style={badgeStyle(teamPrimary)}>
+                      {BADGE_LABEL.get(a.milestone)}
+                    </span>
+                  )}
+                </div>
+              )}
+              {(a.playoff || a.finals) && (
+                <div className="mt-auto pt-2">
+                <p className="flex flex-wrap gap-x-2 border-t border-line pt-1.5 text-caption text-ink-3">
+                  {a.playoff && (
+                    <span>
+                      PO <b className="font-semibold text-ink-2">{a.playoff}</b>
+                    </span>
+                  )}
+                  {a.finals && (
+                    <span>
+                      챔프전 <b className="font-semibold text-ink-2">{a.finals}</b>
+                    </span>
+                  )}
+                </p>
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+      <p className="mt-2 text-sub text-ink-3">횟수는 그 기록을 낸 경기 수, 3점·자유투 옆 작은 글자는 그 경기 성공/시도·성공률.</p>
     </section>
   );
 }

@@ -3,7 +3,8 @@
 
 import { perGame } from "./metrics";
 import { formatHighDate, formatHighShot, formatHighTimes, formatHighValue, HERO_HIGH_KEYS, highDef } from "./highs";
-import type { CareerHighs, HighKey, HighsSet } from "./types";
+import { CLUB_40, CLUB_50 } from "./badges";
+import type { CareerHighs, HighKey, HighRecord, HighsSet, SeasonHighLeader, SeasonHighLeaderKey } from "./types";
 
 // ─────────────────────────────────────────────
 // 시즌 표기
@@ -294,4 +295,82 @@ export function careerHighTabs(
 ): { key: HighsTab; label: string; rows: CareerHighRow[] }[] {
   if (!highs) return [];
   return HIGHS_TABS.map((t) => ({ ...t, rows: careerHighRows(highs[t.key], teamName) })).filter((t) => t.rows.length > 0);
+}
+
+// ─────────────────────────────────────────────
+// 커리어 하이 "업적 카드" (2026-09-30 피드백 5차 #3) — 표 대신 부문 7개를 카드로
+// ─────────────────────────────────────────────
+
+/** 업적 카드 한 장. 정규시즌이 주인공, 플레이오프·챔프전은 보조 숫자 한 줄 */
+export interface HighAchievement {
+  key: SeasonHighLeaderKey;
+  /** 부문 이름, 예: "득점" */
+  label: string;
+  /** 정규시즌 커리어 하이 값 (없으면 null — PO·챔프전만 있는 부문) */
+  value: string | null;
+  /** 슛 부문의 그 경기 성공/시도·성공률 "5/8 · 62.5%" */
+  shot: string | null;
+  /** 상대 팀 한글 약칭 (모르면 코드, 없으면 null) */
+  opponent: string | null;
+  /** "2023.10.21" (없으면 "–") */
+  date: string;
+  /** 달성 횟수 (1회 이상일 때 숫자, 모르면 null) */
+  times: number | null;
+  /** 그 기록이 그 시즌 리그 한 경기 최다(1위와 같은 값)이면 그 시즌 짧은 표기 "2023-24", 아니면 null */
+  seasonBest: string | null;
+  /** 배지 조건과 겹치는 기록 (득점 40·50 이상 → lib/badges 40득점·50득점 클럽) */
+  milestone: "club50" | "club40" | null;
+  /** 보조 숫자: 플레이오프·챔프전 통산 한 경기 최다 (없으면 null) */
+  playoff: string | null;
+  finals: string | null;
+}
+
+/**
+ * 그 기록이 그 시즌 리그 1위 기록과 같거나 높은가 (seasonHighLeaders 는 동률이면 먼저 달성한 선수 한 명 —
+ * 같은 값을 낸 다른 선수도 "그 시즌 최다"를 기록한 것이라 값만 비교한다). 1위 정보가 없으면 false.
+ */
+export function isSeasonBest(record: HighRecord | null | undefined, leader: SeasonHighLeader | null | undefined): boolean {
+  if (!record || !leader) return false;
+  return record.value > 0 && record.value >= leader.value;
+}
+
+/**
+ * 통산 세트 → 업적 카드 (부문·순서 = HERO_HIGH_KEYS 7개). 세 구분 모두 기록이 없는 부문은 뺀다.
+ * teamName: (팀 코드, 달성 시즌) → 한글 약칭. leaderOf: (달성 시즌, 부문) → 그 시즌 리그 1위 (없으면 null).
+ * seasonLabel: 시즌 코드 → "2023-2024" 꼴 (짧은 표기는 seasonShortLabel).
+ */
+export function careerHighAchievements(
+  highs: CareerHighs | null | undefined,
+  teamName: (teamCode: string, seasonCode: number | null) => string | null,
+  leaderOf: (seasonCode: number, key: SeasonHighLeaderKey) => SeasonHighLeader | null,
+  seasonLabel: (seasonCode: number) => string | null,
+): HighAchievement[] {
+  if (!highs) return [];
+  const out: HighAchievement[] = [];
+  const valueOf = (set: HighsSet | null, key: SeasonHighLeaderKey) => {
+    const r = set?.[key];
+    return r && r.value > 0 ? r : null;
+  };
+  for (const key of HERO_HIGH_KEYS) {
+    const reg = valueOf(highs.regular, key);
+    const po = valueOf(highs.playoff, key);
+    const fi = valueOf(highs.finals, key);
+    if (!reg && !po && !fi) continue;
+    const best =
+      reg && reg.seasonCode !== null && isSeasonBest(reg, leaderOf(reg.seasonCode, key)) ? seasonLabel(reg.seasonCode) : null;
+    out.push({
+      key,
+      label: highDef(key).label,
+      value: reg ? formatHighValue(reg.value, key) : null,
+      shot: reg ? formatHighShot(reg, key) : null,
+      opponent: reg?.opponentTeamCode ? (teamName(reg.opponentTeamCode, reg.seasonCode) ?? reg.opponentTeamCode) : null,
+      date: formatHighDate(reg?.date ?? null),
+      times: reg?.times && reg.times > 0 ? reg.times : null,
+      seasonBest: best ? seasonShortLabel(best) : null,
+      milestone: key === "pts" && reg ? (reg.value >= CLUB_50 ? "club50" : reg.value >= CLUB_40 ? "club40" : null) : null,
+      playoff: po ? formatHighValue(po.value, key) : null,
+      finals: fi ? formatHighValue(fi.value, key) : null,
+    });
+  }
+  return out;
 }

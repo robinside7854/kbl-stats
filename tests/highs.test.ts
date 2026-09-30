@@ -269,6 +269,43 @@ assert.deepEqual(careerHighTabs(null, teamName), []);
 assert.deepEqual(careerHighTabs(undefined, teamName), []);
 console.log("highs: 커리어 하이 행 통과");
 
+// ── 커리어 하이 업적 카드 (피드백 5차 #3) ──
+{
+  const { careerHighAchievements, isSeasonBest } = await import("../lib/career");
+  const leader = (value: number) => ({ ...rec(value, "2023-10-01"), playerNo: "999" });
+  // 45 시즌 득점 1위 46점(동률 → 우리도 "시즌 최다"), 리바운드 1위는 20개(우리 15개 → 아님)
+  const leaderOf = (code: number, key: string) => (code === 45 ? (key === "pts" ? leader(46) : key === "reb" ? leader(20) : null) : null);
+  const label = (code: number) => (code === 45 ? "2023-2024" : null);
+  const cards = careerHighAchievements(
+    {
+      regular: hs({
+        pts: rec(46, "2023-10-21", { opponentTeamCode: "70", times: 2, seasonCode: 45 }),
+        reb: rec(15, "2023-11-01", { seasonCode: 45 }),
+        blk: rec(0, null),
+      }),
+      playoff: hs({ pts: rec(32, "2024-04-01"), stl: rec(4, "2024-04-02") }),
+      finals: hs({ pts: rec(28, "2024-05-01") }),
+    },
+    teamName,
+    leaderOf,
+    label,
+  );
+  assert.deepEqual(cards.map((c) => c.key), ["pts", "reb", "stl"]); // HERO 순서, 세 구분 모두 없는 부문·0 은 빠짐
+  assert.deepEqual(cards[0], {
+    key: "pts", label: "득점", value: "46", shot: null, opponent: "정관장", date: "2023.10.21", times: 2,
+    seasonBest: "2023-24", milestone: "club40", playoff: "32", finals: "28",
+  });
+  assert.equal(cards[1].seasonBest, null); // 1위(20) 보다 낮음
+  assert.equal(cards[1].milestone, null); // 배지 조건은 득점만
+  assert.deepEqual([cards[2].value, cards[2].playoff, cards[2].date, cards[2].opponent], [null, "4", "–", null]); // PO 만 있는 부문
+  assert.equal(careerHighAchievements({ regular: hs({ pts: rec(52, "2020-01-01", { seasonCode: 1 }) }), playoff: null, finals: null }, teamName, leaderOf, label)[0].milestone, "club50");
+  assert.deepEqual(careerHighAchievements(null, teamName, leaderOf, label), []);
+  assert.equal(isSeasonBest(rec(10, null), null), false);
+  assert.equal(isSeasonBest(rec(10, null), leader(10)), true);
+  assert.equal(isSeasonBest(rec(0, null), leader(0)), false);
+  console.log("highs: 커리어 하이 업적 카드 통과");
+}
+
 // ── 용어 앵커 ──
 import { glossaryEntry, glossaryHref } from "../lib/glossary";
 assert.equal(glossaryHref("gameHigh"), "/glossary#game-high");
