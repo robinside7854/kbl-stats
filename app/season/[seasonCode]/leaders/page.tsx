@@ -1,7 +1,8 @@
 // 시즌 순위표 (PLAN.md §2-1). 빌드 시점에 JSON을 읽어 순위표에 필요한 필드만 클라이언트로 넘긴다.
+// "이 시즌 한 경기 최다" 카드도 여기서 만들어 넘긴다 (lib/data loadSeasonHighCards — 데이터 없으면 빈 배열 → 숨김).
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { listSeasonsWithPlayers, loadSeasonData, toCardTeams, toLeaderPlayers } from "@/lib/data";
+import { listSeasonsWithPlayers, loadSeasonData, loadSeasonHighCards, toCardTeams, toLeaderPlayers } from "@/lib/data";
 import LeadersView from "@/app/components/LeadersView";
 import SiteNav from "@/app/components/SiteNav";
 import SourceFooter from "@/app/components/SourceFooter";
@@ -36,6 +37,7 @@ export default async function LeadersPage({ params }: { params: Params }) {
         seasonLabel={season.seasonLabel}
         players={toLeaderPlayers(season)}
         teams={toCardTeams(season)}
+        seasonHighs={loadSeasonHighCards(season)}
       />
       <SourceFooter fetchedAt={season.fetchedAt} wide />
     </>

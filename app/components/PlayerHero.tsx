@@ -1,11 +1,12 @@
 // 선수 페이지 머리말 (PLAN.md §2-2 ①, §5-4): 최근 시즌 팀 색 배경 + 큰 세로 사진 + 로고 + 이름·소속·활동 기간,
-// 이름 아래 국적 배지(국내/외국/아시아쿼터)·활동 기간, 프로필 한 줄(포지션·키·몸무게·등번호·드래프트 — 선수 마스터),
+// 이름 아래 국적 배지(국내/외국/아시아쿼터)·활동 기간, 프로필 한 줄(포지션·키·몸무게·등번호·드래프트 — 선수 마스터,
+// 나이·국적(국가명)·출신교 — 서버 B 프로필, 없으면 뺌),
 // 그 아래 통산 요약 4칸과 소속 팀 이력. 계산은 lib/metrics careerSummary, 표기는 lib/career.
 // 머리말 팀 색은 가장 최근 시즌 팀 (카드 영역은 고른 시즌 팀 색을 따로 쓴다).
 import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
 import type { CareerSeason, PlayerIndexEntry, TeamColor } from "@/lib/types";
 import { careerSummary } from "@/lib/metrics";
-import { activeSpanLabel, profileFacts, seasonShortLabel, teamStints } from "@/lib/career";
+import { activeSpanLabel, personalFacts, profileFacts, seasonShortLabel, teamStints } from "@/lib/career";
 import { nationalityOf, NATIONALITY_LABELS } from "@/lib/roster";
 import { mixHex, teamShortLabel } from "@/lib/images";
 import PlayerAvatar from "./PlayerAvatar";
@@ -19,9 +20,11 @@ interface Props {
   entry: PlayerIndexEntry;
   /** 시즌 오름차순 */
   seasons: CareerSeason[];
+  /** 만 나이 기준일 "YYYY-MM-DD" (빌드 시각, 한국 시간 — 페이지가 넘긴다) */
+  today: string;
 }
 
-export default function PlayerHero({ entry, seasons }: Props) {
+export default function PlayerHero({ entry, seasons, today }: Props) {
   const latest = seasons[seasons.length - 1];
   const first = seasons[0];
   const team = latest?.team ?? null;
@@ -32,7 +35,7 @@ export default function PlayerHero({ entry, seasons }: Props) {
   const sum = careerSummary(seasons);
   const span = first && latest ? activeSpanLabel(first.seasonLabel, latest.seasonLabel, seasons.length) : "";
   const stints = teamStints(seasons);
-  const facts = profileFacts(entry);
+  const facts = [...profileFacts(entry), ...personalFacts(entry, today)];
   const tiles = [
     { label: "통산 경기", value: NF0.format(sum.games), unit: "경기" },
     { label: "경기당 득점", value: NF1.format(sum.points), unit: "" },
@@ -83,7 +86,7 @@ export default function PlayerHero({ entry, seasons }: Props) {
                 {facts.map((f) => (
                   <div key={f.label} className="flex items-baseline gap-1">
                     <dt className="opacity-75">{f.label}</dt>
-                    <dd className="font-bold">{f.value}</dd>
+                    <dd className="min-w-0 font-bold [overflow-wrap:anywhere]">{f.value}</dd>
                   </div>
                 ))}
               </dl>

@@ -23,7 +23,8 @@ export type GlossaryKey =
   | "percentileGrade"
   | "radarAxes"
   | "qualify"
-  | "attempts";
+  | "attempts"
+  | "gameHigh";
 
 export interface GlossaryEntry {
   key: GlossaryKey;
@@ -167,6 +168,15 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     source: null,
     note: "우리 사이트 규칙이며 KBL 공식 규정이 아닙니다(lib/metrics.ts attemptThresholds). 참고로 NBA 는 시즌 성공 수(야투 300·3점 82·자유투 125개)로 자격을 정합니다.",
   },
+  {
+    key: "gameHigh",
+    name: "한 경기 최다",
+    short: "한 경기에서 낸 가장 높은 기록. 시즌 하이는 그 시즌, 커리어 하이는 통산",
+    formula: "부문별 한 경기 기록의 최댓값. 횟수 = 그 최고 기록을 낸 경기 수 (예: 40득점 2회 = 40점 경기가 두 번)",
+    source: null,
+    note:
+      "KBL 공식 홈페이지 선수 상세의 '한경기최다' 기록을 그대로 씁니다(기록업체 Sports2i 제공). 성공률 부문은 시도 수 조건이 없어 1개 던져 1개 넣은 경기도 100%가 되므로, 순위표 '이 시즌 한 경기 최다'에는 넣지 않고 선수 페이지 커리어 하이에만 보여 줍니다. 순위표에서 같은 기록이면 먼저 낸 선수를 보여 줍니다.",
+  },
 ];
 
 const BY_KEY = new Map(GLOSSARY.map((e) => [e.key, e]));
@@ -197,6 +207,7 @@ export const GLOSSARY_ANCHORS: Record<GlossaryKey, string> = {
   radarAxes: "radar",
   qualify: "qualify",
   attempts: "attempts",
+  gameHigh: "game-high",
 };
 
 /** 용어 탭 링크, 예: glossaryHref("tsPct") → "/glossary#ts" */

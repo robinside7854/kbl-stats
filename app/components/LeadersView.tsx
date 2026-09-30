@@ -6,6 +6,8 @@
 // 포지션(전체/가드/포워드/센터)·국적(전체/국내/외국/아시아쿼터) 칩으로 집단을 좁히면 1~3위·순위도 그 집단 안 순위다
 // (lib/leaders filterLeaders → rankMap). 성공률 시도 기준은 집단과 관계없이 리그 전체 값.
 // 열 머리글의 ⓘ 는 용어 탭 해당 항목으로 (lib/glossary LEADER_COLUMN_GLOSSARY).
+// 1~3위 표지 아래 "이 시즌 한 경기 최다" 카드 줄(SeasonHighStrip) — 시즌 파일에 seasonHighLeaders 가 있을 때만.
+// 고른 부문이 득점·리바운드·어시스트·스틸·블록이면 대응 카드 강조 (lib/highs LEADER_CATEGORY_HIGH).
 // 선택 상태는 주소 쿼리(?cat=&mode=&origin=&pos=&team=&q=)에 남긴다. useSearchParams 대신 window.location 을 읽어
 // 정적 HTML에 기본 상태(경기당 득점)의 카드·표가 그대로 렌더링되게 한다 (CardExplorer 와 같은 방식).
 import { useEffect, useMemo, useState } from "react";
@@ -46,6 +48,7 @@ import {
 } from "@/lib/leaders";
 import { teamShortLabel } from "@/lib/images";
 import { LEADER_COLUMN_GLOSSARY } from "@/lib/glossary";
+import { LEADER_CATEGORY_HIGH, type SeasonHighCard } from "@/lib/highs";
 import {
   NATIONALITY_FILTERS,
   nationalityFilterLabel,
@@ -64,6 +67,7 @@ import { IconChevronDown, IconChevronRight, IconChevronUp } from "./icons";
 import InfoLink from "./InfoLink";
 import PlayerAvatar from "./PlayerAvatar";
 import RowList, { type RowColumn } from "./RowList";
+import SeasonHighStrip from "./SeasonHighStrip";
 import Segmented from "./Segmented";
 import TeamLogo from "./TeamLogo";
 
@@ -71,6 +75,8 @@ interface Props {
   seasonLabel: string;
   players: LeaderPlayer[];
   teams: CardTeam[];
+  /** 이 시즌 한 경기 최다 카드 (서버에서 계산). 빈 배열이면 섹션을 숨긴다 */
+  seasonHighs?: SeasonHighCard[];
 }
 
 const MODE_OPTIONS: { value: StatMode; label: string }[] = [
@@ -178,7 +184,7 @@ function CoverCard({
   );
 }
 
-export default function LeadersView({ seasonLabel, players, teams }: Props) {
+export default function LeadersView({ seasonLabel, players, teams, seasonHighs = [] }: Props) {
   const [state, setState] = useState<LeadersState>(DEFAULT_LEADERS_STATE);
   // 표 정렬 (null 이면 선택한 부문의 "상위" 방향 — 턴오버는 적은 순)
   const [sort, setSort] = useState<{ key: LeaderStatKey; dir: SortDir } | null>(null);
@@ -436,6 +442,11 @@ export default function LeadersView({ seasonLabel, players, teams }: Props) {
           </div>
         )}
       </section>
+
+      {/* 이 시즌 한 경기 최다 (데이터 있는 시즌만) */}
+      {seasonHighs.length > 0 && (
+        <SeasonHighStrip cards={seasonHighs} teamByCode={teamByCode} activeKey={LEADER_CATEGORY_HIGH[category] ?? null} />
+      )}
 
       {/* 전체 순위: 모바일 행 카드 / PC 표 */}
       {rows.length > 0 && (

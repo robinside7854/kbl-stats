@@ -15,6 +15,8 @@ import type {
 } from "./types";
 import { decodeSeasonCards, encodeSeasonCards, type SeasonCards, type SeasonCardsFile } from "./cards";
 import { toCardPlayers as convertCardPlayers, toCardTeams, toLeaderPlayers as convertLeaderPlayers } from "./convert";
+import { buildSeasonHighCards, type SeasonHighCard } from "./highs";
+import { careerHighTabs, type CareerHighRow, type HighsTab } from "./career";
 
 const PROCESSED_DIR = path.join(process.cwd(), "data", "processed");
 
@@ -164,4 +166,27 @@ export function loadSeasonCards(seasonCode: number): SeasonCards | null {
   const cards = file ? decodeSeasonCards(file) : null;
   cardsCache.set(seasonCode, cards);
   return cards;
+}
+
+// ─────────────────────────────────────────────
+// 한 경기 최다 — 시즌 파일 seasonHighLeaders(순위표 카드 줄), 색인 careerHighs(선수 페이지 커리어 하이)
+// 백필 전 processed 파일에는 필드가 없다 → 빈 배열 (화면은 섹션을 숨긴다)
+// ─────────────────────────────────────────────
+
+/** 그 시즌 팀 목록에서 팀 코드 → 한글 약칭. 시즌 파일·팀이 없으면 null */
+export function teamNameInSeason(teamCode: string, seasonCode: number | null): string | null {
+  if (seasonCode === null) return null;
+  return loadSeasonData(seasonCode)?.teams.find((t) => t.teamCode === teamCode)?.shortNameKo ?? null;
+}
+
+/** 순위표 "이 시즌 한 경기 최다" 카드 (lib/highs buildSeasonHighCards). 데이터 없으면 [] */
+export function loadSeasonHighCards(season: SeasonData): SeasonHighCard[] {
+  return buildSeasonHighCards(season.seasonHighLeaders, toLeaderPlayers(season), (code) =>
+    teamNameInSeason(code, season.seasonCode),
+  );
+}
+
+/** 선수 페이지 커리어 하이 탭 (정규시즌/플레이오프/챔프전, 행 없는 탭은 빠짐). 데이터 없으면 [] */
+export function loadCareerHighTabs(entry: PlayerIndexEntry): { key: HighsTab; label: string; rows: CareerHighRow[] }[] {
+  return careerHighTabs(entry.careerHighs, teamNameInSeason);
 }
