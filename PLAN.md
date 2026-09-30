@@ -101,8 +101,10 @@
 5. `tests/metrics.test.ts`에 40분당 환산·커버리지 판정 테스트 추가. `npm run typecheck`, `npm run test:metrics`, `npm run build` 통과 확인.
 - 이 단계는 이 세션 환경에서 전부 검증 가능(KBL 서버 접속 불필요, raw가 이미 있음).
 
-### ② 시즌 순위표
+### ② 시즌 순위표 ✅ 완료 (2026-09-30)
 - `app/season/[seasonCode]/leaders/page.tsx` + 표 컴포넌트. 정렬·필터는 브라우저 안에서(클라이언트 컴포넌트). 상단 내비게이션 컴포넌트를 이때 만들어 레이더 페이지에도 붙인다.
+- 결과: `LeadersView`(부문 칩 → 1~3위 팀 색 표지 카드 → 정렬 표), `SiteNav`(시즌 선택·화면 메뉴, 시즌만 바꾸고 화면·쿼리 유지), 정렬·필터·순위·쿼리 규칙은 `lib/leaders.ts`(테스트 `tests/leaders.test.ts`). 표본 프리셋은 `lib/metrics.ts QUALIFY_PRESETS`로 레이더와 공유.
+- 결정: 기본 부문 = 경기당 득점. 부문 11개(득점·리바운드·어시스트·스틸·블록·3점 성공·야투율·TS%·PER + coverage.advanced 시즌만 USG%·PIE). 모바일은 순위·선수 열 고정 + 표 영역만 가로 스크롤, 첫 화면에 경기·득점·리바·어시가 보이고, 고른 부문이 핵심 열 밖이면 선수 열 바로 뒤로 옮긴다. 표본 기준은 순위표에선 필터(미달 선수는 표에서 제외). 주소 쿼리 `?cat=&mode=total&origin=dom|for&team=&q=`(기본값은 생략). 팀 약칭이 9글자를 넘으면 머리글자(HYUNDAI MOBIS → HM, `lib/images.ts teamShortLabel`).
 
 ### ③ 선수 페이지 + 검색
 - `app/player/[playerNo]/page.tsx`(정적 1,329개), 검색창 컴포넌트, `lib/data.ts`에 "선수 번호로 전 시즌 기록 모으기" 함수.
