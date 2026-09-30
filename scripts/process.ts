@@ -11,6 +11,7 @@ import { join } from "node:path";
 import { DATA_DIR, SEASON_CODES_FALLBACK } from "./config.js";
 import { seasonCoverage } from "../lib/metrics.js";
 import { playerPhotoUrl, teamLogoUrl } from "./image-urls.js";
+import { teamShortNameKo } from "../lib/teams.js";
 import type { Player, PlayerIndexEntry, SeasonData, Team, TeamColor } from "../lib/types.js";
 
 type Raw = Record<string, any>;
@@ -42,9 +43,12 @@ function toPlayer(t: Raw, a: Raw | undefined): Player {
     minutes: Math.round(num(t.playSec) / 60),
 
     points: num(t.score),
-    fgm: num(t.fg), fga: num(t.fgA), fgPct: num(t.fgRt),
+    // ⚠️ KBL 필드 이름과 뜻이 엇갈린다: fg/fgA/fgRt = 2점슛, fdg/fdgA/fdgRt = 전체 야투(2점+3점).
+    //    근거(2026-09-30, 1997·2011-12·2025-26 전 선수 확인): fdg = fg + threep, fdgA = fgA + threepA,
+    //    score = 2×fg + 3×threep + ft. 예: 2025-26 워니 야투 482/1091(44.2%), 2점 396/794(49.9%).
+    fgm: num(t.fdg), fga: num(t.fdgA), fgPct: num(t.fdgRt),
     tpm: num(t.threep), tpa: num(t.threepA), tpPct: num(t.threepRt),
-    twoPm: num(t.fdg), twoPa: num(t.fdgA), twoPPct: num(t.fdgRt),
+    twoPm: num(t.fg), twoPa: num(t.fgA), twoPPct: num(t.fgRt),
     ftm: num(t.ft), fta: num(t.ftA), ftPct: num(t.ftRt),
     dunks: num(t.dk),
     oreb: num(t.oR), dreb: num(t.dR), reb: num(t.rb),
@@ -118,10 +122,12 @@ let teamColors: TeamColorTable = { byTeamCode: {}, fallback: GRAY };
 function toTeam(t: Raw): Team {
   const teamCode = String(t.teamCode ?? "");
   const logoName = (t.teamLogoName ?? "").trim();
+  const name = (t.teamName1 ?? "").trim();
   return {
     teamCode,
-    name: (t.teamName1 ?? "").trim(),
+    name,
     shortName: (t.teamName4 ?? "").trim(),
+    shortNameKo: teamShortNameKo(name),
     fullName: (t.teamName2 ?? "").trim(),
     nameEn: (t.teamName3 ?? "").trim(),
     logoName,
@@ -140,6 +146,7 @@ function teamsFromPlayers(players: Player[]): Team[] {
       teamCode: p.teamCode,
       name: p.teamName,
       shortName: p.teamShort,
+      shortNameKo: teamShortNameKo(p.teamName),
       fullName: p.teamName,
       nameEn: "",
       logoName: "",
@@ -205,6 +212,7 @@ async function processSeason(seasonCode: number): Promise<SeasonData> {
 function buildPlayersIndex(seasons: SeasonData[]): PlayerIndexEntry[] {
   const byId = new Map<string, PlayerIndexEntry & { latest: number }>();
   for (const season of [...seasons].sort((a, b) => a.seasonCode - b.seasonCode)) {
+    const koByTeam = new Map(season.teams.map((t) => [t.teamCode, t.shortNameKo]));
     for (const p of season.players) {
       let e = byId.get(p.playerNo);
       if (!e) {
@@ -225,7 +233,7 @@ function buildPlayersIndex(seasons: SeasonData[]): PlayerIndexEntry[] {
         e.nameEn = p.nameEn;
         e.isForeign = p.isForeign;
       }
-      e.seasons.push({ seasonCode: season.seasonCode, teamCode: p.teamCode, teamShort: p.teamShort, games: p.games });
+      e.seasons.push({ seasonCode: season.seasonCode, teamCode: p.teamCode, teamShort: koByTeam.get(p.teamCode) ?? teamShortNameKo(p.teamName), games: p.games });
     }
   }
   return [...byId.values()]
@@ -246,6 +254,18 @@ async function main() {
     try { done.push(await processSeason(s)); }
     catch (e) { failed.push(`${s}: ${(e as Error).message}`); }
   }
+
+  // 팀 한글 약칭 점검표 (teamName1 → shortNameKo, 등장 시즌) — 이상한 값이 없는지 눈으로 확인
+  const koTable = new Map<string, { ko: string; seasons: number[] }>();
+  for (const season of done) {
+    for (const t of season.teams) {
+      const e = koTable.get(t.name) ?? { ko: t.shortNameKo, seasons: [] };
+      e.seasons.push(season.seasonCode);
+      koTable.set(t.name, e);
+    }
+  }
+  console.log("팀 한글 약칭 (teamName1 → shortNameKo):");
+  for (const [name, e] of koTable) console.log(`  ${name} → ${e.ko}  [${e.seasons.join(",")}]`);
 
   // 시즌 목록 인덱스 — 화면의 시즌 선택 드롭다운이 이 파일을 읽는다
   const index = seasons
