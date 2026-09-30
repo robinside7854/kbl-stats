@@ -1,5 +1,5 @@
 // 홈 "이번 시즌 한눈에" (PLAN.md §2-4, §3 ⑤, §5-4). 서버 컴포넌트 — 계산은 app/page.tsx 가 lib/ 함수로 끝내고 결과만 받는다.
-// 구성(모바일 우선): 개막 전 안내 → 히어로(득점 1위 표지) → 부문별 1~3위 카드 줄 → 화면 큰 버튼(선수·순위표·팀 분포·비교·용어·검색) → 시즌 목록.
+// 구성(모바일 우선): 개막 전 안내 → 히어로(득점 1위 표지) → 부문별 1~3위 카드 줄 → 바로가기(큰 버튼 선수·순위표 + 링크 줄 팀 분포·비교·용어) → 시즌 목록.
 import Link from "next/link";
 import type { CardTeam, LeaderPlayer, SeasonOption, TeamColor } from "@/lib/types";
 import { formatStat, LEADER_STATS, type LeaderEntry, type LeaderStatKey } from "@/lib/leaders";
@@ -8,7 +8,7 @@ import { seasonShortLabel } from "@/lib/career";
 import { mixHex, teamShortLabel } from "@/lib/images";
 import { playerHref } from "@/lib/cardview";
 import { nationalityOf, NATIONALITY_LABELS, positionLabel } from "@/lib/roster";
-import FocusSearchButton from "./FocusSearchButton";
+import { IconChevronRight } from "./icons";
 import PlayerAvatar from "./PlayerAvatar";
 import TeamLogo from "./TeamLogo";
 
@@ -40,12 +40,15 @@ export default function HomeView({ season, fetchedLabel, upcoming, categories, t
   const short = seasonShortLabel(season.seasonLabel);
   const scoring = categories.find((c) => c.key === "points")?.entries[0] ?? null;
 
-  const screens = [
-    { href: "/players", title: "선수", desc: "포지션·국적·팀별로 둘러보고 플레이어 카드로" },
-    { href: `/season/${code}/leaders`, title: "순위표", desc: "부문별 순위, 포지션·국적 따로" },
-    { href: `/season/${code}/teams`, title: "팀 분포", desc: "우리 팀은 몇 명에게 기댈까" },
-    { href: "/compare", title: "비교", desc: "두 선수, 두 시즌 카드를 나란히" },
-    { href: "/glossary", title: "용어", desc: "PER·TS%·등급은 어떻게 계산할까" },
+  // 큰 버튼 2개(자주 가는 화면) + 작은 링크 줄 — 같은 카드 6칸 반복을 없앤다 (디자인 점검 A7)
+  const primary = [
+    { href: "/players", title: "선수", desc: "이름 검색, 포지션·팀별 선수 카드" },
+    { href: `/season/${code}/leaders`, title: "순위표", desc: `${short} 부문별 전체 순위` },
+  ];
+  const secondary = [
+    { href: `/season/${code}/teams`, title: "팀 분포" },
+    { href: "/compare", title: "비교" },
+    { href: "/glossary", title: "용어" },
   ];
 
   return (
@@ -83,26 +86,35 @@ export default function HomeView({ season, fetchedLabel, upcoming, categories, t
         <p className="mt-1 text-xs text-ink-3 md:hidden">옆으로 밀면 부문이 더 있습니다 →</p>
       </section>
 
-      {/* 네 화면 */}
+      {/* 화면 바로가기: 큰 버튼 2개 + 작은 링크 줄 */}
       <section aria-labelledby="screens-title" className="mx-auto mt-8 max-w-5xl px-4">
         <h2 id="screens-title" className="text-lg font-bold">
-          더 보기
+          바로가기
         </h2>
-        <ul className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-3">
-          {screens.map((s) => (
+        <ul className="mt-3 grid grid-cols-2 gap-3">
+          {primary.map((s) => (
             <li key={s.href}>
               <Link href={s.href} className={BIG_BUTTON}>
-                <span className="text-base font-bold text-ink">{s.title} ›</span>
+                <span className="flex items-center gap-1 text-lg font-bold text-ink">
+                  {s.title} <IconChevronRight size={20} />
+                </span>
                 <span className="mt-1 text-xs text-ink-2">{s.desc}</span>
               </Link>
             </li>
           ))}
-          <li>
-            <FocusSearchButton className={BIG_BUTTON}>
-              <span className="text-base font-bold text-ink">선수 검색 ›</span>
-              <span className="mt-1 text-xs text-ink-2">1997년부터 모든 선수의 커리어</span>
-            </FocusSearchButton>
-          </li>
+        </ul>
+        <ul className="mt-2 flex flex-wrap items-center gap-x-1 text-sm">
+          {secondary.map((s) => (
+            <li key={s.href}>
+              <Link
+                href={s.href}
+                className="focus-ring inline-flex h-11 items-center gap-0.5 rounded-lg px-2 font-semibold text-ink-2 underline-offset-4 transition-colors duration-200 hover:text-ink hover:underline"
+              >
+                {s.title}
+                <IconChevronRight size={16} />
+              </Link>
+            </li>
+          ))}
         </ul>
       </section>
 
@@ -124,7 +136,7 @@ export default function HomeView({ season, fetchedLabel, upcoming, categories, t
 }
 
 const BIG_BUTTON =
-  "flex h-full min-h-24 w-full flex-col justify-between rounded-2xl border border-line bg-surface p-4 text-left hover:bg-surface-2";
+  "focus-ring flex h-full min-h-24 w-full flex-col justify-between rounded-2xl border border-line bg-surface p-4 text-left transition-colors duration-200 hover:bg-surface-2";
 
 function SeasonChips({ seasons, className = "" }: { seasons: SeasonOption[]; className?: string }) {
   return (
@@ -188,9 +200,9 @@ function Hero({ entry, team, seasonCode }: { entry: LeaderEntry<LeaderPlayer>; t
             <p className="mt-1.5 text-sm font-semibold opacity-90">경기당 {value}점 · 득점 1위</p>
             <Link
               href={playerHref(p.id, seasonCode)}
-              className="mt-4 inline-flex h-10 items-center rounded-full bg-white px-4 text-sm font-bold text-[#0b0b0b] hover:opacity-90"
+              className="focus-ring mt-4 inline-flex h-11 items-center gap-1 rounded-full bg-white px-4 text-sm font-bold text-[#0b0b0b] transition-opacity duration-200 hover:opacity-90"
             >
-              플레이어 카드 보기 ›
+              선수 카드 보기 <IconChevronRight size={16} />
             </Link>
           </div>
           <div className="relative -mr-3 shrink-0 self-end sm:mr-0">
