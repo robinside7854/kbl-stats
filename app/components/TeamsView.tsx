@@ -32,6 +32,7 @@ import {
 } from "@/lib/distribution";
 import { assignTeamColors, comparePairColors, DEFAULT_TEAM_PRIMARY, ensureMarkContrast, teamDependency } from "@/lib/teams";
 import { teamShortLabel } from "@/lib/images";
+import { formatStat, statValue } from "@/lib/leaders";
 import { filterByPosition, POSITION_FILTERS, positionFilterLabel, positionLabel } from "@/lib/roster";
 import FilterSheet, { FilterGroup } from "./FilterSheet";
 import { IconChevronRight, IconClose } from "./icons";
@@ -411,6 +412,16 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
                 { key: "games", header: "경기", cell: (d) => d.player.games },
                 { key: "x", header: "출전(분)", cell: (d) => formatMinutes(d.x) },
                 { key: "y", header: metric.short, active: true, cell: (d) => formatScatterY(d.y, yKey) },
+                {
+                  key: "usg",
+                  header: (
+                    <span className="inline-flex items-center justify-end whitespace-nowrap">
+                      <InfoLink term="usgPct" compact className="-my-3" />
+                      USG%
+                    </span>
+                  ),
+                  cell: (d) => formatStat(statValue(d.player, "usgPct", "perGame"), "usgPct", "perGame"),
+                },
               ]}
               rowLabel={(d) => `${d.player.nameKo}, ${metric.label} ${formatScatterY(d.y, yKey)}, 자세히`}
               summary={(d) => {
@@ -436,6 +447,7 @@ export default function TeamsView({ seasonLabel, players, teams }: Props) {
                 { key: "pos", label: "포지션", value: positionLabel(d.player.position) ?? "–" },
                 { key: "x", label: "경기당 출전", value: formatMinutes(d.x) },
                 { key: "y", label: metric.label, value: formatScatterY(d.y, yKey), strong: true },
+                { key: "usg", label: "USG%", value: formatStat(statValue(d.player, "usgPct", "perGame"), "usgPct", "perGame") },
               ]}
               detailFooter={(d) => (
                 <Link

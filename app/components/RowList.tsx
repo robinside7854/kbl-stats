@@ -58,6 +58,8 @@ interface Props<R> {
   unit?: string;
   /** 행 강조 (예: 1~3위) — PC 표 행 굵기 */
   emphasize?: (row: R) => boolean;
+  /** PC 표 칸 좌우 여백을 줄인다 (열이 많은 순위표 — 17열을 992px 안에 넣기 위해) */
+  dense?: boolean;
 }
 
 const ALIGN = { left: "text-left", right: "text-right", center: "text-center" } as const;
@@ -75,6 +77,7 @@ export default function RowList<R>({
   resetKey = "",
   unit = "명",
   emphasize,
+  dense = false,
 }: Props<R>) {
   const baseId = useId();
   const [open, setOpen] = useState<ReadonlySet<string>>(() => new Set());
@@ -152,7 +155,7 @@ export default function RowList<R>({
                   key={c.key}
                   scope="col"
                   aria-sort={c.ariaSort}
-                  className={`border-b border-line px-1.5 py-2 font-medium ${ALIGN[c.align ?? "right"]} ${
+                  className={`border-b border-line ${dense ? "px-1" : "px-1.5"} py-2 font-medium ${ALIGN[c.align ?? "right"]} ${
                     c.active ? "bg-surface-2 text-ink" : ""
                   } ${c.headerClassName ?? ""}`}
                 >
@@ -167,7 +170,7 @@ export default function RowList<R>({
               return (
                 <tr key={rowKey(r)} className="transition-colors duration-200 hover:bg-surface-2">
                   {columns.map((c) => {
-                    const cls = `h-12 border-b border-line px-1.5 py-1.5 ${ALIGN[c.align ?? "right"]} ${
+                    const cls = `h-12 border-b border-line ${dense ? "px-1" : "px-1.5"} py-1.5 ${ALIGN[c.align ?? "right"]} ${
                       c.active ? "bg-surface-2 font-semibold text-ink" : "text-ink-2"
                     } ${strong && c.rowHeader ? "font-bold" : ""} ${cellClass(c, r)}`;
                     return (

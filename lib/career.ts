@@ -69,7 +69,7 @@ export function teamChangedAt(seasons: readonly { teamCode: string }[], i: numbe
 // 시즌별 추이 그래프 지표
 // ─────────────────────────────────────────────
 
-export type TrendKey = "points" | "reb" | "ast" | "fgPct" | "tsPct" | "per";
+export type TrendKey = "points" | "reb" | "ast" | "stl" | "blk" | "fgPct" | "tpPct" | "per";
 
 export interface TrendMetric {
   key: TrendKey;
@@ -81,20 +81,25 @@ export interface TrendMetric {
   kind: "perGame" | "pct" | "index";
 }
 
-/** 전환 버튼 순서 = 배열 순서. 첫 번째가 기본값 */
+/**
+ * 전환 버튼 순서 = 배열 순서. 첫 번째가 기본값.
+ * 2026-09-30 사용자 피드백: 스틸·블록 추가, TS% 대신 3점% (팬이 바로 읽는 기록 위주).
+ */
 export const TREND_METRICS: readonly TrendMetric[] = [
   { key: "points", label: "득점", title: "경기당 득점", kind: "perGame" },
   { key: "reb", label: "리바운드", title: "경기당 리바운드", kind: "perGame" },
   { key: "ast", label: "어시스트", title: "경기당 어시스트", kind: "perGame" },
+  { key: "stl", label: "스틸", title: "경기당 스틸", kind: "perGame" },
+  { key: "blk", label: "블록", title: "경기당 블록", kind: "perGame" },
   { key: "fgPct", label: "야투%", title: "야투 성공률", kind: "pct" },
-  { key: "tsPct", label: "TS%", title: "TS% (슈팅 효율)", kind: "pct" },
+  { key: "tpPct", label: "3점%", title: "3점 성공률", kind: "pct" },
   { key: "per", label: "PER", title: "PER (생산성 지수)", kind: "index" },
 ];
 
 export interface TrendInput {
   games: number;
-  points: number; reb: number; ast: number; // 시즌 누적
-  fgPct: number; tsPct: number; per: number; // KBL 계산값
+  points: number; reb: number; ast: number; stl: number; blk: number; // 시즌 누적
+  fgPct: number; tpPct: number; per: number; // KBL 계산값
 }
 
 /** 그 시즌의 지표 값: 누적은 경기당(perGame), 비율·지수는 그대로 */

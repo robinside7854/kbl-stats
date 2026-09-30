@@ -46,6 +46,7 @@ export type LeaderStatKey =
   | "tpPct"
   | "ftPct"
   | "tsPct"
+  | "usgPct"
   | "per";
 
 /** 경기당 / 시즌 합계 */
@@ -63,6 +64,8 @@ export interface LeaderStatDef {
   label: string;
   /** 표 열 제목(짧게), 예: "득점" / "3점%" */
   short: string;
+  /** PC 표 머리글이 short 보다 더 짧아야 할 때 (17개 열을 992px 안에 넣기 위해), 예: 출전시간 "출전" */
+  th?: string;
   /**
    * count: 시즌 누적값 → 경기당 모드면 perGame 환산
    * games: 경기 수 — 모드와 관계없이 그대로
@@ -75,7 +78,7 @@ export interface LeaderStatDef {
 
 export const LEADER_STATS: Record<LeaderStatKey, LeaderStatDef> = {
   games: { key: "games", label: "경기", short: "경기", kind: "games", better: "high" },
-  minutes: { key: "minutes", label: "출전시간", short: "출전(분)", kind: "count", better: "high" },
+  minutes: { key: "minutes", label: "출전시간", short: "출전(분)", th: "출전", kind: "count", better: "high" },
   points: { key: "points", label: "득점", short: "득점", kind: "count", better: "high" },
   reb: { key: "reb", label: "리바운드", short: "리바", kind: "count", better: "high" },
   ast: { key: "ast", label: "어시스트", short: "어시", kind: "count", better: "high" },
@@ -88,6 +91,8 @@ export const LEADER_STATS: Record<LeaderStatKey, LeaderStatDef> = {
   tpPct: { key: "tpPct", label: "3점 성공률", short: "3점%", kind: "rate", better: "high" },
   ftPct: { key: "ftPct", label: "자유투 성공률", short: "자유투%", kind: "rate", better: "high" },
   tsPct: { key: "tsPct", label: "TS%", short: "TS%", kind: "rate", better: "high" },
+  // USG%: 표 열로만 (부문 카드에는 넣지 않는다 — 공격 점유율이라 "높을수록 잘함"이 아니다). 없는 시즌은 null → "–"
+  usgPct: { key: "usgPct", label: "USG%", short: "USG%", kind: "rate", better: "high" },
   per: { key: "per", label: "PER", short: "PER", kind: "rate", better: "high" },
 };
 
@@ -101,7 +106,7 @@ export const DEFAULT_CATEGORY: LeaderStatKey = "points";
 
 /** 표 열 기본 순서. 앞의 CORE_COLUMNS 는 모바일 첫 화면에 들어가는 핵심 열 (출전시간은 경기 바로 오른쪽) */
 export const TABLE_COLUMNS: readonly LeaderStatKey[] = [
-  "games", "minutes", "points", "reb", "ast", "stl", "blk", "tov", "fouls", "fgPct", "tpPct", "ftPct", "tsPct", "per",
+  "games", "minutes", "points", "reb", "ast", "stl", "blk", "tov", "fouls", "fgPct", "tpPct", "ftPct", "tsPct", "usgPct", "per",
 ];
 export const CORE_COLUMNS: readonly LeaderStatKey[] = ["games", "minutes", "points", "reb", "ast"];
 
@@ -124,9 +129,9 @@ export function defaultSortDir(key: LeaderStatKey): SortDir {
 // 값·필터·정렬·순위
 // ─────────────────────────────────────────────
 
-/** 표시·정렬에 쓰는 값. count 지표는 경기당 모드에서 perGame(누적, 경기 수) */
+/** 표시·정렬에 쓰는 값. count 지표는 경기당 모드에서 perGame(누적, 경기 수). 값이 없으면(USG% 없는 시즌) NaN → 표기 "–"·정렬 맨 뒤 */
 export function statValue(p: LeaderPlayer, key: LeaderStatKey, mode: StatMode): number {
-  const v = p[key];
+  const v = p[key] ?? NaN;
   if (LEADER_STATS[key].kind === "count" && mode === "perGame") return perGame(v, p.games);
   return v;
 }
@@ -190,7 +195,7 @@ export function sortLeaders<T extends LeaderPlayer>(
 /**
  * key 기준 순위 ("상위" 방향이 1위: 대부분 높은 값, 턴오버는 낮은 값. 동점은 같은 순위 · 다음 순위는 건너뜀: 1, 2, 2, 4).
  * 정렬 방향과 관계없이 "그 부문 몇 위"를 보여 주기 위한 것. 반환: 선수 id → 순위.
- * t 를 넘기면 성공률 지표의 시도 기준 미달 선수는 순위가 없다(맵에 없음 → 화면은 "–").
+ * t 를 넘기면 성공률 지표의 시도 기준 미달 선수는 순위가 없다(맵에 없음 → 화면은 "–"). 값이 없는 선수도 순위 없음.
  */
 export function rankMap(
   players: readonly LeaderPlayer[],
@@ -198,7 +203,10 @@ export function rankMap(
   mode: StatMode,
   t?: AttemptThresholds,
 ): Map<string, number> {
-  const sorted = sortLeaders(players, key, defaultSortDir(key), mode, t).filter((p) => isRankEligible(p, key, t));
+  // 값이 없는 선수(USG% 없는 시즌 = NaN)는 순위를 매기지 않는다
+  const sorted = sortLeaders(players, key, defaultSortDir(key), mode, t).filter(
+    (p) => isRankEligible(p, key, t) && Number.isFinite(statValue(p, key, mode)),
+  );
   const out = new Map<string, number>();
   let prev = NaN;
   let rank = 0;

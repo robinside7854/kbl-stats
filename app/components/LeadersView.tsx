@@ -258,7 +258,7 @@ export default function LeadersView({ seasonLabel, players, teams }: Props) {
       header: "선수",
       align: "left",
       rowHeader: true,
-      headerClassName: "w-40",
+      headerClassName: "w-36",
       className: "font-normal",
       cell: (p) => {
         const team = teamByCode.get(p.teamCode);
@@ -271,12 +271,12 @@ export default function LeadersView({ seasonLabel, players, teams }: Props) {
           >
             <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={team?.color} size={28} />
             <span className="min-w-0">
-              <span className="block max-w-32 truncate font-semibold leading-tight text-ink underline-offset-2 group-hover:underline">
+              <span className="block max-w-24 truncate font-semibold leading-tight text-ink underline-offset-2 group-hover:underline">
                 {p.nameKo}
               </span>
               <span className="flex min-w-0 items-center gap-1 text-caption text-ink-3">
                 <TeamLogo logoUrl={team?.logoUrl} shortName={team?.shortName ?? p.teamShort} color={team?.color} size={16} />
-                <span className="max-w-20 truncate">{teamShortLabel(team?.shortName ?? p.teamShort)}</span>
+                <span className="max-w-16 truncate">{teamShortLabel(team?.shortName ?? p.teamShort)}</span>
                 <PosBadge p={p} />
               </span>
             </span>
@@ -286,7 +286,8 @@ export default function LeadersView({ seasonLabel, players, teams }: Props) {
     },
     ...columns.map((key): RowColumn<LeaderPlayer> => {
       const active = key === sortKey;
-      const term = LEADER_COLUMN_GLOSSARY[key];
+      // 성공률 세 열은 같은 "시도 기준" 풀이라 ⓘ 는 첫 열(야투%)에만 (표 아래 안내문에도 링크가 있다 — 열 폭 절약)
+      const term = key === "tpPct" || key === "ftPct" ? undefined : LEADER_COLUMN_GLOSSARY[key];
       return {
         key,
         active,
@@ -298,11 +299,11 @@ export default function LeadersView({ seasonLabel, players, teams }: Props) {
             <button
               type="button"
               onClick={() => clickHeader(key)}
-              title={`${statTitle(key, mode)}로 정렬`}
-              className="focus-ring flex h-10 cursor-pointer items-center justify-end gap-0.5 whitespace-nowrap rounded-control px-1 font-semibold transition-colors duration-200 hover:text-ink"
+              title={`${statTitle(key, mode)}${key === "minutes" ? "(분)" : ""}로 정렬`}
+              className="focus-ring flex h-10 cursor-pointer items-center justify-end gap-0.5 whitespace-nowrap rounded-control px-0.5 font-semibold transition-colors duration-200 hover:text-ink"
             >
-              {LEADER_STATS[key].short}
-              {/* 정렬 방향 표시는 지금 정렬 중인 열에만 (빈 자리를 두지 않아 14개 열이 992px 안에 들어간다) */}
+              {LEADER_STATS[key].th ?? LEADER_STATS[key].short}
+              {/* 정렬 방향 표시는 지금 정렬 중인 열에만 (빈 자리를 두지 않아 17개 열이 992px 안에 들어간다) */}
               {active && (sortDir === "desc" ? <IconChevronDown size={16} className="-mx-0.5" /> : <IconChevronUp size={16} className="-mx-0.5" />)}
             </button>
           </span>
@@ -473,6 +474,7 @@ export default function LeadersView({ seasonLabel, players, teams }: Props) {
             pageSize={LEADERS_PAGE_SIZE}
             resetKey={`${leadersQueryString(state)}|${sortKey}|${sortDir}`}
             emphasize={(p) => (ranks.get(p.id) ?? 99) <= 3}
+            dense
             rowLabel={(p) => `${ranks.get(p.id) ?? "순위 없음"}${ranks.has(p.id) ? "위" : ""} ${p.nameKo}, ${statTitle(sortKey, mode)} ${formatStat(statValue(p, sortKey, mode), sortKey, mode)}, 자세히`}
             summary={(p) => {
               const team = teamByCode.get(p.teamCode);

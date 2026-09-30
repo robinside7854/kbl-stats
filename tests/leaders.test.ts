@@ -35,7 +35,7 @@ const mk = (o: Partial<LeaderPlayer> & { id: string }): LeaderPlayer => ({
   position: null, positionGroup: null, nationality: null,
   games: 20, minutes: 400, points: 200, reb: 100, ast: 50, stl: 10, blk: 5, tov: 30, fouls: 40,
   fgm: 72, fga: 160, tpm: 20, tpa: 60, ftm: 30, fta: 40,
-  fgPct: 45, tpPct: 33.3, ftPct: 75, tsPct: 55, per: 15,
+  fgPct: 45, tpPct: 33.3, ftPct: 75, tsPct: 55, usgPct: 20, per: 15,
   ...o,
 });
 
@@ -116,7 +116,7 @@ const cols = columnOrder("points");
 assert.deepEqual(cols.slice(cols.indexOf("fgPct"), cols.indexOf("fgPct") + 3), ["fgPct", "tpPct", "ftPct"]);
 assert.deepEqual(columnOrder("per").slice(0, 3), ["per", "games", "minutes"]);
 assert.equal(columnOrder("per").filter((k) => k === "per").length, 1);
-assert.ok(!(columnOrder("points") as string[]).includes("usgPct"));
+assert.ok((columnOrder("points") as string[]).includes("usgPct")); // 2026-09-30 등급 체계 2차: USG% 열 다시 추가 (부문 카드에는 없음)
 // 파울: 표 열(턴오버 바로 뒤)에는 있고 부문에는 없다. 경기당 환산, 적은 순이 기본 방향
 assert.equal(cols[cols.indexOf("tov") + 1], "fouls");
 assert.ok(!(LEADER_CATEGORIES as readonly string[]).includes("fouls"));
@@ -231,3 +231,19 @@ assert.equal(clearLeaderFilter(fs0, "position").origin, "domestic");
 assert.deepEqual(resetLeaderFilters(fs0), { ...DEFAULT_LEADERS_STATE, category: "reb" });
 
 console.log("leaders: 모든 검사 통과");
+
+// ── USG% 열: 표 열로만(부문 카드 아님), 없는 시즌(null)은 "–"·순위 없음 ──
+{
+  const { TABLE_COLUMNS: cols, LEADER_CATEGORIES: cats, LEADER_STATS: defs } = await import("../lib/leaders");
+  assert.ok(cols.includes("usgPct"));
+  assert.equal(cols.indexOf("usgPct"), cols.indexOf("tsPct") + 1); // TS% 바로 뒤
+  assert.ok(!cats.includes("usgPct"));
+  assert.equal(defs.usgPct.short, "USG%");
+  const noUsg = mk({ id: "nu", usgPct: null });
+  assert.ok(Number.isNaN(statValue(noUsg, "usgPct", "perGame")));
+  assert.equal(formatStat(statValue(noUsg, "usgPct", "perGame"), "usgPct", "perGame"), "–");
+  assert.equal(formatStat(statValue(mk({ id: "u", usgPct: 26.73 }), "usgPct", "total"), "usgPct", "total"), "26.7"); // 모드 무관
+  const r = rankMap([mk({ id: "u1", usgPct: 30 }), mk({ id: "u2", usgPct: 20 }), noUsg], "usgPct", "perGame");
+  assert.deepEqual([...r.entries()], [["u1", 1], ["u2", 2]]); // 값 없는 선수는 순위 없음
+  console.log("leaders: USG% 열 통과");
+}

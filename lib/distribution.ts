@@ -1,7 +1,8 @@
 // 팀별 선수 분포(/season/[코드]/teams) 산점도 규칙 — 순수 함수만 둔다 (CLAUDE.md 원칙 5).
 // 가로축 = 경기당 출전시간, 세로축 = 생산성 지표(PER·TS%·경기당 득점). 점 = 표본 기준 충족 선수.
 // 팀 색 배정·의존도는 lib/teams.ts, 경기당 환산은 lib/metrics.ts perGame.
-// USG%·PIE 는 쓰지 않는다 (2025-26에만 있고, 사용자가 어려운 지표라 빼 달라고 함 — 2026-09-30).
+// USG%·PIE 는 세로축으로 쓰지 않는다 (2025-26에만 있고, 사용자가 어려운 지표라 빼 달라고 함 — 2026-09-30).
+// USG% 는 "표로 보기" 열로만 보여 준다(2026-09-30 등급 체계 2차 — 전역 스탯 표에 USG% 열).
 
 import { isQualified, perGame, QUALIFY_PRESETS, qualifyShort, type QualifyRule } from "./metrics";
 import { positionFilterLabel, positionFromParam, positionParam, type PositionFilter } from "./roster";

@@ -19,7 +19,9 @@ import {
 import { seasonShortLabel } from "@/lib/career";
 import { teamShortLabel } from "@/lib/images";
 import { playerHref } from "@/lib/cardview";
+import { LEADER_COLUMN_GLOSSARY } from "@/lib/glossary";
 import { IconChevronRight } from "./icons";
+import InfoLink from "./InfoLink";
 import { PLAYER_SEASON_EVENT } from "./PlayerSeasonCards";
 import RowList, { type RowColumn } from "./RowList";
 import Segmented from "./Segmented";
@@ -84,7 +86,12 @@ export default function CareerTable({ seasons }: { seasons: CareerSeason[] }) {
     ...TABLE_COLUMNS.map(
       (key): RowColumn<CareerSeason> => ({
         key,
-        header: <span className="whitespace-nowrap font-semibold">{LEADER_STATS[key].short}</span>,
+        header: (
+          <span className="inline-flex items-center justify-end whitespace-nowrap font-semibold">
+            {LEADER_COLUMN_GLOSSARY[key] && <InfoLink term={LEADER_COLUMN_GLOSSARY[key]} compact className="-my-3" />}
+            {LEADER_STATS[key].short}
+          </span>
+        ),
         className: "whitespace-nowrap",
         cell: (s) => {
           const ma = madeAttempts(s, key);
@@ -159,7 +166,7 @@ export default function CareerTable({ seasons }: { seasons: CareerSeason[] }) {
           </button>
         )}
       />
-      <p className="mt-2 text-sub text-ink-3">정규시즌만. 성공률 아래 작은 숫자는 시즌 합계 성공/시도.</p>
+      <p className="mt-2 text-sub text-ink-3">정규시즌만. 성공률 아래 작은 숫자는 시즌 합계 성공/시도. USG%는 2차 스탯이 있는 시즌(2025-26~)만, 없으면 –.</p>
     </section>
   );
 }
