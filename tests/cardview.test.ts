@@ -245,5 +245,8 @@ console.log("cardview: 카드 범위·그리드·비교표·주소·용어 앵�
   assert.deepEqual(c.map((x) => x.title), ["커리어 하이 · 득점", "커리어 하이 · 리바운드", "커리어 하이 · 어시스트"]);
   assert.equal(c[0].note, "2023.10.21 · 상대 KCC");
   assert.deepEqual(careerHighlights([]), []);
+  // 슛 부문은 성공/시도를 설명 앞에 (3점 성공은 HERO_HIGH_KEYS 6번째)
+  const shot = careerHighlights([{ ...row("tpm", "3점슛 성공", "8"), shot: "8/12 · 66.7%" }]);
+  assert.equal(shot[0].note, "8/12 · 66.7% · 2023.10.21 · 상대 KCC");
   console.log("cardview: 하이라이트 카드 통과");
 }

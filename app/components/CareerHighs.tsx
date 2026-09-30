@@ -1,5 +1,6 @@
 "use client";
 // 선수 페이지 "커리어 하이" (통산 한 경기 최다): 탭(정규시즌/플레이오프/챔프전) + 행 목록(부문 · 기록 · 상대 · 날짜 · 횟수).
+// 3점·자유투 성공은 기록 옆에 그 경기 성공/시도·성공률을 작게("8/12 · 66.7%") — 경기별 기록에서 못 찾았으면 개수만.
 // 행은 서버에서 lib/career careerHighTabs 로 다 만들어 넘긴다 — 이 파일은 탭 상태와 배치만.
 // RowList: 모바일(<1024px) 행 카드(누르면 상대·날짜·횟수), PC 표 — 가로 스크롤 없음.
 // 기록 없는 탭은 부르는 쪽에서 이미 빠져 있고, 탭이 하나도 없으면 이 컴포넌트를 그리지 않는다.
@@ -20,9 +21,14 @@ const COLUMNS: RowColumn<CareerHighRow>[] = [
   {
     key: "value",
     header: "기록",
-    headerClassName: "w-24",
+    headerClassName: "w-40",
     className: (r) => `text-base font-bold ${r.rate ? "text-ink-2" : "text-ink"}`,
-    cell: (r) => r.value,
+    cell: (r) => (
+      <>
+        {r.value}
+        {r.shot && <span className="ml-1.5 text-caption font-medium text-ink-3">{r.shot}</span>}
+      </>
+    ),
   },
   { key: "opponent", header: "상대", align: "left", headerClassName: "pl-4", className: "pl-4", cell: (r) => r.opponent },
   { key: "date", header: "날짜", cell: (r) => r.date },
@@ -55,7 +61,7 @@ export default function CareerHighs({ tabs }: { tabs: Tab[] }) {
           columns={COLUMNS}
           resetKey={tab.key}
           unit="개"
-          rowLabel={(r) => `${r.label} ${r.value}, ${r.date}, 자세히`}
+          rowLabel={(r) => `${r.label} ${r.value}${r.shot ? ` (${r.shot})` : ""}, ${r.date}, 자세히`}
           summary={(r) => (
             <>
               <span className="min-w-0 flex-1">
@@ -67,7 +73,7 @@ export default function CareerHighs({ tabs }: { tabs: Tab[] }) {
               </span>
               <span className="shrink-0 text-right">
                 <span className={`tabular block text-lg font-bold leading-tight tracking-tight ${r.rate ? "text-ink-2" : "text-ink"}`}>{r.value}</span>
-                <span className="block text-caption leading-tight text-ink-3">{r.times}</span>
+                <span className="tabular block text-caption leading-tight text-ink-3">{r.shot ? `${r.shot} · ${r.times}` : r.times}</span>
               </span>
             </>
           )}
@@ -79,7 +85,7 @@ export default function CareerHighs({ tabs }: { tabs: Tab[] }) {
         />
       </div>
       <p className="mt-2 text-sub leading-relaxed text-ink-3">
-        통산 한 경기 최고 기록. 횟수는 그 기록을 낸 경기 수. 성공률은 시도 수 조건이 없어 적게 던진 경기도 들어갑니다.
+        통산 한 경기 최고 기록. 횟수는 그 기록을 낸 경기 수. 3점·자유투 옆 작은 글자는 그 경기의 성공/시도와 성공률.
       </p>
     </section>
   );

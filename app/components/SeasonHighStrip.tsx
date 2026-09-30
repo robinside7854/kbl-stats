@@ -1,5 +1,5 @@
 "use client";
-// 순위표 "이 시즌 한 경기 최다" 카드 줄 — 부문 11개(기록 부문만, 성공률 제외) 각각 선수 사진·이름·기록·날짜·상대.
+// 순위표 "이 시즌 한 경기 최다" 카드 줄 — 부문 7개(lib/highs HERO_HIGH_KEYS: 득점·리바운드·어시스트·스틸·블록·3점·자유투 성공) 각각 선수 사진·이름·기록·날짜·상대.
 // 의도된 가로 스크롤 줄: 이 줄(ul)만 옆으로 밀리고 페이지는 밀리지 않는다 (ChipRow 와 같이 음수 여백을 쓰지 않는다).
 // 고른 순위표 부문과 대응하는 카드(득점·리바운드·어시스트·스틸·블록)는 테두리로 강조하고, 보이도록 줄을 민다.
 // 카드 내용은 서버에서 lib/highs buildSeasonHighCards 로 다 만들어 넘긴다. 카드가 없으면 부르는 쪽이 섹션을 숨긴다.
@@ -60,6 +60,7 @@ export default function SeasonHighStrip({ cards, teamByCode, activeKey }: Props)
               </p>
               {/* deslop-ignore-next-line 11 */}
               <p className="mt-1 text-4xl font-black leading-none tracking-tight text-ink">{c.value}</p>
+              {c.shot && <p className="mt-1 text-caption font-medium text-ink-3">{c.shot}</p>}
               <Link
                 href={`/player/${c.playerNo}`}
                 className="focus-ring group mt-2.5 flex min-h-11 min-w-0 items-center gap-2 rounded-control"

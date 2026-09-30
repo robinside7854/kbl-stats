@@ -5,6 +5,7 @@
 // 순위·백분위·등급 계산은 lib/metrics.ts, 비교 집단 필터는 lib/roster.ts 를 부르기만 한다.
 
 import type { SeasonCards } from "./cards";
+import { HERO_HIGH_KEYS } from "./highs";
 import {
   attemptsNote,
   buildCardContext,
@@ -514,15 +515,15 @@ export function seasonHighlights(
     }));
 }
 
-/** 커리어 하이 대체 카드에 쓰는 부문 순서 (팬이 먼저 찾는 기록부터) */
-export const CAREER_HIGHLIGHT_KEYS = ["pts", "reb", "ast", "stl", "blk", "tpm"] as const;
+/** 하이라이트 카드 대체 목록 = 화면에 보여 주는 한 경기 최다 7개 (lib/highs HERO_HIGH_KEYS) 순서 */
+export const CAREER_HIGHLIGHT_KEYS = HERO_HIGH_KEYS;
 
 /**
- * 시즌 순위 1~10위가 하나도 없을 때 대신 보여 줄 정규시즌 커리어 하이 최대 3개 (CAREER_HIGHLIGHT_KEYS 순서, 성공률 제외).
+ * 시즌 순위 1~10위가 하나도 없을 때 대신 보여 줄 정규시즌 커리어 하이 최대 3개 (CAREER_HIGHLIGHT_KEYS = HERO_HIGH_KEYS 순서).
  * rows = lib/career careerHighRows 결과 (값·날짜·상대가 이미 표기된 문자열).
  */
 export function careerHighlights(
-  rows: readonly { key: string; label: string; value: string; opponent: string; date: string; rate: boolean }[],
+  rows: readonly { key: string; label: string; value: string; opponent: string; date: string; rate: boolean; shot?: string | null }[],
   limit = HIGHLIGHT_LIMIT,
 ): Highlight[] {
   const byKey = new Map(rows.filter((r) => !r.rate).map((r) => [r.key, r]));
@@ -536,7 +537,7 @@ export function careerHighlights(
       title: `커리어 하이 · ${r.label}`,
       value: r.value,
       unit: r.key === "pts" ? "점" : "개",
-      note: [r.date, r.opponent !== "–" ? `상대 ${r.opponent}` : ""].filter(Boolean).join(" · "),
+      note: [r.shot ?? "", r.date, r.opponent !== "–" ? `상대 ${r.opponent}` : ""].filter(Boolean).join(" · "),
       rank: null,
     }));
 }

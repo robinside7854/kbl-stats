@@ -2,7 +2,7 @@
 // 통산 경기당 계산은 lib/metrics.ts careerSummary, 경기당 환산은 metrics.perGame 을 쓴다.
 
 import { perGame } from "./metrics";
-import { formatHighDate, formatHighTimes, formatHighValue, HIGH_DEFS } from "./highs";
+import { formatHighDate, formatHighShot, formatHighTimes, formatHighValue, HERO_HIGH_KEYS, highDef } from "./highs";
 import type { CareerHighs, HighKey, HighsSet } from "./types";
 
 // ─────────────────────────────────────────────
@@ -255,11 +255,12 @@ export interface CareerHighRow {
   opponent: string;       // 상대 팀 한글 약칭 (모르면 코드, 코드도 없으면 "–")
   date: string;           // "2023.10.21"
   times: string;          // "3회" / "–"
-  rate: boolean;          // 성공률 부문 (시도 수 조건 없음 — 화면에서 흐리게·안내)
+  rate: boolean;          // 성공률 부문 (시도 수 조건 없음 — 화면에서 흐리게·안내). HERO_HIGH_KEYS 에는 없어 지금은 늘 false
+  shot: string | null;    // 슛 부문의 그 경기 성공/시도·성공률 "5/8 · 62.5%" (lib/highs formatHighShot, 없으면 null)
 }
 
 /**
- * 한 구분의 통산 세트 → 표 행 (부문 순서 = lib/highs HIGH_DEFS, 기록 없는 부문·값 0 은 뺀다).
+ * 한 구분의 통산 세트 → 표 행 (부문·순서 = lib/highs HERO_HIGH_KEYS 7개, 기록 없는 부문·값 0 은 뺀다).
  * teamName(코드, 달성 시즌) → 한글 약칭. 그 시즌 팀 목록에 없으면 null → 코드를 그대로 쓴다.
  */
 export function careerHighRows(
@@ -268,8 +269,9 @@ export function careerHighRows(
 ): CareerHighRow[] {
   if (!set) return [];
   const out: CareerHighRow[] = [];
-  for (const d of HIGH_DEFS) {
-    const r = set[d.key];
+  for (const key of HERO_HIGH_KEYS) {
+    const d = highDef(key);
+    const r = set[key];
     if (!r || !(r.value > 0)) continue;
     out.push({
       key: d.key,
@@ -279,6 +281,7 @@ export function careerHighRows(
       date: formatHighDate(r.date),
       times: formatHighTimes(r.times),
       rate: d.kind === "rate",
+      shot: formatHighShot(r, key),
     });
   }
   return out;

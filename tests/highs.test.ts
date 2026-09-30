@@ -151,7 +151,7 @@ assert.deepEqual(pendingPlayers(["1"], []), ["1"]);
 console.log("highs: 백필 대상 통과");
 
 // ── 시즌 하이 1위 (lib/highs computeSeasonHighLeaders) ──
-import { buildSeasonHighCards, computeSeasonHighLeaders, emptyHighsSet, formatHighDate, formatHighValue, LEADER_CATEGORY_HIGH, SEASON_HIGH_LEADER_KEYS } from "../lib/highs";
+import { buildSeasonHighCards, computeSeasonHighLeaders, emptyHighsSet, formatHighDate, formatHighValue, HERO_HIGH_KEYS, LEADER_CATEGORY_HIGH, SEASON_HIGH_LEADER_KEYS } from "../lib/highs";
 import type { HighRecord, HighsSet } from "../lib/types";
 
 const rec = (value: number, date: string | null, extra: Partial<HighRecord> = {}): HighRecord => ({
@@ -160,11 +160,14 @@ const rec = (value: number, date: string | null, extra: Partial<HighRecord> = {}
 const hs = (patch: Partial<HighsSet>): HighsSet => ({ ...emptyHighsSet(), ...patch });
 
 assert.equal(SEASON_HIGH_LEADER_KEYS.length, 11);
+// 화면 부문 7개 (사용자 요청 순서) — 모두 1위 계산 부문 안에 있어야 한다
+assert.deepEqual([...HERO_HIGH_KEYS], ["pts", "reb", "ast", "stl", "blk", "tpm", "ftm"]);
+for (const k of HERO_HIGH_KEYS) assert.ok(SEASON_HIGH_LEADER_KEYS.includes(k), `${k} 는 1위 계산 부문`);
 for (const k of ["fgPct", "twoPPct", "tpPct", "ftPct"]) assert.ok(!(SEASON_HIGH_LEADER_KEYS as readonly string[]).includes(k), `${k} 는 순위표 제외`);
 
 const leaders = computeSeasonHighLeaders([
   { playerNo: "10", seasonHighs: hs({ pts: rec(40, "2025-12-01"), tpPct: rec(100, "2025-10-05"), blk: rec(0, "2025-10-05") }) },
-  { playerNo: "20", seasonHighs: hs({ pts: rec(40, "2025-11-02", { opponentTeamCode: "60" }), reb: rec(18, "2026-01-01") }) }, // 동률 → 먼저 낸 20
+  { playerNo: "20", seasonHighs: hs({ pts: rec(40, "2025-11-02", { opponentTeamCode: "60" }), reb: rec(18, "2026-01-01"), fgm: rec(15, "2025-11-02") }) }, // 동률 → 먼저 낸 20
   { playerNo: "30", seasonHighs: hs({ pts: rec(38, "2025-10-04"), reb: rec(18, "2026-01-01") }) },          // 리바 같은 날 동률 → 번호 작은 20
   { playerNo: "40", seasonHighs: null },
 ])!;
@@ -193,7 +196,8 @@ const cards = buildSeasonHighCards(
   ],
   (code) => (code === "55" ? "SK" : null),
 );
-assert.deepEqual(cards.map((c) => c.key), ["pts", "reb"]);
+assert.equal(leaders.fgm!.playerNo, "20");         // 데이터(1위)는 11개 다 계산
+assert.deepEqual(cards.map((c) => c.key), ["pts", "reb"]); // 카드는 HERO_HIGH_KEYS 만 (야투 성공 제외)
 assert.equal(cards[0].opponent, "60");              // 팀 목록에 없으면 코드
 assert.equal(cards[1].opponent, "SK");
 assert.equal(cards[0].value, "40");
@@ -206,6 +210,21 @@ assert.equal(formatHighValue(66.6667, "fgPct"), "66.7%");
 assert.equal(formatHighValue(100, "ftPct"), "100%");
 assert.equal(formatHighDate("2023-10-21"), "2023.10.21");
 assert.equal(formatHighDate(null), "–");
+// 슛 부문 성공/시도 표기
+import { formatHighShot } from "../lib/highs";
+assert.equal(formatHighShot(rec(5, "2026-01-01", { attempts: 8, pct: 62.5 }), "tpm"), "5/8 · 62.5%");
+assert.equal(formatHighShot(rec(10, "2026-01-01", { attempts: 10 }), "ftm"), "10/10 · 100%");   // pct 없으면 계산
+assert.equal(formatHighShot(rec(2, "2026-01-01", { attempts: 3 }), "ftm"), "2/3 · 66.7%");
+assert.equal(formatHighShot(rec(5, "2026-01-01"), "tpm"), null);                                // 시도 모름 → 개수만
+assert.equal(formatHighShot(rec(5, "2026-01-01", { attempts: null, pct: null }), "tpm"), null);
+assert.equal(formatHighShot(rec(40, "2026-01-01", { attempts: 20 }), "pts"), null);              // 득점에는 붙이지 않는다
+assert.equal(formatHighShot(null, "tpm"), null);
+const shotCards = buildSeasonHighCards(
+  computeSeasonHighLeaders([{ playerNo: "20", seasonHighs: hs({ tpm: rec(8, "2026-01-01", { attempts: 12, pct: 66.7 }), ftm: rec(9, "2026-01-02") }) }]),
+  [{ id: "20", nameKo: "선수이십", photoUrl: null, teamCode: "55" }],
+  () => null,
+);
+assert.deepEqual(shotCards.map((c) => [c.key, c.shot]), [["tpm", "8/12 · 66.7%"], ["ftm", null]]);
 console.log("highs: 시즌 하이 1위 통과");
 
 // ── 만 나이·히어로 추가 항목 (lib/career) ──
@@ -233,17 +252,16 @@ const rows = careerHighRows(
   hs({
     pts: rec(46, "2023-10-21", { opponentTeamCode: "70", times: 2, seasonCode: 45 }),
     fgPct: rec(100, "2024-01-01", { opponentTeamCode: "70", seasonCode: 43 }),
+    ftm: rec(12, "2024-01-01", { opponentTeamCode: "70", seasonCode: 43 }),
     blk: rec(0, null),
     ast: rec(9, null, { opponentTeamCode: null, times: null }),
   }),
   teamName,
 );
-assert.deepEqual(rows.map((r) => r.key), ["pts", "fgPct", "ast"]); // HIGH_DEFS 순서, 0·null 제외
-assert.deepEqual(rows[0], { key: "pts", label: "득점", value: "46", opponent: "정관장", date: "2023.10.21", times: "2회", rate: false });
-assert.equal(rows[1].opponent, "70");                // 그 시즌 팀 목록에 없으면 코드
-assert.equal(rows[1].rate, true);
-assert.equal(rows[1].value, "100%");
-assert.deepEqual([rows[2].opponent, rows[2].date, rows[2].times], ["–", "–", "–"]);
+assert.deepEqual(rows.map((r) => r.key), ["pts", "ast", "ftm"]); // HERO_HIGH_KEYS 순서, 0·null·화면 밖 부문(fgPct) 제외
+assert.deepEqual(rows[0], { key: "pts", label: "득점", value: "46", opponent: "정관장", date: "2023.10.21", times: "2회", rate: false, shot: null });
+assert.equal(rows[2].opponent, "70");                // 그 시즌 팀 목록에 없으면 코드
+assert.deepEqual([rows[1].opponent, rows[1].date, rows[1].times], ["–", "–", "–"]);
 assert.deepEqual(careerHighRows(null, teamName), []);
 const tabs = careerHighTabs({ regular: hs({ pts: rec(30, "2020-01-01") }), playoff: null, finals: hs({}) }, teamName);
 assert.deepEqual(tabs.map((t) => t.key), ["regular"]); // 행 없는 탭은 빠진다

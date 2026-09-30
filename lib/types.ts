@@ -55,6 +55,13 @@ export interface HighRecord {
   opponentTeamCode: string | null; // 상대 팀 코드 (awayTeam)
   times: number | null;            // 같은 최고 기록을 낸 횟수 (scoreRankCn)
   seasonCode: number | null;       // 달성 시즌 (통산 기록의 상대 팀 이름 조회용)
+  /**
+   * 슛 성공 부문(3점·자유투·야투 성공)만: 그 경기의 시도 수·성공률(0~100). mostgame 응답에는 성공 개수만 있어서
+   * process.ts 가 같은 선수·시즌·날짜의 경기별 기록(data/raw/gamelogs)에서 찾아 붙인다 (scripts/gamelogs.ts).
+   * 못 찾았거나 슛 부문이 아니면 null/없음 → 화면은 개수만.
+   */
+  attempts?: number | null;
+  pct?: number | null;
 }
 
 /** 부문별 한 경기 최다. 그 부문 기록이 응답에 없으면 null */
