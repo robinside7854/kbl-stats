@@ -6,6 +6,7 @@
 //   KBL 서버가 아니라 우리 public/ 파일이므로 원칙 1 위반 아님).
 // - 종합 등급·정렬·필터는 lib/cardview(buildGridEntries·sortGridEntries·filterGridEntries) — 여기서는 계산하지 않는다.
 // - 상태는 주소 ?season=&pos=&origin=&team= 에 남긴다. 시즌은 상단 SiteNav 의 시즌 선택이 onSeasonChange 로 바꾼다.
+// - 카드에 칭호 배지 1개(통산 기준 우선순위 1번, 서버가 넘긴 topBadges — lib/badges).
 // - 카드를 누르면 그 선수 상세의 그 시즌 카드로 (/player/번호?season=코드).
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -38,6 +39,7 @@ import {
   positionFilterLabel,
   positionLabel,
 } from "@/lib/roster";
+import { BADGE_CHIP, badgeStyle } from "./BadgeRow";
 import ChipRow from "./ChipRow";
 import FilterSheet, { FilterGroup } from "./FilterSheet";
 import { IconChevronDown } from "./icons";
@@ -58,6 +60,8 @@ interface Props {
   latest: number;
   /** 최신 시즌 카드 파일 (public/cards 와 같은 내용) — 정적 HTML용 */
   initialFile: SeasonCardsFile;
+  /** 선수 번호 → 우선순위 1번 칭호 배지 라벨 (배지 없는 선수는 없음). 통산 기준이라 어느 시즌 그리드든 같다 */
+  topBadges: Record<string, string>;
 }
 
 /** 종합 등급 배지 — 플레이어 카드와 같은 색 규칙(lib/teams gradeTone: S 금색, A·B 팀 색, C 이하 무채색). 글자가 곧 등급 */
@@ -77,14 +81,14 @@ function GradeBadge({ grade, team, colors }: { grade: Grade | "-"; team?: CardTe
   );
 }
 
-function GridCard({ e, team, seasonCode, colors }: { e: GridEntry; team?: CardTeam; seasonCode: number; colors: ThemeColors }) {
+function GridCard({ e, team, seasonCode, colors, badge }: { e: GridEntry; team?: CardTeam; seasonCode: number; colors: ThemeColors; badge?: string }) {
   const p = e.player;
   const pos = positionLabel(p.position);
   return (
     <Link
       href={playerHref(p.id, seasonCode)}
       className="focus-ring surface-card tabular flex h-full min-w-0 flex-col rounded-container p-3 transition-colors duration-200 hover:bg-surface-2"
-      aria-label={`${p.nameKo}, ${team?.shortName ?? p.teamShort}${pos ? `, ${pos}` : ""}, 종합 등급 ${e.overall === "-" ? "표본 미달" : e.overall}, 경기당 ${formatCardValue(e.ppg, false)}점`}
+      aria-label={`${p.nameKo}, ${team?.shortName ?? p.teamShort}${pos ? `, ${pos}` : ""}${badge ? `, 칭호 ${badge}` : ""}, 종합 등급 ${e.overall === "-" ? "표본 미달" : e.overall}, 경기당 ${formatCardValue(e.ppg, false)}점`}
     >
       <span className="flex items-start justify-between gap-2">
         <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={team?.color} size={52} />
@@ -98,6 +102,13 @@ function GridCard({ e, team, seasonCode, colors }: { e: GridEntry; team?: CardTe
           {pos ? ` · ${pos}` : ""}
         </span>
       </span>
+      {badge && (
+        <span className="mt-1.5">
+          <span className={`${BADGE_CHIP} h-6 px-1.5 text-caption`} style={badgeStyle(team?.color.primary ?? FALLBACK_TEAM_COLOR.primary)}>
+            {badge}
+          </span>
+        </span>
+      )}
       <span className="mt-auto pt-2 text-caption text-ink-3">
         경기당 <b className="text-base font-bold tracking-tight text-ink">{formatCardValue(e.ppg, false)}</b>점
         {p.nationality && p.nationality !== "domestic" && <span className="ml-1">· {NATIONALITY_LABELS[nationalityOf(p)]}</span>}
@@ -106,7 +117,7 @@ function GridCard({ e, team, seasonCode, colors }: { e: GridEntry; team?: CardTe
   );
 }
 
-export default function PlayersView({ seasons, latest, initialFile }: Props) {
+export default function PlayersView({ seasons, latest, initialFile, topBadges }: Props) {
   const colors = useThemeColors();
   const initialCards = useMemo(() => primeSeasonCards(initialFile), [initialFile]);
   const [state, setState] = useState<PlayersState>({ season: latest, position: "all", origin: "all", teamCode: null });
@@ -238,7 +249,7 @@ export default function PlayersView({ seasons, latest, initialFile }: Props) {
             <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
               {shown.map((e) => (
                 <li key={e.player.id} className="min-w-0">
-                  <GridCard e={e} team={teamByCode.get(e.player.teamCode)} seasonCode={shownSeason} colors={colors} />
+                  <GridCard e={e} team={teamByCode.get(e.player.teamCode)} seasonCode={shownSeason} colors={colors} badge={topBadges[e.player.id]} />
                 </li>
               ))}
             </ul>

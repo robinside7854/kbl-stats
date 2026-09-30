@@ -1,9 +1,11 @@
-// 용어 탭 (/glossary): lib/glossary.ts 14개 항목을 표로 — 이름 · 한 줄 설명 · 계산식(고정폭) · 비고(검산 여부·KBL 특이사항) · 출처.
+// 용어 탭 (/glossary): lib/glossary.ts 항목을 표로 — 이름 · 한 줄 설명 · 계산식(고정폭) · 비고(검산 여부·KBL 특이사항) · 출처.
 // 카드 등급 영역·순위표 열 머리글의 ⓘ 가 여기 앵커(/glossary#ts 등, GLOSSARY_ANCHORS)로 연결된다 — 앵커 줄은 강조된다.
+// 그 아래 "선수 유형 라벨"(lib/glossary PLAYER_TYPES, 앵커 #type-{키})·"칭호 배지"(lib/badges BADGE_DEFS, 앵커 #badge-{키}) 규칙 표.
 // 모바일(768px 미만)은 표의 한 줄을 카드처럼 세로로 쌓는다 (같은 표 마크업, CSS만 다름 — 가로 스크롤 없음).
 import type { Metadata } from "next";
 import { listSeasonsWithPlayers, loadSeasonData } from "@/lib/data";
-import { GLOSSARY, GLOSSARY_ANCHORS } from "@/lib/glossary";
+import { GLOSSARY, GLOSSARY_ANCHORS, PLAYER_TYPES } from "@/lib/glossary";
+import { BADGE_DEFS } from "@/lib/badges";
 import { IconExternal } from "@/app/components/icons";
 import SiteNav from "@/app/components/SiteNav";
 import SourceFooter from "@/app/components/SourceFooter";
@@ -21,6 +23,56 @@ function sourceName(url: string): string {
   } catch {
     return "출처";
   }
+}
+
+/** 규칙 표 한 줄 (선수 유형 라벨·칭호 배지) */
+interface RuleRow {
+  id: string;
+  label: string;
+  condition: string;
+  short: string;
+}
+
+/**
+ * 규칙 표: 이름 · 조건 · 한 줄 설명. 줄마다 앵커(id)가 있어 카드 유형 라벨·히어로 배지에서 바로 그 줄로 온다.
+ * 모바일은 위 용어 표와 같은 방식으로 한 줄을 카드처럼 세로로 쌓는다.
+ */
+function RuleTable({ id, title, intro, head, rows }: { id: string; title: string; intro: string; head: string; rows: RuleRow[] }) {
+  return (
+    <section id={id} aria-labelledby={`${id}-title`} className="mt-8 scroll-mt-4">
+      <h2 id={`${id}-title`} className="text-h2 font-bold">
+        {title}
+      </h2>
+      <p className="mb-3 mt-1 text-body text-ink-2">{intro}</p>
+      <div className="surface-card rounded-container max-md:border-0 max-md:bg-transparent max-md:shadow-none">
+        <table className="w-full border-separate border-spacing-0 text-body max-md:block">
+          <caption className="sr-only">{`${title}: ${head}, 조건, 한 줄 설명`}</caption>
+          <thead className="max-md:sr-only">
+            <tr className="text-left text-sub text-ink-3">
+              <th scope="col" className="w-48 border-b border-line px-3 py-2 font-medium">{head}</th>
+              <th scope="col" className="border-b border-line px-3 py-2 font-medium">조건</th>
+              <th scope="col" className="w-72 border-b border-line px-3 py-2 font-medium">한 줄 설명</th>
+            </tr>
+          </thead>
+          <tbody className="max-md:block max-md:space-y-3">
+            {rows.map((r) => (
+              <tr
+                key={r.id}
+                id={r.id}
+                className="scroll-mt-4 target:bg-surface-2 max-md:block max-md:rounded-container max-md:border max-md:border-line max-md:bg-surface max-md:shadow-card max-md:p-3 max-md:target:bg-surface-2 max-md:target:ring-2 max-md:target:ring-ink"
+              >
+                <th scope="row" className={`${CELL} text-left text-base font-bold text-ink`}>
+                  {r.label}
+                </th>
+                <td className={`${CELL} text-ink`}>{r.condition}</td>
+                <td className={`${CELL} text-sub leading-relaxed text-ink-2`}>{r.short}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
 }
 
 const CELL = "border-b border-line px-3 py-2 align-top max-md:block max-md:border-0 max-md:px-0 max-md:py-1";
@@ -102,6 +154,22 @@ export default function GlossaryPage() {
             </tbody>
           </table>
         </div>
+
+        <RuleTable
+          id="type-list"
+          title="선수 유형 라벨"
+          intro="플레이어 카드 위쪽 라벨. 레이더 5축 백분위(같은 국적 집단 안)로 위에서부터 먼저 맞는 규칙을 씁니다."
+          head="라벨"
+          rows={PLAYER_TYPES.map((t) => ({ id: `type-${t.key}`, label: t.label, condition: t.condition, short: t.short }))}
+        />
+
+        <RuleTable
+          id="badge-list"
+          title="칭호 배지"
+          intro="선수 페이지 이름 아래 칭호. 정규시즌 기록에서 바로 셀 수 있는 것만 붙이고, 표 순서가 보여 주는 우선순위입니다."
+          head="배지"
+          rows={BADGE_DEFS.map((b) => ({ id: `badge-${b.key}`, label: b.label, condition: b.condition, short: b.short }))}
+        />
       </main>
       <SourceFooter fetchedAt={seasons[0] ? loadSeasonData(latest)?.fetchedAt : undefined} wide />
     </>

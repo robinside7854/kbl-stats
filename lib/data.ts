@@ -9,6 +9,7 @@ import type {
   CareerSeason,
   LeaderPlayer,
   PlayerCareer,
+  Player,
   PlayerIndexEntry,
   SeasonData,
   SeasonOption,
@@ -17,6 +18,7 @@ import { decodeSeasonCards, encodeSeasonCards, type SeasonCards, type SeasonCard
 import { toCardPlayers as convertCardPlayers, toCardTeams, toLeaderPlayers as convertLeaderPlayers } from "./convert";
 import { buildSeasonHighCards, type SeasonHighCard } from "./highs";
 import { careerHighTabs, type CareerHighRow, type HighsTab } from "./career";
+import { buildBadgeIndex, playerBadges, type BadgeCareer, type BadgeIndex, type BadgeSeasonRow, type PlayerBadge } from "./badges";
 
 const PROCESSED_DIR = path.join(process.cwd(), "data", "processed");
 
@@ -189,4 +191,71 @@ export function loadSeasonHighCards(season: SeasonData): SeasonHighCard[] {
 /** 선수 페이지 커리어 하이 탭 (정규시즌/플레이오프/챔프전, 행 없는 탭은 빠짐). 데이터 없으면 [] */
 export function loadCareerHighTabs(entry: PlayerIndexEntry): { key: HighsTab; label: string; rows: CareerHighRow[] }[] {
   return careerHighTabs(entry.careerHighs, teamNameInSeason);
+}
+
+// ─────────────────────────────────────────────
+// 칭호 배지 (lib/badges) — 선수 색인 + 시즌 파일에서 빌드 시점에 계산해 결과(라벨)만 넘긴다
+// ─────────────────────────────────────────────
+
+let badgeIndexCache: BadgeIndex | null = null;
+
+/** 전 시즌 배지 재료 (시즌별 최다 경기·부문 1위) */
+export function loadBadgeIndex(): BadgeIndex {
+  if (badgeIndexCache) return badgeIndexCache;
+  const seasons = listSeasonsWithPlayers().flatMap((s) => {
+    const data = loadSeasonData(s.seasonCode);
+    return data ? [{ seasonCode: data.seasonCode, seasonLabel: data.seasonLabel, players: [...seasonLeaderRows(data).values()] }] : [];
+  });
+  badgeIndexCache = buildBadgeIndex(seasons);
+  return badgeIndexCache;
+}
+
+// 시즌 파일 선수 행 (더블더블·트리플더블 — 화면용 LeaderPlayer 에는 없는 필드)
+const rawRowsCache = new Map<number, Map<string, Player>>();
+function seasonRawRows(season: SeasonData): Map<string, Player> {
+  let m = rawRowsCache.get(season.seasonCode);
+  if (!m) {
+    m = new Map(season.players.map((p) => [p.playerNo, p]));
+    rawRowsCache.set(season.seasonCode, m);
+  }
+  return m;
+}
+
+/** 배지 계산 재료: 색인 항목의 시즌을 따라 시즌 파일에서 팀·경기·더블더블·트리플더블을 모은다 */
+export function badgeCareerOf(entry: PlayerIndexEntry): BadgeCareer {
+  const seasons: BadgeSeasonRow[] = [];
+  for (const s of entry.seasons) {
+    const season = loadSeasonData(s.seasonCode);
+    const p = season && seasonRawRows(season).get(entry.id);
+    if (!p) continue;
+    seasons.push({ seasonCode: s.seasonCode, teamCode: p.teamCode, games: p.games, doubleDoubles: p.doubleDoubles, tripleDoubles: p.tripleDoubles });
+  }
+  return {
+    playerNo: entry.id,
+    seasons,
+    draftYear: entry.draft?.year ?? null,
+    careerHighPoints: entry.careerHighs?.regular?.pts?.value ?? null,
+  };
+}
+
+const badgesCache = new Map<string, PlayerBadge[]>();
+
+/** 한 선수의 칭호 배지 (우선순위 순). 색인에 없으면 [] */
+export function loadPlayerBadges(playerNo: string): PlayerBadge[] {
+  const hit = badgesCache.get(playerNo);
+  if (hit) return hit;
+  const entry = findPlayerIndexEntry(playerNo);
+  const list = entry ? playerBadges(badgeCareerOf(entry), loadBadgeIndex()) : [];
+  badgesCache.set(playerNo, list);
+  return list;
+}
+
+/** 선수 탭 그리드용: 배지가 있는 선수만 → 우선순위 1번 배지 라벨 (예: { "291248": "득점왕 ×3" }) */
+export function loadTopBadgeLabels(): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const e of loadPlayersIndex()) {
+    const top = loadPlayerBadges(e.id)[0];
+    if (top) out[e.id] = top.label;
+  }
+  return out;
 }
