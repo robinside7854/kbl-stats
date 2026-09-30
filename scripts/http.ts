@@ -1,9 +1,20 @@
 // KBL 서버 요청·raw 저장 공용 함수 (fetch.ts·backfill-highs.ts). API 주소는 config.ts 에만 둔다.
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { DATA_DIR } from "./config.js";
+import { DATA_DIR, SITE_API } from "./config.js";
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * 서버 C(api.kbl.or.kr, 공홈 화면 API)는 공홈 스크립트가 붙이는 사용자 정의 헤더가 없으면
+ * 400 "필수 헤더 정보가 누락되었습니다" (2026-09-30 Actions 브라우저 캡처로 확인: channel/lang/teamcode).
+ */
+export const SITE_API_HEADERS: Record<string, string> = {
+  channel: "WEB",
+  lang: "ko",
+  teamcode: "XX",
+  "X-Requested-With": "XMLHttpRequest",
+};
 
 export async function getJson(url: string): Promise<unknown> {
   const res = await fetch(url, {
@@ -14,6 +25,7 @@ export async function getJson(url: string): Promise<unknown> {
       Referer: "https://kbl.or.kr/",
       Origin: "https://kbl.or.kr",
       "User-Agent": "kbl-stats fan project (non-commercial; github.com/robinside7854/kbl-stats)",
+      ...(url.startsWith(SITE_API) ? SITE_API_HEADERS : {}),
     },
   });
   if (!res.ok) {

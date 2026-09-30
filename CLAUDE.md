@@ -68,7 +68,7 @@ KBL 공홈은 화면을 그릴 때 아래 두 서버에서 JSON을 받아온다.
 - 경기 목록 `GET /match/list?fromDate=YYYYMMDD&toDate=YYYYMMDD&tcodeList=all` → 배열 `{ gmkey: "S49G14N1"(시즌·경기구분·번호 키), seasonCode, gameCode("01" 정규, "14" OPEN MATCH DAY 등), gameNo, gameDate, tcodeH, tcodeA, scoreH, scoreA, isEnded, … }`. 연도 목록 `GET /match/year`
 - 경기 상세 `GET /match/{gmkey}` → 심판·관중·쿼터 점수·detailUrl(`/game/record/{gmkey}`), 팀 합계 `GET /league/{gmkey}/vs/team-statsByGmKey?teamA=&teamB=`
 - **슛 차트** `GET /match/{gmkey}/match-chart` → `{ shootLog: [ { pcode(선수번호), pname, tcode, logs: [ { q: "Q1"~"Q4", x, y, o: "O"(성공)|"X"(실패), d: "1"|"2" } ] } ] }` — x·y는 코트 그림 픽셀 좌표(관측 범위 x 0~700, y 0~400 근처), d는 공격 방향(코트 절반) 추정. **바스켓 위치·구역 경계는 실제 데이터로 검증 후 정한다**(3점 성공 좌표의 거리 분포로 역산). 경기당 1회 요청, 정규시즌 270경기/시즌
-- 헤더: 서버 B와 같은 Referer/Origin 필요 여부 미확인(브라우저에서는 됨) → fetch.ts 공용 헤더로 시도
+- **헤더 필수**: 공홈 스크립트가 붙이는 `channel: WEB`, `lang: ko`, `teamcode: XX`(+ `X-Requested-With: XMLHttpRequest`, Referer)가 없으면 400 "필수 헤더 정보가 누락되었습니다" (2026-09-30 Actions 브라우저 요청 캡처로 확인). `scripts/http.ts SITE_API_HEADERS` 가 서버 C 주소에만 붙인다
 - **수집 규칙 (슛 차트, 2026-09-30 — 수집만, 가공·화면은 다음 단계)**: 주소는 `scripts/config.ts`(`SITE_API`·`matchListUrl`·`matchChartUrl`), 규칙은 `scripts/shots.ts`(순수), 루프는 `scripts/collect-shots.ts`
   - raw: 경기 목록 `data/raw/games/{seasonCode}/list.json`(월별 응답 배열을 이어 붙인 배열, 항목 원본 그대로), 슛 차트 `data/raw/shots/{seasonCode}/{gmkey}.json`(응답 그대로, 한 줄 JSON). 형식이 다른 응답(배열 아님·`shootLog` 없음·HTML)은 저장하지 않고 실패로 센다. 목록은 한 달이라도 실패하면 저장하지 않는다(전날 파일 유지)
   - 월 구간: 시즌 라벨(코드표 `seasonName1`, 없으면 백업 상수) "2025-2026" → 2025-09 ~ 2026-06 월별 10회, "1997" → 1~12월 12회
