@@ -1,0 +1,24 @@
+# 조사용 1회 워크플로 — KBL 공홈 리그 로고 주소 확인 (세션 환경은 kbl.or.kr 차단이라 러너에서 확인). 확인 후 브랜치째 삭제.
+name: KBL 리그 로고 주소 조사
+on:
+  push:
+    branches: [claude/probe-league-logo]
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 공홈 HTML 에서 로고 후보 추출
+        run: |
+          curl -sL -A "Mozilla/5.0" https://kbl.or.kr/ -o home.html || true
+          echo "== img/svg src 중 logo 포함 =="
+          grep -oE '(src|href)="[^"]*logo[^"]*"' home.html | sort -u | head -40 || true
+          echo "== css 배경 이미지 logo =="
+          grep -oE 'url\([^)]*logo[^)]*\)' home.html | sort -u | head -20 || true
+          for css in $(grep -oE 'href="[^"]*\.css[^"]*"' home.html | sed -E 's/href="([^"]*)"/\1/' | head -5); do
+            u="$css"; case "$u" in /*) u="https://kbl.or.kr$u";; esac
+            echo "== $u =="; curl -sL -A "Mozilla/5.0" "$u" | grep -oE 'url\([^)]*logo[^)]*\)' | sort -u | head -20 || true
+          done
+          echo "== 후보 주소 상태 =="
+          for u in https://kbl.or.kr/assets/img/logo/logo-kbl.svg https://kbl.or.kr/assets/img/logo/logo.svg https://kbl.or.kr/assets/img/logo/kbl.svg https://kbl.or.kr/assets/img/ico/logo/ic-kbl.svg https://kbl.or.kr/assets/img/logo/logo-kbl.png https://kbl.or.kr/assets/img/common/logo.svg https://kbl.or.kr/assets/img/logo/logo_kbl.svg https://kbl.or.kr/favicon.ico; do
+            printf '%s -> ' "$u"; curl -sL -A "Mozilla/5.0" -o /dev/null -w '%{http_code} %{content_type} %{size_download}\n' "$u"
+          done
