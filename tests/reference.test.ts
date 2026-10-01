@@ -18,7 +18,7 @@ import {
   DEFAULT_LEADERS_STATE,
 } from "../lib/leaders";
 import { attemptThresholds, DEFAULT_QUALIFY } from "../lib/metrics";
-import { findSimilar, similarityScore, toAxisVector, type SimilarVector } from "../lib/similar";
+import { combinedSimilarity, findSimilar, similarityScore, toAxisVector, type SimilarVector } from "../lib/similar";
 import { formatRecord, isActiveCareer, rankCareerTotals, recordValue, RECORDS_MIN_GAMES, sumCareerTotals, type CareerTotal } from "../lib/records";
 import { emptyZoneCounts } from "../lib/shots";
 import type { LeaderPlayer } from "../lib/types";
@@ -107,6 +107,15 @@ const pool = [target, vec("me", 45, 80), vec("a", 30, 79), vec("a", 31, 60), vec
 const sim = findSimilar(target, pool, 3);
 assert.deepEqual(sim.map((m) => m.id), ["d", "a", "b"]); // 자기 자신·외국인 풀·다른 포지션 제외, 선수마다 최고 시즌 하나, 포지션 모르는 선수는 포함
 assert.equal(sim[1].seasonCode, 30);
+// 종합 유사도: 레이더가 같아도 역할·공격 유형·종합 평가가 다르면 낮아진다
+const base = { id: "x", seasonCode: 47, pool: "domestic", pos: "G", axes: [60, 60, 60, 60, 60, 60] };
+close(combinedSimilarity({ ...base, overall: 70, role: "shooter", offense: "three" }, { ...base, id: "y", overall: 70, role: "shooter", offense: "three" }), 100);
+close(combinedSimilarity({ ...base, overall: 70, role: "shooter", offense: "three" }, { ...base, id: "y", overall: 70, role: "playmaker", offense: "rim" }), 75);
+close(combinedSimilarity({ ...base, overall: 90, role: "shooter" }, { ...base, id: "y", overall: 70, role: "shooter" }), (0.6 * 100 + 0.15 * 80 + 0.15 * 100) / 0.9); // 공격 유형 없으면 빼고 다시 나눔
+close(combinedSimilarity(base, { ...base, id: "y" }), 100); // 레이더만 있으면 레이더 유사도
+const roleT = { ...vec("me", 47, 80), role: "shooter" };
+const roleSim = findSimilar(roleT, [{ ...vec("p", 40, 78), role: "playmaker" }, { ...vec("q", 41, 76), role: "shooter" }], 2);
+assert.deepEqual(roleSim.map((m) => [m.id, m.sameRole]), [["q", true], ["p", false]]); // 레이더가 조금 멀어도 같은 유형이 먼저
 
 // ── 역대 통산 순위 ──
 const row = (id: string, seasonCode: number, games: number, points: number, origin: "domestic" | "foreign" = "domestic") => ({

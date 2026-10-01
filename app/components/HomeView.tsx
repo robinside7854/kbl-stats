@@ -1,5 +1,5 @@
 // 홈 "이번 시즌 한눈에" (PLAN.md §2-4, §3 ⑤, §5-4). 서버 컴포넌트 — 계산은 app/page.tsx 가 lib/ 함수로 끝내고 결과만 받는다.
-// 구성(모바일 우선): 개막 전 안내 → 히어로(득점 1위 표지) → 오늘 생일 → 부문별 1~3위 카드 줄.
+// 구성(모바일 우선): 개막 전 안내 → 히어로(부문 1위 표지, 새로고침마다 부문이 바뀜 — HomeHero) → 오늘 생일 → 부문별 1~3위 카드 줄.
 // 바로가기·시즌별 목록은 2026-10-01 사용자 요청으로 뺐다(상단 메뉴·시즌 선택과 겹침).
 import Link from "next/link";
 import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
@@ -15,6 +15,7 @@ import PlayerAvatar from "./PlayerAvatar";
 import TeamLogo from "./TeamLogo";
 import BirthdayStrip, { type BirthdayPlayer } from "./BirthdayStrip";
 import FavoritesStrip from "./FavoritesStrip";
+import HomeHero, { type HeroItem } from "./HomeHero";
 
 const GRAY: TeamColor = FALLBACK_TEAM_COLOR;
 
@@ -42,7 +43,9 @@ export default function HomeView({ season, fetchedLabel, upcoming, categories, t
   const teamByCode = new Map(teams.map((t) => [t.teamCode, t]));
   const code = season.seasonCode;
   const short = seasonShortLabel(season.seasonLabel);
-  const scoring = categories.find((c) => c.key === "points")?.entries[0] ?? null;
+  const heroItems: HeroItem[] = categories.flatMap((c) =>
+    c.entries[0] ? [{ key: c.key, entry: c.entries[0], team: teamByCode.get(c.entries[0].player.teamCode) }] : [],
+  );
 
   return (
     <main className="pb-2">
@@ -59,7 +62,7 @@ export default function HomeView({ season, fetchedLabel, upcoming, categories, t
         <h1 className="mt-0.5 text-h1 font-black">{short} 시즌 한눈에</h1>
       </div>
 
-      {scoring && <Hero entry={scoring} team={teamByCode.get(scoring.player.teamCode)} seasonCode={code} />}
+      {heroItems.length > 0 && <HomeHero items={heroItems} seasonCode={code} />}
 
       <FavoritesStrip />
 
@@ -86,73 +89,6 @@ export default function HomeView({ season, fetchedLabel, upcoming, categories, t
       </section>
 
     </main>
-  );
-}
-
-/** 표지: 득점 1위 — 팀 색 배경 + 큰 세로 사진 */
-function Hero({ entry, team, seasonCode }: { entry: LeaderEntry<LeaderPlayer>; team?: CardTeam; seasonCode: number }) {
-  const p = entry.player;
-  const color = team?.color ?? GRAY;
-  const teamName = team?.shortName ?? p.teamShort;
-  const mid = mixHex(color.primary, "#000000", 0.3);
-  const dark = mixHex(color.primary, "#000000", 0.62);
-  const value = formatStat(entry.value, "points", "perGame");
-  return (
-    <section aria-label={`득점 1위 ${p.nameKo}`} className="mx-auto mt-3 max-w-5xl sm:px-4">
-      <div
-        className="relative overflow-hidden sm:rounded-container"
-        style={{ background: `linear-gradient(155deg, ${color.primary} 0%, ${mid} 55%, ${dark} 100%)`, color: color.text }}
-      >
-        {/* 장식: 팀 약칭 큰 글씨 (선수 페이지 머리말과 같은 방식) */}
-        <span
-          aria-hidden
-          // deslop-ignore-next-line 11
-          className="pointer-events-none absolute -right-3 top-2 select-none whitespace-nowrap text-[7.5rem] font-black leading-none tracking-tighter opacity-10 sm:text-[11rem]"
-        >
-          {teamShortLabel(teamName, 5)}
-        </span>
-        <div className="relative flex min-h-[260px] items-end px-4 sm:min-h-[320px] sm:px-8">
-          <div className="relative z-10 min-w-0 flex-1 pb-5 pt-5">
-            <p className="inline-flex rounded-control px-2.5 py-1 text-sub font-bold" style={{ background: "rgba(0,0,0,0.25)" }}>
-              득점 1위
-            </p>
-            {/* deslop-ignore-next-line 11 */}
-            <h2 className="mt-3 text-[2.1rem] font-black leading-[1.05] tracking-tight [overflow-wrap:anywhere] sm:text-6xl">
-              <Link href={`/player/${p.id}`} className="focus-ring rounded-control underline-offset-4 hover:underline">
-                {p.nameKo}
-              </Link>
-            </h2>
-            <p className="mt-2 flex items-center gap-1.5 text-body font-semibold opacity-90">
-              <span className="inline-flex rounded-control bg-white p-0.5">
-                <TeamLogo logoUrl={team?.logoUrl} shortName={teamName} color={color} size={20} />
-              </span>
-              {teamShortLabel(teamName)}
-              {positionLabel(p.position) ? ` · ${positionLabel(p.position)}` : ""} · {NATIONALITY_LABELS[nationalityOf(p)]}
-            </p>
-            <p className="tabular mt-4 leading-none">
-              {/* deslop-ignore-next-line 11 */}
-              <span className="text-5xl font-black tracking-tight sm:text-6xl">{value}</span>
-              <span className="ml-1 text-lg font-bold">점</span>
-            </p>
-            <p className="mt-1.5 text-body font-semibold opacity-90">경기당 {value}점 · 득점 1위</p>
-            <Link
-              href={playerHref(p.id, seasonCode)}
-              className="focus-ring mt-4 inline-flex h-11 items-center gap-1 rounded-control bg-white px-4 text-body font-bold text-[#0b0b0b] transition-colors duration-200 hover:bg-white/85"
-            >
-              선수 카드 보기 <IconChevronRight size={16} />
-            </Link>
-          </div>
-          <div className="relative -mr-3 shrink-0 self-end sm:mr-0">
-            <span className="sm:hidden">
-              <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={color} variant="portrait" size={220} />
-            </span>
-            <span className="hidden sm:inline">
-              <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={color} variant="portrait" size={310} />
-            </span>
-          </div>
-        </div>
-      </div>
-    </section>
   );
 }
 

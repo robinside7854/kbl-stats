@@ -12,6 +12,7 @@ import { mixHex, teamShortLabel } from "@/lib/images";
 import PlayerAvatar from "./PlayerAvatar";
 import FavoriteButton from "./FavoriteButton";
 import TeamLogo from "./TeamLogo";
+import TeamJersey from "./TeamJersey";
 import BadgeRow, { type BadgeItem } from "./BadgeRow";
 
 const FALLBACK: TeamColor = FALLBACK_TEAM_COLOR;
@@ -139,7 +140,8 @@ export default function PlayerHero({ entry, seasons, today, badges }: Props) {
 
         <div className="mt-4">
           <p id="stints-title" className="text-sub font-semibold text-ink-2">소속 팀 이력</p>
-          <ol aria-labelledby="stints-title" className="mt-1.5 flex flex-wrap gap-1.5">
+          {/* 유니폼 한 줄 (넘치면 옆으로 밀기), 아래에 몸담은 시즌 */}
+          <ol aria-labelledby="stints-title" className="-mx-1 mt-2 flex gap-2 overflow-x-auto px-1 pb-1">
             {stints.map((st, i) => {
               // 같은 팀 코드라도 시즌마다 이름·로고가 다를 수 있어(KT&G → 정관장) 구간 마지막 시즌의 팀 정보를 쓴다
               const s = seasons.find((x) => x.seasonLabel === st.toLabel);
@@ -148,15 +150,11 @@ export default function PlayerHero({ entry, seasons, today, badges }: Props) {
               const from = seasonShortLabel(st.fromLabel);
               const to = seasonShortLabel(st.toLabel);
               return (
-                <li
-                  key={`${st.teamCode}-${i}`}
-                  className="flex h-10 items-center gap-1.5 rounded-control border border-line bg-surface pl-1.5 pr-2.5 text-sub"
-                >
-                  <TeamLogo logoUrl={t?.logoUrl} shortName={name} color={t?.color} size={20} />
-                  <span className="font-semibold text-ink">{teamShortLabel(name)}</span>
-                  <span className="text-ink-3">
-                    {from === to ? from : `${from}~${to}`}
-                  </span>
+                <li key={`${st.teamCode}-${i}`} className="flex w-[4.75rem] shrink-0 flex-col items-center text-center">
+                  <TeamJersey color={t?.color ?? FALLBACK} logoUrl={t?.logoUrl} shortName={name} width={56} />
+                  <span className="mt-1 w-full truncate text-caption font-semibold text-ink">{teamShortLabel(name)}</span>
+                  <span className="tabular text-caption text-ink-3">{from === to ? from : `${from}~${to}`}</span>
+                  <span className="tabular text-caption text-ink-3">{st.seasons}시즌</span>
                 </li>
               );
             })}

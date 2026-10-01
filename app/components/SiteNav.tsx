@@ -14,7 +14,7 @@ import type { SeasonOption } from "@/lib/types";
 import PlayerSearch from "./PlayerSearch";
 import RandomCardButton from "./RandomCardButton";
 import { IconCompare, IconHome, IconLeaders, IconPlayer, IconStyle, IconTrophy } from "./icons";
-import SiteLogo, { SITE_NAME } from "./SiteLogo";
+import SiteLogo, { SITE_HEADER_NAME } from "./SiteLogo";
 
 export type SiteView = "home" | "players" | "player" | "leaders" | "playstyle" | "compare" | "glossary" | "records";
 
@@ -61,7 +61,8 @@ export default function SiteNav({ seasons, seasonCode, view, onSeasonChange, wid
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 pt-3">
           <Link href="/" className="focus-ring order-1 inline-flex h-10 shrink-0 items-center gap-2 rounded-control text-body font-bold tracking-tight text-ink">
             <SiteLogo />
-            {SITE_NAME}
+            <span className="sr-only">KBL </span>
+            {SITE_HEADER_NAME}
           </Link>
           {/* 랜덤 카드: 모바일은 첫 줄 오른쪽, PC 는 맨 끝 */}
           <RandomCardButton className="order-2 sm:order-4" />

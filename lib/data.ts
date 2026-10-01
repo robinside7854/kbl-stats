@@ -23,8 +23,8 @@ import { sumCareerTotals, type CareerTotal } from "./records";
 import { nationalityOf } from "./roster";
 import { findSimilar, toAxisVector, type SimilarEntry, type SimilarVector } from "./similar";
 import { pickPrimeSeasons, primeCandidatesOf, type PrimeCandidate } from "./prime";
-import { gradeGroupOf, isQualified, radarScore } from "./metrics";
-import { seasonGrading } from "./cardview";
+import { buildCardEntry, gradeGroupOf, isQualified } from "./metrics";
+import { seasonContext } from "./cardview";
 import { seasonLeaderMarks, type LeaderStatKey, type StatMode } from "./leaders";
 import { buildBadgeIndex, playerBadges, type BadgeCareer, type BadgeIndex, type BadgeSeasonRow, type PlayerBadge } from "./badges";
 
@@ -338,18 +338,32 @@ export function playerShotSeasons(playerNo: string, seasonCodes: readonly number
 
 let similarPool: SimilarVector[] | null = null;
 
+/** "선수번호:시즌코드" → 그 시즌 역할 유형 라벨 (비슷한 시즌 줄에 표시) */
+const similarRoleLabels = new Map<string, string>();
+
 function loadSimilarPool(): SimilarVector[] {
   if (similarPool) return similarPool;
   const out: SimilarVector[] = [];
   for (const s of listSeasonsWithPlayers()) {
     const cards = loadSeasonCards(s.seasonCode);
     if (!cards) continue;
-    const grading = seasonGrading(cards);
+    const ctx = seasonContext(cards, "all");
     for (const p of cards.players) {
       if (!isQualified(p, cards.defaults.rule)) continue;
-      const axes = toAxisVector(radarScore(p, grading).axes);
+      const e = buildCardEntry(p, ctx);
+      const axes = toAxisVector(e.radar.axes);
       if (!axes) continue;
-      out.push({ id: p.id, seasonCode: s.seasonCode, pool: gradeGroupOf(p, grading.mergeAsia) === "domestic" ? "domestic" : "foreign", pos: p.positionGroup, axes });
+      out.push({
+        id: p.id,
+        seasonCode: s.seasonCode,
+        pool: gradeGroupOf(p, ctx.grading.mergeAsia) === "domestic" ? "domestic" : "foreign",
+        pos: p.positionGroup,
+        axes,
+        overall: e.overallPct,
+        role: e.type.key,
+        offense: p.offenseType ?? null,
+      });
+      similarRoleLabels.set(`${p.id}:${s.seasonCode}`, e.type.label);
     }
   }
   similarPool = out;
@@ -375,6 +389,8 @@ export function loadSimilarPlayers(playerNo: string): Record<number, SimilarEntr
         teamColor: team?.color.primary ?? "#6b7280",
         photoUrl: p.photoUrl,
         score: Math.round(m.score * 10) / 10,
+        roleLabel: similarRoleLabels.get(`${m.id}:${m.seasonCode}`) ?? null,
+        sameRole: m.sameRole,
       };
     });
   }

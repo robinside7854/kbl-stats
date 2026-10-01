@@ -13,7 +13,7 @@ import {
   readableInk,
   oklabDistance,
 } from "../lib/teams";
-import { pickHomeSeason } from "../lib/home";
+import { nextHeroIndex, pickHomeSeason } from "../lib/home";
 import { DEFAULT_QUALIFY, QUALIFY_PRESETS } from "../lib/metrics";
 
 const PALETTE = ["#2a78d6", "#eb6834", "#1baf7a"];
@@ -57,6 +57,12 @@ const S = (c: number) => ({ seasonCode: c, seasonLabel: `L${c}` });
 assert.deepEqual(pickHomeSeason([S(45), S(49), S(47)], [S(45), S(47)]), { shown: S(47), upcoming: S(49) });
 // 개막 후: 안내 없음
 assert.deepEqual(pickHomeSeason([S(45), S(47)], [S(47), S(45)]), { shown: S(47), upcoming: null });
+// 홈 표지 부문 돌리기: 지난번 다음 부문, 끝이면 처음으로, 기록 없으면 무작위
+assert.equal(nextHeroIndex(["points", "reb", "ast"], "points", 0.9), 1);
+assert.equal(nextHeroIndex(["points", "reb", "ast"], "ast", 0.9), 0);
+assert.equal(nextHeroIndex(["points", "reb", "ast"], null, 0.9), 2);
+assert.equal(nextHeroIndex(["points", "reb", "ast"], "tov", 0), 0);
+assert.equal(nextHeroIndex([], null, 0.5), -1);
 assert.deepEqual(pickHomeSeason([], []), { shown: null, upcoming: null });
 
 // 등급 색 (디자인 점검 B5): 채도 20% 낮춤은 밝기를 거의 유지하고 색 거리를 줄인다, 회색은 그대로

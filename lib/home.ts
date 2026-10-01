@@ -80,3 +80,18 @@ export function birthdaysOn<T extends BirthdayCandidate>(players: readonly T[], 
   }
   return out.sort((a, b) => b.age - a.age || a.player.nameKo.localeCompare(b.player.nameKo, "ko"));
 }
+
+/**
+ * 홈 표지 부문 돌리기 (2026-10-01 사용자: "새로고침할 때마다 부문별로 롤링").
+ * 지난번에 보여 준 부문 키(last, 이 브라우저 localStorage)의 다음 부문을 고른다. 지난 기록이 없거나 목록에 없으면 random(0~1)으로 하나.
+ * 순서는 HOME_CATEGORIES(득점 → 리바운드 → 어시스트 → 스틸 → 블록 → 3점 성공).
+ */
+export function nextHeroIndex(keys: readonly string[], last: string | null, random: number): number {
+  if (keys.length === 0) return -1;
+  const i = last === null ? -1 : keys.indexOf(last);
+  if (i < 0) return Math.min(keys.length - 1, Math.floor(random * keys.length));
+  return (i + 1) % keys.length;
+}
+
+/** 표지 부문 기억 키 (localStorage) */
+export const HOME_HERO_STORAGE_KEY = "kbl-stats:home-hero:v1";

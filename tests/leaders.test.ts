@@ -112,7 +112,7 @@ assert.equal(topLeaders([], "points", "perGame").length, 0);
 
 // 부문: 3점 성공·USG%·PIE 없음, 턴오버·3점%·자유투% 있음
 // 부문 = 묶음 순서대로 (기본 · 슈팅 · 슛 구역 · 고급(USG% 포함) · 허슬, 2026-10-01)
-assert.deepEqual([...LEADER_CATEGORIES], ["points", "reb", "ast", "stl", "blk", "tov", "winPct", "tpm", "fgPct", "tpPct", "ftPct", "rimPct", "midPct", "corner3Pct", "corner3LPct", "corner3RPct", "arc3Pct", "per", "tsPct", "usgPct", "defl", "screen"]);
+assert.deepEqual([...LEADER_CATEGORIES], ["points", "reb", "ast", "stl", "blk", "tpm", "fgPct", "tpPct", "ftPct", "rimPct", "midPct", "corner3Pct", "corner3LPct", "corner3RPct", "arc3Pct", "per", "tsPct", "usgPct", "defl", "screen"]);
 assert.equal(categoryGroupOf("usgPct"), "advanced");
 assert.equal(categoryGroupOf("corner3Pct"), "zones");
 // 옛 시즌처럼 허슬·슛 구역·USG% 가 없으면 그 묶음은 빠지고, 고급은 PER·TS% 만
@@ -202,7 +202,7 @@ assert.equal(parseLeadersQuery("?pos=x", ctx).position, "all");
 assert.deepEqual(parseLeadersQuery("?cat=pie&mode=x&origin=zz&team=99&q=9", ctx), DEFAULT_LEADERS_STATE);
 assert.equal(parseLeadersQuery("?cat=pie", ctx).category, "points"); // 없어진 부문(예전 주소)은 기본값
 assert.equal(parseLeadersQuery("?cat=tpm", ctx).category, "tpm"); // 3점 성공은 2026-10-01 부문으로 복귀
-assert.equal(parseLeadersQuery("?cat=tov", ctx).category, "tov");
+assert.equal(parseLeadersQuery("?cat=tov", ctx).category, "points"); // 턴오버·승률은 부문 칩에서 뺌(2026-10-01)
 
 // 팀 약칭 줄이기 (TeamLogo 대체 표기와 같은 규칙)
 assert.equal(teamShortLabel("SK"), "SK");

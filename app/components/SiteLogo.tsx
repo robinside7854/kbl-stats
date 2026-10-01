@@ -5,6 +5,8 @@ import site from "@/data/codes/site.json";
 import { useOfficialImage } from "./useOfficialImage";
 
 export const SITE_NAME: string = site.name;
+/** 상단 로고 옆 글자: 로고가 이미 "KBL" 이라 영문 KBL 을 뺀 이름 */
+export const SITE_HEADER_NAME: string = site.headerName;
 
 export default function SiteLogo({ height = 22, className = "" }: { height?: number; className?: string }) {
   const { src, loaded, imgProps } = useOfficialImage(site.leagueLogoUrl);

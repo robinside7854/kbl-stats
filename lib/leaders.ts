@@ -143,7 +143,7 @@ export interface LeaderCategoryGroup {
 }
 
 export const LEADER_CATEGORY_GROUPS: readonly LeaderCategoryGroup[] = [
-  { key: "basic", label: "기본", categories: ["points", "reb", "ast", "stl", "blk", "tov", "winPct"] },
+  { key: "basic", label: "기본", categories: ["points", "reb", "ast", "stl", "blk"] }, // 턴오버·승률은 부문 칩에서 뺌(2026-10-01 사용자: 순위로 보는 의미가 없음) — 표 열 정렬로는 그대로 볼 수 있음
   { key: "shooting", label: "슈팅", categories: ["tpm", "fgPct", "tpPct", "ftPct"] },
   { key: "zones", label: "슛 구역", categories: ["rimPct", "midPct", "corner3Pct", "corner3LPct", "corner3RPct", "arc3Pct"] },
   { key: "advanced", label: "고급", categories: ["per", "tsPct", "usgPct"] },

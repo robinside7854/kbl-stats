@@ -1,5 +1,5 @@
 // 선수 상세 "비슷한 시즌" (Basketball-Reference Similarity Scores 참고, 2026-10-01).
-// 고른 시즌 카드의 레이더 6축과 가장 가까운 다른 선수의 시즌 5개 — 계산은 빌드 때 lib/similar(→ lib/data loadSimilarPlayers).
+// 고른 시즌과 가장 닮은 다른 선수의 시즌 5개 — 레이더 6축 + 종합 평가 + 역할 유형 + 공격 유형을 함께 본다(lib/similar combinedSimilarity, 빌드 때 lib/data loadSimilarPlayers).
 // 같은 국적 풀·같은 포지션 묶음끼리만, 각자 시즌 안 백분위라 시대가 달라도 "그 시즌에서의 역할"이 비슷한 선수가 나온다.
 import Link from "next/link";
 import { seasonShortLabel } from "@/lib/career";
@@ -16,7 +16,7 @@ export default function SimilarPlayers({ items, seasonShort }: { items: SimilarE
         <h2 id="similar-title" className="flex items-center gap-1 text-h2 font-bold">
           비슷한 시즌 <InfoLink term="similar" className="ml-1" />
         </h2>
-        <span className="text-sub text-ink-3">{seasonShort} 레이더 6축과 가까운 다른 선수</span>
+        <span className="text-sub text-ink-3">{seasonShort} 능력치·평가·유형이 닮은 다른 선수</span>
       </div>
       {!items || items.length === 0 ? (
         <p className="surface-card rounded-container px-4 py-5 text-sub text-ink-2">이 시즌은 표본 기준(10경기·100분)에 못 미쳐 비교하지 않습니다.</p>
@@ -35,6 +35,11 @@ export default function SimilarPlayers({ items, seasonShort }: { items: SimilarE
                   <span className="block truncate text-sub text-ink-3">
                     {seasonShortLabel(m.seasonLabel)} · {teamShortLabel(m.teamShort)}
                   </span>
+                  {m.roleLabel && (
+                    <span className={`block truncate text-caption ${m.sameRole ? "font-semibold text-ink-2" : "text-ink-3"}`}>
+                      {m.sameRole ? `같은 유형 · ${m.roleLabel}` : m.roleLabel}
+                    </span>
+                  )}
                 </span>
                 <span className="shrink-0 text-right lg:text-left">
                   <span className="block text-body font-bold leading-tight text-ink">{m.score.toFixed(1)}</span>
