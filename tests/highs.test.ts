@@ -293,7 +293,7 @@ console.log("highs: 커리어 하이 행 통과");
   assert.deepEqual(cards.map((c) => c.key), ["pts", "reb", "stl"]); // HERO 순서, 세 구분 모두 없는 부문·0 은 빠짐
   assert.deepEqual(cards[0], {
     key: "pts", label: "득점", value: "46", shot: null, opponent: "정관장", date: "2023.10.21", times: 2,
-    seasonBest: "2023-24", milestone: "club40", playoff: "32", finals: "28",
+    seasonBest: "23-24", milestone: "club40", playoff: "32", finals: "28",
   });
   assert.equal(cards[1].seasonBest, null); // 1위(20) 보다 낮음
   assert.equal(cards[1].milestone, null); // 배지 조건은 득점만

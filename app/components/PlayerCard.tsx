@@ -9,6 +9,7 @@
 //   1280×800 한 화면에 들어가게 높이 520px 이하(실측은 PLAN.md §13). 치수는 DIM.h.
 // ⓘ(종합 등급·등급 기준)와 유형 라벨은 그 자리 팝오버(HelpPopover) — 용어 페이지로 이동하지 않는다.
 // exportMode(이미지 저장 사본)에서는 공식 사진·로고를 쓰지 않고 대체 디자인(팀 색·이니셜·약칭)으로 그린다.
+import { seasonShortLabel } from "@/lib/career";
 import { useEffect, useRef, useState } from "react";
 import { PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart } from "recharts";
 import Link from "next/link";
@@ -532,7 +533,7 @@ export default function PlayerCard({ view, colors, size = "sm", seriesColor, exp
           )}
         </div>
         <span className="font-medium" style={{ opacity: 0.85, fontSize: d.statLabel }}>
-          {seasonLabel} 정규시즌
+          {seasonShortLabel(seasonLabel)} 정규시즌
         </span>
         <div className="flex flex-wrap items-center gap-1">
           {exportMode ? (
@@ -675,7 +676,7 @@ export default function PlayerCard({ view, colors, size = "sm", seriesColor, exp
       style={{ paddingLeft: d.pad + 2, paddingRight: d.pad + 2, fontSize: small }}
     >
       <p>
-        순위: {seasonLabel} {groupLabel ? `${groupLabel} 중 ` : ""}
+        순위: {seasonShortLabel(seasonLabel)} {groupLabel ? `${groupLabel} 중 ` : ""}
         {ruleLabel} {qualifiedCount}명 중 · 등급: {gradeLabel} · 턴오버는 적을수록 상위 · 성공률 순위는 경기당 시도가 리그 평균({attemptsLabel}) 이상인 선수만
       </p>
       <p className="mt-1 font-medium text-ink-2">{SOURCE_LINE}</p>

@@ -181,7 +181,7 @@ export default function CareerTable({ seasons }: { seasons: CareerSeason[] }) {
         )}
       />
       <p className="mt-2 text-sub text-ink-3">
-        정규시즌만.{anyLed && " 굵은 밑줄 숫자는 그 시즌 리그 1위(10경기·100분 이상, 성공률은 시도 기준)."} 성공률 아래 작은 숫자는 시즌 합계 성공/시도. USG%는 2차 스탯이 있는 시즌(2025-26~)만, 없으면 –.
+        정규시즌만.{anyLed && " 굵은 밑줄 숫자는 그 시즌 리그 1위(10경기·100분 이상, 성공률은 시도 기준)."} 성공률 아래 작은 숫자는 시즌 합계 성공/시도. USG%는 KBL 값이 없는 시즌도 표준식으로 계산한 값.
       </p>
     </section>
   );

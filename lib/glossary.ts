@@ -62,7 +62,7 @@ export interface GlossaryEntry {
 }
 
 /** 2025-26 은 KBL 값, 그 전 시즌은 같은 표준식으로 우리가 계산 (lib/metrics computeTeamShareStats) */
-const SHARE_NOTE = "2025-26은 KBL 값이고, 그 전 시즌은 같은 공식으로 이 사이트가 계산했습니다.";
+const SHARE_NOTE = "25-26 시즌은 KBL 값이고, 그 전 시즌은 같은 공식으로 이 사이트가 계산했습니다.";
 
 /** 배열 순서 = 묶음 안 표시 순서 */
 export const GLOSSARY: readonly GlossaryEntry[] = [
@@ -248,7 +248,7 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     group: "etc",
     name: "디플렉션 · 스크린 어시스트",
     short: "디플렉션은 상대 패스나 드리블을 손으로 쳐 낸 횟수, 스크린 어시스트는 내 스크린 덕에 동료가 넣은 횟수입니다.",
-    note: "KBL이 2025-26 시즌부터 기록해서 그 전 시즌에는 없습니다.",
+    note: "KBL이 25-26 시즌부터 기록해서 그 전 시즌에는 없습니다.",
     source: null,
   },
   {

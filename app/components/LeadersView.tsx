@@ -10,6 +10,7 @@
 // 고른 부문이 득점·리바운드·어시스트·스틸·블록이면 대응 카드 강조 (lib/highs LEADER_CATEGORY_HIGH).
 // 선택 상태는 주소 쿼리(?cat=&mode=&origin=&pos=&team=&q=)에 남긴다. useSearchParams 대신 window.location 을 읽어
 // 정적 HTML에 기본 상태(경기당 득점)의 카드·표가 그대로 렌더링되게 한다 (CardExplorer 와 같은 방식).
+import { seasonShortLabel } from "@/lib/career";
 import { useEffect, useMemo, useState } from "react";
 import type { CardTeam, LeaderPlayer } from "@/lib/types";
 import { attemptsNote, attemptThresholds, QUALIFY_PRESETS, qualifyLabel } from "@/lib/metrics";
@@ -368,7 +369,7 @@ export default function LeadersView({ seasonLabel, players, teams, seasonHighs =
   return (
     <main className="mx-auto max-w-5xl px-4 pt-5">
       <header className="mb-3">
-        <p className="text-sub font-medium text-ink-3">{seasonLabel} KBL 정규시즌</p>
+        <p className="text-sub font-medium text-ink-3">{seasonShortLabel(seasonLabel)} KBL 정규시즌</p>
         <h1 className="mt-0.5 text-h1 font-bold">시즌 리더보드</h1>
       </header>
 
@@ -544,7 +545,7 @@ export default function LeadersView({ seasonLabel, players, teams, seasonHighs =
           <RowList
             rows={rows}
             rowKey={(p) => p.id}
-            caption={`${seasonLabel} ${sortedLabel}`}
+            caption={`${seasonShortLabel(seasonLabel)} ${sortedLabel}`}
             columns={tableColumns}
             pageSize={LEADERS_PAGE_SIZE}
             resetKey={`${leadersQueryString(state)}|${sortKey}|${sortDir}`}

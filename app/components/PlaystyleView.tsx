@@ -1,6 +1,7 @@
 "use client";
 // 플레이스타일 화면: 역할 유형 / 공격 유형 → 유형 칩(인원) → 그 유형 안 순위.
 // 1~10위는 사진·팀·등급과 "카드 보기"가 있는 큰 줄, 11위부터는 "더 보기"로 작은 줄. 상태는 주소 ?kind=&type=&origin=.
+import { seasonShortLabel } from "@/lib/career";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { groupStyles, parseStyleQuery, STYLE_TOP, styleQueryString, type StyleKind, type StyleOrigin, type StyleRow } from "@/lib/playstyle";
@@ -62,7 +63,7 @@ export default function PlaystyleView({ seasonCode, seasonLabel, rows, teams, ha
   return (
     <main className="mx-auto max-w-5xl px-4 pt-5">
       <header className="mb-3">
-        <p className="text-sub font-medium text-ink-3">{seasonLabel} KBL 정규시즌 · 10경기·100분 이상</p>
+        <p className="text-sub font-medium text-ink-3">{seasonShortLabel(seasonLabel)} KBL 정규시즌 · 10경기·100분 이상</p>
         <h1 className="mt-0.5 flex items-center gap-1 text-h1 font-bold">
           플레이스타일 <InfoLink term={kind === "role" ? "playerTypes" : "offenseTypes"} className="ml-1" />
         </h1>

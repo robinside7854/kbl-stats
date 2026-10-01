@@ -8,6 +8,7 @@
 // - 선수 탭: 한 페이지 안에서 시즌을 바꾸므로 onSeasonChange 로 화면에 알린다 (PlayersView 가 이 막대를 직접 그린다).
 // 순위표·팀 분포 메뉴는 seasonCode(그 화면의 시즌, 없으면 최신 시즌)로 연결한다.
 // 검색창: 모바일은 아래 줄 전체 폭, 640px 이상은 첫 줄 가운데. "랜덤 카드" 버튼(RandomCardButton)은 모바일 첫 줄 오른쪽·PC 맨 끝.
+import { seasonShortLabel } from "@/lib/career";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { SeasonOption } from "@/lib/types";
@@ -78,7 +79,7 @@ export default function SiteNav({ seasons, seasonCode, view, onSeasonChange, wid
               >
                 {seasons.map((s) => (
                   <option key={s.seasonCode} value={s.seasonCode}>
-                    {s.seasonLabel}
+                    {seasonShortLabel(s.seasonLabel)}
                   </option>
                 ))}
               </select>

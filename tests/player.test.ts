@@ -12,6 +12,7 @@ import {
   activeSpanLabel,
   formatTrend,
   TREND_METRICS,
+  seasonRangeLabel,
   seasonShortLabel,
   seasonTickLabel,
   teamChangedAt,
@@ -54,13 +55,19 @@ assert.deepEqual(careerSummary([]), { seasons: 0, games: 0, points: 0, reb: 0, a
 console.log("player: 통산 계산 통과");
 
 // ── 시즌 표기 ──
-assert.equal(seasonShortLabel("2025-2026"), "2025-26");
-assert.equal(seasonShortLabel("1999-2000"), "1999-00");
-assert.equal(seasonShortLabel("1997"), "1997");
+assert.equal(seasonShortLabel("2025-2026"), "25-26");
+assert.equal(seasonShortLabel("1999-2000"), "99-00");
+assert.equal(seasonShortLabel("1997"), "97");
+assert.equal(seasonShortLabel("25-26"), "25-26"); // 이미 짧은 표기
+// 연속 시즌 구간: 첫 시즌 시작 연도 - 마지막 시즌 끝 연도
+assert.equal(seasonRangeLabel("2020-2021", "2022-2023"), "20-23");
+assert.equal(seasonRangeLabel("2025-2026", "2025-2026"), "25-26");
+assert.equal(seasonRangeLabel("1997", "1999-2000"), "97-00");
+assert.equal(seasonRangeLabel("19-20", "25-26"), "19-26");
 assert.equal(seasonTickLabel("2025-2026"), "25-26");
 assert.equal(seasonTickLabel("1997"), "97");
-assert.equal(activeSpanLabel("2019-2020", "2025-2026", 7), "2019-20 ~ 2025-26 · 7시즌");
-assert.equal(activeSpanLabel("2025-2026", "2025-2026", 1), "2025-26 · 1시즌");
+assert.equal(activeSpanLabel("2019-2020", "2025-2026", 7), "19-26 · 7시즌");
+assert.equal(activeSpanLabel("2025-2026", "2025-2026", 1), "25-26 · 1시즌");
 
 // ── 소속 팀 이력: 연속 구간, 돌아오면 새 구간 ──
 const stints = teamStints([
@@ -155,8 +162,8 @@ assert.deepEqual(searchPlayers(idx, "김민수").map((e) => e.id), ["3", "2"]);
 assert.deepEqual(searchPlayers(idx, "민수").map((e) => e.id), ["4", "3", "2"]);
 assert.equal(searchPlayers(idx, "", 10).length, 0);
 assert.equal(searchPlayers(Array.from({ length: 30 }, (_, i) => mkS(String(i), `김${i}`, "", i)), "김", 10).length, 10);
-assert.equal(searchSpanLabel({ from: "2025-26", to: "2025-26" }), "2025-26");
-assert.equal(searchSpanLabel({ from: "2019-20", to: "2025-26" }), "2019-20 ~ 2025-26");
+assert.equal(searchSpanLabel({ from: "25-26", to: "25-26" }), "25-26");
+assert.equal(searchSpanLabel({ from: "19-20", to: "25-26" }), "19-26");
 
 // 색인 → 검색용 경량 색인
 const noProfile = {
@@ -173,7 +180,7 @@ const pIdx: PlayerIndexEntry[] = [
 const built = buildSearchIndex(pIdx, (c) => (c === 43 ? "2023-2024" : "2025-2026"), (t) => (t === "35" ? { primary: "#00f", text: "#fff" } : undefined));
 assert.equal(built.length, 1); // 시즌 없는 선수는 제외
 assert.deepEqual(built[0], {
-  id: "9", nameKo: "가", nameEn: "Ga", team: "삼성", from: "2023-24", to: "2025-26", last: 47, seasons: [43, 47], photoUrl: "p9",
+  id: "9", nameKo: "가", nameEn: "Ga", team: "삼성", from: "23-24", to: "25-26", last: 47, seasons: [43, 47], photoUrl: "p9",
   positionGroup: "G", positionLabel: "가드-포워드",
   color: { primary: "#00f", text: "#fff" },
 });

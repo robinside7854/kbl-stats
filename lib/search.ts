@@ -1,7 +1,7 @@
 // 선수 검색 규칙 — 순수 함수만 둔다. 색인 만들기(buildSearchIndex)는 scripts/build-search-index.ts 가,
 // 매칭(searchPlayers)은 상단 검색창(app/components/PlayerSearch)이 쓴다. 테스트: tests/search.test.ts
 
-import { seasonShortLabel } from "./career";
+import { seasonRangeLabel, seasonShortLabel } from "./career";
 import type { PlayerIndexEntry, SearchEntry } from "./types";
 
 /** 비교용 정규화: 소문자 + 공백·마침표·하이픈·가운뎃점·작은따옴표 제거 ("Guy Terrance. Rucker" → "guyterrancerucker") */
@@ -86,9 +86,9 @@ export function buildSearchIndex(
     });
 }
 
-/** 검색 결과 한 줄의 활동 기간 표기: "2019-20 ~ 2025-26" (한 시즌이면 "2025-26") */
+/** 검색 결과 한 줄의 활동 기간 표기: "19-26" (한 시즌이면 "25-26") — lib/career seasonRangeLabel */
 export function searchSpanLabel(e: { from: string; to: string }): string {
-  return e.from === e.to ? e.from : `${e.from} ~ ${e.to}`;
+  return seasonRangeLabel(e.from, e.to);
 }
 
 /**

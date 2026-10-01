@@ -10,27 +10,42 @@ import type { CareerHighs, HighKey, HighRecord, HighsSet, SeasonHighLeader, Seas
 // 시즌 표기
 // ─────────────────────────────────────────────
 
+/** 시즌 라벨(긴 "2025-2026"·짧은 "25-26"·한 해 "1997") → [시작 연도 두 자리, 끝 연도 두 자리(한 해 시즌은 null)] */
+function seasonYears(label: string): [string, string | null] | null {
+  const m = /^(\d{2}|\d{4})(?:-(\d{2}|\d{4}))?$/.exec(label.trim());
+  return m ? [m[1].slice(-2), m[2] ? m[2].slice(-2) : null] : null;
+}
+
 /**
- * 시즌 짧은 표기: "2025-2026" → "2025-26", "1997" → "1997".
+ * 시즌 짧은 표기 (2026-10-01 사용자: "2020-2021 이 아니라 20-21"): "2025-2026" → "25-26", "1997" → "97".
  * 시즌 라벨은 코드표(seasons.json)에서 온 값이라 형식만 바꾼다 (시즌 코드로 연도를 추측하지 않는다).
  */
 export function seasonShortLabel(label: string): string {
-  const m = /^(\d{4})-(\d{4})$/.exec(label.trim());
-  return m ? `${m[1]}-${m[2].slice(2)}` : label.trim();
+  const y = seasonYears(label);
+  if (!y) return label.trim();
+  return y[1] ? `${y[0]}-${y[1]}` : y[0];
 }
 
-/** 그래프 가로축용 더 짧은 표기: "2025-2026" → "25-26", "1997" → "97" */
+/** 그래프 가로축 표기 (지금은 seasonShortLabel 과 같다) */
 export function seasonTickLabel(label: string): string {
-  const m = /^(\d{4})(?:-(\d{4}))?$/.exec(label.trim());
-  if (!m) return label.trim();
-  return m[2] ? `${m[1].slice(2)}-${m[2].slice(2)}` : m[1].slice(2);
+  return seasonShortLabel(label);
 }
 
-/** 활동 기간: "2019-20 ~ 2025-26 · 7시즌" (한 시즌이면 "2025-26 · 1시즌"). 라벨은 짧은 표기로 바꿔 쓴다 */
+/**
+ * 연속 시즌 구간 표기 (2026-10-01 사용자: "연속으로 뛰었다면 20-23"): 첫 시즌의 시작 연도 - 마지막 시즌의 끝 연도.
+ * "2020-2021"~"2022-2023" → "20-23", 같은 시즌이면 "25-26", "1997"~"1999-2000" → "97-00". 긴·짧은 라벨 모두 받는다.
+ */
+export function seasonRangeLabel(firstLabel: string, lastLabel: string): string {
+  const a = seasonYears(firstLabel);
+  const b = seasonYears(lastLabel);
+  if (!a || !b) return firstLabel === lastLabel ? firstLabel : `${firstLabel}~${lastLabel}`;
+  if (seasonShortLabel(firstLabel) === seasonShortLabel(lastLabel)) return seasonShortLabel(firstLabel);
+  return `${a[0]}-${b[1] ?? b[0]}`;
+}
+
+/** 활동 기간: "19-26 · 7시즌" (한 시즌이면 "25-26 · 1시즌") */
 export function activeSpanLabel(firstLabel: string, lastLabel: string, seasonCount: number): string {
-  const a = seasonShortLabel(firstLabel);
-  const b = seasonShortLabel(lastLabel);
-  return `${a === b ? a : `${a} ~ ${b}`} · ${seasonCount}시즌`;
+  return `${seasonRangeLabel(firstLabel, lastLabel)} · ${seasonCount}시즌`;
 }
 
 // ─────────────────────────────────────────────

@@ -15,7 +15,7 @@ import {
   type RecordOrigin,
   type RecordStatKey,
 } from "@/lib/records";
-import { seasonShortLabel } from "@/lib/career";
+import { seasonRangeLabel } from "@/lib/career";
 import { teamShortLabel } from "@/lib/images";
 import ChipRow from "./ChipRow";
 import InfoLink from "./InfoLink";
@@ -104,7 +104,7 @@ export default function RecordsView({ totals, spanLabel, latestSeasonCode }: { t
           <ol className="surface-card tabular divide-y divide-line rounded-container">
             {shown.map((r) => {
               const t = r.total;
-              const span = t.firstLabel === t.lastLabel ? seasonShortLabel(t.firstLabel) : `${seasonShortLabel(t.firstLabel)}~${seasonShortLabel(t.lastLabel)}`;
+              const span = seasonRangeLabel(t.firstLabel, t.lastLabel);
               return (
                 <li key={t.id}>
                   <Link

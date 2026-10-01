@@ -6,7 +6,7 @@
 import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
 import type { CareerSeason, PlayerIndexEntry, TeamColor } from "@/lib/types";
 import { careerSummary } from "@/lib/metrics";
-import { activeSpanLabel, personalFacts, profileFacts, seasonShortLabel, teamStints } from "@/lib/career";
+import { activeSpanLabel, personalFacts, profileFacts, seasonRangeLabel, seasonShortLabel, teamStints } from "@/lib/career";
 import { nationalityOf, NATIONALITY_LABELS } from "@/lib/roster";
 import { mixHex, teamShortLabel } from "@/lib/images";
 import PlayerAvatar from "./PlayerAvatar";
@@ -147,13 +147,11 @@ export default function PlayerHero({ entry, seasons, today, badges }: Props) {
               const s = seasons.find((x) => x.seasonLabel === st.toLabel);
               const t = s?.team ?? undefined;
               const name = t?.shortName ?? s?.teamShort ?? st.teamCode;
-              const from = seasonShortLabel(st.fromLabel);
-              const to = seasonShortLabel(st.toLabel);
               return (
                 <li key={`${st.teamCode}-${i}`} className="flex w-[4.75rem] shrink-0 flex-col items-center text-center">
                   <TeamJersey color={t?.color ?? FALLBACK} logoUrl={t?.logoUrl} shortName={name} width={56} />
                   <span className="mt-1 w-full truncate text-caption font-semibold text-ink">{teamShortLabel(name)}</span>
-                  <span className="tabular text-caption text-ink-3">{from === to ? from : `${from}~${to}`}</span>
+                  <span className="tabular text-caption text-ink-3">{seasonRangeLabel(st.fromLabel, st.toLabel)}</span>
                   <span className="tabular text-caption text-ink-3">{st.seasons}시즌</span>
                 </li>
               );

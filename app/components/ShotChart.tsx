@@ -75,7 +75,7 @@ const DOT_R = 0.14;
 interface Props {
   playerId: string;
   seasonCode: number;
-  /** 칩·안내에 쓰는 짧은 시즌 표기, 예: "2025-26" */
+  /** 칩·안내에 쓰는 짧은 시즌 표기, 예: "25-26" */
   seasonShort: string;
   /** 그 선수 슛 차트가 있는 시즌 코드 */
   available: number[];

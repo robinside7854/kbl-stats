@@ -1,5 +1,6 @@
 // 역대 기록 (/records): 1997 시즌부터 모든 정규시즌 선수 기록을 더한 통산 순위 (Basketball-Reference "Career Leaders" 참고, 2026-10-01).
 // 합계는 lib/data loadCareerTotals(빌드 때 한 번), 순위·표기는 lib/records — 화면은 RecordsView 가 부문·단위·국적만 고른다.
+import { seasonRangeLabel } from "@/lib/career";
 import type { Metadata } from "next";
 import { listSeasonsWithPlayers, loadCareerTotals, loadSeasonData } from "@/lib/data";
 import RecordsView from "@/app/components/RecordsView";
@@ -18,7 +19,7 @@ export default function RecordsPage() {
   return (
     <>
       <SiteNav seasons={seasons} seasonCode={latest?.seasonCode ?? 0} view="records" wide />
-      <RecordsView totals={loadCareerTotals()} spanLabel={`${oldest?.seasonLabel ?? ""} ~ ${latest?.seasonLabel ?? ""}`} latestSeasonCode={latest?.seasonCode ?? 0} />
+      <RecordsView totals={loadCareerTotals()} spanLabel={oldest && latest ? seasonRangeLabel(oldest.seasonLabel, latest.seasonLabel) : ""} latestSeasonCode={latest?.seasonCode ?? 0} />
       <SourceFooter fetchedAt={latest ? loadSeasonData(latest.seasonCode)?.fetchedAt : undefined} wide />
     </>
   );
