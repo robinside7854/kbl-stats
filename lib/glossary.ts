@@ -179,7 +179,7 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     name: "선수 유형 라벨",
     short: "카드 위쪽에 붙는 한 줄 라벨입니다. 레이더에서 가장 강한 축과 포지션으로 정합니다.",
     note: "전체 목록은 아래 표에 있습니다.",
-    formula: "6축이 모두 60 이상이면 올라운더, 아니면 가장 높은 축의 유형",
+    formula: "6축이 모두 60 이상이면 올라운더, 아니면 60 이상인 축 중 가장 높은 축의 유형, 그런 축이 없으면 롤플레이어",
     source: null,
   },
   {
@@ -377,8 +377,12 @@ export const RADAR_AXIS_GLOSSARY: Readonly<Record<string, GlossaryKey>> = {
 
 /** 올라운더 문턱: 6축(가중치 0 인 축 제외) 백분위가 모두 이 값 이상 */
 export const TYPE_ALLROUNDER_MIN = 60;
-/** 롤 플레이어 문턱: 가장 높은 축 백분위가 이 값 미만 */
-export const TYPE_ROLE_MAX = 40;
+/**
+ * 강점 문턱: 유형 라벨은 "가장 높은 축"이 이 백분위 이상일 때만 붙는다 (같은 국적 풀 상위 40%).
+ * 2026-10-01 사용자 지적: 효율 백분위 45 처럼 리그에선 평범한데 자기 축 중 가장 높다는 이유로 "피니셔"가 붙으면 오해 → 40 에서 60 으로.
+ * 미만이면 "롤플레이어". (2025-26 표본 충족 142명 중 롤플레이어 14 → 32명)
+ */
+export const TYPE_ROLE_MAX = 60;
 /** 슈팅이 가장 높은 축인 선수의 경기당 어시스트 백분위(같은 국적 풀) 문턱 — 이 값 이상이면 공을 쥐고 동료까지 살리는 메인 핸들러 → 플레이메이커.
  *  2026-10-01 사용자 결정. 2025-26 슈터 19명 중 7명(서명진 96·김낙현 94·정성우 91 등)이 70 이상 */
 export const TYPE_HANDLER_AST_MIN = 70;
@@ -424,35 +428,35 @@ export const PLAYER_TYPES: readonly PlayerTypeDef[] = [
   {
     key: "role",
     label: "롤플레이어",
-    condition: `가장 높은 축이 ${TYPE_ROLE_MAX} 미만`,
-    short: "눈에 띄는 축은 없지만 코트에서 제 몫을 하는 선수",
+    condition: `어느 축도 백분위 ${TYPE_ROLE_MAX} 이상(상위 40%)이 아님`,
+    short: "특정 부문이 두드러지진 않지만 코트에서 제 몫을 하는 선수",
     axis: null,
   },
-  { key: "scorer", label: "득점원", condition: "가장 높은 축이 공격", short: "득점 볼륨으로 공격을 이끈다", axis: "offense" },
-  { key: "defender", label: "수비수", condition: "가장 높은 축이 수비", short: "스틸·블록·굿디펜스·디플렉션으로 상대를 막는다", axis: "defense" },
-  { key: "rebounder", label: "리바운더", condition: "가장 높은 축이 리바운드 (포지션 무관)", short: "몸싸움으로 리바운드를 따내는 허슬 플레이어", axis: "rebound" },
+  { key: "scorer", label: "득점원", condition: `강점 축(백분위 ${TYPE_ROLE_MAX} 이상 중 가장 높음)이 공격`, short: "득점 볼륨으로 공격을 이끈다", axis: "offense" },
+  { key: "defender", label: "수비수", condition: `강점 축(백분위 ${TYPE_ROLE_MAX} 이상 중 가장 높음)이 수비`, short: "스틸·블록·굿디펜스·디플렉션으로 상대를 막는다", axis: "defense" },
+  { key: "rebounder", label: "리바운더", condition: `강점 축(백분위 ${TYPE_ROLE_MAX} 이상 중 가장 높음)이 리바운드`, short: "몸싸움으로 리바운드를 따내는 허슬 플레이어", axis: "rebound" },
   {
     key: "shooter",
     label: "슈터",
-    condition: `가장 높은 축이 슈팅, 경기당 어시스트 백분위 ${TYPE_SPOTUP_AST_MAX}~${TYPE_HANDLER_AST_MIN} 미만`,
+    condition: `강점 축(백분위 ${TYPE_ROLE_MAX} 이상 중 가장 높음)이 슈팅, 경기당 어시스트 백분위 ${TYPE_SPOTUP_AST_MAX}~${TYPE_HANDLER_AST_MIN} 미만`,
     short: "3점·미드레인지를 많이, 잘 넣는다",
     axis: "shooting",
   },
   {
     key: "spotUp",
     label: "스팟업 슈터",
-    condition: `가장 높은 축이 슈팅, 경기당 어시스트 백분위 ${TYPE_SPOTUP_AST_MAX} 미만`,
+    condition: `강점 축(백분위 ${TYPE_ROLE_MAX} 이상 중 가장 높음)이 슈팅, 경기당 어시스트 백분위 ${TYPE_SPOTUP_AST_MAX} 미만`,
     short: "동료가 빼 준 공을 받아서 바로 쏜다",
     axis: null,
   },
   {
     key: "playmaker",
     label: "플레이메이커",
-    condition: `가장 높은 축이 리딩이고 경기당 어시스트 백분위 ${TYPE_PLAYMAKER_AST_MIN} 이상, 또는 슈팅이면서 어시스트 백분위 ${TYPE_HANDLER_AST_MIN} 이상`,
+    condition: `강점 축(백분위 ${TYPE_ROLE_MAX} 이상 중 가장 높음)이 리딩이고 경기당 어시스트 백분위 ${TYPE_PLAYMAKER_AST_MIN} 이상, 또는 슈팅이면서 어시스트 백분위 ${TYPE_HANDLER_AST_MIN} 이상`,
     short: "공을 쥐고 자기 공격과 동료 공격을 함께 만든다",
     axis: "playmaking",
   },
-  { key: "efficient", label: "피니셔", condition: "가장 높은 축이 효율", short: "많이 던지지 않아도 받은 기회를 높은 확률로 마무리한다", axis: "efficiency" },
+  { key: "efficient", label: "피니셔", condition: `강점 축(백분위 ${TYPE_ROLE_MAX} 이상 중 가장 높음)이 효율`, short: "많이 던지지 않아도 받은 기회를 높은 확률로 마무리한다", axis: "efficiency" },
   {
     key: "unknown",
     label: "분석 불가",
