@@ -128,6 +128,18 @@ console.log("shots-zones: 리그 합계·구역표·저장 형식 통과");
 const g = courtGeometry();
 assert.equal(g.lines.length, 7);
 assert.equal(g.viewBox, "-7.6 -1.675 15.2 14.2");
+// 3점 호: 바스켓(원점) 중심 타원, 끝점은 코너 직선 위, large-arc·sweep 모두 0 (2026-10-01 — 1 이면 호 중심이 앞으로 밀려 9.8m 까지 그려졌다)
+{
+  const three = g.lines[5];
+  const m = /A([\d.]+) ([\d.]+) 0 (\d) (\d) (-?[\d.]+) (-?[\d.]+)V/.exec(three)!;
+  assert.ok(m, three);
+  const [rx, ry, large, sweep, ex, ey] = [Number(m[1]), Number(m[2]), m[3], m[4], Number(m[5]), Number(m[6])];
+  assert.equal(large, "0");
+  assert.equal(sweep, "0");
+  assert.ok(Math.abs(rx - COURT.threeArcRy) < 0.01 && Math.abs(ry - COURT.threeArcRx) < 0.01);
+  assert.ok(Math.abs((ex / rx) ** 2 + (ey / ry) ** 2 - 1) < 0.01, "끝점이 원점 중심 타원 위"); // 끝점 (c, yi) 가 원점 중심 타원 위
+  assert.ok(Math.abs(ex - COURT.threeCorner) < 0.01);
+}
 // 반대쪽 코트(하프라인 넘어)·바스켓 뒤 베이스라인 밖 점은 그림 밖
 const cp = courtPoints([[1, 0, 1], [2, 1, 0], [20, 0, 0], [-2, 0, 1], [3, -7.4, 1]]);
 assert.equal(cp.made.length, 2);

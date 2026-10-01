@@ -364,7 +364,10 @@ export function courtGeometry(): CourtGeometry {
     `M${f2(-C.ftCircleRadius)} ${f2(ftLine)}A${f2(C.ftCircleRadius)} ${f2(C.ftCircleRadius)} 0 1 0 ${f2(C.ftCircleRadius)} ${f2(ftLine)}A${f2(C.ftCircleRadius)} ${f2(C.ftCircleRadius)} 0 1 0 ${f2(-C.ftCircleRadius)} ${f2(ftLine)}`,
     `M${f2(-r)} ${f2(bb)}V0A${f2(r)} ${f2(r)} 0 0 0 ${f2(r)} 0V${f2(bb)}`,
     `M${f2(-C.backboardHalfWidth)} ${f2(bb)}H${f2(C.backboardHalfWidth)}`,
-    `M${f2(-c)} ${f2(base)}V${f2(yi)}A${f2(C.threeArcRy)} ${f2(C.threeArcRx)} 0 1 0 ${f2(c)} ${f2(yi)}V${f2(base)}`,
+    // 호: 양 끝점이 바스켓(원점) 중심 타원 위에 있고 가운데(0, rx)를 지나는 쪽은 180° 미만이라 large-arc 는 0.
+    // (2026-10-01 수정: 1 로 두면 SVG 가 다른 쪽 중심(0, 2·yi)을 골라 호가 약 9.8m 까지 그려져 3점 점이 호 안쪽에 보였다)
+    // 화면 위에서 왼쪽 끝 → 오른쪽 끝을 아래(y 증가)로 도는 방향 = 반시계 → sweep 0.
+    `M${f2(-c)} ${f2(base)}V${f2(yi)}A${f2(C.threeArcRy)} ${f2(C.threeArcRx)} 0 0 0 ${f2(c)} ${f2(yi)}V${f2(base)}`,
     `M${f2(-C.ftCircleRadius)} ${f2(half)}A${f2(C.ftCircleRadius)} ${f2(C.ftCircleRadius)} 0 0 1 ${f2(C.ftCircleRadius)} ${f2(half)}`,
   ];
   return {
