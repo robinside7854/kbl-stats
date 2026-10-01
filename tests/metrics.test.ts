@@ -286,13 +286,11 @@ assert.equal(playerType(ax({ defense: 90 })).label, "수비수");
 assert.equal(playerType(ax({ rebound: 90 })).label, "리바운더");
 assert.equal(playerType(ax({ shooting: 90 })).label, "슈터");
 assert.equal(playerType(ax({ playmaking: 90 })).label, "플레이메이커");
-assert.equal(playerType(ax({ offense: 10, efficiency: 88 })).label, "효율형");
+assert.equal(playerType(ax({ offense: 10, efficiency: 88 })).label, "피니셔");
 assert.equal(playerType(ax({ offense: 80, defense: 80 })).axis, "offense"); // 동점 → 앞 축
 assert.equal(playerType(ax({ offense: 70, defense: null, rebound: 80, shooting: 95, playmaking: 61, efficiency: 90 })).label, "슈터"); // null 축 있으면 올라운더 아님
 assert.equal(playerType({ offense: null, defense: null, rebound: null, shooting: null, playmaking: null, efficiency: null }).label, "분석 불가");
 // 포지션 세분 유형 (2026-10-01): 포지션을 넘겨야 붙는다
-assert.equal(playerType(ax({ playmaking: 75, rebound: 60 }), axisWeights("C"), "C").label, "플레이메이킹 빅맨");
-assert.equal(playerType(ax({ shooting: 75, rebound: 60 }), axisWeights("FC"), "FC").label, "스트레치 빅맨");
 assert.equal(playerType(ax({ playmaking: 75, rebound: 60 }), axisWeights("C")).label, "플레이메이커"); // 포지션 없으면 일반 규칙
 assert.equal(playerType(ax({ playmaking: 69, rebound: 60 }), axisWeights("C"), "C").label, "플레이메이커"); // 문턱 70 미만
 assert.equal(playerType(ax({ playmaking: 75, rebound: 90 }), axisWeights("C"), "C").label, "리바운더"); // 가장 높은 축이 아니면 세분 유형 아님
@@ -305,7 +303,13 @@ assert.equal(playerType(ax({ shooting: 90 }), axisWeights("G"), "G", 69.9).label
 assert.equal(playerType(ax({ shooting: 90 }), axisWeights("F"), "F", 40).label, "슈터");
 assert.equal(playerType(ax({ shooting: 90 }), axisWeights("F"), "F", 39.9).label, "스팟업 슈터");
 assert.equal(playerType(ax({ shooting: 90 }), axisWeights("F"), "F", null).label, "슈터"); // 어시스트 값 없음
-assert.equal(playerType(ax({ shooting: 75, rebound: 60 }), axisWeights("C"), "C", 10).label, "스트레치 빅맨"); // 빅맨 판정이 먼저
+assert.equal(playerType(ax({ shooting: 75, rebound: 60 }), axisWeights("C"), "C", 10).label, "스팟업 슈터"); // 스트레치 빅맨은 슈터 쪽으로 합침
+assert.equal(playerType(ax({ playmaking: 75, rebound: 60 }), axisWeights("C"), "C").label, "플레이메이커"); // 플레이메이킹 빅맨은 플레이메이커로 합침
+// 리딩이 가장 높아도 어시스트가 적으면 다음 축
+assert.equal(playerType(ax({ playmaking: 85, shooting: 70 }), axisWeights("G"), "G", 59).label, "슈터"); // 다음 축 슈팅, 어시스트 40~70
+assert.equal(playerType(ax({ playmaking: 85, defense: 70 }), axisWeights("G"), "G", 30).label, "수비수");
+assert.equal(playerType(ax({ playmaking: 85, defense: 70 }), axisWeights("G"), "G", 60).label, "플레이메이커");
+assert.equal(playerType(ax({ playmaking: 85, offense: 10 }), axisWeights("G"), "G", 30).label, "롤플레이어"); // 다음 축이 40 미만
 // 올라운더가 세분 유형보다 먼저
 assert.equal(playerType(ax({ offense: 70, defense: 65, rebound: 80, shooting: 61, playmaking: 90, efficiency: 60 }), axisWeights("C"), "C").label, "올라운더");
 // 라벨은 lib/glossary PLAYER_TYPES 한 곳에서 읽는다: 모든 키가 판정 결과로 나올 수 있고, 라벨이 표와 같다
@@ -313,8 +317,6 @@ assert.equal(playerType(ax({ offense: 70, defense: 65, rebound: 80, shooting: 61
   const seen = new Map<string, string>();
   const samples: [Partial<Record<string, number | null>>, Position | null][] = [
     [{ offense: 70, defense: 65, rebound: 80, shooting: 61, playmaking: 90, efficiency: 60 }, null],
-    [{ playmaking: 75 }, "C"],
-    [{ shooting: 75 }, "C"],
     [{ offense: 10 }, null],
     [{ offense: 95 }, null],
     [{ defense: 90 }, null],

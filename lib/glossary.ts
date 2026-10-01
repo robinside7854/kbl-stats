@@ -380,18 +380,17 @@ export const RADAR_AXIS_GLOSSARY: Readonly<Record<string, GlossaryKey>> = {
 export const TYPE_ALLROUNDER_MIN = 60;
 /** 롤 플레이어 문턱: 가장 높은 축 백분위가 이 값 미만 */
 export const TYPE_ROLE_MAX = 40;
-/** 포지션 세분 유형 문턱: 빅맨의 리딩·슈팅이 가장 높은 축이고 백분위가 이 값 이상 (역할상 낮기 쉬운 축에서 상위 30%) */
-export const TYPE_SPECIAL_MIN = 70;
 /** 슈팅이 가장 높은 축인 선수의 경기당 어시스트 백분위(같은 국적 풀) 문턱 — 이 값 이상이면 공을 쥐고 동료까지 살리는 메인 핸들러 → 플레이메이커.
  *  2026-10-01 사용자 결정. 2025-26 슈터 19명 중 7명(서명진 96·김낙현 94·정성우 91 등)이 70 이상 */
 export const TYPE_HANDLER_AST_MIN = 70;
+/** 리딩이 가장 높은 축이어도 경기당 어시스트 백분위가 이 값 미만이면 플레이메이커로 보지 않고 다음으로 높은 축으로 판정
+ *  (턴오버가 적은 것만으로 리딩 축이 높게 나오는 선수 — 2025-26 신주영 어시스트 31·박지훈(F) 12 — 를 거른다, 2026-10-01) */
+export const TYPE_PLAYMAKER_AST_MIN = 60;
 /** … 이 값 미만이면 주로 받아 쏘는 슈터 → 스팟업 슈터 (2025-26 슈터 19명 중 6명) */
 export const TYPE_SPOTUP_AST_MAX = 40;
 
 export type PlayerTypeKey =
   | "allRounder"
-  | "playmakingBig"
-  | "stretchBig"
   | "role"
   | "scorer"
   | "defender"
@@ -424,20 +423,6 @@ export const PLAYER_TYPES: readonly PlayerTypeDef[] = [
     axis: null,
   },
   {
-    key: "playmakingBig",
-    label: "플레이메이킹 빅맨",
-    condition: `빅맨(센터·포워드-센터)이고 가장 높은 축이 리딩, ${TYPE_SPECIAL_MIN} 이상`,
-    short: "패스로 동료를 살리는 빅맨, 하이포스트에서 공을 뿌린다",
-    axis: null,
-  },
-  {
-    key: "stretchBig",
-    label: "스트레치 빅맨",
-    condition: `빅맨(센터·포워드-센터)이고 가장 높은 축이 슈팅, ${TYPE_SPECIAL_MIN} 이상`,
-    short: "외곽슛으로 수비를 바깥까지 끌어내는 빅맨",
-    axis: null,
-  },
-  {
     key: "role",
     label: "롤플레이어",
     condition: `가장 높은 축이 ${TYPE_ROLE_MAX} 미만`,
@@ -464,11 +449,11 @@ export const PLAYER_TYPES: readonly PlayerTypeDef[] = [
   {
     key: "playmaker",
     label: "플레이메이커",
-    condition: `가장 높은 축이 리딩, 또는 슈팅이면서 경기당 어시스트 백분위 ${TYPE_HANDLER_AST_MIN} 이상`,
+    condition: `가장 높은 축이 리딩이고 경기당 어시스트 백분위 ${TYPE_PLAYMAKER_AST_MIN} 이상, 또는 슈팅이면서 어시스트 백분위 ${TYPE_HANDLER_AST_MIN} 이상`,
     short: "공을 쥐고 자기 공격과 동료 공격을 함께 만든다",
     axis: "playmaking",
   },
-  { key: "efficient", label: "효율형", condition: "가장 높은 축이 효율", short: "적게 던져도 잘 넣는다 (PER·TS%·eFG%)", axis: "efficiency" },
+  { key: "efficient", label: "피니셔", condition: "가장 높은 축이 효율", short: "많이 던지지 않아도 받은 기회를 높은 확률로 마무리한다", axis: "efficiency" },
   {
     key: "unknown",
     label: "분석 불가",

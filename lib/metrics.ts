@@ -11,8 +11,8 @@ import {
   playerTypeDef,
   TYPE_ALLROUNDER_MIN,
   TYPE_ROLE_MAX,
-  TYPE_SPECIAL_MIN,
   TYPE_HANDLER_AST_MIN,
+  TYPE_PLAYMAKER_AST_MIN,
   TYPE_SPOTUP_AST_MAX,
   type PlayerTypeKey,
 } from "./glossary";
@@ -734,12 +734,13 @@ function typeOf(key: PlayerTypeKey): PlayerType {
  * 6축 백분위 → 한 줄 유형 라벨. 규칙 (위에서부터 먼저 맞는 것, 라벨·문턱값은 lib/glossary PLAYER_TYPES·TYPE_*):
  *  1) 세는 축(가중치 > 0)이 모두 TYPE_ALLROUNDER_MIN(60) 이상 → "올라운더"
  *  2) 가장 높은 축이 TYPE_ROLE_MAX(40) 미만 → "롤플레이어"
- *  3) 빅맨(FC·C, position 이 있을 때만): **가장 높은 축**이 리딩 ≥ 70 → "플레이메이킹 빅맨" · 슈팅 ≥ 70 → "스트레치 빅맨"
- *  4) 가장 높은 축이 슈팅이면 경기당 어시스트 백분위(assistPct)로 나눈다 (2026-10-01 사용자 결정):
+ *  3) 가장 높은 축이 리딩인데 경기당 어시스트 백분위 < TYPE_PLAYMAKER_AST_MIN(60) 이면 리딩을 빼고 다음으로 높은 축으로 판정
+ *     (턴오버가 적은 것만으로 리딩 축이 높은 선수를 플레이메이커에서 거른다. 다음 축도 40 미만이면 "롤플레이어")
+ *     그 축이 슈팅이면 경기당 어시스트 백분위(assistPct)로 나눈다 (2026-10-01 사용자 결정):
  *     ≥ TYPE_HANDLER_AST_MIN(70) → "플레이메이커"(메인 핸들러) · < TYPE_SPOTUP_AST_MAX(40) → "스팟업 슈터" · 그 사이·값 없음 → "슈터"
- *  5) 그 외: 가장 높은 축의 유형 → 공격 "득점원" · 수비 "수비수" · 리바운드 "리바운더" · 리딩 "플레이메이커" · 효율 "효율형"
- *     (락다운 디펜더는 수비수로, 리바운딩 가드는 리바운더로 합침 — 2026-10-01)
- *     동점이면 축 순서(공격 → 수비 → 리바운드 → 슈팅 → 리딩 → 효율)로 먼저 나온 축 — 세분 유형 판정도 같은 "가장 높은 축"을 쓴다.
+ *  4) 그 외: 가장 높은 축의 유형 → 공격 "득점원" · 수비 "수비수" · 리바운드 "리바운더" · 리딩 "플레이메이커" · 효율 "피니셔"
+ *     (락다운 디펜더는 수비수, 리바운딩 가드는 리바운더, 플레이메이킹 빅맨은 플레이메이커, 스트레치 빅맨은 슈터 쪽으로 합침 — 2026-10-01)
+ *     동점이면 축 순서(공격 → 수비 → 리바운드 → 슈팅 → 리딩 → 효율)로 먼저 나온 축.
  * null 축은 무시(올라운더 판정에서는 세는 축이 모두 있어야 한다). 전부 null이면 "분석 불가".
  * weights(axisWeights): 가중치 0 인 축은 아예 세지 않는다(지금 역할 묶음엔 0 이 없지만 규칙으로 둔다).
  */
@@ -758,10 +759,13 @@ export function playerType(
   let top = entries[0];
   for (const e of entries) if (e[1] > top[1]) top = e;
   if (top[1] < TYPE_ROLE_MAX) return typeOf("role");
-  const [topAxis, topVal] = top;
-  if (roleGroupOf(position) === "big") {
-    if (topAxis === "playmaking" && topVal >= TYPE_SPECIAL_MIN) return typeOf("playmakingBig");
-    if (topAxis === "shooting" && topVal >= TYPE_SPECIAL_MIN) return typeOf("stretchBig");
+  let topAxis = top[0];
+  // 리딩이 가장 높아도 어시스트 자체가 적으면(턴오버가 적어서 리딩 축이 높은 경우) 다음으로 높은 축으로 본다
+  if (topAxis === "playmaking" && assistPct !== null && assistPct < TYPE_PLAYMAKER_AST_MIN) {
+    let next: readonly [RadarAxis, number] | null = null;
+    for (const e of entries) if (e[0] !== "playmaking" && (next === null || e[1] > next[1])) next = e;
+    if (next === null || next[1] < TYPE_ROLE_MAX) return typeOf("role");
+    topAxis = next[0];
   }
   if (topAxis === "shooting" && assistPct !== null) {
     if (assistPct >= TYPE_HANDLER_AST_MIN) return typeOf("playmaker");
