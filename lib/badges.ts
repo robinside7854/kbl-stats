@@ -79,7 +79,8 @@ export const BADGE_DEFS: readonly BadgeDef[] = [
   { key: "ironMan", label: "철인", condition: `그 시즌 선수 중 최다 경기 수만큼 출전한 시즌이 ${IRON_MAN_MIN_SEASONS}개 이상`, short: "여러 시즌 한 경기도 빠지지 않은 선수" },
   { key: "ddMachine", label: "더블더블 머신", condition: `한 시즌 더블더블 ${DD_MACHINE_MIN}회 이상인 시즌이 있음`, short: "더블더블을 밥 먹듯 한 시즌이 있는 선수" },
   { key: "journeyman", label: "저니맨", condition: `소속 팀 코드 ${JOURNEYMAN_MIN_TEAMS}개 이상`, short: "여러 구단을 거친 선수" },
-  { key: "rookie", label: "루키", condition: "뛴 시즌이 최신 시즌 하나뿐이고 드래프트 연도가 그 시즌 (예: 2025 드래프트 → 2025-26)", short: "이번 시즌 데뷔한 드래프트 신인 (라벨은 2026-10-01 \"신인\" → \"루키\")" },
+  // 2026-10-01 라벨 "신인" → "루키" (키 rookie·앵커 유지)
+  { key: "rookie", label: "루키", condition: "뛴 시즌이 최신 시즌 하나뿐이고 드래프트 연도가 그 시즌 (예: 2025 드래프트 → 2025-26)", short: "이번 시즌 데뷔한 드래프트 신인" },
 ];
 
 const KING_BADGE: Record<KingStat, BadgeKey> = {
