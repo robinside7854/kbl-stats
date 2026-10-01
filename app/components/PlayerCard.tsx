@@ -459,7 +459,7 @@ function CardRadar({
 // ─────────────────────────────────────────────
 
 export default function PlayerCard({ view, colors, size = "sm", seriesColor, exportMode = false, nameHref, layout = "vertical" }: Props) {
-  const { entry, seasonLabel, ruleLabel, qualifiedCount, attemptsLabel, groupLabel, gradeLabel, missingComponents } = view;
+  const { entry, seasonLabel, ruleLabel, qualifiedCount, attemptsLabel, groupLabel, gradeLabel, missingComponents, overallNote } = view;
   const team = view.team ?? undefined;
   const p = entry.player;
   const foot = cardFootStats(p);
@@ -628,6 +628,12 @@ export default function PlayerCard({ view, colors, size = "sm", seriesColor, exp
         )}
       </p>
       <CardRadar entry={entry} color={color} colors={colors} d={d} seriesColor={seriesColor} fixedWidth={exportMode ? CARD_LG_WIDTH - 2 * d.pad : undefined} />
+      {/* 포지션별 종합 가중치 (lib/metrics axisWeights): 센터·포워드만 한 줄, 가드는 없음 */}
+      {overallNote && (
+        <p className="pb-1 leading-snug text-ink-3" style={{ fontSize: small }}>
+          종합 등급: {overallNote}
+        </p>
+      )}
       {missingComponents.length > 0 && (
         <p className="pb-1 leading-snug text-ink-3" style={{ fontSize: small }}>
           이 시즌 기록이 없어 뺀 항목: {missingComponents.join("·")}

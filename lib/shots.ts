@@ -15,6 +15,7 @@
 //   y = 좌우 거리(+ = 슈터가 바스켓을 볼 때 오른쪽). d = 1(오른쪽 바스켓)은 코트를 180° 돌린 것이라 x·y 부호를 둘 다 뒤집어 맞춘다.
 
 import {
+  OFFENSE_CORNER_MIN,
   OFFENSE_INSIDE_MIN,
   OFFENSE_INSIDE_OUT_MIN,
   OFFENSE_MID_MIN,
@@ -227,10 +228,16 @@ export function leagueZoneAverages(list: readonly (Pick<ShotZoneSummary, "zones"
 // 주 공격 유형 (라벨·문턱은 lib/glossary OFFENSE_TYPES)
 // ─────────────────────────────────────────────
 
+/** 3점 시도 중 코너 3점 비중(0~1). 3점 시도 0 이면 0 */
+export function cornerShareOfThrees(s: Pick<ShotZoneSummary, "zones">): number {
+  const threes = s.zones.corner3.a + s.zones.arc3.a;
+  return threes > 0 ? s.zones.corner3.a / threes : 0;
+}
+
 /**
  * 구역 시도 비중으로 주 공격 유형. 위에서부터 먼저 맞는 규칙(성공률은 보지 않는다):
  *   슛 50개 미만 → null (표본 부족)
- *   골밑+페인트 ≥ 55% → inside · 3점(코너+아크) ≥ 50% → shooter · 미드레인지 ≥ 30% → midrange
+ *   골밑+페인트 ≥ 55% → inside · 3점(코너+아크) ≥ 50% → 3점 시도 중 코너 ≥ 30% 면 cornerShooter, 아니면 shooter · 미드레인지 ≥ 30% → midrange
  *   3점 ≥ 35% 그리고 골밑+페인트 ≥ 35% → insideOut · 그 외 → balanced
  * 출처: 우리 사이트 규칙 (문턱 근거는 lib/glossary.ts OFFENSE_TYPES 주석).
  */
@@ -240,7 +247,7 @@ export function offenseType(s: Pick<ShotZoneSummary, "total" | "zones">): Offens
   const three = shareOf(s, "corner3") + shareOf(s, "arc3");
   const mid = shareOf(s, "mid");
   if (inside >= OFFENSE_INSIDE_MIN) return "inside";
-  if (three >= OFFENSE_SHOOTER_MIN) return "shooter";
+  if (three >= OFFENSE_SHOOTER_MIN) return cornerShareOfThrees(s) >= OFFENSE_CORNER_MIN ? "cornerShooter" : "shooter";
   if (mid >= OFFENSE_MID_MIN) return "midrange";
   if (three >= OFFENSE_INSIDE_OUT_MIN && inside >= OFFENSE_INSIDE_OUT_MIN) return "insideOut";
   return "balanced";

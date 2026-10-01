@@ -18,6 +18,9 @@ import {
   MIN_GRADE_GROUP,
   missingComponentLabels,
   overallScore,
+  overallWeightNote,
+  axisWeights,
+  POSITION_THREE_WEIGHT,
   percentileRankLow,
   playerType,
   QUALIFY_PRESETS,
@@ -196,10 +199,34 @@ assert.equal(gs.groups.foreign?.count, 3);
 assert.equal(overallScore({ offense: 90, defense: 80, three: 70, hustle: 60, efficiency: 50 }), 70);
 assert.equal(overallScore({ offense: 90, defense: null, three: 70, hustle: null, efficiency: 50 }), 70);
 assert.equal(overallScore({}), null);
+// 포지션별 3점 축 가중치 (2026-10-01): 센터 0(네 축 평균), 포워드·포워드-센터 0.5, 가드·가드-포워드 1, 포지션 모르면 1
+assert.deepEqual(POSITION_THREE_WEIGHT, { G: 1, GF: 1, F: 0.5, FC: 0.5, C: 0 });
+assert.equal(axisWeights(null).three, 1);
+assert.equal(axisWeights("C").three, 0);
+assert.equal(axisWeights("C").offense, 1);
+const ctrAxes = { offense: 80, defense: 60, three: 0, hustle: 90, efficiency: 70 };
+assert.equal(overallScore(ctrAxes, axisWeights("C")), 75);                 // (80+60+90+70)/4
+assert.equal(overallScore(ctrAxes, axisWeights("F")), (300 + 0) / 4.5);   // 3점 절반 비중
+assert.equal(overallScore(ctrAxes, axisWeights("G")), 60);                 // 5축 그대로
+assert.equal(overallScore({ three: 90 }, axisWeights("C")), null);         // 세는 축이 없으면 null
+assert.equal(overallWeightNote("C"), "센터라 3점 축은 종합에 넣지 않음");
+assert.equal(overallWeightNote("F"), "포워드라 3점 축은 종합에 절반만");
+assert.equal(overallWeightNote("FC"), "포워드-센터라 3점 축은 종합에 절반만");
+assert.equal(overallWeightNote("G"), null);
+assert.equal(overallWeightNote(null), null);
 // 종합 점수 = 5축 백분위(axes) 평균 그대로 — 집단 안에서 다시 순위 매기지 않는다 (2026-09-30 피드백 3차)
 for (const p of pool) {
   const r = radarScore(p, g);
-  assert.equal(r.overall, overallScore(r.axes));
+  assert.equal(r.overall, overallScore(r.axes, axisWeights(p.position)));
+}
+// 같은 기록이라도 센터면 종합에서 3점 축이 빠진다 (레이더 축 값은 같다)
+{
+  const base = pool[0];
+  const asC = radarScore({ ...base, position: "C" }, g);
+  const asG = radarScore({ ...base, position: "G" }, g);
+  assert.deepEqual(asC.axes, asG.axes);
+  assert.equal(asC.overall, overallScore(asG.axes, axisWeights("C")));
+  assert.equal(asG.overall, overallScore(asG.axes));
 }
 // 한 축만 S(99)이고 나머지가 평범하면 종합은 S 가 아니다: (99 + 70 + 20 + 70 + 70) / 5 = 65.8 → B
 assert.equal(overallGrade(overallScore({ offense: 99, defense: 70, three: 20, hustle: 70, efficiency: 70 })), "B");
@@ -228,6 +255,11 @@ assert.equal(playerType({ offense: 50, defense: 20, three: 30, hustle: 90, effic
 assert.equal(playerType({ offense: 10, defense: 20, three: 30, hustle: 9, efficiency: 88 }).label, "효율형");
 assert.equal(playerType({ offense: 80, defense: 80, three: 30, hustle: 9, efficiency: 5 }).axis, "offense"); // 동점 → 앞 축
 assert.equal(playerType({ offense: 70, defense: null, three: 95, hustle: 61, efficiency: 90 }).label, "슈터"); // null 축 있으면 올라운더 아님
+// 센터(3점 가중치 0): 3점이 낮아도 나머지 4축 60 이상이면 올라운더, 3점이 가장 높아도 "슈터"가 되지 않는다
+assert.equal(playerType({ offense: 70, defense: 65, three: 5, hustle: 61, efficiency: 90 }, axisWeights("C")).label, "올라운더");
+assert.equal(playerType({ offense: 70, defense: 65, three: 5, hustle: 61, efficiency: 90 }, axisWeights("G")).label, "효율형");
+assert.equal(playerType({ offense: 30, defense: 20, three: 95, hustle: 10, efficiency: 20 }, axisWeights("C")).label, "궂은일 담당 롤 플레이어");
+assert.equal(playerType({ offense: 70, defense: 65, three: null, hustle: 61, efficiency: 90 }, axisWeights("C")).label, "올라운더"); // 안 세는 축은 null 이어도 됨
 assert.equal(playerType({ offense: null, defense: null, three: null, hustle: null, efficiency: null }).label, "분석 불가");
 // 라벨은 lib/glossary PLAYER_TYPES 한 곳에서 읽는다: 모든 키가 판정 결과로 나올 수 있고, 라벨이 표와 같다
 {

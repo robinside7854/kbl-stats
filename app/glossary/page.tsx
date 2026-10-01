@@ -130,7 +130,7 @@ export default function GlossaryPage() {
                       {g.formula}
                     </code>
                   </td>
-                  <td className={`${CELL} text-sub leading-relaxed text-ink-2`}>
+                  <td className={`${CELL} text-sub leading-relaxed text-ink-2 [overflow-wrap:anywhere]`}>
                     <span className="font-semibold text-ink-3 md:hidden">비고 · </span>
                     {g.note}
                   </td>

@@ -5,7 +5,7 @@
 // 여기서는 "그 값이 비교 집단 안에서 몇 번째쯤인가"(백분위), 경기당·40분당 환산, 시즌 커버리지 판정,
 // 레이더 5축(공격·수비·3점·허슬·효율 — 구성 요소 백분위 평균), 국적 집단별 등급, 유형 라벨, 카드 스탯 순위를 만든다.
 
-import type { Nationality, SeasonCoverage } from "./types";
+import type { Nationality, Position, SeasonCoverage } from "./types";
 import { PLAYER_TYPES, playerTypeDef, TYPE_ALLROUNDER_MIN, TYPE_ROLE_MAX, type PlayerTypeKey } from "./glossary";
 
 // ─────────────────────────────────────────────
@@ -360,6 +360,8 @@ export const GRADE_GROUP_LABELS: Record<GradeGroupKey, string> = {
 export interface GradeInput extends RadarInput {
   nationality: Nationality | null;
   isForeign: boolean;
+  /** 포지션 (선수 마스터). 종합 점수의 3점 축 가중치에만 쓴다(axisWeights) — 없으면 가중치 전부 1 */
+  position?: Position | null;
 }
 
 /** 선수 국적 → 집단 (lib/roster nationalityOf 와 같은 규칙. 순환 import 를 피하려고 여기 한 줄로 둔다) */
@@ -420,7 +422,7 @@ export interface RadarScore {
   /** 축별 구성 요소 (활성 요소만, 순서 = RADAR_AXIS_COMPONENTS) */
   components: Record<RadarAxis, RadarComponentScore[]>;
   /**
-   * 종합 점수 (종합 등급) = 5축 백분위(axes)의 단순 평균 — 다시 순위 매기지 않는다 (overallScore).
+   * 종합 점수 (종합 등급) = 5축 백분위(axes)의 평균 — 다시 순위 매기지 않는다 (overallScore). 포지션에 따라 3점 축 비중을 줄인다(axisWeights).
    * 0~100 척도라 종합 전용 컷(OVERALL_GRADE_CUTS)을 그대로 대면 S 는 "5축 평균 85 이상" = 여러 축이 동시에 높은 선수만 받는다.
    */
   overall: number | null;
@@ -464,15 +466,62 @@ function axisPercentiles(raw: Record<RadarAxis, number | null>, g: Pick<GradeGro
 }
 
 /**
- * 종합 점수 = 5축 백분위의 단순 평균 (null 축은 빼고, 전부 null 이면 null). 가중치 없이 5축을 같은 비중으로 본다.
+ * 종합 점수 = 5축 백분위의 가중 평균 (null 축은 빼고, 전부 null 이면 null). weights 를 안 주면 5축 같은 비중.
  * 종합 등급 = 이 값에 종합 전용 컷(OVERALL_GRADE_CUTS 85/70/55/40/25)을 **직접** 댄다 — 집단 안에서 다시 순위 매기지 않는다.
  * (2026-09-30 피드백 3차: 다시 순위를 매기면 "평균이 집단 상위 10%"만 되면 S 라, 한 축만 뛰어나도 S 가 나왔다 —
  *  예: 강성욱 2025-26 축 S·A·D·A·A → 재순위 종합 S. 평균에 컷을 직접 대면 S 는 5축 평균이 컷 이상 = 여러 축이 동시에 높아야 한다.
  *  처음엔 축 컷 90 을 그대로 댔더니 2025-26 종합 S 가 0명이라 종합 전용 컷 85/70/55/40/25 로 내렸다.)
  * 축 등급은 그대로 "구성 요소 백분위 평균 → 집단 안 재순위" (백분위 몇 개의 평균은 50 근처로 모이기 때문).
+ * 가중치(axisWeights): 포지션에 따라 3점 축 비중을 줄인다 — 센터 0, 포워드 0.5, 가드 1 (아래 POSITION_THREE_WEIGHT).
  */
-export function overallScore(axes: Partial<Record<RadarAxis, number | null>>): number | null {
-  return mean(RADAR_AXES.map((a) => axes[a]).filter((v): v is number => v !== null && v !== undefined && Number.isFinite(v)));
+export function overallScore(
+  axes: Partial<Record<RadarAxis, number | null>>,
+  weights: Readonly<Record<RadarAxis, number>> = EQUAL_AXIS_WEIGHTS,
+): number | null {
+  let sum = 0;
+  let wsum = 0;
+  for (const a of RADAR_AXES) {
+    const v = axes[a];
+    const w = weights[a];
+    if (v === null || v === undefined || !Number.isFinite(v) || w <= 0) continue;
+    sum += v * w;
+    wsum += w;
+  }
+  return wsum > 0 ? sum / wsum : null;
+}
+
+// ─────────────────────────────────────────────
+// 포지션별 종합 가중치 (2026-10-01 사용자 요청 — "센터는 3점이 낮은 게 당연한데 종합 등급까지 깎인다")
+// ─────────────────────────────────────────────
+// 레이더 5축 중 3점 축만 포지션에 따라 종합 평균 비중을 줄인다. 축 백분위(레이더 모양·축 등급)는 그대로 두고
+// **종합 점수·유형 라벨 판정**에서만 뺀다 — 레이더는 "실제로 어떤 선수인가"를 보여 주고, 종합은 "제 역할 안에서 얼마나 잘하나"를 보려고.
+// 근거(2025-26 국내 선수 표본 충족, 3점 축 백분위 평균): 가드 55.6 · 포워드 49.9 · 센터 16.5. 다른 네 축은 포지션에 따라 그렇게 쏠리지 않는다
+// (수비 축에 블록이 있지만 스틸·수비 리바운드·굿디펜스·파울과 섞여 한 축 전체가 비지는 않는다).
+// 센터는 3점 축 평균이 20 아래라 다섯 축 평균을 혼자 약 7점 끌어내렸다(예: 하윤기 2025-26 축 78·57·1·90·83 → 종합 62 B, 3점 축을 빼면 77 A).
+// 포워드(FD)는 KBL 코드상 스몰 포워드와 빅맨(김주성·함지훈·이승현 등 3점 축 3~14)이 섞여 있어 절반만 센다.
+// 가드·가드-포워드는 그대로 1. 포지션을 모르는 선수(마스터에 없음)도 1.
+
+/** 포지션 → 3점 축 가중치 (나머지 네 축은 항상 1) */
+export const POSITION_THREE_WEIGHT: Record<Position, number> = { G: 1, GF: 1, F: 0.5, FC: 0.5, C: 0 };
+
+export const EQUAL_AXIS_WEIGHTS: Readonly<Record<RadarAxis, number>> = { offense: 1, defense: 1, three: 1, hustle: 1, efficiency: 1 };
+
+/** 포지션별 축 가중치 (종합 점수·유형 라벨용). 포지션 없으면 5축 모두 1 */
+export function axisWeights(position: Position | null | undefined): Readonly<Record<RadarAxis, number>> {
+  if (!position) return EQUAL_AXIS_WEIGHTS;
+  return { ...EQUAL_AXIS_WEIGHTS, three: POSITION_THREE_WEIGHT[position] };
+}
+
+/**
+ * 종합 가중치 안내 한 줄 (카드 "등급 기준" 옆). 가중치가 전부 1이면 null.
+ * 예: "센터라 3점 축은 종합에 넣지 않음", "포워드라 3점 축은 종합에 절반만"
+ */
+export function overallWeightNote(position: Position | null | undefined): string | null {
+  if (!position) return null;
+  const w = POSITION_THREE_WEIGHT[position];
+  if (w >= 1) return null;
+  const who = position === "C" ? "센터" : position === "FC" ? "포워드-센터" : "포워드";
+  return w <= 0 ? `${who}라 3점 축은 종합에 넣지 않음` : `${who}라 3점 축은 종합에 절반만`;
 }
 
 /**
@@ -514,7 +563,7 @@ export function radarScore(p: GradeInput, ctx: GradingContext): RadarScore {
   const ref = g ?? empty;
   const { raw, components } = axisRawScores(p, ref, ctx);
   const axes = axisPercentiles(raw, ref);
-  return { axes, raw, components, overall: overallScore(axes) };
+  return { axes, raw, components, overall: overallScore(axes, axisWeights(p.position)) };
 }
 
 /** 시즌에 기록이 없어 빠진 구성 요소 이름 (카드 아래 안내, 예: ["USG%", "경기당 디플렉션"]) */
@@ -546,14 +595,19 @@ function typeOf(key: PlayerTypeKey): PlayerType {
  *  2) 가장 높은 축이 TYPE_ROLE_MAX(40) 미만      → "궂은일 담당 롤 플레이어" (어느 축도 두드러지지 않음)
  *  3) 그 외: 가장 높은 축의 유형                  → 공격 "득점원" · 수비 "수비수" · 3점 "슈터" · 허슬 "허슬 플레이어" · 효율 "효율형"
  *     동점이면 축 순서(공격 → 수비 → 3점 → 허슬 → 효율)로 먼저 나온 축.
- * null 축은 무시(올라운더 판정에서는 5축이 모두 있어야 한다). 전부 null이면 "분석 불가".
+ * null 축은 무시(올라운더 판정에서는 세는 축이 모두 있어야 한다). 전부 null이면 "분석 불가".
+ * weights(axisWeights): 가중치 0 인 축(센터의 3점)은 아예 세지 않는다 — 센터는 3점이 낮아도 나머지 4축이 60 이상이면 올라운더.
  */
-export function playerType(pct: Partial<Record<RadarAxis, number | null>>): PlayerType {
-  const entries = RADAR_AXES.map((a) => [a, pct[a] ?? null] as const).filter(
+export function playerType(
+  pct: Partial<Record<RadarAxis, number | null>>,
+  weights: Readonly<Record<RadarAxis, number>> = EQUAL_AXIS_WEIGHTS,
+): PlayerType {
+  const counted = RADAR_AXES.filter((a) => weights[a] > 0);
+  const entries = counted.map((a) => [a, pct[a] ?? null] as const).filter(
     (e): e is readonly [RadarAxis, number] => e[1] !== null,
   );
   if (entries.length === 0) return typeOf("unknown");
-  if (entries.length === RADAR_AXES.length && entries.every(([, v]) => v >= TYPE_ALLROUNDER_MIN)) return typeOf("allRounder");
+  if (entries.length === counted.length && entries.every(([, v]) => v >= TYPE_ALLROUNDER_MIN)) return typeOf("allRounder");
   let top = entries[0];
   for (const e of entries) if (e[1] > top[1]) top = e;
   if (top[1] < TYPE_ROLE_MAX) return typeOf("role");
@@ -877,9 +931,9 @@ export interface CardEntryOf<T> {
   pct: Record<RadarAxis, number | null>;
   /** 축별 등급 (percentileGrade) */
   grades: Record<RadarAxis, Grade | "-">;
-  /** 종합 등급 (5축 백분위 평균 → overallGrade = OVERALL_GRADE_CUTS 85/70/55/40/25, 재순위 없음) */
+  /** 종합 등급 (5축 백분위 평균(포지션별 3점 축 가중치) → overallGrade = OVERALL_GRADE_CUTS 85/70/55/40/25, 재순위 없음) */
   overall: Grade | "-";
-  /** 종합 점수 = 5축 백분위 평균 (0~100) */
+  /** 종합 점수 = 5축 백분위 평균 (0~100, 포지션별 3점 축 가중치 axisWeights) */
   overallPct: number | null;
   /** 축별 구성 요소 값·백분위 (툴팁·표 보기) */
   radar: RadarScore;
@@ -905,7 +959,7 @@ export function buildCardEntry<T extends CardInput>(p: T, ctx: CardContext): Car
     overall: overallGrade(radar.overall),
     overallPct: radar.overall,
     radar,
-    type: playerType(radar.axes),
+    type: playerType(radar.axes, axisWeights(p.position)),
     qualified: isQualified(p, ctx.rule),
     stats: cardStats(p, ctx.pools, ctx.rule, ctx.thresholds),
     gradeGroup: { key: gk, label: GRADE_GROUP_LABELS[gk], count: ctx.grading.groups[gk]?.count ?? 0 },

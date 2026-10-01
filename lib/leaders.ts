@@ -40,6 +40,7 @@ export type LeaderStatKey =
   | "ast"
   | "stl"
   | "blk"
+  | "tpm"
   | "tov"
   | "fouls"
   | "fgPct"
@@ -84,6 +85,8 @@ export const LEADER_STATS: Record<LeaderStatKey, LeaderStatDef> = {
   ast: { key: "ast", label: "어시스트", short: "어시", kind: "count", better: "high" },
   stl: { key: "stl", label: "스틸", short: "스틸", kind: "count", better: "high" },
   blk: { key: "blk", label: "블록", short: "블록", kind: "count", better: "high" },
+  // 3점 성공: 2026-10-01 홈 부문 추가 요청으로 다시 넣음(경기당 성공 개수). 열은 3점% 바로 앞
+  tpm: { key: "tpm", label: "3점 성공", short: "3점", kind: "count", better: "high" },
   tov: { key: "tov", label: "턴오버", short: "턴오버", kind: "count", better: "low" },
   // 파울: 표 열로만 (부문 1~3위 카드에는 넣지 않는다). 정렬 기본 방향은 적은 순
   fouls: { key: "fouls", label: "파울", short: "파울", kind: "count", better: "low" },
@@ -98,7 +101,7 @@ export const LEADER_STATS: Record<LeaderStatKey, LeaderStatDef> = {
 
 /** 상단 부문 선택지 (1~3위 카드). 순서 = 화면 표시 순서 */
 export const LEADER_CATEGORIES: readonly LeaderStatKey[] = [
-  "points", "reb", "ast", "stl", "blk", "tov", "fgPct", "tpPct", "ftPct", "tsPct", "per",
+  "points", "reb", "ast", "stl", "blk", "tpm", "tov", "fgPct", "tpPct", "ftPct", "tsPct", "per",
 ];
 
 /** 기본 부문: 팬이 가장 먼저 찾는 "득점왕" */
@@ -106,7 +109,7 @@ export const DEFAULT_CATEGORY: LeaderStatKey = "points";
 
 /** 표 열 기본 순서. 앞의 CORE_COLUMNS 는 모바일 첫 화면에 들어가는 핵심 열 (출전시간은 경기 바로 오른쪽) */
 export const TABLE_COLUMNS: readonly LeaderStatKey[] = [
-  "games", "minutes", "points", "reb", "ast", "stl", "blk", "tov", "fouls", "fgPct", "tpPct", "ftPct", "tsPct", "usgPct", "per",
+  "games", "minutes", "points", "reb", "ast", "stl", "blk", "tov", "fouls", "fgPct", "tpm", "tpPct", "ftPct", "tsPct", "usgPct", "per",
 ];
 export const CORE_COLUMNS: readonly LeaderStatKey[] = ["games", "minutes", "points", "reb", "ast"];
 

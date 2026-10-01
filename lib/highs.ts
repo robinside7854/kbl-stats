@@ -144,6 +144,7 @@ export const LEADER_CATEGORY_HIGH: Readonly<Record<string, SeasonHighLeaderKey>>
   ast: "ast",
   stl: "stl",
   blk: "blk",
+  tpm: "tpm",
 };
 
 // ─────────────────────────────────────────────

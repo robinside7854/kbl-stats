@@ -13,6 +13,7 @@ import {
   buildGradingContext,
   CARD_STATS,
   missingComponentLabels,
+  overallWeightNote,
   perGame,
   qualifyLabel,
   type CardContext,
@@ -64,6 +65,8 @@ export interface SeasonCardView {
   gradeLabel: string;
   /** 이 시즌 기록이 없어 레이더에서 빠진 구성 요소, 예: ["USG%", "경기당 디플렉션"] */
   missingComponents: string[];
+  /** 포지션별 종합 가중치 안내 (lib/metrics overallWeightNote), 예: "센터라 3점 축은 종합에 넣지 않음". 가드 등은 null */
+  overallNote: string | null;
   /** 성공률 시도 기준 표기 (리그 전체 기준 — 집단을 좁혀도 같다) */
   attemptsLabel: string;
   /** 실제로 적용된 범위 (포지션을 모르면 "position" 요청도 "all") */
@@ -130,6 +133,7 @@ export function buildSeasonCardView(cards: SeasonCards, playerId: string, scope:
     qualifiedCount: ctx.qualifiedCount,
     gradeLabel: gradeBasisLabel(entry.gradeGroup),
     missingComponents: missingComponentLabels(ctx.grading),
+    overallNote: overallWeightNote(p.position),
     attemptsLabel: attemptsNote(ctx.thresholds),
     scope: group === "all" ? "all" : "position",
     groupLabel: group === "all" ? null : POSITION_GROUP_LABELS[group],

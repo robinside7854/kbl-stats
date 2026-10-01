@@ -2,7 +2,7 @@
 // (tests/shots.test.ts 는 수집 규칙 scripts/shots.ts 용 — 이 파일은 구역 분석 규칙)
 import assert from "node:assert/strict";
 import {
-  BASKET_PX, COURT, courtGeometry, courtPoints, isThreePx, leagueZoneAverages, normalizeShot, offenseType, PX_PER_M, shareOf, shotZone,
+  BASKET_PX, COURT, cornerShareOfThrees, courtGeometry, courtPoints, isThreePx, leagueZoneAverages, normalizeShot, offenseType, PX_PER_M, shareOf, shotZone,
   toShotPoint, zonePct, zoneRows, zoneSummary, type NormalizedShot, type ShotZoneKey,
 } from "../lib/shots";
 
@@ -85,7 +85,13 @@ near(zonePct(s1.zones.paint)!, 40);
 assert.equal(zonePct({ a: 0, m: 0 }), null);
 assert.equal(s1.offenseType, "inside");    // 골밑+페인트 40/60 = 67%
 
-assert.equal(zoneSummary(many({ rim: [10, 5], arc3: [30, 10], corner3: [10, 4] })).offenseType, "shooter");   // 3점 80%
+assert.equal(zoneSummary(many({ rim: [10, 5], arc3: [30, 10], corner3: [10, 4] })).offenseType, "shooter");   // 3점 80%, 코너 10/40 = 25%
+// 코너 슈터형(2026-10-01): 3점 ≥ 50% 이고 3점 시도 중 코너 ≥ 30%. 경계 30% 는 포함, 3점 비중이 모자라면 코너가 많아도 아님
+assert.equal(zoneSummary(many({ rim: [10, 5], arc3: [28, 10], corner3: [12, 4] })).offenseType, "cornerShooter"); // 코너 12/40 = 30%
+assert.equal(zoneSummary(many({ rim: [10, 5], arc3: [20, 8], corner3: [30, 12] })).offenseType, "cornerShooter"); // 코너 60%
+assert.equal(zoneSummary(many({ rim: [30, 10], mid: [20, 5], corner3: [20, 8] })).offenseType, "balanced");       // 3점 29%, 코너 100% — 슈터 아님(안 43·미드 29)
+assert.equal(cornerShareOfThrees(zoneSummary(many({ rim: [10, 5], arc3: [28, 10], corner3: [12, 4] }))), 0.3);
+assert.equal(cornerShareOfThrees(zoneSummary(many({ rim: [10, 5] }))), 0);
 assert.equal(zoneSummary(many({ rim: [15, 5], mid: [20, 8], arc3: [15, 5] })).offenseType, "midrange");       // 미드 40%
 assert.equal(zoneSummary(many({ rim: [12, 5], paint: [8, 3], mid: [8, 3], arc3: [22, 8] })).offenseType, "insideOut"); // 3점 44%·안 40%
 assert.equal(zoneSummary(many({ rim: [15, 5], paint: [10, 3], mid: [12, 3], arc3: [13, 8] })).offenseType, "balanced"); // 안 50·3점 26·미드 24

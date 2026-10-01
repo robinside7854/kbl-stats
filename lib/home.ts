@@ -3,7 +3,7 @@ import type { LeaderStatKey } from "./leaders";
 import type { SeasonOption } from "./types";
 
 /** 홈 부문별 1~3위 카드 (경기당, 기본 표본 기준). 순서 = 화면 순서 */
-export const HOME_CATEGORIES: readonly LeaderStatKey[] = ["points", "reb", "ast", "stl", "blk"];
+export const HOME_CATEGORIES: readonly LeaderStatKey[] = ["points", "reb", "ast", "stl", "blk", "tpm"];
 
 /** 부문 값 단위 (히어로 "경기당 23.2점"·카드 값 옆) */
 export const HOME_UNITS: Partial<Record<LeaderStatKey, string>> = {
@@ -12,6 +12,7 @@ export const HOME_UNITS: Partial<Record<LeaderStatKey, string>> = {
   ast: "개",
   stl: "개",
   blk: "개",
+  tpm: "개",
 };
 
 export interface HomeSeasonPick {

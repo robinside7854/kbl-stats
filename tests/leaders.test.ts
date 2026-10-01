@@ -108,12 +108,18 @@ assert.deepEqual(top.map((e) => [e.player.id, e.value, e.rank]), [["p3", 25, 1],
 assert.equal(topLeaders([], "points", "perGame").length, 0);
 
 // 부문: 3점 성공·USG%·PIE 없음, 턴오버·3점%·자유투% 있음
-assert.deepEqual([...LEADER_CATEGORIES], ["points", "reb", "ast", "stl", "blk", "tov", "fgPct", "tpPct", "ftPct", "tsPct", "per"]);
+assert.deepEqual([...LEADER_CATEGORIES], ["points", "reb", "ast", "stl", "blk", "tpm", "tov", "fgPct", "tpPct", "ftPct", "tsPct", "per"]);
+// 3점 성공(2026-10-01 홈 부문 추가): 경기당 성공 개수, 열은 3점% 바로 앞
+assert.equal(columnOrder("points").indexOf("tpm"), columnOrder("points").indexOf("tpPct") - 1);
+assert.deepEqual(columnOrder("tpm").slice(0, 3), ["tpm", "games", "minutes"]);
+assert.equal(statValue(mk({ id: "t", tpm: 90, games: 30 }), "tpm", "perGame"), 3);
+assert.equal(formatStat(statValue(mk({ id: "t", tpm: 90, games: 30 }), "tpm", "total"), "tpm", "total"), "90");
+assert.equal(defaultSortDir("tpm"), "desc");
 
 // 열 순서: 출전시간은 경기 바로 오른쪽, 야투% 옆에 3점%·자유투%, 핵심 열 밖의 부문은 맨 앞으로
 assert.deepEqual(columnOrder("points").slice(0, 5), ["games", "minutes", "points", "reb", "ast"]);
 const cols = columnOrder("points");
-assert.deepEqual(cols.slice(cols.indexOf("fgPct"), cols.indexOf("fgPct") + 3), ["fgPct", "tpPct", "ftPct"]);
+assert.deepEqual(cols.slice(cols.indexOf("fgPct"), cols.indexOf("fgPct") + 4), ["fgPct", "tpm", "tpPct", "ftPct"]); // 3점 성공은 3점% 바로 앞
 assert.deepEqual(columnOrder("per").slice(0, 3), ["per", "games", "minutes"]);
 assert.equal(columnOrder("per").filter((k) => k === "per").length, 1);
 assert.ok((columnOrder("points") as string[]).includes("usgPct")); // 2026-09-30 등급 체계 2차: USG% 열 다시 추가 (부문 카드에는 없음)
@@ -181,7 +187,8 @@ assert.deepEqual(parseLeadersQuery(leadersQueryString(st), ctx), st);
 assert.equal(leadersQueryString({ ...DEFAULT_LEADERS_STATE, origin: "asia", position: "G" }), "?origin=asia&pos=g");
 assert.equal(parseLeadersQuery("?pos=x", ctx).position, "all");
 assert.deepEqual(parseLeadersQuery("?cat=pie&mode=x&origin=zz&team=99&q=9", ctx), DEFAULT_LEADERS_STATE);
-assert.equal(parseLeadersQuery("?cat=tpm", ctx).category, "points"); // 없어진 부문(예전 주소)은 기본값
+assert.equal(parseLeadersQuery("?cat=pie", ctx).category, "points"); // 없어진 부문(예전 주소)은 기본값
+assert.equal(parseLeadersQuery("?cat=tpm", ctx).category, "tpm"); // 3점 성공은 2026-10-01 부문으로 복귀
 assert.equal(parseLeadersQuery("?cat=tov", ctx).category, "tov");
 
 // 팀 약칭 줄이기 (TeamLogo 대체 표기와 같은 규칙)
