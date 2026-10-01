@@ -109,7 +109,7 @@ console.log("roster: 필터 통과");
 // ── 용어집 ──
 const keys = GLOSSARY.map((g) => g.key);
 assert.equal(new Set(keys).size, keys.length); // 중복 없음
-for (const k of ["per", "tsPct", "efgPct", "usgPct", "astPct", "rebPct", "tovPct", "astTo", "ratings", "pace", "per40", "percentileGrade", "qualify", "attempts"] as const) {
+for (const k of ["per", "tsPct", "efgPct", "usgPct", "astPct", "rebPct", "tovPct", "astTo", "ratings", "pace", "per30", "percentileGrade", "qualify", "attempts"] as const) {
   const g = glossaryEntry(k);
   assert.ok(g, k);
   assert.ok(g.name && g.short && g.formula && g.note, k);

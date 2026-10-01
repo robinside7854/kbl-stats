@@ -29,10 +29,10 @@ import TeamLogo from "./TeamLogo";
 
 const MODE_OPTIONS: { value: StatMode; label: string }[] = [
   { value: "perGame", label: "경기당" },
-  { value: "per40", label: "40분당" },
+  { value: "per30", label: "30분당" },
   { value: "total", label: "시즌 합계" },
 ];
-const MODE_LABEL: Record<StatMode, string> = { perGame: "경기당", per40: "40분당", total: "시즌 합계" };
+const MODE_LABEL: Record<StatMode, string> = { perGame: "경기당", per30: "30분당", total: "시즌 합계" };
 
 /** 모바일 접힌 행에 보이는 세 값 */
 const SUMMARY_KEYS: LeaderStatKey[] = ["points", "reb", "ast"];
@@ -122,7 +122,7 @@ export default function CareerTable({ seasons }: { seasons: CareerSeason[] }) {
         <h2 id="career-table-title" className="text-h2 font-bold">
           시즌별 기록
         </h2>
-        <Segmented label="경기당, 40분당 또는 시즌 합계" options={MODE_OPTIONS} value={mode} onChange={setMode} />
+        <Segmented label="경기당, 30분당 또는 시즌 합계" options={MODE_OPTIONS} value={mode} onChange={setMode} />
       </div>
       <RowList
         rows={rows}

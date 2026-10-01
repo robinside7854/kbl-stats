@@ -2,7 +2,7 @@
 // 화면 컴포넌트는 여기 함수를 부르기만 하고, 직접 계산하지 않는다.
 // 2차 스탯(TS%, eFG%, TOV%, AST/TO, PER)은 KBL이 계산한 값을 그대로 쓰고(USG%만 표준 척도로 ×5 — usgFromKbl),
 // PIE 는 쓰지 않는다(2026-09-30 결정: 팬이 읽기 어렵고 2025-26에만 있음 — processed 에는 원값 보존).
-// 여기서는 "그 값이 비교 집단 안에서 몇 번째쯤인가"(백분위), 경기당·40분당 환산, 시즌 커버리지 판정,
+// 여기서는 "그 값이 비교 집단 안에서 몇 번째쯤인가"(백분위), 경기당·30분당 환산, 시즌 커버리지 판정,
 // 레이더 6축(공격·수비·리바운드·슈팅·리딩·효율 — 구성 요소 백분위 평균), 국적 집단별 등급(종합은 포지션별 가중), 유형 라벨, 카드 스탯 순위를 만든다.
 
 import type { Nationality, Position, SeasonCoverage } from "./types";
@@ -114,15 +114,17 @@ export function perGame(total: number, games: number): number {
 }
 
 /**
- * 40분당 환산 = 시즌 누적값 ÷ 누적 출전시간(분) × 40. 출전 0분이면 0.
- * KBL 정규 경기는 40분(10분 × 4쿼터)이라 "풀타임 한 경기를 뛰었다면"의 값이 된다.
- * NBA(48분 경기)에서 흔히 쓰는 per-36(= 누적 ÷ 분 × 36)과 같은 방식의 환산이며,
- * 출전시간이 다른 선수끼리 생산성을 비교하려는 목적도 같다.
- * 출처: Basketball-Reference "Per 36 Minutes" 정의를 KBL 경기 시간(40분)에 맞춘 것.
- * 주의: 출전시간이 아주 적은 선수는 값이 튄다 → 백분위 비교 집단은 표본 기준(isQualified)으로 거른다.
+ * 30분당 환산 = 시즌 누적값 ÷ 누적 출전시간(분) × 30. 출전 0분이면 0.
+ * 기준 시간: NBA 의 per-36 은 48분 경기(12분 × 4쿼터) 중 3쿼터(36분)를 뛰었다는 가정이다.
+ * KBL 은 10분 × 4쿼터 = 40분 경기라 같은 "3쿼터를 뛴 주전"의 가정은 30분이다 (2026-10-01 사용자 결정 —
+ * 처음엔 풀타임 40분으로 했으나, NBA per-36 의 뜻(3쿼터)에 맞춰 30분으로 바꿨다).
+ * 출처: Basketball-Reference "Per 36 Minutes" 정의를 KBL 쿼터 길이(10분)에 맞춘 것.
+ * 주의: 출전시간이 아주 적은 선수는 값이 튄다 → 순위는 표본 기준(isQualified)으로 거른다.
  */
-export function per40(total: number, minutes: number): number {
-  return minutes > 0 ? (total / minutes) * 40 : 0;
+export const PER_MINUTES_BASE = 30;
+
+export function per30(total: number, minutes: number): number {
+  return minutes > 0 ? (total / minutes) * PER_MINUTES_BASE : 0;
 }
 
 export interface PerGameStats {

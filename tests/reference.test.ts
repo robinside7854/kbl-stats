@@ -1,4 +1,4 @@
-// 2026-10-01 Basketball-Reference·NBA.com 참고 기능 검증: 40분당 · 허슬·슛 구역 부문 · CSV · 리그 1위 표시 · 비슷한 선수 · 역대 통산 순위.
+// 2026-10-01 Basketball-Reference·NBA.com 참고 기능 검증: 30분당 · 허슬·슛 구역 부문 · CSV · 리그 1위 표시 · 비슷한 선수 · 역대 통산 순위.
 // 실행: npm run test:reference
 import assert from "node:assert/strict";
 import {
@@ -38,15 +38,16 @@ const zones = (o: Partial<Record<"rim" | "paint" | "mid" | "corner3" | "arc3", [
   return z;
 };
 
-// ── 40분당: 시즌 누적 ÷ 출전 분 × 40, 출전시간 자체는 경기당, 비율은 그대로 ──
+// ── 30분당: 시즌 누적 ÷ 출전 분 × 30, 출전시간 자체는 경기당, 비율은 그대로 ──
 const p = mk({ id: "a", points: 200, minutes: 400, games: 20 });
-close(statValue(p, "points", "per40"), 20);
-close(statValue(p, "minutes", "per40"), 20); // 경기당 출전 20분
-assert.equal(statValue(p, "fgPct", "per40"), 45);
-assert.ok(Number.isNaN(statValue(mk({ id: "z", minutes: 0 }), "points", "per40")));
-assert.equal(statTitle("points", "per40"), "40분당 득점");
-assert.equal(parseLeadersQuery("?mode=per40", { teamCodes: [] }).mode, "per40");
-assert.deepEqual(leaderFilterChips({ ...DEFAULT_LEADERS_STATE, mode: "per40" }, (c) => c).map((c) => c.label), ["40분당"]);
+close(statValue(p, "points", "per30"), 15);
+close(statValue(p, "minutes", "per30"), 20); // 경기당 출전 20분
+assert.equal(statValue(p, "fgPct", "per30"), 45);
+assert.ok(Number.isNaN(statValue(mk({ id: "z", minutes: 0 }), "points", "per30")));
+assert.equal(statTitle("points", "per30"), "30분당 득점");
+assert.equal(parseLeadersQuery("?mode=per30", { teamCodes: [] }).mode, "per30");
+assert.equal(parseLeadersQuery("?mode=per40", { teamCodes: [] }).mode, "per30"); // 예전 링크
+assert.deepEqual(leaderFilterChips({ ...DEFAULT_LEADERS_STATE, mode: "per30" }, (c) => c).map((c) => c.label), ["30분당"]);
 
 // ── 허슬·슛 구역 부문: 값 없는 시즌이면 칩에서 빠진다 ──
 const old = [mk({ id: "o1" }), mk({ id: "o2" })];
@@ -84,14 +85,14 @@ assert.ok(!leadersCsv([mk({ id: "x", points: 1234 })], ["points"], "total", new 
 
 // ── 시즌 리그 1위 표시: 기본 표본 기준, 성공률은 시도 기준, 단위별로 다르다 ──
 const season = [
-  mk({ id: "s1", points: 600, games: 30, minutes: 900 }), // 경기당 20, 40분당 26.7
-  mk({ id: "s2", points: 500, games: 20, minutes: 500 }), // 경기당 25, 40분당 40
+  mk({ id: "s1", points: 600, games: 30, minutes: 900 }), // 경기당 20, 30분당 20
+  mk({ id: "s2", points: 500, games: 20, minutes: 500 }), // 경기당 25, 30분당 30
   mk({ id: "s3", points: 900, games: 9, minutes: 300 }), // 표본 미달(9경기)
   mk({ id: "s4", fgPct: 80, fga: 10 }), // 야투 시도 부족
 ];
 assert.ok(seasonLeaderMarks(season, "perGame").get("s2")?.includes("points"));
 assert.ok(seasonLeaderMarks(season, "total").get("s1")?.includes("points")); // 합계 1위는 s1 (s3 은 표본 미달)
-assert.ok(seasonLeaderMarks(season, "per40").get("s2")?.includes("points"));
+assert.ok(seasonLeaderMarks(season, "per30").get("s2")?.includes("points"));
 assert.ok(!(seasonLeaderMarks(season, "perGame").get("s4") ?? []).includes("fgPct"));
 assert.ok(!(seasonLeaderMarks(season, "perGame").get("s1") ?? []).includes("tov" as never)); // 턴오버는 표시 안 함
 
@@ -132,4 +133,4 @@ assert.equal(rankCareerTotals(totals, "games", "perGame", "all")[0].value, 250);
 assert.equal(formatRecord(4000, "points", "total"), "4,000");
 assert.equal(formatRecord(16, "points", "perGame"), "16.0");
 
-console.log("reference: 40분당·허슬/슛 구역·CSV·리그 1위·비슷한 선수·역대 통산 통과");
+console.log("reference: 30분당·허슬/슛 구역·CSV·리그 1위·비슷한 선수·역대 통산 통과");

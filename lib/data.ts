@@ -113,7 +113,7 @@ function seasonLeaderRows(season: SeasonData): Map<string, LeaderPlayer> {
 
 const leaderMarksCache = new Map<number, Record<StatMode, Map<string, LeaderStatKey[]>>>();
 
-/** 시즌 리그 1위 부문 (경기당·합계·40분당) — 선수 페이지 기록표의 굵은 숫자 */
+/** 시즌 리그 1위 부문 (경기당·합계·30분당) — 선수 페이지 기록표의 굵은 숫자 */
 function seasonMarks(season: SeasonData): Record<StatMode, Map<string, LeaderStatKey[]>> {
   let m = leaderMarksCache.get(season.seasonCode);
   if (!m) {
@@ -121,7 +121,7 @@ function seasonMarks(season: SeasonData): Record<StatMode, Map<string, LeaderSta
     m = {
       perGame: seasonLeaderMarks(rows, "perGame"),
       total: seasonLeaderMarks(rows, "total"),
-      per40: seasonLeaderMarks(rows, "per40"),
+      per30: seasonLeaderMarks(rows, "per30"),
     };
     leaderMarksCache.set(season.seasonCode, m);
   }
@@ -158,7 +158,7 @@ export function loadPlayerCareer(playerNo: string): PlayerCareer | null {
       leaderMarks: (() => {
         const marks = seasonMarks(season);
         const out: CareerSeason["leaderMarks"] = {};
-        for (const mode of ["perGame", "total", "per40"] as const) {
+        for (const mode of ["perGame", "total", "per30"] as const) {
           const keys = marks[mode].get(playerNo);
           if (keys?.length) out[mode] = keys;
         }

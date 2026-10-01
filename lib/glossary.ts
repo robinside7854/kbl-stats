@@ -19,7 +19,7 @@ export type GlossaryKey =
   | "astTo"
   | "ratings"
   | "pace"
-  | "per40"
+  | "per30"
   | "percentileGrade"
   | "radarAxes"
   | "qualify"
@@ -136,12 +136,12 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     note: "KBL 계산값 그대로 씁니다(NBA 는 48분 기준). 2025-26 시즌에만 제공됩니다.",
   },
   {
-    key: "per40",
-    name: "40분당 환산",
-    short: "40분을 다 뛰었다면 몇 개였을지. 출전 시간이 다른 선수끼리 비교할 때 쓴다",
-    formula: "40분당 값 = 시즌 누적 ÷ 누적 출전시간(분) × 40",
+    key: "per30",
+    name: "30분당 환산",
+    short: "30분(3쿼터)을 뛰었다면 몇 개였을지. 출전 시간이 다른 선수끼리 비교할 때 쓴다",
+    formula: "30분당 값 = 시즌 누적 ÷ 누적 출전시간(분) × 30",
     source: BREF_PER36,
-    note: "우리 계산입니다(lib/metrics.ts per40). 레이더 등급에는 쓰지 않고 경기당 기록을 씁니다. NBA 의 36분당 환산을 KBL 경기 시간(40분)에 맞췄습니다. 출전이 아주 적으면 값이 튀어 표본 기준으로 거릅니다.",
+    note: "우리 계산입니다(lib/metrics.ts per30). NBA 의 36분당은 12분 쿼터 3개를 뛴 주전을 가정한 값이라, KBL 의 10분 쿼터에 맞춰 3쿼터 = 30분으로 환산합니다. 레이더 등급에는 쓰지 않고 경기당 기록을 씁니다. 출전이 아주 적으면 값이 튀어 표본 기준으로 거릅니다.",
   },
   {
     key: "percentileGrade",
@@ -278,7 +278,7 @@ export const GLOSSARY_ANCHORS: Record<GlossaryKey, string> = {
   astTo: "ast-to",
   ratings: "rtg",
   pace: "pace",
-  per40: "per40",
+  per30: "per30",
   percentileGrade: "grade",
   radarAxes: "radar",
   qualify: "qualify",

@@ -10,7 +10,7 @@ import {
   isQualified,
   meetsAttemptThreshold,
   PCT_ATTEMPTS,
-  per40,
+  per30,
   perGame,
   QUALIFY_PRESETS,
   qualifyShort,
@@ -61,8 +61,8 @@ export type LeaderStatKey =
   | "corner3Pct"
   | "arc3Pct";
 
-/** 경기당 / 시즌 합계 / 40분당 (40분당 = 시즌 누적 ÷ 출전 분 × 40, lib/metrics per40 — NBA 의 36분당을 KBL 40분 경기에 맞춤) */
-export type StatMode = "perGame" | "total" | "per40";
+/** 경기당 / 시즌 합계 / 30분당 (30분당 = 시즌 누적 ÷ 출전 분 × 30, lib/metrics per30 — NBA 의 36분(3쿼터)을 KBL 10분 쿼터에 맞춤) */
+export type StatMode = "perGame" | "total" | "per30";
 /**
  * 전체 / 국내 / 외국 / 아시아쿼터 — 선수 마스터 국적(nationality) 기준 (lib/roster.ts filterByNationality).
  * 마스터가 없으면 이름 추정 isForeign 으로 국내/외국만 갈린다(아시아쿼터는 빈 목록).
@@ -173,17 +173,17 @@ export function rawValue(p: LeaderPlayer, key: LeaderStatKey): number {
   return (p[key as keyof LeaderPlayer] as number | null | undefined) ?? NaN;
 }
 
-/** 표시·정렬에 쓰는 값. count 지표는 경기당 모드에서 perGame, 40분당 모드에서 per40. 값이 없으면 NaN → 표기 "–"·정렬 맨 뒤 */
+/** 표시·정렬에 쓰는 값. count 지표는 경기당 모드에서 perGame, 30분당 모드에서 per30. 값이 없으면 NaN → 표기 "–"·정렬 맨 뒤 */
 export function statValue(p: LeaderPlayer, key: LeaderStatKey, mode: StatMode): number {
   const v = rawValue(p, key);
   if (LEADER_STATS[key].kind !== "count") return v;
-  // 출전시간은 40분당으로 바꾸면 의미가 없어(항상 40) 경기당으로 보여 준다
-  if (mode === "perGame" || (mode === "per40" && key === "minutes")) return perGame(v, p.games);
-  if (mode === "per40") return p.minutes > 0 ? per40(v, p.minutes) : NaN;
+  // 출전시간은 30분당으로 바꾸면 의미가 없어(항상 30) 경기당으로 보여 준다
+  if (mode === "perGame" || (mode === "per30" && key === "minutes")) return perGame(v, p.games);
+  if (mode === "per30") return p.minutes > 0 ? per30(v, p.minutes) : NaN;
   return v;
 }
 
-/** 비율 지표는 경기당/합계/40분당 전환의 영향을 받지 않는다 */
+/** 비율 지표는 경기당/합계/30분당 전환의 영향을 받지 않는다 */
 export function isModeIndependent(key: LeaderStatKey): boolean {
   return LEADER_STATS[key].kind !== "count";
 }
@@ -373,8 +373,8 @@ export function formatStat(value: number, key: LeaderStatKey, mode: StatMode): s
 export function statTitle(key: LeaderStatKey, mode: StatMode): string {
   const def = LEADER_STATS[key];
   if (def.kind !== "count") return def.label;
-  if (mode === "per40" && key === "minutes") return `경기당 ${def.label}`;
-  return `${mode === "perGame" ? "경기당" : mode === "per40" ? "40분당" : "시즌 합계"} ${def.label}`;
+  if (mode === "per30" && key === "minutes") return `경기당 ${def.label}`;
+  return `${mode === "perGame" ? "경기당" : mode === "per30" ? "30분당" : "시즌 합계"} ${def.label}`;
 }
 
 // ─────────────────────────────────────────────
@@ -416,7 +416,8 @@ export function parseLeadersQuery(
   const q = Number(qs.get("q"));
   return {
     category: cat && LEADER_CATEGORIES.includes(cat) ? cat : d.category,
-    mode: qs.get("mode") === "total" ? "total" : qs.get("mode") === "per40" ? "per40" : d.mode,
+    // 예전 공유 링크 mode=per40 도 30분당으로 받는다
+    mode: qs.get("mode") === "total" ? "total" : qs.get("mode") === "per30" || qs.get("mode") === "per40" ? "per30" : d.mode,
     origin: nationalityFromParam(qs.get("origin")),
     position: positionFromParam(qs.get("pos")),
     teamCode: team && ctx.teamCodes.includes(team) ? team : d.teamCode,
@@ -494,7 +495,7 @@ export function leaderFilterChips(
 ): FilterChipInfo<LeaderFilterField>[] {
   const d = DEFAULT_LEADERS_STATE;
   const out: FilterChipInfo<LeaderFilterField>[] = [];
-  if (s.mode !== d.mode) out.push({ field: "mode", label: s.mode === "total" ? "시즌 합계" : s.mode === "per40" ? "40분당" : "경기당" });
+  if (s.mode !== d.mode) out.push({ field: "mode", label: s.mode === "total" ? "시즌 합계" : s.mode === "per30" ? "30분당" : "경기당" });
   if (s.position !== d.position) out.push({ field: "position", label: positionFilterLabelOf(s.position) });
   if (s.origin !== d.origin) out.push({ field: "origin", label: nationalityFilterLabelOf(s.origin) });
   if (s.teamCode !== null) out.push({ field: "teamCode", label: teamLabel(s.teamCode) });

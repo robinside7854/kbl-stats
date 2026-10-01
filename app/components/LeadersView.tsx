@@ -84,7 +84,7 @@ interface Props {
 
 const MODE_OPTIONS: { value: StatMode; label: string }[] = [
   { value: "perGame", label: "경기당" },
-  { value: "per40", label: "40분당" },
+  { value: "per30", label: "30분당" },
   { value: "total", label: "시즌 합계" },
 ];
 const ORIGIN_OPTIONS: { value: OriginFilter; label: string }[] = NATIONALITY_FILTERS.map((f) => ({ value: f, label: nationalityFilterLabel(f) }));
@@ -378,7 +378,7 @@ export default function LeadersView({ seasonLabel, players, teams, seasonHighs =
           trailing={`${filtered.length}명`}
         >
           <FilterGroup label="기록 단위" hint={isModeIndependent(category) ? "지금 부문은 비율 지표라 단위와 관계없습니다" : undefined}>
-            <Segmented label="경기당, 40분당 또는 시즌 합계" options={MODE_OPTIONS} value={mode} onChange={(v) => update({ mode: v })} />
+            <Segmented label="경기당, 30분당 또는 시즌 합계" options={MODE_OPTIONS} value={mode} onChange={(v) => update({ mode: v })} />
           </FilterGroup>
           <FilterGroup label="포지션" hint="GF는 가드, FC는 포워드로 묶습니다">
             <Segmented label="포지션" options={POSITION_OPTIONS} value={position} onChange={(v) => update({ position: v })} />
@@ -434,7 +434,7 @@ export default function LeadersView({ seasonLabel, players, teams, seasonHighs =
                 (LEADER_STATS[category].kind === "zone"
                   ? `${attemptName(category)} 경기당 시도 리그 평균(${(thresholds.zones?.[LEADER_STATS[category].zone!] ?? 0).toFixed(1)}) 이상만 순위 · 슛 차트 좌표로 센 값`
                   : `경기당 시도 리그 평균(${note}) 이상만 순위`),
-              mode === "per40" && LEADER_STATS[category].kind === "count" && "40분당 = 시즌 누적 ÷ 출전 분 × 40",
+              mode === "per30" && LEADER_STATS[category].kind === "count" && "30분당 = 시즌 누적 ÷ 출전 분 × 30 (3쿼터를 뛰었다면)",
             ]
               .filter(Boolean)
               .join(" · ")}

@@ -352,7 +352,7 @@ export interface CareerSeason extends LeaderPlayer {
   seasonLabel: string;    // 예: "2025-2026" (짧은 표기는 lib/career.ts seasonShortLabel)
   team: CardTeam | null;  // 그 시즌 팀 (로고·색·한글 약칭). 시즌 팀 목록에 없으면 null
   /** 그 시즌 리그 1위 부문 (단위별 — lib/leaders seasonLeaderMarks). 기록표에서 굵게 */
-  leaderMarks?: Partial<Record<"perGame" | "total" | "per40", string[]>>;
+  leaderMarks?: Partial<Record<"perGame" | "total" | "per30", string[]>>;
 }
 
 export interface PlayerCareer {

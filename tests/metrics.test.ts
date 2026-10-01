@@ -12,7 +12,7 @@ import {
   coverageFlag,
   DEFAULT_QUALIFY,
   isQualified,
-  per40,
+  per30,
   perGame,
   percentileRank,
   gradeGroupOf,
@@ -63,11 +63,11 @@ assert.equal(isQualified({ games: 10, minutes: 100 }, DEFAULT_QUALIFY), true);
 assert.equal(isQualified({ games: 9, minutes: 500 }, DEFAULT_QUALIFY), false);
 assert.equal(isQualified({ games: 30, minutes: 99 }, DEFAULT_QUALIFY), false);
 
-// 40분당 환산
-assert.equal(per40(100, 400), 10); // 400분에 100점 → 40분당 10점
-close(per40(15, 20), 30);
-assert.equal(per40(50, 0), 0); // 출전 0분
-assert.equal(per40(0, 300), 0);
+// 30분당 환산 (KBL 10분 쿼터 × 3 = NBA per-36 과 같은 뜻)
+assert.equal(per30(100, 300), 10); // 300분에 100점 → 30분당 10점
+close(per30(15, 20), 22.5);
+assert.equal(per30(50, 0), 0); // 출전 0분
+assert.equal(per30(0, 300), 0);
 
 // 커버리지 판정: 0이 아닌 값 비율 ≥ threshold
 assert.equal(coverageFlag([1, 2, 0, 0]), true); // 정확히 50% → true
