@@ -14,6 +14,7 @@ import { IconArrowRight, IconChevronRight } from "./icons";
 import PlayerAvatar from "./PlayerAvatar";
 import TeamLogo from "./TeamLogo";
 import BirthdayStrip, { type BirthdayPlayer } from "./BirthdayStrip";
+import FavoritesStrip from "./FavoritesStrip";
 
 const GRAY: TeamColor = FALLBACK_TEAM_COLOR;
 
@@ -59,6 +60,8 @@ export default function HomeView({ season, fetchedLabel, upcoming, categories, t
       </div>
 
       {scoring && <Hero entry={scoring} team={teamByCode.get(scoring.player.teamCode)} seasonCode={code} />}
+
+      <FavoritesStrip />
 
       <BirthdayStrip players={birthdays} seasonCode={code} />
 

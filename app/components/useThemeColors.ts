@@ -20,7 +20,7 @@ export interface ThemeColors {
   gradeDInk: string;
   gradeF: string;
   gradeFInk: string;
-  /** 범주형 8색 (globals.css --cat-1…8, 고정 순서) — 팀 분포 산점도의 회색 팀 대체 색 */
+  /** 범주형 8색 (globals.css --cat-1…8, 고정 순서) */
   categorical: string[];
 }
 

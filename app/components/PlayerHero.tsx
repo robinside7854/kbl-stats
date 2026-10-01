@@ -10,6 +10,7 @@ import { activeSpanLabel, personalFacts, profileFacts, seasonShortLabel, teamSti
 import { nationalityOf, NATIONALITY_LABELS } from "@/lib/roster";
 import { mixHex, teamShortLabel } from "@/lib/images";
 import PlayerAvatar from "./PlayerAvatar";
+import FavoriteButton from "./FavoriteButton";
 import TeamLogo from "./TeamLogo";
 import BadgeRow, { type BadgeItem } from "./BadgeRow";
 
@@ -82,6 +83,7 @@ export default function PlayerHero({ entry, seasons, today, badges }: Props) {
               {entry.nameKo}
             </h1>
             <p className="mt-1 truncate text-sub font-medium opacity-85 sm:text-body">{entry.nameEn}</p>
+            <FavoriteButton playerId={entry.id} nameKo={entry.nameKo} className="mt-2" />
             {badges.length > 0 && (
               <div className="mt-2.5">
                 <BadgeRow badges={badges} teamPrimary={color.primary} />

@@ -207,3 +207,13 @@ console.log("player: 프로필 표기 통과");
   assert.deepEqual(pickRandomCard(list, () => 0.99), { id: "b", seasonCode: 47 });
   assert.equal(pickRandomCard([], () => 0), null);
 }
+
+// 즐겨찾기 (lib/favorites): 깨진 값은 빈 목록, 토글은 맨 앞에 넣고 다시 누르면 뺀다
+{
+  const { parseFavorites, toggleFavorite } = await import("../lib/favorites");
+  assert.deepEqual(parseFavorites(null), []);
+  assert.deepEqual(parseFavorites("not json"), []);
+  assert.deepEqual(parseFavorites('["1","1","x",3,"2"]'), ["1", "2"]);
+  assert.deepEqual(toggleFavorite(["1"], "2"), ["2", "1"]);
+  assert.deepEqual(toggleFavorite(["2", "1"], "2"), ["1"]);
+}

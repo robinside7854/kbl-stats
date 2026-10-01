@@ -184,7 +184,10 @@ kbl-stats/
 │   ├── similar.ts       ← 비슷한 시즌 (순수: 6축 백분위 벡터 toAxisVector, 유사도 similarityScore, findSimilar(같은 국적 풀·같은 포지션 묶음, 선수당 최고 시즌 하나) — lib/data loadSimilarPlayers 가 전 시즌 풀을 빌드 때 한 번 만든다)
 │   ├── records.ts       ← 역대 통산 순위 (순수: RECORD_STATS, sumCareerTotals(시즌 합계 → 선수별), rankCareerTotals(합계/경기당 — 경기당은 통산 200경기 이상, 국적 전체/국내/외국인), formatRecord, 현역 isActiveCareer(마지막 시즌 = 기록 있는 최신 시즌) — lib/data loadCareerTotals)
 │   ├── teams.ts         ← 팀 한글 약칭 teamShortNameKo (연고지 지명 목록 HOME_CITIES — 하드코딩 예외, 이유 주석), 팀 색 배정 assignTeamColors(회색 기본값 팀 → 범주형 팔레트, 팀 순서, 순환 금지)·ensureMarkContrast·comparePairColors(OKLab 거리 < 15면 팔레트 1·2번), 핵심 의존도 teamDependency(상위 3명 득점 비중·표본 충족 수)
-│   ├── distribution.ts  ← 팀 분포 산점도 규칙 (지표 SCATTER_METRICS PER·TS%·경기당 득점, scatterPoints(표본 충족만), toggleTeam(최대 2팀), 주소 쿼리 ?teams=&y=&q=&pos=&p=)
+│   ├── playstyle.ts     ← 플레이스타일 탭 (순수: buildStyleRows(표본 충족 선수의 역할 유형·공격 유형·종합 점수), groupStyles(유형별 묶음·유형 안 순위 = 종합 백분위 → PER), STYLE_TOP 10, 주소 쿼리 ?kind=&type=&origin=)
+│   ├── favorites.ts     ← 즐겨찾기 (순수: parseFavorites·toggleFavorite, FAVORITES_VISIBLE 5 — 저장은 app/components/useFavorites localStorage)
+│   ├── prime.ts         ← 프라임 시즌 (pickPrimeSeasons·primeCandidatesOf)
+│   ├── career-cards.ts  ← 비교 탭 통산 카드 (buildCareerCards, CAREER_CODE 0, CAREER_QUALIFY 100경기·1,000분)
 │   ├── home.ts          ← 홈 규칙 (HOME_CATEGORIES, pickHomeSeason(코드표 최신 시즌이 0명이면 직전 시즌 + 개막 전 안내), 오늘 생일 kstDateString·birthdaysOn(2/29생은 평년 2/28) — 화면은 BirthdayStrip(브라우저에서 한국 날짜로 판정))
 │   ├── roster.ts        ← 포지션·국적 규칙 (POSITION_LABELS, positionGroupOf(첫 글자), nationalityOf(마스터 없으면 isForeign)) + 비교 집단 필터 filterByPosition·filterByNationality + 쿼리 값 positionParam/FromParam·nationalityParam/FromParam (순위표·선수 탭·팀 분포 공용)
 │   ├── badges.ts        ← 칭호 배지 (순수: BADGE_DEFS 조건·우선순위, buildBadgeIndex(시즌별 최다 경기·경기당 1위), playerBadges, splitBadges(히어로 5개 + "+n")) — lib/data 가 빌드 시점에 계산
@@ -203,7 +206,7 @@ kbl-stats/
 │   ├── compare/page.tsx ← 비교 탭 정적 1쪽 (?a=번호:코드&b=번호:코드, 기본은 최신·직전 시즌 PER 1위)
 │   ├── glossary/page.tsx ← 용어 탭 (lib/glossary 표, 앵커 /glossary#ts)
 │   ├── season/[seasonCode]/leaders/page.tsx  ← 시즌 순위표 정적 페이지 (1~3위 표지 카드 + 이 시즌 한 경기 최다 카드 줄 + 정렬 표, 포지션·국적 칩, 파울 열)
-│   ├── season/[seasonCode]/teams/page.tsx  ← 팀별 선수 분포 정적 페이지 (산점도(포지션 칩) + 팀별 핵심 의존도)
+│   ├── season/[seasonCode]/playstyle/page.tsx  ← 플레이스타일 (PlaystyleView: 역할/공격 유형 → 유형 칩 → 유형 안 순위 1~10위 프로필 줄 + 더 보기). 옛 /season/코드/teams 는 next.config redirects 로 여기
 │   ├── (옛 /season/[코드] 플레이어 카드 탭은 없앰 → next.config.mjs redirects: ?p= 있으면 /player/번호?season=코드, 없으면 순위표)
 │   ├── not-found.tsx
 │   └── components/      ← SiteNav(상단: 사이트 이름·검색창(선수 탭은 hideSearch)·시즌 선택(순위표·팀 분포·선수 탭만)·메뉴 홈/선수/순위표/팀 분포/비교 — 용어는 메뉴에서 뺌), PlayerSearch(상단·큰 검색창·onSelect 선택 모드), useSearchIndex(/search-index.json 한 번 fetch — 우리 정적 파일),
@@ -215,6 +218,9 @@ kbl-stats/
 │                           PlayerAvatar(circle·portrait)·TeamLogo(공식 이미지+대체 디자인, official={false}면 대체만), useOfficialImage(저장 filter excludeOfficialImages)
 └── .github/workflows/fetch.yml, backfill.yml, backfill-highs.yml, backfill-gamelogs.yml, backfill-shots.yml  ← 매일 새벽 수집 / 전체 재수집 / 한 경기 최다·프로필 과거 전체 백필 / 커리어 하이 경기별 기록 백필 / 슛 차트 백필(셋 다 실행 횟수 숫자 올려 푸시)
 ```
+
+## 후속 예정 (사용자가 하기로 한 일 — 지금은 만들지 않는다)
+- **구글 로그인 연동 + 내 설정** (2026-10-01 사용자: "추후엔 로그인 연동 작업을 구축할 것"). 지금 즐겨찾기는 로그인 없이 이 브라우저에만 저장(`lib/favorites`·`useFavorites`, localStorage 키 `kbl-stats:favorites:v1`). 로그인을 붙이면 이 목록을 계정으로 옮기고, 공개 즐겨찾기 수도 그때. 필요한 것: Auth.js(Google) + 저장소(DB) + 개인정보 처리방침·탈퇴(삭제) — 지금의 "DB·로그인 없음" 원칙과 SCOPE OUT(회원) 을 바꾸는 결정이라 시작 전에 사용자와 범위 확인
 
 ## 배포 규칙 (2026-10-01 사용자 지시 — 세션이 바뀌어도 지킨다)
 - **작업이 끝나면 항상 main 브랜치에 배포한다.** Vercel 은 main 만 배포하므로 작업 브랜치에 푸시만 하고 끝내면 사용자는 옛 화면을 본다.
@@ -249,6 +255,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-01 (즐겨찾기·떠 있는 시즌 바·플레이스타일·모바일 하단 탭): ① **즐겨찾기(A안: 로그인 없이 이 브라우저)** — 선수 상세 머리말 별 버튼(`FavoriteButton`), 홈 "즐겨찾기" 5명 + 더 보기(`FavoritesStrip`, 이름·사진은 검색 색인), `useFavorites`(localStorage, 저장 불가 환경은 방문 동안만, 탭 간 storage 이벤트). 공개 즐겨찾기 수·구글 로그인은 **후속 예정**(위 섹션). ② 선수 상세 **떠 있는 시즌 바**(`FloatingSeasonBar`: 시즌 칩 줄이 화면 위로 지나가면 ‹ 시즌 select › — 모바일은 하단 탭 위 가운데, PC 오른쪽 아래. 판단은 scroll 위치 — IntersectionObserver 는 모바일에서 칩 줄이 화면 아래→위로 한 번에 건너뛰면 알림이 없어 바꿈). ③ **팀 분포 탭 삭제**(TeamsView·lib/distribution·teamDependency·관련 테스트 삭제, 옛 주소 → 플레이스타일 redirect) → **플레이스타일 탭** `/season/{코드}/playstyle`(역할 유형 11종 / 공격 유형 6종(슛 차트 시즌만), 국적 필터, 유형 안 순위 = 종합 점수, 1~10위 사진·팀·포지션·등급 점수·카드 링크, 11위부터 더 보기). ④ **모바일(768px 미만) 하단 탭 바**(SiteNav: 홈·선수·리더보드·스타일·비교·기록 아이콘 6개, `--bottom-nav-h` 만큼 body 아래 여백, viewportFit cover + safe-area) — PC 는 상단 메뉴 그대로. 검증: typecheck·test·build·slop 0, Playwright 390/1280 가로 넘침 0(플레이스타일 그리드 min-w-0 로 수정), 푸터가 하단 바에 가리지 않음, 떠 있는 바로 시즌 35→33 이동, 즐겨찾기 → 홈 표시, /season/45/teams → playstyle. main 배포.
 - 2026-10-01 (롤플레이어·코너 좌우·코너 슈터 재정의·랜덤 카드): ① 유형 라벨 "궂은일 담당 롤 플레이어" → **"롤플레이어"**. ② **코너 3점 좌우**(`lib/shots cornerSide` — 슈터가 바스켓을 볼 때 정규화 y > 0 이 오른쪽, `ShotZoneSummary.corners`, 리더보드 슛 구역에 "왼쪽/오른쪽 코너 3점 성공률" `corner3LPct·corner3RPct`, 시도 기준은 그 쪽 코너 경기당 시도 리그 평균). 리그 합 좌우 시도 거의 같음(2025-26 1,047 / 1,037), 1위 왼쪽 한호빈·오른쪽 김경원. ③ **코너 슈터형 = 코너 전문**: 전체 슛 중 코너 3점 ≥ 20%(`OFFENSE_CORNER_ALL_MIN`) 그리고 3점 중 코너 ≥ 35%, 3점 비중 조건 없음, 판정 순서 골밑 → 코너 전문 → 3점 슈터(코너 비중 무관). 2025-26 코너 슈터 9 → 3명(최승욱·최현민·최원혁), 3점 슈터 53. ④ 헤더 **"랜덤 카드"**(`RandomCardButton`, `lib/search pickRandomCard` — 검색 색인에서 무작위 선수, 프라임 시즌 있으면 그 시즌). ⑤⑥ 즐겨찾기 공개 수·구글 로그인은 SCOPE OUT(회원·좋아요)·DB 없음 원칙과 충돌 → 만들지 않고 SCOPE 보류표에 기록, 사용자 결정 대기. 검증: typecheck·test·build·slop 0, Playwright 390/1280. main 배포.
 - 2026-10-01 (통산 비교·등급 점수·프라임 시즌·승률): ① 비교 탭 **"통산" 칩**(시즌 코드 `CAREER_CODE` 0, `lib/career-cards buildCareerCards`: 누적 합·성공률 다시 계산·PER/USG/REB/AST% 출전 가중, 비교 집단 `CAREER_QUALIFY` 100경기·1,000분, 굿디펜스·디플렉션·미드레인지는 시대 편차로 뺌, 팀 코드는 "마지막시즌-팀코드"로 시대별 구단 구분) — `build-cards` 가 `public/cards/0.json`(약 430KB) 생성, 카드 문구 "통산 순위". ② **등급 점수 1~99**(`lib/metrics gradeScore` = 백분위 반올림, 99 상한): 레이더 꼭짓점 숫자·종합 배지·선수 그리드 배지·비교표 "S · 98점". ③ **프라임 시즌**(`lib/prime`: 표본 충족 시즌 2개 이상 선수의 종합 점수 overallAvg 최고 시즌, 같으면 PER·최근) — 선수 상세·비교 탭 시즌 칩 금색 테두리 + "프라임" 꼬리표(`PrimeTag`), 선수 상세에 "프라임 시즌 보기" 바로 가기, 검색 색인 `prime`·`lib/data loadPrimeSeason`. ④ **승패·승률**: KBL 선수 승·패 = 뛴 경기의 팀 결과(663행 중 639행 승+패=경기, 24행 1경기 차). 리더보드 기본 묶음 "승률"(`winPct`, 칸 아래 "31승 21패"), 선수 히어로 통산 경기 아래 승패·승률, 역대 기록 "승리" 부문(통산 1위 주희정 557승). 검증: typecheck·test·build·slop 0, Playwright 390/1280 가로 넘침 0. main 배포.
 - 2026-10-01 (용어 풀이 개편·옛 시즌 USG/AST/REB 계산): ① 용어 풀이를 표 → 묶음별 짧은 목록(`GLOSSARY_GROUPS` 기록 지표·등급과 라벨·슛 차트·그 밖에, 항목 = 한 문장 + 알아 둘 점 두 문장까지 + 계산식·출처 작게). 본문 글자 19,518 → 8,525자, 코드 파일 이름·긴 대시 제거, PACE·ORtg/DRtg 항목 삭제(화면에 안 씀), 규칙 표 4개도 구분선 목록으로. tests/roster 가 글 길이·코드 이름·대시를 검사. 모든 화면 하단 푸터에 "용어 풀이" 버튼(`SourceFooter`). ② KBL 이 안 준 시즌의 **USG%·AST%·REB%·OREB%·DREB% 를 표준식으로 계산**(`computeTeamShareStats`: 팀 합계 = 선수 합, 상대 리바운드 = 균형 일정 근사). 검산(2025-26 KBL 값, 300분+ 111명): |차이| 중앙 USG 0.14·AST 0.33·REB 0.13. 2023-24·2024-25 처럼 일부만 있는 시즌도 전원 계산값으로 통일. 전수 점검 결과 계산 불가: DRtg·NetRtg(코트 위 실점 필요)·PIE(경기 전체 합계 필요, 안 씀)·PACE/POSS(화면에 안 씀)·디플렉션·스크린 어시스트·굿디펜스(기록 자체가 없음). 결과: 30개 시즌 coverage.advanced true, 옛 시즌 레이더 공격·리바운드·리딩 축에 USG%·REB%·AST% 가 들어가 등급이 조금 바뀜(예: 2014-15 국내 S 조성민·김주성 새로, 김준일 빠짐). 리더보드 고급 → USG% 가 전 시즌에 나옴(2008-09 1위 마퀸 챈들러). 검증: typecheck·test·build·slop 0, Playwright 390/1280 가로 넘침 0. main 배포.

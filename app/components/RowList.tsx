@@ -5,7 +5,7 @@
 // - PC(≥1024px): 전체 표. 열이 화면에 다 들어가게 글자·여백을 줄여 두고, 표를 감싸는 상자는 가로 스크롤을 두지 않는다.
 // - pageSize 를 주면 앞에서 그만큼만 보이고 "더 보기 (남은 n명)" 버튼. resetKey 가 바뀌면(필터·정렬 변경) 처음 개수로 돌아간다.
 // 값 계산은 부르는 쪽이 lib/ 함수로 끝내서 넘긴다 — 이 파일은 배치와 펼침·개수 상태만 맡는다.
-// 순위표(LeadersView)·선수 기록표(CareerTable)·팀 분포 "표로 보기"(TeamsView)가 같이 쓴다.
+// 순위표(LeadersView)·선수 기록표(CareerTable)가 같이 쓴다.
 import { Fragment, useEffect, useId, useState, type ReactNode } from "react";
 import { takeFirst } from "@/lib/leaders";
 import { IconChevronDown } from "./icons";

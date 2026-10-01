@@ -4,12 +4,14 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "KBL - Stats Reference",
-  description: "KBL 정규시즌 선수 기록을 플레이어 카드·리더보드·팀 분포·비교로 보는 비영리 팬 프로젝트.",
+  description: "KBL 정규시즌 선수 기록을 플레이어 카드·리더보드·플레이스타일·비교로 보는 비영리 팬 프로젝트.",
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  // 아이폰 홈 막대 영역까지 쓰고(하단 탭 바), 바 안쪽은 env(safe-area-inset-bottom) 만큼 띄운다
+  viewportFit: "cover",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#f4f4f1" },
     { media: "(prefers-color-scheme: dark)", color: "#111110" },

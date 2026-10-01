@@ -1,6 +1,6 @@
 "use client";
 // 모든 화면 상단 내비게이션: 사이트 이름 · 선수 검색 · (시즌 화면에서만) 시즌 선택 · 화면 메뉴.
-// 메뉴 = 홈 / 선수 / 순위표 / 팀 분포 / 비교 / 역대 기록 (2026-09-30 재구성, 역대 기록은 2026-10-01 추가).
+// 메뉴 = 홈 / 선수 / 리더보드 / 플레이스타일 / 비교 / 역대 기록 (2026-09-30 재구성, 역대 기록·플레이스타일(팀 분포 대신)은 2026-10-01).
 // "용어"는 메뉴에서 뺐다(피드백 5차, PLAN.md §13) — 설명은 각 화면 ⓘ 팝오버(HelpPopover)에서, /glossary 페이지는 "자세히" 링크로만.
 // 시즌 선택은 시즌이 있는 화면(순위표·팀 분포·선수 탭)에서만 보인다.
 // - 순위표·팀 분포: 시즌을 바꾸면 지금 화면 종류와 주소 쿼리(선택 상태)를 그대로 둔 채 시즌 주소로 이동.
@@ -13,23 +13,24 @@ import { useRouter } from "next/navigation";
 import type { SeasonOption } from "@/lib/types";
 import PlayerSearch from "./PlayerSearch";
 import RandomCardButton from "./RandomCardButton";
+import { IconCompare, IconHome, IconLeaders, IconPlayer, IconStyle, IconTrophy } from "./icons";
 import SiteLogo, { SITE_NAME } from "./SiteLogo";
 
-export type SiteView = "home" | "players" | "player" | "leaders" | "teams" | "compare" | "glossary" | "records";
+export type SiteView = "home" | "players" | "player" | "leaders" | "playstyle" | "compare" | "glossary" | "records";
 
-const MENU: { views: SiteView[]; label: string; href: (seasonCode: number) => string }[] = [
-  { views: ["home"], label: "홈", href: () => "/" },
-  { views: ["players", "player"], label: "선수", href: () => "/players" },
-  { views: ["leaders"], label: "리더보드", href: (c) => `/season/${c}/leaders` },
-  { views: ["teams"], label: "팀 분포", href: (c) => `/season/${c}/teams` },
-  { views: ["compare"], label: "비교", href: () => "/compare" },
-  { views: ["records"], label: "역대 기록", href: () => "/records" },
+const MENU: { views: SiteView[]; label: string; short?: string; icon: (p: { size: 24 }) => React.ReactNode; href: (seasonCode: number) => string }[] = [
+  { views: ["home"], label: "홈", icon: IconHome, href: () => "/" },
+  { views: ["players", "player"], label: "선수", icon: IconPlayer, href: () => "/players" },
+  { views: ["leaders"], label: "리더보드", icon: IconLeaders, href: (c) => `/season/${c}/leaders` },
+  { views: ["playstyle"], label: "플레이스타일", short: "스타일", icon: IconStyle, href: (c) => `/season/${c}/playstyle` },
+  { views: ["compare"], label: "비교", icon: IconCompare, href: () => "/compare" },
+  { views: ["records"], label: "역대 기록", short: "기록", icon: IconTrophy, href: () => "/records" },
 ];
 
 /** 시즌 주소가 있는 화면 (시즌을 바꾸면 그 주소로 이동) */
 const SEASON_ROUTES: Partial<Record<SiteView, (c: number) => string>> = {
   leaders: (c) => `/season/${c}/leaders`,
-  teams: (c) => `/season/${c}/teams`,
+  playstyle: (c) => `/season/${c}/playstyle`,
 };
 
 interface Props {
@@ -84,7 +85,8 @@ export default function SiteNav({ seasons, seasonCode, view, onSeasonChange, wid
           )}
         </div>
         {/* 6개 메뉴 — 390px 폭에 한 줄로 들어가게 좁은 여백, 더 좁은 화면에서는 메뉴 줄만 옆으로 민다 */}
-        <nav aria-label="화면 메뉴" className="-mx-1 mt-2 flex overflow-x-auto [scrollbar-width:none]">
+        {/* PC(768px 이상) 상단 메뉴. 모바일은 아래 하단 탭 바 */}
+        <nav aria-label="화면 메뉴" className="-mx-1 mt-2 hidden overflow-x-auto [scrollbar-width:none] md:flex">
           {MENU.map((m) => {
             const active = m.views.includes(view);
             return (
@@ -101,7 +103,32 @@ export default function SiteNav({ seasons, seasonCode, view, onSeasonChange, wid
             );
           })}
         </nav>
+        <div className="h-3 md:hidden" />
       </div>
+      {/* 모바일 하단 탭 바 (앱처럼, 2026-10-01). 본문 아래 여백은 globals.css --bottom-nav-h */}
+      <nav
+        aria-label="화면 메뉴"
+        className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-6 border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] md:hidden"
+      >
+        {MENU.map((m) => {
+          const active = m.views.includes(view);
+          const Icon = m.icon;
+          return (
+            <Link
+              key={m.label}
+              href={m.href(seasonCode)}
+              aria-current={active ? "page" : undefined}
+              aria-label={m.label}
+              className={`focus-ring-inset flex h-14 flex-col items-center justify-center gap-0.5 text-caption transition-colors duration-200 ${
+                active ? "font-bold text-ink" : "font-medium text-ink-3 hover:text-ink"
+              }`}
+            >
+              <Icon size={24} />
+              <span className="leading-none">{m.short ?? m.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
     </header>
   );
 }

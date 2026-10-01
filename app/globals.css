@@ -125,6 +125,20 @@ body {
   }
 }
 
+/* 모바일 하단 탭 바 (2026-10-01, SiteNav BottomNav — 768px 미만에서만). 본문이 바에 가리지 않게 아래 여백.
+   --bottom-nav-h 는 선수 상세의 떠 있는 시즌 바가 바 위에 앉을 때도 쓴다 */
+:root {
+  --bottom-nav-h: 0px;
+}
+@media (width < 48rem) {
+  :root {
+    --bottom-nav-h: calc(3.5rem + env(safe-area-inset-bottom));
+  }
+  body {
+    padding-bottom: var(--bottom-nav-h);
+  }
+}
+
 /* 숫자 고정폭 (B1) — 스탯 타일·표·행 카드·카드 격자·순위에 붙인다. 차트 축·툴팁(Recharts)은 아래 규칙으로 전부 */
 .tabular,
 .recharts-wrapper {

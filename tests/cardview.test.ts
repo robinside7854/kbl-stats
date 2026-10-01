@@ -336,3 +336,18 @@ console.log("cardview: 카드 범위·그리드·비교표·주소·용어 앵�
   assert.equal(c.teamCode, "47-55"); // 마지막 시즌 팀
   assert.equal(teams[0].teamCode, "47-55");
 }
+
+// ── 플레이스타일 (lib/playstyle groupStyles·쿼리) ──
+{
+  const { groupStyles, parseStyleQuery, styleQueryString } = await import("../lib/playstyle");
+  const r = (id: string, role: string, overallPct: number, origin: "domestic" | "foreign" = "domestic", offense: string | null = null) =>
+    ({ id, nameKo: id, teamCode: "55", teamShort: "SK", photoUrl: null, position: null, origin, role, offense, grade: "A", score: 80, overallPct, per: 15, ppg: 10 }) as never;
+  const rows = [r("a", "scorer", 70), r("b", "scorer", 90), r("c", "shooter", 50, "foreign", "shooter"), r("d", "scorer", 60, "foreign")];
+  const g = groupStyles(rows, "role");
+  assert.deepEqual(g.map((x) => [x.key, x.rows.map((y) => y.id)]), [["scorer", ["b", "a", "d"]], ["shooter", ["c"]]]);
+  assert.deepEqual(groupStyles(rows, "role", "foreign").map((x) => x.key), ["scorer", "shooter"]);
+  assert.deepEqual(groupStyles(rows, "offense").map((x) => [x.key, x.rows.length]), [["shooter", 1]]);
+  const q = { kind: "offense" as const, type: "shooter", origin: "domestic" as const };
+  assert.deepEqual(parseStyleQuery(styleQueryString(q)), q);
+  assert.equal(styleQueryString({ kind: "role", type: null, origin: "all" }), "");
+}

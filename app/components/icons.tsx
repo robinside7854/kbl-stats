@@ -167,3 +167,72 @@ export function IconDice(p: IconProps) {
     </Svg>
   );
 }
+
+// ── 하단 탭 바 아이콘 (모바일, 24) ──
+
+/** 집 (홈) */
+export function IconHome(p: IconProps) {
+  return (
+    <Svg {...p}>
+      <path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1Z" />
+    </Svg>
+  );
+}
+
+/** 사람 (선수) */
+export function IconPlayer(p: IconProps) {
+  return (
+    <Svg {...p}>
+      {/* deslop-ignore-next-line 24 */}
+      <circle cx="12" cy="8" r="3.5" />
+      <path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5" />
+    </Svg>
+  );
+}
+
+/** 막대 (리더보드) */
+export function IconLeaders(p: IconProps) {
+  return (
+    <Svg {...p}>
+      <path d="M4 20V13h4.5v7M9.75 20V6h4.5v14M15.5 20v-9H20v9M3 20h18" />
+    </Svg>
+  );
+}
+
+/** 육각형 (플레이스타일 — 레이더 6축) */
+export function IconStyle(p: IconProps) {
+  return (
+    <Svg {...p}>
+      <path d="M12 3.5 19.5 7.75v8.5L12 20.5l-7.5-4.25v-8.5Z" />
+      <path d="M12 8.5 15.5 10.5v3.5L12 16l-3.5-2v-3.5Z" />
+    </Svg>
+  );
+}
+
+/** 좌우 화살표 (비교) */
+export function IconCompare(p: IconProps) {
+  return (
+    <Svg {...p}>
+      <path d="M8 4 4 8l4 4M4 8h12M16 12l4 4-4 4M20 16H8" />
+    </Svg>
+  );
+}
+
+/** 트로피 (역대 기록) */
+export function IconTrophy(p: IconProps) {
+  return (
+    <Svg {...p}>
+      <path d="M8 4h8v5a4 4 0 0 1-8 0Z" />
+      <path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8.5 20h7M10 17h4v3h-4Z" />
+    </Svg>
+  );
+}
+
+/** 별 (즐겨찾기). filled 면 속을 채운다 */
+export function IconStar({ filled = false, ...p }: IconProps & { filled?: boolean }) {
+  return (
+    <Svg {...p} fill={filled ? "currentColor" : "none"}>
+      <path d="m12 3.5 2.6 5.3 5.9.9-4.25 4.1 1 5.8L12 16.9l-5.25 2.7 1-5.8L3.5 9.7l5.9-.9Z" />
+    </Svg>
+  );
+}

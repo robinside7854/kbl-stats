@@ -11,6 +11,7 @@
 //   (피드백 5차 #1: 세로 카드 옆에 추이를 카드 높이만큼 늘이던 배치를 없앴다.) 모바일은 세로 카드 → 추이 → 하이라이트 3개 가로.
 // - 추이·하이라이트 아래 슛 차트(ShotChart) — 같은 시즌 칩을 따른다 (PLAN.md §14).
 // - 시즌별 기록표(CareerTable)의 시즌을 누르면 "player-season" 이벤트로 여기 시즌을 바꾼다.
+// - 시즌 칩 줄이 화면 위로 지나가면 떠 있는 시즌 바(FloatingSeasonBar)로 어디서든 시즌을 바꾼다 (2026-10-01).
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { SeasonOption } from "@/lib/types";
@@ -18,6 +19,7 @@ import { compareHref, parsePlayerQuery, playerQueryString, type CardScope, type 
 import { seasonShortLabel } from "@/lib/career";
 import CardDeck from "./CardDeck";
 import ChipRow from "./ChipRow";
+import FloatingSeasonBar from "./FloatingSeasonBar";
 import PrimeTag, { seasonChip } from "./PrimeTag";
 import { IconChevronRight } from "./icons";
 import InfoLink from "./InfoLink";
@@ -63,6 +65,8 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
   const codes = useMemo(() => seasons.map((s) => s.seasonCode), [seasons]);
   const labelOf = (code: number) => seasonShortLabel(seasons.find((s) => s.seasonCode === code)?.seasonLabel ?? String(code));
   const [state, setState] = useState<PlayerViewState>({ season: initial.seasonCode, scope: "all" });
+  // 위쪽 시즌 칩 줄 — 화면 밖으로 나가면 떠 있는 시즌 바(FloatingSeasonBar)가 나타난다
+  const [chipsEl, setChipsEl] = useState<HTMLDivElement | null>(null);
 
   // 공유 링크로 들어온 상태 반영 + 기록표에서 시즌을 누르면 카드 시즌 변경
   useEffect(() => {
@@ -126,7 +130,7 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
     <div>
       {/* ── 조작: 시즌 칩 · 순위 범위 · 비교 탭 링크 ── */}
       <section aria-label="카드 보기 설정" className="space-y-2.5">
-        <div>
+        <div ref={setChipsEl}>
           <h2 className="text-h2 font-bold">시즌 카드</h2>
           <div className="mb-1.5 mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
             <p className="text-sub font-semibold text-ink-2">
@@ -183,6 +187,14 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
           teamPrimary={view?.team?.color.primary ?? FALLBACK_TEAM_COLOR.primary}
         />
       </div>
+      <FloatingSeasonBar
+        codes={codes}
+        season={season}
+        labelOf={labelOf}
+        primeSeason={primeSeason}
+        onChange={(c) => setState((s) => ({ ...s, season: c }))}
+        anchor={chipsEl}
+      />
       {/* 비슷한 시즌: 카드와 같은 시즌을 따른다 */}
       {similar && (
         <div className="mt-8">
