@@ -15,7 +15,7 @@
 import { readdir, readFile, mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { DATA_DIR, SEASON_CODES_FALLBACK } from "./config.js";
-import { seasonCoverage, usgFromKbl } from "../lib/metrics.js";
+import { computeTeamShareStats, seasonCoverage, usgFromKbl } from "../lib/metrics.js";
 import { playerPhotoUrl, teamLogoUrl } from "./image-urls.js";
 import { teamShortNameKo } from "../lib/teams.js";
 import { buildProfileMap, EMPTY_PROFILE, EMPTY_PROFILE_EXTRA, isForeignPlayer, profileExtraFrom, type ProfileExtra } from "./player-master.js";
@@ -351,6 +351,14 @@ async function processSeason(seasonCode: number): Promise<SeasonData> {
 
   const players: Player[] = (trad.data ?? []).map((t: Raw) => toPlayer(t, advByPlayer.get(String(t.playerNo))));
 
+  // USG%·AST%·REB%(OREB/DREB%): KBL 값이 시즌 선수 절반 이상에 있으면(2025-26) 그대로, 아니면 전원 표준식으로 계산
+  // (lib/metrics computeTeamShareStats — 2023-24·2024-25 처럼 일부만 있는 시즌도 섞지 않고 전원 계산값으로 통일)
+  const advancedSource: "kbl" | "computed" = seasonCoverage(players).advanced ? "kbl" : "computed";
+  if (advancedSource === "computed" && players.length > 0) {
+    const est = computeTeamShareStats(players);
+    players.forEach((p, i) => Object.assign(p, est[i]));
+  }
+
   // 한 경기 최다: 그 시즌 raw 가 있는 선수만 seasonHighs, 없으면 null. 통산은 최신 시즌 raw 가 이긴다
   const highs = await readSeasonHighs(seasonCode);
   if (highs.size > 0) highsSeasonCount++;
@@ -392,6 +400,7 @@ async function processSeason(seasonCode: number): Promise<SeasonData> {
     gameType: "regular",
     fetchedAt: new Date().toISOString(),
     coverage: { ...seasonCoverage(players), shots: players.length > 0 && shotPlayers / players.length >= 0.5 },
+    advancedSource,
     teams,
     players,
     // 부문별 시즌 하이 1위 (기록 부문 11개, 동률은 먼저 달성) — raw 가 없으면 null (lib/highs.ts)

@@ -104,7 +104,7 @@ export function toLeaderPlayers(season: SeasonData, photoOf: PhotoLookup = () =>
     tpPct: p.tpPct,
     ftPct: p.ftPct,
     tsPct: p.tsPct,
-    // USG% 는 2차 스탯이 있는 시즌(coverage.advanced)만. 그 밖의 시즌은 일부 선수만 값이 있어 비교가 안 되므로 null
+    // USG% 는 coverage.advanced 시즌만 (2026-10-01 부터 KBL 값이 없는 시즌도 process 가 표준식으로 채워 전 시즌 true)
     usgPct: season.coverage?.advanced ? p.usgPct : null,
     per: p.per,
     // 허슬은 coverage.hustle 시즌만 (그 밖은 0 이 "기록 없음"이라 null)

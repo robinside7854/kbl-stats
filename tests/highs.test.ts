@@ -309,5 +309,5 @@ console.log("highs: 커리어 하이 행 통과");
 // ── 용어 앵커 ──
 import { glossaryEntry, glossaryHref } from "../lib/glossary";
 assert.equal(glossaryHref("gameHigh"), "/glossary#game-high");
-assert.match(glossaryEntry("gameHigh")!.note, /성공률/);
+assert.match(glossaryEntry("gameHigh")!.note!, /성공률/);
 console.log("highs: 용어 통과");

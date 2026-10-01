@@ -1,4 +1,5 @@
 // 모든 화면 하단 고정 출처 표기 (CLAUDE.md 원칙 6)
+import Link from "next/link";
 import { officialImagesEnabled } from "@/lib/images";
 
 export const SOURCE_LINE = "기록 출처: KBL 공식 홈페이지 · 비영리 팬 프로젝트";
@@ -15,6 +16,13 @@ export function formatFetchedAt(iso: string): string {
 export default function SourceFooter({ fetchedAt, wide = false }: { fetchedAt?: string; wide?: boolean }) {
   return (
     <footer className={`mx-auto mt-10 ${wide ? "max-w-5xl" : "max-w-3xl"} border-t border-line px-4 py-6 text-sub text-ink-3`}>
+      {/* 용어 풀이: 메뉴에는 없고 여기서 어느 화면이든 들어간다 (2026-10-01) */}
+      <Link
+        href="/glossary"
+        className="focus-ring mb-4 inline-flex h-10 items-center rounded-control border border-line bg-surface px-3 text-sub font-semibold text-ink-2 transition-colors duration-200 hover:bg-surface-2 hover:text-ink"
+      >
+        용어 풀이
+      </Link>
       <p>{SOURCE_LINE}</p>
       {officialImagesEnabled() && <p className="mt-1">{IMAGE_CREDIT_LINE}</p>}
       {fetchedAt && <p className="mt-1">데이터 수집일: {formatFetchedAt(fetchedAt)}</p>}

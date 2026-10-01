@@ -150,7 +150,7 @@ export interface Player extends PlayerProfile {
  * 화면은 시즌 코드가 아니라 이 플래그를 보고 열·축을 켜고 끈다.
  */
 export interface SeasonCoverage {
-  /** USG%·AST%·REB% (그리고 같이 생긴 OREB/DREB%·DEF/NET RTG·PACE·POSS) — 셋 모두 통과해야 true (PIE 는 판정에서 뺌) */
+  /** USG%·AST%·REB% — 셋 모두 통과해야 true (PIE 는 판정에서 뺌). KBL 값이 없는 시즌은 process 가 표준식으로 채우므로 전 시즌 true (advancedSource 참고) */
   advanced: boolean;
   /** +/- (margin) */
   plusMinus: boolean;
@@ -192,6 +192,8 @@ export interface SeasonData {
   gameType: "regular";
   fetchedAt: string;      // ISO
   coverage: SeasonCoverage;
+  /** USG%·AST%·REB%·OREB%·DREB% 출처: "kbl" = KBL 계산값(2025-26), "computed" = 표준식으로 우리가 계산(lib/metrics computeTeamShareStats). 옛 파일엔 없음 */
+  advancedSource?: "kbl" | "computed";
   teams: Team[];
   players: Player[];
   /** 부문별 시즌 하이 1위 (기록 부문 11개). 그 시즌 한 경기 최다 raw 가 없으면 null — 옛 processed 파일엔 필드가 없다 */

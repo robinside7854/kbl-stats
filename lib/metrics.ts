@@ -105,6 +105,77 @@ export function usgFromKbl(raw: number): number {
 }
 
 // ─────────────────────────────────────────────
+// KBL 이 주지 않은 시즌의 USG%·AST%·REB%(OREB%·DREB%) 직접 계산 (2026-10-01 사용자 요청: "공식이 있으면 전 시즌 계산")
+// ─────────────────────────────────────────────
+// KBL 2차 스탯 중 USG%·AST%·REB% 는 2025-26 에만 있다(2023-24·2024-25 는 선수 약 11%만). 세 지표는 Basketball-Reference
+// 표준식이라 선수 시즌 합계 + 팀 합계로 다시 만들 수 있다. 출처: https://www.basketball-reference.com/about/glossary.html
+//   USG%  = 100 × (FGA + 0.44×FTA + TOV) × (팀 출전/5) ÷ (출전 × (팀 FGA + 0.44×팀 FTA + 팀 TOV))
+//   AST%  = 100 × AST ÷ ((출전 ÷ (팀 출전/5)) × 팀 FGM − FGM)
+//   REB%  = 100 × REB × (팀 출전/5) ÷ (출전 × (팀 REB + 상대 REB))      (OREB% 는 팀 OREB + 상대 DREB, DREB% 는 팀 DREB + 상대 OREB)
+// 팀 합계 = 그 시즌 그 팀 선수 기록의 합(KBL 팀 기록은 수집하지 않음). 상대 합계는 경기별 기록이 없어 **균형 일정 근사**:
+//   상대 X ≈ (리그 X 합 − 팀 X) ÷ (리그 출전 합 − 팀 출전) × 팀 출전 — KBL 정규시즌은 모든 팀과 같은 횟수로 붙는다.
+// 검산(2025-26, 300분 이상 111명, KBL 값과 비교): |차이| 중앙값 USG 0.14 · AST 0.33 · REB 0.13 · OREB 0.12 · DREB 0.27, 최대 3.05(AST).
+// 한계: 시즌 중 이적한 선수는 KBL 기록에 시즌 전체가 한 팀으로 묶여 그 두 팀 합계가 조금 틀어진다.
+
+export interface TeamShareInput {
+  teamCode: string;
+  minutes: number;
+  fga: number;
+  fgm: number;
+  fta: number;
+  tov: number;
+  oreb: number;
+  dreb: number;
+  reb: number;
+  ast: number;
+}
+
+export interface TeamShareStats {
+  usgPct: number;
+  astPct: number;
+  rebPct: number;
+  orebPct: number;
+  drebPct: number;
+}
+
+type TeamSum = { min: number; fga: number; fgm: number; fta: number; tov: number; oreb: number; dreb: number; reb: number };
+
+/** 선수 시즌 합계 → 표준식 USG%·AST%·REB%·OREB%·DREB% (입력 순서대로). 출전 0분·분모 0 이하면 0 */
+export function computeTeamShareStats(players: readonly TeamShareInput[]): TeamShareStats[] {
+  const keys = ["fga", "fgm", "fta", "tov", "oreb", "dreb", "reb"] as const;
+  const teams = new Map<string, TeamSum>();
+  const league: TeamSum = { min: 0, fga: 0, fgm: 0, fta: 0, tov: 0, oreb: 0, dreb: 0, reb: 0 };
+  for (const p of players) {
+    const t = teams.get(p.teamCode) ?? { min: 0, fga: 0, fgm: 0, fta: 0, tov: 0, oreb: 0, dreb: 0, reb: 0 };
+    t.min += p.minutes;
+    league.min += p.minutes;
+    for (const k of keys) {
+      t[k] += p[k];
+      league[k] += p[k];
+    }
+    teams.set(p.teamCode, t);
+  }
+  /** 균형 일정 근사: 이 팀이 만난 상대의 X 합 */
+  const opp = (t: TeamSum, k: "oreb" | "dreb" | "reb") => {
+    const otherMin = league.min - t.min;
+    return otherMin > 0 ? ((league[k] - t[k]) / otherMin) * t.min : 0;
+  };
+  const pct = (num: number, den: number) => (den > 0 && Number.isFinite(num / den) ? (100 * num) / den : 0);
+  return players.map((p) => {
+    const t = teams.get(p.teamCode)!;
+    if (p.minutes <= 0 || t.min <= 0) return { usgPct: 0, astPct: 0, rebPct: 0, orebPct: 0, drebPct: 0 };
+    const share = t.min / 5;
+    return {
+      usgPct: pct((p.fga + 0.44 * p.fta + p.tov) * share, p.minutes * (t.fga + 0.44 * t.fta + t.tov)),
+      astPct: pct(p.ast, (p.minutes / share) * t.fgm - p.fgm),
+      rebPct: pct(p.reb * share, p.minutes * (t.reb + opp(t, "reb"))),
+      orebPct: pct(p.oreb * share, p.minutes * (t.oreb + opp(t, "dreb"))),
+      drebPct: pct(p.dreb * share, p.minutes * (t.dreb + opp(t, "oreb"))),
+    };
+  });
+}
+
+// ─────────────────────────────────────────────
 // 경기당 환산
 // ─────────────────────────────────────────────
 

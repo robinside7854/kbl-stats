@@ -109,16 +109,23 @@ console.log("roster: 필터 통과");
 // ── 용어집 ──
 const keys = GLOSSARY.map((g) => g.key);
 assert.equal(new Set(keys).size, keys.length); // 중복 없음
-for (const k of ["per", "tsPct", "efgPct", "usgPct", "astPct", "rebPct", "tovPct", "astTo", "ratings", "pace", "per30", "percentileGrade", "qualify", "attempts"] as const) {
+for (const k of ["per", "tsPct", "efgPct", "usgPct", "astPct", "rebPct", "tovPct", "astTo", "per30", "percentileGrade", "qualify", "attempts"] as const) {
   const g = glossaryEntry(k);
   assert.ok(g, k);
-  assert.ok(g.name && g.short && g.formula && g.note, k);
+  assert.ok(g.name && g.short, k);
   assert.ok(g.source === null || g.source.startsWith("https://"), k);
 }
-assert.match(glossaryEntry("usgPct")!.note, /1\/5/);
-assert.match(glossaryEntry("usgPct")!.note, /×5/);
-assert.match(glossaryEntry("per")!.note, /검산할 수 없/);
-for (const k of ["tsPct", "efgPct", "astPct"] as const) assert.match(glossaryEntry(k)!.note, /검산해 일치/);
+// 쉬운 글 규칙: 한 문장 설명 70자 안팎, 알아 둘 점 120자 이하, 코드 파일 이름 없음, 긴 대시 없음
+for (const g of GLOSSARY) {
+  assert.ok(g.short.length <= 80, `${g.key} short ${g.short.length}`);
+  assert.ok(!g.note || g.note.length <= 120, `${g.key} note ${g.note?.length}`);
+  for (const t of [g.short, g.note ?? "", g.formula ?? ""]) {
+    assert.ok(!/lib\/|\.ts\b/.test(t), `${g.key} 코드 이름`);
+    assert.ok(!t.includes("—"), `${g.key} 긴 대시`);
+  }
+}
+// 옛 시즌 USG%·AST%·REB% 는 직접 계산했다는 안내
+for (const k of ["usgPct", "astPct", "rebPct"] as const) assert.match(glossaryEntry(k)!.note!, /계산/);
 assert.ok(GLOSSARY.filter((g) => g.source).every((g) => g.source!.includes("basketball-reference.com") || g.key === "percentileGrade"));
 assert.ok(!keys.includes("pie" as never)); // PIE 는 쓰지 않는다
 console.log("roster: 용어집 통과");

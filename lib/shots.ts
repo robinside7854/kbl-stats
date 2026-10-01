@@ -129,11 +129,11 @@ export interface ShotZoneDef {
 
 /** 배열 순서 = 표 순서 (안쪽 → 바깥) */
 export const SHOT_ZONES: readonly ShotZoneDef[] = [
-  { key: "rim", label: "골밑", desc: "림 바로 아래 — 레이업·덩크·풋백", condition: `2점이고 바스켓 중심에서 ${RIM_RADIUS_M}m 안`, three: false },
+  { key: "rim", label: "골밑", desc: "림 바로 아래 (레이업·덩크·풋백)", condition: `2점이고 바스켓 중심에서 ${RIM_RADIUS_M}m 안`, three: false },
   {
     key: "paint",
     label: "페인트",
-    desc: "골밑을 뺀 페인트 안 — 포스트업·플로터",
+    desc: "골밑을 뺀 페인트 안 (포스트업·플로터)",
     condition: `2점이고 페인트(베이스라인에서 ${COURT.paintLength}m, 좌우 ${COURT.paintHalfWidth}m) 안, 골밑 제외`,
     three: false,
   },

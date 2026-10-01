@@ -349,3 +349,30 @@ assert.equal(topShareLabel(99.5), "상위 1%");
 assert.equal(topShareLabel(95), "상위 5%");
 assert.equal(topShareLabel(80.2), "상위 20%");
 assert.equal(topShareLabel(null), null);
+
+// ── 표준식 USG%·AST%·REB% (KBL 이 주지 않은 시즌용, computeTeamShareStats) ──
+{
+  const { computeTeamShareStats } = await import("../lib/metrics");
+  const mkp = (teamCode: string, minutes: number, o: Partial<{ fga: number; fgm: number; fta: number; tov: number; oreb: number; dreb: number; ast: number }>) => {
+    const v = { fga: 0, fgm: 0, fta: 0, tov: 0, oreb: 0, dreb: 0, ast: 0, ...o };
+    return { teamCode, minutes, ...v, reb: v.oreb + v.dreb };
+  };
+  // 팀 A 2명(각 200분 → 팀 400분, 팀 출전/5 = 80), 팀 B 1명 400분
+  const ps = [
+    mkp("A", 200, { fga: 100, fgm: 50, fta: 50, tov: 28, oreb: 20, dreb: 40, ast: 30 }),
+    mkp("A", 200, { fga: 100, fgm: 40, fta: 0, tov: 0, oreb: 0, dreb: 20 }),
+    mkp("B", 400, { fga: 150, fgm: 60, fta: 0, tov: 0, oreb: 30, dreb: 90 }),
+    mkp("B", 0, {}),
+  ];
+  const [a1, a2, , b0] = computeTeamShareStats(ps);
+  // USG: (100 + 22 + 28) × 80 ÷ (200 × (200 + 22 + 28)) × 100 = 24
+  close(a1.usgPct, 24);
+  // AST: 30 ÷ ((200/80) × 90 − 50) × 100 = 30 ÷ 175 × 100
+  close(a1.astPct, (30 / 175) * 100);
+  // REB: 60 × 80 ÷ (200 × (팀 80 + 상대 120)) × 100 = 12 (상대 = 팀 B 합 120 ÷ 400분 × 400분)
+  close(a1.rebPct, 12);
+  // OREB: 20 × 80 ÷ (200 × (팀 OREB 20 + 상대 DREB 90)) × 100
+  close(a1.orebPct, (20 * 80 * 100) / (200 * 110));
+  assert.equal(a2.astPct, 0);
+  assert.deepEqual(b0, { usgPct: 0, astPct: 0, rebPct: 0, orebPct: 0, drebPct: 0 }); // 출전 0분
+}
