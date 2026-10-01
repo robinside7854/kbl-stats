@@ -212,6 +212,11 @@ kbl-stats/
 └── .github/workflows/fetch.yml, backfill.yml, backfill-highs.yml, backfill-gamelogs.yml, backfill-shots.yml  ← 매일 새벽 수집 / 전체 재수집 / 한 경기 최다·프로필 과거 전체 백필 / 커리어 하이 경기별 기록 백필 / 슛 차트 백필(셋 다 실행 횟수 숫자 올려 푸시)
 ```
 
+## 배포 규칙 (2026-10-01 사용자 지시 — 세션이 바뀌어도 지킨다)
+- **작업이 끝나면 항상 main 브랜치에 배포한다.** Vercel 은 main 만 배포하므로 작업 브랜치에 푸시만 하고 끝내면 사용자는 옛 화면을 본다.
+- 순서: 작업 브랜치 커밋·푸시 → 검증(typecheck·test·build) 통과 → `git fetch origin main && git checkout main && git merge --ff-only <작업 브랜치>` (ff 가 안 되면 main 을 작업 브랜치에 먼저 merge 해 해결) → `git push origin main` → 작업 브랜치로 돌아온다. PR 승인을 기다리지 않는다.
+- 데이터 커밋(Actions)이 main 에 먼저 들어와 있을 수 있으니 merge 전에 반드시 fetch 한다.
+
 ## 코딩 규칙
 - 파일·변수 이름은 영어, 주석과 커밋 메시지는 한국어
 - KBL API 필드명(`kname`, `fgRt` 등)은 `lib/types.ts`에서 우리 이름(`nameKo`, `fgPct`)으로 한 번만 변환. 화면에는 KBL 원본 필드명이 나오지 않게
