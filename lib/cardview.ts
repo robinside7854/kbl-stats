@@ -14,6 +14,7 @@ import {
   CARD_STATS,
   missingComponentLabels,
   overallWeightNote,
+  RADAR_AXES,
   perGame,
   qualifyLabel,
   type CardContext,
@@ -46,7 +47,7 @@ import type { CardPlayer, CardTeam, SeasonCoverage } from "./types";
 /**
  * 순위 비교 집단: 리그 전체 / 같은 포지션(가드·포워드·센터 묶음, lib/roster positionGroupOf).
  * 포지션을 모르는 선수(선수 마스터에 없음)는 "position" 을 골라도 전체로 계산하고 view.scope 는 "all" 이 된다.
- * 등급(레이더 5축·종합)은 범위와 관계없이 항상 같은 국적 집단(국내/외국/아시아쿼터) 안에서 매긴다 (lib/metrics buildGradingContext).
+ * 등급(레이더 6축·종합)은 범위와 관계없이 항상 같은 국적 집단(국내/외국/아시아쿼터) 안에서 매긴다 (lib/metrics buildGradingContext).
  */
 export type CardScope = "all" | "position";
 
@@ -560,13 +561,11 @@ export function careerHighlights(
 }
 
 // ─────────────────────────────────────────────
-// 레이더 차트 배치 (2026-09-30 피드백 5차 #6: 모바일에서 위 꼭짓점 "공격" 등급 칩이 잘렸다)
+// 레이더 차트 배치 (2026-09-30 피드백 5차 #6: 모바일에서 위 꼭짓점 "공격" 등급 칩이 잘렸다 / 2026-10-01 6축 일반화)
 // ─────────────────────────────────────────────
 
 /** Recharts PolarAngleAxis 가 꼭짓점 라벨을 그리는 위치 = 꼭짓점에서 바깥으로 tickSize(기본 8px) 더 나간 곳 */
 export const RADAR_TICK_GAP = 8;
-const COS18 = Math.cos((18 * Math.PI) / 180); // 옆 꼭짓점(공격에서 72°) 가로 성분
-const SIN54 = Math.sin((54 * Math.PI) / 180); // 아래 꼭짓점(공격에서 144°) 세로 성분
 
 export interface RadarGeometry {
   /** 레이더 반지름 (px) */
@@ -576,26 +575,42 @@ export interface RadarGeometry {
 }
 
 /**
- * 오각형 레이더(첫 축이 위 꼭짓점) + 꼭짓점 바깥 라벨 상자(block: 폭·높이 px)가 width × height 안에 모두 들어가는
- * 가장 큰 반지름과 중심 높이. 라벨 상자는 PlayerCard GradeTick 처럼 "라벨 기준점에서 바깥으로 반 칸 + 2px" 밀어 그린다고 본다.
- * - 세로: 위 꼭짓점 라벨 위끝 ~ 아래 두 꼭짓점 라벨 아래끝이 height − 2·margin 안.
- * - 가로: 옆 두 꼭짓점 라벨 바깥끝이 width − 2·margin 안.
- * 예전에는 반지름 = 높이 × 0.34, 중심 54% 로 고정해 기준점 간격(8px)만큼 위 칩이 차트 밖(−3.5px)으로 나갔다.
+ * n각형 레이더(첫 축이 위 꼭짓점, 시계 방향 — Recharts 기본) + 꼭짓점 바깥 라벨 상자(block: 폭·높이 px)가
+ * width × height 안에 모두 들어가는 가장 큰 반지름과 중심 높이. 라벨 상자는 PlayerCard GradeTick 처럼
+ * "라벨 기준점에서 바깥으로 반 칸 + 2px" 밀어 그린다고 본다(가로·세로 따로).
+ * 꼭짓점 k 의 바깥 단위 벡터 (ux, uy): 가로 끝 = |ux|·(R + gap + 반폭) + block.w/2, 세로 끝 = |uy|·(R + gap + 반높이) + block.h/2.
+ * - 세로: 위로 가장 멀리 나간 상자 위끝 ~ 아래로 가장 멀리 나간 상자 아래끝이 height − 2·margin 안.
+ * - 가로: 좌우로 가장 멀리 나간 상자 바깥끝이 width − 2·margin 안.
+ * 5축 시절(2026-09-30)에는 오각형 상수(cos 18°·sin 54°)를 박았고, 6축(2026-10-01)부터 축 수로 계산한다.
  */
-export function radarGeometry(width: number, height: number, block: { w: number; h: number }, margin = 8, tickGap = RADAR_TICK_GAP): RadarGeometry {
+export function radarGeometry(
+  width: number,
+  height: number,
+  block: { w: number; h: number },
+  margin = 8,
+  tickGap = RADAR_TICK_GAP,
+  axes = RADAR_AXES.length,
+): RadarGeometry {
   const halfW = block.w / 2 + 2;
   const halfH = block.h / 2 + 2;
-  // 위: 기준점(R + gap) 에서 위로 halfH 가 상자 중심, 거기서 block.h/2 더 → 위끝 = R + gap + halfH + block.h/2
-  const upConst = tickGap + halfH + block.h / 2;
-  // 아래: 기준점 세로 성분 SIN54·(R + gap), 상자 중심은 SIN54·halfH 더, 아래끝은 block.h/2 더
-  const downConst = SIN54 * tickGap + SIN54 * halfH + block.h / 2;
-  const rByH = (height - 2 * margin - upConst - downConst) / (1 + SIN54);
-  // 옆: 기준점 가로 성분 COS18·(R + gap), 상자 중심 COS18·halfW 더, 바깥끝 block.w/2 더
-  const sideConst = COS18 * tickGap + COS18 * halfW + block.w / 2;
-  const rByW = (width / 2 - margin - sideConst) / COS18;
+  // 각 꼭짓점의 반지름 배수(|u|)와 상수 부분을 모아, 위·아래·옆 각각 "R·k + c ≤ 한도" 를 푼다
+  let upK = 0, upC = 0, downK = 0, downC = 0, sideK = 0, sideC = 0;
+  for (let i = 0; i < axes; i++) {
+    const rad = ((90 - (360 * i) / axes) * Math.PI) / 180;
+    const ux = Math.abs(Math.cos(rad));
+    const uyRaw = Math.sin(rad); // + 위
+    const uy = Math.abs(uyRaw);
+    const xc = ux * (tickGap + halfW) + block.w / 2;
+    const yc = uy * (tickGap + halfH) + block.h / 2;
+    if (ux > sideK || (ux === sideK && xc > sideC)) { sideK = ux; sideC = xc; }
+    if (uyRaw >= 0 && (uy > upK || (uy === upK && yc > upC))) { upK = uy; upC = yc; }
+    if (uyRaw <= 0 && (uy > downK || (uy === downK && yc > downC))) { downK = uy; downC = yc; }
+  }
+  const rByH = (height - 2 * margin - upC - downC) / (upK + downK);
+  const rByW = sideK > 0 ? (width / 2 - margin - sideC) / sideK : Infinity;
   const outer = Math.max(30, Math.floor(Math.min(rByH, rByW)));
   // 남는 세로 공간은 위아래로 똑같이 나눈다
-  const used = outer * (1 + SIN54) + upConst + downConst;
-  const cy = Math.round((height - used) / 2 + outer + upConst);
+  const used = outer * (upK + downK) + upC + downC;
+  const cy = Math.round((height - used) / 2 + outer * upK + upC);
   return { outer, cy };
 }

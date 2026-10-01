@@ -177,7 +177,7 @@ const partial = decodeSeasonCards({ ...file, fields: ["id", "games"], rows: [["x
 assert.equal((partial.players[0] as CardPlayer).positionGroup, null);
 assert.equal(partial.players[0].fouls, 0);
 assert.equal(partial.players[0].nameKo, "");
-assert.throws(() => decodeSeasonCards({ ...file, v: 1 as 2 }));
+assert.throws(() => decodeSeasonCards({ ...file, v: 1 as 3 }));
 // 파일로 만든 카드 비교 재료 = 서버에서 만든 것과 같은 선수 집단 크기
 const ctx = buildCardContext(decoded.players, file.defaults.rule, file.coverage, { thresholds: file.defaults.thresholds });
 assert.equal(ctx.qualifiedCount, 2);

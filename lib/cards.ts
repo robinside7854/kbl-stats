@@ -15,8 +15,8 @@ import {
 } from "./metrics";
 import type { CardPlayer, CardTeam, SeasonCoverage } from "./types";
 
-/** 파일 형식 버전 — 필드 구성이 호환되지 않게 바뀌면 올린다 (2: 레이더 5축 구성 요소 열 추가·axisSet 삭제) */
-export const CARDS_FILE_VERSION = 2;
+/** 파일 형식 버전 — 필드 구성이 호환되지 않게 바뀌면 올린다 (2: 레이더 5축 구성 요소 열 추가·axisSet 삭제, 3: 6축 재료 fgm·midA·midM·rebPct·astPct 추가) */
+export const CARDS_FILE_VERSION = 3;
 
 /** 열 순서 (CardPlayer 의 모든 필드). 파일에도 fields 로 같이 저장하므로 순서가 바뀌어도 옛 파일을 읽을 수 있다 */
 export const CARD_FIELDS = [
@@ -24,8 +24,8 @@ export const CARD_FIELDS = [
   "position", "positionGroup", "nationality", "photoUrl",
   "games", "minutes", "points", "reb", "ast", "stl", "blk", "tov", "fouls",
   "fga", "tpa", "fta", "fgPct", "tpPct", "ftPct",
-  "twoPa", "twoPPct", "tpm", "oreb", "dreb", "goodDef", "deflections", "screenAst", "plusMinus",
-  "per", "usgPct", "tsPct", "efgPct", "tovPct", "astTo",
+  "fgm", "twoPa", "twoPPct", "tpm", "oreb", "dreb", "goodDef", "deflections", "screenAst", "plusMinus", "midA", "midM",
+  "per", "usgPct", "rebPct", "astPct", "tsPct", "efgPct", "tovPct", "astTo",
   "offenseType",
 ] as const satisfies readonly (keyof CardPlayer)[];
 

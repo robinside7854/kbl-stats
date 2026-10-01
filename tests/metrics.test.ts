@@ -1,5 +1,6 @@
 // lib/metrics.ts 간단 검증. 실행: npm run test:metrics
 import assert from "node:assert/strict";
+import type { Position } from "../lib/types";
 import { PLAYER_TYPES, TYPE_ALLROUNDER_MIN, TYPE_ROLE_MAX } from "../lib/glossary";
 import {
   percentileGrade,
@@ -20,7 +21,8 @@ import {
   overallScore,
   overallWeightNote,
   axisWeights,
-  POSITION_THREE_WEIGHT,
+  ROLE_AXIS_WEIGHTS,
+  roleGroupOf,
   percentileRankLow,
   playerType,
   QUALIFY_PRESETS,
@@ -99,55 +101,59 @@ close(percentileRankLow(1, ref), 95); // 가장 낮은 값이 상위
 close(percentileRankLow(10, ref), 5);
 assert.equal(percentileRankLow(1, []), null);
 
-// ── 레이더 5축 정의 ──
-assert.deepEqual([...RADAR_AXES], ["offense", "defense", "three", "hustle", "efficiency"]);
-assert.deepEqual(RADAR_AXES.map((a) => RADAR_AXIS_LABELS[a]), ["공격", "수비", "3점", "허슬", "효율"]);
-assert.deepEqual([...RADAR_AXIS_COMPONENTS.offense], ["ptsPerGame", "astPerGame", "usgPct", "twoPPct"]);
-assert.deepEqual([...RADAR_AXIS_COMPONENTS.defense], ["stlPerGame", "blkPerGame", "drebPerGame", "gdPerGame", "foulsPerGame"]);
-assert.deepEqual([...RADAR_AXIS_COMPONENTS.three], ["tpmPerGame", "tpPct", "tpaPerGame"]);
-assert.deepEqual([...RADAR_AXIS_COMPONENTS.hustle], ["orebPerGame", "stlPerGame", "deflPerGame", "screenPerGame", "pmPerGame"]);
-assert.deepEqual([...RADAR_AXIS_COMPONENTS.efficiency], ["tsPct", "efgPct", "tovPct", "astTo", "per"]);
-assert.equal(RADAR_COMPONENTS.foulsPerGame.better, "low"); // 파울·TOV% 는 반전
-assert.equal(RADAR_COMPONENTS.tovPct.better, "low");
+// ── 레이더 6축 정의 (2026-10-01 피드백 7차) ──
+assert.deepEqual([...RADAR_AXES], ["offense", "defense", "rebound", "shooting", "playmaking", "efficiency"]);
+assert.deepEqual(RADAR_AXES.map((a) => RADAR_AXIS_LABELS[a]), ["공격", "수비", "리바운드", "슈팅", "리딩", "효율"]);
+assert.deepEqual([...RADAR_AXIS_COMPONENTS.offense], ["ptsPerGame", "fgmPerGame", "fgaPerGame", "ftaPerGame", "usgPct"]);
+assert.deepEqual([...RADAR_AXIS_COMPONENTS.defense], ["stlPerGame", "blkPerGame", "gdPerGame", "deflPerGame"]);
+assert.deepEqual([...RADAR_AXIS_COMPONENTS.rebound], ["orebPerGame", "drebPerGame", "rebPct"]);
+assert.deepEqual([...RADAR_AXIS_COMPONENTS.shooting], ["tpmPerGame", "tpaPerGame", "tpPct", "midAPerGame", "midPct"]);
+assert.deepEqual([...RADAR_AXIS_COMPONENTS.playmaking], ["astPerGame", "astTo", "tovPct", "astPct"]); // 경기당 턴오버는 벤치 편향이라 뺌
+assert.deepEqual([...RADAR_AXIS_COMPONENTS.efficiency], ["per", "tsPct", "efgPct"]);
+assert.equal(RADAR_COMPONENTS.tovPct.better, "low"); // TOV% 는 반전
+assert.equal(RADAR_COMPONENTS.midPct.requires, "shots"); // 미드레인지는 슛 차트 있는 시즌만
 assert.ok(!Object.keys(RADAR_COMPONENTS).includes("pie")); // PIE 없음
+assert.ok(!Object.keys(RADAR_COMPONENTS).includes("foulsPerGame")); // 파울·+/-·스크린 어시스트·2점% 는 축에서 뺌
+assert.ok(!Object.keys(RADAR_COMPONENTS).includes("pmPerGame"));
 
 // 가짜 선수 (시즌 누적). 기본값: 20경기 400분
 const rp = (o: Partial<GradeInput> = {}): GradeInput => ({
-  games: 20, minutes: 400, points: 200, ast: 40, stl: 20, blk: 10, fouls: 40, oreb: 20, dreb: 60,
-  tpm: 20, tpa: 60, twoPa: 100, goodDef: 10, deflections: 20, screenAst: 10, plusMinus: 40,
-  twoPPct: 50, tpPct: 33, usgPct: 20, tsPct: 55, efgPct: 50, tovPct: 12, astTo: 1.5, per: 15,
+  games: 20, minutes: 400, points: 200, ast: 40, stl: 20, blk: 10, tov: 30, fgm: 80, fga: 160, fta: 40, oreb: 20, dreb: 60,
+  tpm: 20, tpa: 60, goodDef: 10, deflections: 20, midA: 40, midM: 16,
+  tpPct: 33, usgPct: 20, rebPct: 10, astPct: 15, tsPct: 55, efgPct: 50, tovPct: 12, astTo: 1.5, per: 15,
   nationality: "domestic", isForeign: false,
   ...o,
 });
-// 구성 요소 값: 누적 기록·+/- 는 경기당 = 시즌 합계 ÷ 경기 수 (40분 환산 아님, PLAN.md §13)
+// 구성 요소 값: 누적 기록은 경기당 = 시즌 합계 ÷ 경기 수 (40분 환산 아님, PLAN.md §13)
 close(componentValue(rp(), "ptsPerGame"), 10);
 close(componentValue(rp(), "gdPerGame"), 0.5);
-close(componentValue(rp(), "foulsPerGame"), 2);
 close(componentValue(rp(), "tpaPerGame"), 3);
+close(componentValue(rp(), "midAPerGame"), 2);
+close(componentValue(rp(), "midPct"), 40); // 우리 계산: 성공 ÷ 시도
+assert.equal(componentValue(rp({ midA: 0, midM: 0 }), "midPct"), 0);
 // 출전 시간은 값에 영향 없음: 같은 경기·같은 득점이면 100분을 뛰든 400분을 뛰든 경기당 득점은 같다
 // (40분당이었다면 100분 선수가 40점으로 4배 부풀었다 — 벤치 선수 등급이 뛰던 원인)
 close(componentValue(rp({ minutes: 100 }), "ptsPerGame"), componentValue(rp(), "ptsPerGame"));
 assert.ok(!Object.keys(RADAR_COMPONENTS).some((k) => k.endsWith("40"))); // 40분당 구성 요소 없음
-close(componentValue(rp(), "pmPerGame"), 2);
 assert.equal(componentValue(rp(), "tsPct"), 55);
 
 // 시즌 커버리지로 빠지는 구성 요소
-const full = { advanced: true, plusMinus: true, goodDef: true, hustle: true };
+const full = { advanced: true, plusMinus: true, goodDef: true, hustle: true, shots: true };
 const old = { advanced: false, plusMinus: true, goodDef: false, hustle: false };
 const pool = [rp(), rp({ points: 300 }), rp({ points: 100 })];
-assert.equal(activeRadarComponents(pool, DEFAULT_QUALIFY, full).length, 21);
+assert.equal(activeRadarComponents(pool, DEFAULT_QUALIFY, full).length, 24);
 const oldActive = activeRadarComponents(pool, DEFAULT_QUALIFY, old);
-for (const k of ["usgPct", "gdPerGame", "deflPerGame", "screenPerGame"] as const) assert.ok(!oldActive.includes(k), k);
-assert.ok(oldActive.includes("pmPerGame") && oldActive.includes("per"));
-assert.deepEqual(missingComponentLabels({ active: oldActive }), ["USG%", "경기당 굿디펜스", "경기당 디플렉션", "경기당 스크린 어시스트"]);
+for (const k of ["usgPct", "rebPct", "astPct", "gdPerGame", "deflPerGame", "midAPerGame", "midPct"] as const) assert.ok(!oldActive.includes(k), k);
+assert.ok(oldActive.includes("stlPerGame") && oldActive.includes("per"));
+assert.deepEqual(missingComponentLabels({ active: oldActive }), ["USG%", "경기당 굿디펜스", "경기당 디플렉션", "REB%", "경기당 미드레인지 시도", "미드레인지 성공률", "AST%"]);
 // KBL 계산값이 절반 이상 0 이면(기록 없음) 빠진다 — 커버리지 플래그가 없어도
 const noEfg = pool.map((p) => ({ ...p, efgPct: 0 }));
 assert.ok(!activeRadarComponents(noEfg, DEFAULT_QUALIFY, full).includes("efgPct"));
 
-// 성공률 시도 기준 (레이더): 표본 충족 선수의 경기당 2점·3점 시도 평균
-const rt = radarAttemptThresholds([rp({ tpa: 20 }), rp({ tpa: 100 }), rp({ games: 2, minutes: 10, tpa: 99 })], DEFAULT_QUALIFY);
+// 성공률 시도 기준 (레이더): 표본 충족 선수의 경기당 3점·미드레인지 시도 평균
+const rt = radarAttemptThresholds([rp({ tpa: 20, midA: 20 }), rp({ tpa: 100, midA: 60 }), rp({ games: 2, minutes: 10, tpa: 99, midA: 99 })], DEFAULT_QUALIFY);
 close(rt.tpa, 3); // (1 + 5) / 2, 표본 미달 제외
-close(rt.twoPa, 5);
+close(rt.midA, 2); // (1 + 3) / 2
 
 // ── 국적 집단: 등급은 같은 국적 집단 안 ──
 // 국내 3명(득점 100·200·300) + 외국 3명(득점 600·700·800) → 국내 1위도 공격 축이 집단 안 최고
@@ -163,17 +169,18 @@ assert.ok(topDom.axes.offense! > 80, `국내 득점 1위 공격 ${topDom.axes.of
 assert.ok(Math.abs(topDom.axes.offense! - topFor.axes.offense!) < 1e-9); // 각자 집단 1위 → 같은 백분위
 // 구성 요소 ptsPerGame: 국내 집단 안 3명 중 1위 → (2 + 0.5) / 3
 close(topDom.components.offense.find((c) => c.key === "ptsPerGame")!.pct, (2.5 / 3) * 100);
-// 반전: 파울 적은 선수가 수비 파울 항목 상위
-const lowFoul = radarScore(rp({ fouls: 10 }), buildGradingContext([rp({ fouls: 10 }), rp({ fouls: 40 }), rp({ fouls: 80 })], DEFAULT_QUALIFY, full));
-close(lowFoul.components.defense.find((c) => c.key === "foulsPerGame")!.pct, (2.5 / 3) * 100);
+// 반전: TOV% 낮은 선수가 리딩 TOV% 항목 상위
+const lowTov = radarScore(rp({ tovPct: 5 }), buildGradingContext([rp({ tovPct: 5 }), rp({ tovPct: 12 }), rp({ tovPct: 20 })], DEFAULT_QUALIFY, full));
+close(lowTov.components.playmaking.find((c) => c.key === "tovPct")!.pct, (2.5 / 3) * 100);
 // 시도 기준 미달이면 그 선수의 3점 성공률 항목은 제외(pct null), 축은 남은 항목으로
 const noThree = radarScore(rp({ tpa: 2, tpm: 1, tpPct: 50 }), buildGradingContext([rp(), rp({ tpa: 2, tpm: 1, tpPct: 50 }), rp({ tpa: 80 })], DEFAULT_QUALIFY, full));
-assert.equal(noThree.components.three.find((c) => c.key === "tpPct")!.pct, null);
-assert.ok(noThree.raw.three !== null);
+assert.equal(noThree.components.shooting.find((c) => c.key === "tpPct")!.pct, null);
+assert.ok(noThree.raw.shooting !== null);
 // 커버리지 없는 항목은 구성 요소 목록에서 빠진다
 const gOld = buildGradingContext(pool, DEFAULT_QUALIFY, old);
 assert.ok(!radarScore(pool[0], gOld).components.offense.some((c) => c.key === "usgPct"));
-assert.ok(!radarScore(pool[0], gOld).components.hustle.some((c) => c.key === "deflPerGame"));
+assert.ok(!radarScore(pool[0], gOld).components.defense.some((c) => c.key === "deflPerGame"));
+assert.ok(!radarScore(pool[0], gOld).components.shooting.some((c) => c.key === "midPct"));
 
 // 소집단 합산: 표본 충족 아시아쿼터가 MIN_GRADE_GROUP(8) 미만이면 외국과 한 집단
 assert.equal(MIN_GRADE_GROUP, 8);
@@ -195,45 +202,54 @@ const gs = buildGradingContext([...dom, ...forn, ...asia(8)], DEFAULT_QUALIFY, f
 assert.equal(gs.groups.asia?.count, 8);
 assert.equal(gs.groups.foreign?.count, 3);
 
-// 종합 원점수 = 5축 평균 (null 제외)
-assert.equal(overallScore({ offense: 90, defense: 80, three: 70, hustle: 60, efficiency: 50 }), 70);
-assert.equal(overallScore({ offense: 90, defense: null, three: 70, hustle: null, efficiency: 50 }), 70);
+// 종합 원점수 = 6축 평균 (null 제외)
+assert.equal(overallScore({ offense: 90, defense: 80, rebound: 70, shooting: 60, playmaking: 50, efficiency: 70 }), 70);
+assert.equal(overallScore({ offense: 90, defense: null, rebound: 70, shooting: null, playmaking: 50, efficiency: 70 }), 70);
 assert.equal(overallScore({}), null);
-// 포지션별 3점 축 가중치 (2026-10-01): 센터 0(네 축 평균), 포워드·포워드-센터 0.5, 가드·가드-포워드 1, 포지션 모르면 1
-assert.deepEqual(POSITION_THREE_WEIGHT, { G: 1, GF: 1, F: 0.5, FC: 0.5, C: 0 });
-assert.equal(axisWeights(null).three, 1);
-assert.equal(axisWeights("C").three, 0);
+// 포지션별 축 가중치 (2026-10-01): 가드 리딩 1.5·리바운드 0.5, 포워드 전부 1, 빅맨 리바운드 1.5·슈팅 0.5·리딩 0.5, 포지션 모르면 1
+assert.deepEqual(ROLE_AXIS_WEIGHTS, { guard: { playmaking: 1.5, rebound: 0.5 }, forward: {}, big: { rebound: 1.5, shooting: 0.5, playmaking: 0.5 } });
+assert.equal(roleGroupOf("G"), "guard");
+assert.equal(roleGroupOf("GF"), "guard");
+assert.equal(roleGroupOf("F"), "forward");
+assert.equal(roleGroupOf("FC"), "big");
+assert.equal(roleGroupOf("C"), "big");
+assert.equal(roleGroupOf(null), null);
+assert.equal(axisWeights(null).rebound, 1);
+assert.equal(axisWeights("C").rebound, 1.5);
+assert.equal(axisWeights("C").shooting, 0.5);
 assert.equal(axisWeights("C").offense, 1);
-const ctrAxes = { offense: 80, defense: 60, three: 0, hustle: 90, efficiency: 70 };
-assert.equal(overallScore(ctrAxes, axisWeights("C")), 75);                 // (80+60+90+70)/4
-assert.equal(overallScore(ctrAxes, axisWeights("F")), (300 + 0) / 4.5);   // 3점 절반 비중
-assert.equal(overallScore(ctrAxes, axisWeights("G")), 60);                 // 5축 그대로
-assert.equal(overallScore({ three: 90 }, axisWeights("C")), null);         // 세는 축이 없으면 null
-assert.equal(overallWeightNote("C"), "센터라 3점 축은 종합에 넣지 않음");
-assert.equal(overallWeightNote("F"), "포워드라 3점 축은 종합에 절반만");
-assert.equal(overallWeightNote("FC"), "포워드-센터라 3점 축은 종합에 절반만");
-assert.equal(overallWeightNote("G"), null);
+assert.equal(axisWeights("G").playmaking, 1.5);
+const bigAxes = { offense: 80, defense: 60, rebound: 90, shooting: 10, playmaking: 20, efficiency: 70 };
+close(overallScore(bigAxes, axisWeights("C")), (80 + 60 + 90 * 1.5 + 10 * 0.5 + 20 * 0.5 + 70) / 5.5); // 빅맨: 리바운드 1.5, 슈팅·리딩 0.5
+close(overallScore(bigAxes, axisWeights("G")), (80 + 60 + 90 * 0.5 + 10 + 20 * 1.5 + 70) / 6);          // 가드: 리딩 1.5, 리바운드 0.5
+close(overallScore(bigAxes, axisWeights("F")), 55);                                                      // 포워드: 6축 그대로
+assert.ok(overallScore(bigAxes, axisWeights("C"))! > overallScore(bigAxes, axisWeights("G"))!);        // 같은 기록이면 빅맨 쪽이 높다
+assert.equal(overallScore({ shooting: 90 }, { ...axisWeights("C"), shooting: 0 }), null);                // 세는 축이 없으면 null
+assert.equal(overallWeightNote("C"), "빅맨이라 리바운드 ×1.5 · 슈팅 ×0.5 · 리딩 ×0.5");
+assert.equal(overallWeightNote("FC"), "빅맨이라 리바운드 ×1.5 · 슈팅 ×0.5 · 리딩 ×0.5");
+assert.equal(overallWeightNote("G"), "가드라 리바운드 ×0.5 · 리딩 ×1.5");
+assert.equal(overallWeightNote("F"), null);
 assert.equal(overallWeightNote(null), null);
 // 종합 점수 = 5축 백분위(axes) 평균 그대로 — 집단 안에서 다시 순위 매기지 않는다 (2026-09-30 피드백 3차)
 for (const p of pool) {
   const r = radarScore(p, g);
   assert.equal(r.overall, overallScore(r.axes, axisWeights(p.position)));
 }
-// 같은 기록이라도 센터면 종합에서 3점 축이 빠진다 (레이더 축 값은 같다)
+// 같은 기록이라도 포지션에 따라 종합 가중치가 다르다 (레이더 축 값은 같다)
 {
   const base = pool[0];
   const asC = radarScore({ ...base, position: "C" }, g);
   const asG = radarScore({ ...base, position: "G" }, g);
   assert.deepEqual(asC.axes, asG.axes);
   assert.equal(asC.overall, overallScore(asG.axes, axisWeights("C")));
-  assert.equal(asG.overall, overallScore(asG.axes));
+  assert.equal(asG.overall, overallScore(asG.axes, axisWeights("G")));
 }
-// 한 축만 S(99)이고 나머지가 평범하면 종합은 S 가 아니다: (99 + 70 + 20 + 70 + 70) / 5 = 65.8 → B
-assert.equal(overallGrade(overallScore({ offense: 99, defense: 70, three: 20, hustle: 70, efficiency: 70 })), "B");
-// 종합 S 는 5축 평균 85 이상 = 여러 축이 동시에 높아야 한다 (종합 전용 컷 OVERALL_GRADE_CUTS)
-assert.equal(overallGrade(overallScore({ offense: 95, defense: 90, three: 88, hustle: 92, efficiency: 90 })), "S");
-assert.equal(overallGrade(overallScore({ offense: 99, defense: 99, three: 99, hustle: 99, efficiency: 50 })), "S"); // 89.2 (축 컷이면 A)
-assert.equal(overallGrade(overallScore({ offense: 90, defense: 90, three: 90, hustle: 90, efficiency: 55 })), "A"); // 83
+// 한 축만 S(99)이고 나머지가 평범하면 종합은 S 가 아니다: (99 + 70 + 20 + 70 + 70 + 70) / 6 = 66.5 → B
+assert.equal(overallGrade(overallScore({ offense: 99, defense: 70, rebound: 20, shooting: 70, playmaking: 70, efficiency: 70 })), "B");
+// 종합 S 는 6축 평균 85 이상 = 여러 축이 동시에 높아야 한다 (종합 전용 컷 OVERALL_GRADE_CUTS)
+assert.equal(overallGrade(overallScore({ offense: 95, defense: 90, rebound: 88, shooting: 92, playmaking: 90, efficiency: 90 })), "S");
+assert.equal(overallGrade(overallScore({ offense: 99, defense: 99, rebound: 99, shooting: 99, playmaking: 99, efficiency: 50 })), "S"); // 90.8 (축 컷이면 S 지만 평균이라 86+)
+assert.equal(overallGrade(overallScore({ offense: 90, defense: 90, rebound: 90, shooting: 90, playmaking: 90, efficiency: 50 })), "A"); // 83.3
 // 종합 컷 경계: S ≥ 85, A ≥ 70, B ≥ 55, C ≥ 40, D ≥ 25, F < 25 (축 컷 90/75/55/35/15 와 다르다)
 assert.deepEqual(OVERALL_GRADE_CUTS.map(([g, c]) => [g, c]), [["S", 85], ["A", 70], ["B", 55], ["C", 40], ["D", 25], ["F", -Infinity]]);
 assert.deepEqual(
@@ -243,47 +259,65 @@ assert.deepEqual(
 assert.equal(overallGrade(null), "-");
 assert.equal(percentileGrade(86), "A"); // 축 등급은 그대로 90 컷
 // 모든 축 1위(집단 밖 선수라 백분위 100)면 종합도 100
-assert.ok(radarScore(rp({ points: 900, ast: 200, stl: 60, blk: 40, dreb: 200, oreb: 80, tpm: 80, tpa: 160, per: 30, tsPct: 70, efgPct: 65, astTo: 4, tovPct: 5, fouls: 10, twoPPct: 70, tpPct: 50, plusMinus: 200, goodDef: 40, deflections: 60, screenAst: 40, usgPct: 35 }), g).overall! >= 99.9);
+assert.ok(radarScore(rp({ points: 900, fgm: 350, fga: 600, fta: 200, ast: 200, stl: 60, blk: 40, dreb: 200, oreb: 80, tpm: 80, tpa: 160, midA: 100, midM: 60, per: 30, tsPct: 70, efgPct: 65, astTo: 4, tovPct: 5, tov: 5, tpPct: 50, goodDef: 40, deflections: 60, usgPct: 35, rebPct: 30, astPct: 40 }), g).overall! >= 99.9);
 
-// 유형 라벨 (5축)
-assert.equal(playerType({ offense: 70, defense: 65, three: 80, hustle: 61, efficiency: 90 }).label, "올라운더");
-assert.equal(playerType({ offense: 10, defense: 20, three: 30, hustle: 39, efficiency: 5 }).label, "궂은일 담당 롤 플레이어");
-assert.equal(playerType({ offense: 95, defense: 20, three: 30, hustle: 39, efficiency: 5 }).label, "득점원");
-assert.equal(playerType({ offense: 50, defense: 90, three: 30, hustle: 39, efficiency: 5 }).label, "수비수");
-assert.equal(playerType({ offense: 50, defense: 20, three: 90, hustle: 39, efficiency: 5 }).label, "슈터");
-assert.equal(playerType({ offense: 50, defense: 20, three: 30, hustle: 90, efficiency: 5 }).label, "허슬 플레이어");
-assert.equal(playerType({ offense: 10, defense: 20, three: 30, hustle: 9, efficiency: 88 }).label, "효율형");
-assert.equal(playerType({ offense: 80, defense: 80, three: 30, hustle: 9, efficiency: 5 }).axis, "offense"); // 동점 → 앞 축
-assert.equal(playerType({ offense: 70, defense: null, three: 95, hustle: 61, efficiency: 90 }).label, "슈터"); // null 축 있으면 올라운더 아님
-// 센터(3점 가중치 0): 3점이 낮아도 나머지 4축 60 이상이면 올라운더, 3점이 가장 높아도 "슈터"가 되지 않는다
-assert.equal(playerType({ offense: 70, defense: 65, three: 5, hustle: 61, efficiency: 90 }, axisWeights("C")).label, "올라운더");
-assert.equal(playerType({ offense: 70, defense: 65, three: 5, hustle: 61, efficiency: 90 }, axisWeights("G")).label, "효율형");
-assert.equal(playerType({ offense: 30, defense: 20, three: 95, hustle: 10, efficiency: 20 }, axisWeights("C")).label, "궂은일 담당 롤 플레이어");
-assert.equal(playerType({ offense: 70, defense: 65, three: null, hustle: 61, efficiency: 90 }, axisWeights("C")).label, "올라운더"); // 안 세는 축은 null 이어도 됨
-assert.equal(playerType({ offense: null, defense: null, three: null, hustle: null, efficiency: null }).label, "분석 불가");
+// 유형 라벨 (6축)
+const ax = (o: Partial<Record<string, number | null>>) => ({ offense: 50, defense: 20, rebound: 30, shooting: 30, playmaking: 39, efficiency: 5, ...o });
+assert.equal(playerType(ax({ offense: 70, defense: 65, rebound: 80, shooting: 61, playmaking: 90, efficiency: 60 })).label, "올라운더");
+assert.equal(playerType(ax({ offense: 10 })).label, "궂은일 담당 롤 플레이어");
+assert.equal(playerType(ax({ offense: 95 })).label, "득점원");
+assert.equal(playerType(ax({ defense: 90 })).label, "수비수");
+assert.equal(playerType(ax({ rebound: 90 })).label, "리바운더");
+assert.equal(playerType(ax({ shooting: 90 })).label, "슈터");
+assert.equal(playerType(ax({ playmaking: 90 })).label, "플레이메이커");
+assert.equal(playerType(ax({ offense: 10, efficiency: 88 })).label, "효율형");
+assert.equal(playerType(ax({ offense: 80, defense: 80 })).axis, "offense"); // 동점 → 앞 축
+assert.equal(playerType(ax({ offense: 70, defense: null, rebound: 80, shooting: 95, playmaking: 61, efficiency: 90 })).label, "슈터"); // null 축 있으면 올라운더 아님
+assert.equal(playerType({ offense: null, defense: null, rebound: null, shooting: null, playmaking: null, efficiency: null }).label, "분석 불가");
+// 포지션 세분 유형 (2026-10-01): 포지션을 넘겨야 붙는다
+assert.equal(playerType(ax({ playmaking: 75, rebound: 60 }), axisWeights("C"), "C").label, "플레이메이킹 빅맨");
+assert.equal(playerType(ax({ shooting: 75, rebound: 60 }), axisWeights("FC"), "FC").label, "스트레치 빅맨");
+assert.equal(playerType(ax({ playmaking: 75, rebound: 60 }), axisWeights("C")).label, "플레이메이커"); // 포지션 없으면 일반 규칙
+assert.equal(playerType(ax({ playmaking: 69, rebound: 60 }), axisWeights("C"), "C").label, "플레이메이커"); // 문턱 70 미만
+assert.equal(playerType(ax({ playmaking: 75, rebound: 90 }), axisWeights("C"), "C").label, "리바운더"); // 가장 높은 축이 아니면 세분 유형 아님
+assert.equal(playerType(ax({ defense: 85, shooting: 40 }), axisWeights("G"), "G").label, "락다운 디펜더");
+assert.equal(playerType(ax({ defense: 85, shooting: 40 }), axisWeights("F"), "F").label, "락다운 디펜더");
+assert.equal(playerType(ax({ defense: 85, shooting: 60 }), axisWeights("G"), "G").label, "수비수"); // 슛도 좋으면 그냥 수비수
+assert.equal(playerType(ax({ defense: 85, shooting: 40, offense: 75 }), axisWeights("G"), "G").label, "수비수"); // 득점도 좋으면 그냥 수비수
+assert.equal(playerType(ax({ defense: 85, shooting: 40 }), axisWeights("C"), "C").label, "수비수"); // 빅맨에겐 락다운 없음
+assert.equal(playerType(ax({ rebound: 75 }), axisWeights("GF"), "GF").label, "리바운딩 가드");
+assert.equal(playerType(ax({ rebound: 75 }), axisWeights("F"), "F").label, "리바운더"); // 포워드에겐 없음
+// 올라운더가 세분 유형보다 먼저
+assert.equal(playerType(ax({ offense: 70, defense: 65, rebound: 80, shooting: 61, playmaking: 90, efficiency: 60 }), axisWeights("C"), "C").label, "올라운더");
 // 라벨은 lib/glossary PLAYER_TYPES 한 곳에서 읽는다: 모든 키가 판정 결과로 나올 수 있고, 라벨이 표와 같다
 {
   const seen = new Map<string, string>();
-  const samples = [
-    { offense: 70, defense: 65, three: 80, hustle: 61, efficiency: 90 },
-    { offense: 10, defense: 20, three: 30, hustle: 39, efficiency: 5 },
-    { offense: 95, defense: 20, three: 30, hustle: 39, efficiency: 5 },
-    { offense: 50, defense: 90, three: 30, hustle: 39, efficiency: 5 },
-    { offense: 50, defense: 20, three: 90, hustle: 39, efficiency: 5 },
-    { offense: 50, defense: 20, three: 30, hustle: 90, efficiency: 5 },
-    { offense: 10, defense: 20, three: 30, hustle: 9, efficiency: 88 },
-    {},
+  const samples: [Partial<Record<string, number | null>>, Position | null][] = [
+    [{ offense: 70, defense: 65, rebound: 80, shooting: 61, playmaking: 90, efficiency: 60 }, null],
+    [{ playmaking: 75 }, "C"],
+    [{ shooting: 75 }, "C"],
+    [{ defense: 85, shooting: 40 }, "G"],
+    [{ rebound: 75 }, "G"],
+    [{ offense: 10 }, null],
+    [{ offense: 95 }, null],
+    [{ defense: 90 }, null],
+    [{ rebound: 90 }, null],
+    [{ shooting: 90 }, null],
+    [{ playmaking: 90 }, null],
+    [{ offense: 10, efficiency: 88 }, null],
   ];
-  for (const s of samples) {
-    const t = playerType(s);
+  for (const [o, pos] of samples) {
+    const t = playerType(ax(o), axisWeights(pos), pos);
     seen.set(t.key, t.label);
   }
+  const t0 = playerType({});
+  seen.set(t0.key, t0.label);
   assert.equal(seen.size, PLAYER_TYPES.length);
   for (const d of PLAYER_TYPES) assert.equal(seen.get(d.key), d.label);
-  // 문턱 경계: 5축 모두 정확히 60 → 올라운더, 최고 축 정확히 40 → 롤 플레이어 아님
-  assert.equal(playerType({ offense: TYPE_ALLROUNDER_MIN, defense: 60, three: 60, hustle: 60, efficiency: 60 }).key, "allRounder");
-  assert.equal(playerType({ offense: TYPE_ROLE_MAX, defense: 10, three: 10, hustle: 10, efficiency: 10 }).key, "scorer");
-  assert.equal(playerType({ offense: 39.9, defense: 10, three: 10, hustle: 10, efficiency: 10 }).key, "role");
+  // 문턱 경계: 6축 모두 정확히 60 → 올라운더, 최고 축 정확히 40 → 롤 플레이어 아님
+  assert.equal(playerType({ offense: TYPE_ALLROUNDER_MIN, defense: 60, rebound: 60, shooting: 60, playmaking: 60, efficiency: 60 }).key, "allRounder");
+  assert.equal(playerType({ offense: TYPE_ROLE_MAX, defense: 10, rebound: 10, shooting: 10, playmaking: 10, efficiency: 10 }).key, "scorer");
+  assert.equal(playerType({ offense: 39.9, defense: 10, rebound: 10, shooting: 10, playmaking: 10, efficiency: 10 }).key, "role");
 }
 
 console.log("metrics: 모든 검사 통과");

@@ -96,7 +96,7 @@ console.log("player: 시즌 표기·팀 이력·추이 통과");
 const mkCard = (o: Partial<CardInput> & { id: string }): CardInput & { id: string } => ({
   games: 20, minutes: 400, points: 200, reb: 100, ast: 50, stl: 10, blk: 5, tov: 30,
   fga: 160, tpa: 60, fta: 40, fgPct: 45, tpPct: 35, ftPct: 75,
-  twoPa: 100, twoPPct: 50, tpm: 21, oreb: 20, dreb: 80, goodDef: 0, deflections: 0, screenAst: 0, plusMinus: 0,
+  fgm: 80, tpm: 21, oreb: 20, dreb: 80, goodDef: 0, deflections: 0, midA: 0, midM: 0, rebPct: 0, astPct: 0,
   per: 15, usgPct: 0, tsPct: 55, efgPct: 50, tovPct: 12, astTo: 1.7, fouls: 40,
   nationality: null, isForeign: false, ...o,
 });

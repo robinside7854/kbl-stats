@@ -143,24 +143,24 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
   {
     key: "percentileGrade",
     name: "백분위 · S~F 등급",
-    short: "같은 시즌 선수 중 위치를 0~100으로 나타낸 값과 그 등급 글자(S~F)",
+    short: "같은 시즌 선수 중 위치를 0~100으로 나타낸 값과 그 등급 글자(S~F). 종합은 포지션별 가중 평균",
     formula:
-      "백분위 = (나보다 낮은 선수 수 + 0.5 × 같은 값 선수 수) ÷ 비교 집단 수 × 100 · 등급 S ≥ 90, A ≥ 75, B ≥ 55, C ≥ 35, D ≥ 15, F < 15 · 종합 등급 = 레이더 5축 백분위의 평균(포지션에 따라 3점 축 비중을 줄임: 가드 1 · 포워드 0.5 · 센터 0)에 종합 전용 컷(S ≥ 85, A ≥ 70, B ≥ 55, C ≥ 40, D ≥ 25)을 그대로 댄 등급",
+      "백분위 = (나보다 낮은 선수 수 + 0.5 × 같은 값 선수 수) ÷ 비교 집단 수 × 100 · 등급 S ≥ 90, A ≥ 75, B ≥ 55, C ≥ 35, D ≥ 15, F < 15 · 종합 등급 = 레이더 6축 백분위의 포지션별 가중 평균(가드: 리딩 ×1.5·리바운드 ×0.5 / 포워드: 전부 1 / 빅맨: 리바운드 ×1.5·슈팅 ×0.5·리딩 ×0.5)에 종합 전용 컷(S ≥ 85, A ≥ 70, B ≥ 55, C ≥ 40, D ≥ 25)을 그대로 댄 등급",
     source: WIKI_PERCENTILE_RANK,
-    brief: "백분위 = 나보다 낮은 선수 비율 · 축 S ≥ 90 · A ≥ 75 · B ≥ 55 · C ≥ 35 · D ≥ 15",
+    brief: "백분위 = 나보다 낮은 선수 비율 · 축 S ≥ 90 · A ≥ 75 · B ≥ 55 · C ≥ 35 · D ≥ 15 · 종합 = 6축 포지션별 가중 평균, S ≥ 85",
     note:
-      "우리 사이트 규칙입니다(lib/metrics.ts percentileRank, GRADE_CUTS, OVERALL_GRADE_CUTS, axisWeights). 종합 등급을 낼 때 센터는 3점 축을 빼고 네 축만, 포워드(포워드-센터 포함)는 3점 축을 절반 비중으로 평균합니다 — 센터는 3점이 낮은 것이 역할상 당연한데 종합 등급까지 깎였기 때문입니다(2025-26 국내 선수 3점 축 평균: 가드 56 · 포워드 50 · 센터 17). 레이더의 3점 축 값과 등급은 그대로 보입니다. 등급의 비교 집단은 같은 시즌·표본 기준을 넘긴 같은 국적 집단(국내 / 외국 / 아시아쿼터) 선수입니다. 외국 선수가 공격 기록을 독점해 리그 전체로 매기면 국내 선수는 잘해야 A~B였기 때문입니다. 아시아쿼터가 8명 미만인 시즌은 외국 선수와 합쳐 계산합니다(아시아쿼터·외국 합산). 순위(n위)는 따로 리그 전체(또는 같은 포지션) 기준입니다.",
+      "우리 사이트 규칙입니다(lib/metrics.ts percentileRank, GRADE_CUTS, OVERALL_GRADE_CUTS, axisWeights). 종합 등급을 낼 때는 포지션(선수 마스터 코드)에 따라 축 비중을 바꿉니다 — 가드(가드·가드-포워드)는 리딩 1.5배·리바운드 0.5배, 빅맨(센터·포워드-센터)은 리바운드 1.5배·슈팅과 리딩 0.5배, 포워드는 그대로. 역할상 낮기 쉬운 축(빅맨의 3점, 가드의 리바운드)이 종합 등급을 깎지 않게 하려는 것입니다. 레이더의 축 값과 축 등급은 가중치 없이 그대로 보입니다. 등급의 비교 집단은 같은 시즌·표본 기준을 넘긴 같은 국적 집단(국내 / 외국 / 아시아쿼터) 선수입니다. 외국 선수가 공격 기록을 독점해 리그 전체로 매기면 국내 선수는 잘해야 A~B였기 때문입니다. 아시아쿼터가 8명 미만인 시즌은 외국 선수와 합쳐 계산합니다(아시아쿼터·외국 합산). 순위(n위)는 따로 리그 전체(또는 같은 포지션) 기준입니다.",
   },
   {
     key: "radarAxes",
-    name: "레이더 5축 (공격·수비·3점·허슬·효율)",
+    name: "레이더 6축 (공격·수비·리바운드·슈팅·리딩·효율)",
     short: "축마다 관련 기록 여러 개의 백분위를 평균해, 선수가 어느 쪽에 강한지 한눈에 보여 준다",
     formula:
-      "공격 = 경기당 득점·경기당 어시스트·USG%·2점 성공률 · 수비 = 경기당 스틸·블록·수비 리바운드·굿디펜스·파울(적을수록 좋음) · 3점 = 경기당 3점 성공·3점 성공률·경기당 3점 시도 · 허슬 = 경기당 공격 리바운드·스틸·디플렉션·스크린 어시스트·경기당 +/- · 효율 = TS%·eFG%·TOV%(적을수록 좋음)·AST/TO·PER · 축 점수 = 구성 요소 백분위의 단순 평균(가중치 모두 같음)을 같은 국적 집단 안에서 다시 백분위로 · 축 등급 컷 S ≥ 90, A ≥ 75, B ≥ 55, C ≥ 35, D ≥ 15 · 종합 점수 = 5축 백분위의 평균(다시 순위 매기지 않음, 3점 축 비중은 가드 1 · 포워드 0.5 · 센터 0) → 종합 등급 컷 S ≥ 85, A ≥ 70, B ≥ 55, C ≥ 40, D ≥ 25",
+      "공격 = 경기당 득점·야투 성공·야투 시도·자유투 시도·USG% · 수비 = 경기당 스틸·블록·굿디펜스·디플렉션 · 리바운드 = 경기당 공격 리바운드·수비 리바운드·REB% · 슈팅 = 경기당 3점 성공·3점 시도·3점 성공률·경기당 미드레인지 시도·미드레인지 성공률 · 리딩 = 경기당 어시스트·AST/TO·TOV%(적을수록 좋음)·AST% · 효율 = PER·TS%·eFG% · 축 점수 = 구성 요소 백분위의 단순 평균(가중치 모두 같음)을 같은 국적 집단 안에서 다시 백분위로 · 축 등급 컷 S ≥ 90, A ≥ 75, B ≥ 55, C ≥ 35, D ≥ 15 · 종합 점수 = 6축 백분위의 포지션별 가중 평균(다시 순위 매기지 않음 — 가드: 리딩 ×1.5·리바운드 ×0.5, 포워드: 전부 1, 빅맨(센터·포워드-센터): 리바운드 ×1.5·슈팅 ×0.5·리딩 ×0.5) → 종합 등급 컷 S ≥ 85, A ≥ 70, B ≥ 55, C ≥ 40, D ≥ 25",
     source: null,
-    brief: "축 = 관련 경기당 기록·비율 백분위 평균 → 같은 국적 집단 안에서 다시 백분위 · 종합 = 5축 평균 (S ≥ 85, 센터는 3점 축 제외 · 포워드는 절반)",
+    brief: "축 = 관련 경기당 기록·비율 백분위 평균 → 같은 국적 집단 안에서 다시 백분위 · 종합 = 6축 가중 평균 (S ≥ 85, 가드는 리딩 ×1.5·리바운드 ×0.5, 빅맨은 리바운드 ×1.5·슈팅·리딩 ×0.5)",
     note:
-      "우리 사이트 규칙입니다(lib/metrics.ts RADAR_AXIS_COMPONENTS). 득점·리바운드 같은 누적 기록은 40분 환산이 아니라 경기당 실제 기록으로 비교합니다. 40분 환산은 적게 뛴 선수의 값을 부풀려, 벤치 선수가 주전보다 높은 등급을 받는 일이 생겼기 때문입니다. 그 시즌에 기록이 없는 항목(예: 2024-25 이전의 USG%·디플렉션·스크린 어시스트, 2000-01 이전의 굿디펜스)은 빼고 남은 항목으로 평균합니다. 2점·3점 성공률은 경기당 시도가 리그 평균 이상인 선수만 넣습니다. 축 점수를 다시 백분위로 바꾸는 이유는, 백분위 여러 개를 평균하면 값이 50 근처로 모여 S(상위 10%) 같은 등급이 제 뜻을 잃기 때문입니다. 종합 등급은 반대로 다시 매기지 않습니다: 5축 평균에 종합 전용 컷을 그대로 대므로 종합 S는 다섯 축 평균이 85 이상, 즉 여러 축이 동시에 높은 선수만 받습니다. 종합 컷이 축 컷(90/75/55/35/15)보다 낮은 이유는, 다섯 축이 모두 높기는 어려워 평균이 축 점수보다 가운데로 모이기 때문입니다(축 컷 그대로면 2025-26 종합 S가 0명). 한 축만 뛰어난 선수는 그 축이 S여도 종합은 A~B에 머뭅니다. 종합 평균에서 3점 축은 포지션에 따라 비중이 다릅니다(센터 0 · 포워드 0.5 · 가드 1 — '백분위 · S~F 등급' 항목 참고).",
+      "우리 사이트 규칙입니다(lib/metrics.ts RADAR_AXIS_COMPONENTS). 득점·리바운드 같은 누적 기록은 40분 환산이 아니라 경기당 실제 기록으로 비교합니다. 40분 환산은 적게 뛴 선수의 값을 부풀려, 벤치 선수가 주전보다 높은 등급을 받는 일이 생겼기 때문입니다. 그 시즌에 기록이 없는 항목(예: 2024-25 이전의 USG%·REB%·AST%·디플렉션, 2000-01 이전의 굿디펜스, 2005-06 이전의 미드레인지)은 빼고 남은 항목으로 평균합니다. 3점·미드레인지 성공률은 경기당 시도가 리그 평균 이상인 선수만 넣습니다. 미드레인지는 KBL 공홈 슛 차트 좌표로 우리가 나눈 구역(페인트 밖·3점 라인 안)이라 공식 기록이 아닙니다. 박스아웃은 KBL 이 기록하지 않아 리바운드 축에 넣지 못했습니다. 축 점수를 다시 백분위로 바꾸는 이유는, 백분위 여러 개를 평균하면 값이 50 근처로 모여 S(상위 10%) 같은 등급이 제 뜻을 잃기 때문입니다. 종합 등급은 반대로 다시 매기지 않습니다: 6축 가중 평균에 종합 전용 컷을 그대로 대므로 종합 S는 여러 축이 동시에 높은 선수만 받습니다. 종합 컷이 축 컷(90/75/55/35/15)보다 낮은 이유는, 여섯 축이 모두 높기는 어려워 평균이 축 점수보다 가운데로 모이기 때문입니다. 포지션 가중치는 역할상 낮기 쉬운 축(빅맨의 슈팅·리딩, 가드의 리바운드)이 종합을 끌어내리지 않게 하되 0으로 빼지는 않습니다 — 그 축이 뛰어나면 여전히 보탬이 되고, 그런 선수에게는 '플레이메이킹 빅맨' 같은 세분 유형 라벨이 붙습니다.",
   },
   {
     key: "qualify",
@@ -190,11 +190,11 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
   {
     key: "playerTypes",
     name: "선수 유형 라벨",
-    short: "플레이어 카드 위쪽의 한 줄 라벨. 레이더 5축 중 어느 쪽이 가장 강한지로 붙인다",
-    formula: "위에서부터 먼저 맞는 규칙: 5축 모두 60 이상 → 올라운더 · 가장 높은 축이 40 미만 → 궂은일 담당 롤 플레이어 · 그 외 → 가장 높은 축의 유형 (동점이면 공격 → 수비 → 3점 → 허슬 → 효율 순). 센터는 3점 축을 빼고 4축으로 판정",
+    short: "플레이어 카드 위쪽의 한 줄 라벨. 레이더 6축 중 어느 쪽이 가장 강한지와 포지션으로 붙인다",
+    formula: "위에서부터 먼저 맞는 규칙: 6축 모두 60 이상 → 올라운더 · 가장 높은 축이 40 미만 → 궂은일 담당 롤 플레이어 · 가장 높은 축이 포지션상 낮기 쉬운 축이면 세분 유형: 빅맨의 리딩 ≥ 70 → 플레이메이킹 빅맨 · 빅맨의 슈팅 ≥ 70 → 스트레치 빅맨 · 가드·포워드의 수비 ≥ 80 (슈팅 < 55, 공격 < 70) → 락다운 디펜더 · 가드의 리바운드 ≥ 70 → 리바운딩 가드 · 그 외 → 가장 높은 축의 유형 (동점이면 공격 → 수비 → 리바운드 → 슈팅 → 리딩 → 효율 순)",
     source: null,
-    brief: "5축 모두 60 이상이면 올라운더 · 가장 높은 축이 40 미만이면 롤 플레이어 · 그 외는 가장 높은 축의 유형",
-    note: "우리 사이트 규칙입니다(lib/metrics.ts playerType, 라벨 목록은 lib/glossary.ts PLAYER_TYPES). 축 값은 같은 국적 집단 안 백분위라, 같은 선수라도 국적 집단이 바뀌면 라벨이 바뀔 수 있습니다. 아래 '선수 유형 라벨' 표에 전체 목록이 있습니다.",
+    brief: "6축 모두 60 이상이면 올라운더 · 포지션상 낮기 쉬운 축이 높으면 세분 유형(플레이메이킹 빅맨 등) · 그 외는 가장 높은 축의 유형",
+    note: "우리 사이트 규칙입니다(lib/metrics.ts playerType, 라벨 목록은 lib/glossary.ts PLAYER_TYPES). 축 값은 같은 국적 집단 안 백분위라, 같은 선수라도 국적 집단이 바뀌면 라벨이 바뀔 수 있습니다. 포지션 세분 유형은 선수 마스터의 포지션 코드가 있을 때만 붙습니다. 아래 '선수 유형 라벨' 표에 전체 목록이 있습니다.",
   },
   {
     key: "badges",
@@ -306,12 +306,13 @@ export const LEADER_COLUMN_GLOSSARY: Readonly<Record<string, GlossaryKey>> = {
   ftPct: "attempts",
 };
 
-/** 레이더 축(lib/metrics RadarAxis) → 용어. 5축 모두 "레이더 5축" 한 항목에서 구성 요소를 풀이한다 */
+/** 레이더 축(lib/metrics RadarAxis) → 용어. 6축 모두 "레이더 6축" 한 항목에서 구성 요소를 풀이한다 */
 export const RADAR_AXIS_GLOSSARY: Readonly<Record<string, GlossaryKey>> = {
   offense: "radarAxes",
   defense: "radarAxes",
-  three: "radarAxes",
-  hustle: "radarAxes",
+  rebound: "radarAxes",
+  shooting: "radarAxes",
+  playmaking: "radarAxes",
   efficiency: "radarAxes",
 };
 
@@ -320,12 +321,32 @@ export const RADAR_AXIS_GLOSSARY: Readonly<Record<string, GlossaryKey>> = {
 // 규칙(문턱값)도 여기 상수로 두어 용어 탭 설명과 계산이 어긋나지 않게 한다.
 // ─────────────────────────────────────────────
 
-/** 올라운더 문턱: 5축 백분위가 모두 이 값 이상 */
+/** 올라운더 문턱: 6축(가중치 0 인 축 제외) 백분위가 모두 이 값 이상 */
 export const TYPE_ALLROUNDER_MIN = 60;
 /** 롤 플레이어 문턱: 가장 높은 축 백분위가 이 값 미만 */
 export const TYPE_ROLE_MAX = 40;
+/** 포지션 세분 유형 문턱: 빅맨의 리딩·슈팅, 가드의 리바운드가 가장 높은 축이고 백분위가 이 값 이상 (역할상 낮기 쉬운 축에서 상위 30%) */
+export const TYPE_SPECIAL_MIN = 70;
+/** 락다운 디펜더: 수비가 가장 높은 축이고 이 값 이상 … */
+export const TYPE_LOCKDOWN_DEF_MIN = 80;
+/** … 이고 슈팅 축 이 값 미만, 공격 축 아래 값 미만 (슛·득점은 평범하거나 약한데 수비로 가치를 내는 외곽 선수) */
+export const TYPE_LOCKDOWN_SHOT_MAX = 55;
+export const TYPE_LOCKDOWN_OFF_MAX = 70;
 
-export type PlayerTypeKey = "allRounder" | "role" | "scorer" | "defender" | "shooter" | "hustler" | "efficient" | "unknown";
+export type PlayerTypeKey =
+  | "allRounder"
+  | "playmakingBig"
+  | "stretchBig"
+  | "lockdown"
+  | "reboundingGuard"
+  | "role"
+  | "scorer"
+  | "defender"
+  | "rebounder"
+  | "shooter"
+  | "playmaker"
+  | "efficient"
+  | "unknown";
 
 export interface PlayerTypeDef {
   key: PlayerTypeKey;
@@ -335,8 +356,8 @@ export interface PlayerTypeDef {
   condition: string;
   /** 팬 눈높이 한 줄 설명 */
   short: string;
-  /** 근거 축 (lib/metrics RadarAxis 문자열). 올라운더·롤 플레이어·분석 불가는 null */
-  axis: "offense" | "defense" | "three" | "hustle" | "efficiency" | null;
+  /** 근거 축 (lib/metrics RadarAxis 문자열). "가장 높은 축" 유형만 값이 있고, 올라운더·포지션 세분 유형·롤 플레이어·분석 불가는 null */
+  axis: "offense" | "defense" | "rebound" | "shooting" | "playmaking" | "efficiency" | null;
 }
 
 /** 배열 순서 = 판정 순서이자 용어 탭 표 순서 */
@@ -344,8 +365,36 @@ export const PLAYER_TYPES: readonly PlayerTypeDef[] = [
   {
     key: "allRounder",
     label: "올라운더",
-    condition: `5축(공격·수비·3점·허슬·효율)이 모두 ${TYPE_ALLROUNDER_MIN} 이상 (센터는 3점 축을 빼고 4축)`,
+    condition: `6축(공격·수비·리바운드·슈팅·리딩·효율)이 모두 ${TYPE_ALLROUNDER_MIN} 이상`,
     short: "약점 없이 고르게 상위권",
+    axis: null,
+  },
+  {
+    key: "playmakingBig",
+    label: "플레이메이킹 빅맨",
+    condition: `빅맨(센터·포워드-센터)이고 가장 높은 축이 리딩, ${TYPE_SPECIAL_MIN} 이상`,
+    short: "패스로 동료를 살리는 빅맨 — 하이포스트 피딩",
+    axis: null,
+  },
+  {
+    key: "stretchBig",
+    label: "스트레치 빅맨",
+    condition: `빅맨(센터·포워드-센터)이고 가장 높은 축이 슈팅, ${TYPE_SPECIAL_MIN} 이상`,
+    short: "외곽슛으로 수비를 바깥까지 끌어내는 빅맨",
+    axis: null,
+  },
+  {
+    key: "lockdown",
+    label: "락다운 디펜더",
+    condition: `가드·포워드이고 가장 높은 축이 수비, ${TYPE_LOCKDOWN_DEF_MIN} 이상이면서 슈팅 ${TYPE_LOCKDOWN_SHOT_MAX} 미만·공격 ${TYPE_LOCKDOWN_OFF_MAX} 미만`,
+    short: "슛은 평범해도 수비로 제 몫을 하는 외곽 수비수",
+    axis: null,
+  },
+  {
+    key: "reboundingGuard",
+    label: "리바운딩 가드",
+    condition: `가드(가드·가드-포워드)이고 가장 높은 축이 리바운드, ${TYPE_SPECIAL_MIN} 이상`,
+    short: "가드인데 리바운드에 적극 가담한다",
     axis: null,
   },
   {
@@ -355,15 +404,16 @@ export const PLAYER_TYPES: readonly PlayerTypeDef[] = [
     short: "눈에 띄는 축은 없지만 코트에서 제 몫을 하는 선수",
     axis: null,
   },
-  { key: "scorer", label: "득점원", condition: "가장 높은 축이 공격", short: "득점·어시스트·공격 점유율로 공격을 이끈다", axis: "offense" },
-  { key: "defender", label: "수비수", condition: "가장 높은 축이 수비", short: "스틸·블록·수비 리바운드·굿디펜스가 강점", axis: "defense" },
-  { key: "shooter", label: "슈터", condition: "가장 높은 축이 3점", short: "3점을 많이, 잘 넣는다", axis: "three" },
-  { key: "hustler", label: "허슬 플레이어", condition: "가장 높은 축이 허슬", short: "공격 리바운드·스틸·+/- 같은 궂은 기록이 강점", axis: "hustle" },
-  { key: "efficient", label: "효율형", condition: "가장 높은 축이 효율", short: "적게 던져도 잘 넣고 공을 잃지 않는다", axis: "efficiency" },
+  { key: "scorer", label: "득점원", condition: "가장 높은 축이 공격", short: "득점 볼륨으로 공격을 이끈다", axis: "offense" },
+  { key: "defender", label: "수비수", condition: "가장 높은 축이 수비", short: "스틸·블록·굿디펜스·디플렉션이 강점", axis: "defense" },
+  { key: "rebounder", label: "리바운더", condition: "가장 높은 축이 리바운드", short: "공격·수비 리바운드로 공을 지킨다", axis: "rebound" },
+  { key: "shooter", label: "슈터", condition: "가장 높은 축이 슈팅", short: "3점·미드레인지를 많이, 잘 넣는다", axis: "shooting" },
+  { key: "playmaker", label: "플레이메이커", condition: "가장 높은 축이 리딩", short: "어시스트로 동료를 살리고 공을 잃지 않는다", axis: "playmaking" },
+  { key: "efficient", label: "효율형", condition: "가장 높은 축이 효율", short: "PER·TS%·eFG% — 적게 던져도 잘 넣는다", axis: "efficiency" },
   {
     key: "unknown",
     label: "분석 불가",
-    condition: "5축 값이 모두 없음",
+    condition: "6축 값이 모두 없음",
     short: "그 시즌 비교할 기록이 없다",
     axis: null,
   },

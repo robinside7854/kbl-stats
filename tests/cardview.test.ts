@@ -39,8 +39,8 @@ const mk = (o: Partial<CardPlayer> & { positionGroup: PositionGroup | null }): C
     isForeign: false, position: o.positionGroup, nationality: "domestic", photoUrl: null,
     games: 20, minutes: 500, points: 200, reb: 100, ast: 40, stl: 10, blk: 5, tov: 30, fouls: 40,
     fga: 160, tpa: 60, fta: 40, fgPct: 45, tpPct: 33, ftPct: 75,
-    twoPa: 100, twoPPct: 50, tpm: 20, oreb: 20, dreb: 80, goodDef: 10, deflections: 10, screenAst: 5, plusMinus: 20,
-    per: 12, usgPct: 20, tsPct: 52, efgPct: 50, tovPct: 12, astTo: 1.3,
+    fgm: 80, twoPa: 100, twoPPct: 50, tpm: 20, oreb: 20, dreb: 80, goodDef: 10, deflections: 10, screenAst: 5, plusMinus: 20, midA: 30, midM: 12,
+    per: 12, usgPct: 20, rebPct: 10, astPct: 15, tsPct: 52, efgPct: 50, tovPct: 12, astTo: 1.3,
     ...o,
   };
 };
@@ -58,7 +58,7 @@ const teams = [
   { teamCode: "55", shortName: "SK", logoUrl: null, color: { primary: "#E4002B", secondary: "#000", text: "#fff" } },
   { teamCode: "16", shortName: "DB", logoUrl: null, color: { primary: "#006633", secondary: "#fff", text: "#fff" } },
 ];
-const coverage = { advanced: true, plusMinus: true, goodDef: true, hustle: true };
+const coverage = { advanced: true, plusMinus: true, goodDef: true, hustle: true, shots: true };
 const cards = decodeSeasonCards(encodeSeasonCards({ seasonCode: 47, seasonLabel: "2025-2026", coverage, teams }, players));
 
 // ── 카드 한 장: 전체 / 같은 포지션 ──
@@ -144,7 +144,7 @@ const oldCards = decodeSeasonCards(
 );
 const oldView = buildSeasonCardView(oldCards, "101")!;
 assert.equal(oldView.entry.usgPct, null);
-assert.deepEqual(oldView.missingComponents, ["USG%", "경기당 디플렉션", "경기당 스크린 어시스트"]);
+assert.deepEqual(oldView.missingComponents, ["USG%", "경기당 디플렉션", "REB%", "AST%"]);
 const usgOld = compareCardEntries(va, oldView.entry).find((r) => r.key === "usgPct")!;
 assert.equal(usgOld.bText, "–");
 assert.equal(usgOld.deltaText, "–");
@@ -251,15 +251,15 @@ console.log("cardview: 카드 범위·그리드·비교표·주소·용어 앵�
   console.log("cardview: 하이라이트 카드 통과");
 }
 
-// ── 레이더 배치: 5개 꼭짓점 라벨 상자가 차트 안에 (피드백 5차 #6) ──
+// ── 레이더 배치: 꼭짓점 라벨 상자가 차트 안에 (피드백 5차 #6, 2026-10-01 6축) ──
 {
   const { radarGeometry, RADAR_TICK_GAP } = await import("../lib/cardview");
   const block = { w: 50.6, h: 53.5 };
   for (const [w, h] of [[332, 316], [262, 316], [320, 330], [468, 380]] as const) {
     const g = radarGeometry(w, h, block);
     const cx = w / 2;
-    for (let i = 0; i < 5; i++) {
-      const deg = 90 - 72 * i; // 위 꼭짓점부터 시계 방향 (Recharts 기본 startAngle 90)
+    for (let i = 0; i < RADAR_AXES.length; i++) {
+      const deg = 90 - (360 / RADAR_AXES.length) * i; // 위 꼭짓점부터 시계 방향 (Recharts 기본 startAngle 90)
       const rad = (deg * Math.PI) / 180;
       const ux = Math.cos(rad);
       const uy = -Math.sin(rad);

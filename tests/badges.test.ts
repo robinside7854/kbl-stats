@@ -71,7 +71,7 @@ assert.deepEqual(keys(career(range(VETERAN_MIN_SEASONS, (i) => row(i + 1, { team
 assert.deepEqual(keys(career(range(VETERAN_MIN_SEASONS - 1, (i) => row(i + 1, { teamCode: String(i % 2) })))), []);
 const leg = keys(career(range(LEGEND_MIN_SEASONS, (i) => row(i + 1, { teamCode: String(i % 2) }))));
 assert.ok(leg.includes("legend") && !leg.includes("veteran"));
-assert.equal(BADGE_DEFS.find((d) => d.key === "legend")!.label, "15시즌 클럽"); // 2026-10-01: "레전드"는 실력까지 뜻해 이름만 바꿈(키·앵커 유지)
+assert.equal(BADGE_DEFS.find((d) => d.key === "legend")!.label, "롱런"); // 2026-10-01: "레전드"는 실력까지 뜻해 이름만 바꿈(키·앵커 유지)
 
 // 저니맨: 팀 코드 4개 이상
 assert.deepEqual(keys(career(range(JOURNEYMAN_MIN_TEAMS, (i) => row(i + 1, { teamCode: String(i) })))), ["journeyman"]);

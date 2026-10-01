@@ -148,7 +148,7 @@ export default function CompareHeadToHead({ a, b, aLabel, bLabel, colors, captio
       </div>
 
       <div className="mt-2 border-t border-line pt-2">
-        <p className="text-sub font-semibold text-ink-2">레이더 5축 등급</p>
+        <p className="text-sub font-semibold text-ink-2">레이더 6축 등급</p>
         <OverlayRadar a={a} b={b} ca={ca} cb={cb} colors={colors} />
         <p className="text-caption text-ink-3">
           {a.entry.player.nameKo} 실선 · {b.entry.player.nameKo} 점선. 등급은 각자 {a.gradeLabel === b.gradeLabel ? a.gradeLabel : "자기 국적 집단"} 기준.

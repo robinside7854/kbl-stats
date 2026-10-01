@@ -159,7 +159,7 @@ export default function GlossaryPage() {
         <RuleTable
           id="type-list"
           title="선수 유형 라벨"
-          intro="플레이어 카드 위쪽 라벨. 레이더 5축 백분위(같은 국적 집단 안)로 위에서부터 먼저 맞는 규칙을 씁니다."
+          intro="플레이어 카드 위쪽 라벨. 레이더 6축 백분위(같은 국적 집단 안)와 포지션으로 위에서부터 먼저 맞는 규칙을 씁니다."
           head="라벨"
           rows={PLAYER_TYPES.map((t) => ({ id: `type-${t.key}`, label: t.label, condition: t.condition, short: t.short }))}
         />

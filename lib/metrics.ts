@@ -3,10 +3,20 @@
 // 2차 스탯(TS%, eFG%, TOV%, AST/TO, PER)은 KBL이 계산한 값을 그대로 쓰고(USG%만 표준 척도로 ×5 — usgFromKbl),
 // PIE 는 쓰지 않는다(2026-09-30 결정: 팬이 읽기 어렵고 2025-26에만 있음 — processed 에는 원값 보존).
 // 여기서는 "그 값이 비교 집단 안에서 몇 번째쯤인가"(백분위), 경기당·40분당 환산, 시즌 커버리지 판정,
-// 레이더 5축(공격·수비·3점·허슬·효율 — 구성 요소 백분위 평균), 국적 집단별 등급, 유형 라벨, 카드 스탯 순위를 만든다.
+// 레이더 6축(공격·수비·리바운드·슈팅·리딩·효율 — 구성 요소 백분위 평균), 국적 집단별 등급(종합은 포지션별 가중), 유형 라벨, 카드 스탯 순위를 만든다.
 
 import type { Nationality, Position, SeasonCoverage } from "./types";
-import { PLAYER_TYPES, playerTypeDef, TYPE_ALLROUNDER_MIN, TYPE_ROLE_MAX, type PlayerTypeKey } from "./glossary";
+import {
+  PLAYER_TYPES,
+  playerTypeDef,
+  TYPE_ALLROUNDER_MIN,
+  TYPE_LOCKDOWN_DEF_MIN,
+  TYPE_LOCKDOWN_OFF_MAX,
+  TYPE_LOCKDOWN_SHOT_MAX,
+  TYPE_ROLE_MAX,
+  TYPE_SPECIAL_MIN,
+  type PlayerTypeKey,
+} from "./glossary";
 
 // ─────────────────────────────────────────────
 // 표본 기준 (백분위 비교 집단)
@@ -173,44 +183,52 @@ export function seasonCoverage(players: readonly CoverageInput[], threshold = 0.
 }
 
 // ─────────────────────────────────────────────
-// 레이더 5축: 공격 · 수비 · 3점 · 허슬 · 효율 (2026-09-30 등급 체계 2차, PLAN.md §8)
+// 레이더 6축: 공격 · 수비 · 리바운드 · 슈팅 · 리딩 · 효율 (2026-10-01 피드백 7차 — 5축(공격·수비·3점·허슬·효율)에서 개편)
 // ─────────────────────────────────────────────
 // 축 하나 = 관련 스탯 여러 개(구성 요소)의 **백분위 평균**. 볼륨(경기당 실제 기록)과 효율(성공률·지수)을 함께 넣는다.
 // 볼륨은 **경기당**(시즌 합계 ÷ 경기 수)이다 (2026-09-30 피드백 5차, PLAN.md §13). 처음엔 40분당 환산을 썼으나
 // 출전 10분 안팎인 선수의 40분당 값이 4배로 부풀어 벤치 선수가 공격·허슬 A~S 를 받았다 — 팬이 보는 "실제 경기당 기록"과
 // 등급이 어긋났다. 경기당이면 출전 시간이 곧 역할이라 주전·많이 뛰는 선수가 볼륨 축에서 앞선다(의도).
 //   1) 구성 요소 백분위: 같은 시즌·같은 국적 집단(gradeGroupOf)·표본 기준 충족 선수 안에서 percentileRank.
-//      낮을수록 좋은 항목(경기당 파울·TOV%)은 percentileRankLow(반전).
+//      낮을수록 좋은 항목(TOV%)은 percentileRankLow(반전).
 //   2) 축 원점수 = 그 선수에게 쓸 수 있는 구성 요소 백분위의 단순 평균(가중치 모두 1).
 //      - 시즌에 기록이 없는 항목은 뺀다(activeRadarComponents: coverage 플래그 + KBL 계산값은 0 아닌 비율 50%).
-//      - 성공률(2점%·3점%)은 그 선수의 경기당 시도가 리그 평균 이상일 때만 넣는다(아니면 그 선수만 그 항목 제외).
+//      - 성공률(3점%·미드레인지%)은 그 선수의 경기당 시도가 리그 평균 이상일 때만 넣는다(아니면 그 선수만 그 항목 제외).
 //      - 남은 구성 요소가 0개면 축은 null → 화면 "-".
 //   3) 축 백분위(레이더 값·축 등급) = 축 원점수를 같은 집단 표본 충족 선수들의 축 원점수에 대어 다시 percentileRank.
 //      왜 한 번 더: 백분위 여러 개를 평균하면 값이 50 근처로 모여(상위 10%라도 평균은 70대) S~F 경계(90/75/…)가
 //      "집단 안 위치"라는 뜻을 잃는다. 다시 순위를 매기면 S = 그 집단 상위 10% 가 그대로 지켜진다.
-//   4) 종합 = 5축 백분위 평균(null 축 제외)을 같은 방식으로 집단 안에서 다시 percentileRank → 종합 등급.
-// 가중치: 전부 1(단순 평균). 근거 — 팬이 "무엇이 몇 %"로 바로 이해할 수 있고, 어느 항목을 더 무겁게 볼지에 대한
-// 합의된 기준이 없다. 스틸은 수비·허슬 두 축에 모두 들어간다(사용자 제안 그대로 — 둘 다의 대표 기록이라서).
-// 경기당 값(누적 기록·+/-)은 perGame. per40 은 레이더에선 더 쓰지 않는다(함수는 다른 곳·테스트용으로 남김).
+//   4) 종합 = 6축 백분위의 **포지션별 가중** 평균(axisWeights)에 종합 전용 컷을 직접 댄다(overallScore).
+// 축 구성(2026-10-01 사용자 정의):
+//   공격   — 순수 득점: 경기당 득점·야투 성공·야투 시도·자유투 시도 + USG%(있는 시즌만). 어시스트는 리딩으로 옮김
+//   수비   — 경기당 스틸·블록·굿디펜스(2000-01~)·디플렉션(2025-26~). 파울은 뺌(수비 적극성의 대가라 감점이 애매)
+//   리바운드 — 경기당 공격·수비 리바운드 + REB%(2025-26~). 박스아웃은 KBL 이 기록하지 않아 없음
+//   슈팅   — 골밑을 뺀 외곽: 경기당 3점 성공·3점 시도·3점 성공률 + 경기당 미드레인지 시도·미드레인지 성공률(슛 차트 있는 2006-07~, lib/shots 구역)
+//   리딩   — 경기당 어시스트·AST/TO·TOV%(반전) + AST%(2025-26~). 경기당 턴오버(반전)는 넣었다가 뺐다 — 공을 덜 만지는 벤치 선수가 올라가서(비율인 TOV% 만)
+//   효율   — PER·TS%·eFG%
+// 가중치: 축 안에서는 전부 1(단순 평균). 근거 — 팬이 "무엇이 몇 %"로 바로 이해할 수 있고, 어느 항목을 더 무겁게 볼지에 대한
+// 합의된 기준이 없다. 스틸은 수비 축에만(허슬 축 폐지). +/-·스크린 어시스트·2점 성공률은 어느 축에도 안 들어간다.
 
-export const RADAR_AXES = ["offense", "defense", "three", "hustle", "efficiency"] as const;
+export const RADAR_AXES = ["offense", "defense", "rebound", "shooting", "playmaking", "efficiency"] as const;
 export type RadarAxis = (typeof RADAR_AXES)[number];
 
 /** 축 이름 (레이더 꼭짓점·표·용어집) */
 export const RADAR_AXIS_LABELS: Record<RadarAxis, string> = {
   offense: "공격",
   defense: "수비",
-  three: "3점",
-  hustle: "허슬",
+  rebound: "리바운드",
+  shooting: "슈팅",
+  playmaking: "리딩",
   efficiency: "효율",
 };
 
 export type RadarComponentKey =
-  | "ptsPerGame" | "astPerGame" | "usgPct" | "twoPPct"
-  | "stlPerGame" | "blkPerGame" | "drebPerGame" | "gdPerGame" | "foulsPerGame"
-  | "tpmPerGame" | "tpPct" | "tpaPerGame"
-  | "orebPerGame" | "deflPerGame" | "screenPerGame" | "pmPerGame"
-  | "tsPct" | "efgPct" | "tovPct" | "astTo" | "per";
+  | "ptsPerGame" | "fgmPerGame" | "fgaPerGame" | "ftaPerGame" | "usgPct"
+  | "stlPerGame" | "blkPerGame" | "gdPerGame" | "deflPerGame"
+  | "orebPerGame" | "drebPerGame" | "rebPct"
+  | "tpmPerGame" | "tpaPerGame" | "tpPct" | "midAPerGame" | "midPct"
+  | "astPerGame" | "astTo" | "tovPct" | "astPct"
+  | "per" | "tsPct" | "efgPct";
 
 export interface RadarComponentDef {
   key: RadarComponentKey;
@@ -218,46 +236,50 @@ export interface RadarComponentDef {
   label: string;
   /** high: 클수록 상위 / low: 작을수록 상위(백분위 반전) */
   better: "high" | "low";
-  /** 이 시즌 커버리지 플래그가 true 여야 쓰는 항목 (USG%: advanced, 굿디펜스: goodDef, 허슬: hustle, +/-: plusMinus) */
+  /** 이 시즌 커버리지 플래그가 true 여야 쓰는 항목 (USG%·REB%·AST%: advanced, 굿디펜스: goodDef, 디플렉션: hustle, 미드레인지: shots) */
   requires?: keyof SeasonCoverage;
   /** KBL 계산값(없으면 0으로 온다) → 표본 충족 선수 절반 이상이 0 이면 그 시즌엔 뺀다 (coverageFlag) */
   kblComputed?: boolean;
-  /** 성공률: 경기당 시도(twoPa·tpa)가 리그 평균(radarAttemptThresholds) 이상인 선수만 */
-  attempt?: "twoPa" | "tpa";
+  /** 성공률: 경기당 시도(tpa·midA)가 리그 평균(radarAttemptThresholds) 이상인 선수만 */
+  attempt?: "tpa" | "midA";
 }
 
-/** 구성 요소 정의 (한 요소가 두 축에 들어갈 수 있다 — 경기당 스틸) */
+/** 구성 요소 정의 */
 export const RADAR_COMPONENTS: Record<RadarComponentKey, RadarComponentDef> = {
   ptsPerGame: { key: "ptsPerGame", label: "경기당 득점", better: "high" },
-  astPerGame: { key: "astPerGame", label: "경기당 어시스트", better: "high" },
+  fgmPerGame: { key: "fgmPerGame", label: "경기당 야투 성공", better: "high" },
+  fgaPerGame: { key: "fgaPerGame", label: "경기당 야투 시도", better: "high" },
+  ftaPerGame: { key: "ftaPerGame", label: "경기당 자유투 시도", better: "high" },
   usgPct: { key: "usgPct", label: "USG%", better: "high", requires: "advanced", kblComputed: true },
-  twoPPct: { key: "twoPPct", label: "2점 성공률", better: "high", attempt: "twoPa" },
   stlPerGame: { key: "stlPerGame", label: "경기당 스틸", better: "high" },
   blkPerGame: { key: "blkPerGame", label: "경기당 블록", better: "high" },
-  drebPerGame: { key: "drebPerGame", label: "경기당 수비 리바운드", better: "high" },
   gdPerGame: { key: "gdPerGame", label: "경기당 굿디펜스", better: "high", requires: "goodDef" },
-  foulsPerGame: { key: "foulsPerGame", label: "경기당 파울", better: "low" },
-  tpmPerGame: { key: "tpmPerGame", label: "경기당 3점 성공", better: "high" },
-  tpPct: { key: "tpPct", label: "3점 성공률", better: "high", attempt: "tpa" },
-  tpaPerGame: { key: "tpaPerGame", label: "경기당 3점 시도", better: "high" },
-  orebPerGame: { key: "orebPerGame", label: "경기당 공격 리바운드", better: "high" },
   deflPerGame: { key: "deflPerGame", label: "경기당 디플렉션", better: "high", requires: "hustle" },
-  screenPerGame: { key: "screenPerGame", label: "경기당 스크린 어시스트", better: "high", requires: "hustle" },
-  pmPerGame: { key: "pmPerGame", label: "경기당 +/-", better: "high", requires: "plusMinus" },
+  orebPerGame: { key: "orebPerGame", label: "경기당 공격 리바운드", better: "high" },
+  drebPerGame: { key: "drebPerGame", label: "경기당 수비 리바운드", better: "high" },
+  rebPct: { key: "rebPct", label: "REB%", better: "high", requires: "advanced", kblComputed: true },
+  tpmPerGame: { key: "tpmPerGame", label: "경기당 3점 성공", better: "high" },
+  tpaPerGame: { key: "tpaPerGame", label: "경기당 3점 시도", better: "high" },
+  tpPct: { key: "tpPct", label: "3점 성공률", better: "high", attempt: "tpa" },
+  midAPerGame: { key: "midAPerGame", label: "경기당 미드레인지 시도", better: "high", requires: "shots" },
+  midPct: { key: "midPct", label: "미드레인지 성공률", better: "high", requires: "shots", attempt: "midA" },
+  astPerGame: { key: "astPerGame", label: "경기당 어시스트", better: "high" },
+  astTo: { key: "astTo", label: "AST/TO", better: "high", kblComputed: true },
+  tovPct: { key: "tovPct", label: "TOV%", better: "low", kblComputed: true },
+  astPct: { key: "astPct", label: "AST%", better: "high", requires: "advanced", kblComputed: true },
+  per: { key: "per", label: "PER", better: "high", kblComputed: true },
   tsPct: { key: "tsPct", label: "TS%", better: "high", kblComputed: true },
   efgPct: { key: "efgPct", label: "eFG%", better: "high", kblComputed: true },
-  tovPct: { key: "tovPct", label: "TOV%", better: "low", kblComputed: true },
-  astTo: { key: "astTo", label: "AST/TO", better: "high", kblComputed: true },
-  per: { key: "per", label: "PER", better: "high", kblComputed: true },
 };
 
 /** 축별 구성 요소 (배열 순서 = 설명·표 순서) */
 export const RADAR_AXIS_COMPONENTS: Record<RadarAxis, readonly RadarComponentKey[]> = {
-  offense: ["ptsPerGame", "astPerGame", "usgPct", "twoPPct"],
-  defense: ["stlPerGame", "blkPerGame", "drebPerGame", "gdPerGame", "foulsPerGame"],
-  three: ["tpmPerGame", "tpPct", "tpaPerGame"],
-  hustle: ["orebPerGame", "stlPerGame", "deflPerGame", "screenPerGame", "pmPerGame"],
-  efficiency: ["tsPct", "efgPct", "tovPct", "astTo", "per"],
+  offense: ["ptsPerGame", "fgmPerGame", "fgaPerGame", "ftaPerGame", "usgPct"],
+  defense: ["stlPerGame", "blkPerGame", "gdPerGame", "deflPerGame"],
+  rebound: ["orebPerGame", "drebPerGame", "rebPct"],
+  shooting: ["tpmPerGame", "tpaPerGame", "tpPct", "midAPerGame", "midPct"],
+  playmaking: ["astPerGame", "astTo", "tovPct", "astPct"],
+  efficiency: ["per", "tsPct", "efgPct"],
 };
 
 const ALL_COMPONENTS = Object.keys(RADAR_COMPONENTS) as RadarComponentKey[];
@@ -266,44 +288,50 @@ const ALL_COMPONENTS = Object.keys(RADAR_COMPONENTS) as RadarComponentKey[];
 export interface RadarInput {
   games: number;
   minutes: number;        // 시즌 누적 (분)
-  points: number; ast: number; stl: number; blk: number; fouls: number;
+  points: number; ast: number; stl: number; blk: number; tov: number;
+  fgm: number; fga: number; fta: number;
   oreb: number; dreb: number;
-  tpm: number; tpa: number; twoPa: number;
-  goodDef: number; deflections: number; screenAst: number; plusMinus: number;
-  twoPPct: number; tpPct: number;              // KBL 계산 성공률 (0~100)
-  usgPct: number; tsPct: number; efgPct: number; tovPct: number; astTo: number; per: number;
+  tpm: number; tpa: number;
+  goodDef: number; deflections: number;
+  /** 미드레인지 슛 시도·성공 (슛 차트 구역, coverage.shots 시즌만. 없으면 0) */
+  midA: number; midM: number;
+  tpPct: number;                                  // KBL 계산 성공률 (0~100)
+  usgPct: number; rebPct: number; astPct: number; // 2차 스탯 (coverage.advanced 시즌만 의미)
+  tsPct: number; efgPct: number; tovPct: number; astTo: number; per: number;
 }
 
-/** 한 선수의 구성 요소 값 (누적 기록은 경기당 = 시즌 합계 ÷ 경기 수, 나머지는 KBL 값 그대로) */
+/** 한 선수의 구성 요소 값 (누적 기록은 경기당 = 시즌 합계 ÷ 경기 수, 나머지는 KBL 값 그대로. 미드레인지 성공률은 우리 계산) */
 export function componentValue(p: RadarInput, key: RadarComponentKey): number {
   switch (key) {
     case "ptsPerGame": return perGame(p.points, p.games);
-    case "astPerGame": return perGame(p.ast, p.games);
+    case "fgmPerGame": return perGame(p.fgm, p.games);
+    case "fgaPerGame": return perGame(p.fga, p.games);
+    case "ftaPerGame": return perGame(p.fta, p.games);
     case "stlPerGame": return perGame(p.stl, p.games);
     case "blkPerGame": return perGame(p.blk, p.games);
-    case "drebPerGame": return perGame(p.dreb, p.games);
     case "gdPerGame": return perGame(p.goodDef, p.games);
-    case "foulsPerGame": return perGame(p.fouls, p.games);
+    case "deflPerGame": return perGame(p.deflections, p.games);
+    case "orebPerGame": return perGame(p.oreb, p.games);
+    case "drebPerGame": return perGame(p.dreb, p.games);
     case "tpmPerGame": return perGame(p.tpm, p.games);
     case "tpaPerGame": return perGame(p.tpa, p.games);
-    case "orebPerGame": return perGame(p.oreb, p.games);
-    case "deflPerGame": return perGame(p.deflections, p.games);
-    case "screenPerGame": return perGame(p.screenAst, p.games);
-    case "pmPerGame": return perGame(p.plusMinus, p.games);
+    case "midAPerGame": return perGame(p.midA, p.games);
+    case "midPct": return p.midA > 0 ? (p.midM / p.midA) * 100 : 0;
+    case "astPerGame": return perGame(p.ast, p.games);
     default: return p[key];
   }
 }
 
-/** 레이더 성공률 항목의 시도 기준: 표본 충족 선수의 경기당 2점·3점 시도 평균 (attemptThresholds 와 같은 방식) */
+/** 레이더 성공률 항목의 시도 기준: 표본 충족 선수의 경기당 3점·미드레인지 시도 평균 (attemptThresholds 와 같은 방식) */
 export interface RadarThresholds {
-  twoPa: number;
   tpa: number;
+  midA: number;
 }
 
 export function radarAttemptThresholds(players: readonly RadarInput[], rule: QualifyRule): RadarThresholds {
   const q = players.filter((p) => isQualified(p, rule) && p.games > 0);
-  const mean = (f: "twoPa" | "tpa") => (q.length ? q.reduce((s, p) => s + p[f] / p.games, 0) / q.length : 0);
-  return { twoPa: mean("twoPa"), tpa: mean("tpa") };
+  const mean = (f: "tpa" | "midA") => (q.length ? q.reduce((s, p) => s + p[f] / p.games, 0) / q.length : 0);
+  return { tpa: mean("tpa"), midA: mean("midA") };
 }
 
 /** 이 선수에게 이 구성 요소를 쓸 수 있나 (성공률은 시도 기준) */
@@ -325,7 +353,7 @@ export function activeRadarComponents(
   const q = players.filter((p) => isQualified(p, rule));
   return ALL_COMPONENTS.filter((k) => {
     const def = RADAR_COMPONENTS[k];
-    if (def.requires && !coverage[def.requires]) return false;
+    if (def.requires && !coverage[def.requires]) return false; // shots 는 옛 파일에 없음(undefined) → 뺀다
     if (def.kblComputed && !coverageFlag(q.map((p) => componentValue(p, k)))) return false;
     return true;
   });
@@ -360,7 +388,7 @@ export const GRADE_GROUP_LABELS: Record<GradeGroupKey, string> = {
 export interface GradeInput extends RadarInput {
   nationality: Nationality | null;
   isForeign: boolean;
-  /** 포지션 (선수 마스터). 종합 점수의 3점 축 가중치에만 쓴다(axisWeights) — 없으면 가중치 전부 1 */
+  /** 포지션 (선수 마스터). 종합 점수·유형 라벨의 축 가중치에 쓴다(axisWeights) — 없으면 가중치 전부 1 */
   position?: Position | null;
 }
 
@@ -422,8 +450,8 @@ export interface RadarScore {
   /** 축별 구성 요소 (활성 요소만, 순서 = RADAR_AXIS_COMPONENTS) */
   components: Record<RadarAxis, RadarComponentScore[]>;
   /**
-   * 종합 점수 (종합 등급) = 5축 백분위(axes)의 평균 — 다시 순위 매기지 않는다 (overallScore). 포지션에 따라 3점 축 비중을 줄인다(axisWeights).
-   * 0~100 척도라 종합 전용 컷(OVERALL_GRADE_CUTS)을 그대로 대면 S 는 "5축 평균 85 이상" = 여러 축이 동시에 높은 선수만 받는다.
+   * 종합 점수 (종합 등급) = 6축 백분위(axes)의 포지션별 가중 평균 — 다시 순위 매기지 않는다 (overallScore, axisWeights).
+   * 0~100 척도라 종합 전용 컷(OVERALL_GRADE_CUTS)을 그대로 대면 S 는 "6축 가중 평균 85 이상" = 여러 축이 동시에 높은 선수만 받는다.
    */
   overall: number | null;
 }
@@ -466,13 +494,13 @@ function axisPercentiles(raw: Record<RadarAxis, number | null>, g: Pick<GradeGro
 }
 
 /**
- * 종합 점수 = 5축 백분위의 가중 평균 (null 축은 빼고, 전부 null 이면 null). weights 를 안 주면 5축 같은 비중.
+ * 종합 점수 = 6축 백분위의 가중 평균 (null 축은 빼고, 전부 null 이면 null). weights 를 안 주면 6축 같은 비중.
  * 종합 등급 = 이 값에 종합 전용 컷(OVERALL_GRADE_CUTS 85/70/55/40/25)을 **직접** 댄다 — 집단 안에서 다시 순위 매기지 않는다.
  * (2026-09-30 피드백 3차: 다시 순위를 매기면 "평균이 집단 상위 10%"만 되면 S 라, 한 축만 뛰어나도 S 가 나왔다 —
- *  예: 강성욱 2025-26 축 S·A·D·A·A → 재순위 종합 S. 평균에 컷을 직접 대면 S 는 5축 평균이 컷 이상 = 여러 축이 동시에 높아야 한다.
+ *  예: 강성욱 2025-26 축 S·A·D·A·A → 재순위 종합 S. 평균에 컷을 직접 대면 S 는 축 평균이 컷 이상 = 여러 축이 동시에 높아야 한다.
  *  처음엔 축 컷 90 을 그대로 댔더니 2025-26 종합 S 가 0명이라 종합 전용 컷 85/70/55/40/25 로 내렸다.)
  * 축 등급은 그대로 "구성 요소 백분위 평균 → 집단 안 재순위" (백분위 몇 개의 평균은 50 근처로 모이기 때문).
- * 가중치(axisWeights): 포지션에 따라 3점 축 비중을 줄인다 — 센터 0, 포워드 0.5, 가드 1 (아래 POSITION_THREE_WEIGHT).
+ * 가중치(axisWeights): 포지션별 역할 묶음(가드·포워드·빅맨)에 맞춰 축 비중을 바꾼다 (아래 ROLE_AXIS_WEIGHTS).
  */
 export function overallScore(
   axes: Partial<Record<RadarAxis, number | null>>,
@@ -491,37 +519,61 @@ export function overallScore(
 }
 
 // ─────────────────────────────────────────────
-// 포지션별 종합 가중치 (2026-10-01 사용자 요청 — "센터는 3점이 낮은 게 당연한데 종합 등급까지 깎인다")
+// 포지션별 종합 가중치 (2026-10-01 피드백 7차 — "빅맨은 슈팅·리딩이 낮아도 리바운드·블록이 높으면, 가드는 리바운드가 낮아도 리딩·스틸이 높으면 높게")
 // ─────────────────────────────────────────────
-// 레이더 5축 중 3점 축만 포지션에 따라 종합 평균 비중을 줄인다. 축 백분위(레이더 모양·축 등급)는 그대로 두고
-// **종합 점수·유형 라벨 판정**에서만 뺀다 — 레이더는 "실제로 어떤 선수인가"를 보여 주고, 종합은 "제 역할 안에서 얼마나 잘하나"를 보려고.
-// 근거(2025-26 국내 선수 표본 충족, 3점 축 백분위 평균): 가드 55.6 · 포워드 49.9 · 센터 16.5. 다른 네 축은 포지션에 따라 그렇게 쏠리지 않는다
-// (수비 축에 블록이 있지만 스틸·수비 리바운드·굿디펜스·파울과 섞여 한 축 전체가 비지는 않는다).
-// 센터는 3점 축 평균이 20 아래라 다섯 축 평균을 혼자 약 7점 끌어내렸다(예: 하윤기 2025-26 축 78·57·1·90·83 → 종합 62 B, 3점 축을 빼면 77 A).
-// 포워드(FD)는 KBL 코드상 스몰 포워드와 빅맨(김주성·함지훈·이승현 등 3점 축 3~14)이 섞여 있어 절반만 센다.
-// 가드·가드-포워드는 그대로 1. 포지션을 모르는 선수(마스터에 없음)도 1.
+// 축 백분위(레이더 모양·축 등급)는 그대로 두고 **종합 점수·유형 라벨 판정**에서만 축 비중을 포지션에 맞춘다 —
+// 레이더는 "실제로 어떤 선수인가", 종합은 "제 역할 안에서 얼마나 잘하나".
+// 역할 묶음(선수 마스터 포지션 코드): 가드 = G·GF / 포워드 = F / 빅맨 = FC·C. 포지션을 모르면 전부 1.
+//   가드   — 리딩 ×1.5, 리바운드 ×0.5 (나머지 1)
+//   포워드 — 전부 1 (KBL 포워드 코드엔 윙과 빅맨이 섞여 있어 어느 쪽으로도 기울이지 않는다)
+//   빅맨   — 리바운드 ×1.5, 슈팅 ×0.5, 리딩 ×0.5 (나머지 1)
+// 블록·스틸은 수비 축 안에 있어 따로 비중을 두지 않는다(빅맨 블록·가드 스틸이 각자 수비 축을 올린다).
+// 근거(2025-26 국내 표본 충족 실측, 축 백분위 평균): 리바운드 가드 37 · 빅맨 83, 슈팅 가드 55 · 빅맨 37, 리딩 가드 64 · 빅맨 35 —
+// 포지션 때문에 구조적으로 낮은 축이 종합을 끌어내리지 않게 하되, 0 으로 아예 빼지는 않는다(그 축이 뛰어나면 여전히 보탬).
 
-/** 포지션 → 3점 축 가중치 (나머지 네 축은 항상 1) */
-export const POSITION_THREE_WEIGHT: Record<Position, number> = { G: 1, GF: 1, F: 0.5, FC: 0.5, C: 0 };
+export type RoleGroup = "guard" | "forward" | "big";
 
-export const EQUAL_AXIS_WEIGHTS: Readonly<Record<RadarAxis, number>> = { offense: 1, defense: 1, three: 1, hustle: 1, efficiency: 1 };
+/** 포지션 코드 → 역할 묶음 */
+export function roleGroupOf(position: Position | null | undefined): RoleGroup | null {
+  if (!position) return null;
+  if (position === "G" || position === "GF") return "guard";
+  if (position === "F") return "forward";
+  return "big";
+}
 
-/** 포지션별 축 가중치 (종합 점수·유형 라벨용). 포지션 없으면 5축 모두 1 */
+export const ROLE_GROUP_LABELS: Record<RoleGroup, string> = { guard: "가드", forward: "포워드", big: "빅맨" };
+
+export const EQUAL_AXIS_WEIGHTS: Readonly<Record<RadarAxis, number>> = {
+  offense: 1, defense: 1, rebound: 1, shooting: 1, playmaking: 1, efficiency: 1,
+};
+
+/** 역할 묶음별 축 가중치 (적지 않은 축은 1) */
+export const ROLE_AXIS_WEIGHTS: Record<RoleGroup, Partial<Record<RadarAxis, number>>> = {
+  guard: { playmaking: 1.5, rebound: 0.5 },
+  forward: {},
+  big: { rebound: 1.5, shooting: 0.5, playmaking: 0.5 },
+};
+
+/** 포지션별 축 가중치 (종합 점수·유형 라벨용). 포지션 없으면 6축 모두 1 */
 export function axisWeights(position: Position | null | undefined): Readonly<Record<RadarAxis, number>> {
-  if (!position) return EQUAL_AXIS_WEIGHTS;
-  return { ...EQUAL_AXIS_WEIGHTS, three: POSITION_THREE_WEIGHT[position] };
+  const role = roleGroupOf(position);
+  if (!role) return EQUAL_AXIS_WEIGHTS;
+  return { ...EQUAL_AXIS_WEIGHTS, ...ROLE_AXIS_WEIGHTS[role] };
 }
 
 /**
  * 종합 가중치 안내 한 줄 (카드 "등급 기준" 옆). 가중치가 전부 1이면 null.
- * 예: "센터라 3점 축은 종합에 넣지 않음", "포워드라 3점 축은 종합에 절반만"
+ * 예: "가드라 리딩 ×1.5 · 리바운드 ×0.5", "빅맨이라 리바운드 ×1.5 · 슈팅 ×0.5 · 리딩 ×0.5"
  */
 export function overallWeightNote(position: Position | null | undefined): string | null {
-  if (!position) return null;
-  const w = POSITION_THREE_WEIGHT[position];
-  if (w >= 1) return null;
-  const who = position === "C" ? "센터" : position === "FC" ? "포워드-센터" : "포워드";
-  return w <= 0 ? `${who}라 3점 축은 종합에 넣지 않음` : `${who}라 3점 축은 종합에 절반만`;
+  const role = roleGroupOf(position);
+  if (!role) return null;
+  const parts = RADAR_AXES.filter((a) => ROLE_AXIS_WEIGHTS[role][a] !== undefined && ROLE_AXIS_WEIGHTS[role][a] !== 1).map(
+    (a) => `${RADAR_AXIS_LABELS[a]} ×${ROLE_AXIS_WEIGHTS[role][a]}`,
+  );
+  if (parts.length === 0) return null;
+  const who = ROLE_GROUP_LABELS[role];
+  return `${who}${role === "big" ? "이라" : "라"} ${parts.join(" · ")}`;
 }
 
 /**
@@ -572,7 +624,7 @@ export function missingComponentLabels(ctx: Pick<GradingContext, "active">): str
 }
 
 // ─────────────────────────────────────────────
-// 선수 유형 라벨 (재미용, 단순 규칙)
+// 선수 유형 라벨 (재미용, 단순 규칙) — 2026-10-01 피드백 7차: 포지션 세분 유형 추가
 // ─────────────────────────────────────────────
 
 export interface PlayerType {
@@ -590,17 +642,23 @@ function typeOf(key: PlayerTypeKey): PlayerType {
 }
 
 /**
- * 5축 백분위 → 한 줄 유형 라벨. 규칙 (위에서부터 먼저 맞는 것, 라벨·문턱값은 lib/glossary PLAYER_TYPES·TYPE_*):
- *  1) 5개 축이 모두 TYPE_ALLROUNDER_MIN(60) 이상 → "올라운더"      (고르게 상위권)
- *  2) 가장 높은 축이 TYPE_ROLE_MAX(40) 미만      → "궂은일 담당 롤 플레이어" (어느 축도 두드러지지 않음)
- *  3) 그 외: 가장 높은 축의 유형                  → 공격 "득점원" · 수비 "수비수" · 3점 "슈터" · 허슬 "허슬 플레이어" · 효율 "효율형"
- *     동점이면 축 순서(공격 → 수비 → 3점 → 허슬 → 효율)로 먼저 나온 축.
+ * 6축 백분위 → 한 줄 유형 라벨. 규칙 (위에서부터 먼저 맞는 것, 라벨·문턱값은 lib/glossary PLAYER_TYPES·TYPE_*):
+ *  1) 세는 축(가중치 > 0)이 모두 TYPE_ALLROUNDER_MIN(60) 이상 → "올라운더"
+ *  2) 가장 높은 축이 TYPE_ROLE_MAX(40) 미만 → "궂은일 담당 롤 플레이어"
+ *  3) 포지션 세분 유형(position 이 있을 때만): **가장 높은 축**이 그 포지션에서 역할상 낮기 쉬운 축이고 문턱 이상이면
+ *     빅맨(FC·C): 리딩 ≥ 70 → "플레이메이킹 빅맨" · 슈팅 ≥ 70 → "스트레치 빅맨"
+ *     가드(G·GF)·포워드(F): 수비 ≥ 80 이고 슈팅 < 55, 공격 < 70 → "락다운 디펜더" (득점원이 아닌 외곽 수비수)
+ *     가드: 리바운드 ≥ 70 → "리바운딩 가드"
+ *     (처음엔 "그 축이 70 이상이면"으로 했더니 공격·수비가 S 인 이정현이 리바운드 81 때문에 "리바운딩 가드"가 됐다 → 가장 높은 축일 때만)
+ *  4) 그 외: 가장 높은 축의 유형 → 공격 "득점원" · 수비 "수비수" · 리바운드 "리바운더" · 슈팅 "슈터" · 리딩 "플레이메이커" · 효율 "효율형"
+ *     동점이면 축 순서(공격 → 수비 → 리바운드 → 슈팅 → 리딩 → 효율)로 먼저 나온 축 — 세분 유형 판정도 같은 "가장 높은 축"을 쓴다.
  * null 축은 무시(올라운더 판정에서는 세는 축이 모두 있어야 한다). 전부 null이면 "분석 불가".
- * weights(axisWeights): 가중치 0 인 축(센터의 3점)은 아예 세지 않는다 — 센터는 3점이 낮아도 나머지 4축이 60 이상이면 올라운더.
+ * weights(axisWeights): 가중치 0 인 축은 아예 세지 않는다(지금 역할 묶음엔 0 이 없지만 규칙으로 둔다).
  */
 export function playerType(
   pct: Partial<Record<RadarAxis, number | null>>,
   weights: Readonly<Record<RadarAxis, number>> = EQUAL_AXIS_WEIGHTS,
+  position: Position | null | undefined = null,
 ): PlayerType {
   const counted = RADAR_AXES.filter((a) => weights[a] > 0);
   const entries = counted.map((a) => [a, pct[a] ?? null] as const).filter(
@@ -611,7 +669,20 @@ export function playerType(
   let top = entries[0];
   for (const e of entries) if (e[1] > top[1]) top = e;
   if (top[1] < TYPE_ROLE_MAX) return typeOf("role");
-  const def = PLAYER_TYPES.find((t) => t.axis === top[0])!;
+  const v = (a: RadarAxis) => pct[a] ?? null;
+  const lt = (a: RadarAxis, cut: number) => v(a) !== null && v(a)! < cut;
+  const role = roleGroupOf(position);
+  const [topAxis, topVal] = top;
+  if (role === "big") {
+    if (topAxis === "playmaking" && topVal >= TYPE_SPECIAL_MIN) return typeOf("playmakingBig");
+    if (topAxis === "shooting" && topVal >= TYPE_SPECIAL_MIN) return typeOf("stretchBig");
+  } else if (role) {
+    if (topAxis === "defense" && topVal >= TYPE_LOCKDOWN_DEF_MIN && lt("shooting", TYPE_LOCKDOWN_SHOT_MAX) && lt("offense", TYPE_LOCKDOWN_OFF_MAX)) {
+      return typeOf("lockdown");
+    }
+    if (role === "guard" && topAxis === "rebound" && topVal >= TYPE_SPECIAL_MIN) return typeOf("reboundingGuard");
+  }
+  const def = PLAYER_TYPES.find((t) => t.axis === topAxis)!;
   return typeOf(def.key);
 }
 
@@ -831,7 +902,7 @@ export const GRADE_CUTS: readonly (readonly [Grade, number])[] = [
 ];
 
 /**
- * 종합 등급 전용 컷 (5축 백분위 평균 = overallScore 에 직접 댄다). 축 등급 컷(GRADE_CUTS)보다 한 단계 낮다.
+ * 종합 등급 전용 컷 (6축 백분위 가중 평균 = overallScore 에 직접 댄다). 축 등급 컷(GRADE_CUTS)보다 한 단계 낮다.
  * 이유(2026-09-30 피드백): 5축 평균은 여러 축이 동시에 높아야 올라가서, 축 컷 90 을 그대로 대면 2025-26 종합 S 가 0명이었다
  * (5축 평균 최고 이정현 86.7). 85 로 낮춰도 S 는 "다섯 축 평균 85 이상" = 여러 축이 모두 상위권인 선수뿐이다.
  */
@@ -855,7 +926,7 @@ export function percentileGrade(pct: number | null | undefined): Grade | "-" {
   return gradeByCuts(pct, GRADE_CUTS);
 }
 
-/** 종합 점수(5축 평균) → 종합 등급 (OVERALL_GRADE_CUTS) */
+/** 종합 점수(6축 가중 평균) → 종합 등급 (OVERALL_GRADE_CUTS) */
 export function overallGrade(score: number | null | undefined): Grade | "-" {
   return gradeByCuts(score, OVERALL_GRADE_CUTS);
 }
@@ -927,13 +998,13 @@ export interface GradeGroupInfo {
 /** 카드 한 장에 그리는 값 (player 는 화면이 쓰는 선수 객체 그대로) */
 export interface CardEntryOf<T> {
   player: T;
-  /** 5축 백분위 (국적 집단 안) */
+  /** 6축 백분위 (국적 집단 안) */
   pct: Record<RadarAxis, number | null>;
   /** 축별 등급 (percentileGrade) */
   grades: Record<RadarAxis, Grade | "-">;
-  /** 종합 등급 (5축 백분위 평균(포지션별 3점 축 가중치) → overallGrade = OVERALL_GRADE_CUTS 85/70/55/40/25, 재순위 없음) */
+  /** 종합 등급 (6축 백분위의 포지션별 가중 평균 → overallGrade = OVERALL_GRADE_CUTS 85/70/55/40/25, 재순위 없음) */
   overall: Grade | "-";
-  /** 종합 점수 = 5축 백분위 평균 (0~100, 포지션별 3점 축 가중치 axisWeights) */
+  /** 종합 점수 = 6축 백분위 가중 평균 (0~100, 포지션별 가중치 axisWeights) */
   overallPct: number | null;
   /** 축별 구성 요소 값·백분위 (툴팁·표 보기) */
   radar: RadarScore;
@@ -959,7 +1030,7 @@ export function buildCardEntry<T extends CardInput>(p: T, ctx: CardContext): Car
     overall: overallGrade(radar.overall),
     overallPct: radar.overall,
     radar,
-    type: playerType(radar.axes, axisWeights(p.position)),
+    type: playerType(radar.axes, axisWeights(p.position), p.position),
     qualified: isQualified(p, ctx.rule),
     stats: cardStats(p, ctx.pools, ctx.rule, ctx.thresholds),
     gradeGroup: { key: gk, label: GRADE_GROUP_LABELS[gk], count: ctx.grading.groups[gk]?.count ?? 0 },

@@ -13,7 +13,7 @@ export function koShortOf(season: SeasonData): (p: { teamCode: string; teamShort
 }
 
 /**
- * 플레이어 카드용 최소 필드(메인 스탯 + 레이더 5축 구성 요소). PIE·AST%·REB% 는 넘기지 않는다(레이더에서 뺌).
+ * 플레이어 카드용 최소 필드(메인 스탯 + 레이더 6축 구성 요소). PIE 는 넘기지 않는다.
  * 옛 processed 파일(프로필·파울 필드 없음)이어도 깨지지 않게 ?? 로 기본값을 둔다.
  */
 export function toCardPlayers(season: SeasonData, photoOf: PhotoLookup = () => null): CardPlayer[] {
@@ -45,6 +45,7 @@ export function toCardPlayers(season: SeasonData, photoOf: PhotoLookup = () => n
     fgPct: p.fgPct,
     tpPct: p.tpPct,
     ftPct: p.ftPct,
+    fgm: p.fgm ?? 0,
     twoPa: p.twoPa ?? 0,
     twoPPct: p.twoPPct ?? 0,
     tpm: p.tpm ?? 0,
@@ -54,8 +55,13 @@ export function toCardPlayers(season: SeasonData, photoOf: PhotoLookup = () => n
     deflections: p.deflections ?? 0,
     screenAst: p.screenAst ?? 0,
     plusMinus: p.plusMinus ?? 0,
+    // 미드레인지 시도·성공 (슛 차트 구역, 슈팅 축) — 슛 데이터 없는 시즌·선수는 0
+    midA: p.shotZones?.zones.mid.a ?? 0,
+    midM: p.shotZones?.zones.mid.m ?? 0,
     per: p.per,
     usgPct: p.usgPct,
+    rebPct: p.rebPct ?? 0,
+    astPct: p.astPct ?? 0,
     tsPct: p.tsPct,
     efgPct: p.efgPct ?? 0,
     tovPct: p.tovPct ?? 0,

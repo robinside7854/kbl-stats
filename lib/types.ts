@@ -230,7 +230,7 @@ export interface PlayerIndexEntry extends PlayerProfile {
 
 // ─────────────────────────────────────────────
 // 화면(클라이언트)으로 넘기는 최소 필드 — 페이로드를 작게 유지하기 위해
-// Player 전체가 아니라 플레이어 카드(메인 스탯 10개 + 레이더 5축 구성 요소)에 필요한 값만 담는다. (lib/data.ts 에서 변환)
+// Player 전체가 아니라 플레이어 카드(메인 스탯 10개 + 레이더 6축 구성 요소)에 필요한 값만 담는다. (lib/data.ts 에서 변환)
 // ─────────────────────────────────────────────
 
 export interface CardPlayer {
@@ -260,18 +260,23 @@ export interface CardPlayer {
   fgPct: number;          // 이하 KBL 계산 성공률 그대로 (0~100)
   tpPct: number;
   ftPct: number;
-  // 이하 레이더 5축 구성 요소 (lib/metrics RADAR_COMPONENTS) — 누적은 시즌 합계, 비율·지수는 KBL 계산값
-  twoPa: number;          // 2점 시도 (2점 성공률 시도 기준)
-  twoPPct: number;        // 2점 성공률
+  // 이하 레이더 6축 구성 요소 (lib/metrics RADAR_COMPONENTS) — 누적은 시즌 합계, 비율·지수는 KBL 계산값
+  fgm: number;            // 야투 성공 (공격 축)
+  twoPa: number;          // 2점 시도 (옛 레이더 축 재료 — 지금은 레이더에 안 쓰지만 카드 파일 호환으로 남김)
+  twoPPct: number;        // 2점 성공률 (같음)
   tpm: number;            // 3점 성공
   oreb: number;
   dreb: number;
   goodDef: number;        // 굿디펜스 (coverage.goodDef 시즌만 의미 있음)
   deflections: number;    // 디플렉션 (coverage.hustle)
-  screenAst: number;      // 스크린 어시스트 (coverage.hustle)
-  plusMinus: number;      // +/- 시즌 합계 (coverage.plusMinus)
+  screenAst: number;      // 스크린 어시스트 (coverage.hustle — 레이더엔 안 씀)
+  plusMinus: number;      // +/- 시즌 합계 (coverage.plusMinus — 레이더엔 안 씀)
+  midA: number;           // 미드레인지 슛 시도 (슛 차트 구역 lib/shots, coverage.shots 시즌만. 없으면 0)
+  midM: number;           // 미드레인지 슛 성공
   per: number;
   usgPct: number;         // 표준 척도(×5). coverage.advanced 가 아니면 0 이거나 일부만 있다
+  rebPct: number;         // REB% (coverage.advanced)
+  astPct: number;         // AST% (coverage.advanced)
   tsPct: number;
   efgPct: number;
   tovPct: number;

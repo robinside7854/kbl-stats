@@ -17,7 +17,7 @@ import type { LeaderPlayer } from "./types";
 export const ONE_CLUB_MIN_SEASONS = 5;
 /** 베테랑: 뛴 시즌 이 수 이상 */
 export const VETERAN_MIN_SEASONS = 10;
-/** 15시즌 클럽(키는 legend — 용어 탭 앵커 #badge-legend 를 깨지 않으려고 유지): 뛴 시즌 이 수 이상 (베테랑 대신) */
+/** 롱런(키는 legend — 용어 탭 앵커 #badge-legend 를 깨지 않으려고 유지): 뛴 시즌 이 수 이상 (베테랑 대신) */
 export const LEGEND_MIN_SEASONS = 15;
 /** 저니맨: 소속 팀 코드 이 수 이상 */
 export const JOURNEYMAN_MIN_TEAMS = 4;
@@ -70,7 +70,7 @@ export const BADGE_DEFS: readonly BadgeDef[] = [
   { key: "stealKing", label: "스틸왕", condition: `${KING_RULE} 스틸 1위 (공동 1위 포함). 2회 이상이면 ×횟수`, short: "그 시즌 경기당 스틸 1위" },
   { key: "blockKing", label: "블록왕", condition: `${KING_RULE} 블록 1위 (공동 1위 포함). 2회 이상이면 ×횟수`, short: "그 시즌 경기당 블록 1위" },
   // 2026-10-01 라벨 "레전드" → "15시즌 클럽": 레전드는 실력까지 뜻하는 말이라, 오래 뛴 사실만 담는 이름으로 (40득점 클럽과 같은 꼴)
-  { key: "legend", label: "15시즌 클럽", condition: `정규시즌을 뛴 시즌이 ${LEGEND_MIN_SEASONS}개 이상 (베테랑 대신 붙음)`, short: "KBL 에서 15시즌 이상 뛴 선수" },
+  { key: "legend", label: "롱런", condition: `정규시즌을 뛴 시즌이 ${LEGEND_MIN_SEASONS}개 이상 (베테랑 대신 붙음)`, short: "KBL 에서 15시즌 이상 뛴 선수" },
   { key: "club50", label: "50득점 클럽", condition: `정규시즌 한 경기 최다 득점(커리어 하이) ${CLUB_50}점 이상 (40득점 클럽 대신 붙음)`, short: "한 경기 50점 이상을 넣어 본 선수" },
   { key: "club40", label: "40득점 클럽", condition: `정규시즌 한 경기 최다 득점(커리어 하이) ${CLUB_40}점 이상 ${CLUB_50}점 미만`, short: "한 경기 40점 이상을 넣어 본 선수" },
   { key: "tripleDouble", label: "트리플더블", condition: "정규시즌 통산 트리플더블 1회 이상. 2회 이상이면 ×횟수", short: "한 경기 세 부문 두 자릿수" },
@@ -187,7 +187,7 @@ function badge(key: BadgeKey, count = 1): PlayerBadge {
 /**
  * 한 선수의 칭호 배지 (우선순위 = BADGE_DEFS 순서). 조건:
  * - 원클럽맨: 뛴 시즌 ≥ 5 이고 소속 팀 코드가 하나 (팀 코드 기준 — 이름만 바뀐 구단은 같은 팀)
- * - 15시즌 클럽(키 legend): 뛴 시즌 ≥ 15 / 베테랑: 10 ≤ 뛴 시즌 < 15 (둘 중 하나만)
+ * - 롱런(키 legend): 뛴 시즌 ≥ 15 / 베테랑: 10 ≤ 뛴 시즌 < 15 (둘 중 하나만)
  * - 저니맨: 소속 팀 코드 ≥ 4
  * - 득점왕·리바운드왕·어시스트왕·스틸왕·블록왕: 그 시즌 기본 표본 기준 경기당 1위(공동 포함) 횟수 ≥ 1, 2회 이상 "×n"
  * - 철인: games === 그 시즌 최다 경기 수 인 시즌 ≥ 3

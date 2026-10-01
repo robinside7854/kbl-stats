@@ -1,6 +1,6 @@
 "use client";
 // 플레이어 카드 한 장 (게임 카드처럼): 팀 색 상단 + 큰 사진 + 종합 등급 → 메인 스탯 9개(시즌 순위) + 파울·출전 줄
-// → 레이더 5축(공격·수비·3점·허슬·효율) + 축별 등급(S~F). 순위는 리그 전체(또는 같은 포지션), 등급은 같은 국적 집단 안. 값·순위·백분위·등급 계산은 전부 lib/metrics.ts·lib/cardview.ts — 이 파일은 배치와 표기만 맡는다.
+// → 레이더 6축(공격·수비·리바운드·슈팅·리딩·효율) + 축별 등급(S~F). 순위는 리그 전체(또는 같은 포지션), 등급은 같은 국적 집단 안. 값·순위·백분위·등급 계산은 전부 lib/metrics.ts·lib/cardview.ts — 이 파일은 배치와 표기만 맡는다.
 // 입력은 lib/cardview buildSeasonCardView 결과(SeasonCardView) 하나: 시즌·순위 범위(전체/같은 포지션)·팀 색·로고가 그 시즌 것.
 // 사진은 선수당 한 장(시즌별 사진이 없다)이라 어느 시즌 카드든 같은 사진을 쓰고, 팀 색·로고만 그 시즌 것을 쓴다.
 // size: "sm"(모바일, 폭 100%) / "lg"(PC·저장 이미지, 폭 약 500px) — 글자·사진·격자·레이더를 비례해 키운다.
@@ -408,7 +408,7 @@ export function PlayerCardSkeleton({ size = "sm", layout = "vertical" }: { size?
 }
 
 // ─────────────────────────────────────────────
-// 레이더 (폭을 재서 반지름·중심을 정한다 — 5개 꼭짓점 라벨·등급 칩이 차트 밖으로 나가지 않게, lib/cardview radarGeometry)
+// 레이더 (폭을 재서 반지름·중심을 정한다 — 6개 꼭짓점 라벨·등급 칩이 차트 밖으로 나가지 않게, lib/cardview radarGeometry)
 // ─────────────────────────────────────────────
 
 function CardRadar({
@@ -624,11 +624,11 @@ export default function PlayerCard({ view, colors, size = "sm", seriesColor, exp
         등급 기준: {gradeLabel}
         {!exportMode && <HelpPopover term="percentileGrade" ariaLabel="등급 컷과 계산 방법" className="font-normal" />}
         {exportMode && (
-          <span className="font-normal text-ink-3">축 S 상위 10% · A 25% · B 45% · C 65% · D 85% · 종합 = 5축 평균 S 85 · A 70 · B 55 · C 40 · D 25</span>
+          <span className="font-normal text-ink-3">축 S 상위 10% · A 25% · B 45% · C 65% · D 85% · 종합 = 6축 포지션별 가중 평균 S 85 · A 70 · B 55 · C 40 · D 25</span>
         )}
       </p>
       <CardRadar entry={entry} color={color} colors={colors} d={d} seriesColor={seriesColor} fixedWidth={exportMode ? CARD_LG_WIDTH - 2 * d.pad : undefined} />
-      {/* 포지션별 종합 가중치 (lib/metrics axisWeights): 센터·포워드만 한 줄, 가드는 없음 */}
+      {/* 포지션별 종합 가중치 (lib/metrics axisWeights): 가드·빅맨만 한 줄, 포워드·포지션 모름은 없음 */}
       {overallNote && (
         <p className="pb-1 leading-snug text-ink-3" style={{ fontSize: small }}>
           종합 등급: {overallNote}
@@ -642,7 +642,7 @@ export default function PlayerCard({ view, colors, size = "sm", seriesColor, exp
       {/* 스크린리더·표 보기: 축별 백분위·등급·구성 요소. 표는 sr-only 폭(1px)을 무시하고 늘어나므로 div 로 감싼다 */}
       <div className="sr-only">
         <table>
-          <caption>레이더 5축: 축 백분위(0~100, {gradeLabel}), 등급, 구성 요소 값과 백분위</caption>
+          <caption>레이더 6축: 축 백분위(0~100, {gradeLabel}), 등급, 구성 요소 값과 백분위</caption>
           <tbody>
             {RADAR_AXES.map((axis) => (
               <tr key={axis}>
