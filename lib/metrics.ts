@@ -10,11 +10,10 @@ import {
   PLAYER_TYPES,
   playerTypeDef,
   TYPE_ALLROUNDER_MIN,
-  TYPE_LOCKDOWN_DEF_MIN,
-  TYPE_LOCKDOWN_OFF_MAX,
-  TYPE_LOCKDOWN_SHOT_MAX,
   TYPE_ROLE_MAX,
   TYPE_SPECIAL_MIN,
+  TYPE_HANDLER_AST_MIN,
+  TYPE_SPOTUP_AST_MAX,
   type PlayerTypeKey,
 } from "./glossary";
 
@@ -735,12 +734,11 @@ function typeOf(key: PlayerTypeKey): PlayerType {
  * 6축 백분위 → 한 줄 유형 라벨. 규칙 (위에서부터 먼저 맞는 것, 라벨·문턱값은 lib/glossary PLAYER_TYPES·TYPE_*):
  *  1) 세는 축(가중치 > 0)이 모두 TYPE_ALLROUNDER_MIN(60) 이상 → "올라운더"
  *  2) 가장 높은 축이 TYPE_ROLE_MAX(40) 미만 → "롤플레이어"
- *  3) 포지션 세분 유형(position 이 있을 때만): **가장 높은 축**이 그 포지션에서 역할상 낮기 쉬운 축이고 문턱 이상이면
- *     빅맨(FC·C): 리딩 ≥ 70 → "플레이메이킹 빅맨" · 슈팅 ≥ 70 → "스트레치 빅맨"
- *     가드(G·GF)·포워드(F): 수비 ≥ 80 이고 슈팅 < 55, 공격 < 70 → "락다운 디펜더" (득점원이 아닌 외곽 수비수)
- *     가드: 리바운드 ≥ 70 → "리바운딩 가드"
- *     (처음엔 "그 축이 70 이상이면"으로 했더니 공격·수비가 S 인 이정현이 리바운드 81 때문에 "리바운딩 가드"가 됐다 → 가장 높은 축일 때만)
- *  4) 그 외: 가장 높은 축의 유형 → 공격 "득점원" · 수비 "수비수" · 리바운드 "리바운더" · 슈팅 "슈터" · 리딩 "플레이메이커" · 효율 "효율형"
+ *  3) 빅맨(FC·C, position 이 있을 때만): **가장 높은 축**이 리딩 ≥ 70 → "플레이메이킹 빅맨" · 슈팅 ≥ 70 → "스트레치 빅맨"
+ *  4) 가장 높은 축이 슈팅이면 경기당 어시스트 백분위(assistPct)로 나눈다 (2026-10-01 사용자 결정):
+ *     ≥ TYPE_HANDLER_AST_MIN(70) → "플레이메이커"(메인 핸들러) · < TYPE_SPOTUP_AST_MAX(40) → "스팟업 슈터" · 그 사이·값 없음 → "슈터"
+ *  5) 그 외: 가장 높은 축의 유형 → 공격 "득점원" · 수비 "수비수" · 리바운드 "리바운더" · 리딩 "플레이메이커" · 효율 "효율형"
+ *     (락다운 디펜더는 수비수로, 리바운딩 가드는 리바운더로 합침 — 2026-10-01)
  *     동점이면 축 순서(공격 → 수비 → 리바운드 → 슈팅 → 리딩 → 효율)로 먼저 나온 축 — 세분 유형 판정도 같은 "가장 높은 축"을 쓴다.
  * null 축은 무시(올라운더 판정에서는 세는 축이 모두 있어야 한다). 전부 null이면 "분석 불가".
  * weights(axisWeights): 가중치 0 인 축은 아예 세지 않는다(지금 역할 묶음엔 0 이 없지만 규칙으로 둔다).
@@ -749,6 +747,7 @@ export function playerType(
   pct: Partial<Record<RadarAxis, number | null>>,
   weights: Readonly<Record<RadarAxis, number>> = EQUAL_AXIS_WEIGHTS,
   position: Position | null | undefined = null,
+  assistPct: number | null = null,
 ): PlayerType {
   const counted = RADAR_AXES.filter((a) => weights[a] > 0);
   const entries = counted.map((a) => [a, pct[a] ?? null] as const).filter(
@@ -759,18 +758,14 @@ export function playerType(
   let top = entries[0];
   for (const e of entries) if (e[1] > top[1]) top = e;
   if (top[1] < TYPE_ROLE_MAX) return typeOf("role");
-  const v = (a: RadarAxis) => pct[a] ?? null;
-  const lt = (a: RadarAxis, cut: number) => v(a) !== null && v(a)! < cut;
-  const role = roleGroupOf(position);
   const [topAxis, topVal] = top;
-  if (role === "big") {
+  if (roleGroupOf(position) === "big") {
     if (topAxis === "playmaking" && topVal >= TYPE_SPECIAL_MIN) return typeOf("playmakingBig");
     if (topAxis === "shooting" && topVal >= TYPE_SPECIAL_MIN) return typeOf("stretchBig");
-  } else if (role) {
-    if (topAxis === "defense" && topVal >= TYPE_LOCKDOWN_DEF_MIN && lt("shooting", TYPE_LOCKDOWN_SHOT_MAX) && lt("offense", TYPE_LOCKDOWN_OFF_MAX)) {
-      return typeOf("lockdown");
-    }
-    if (role === "guard" && topAxis === "rebound" && topVal >= TYPE_SPECIAL_MIN) return typeOf("reboundingGuard");
+  }
+  if (topAxis === "shooting" && assistPct !== null) {
+    if (assistPct >= TYPE_HANDLER_AST_MIN) return typeOf("playmaker");
+    if (assistPct < TYPE_SPOTUP_AST_MAX) return typeOf("spotUp");
   }
   const def = PLAYER_TYPES.find((t) => t.axis === topAxis)!;
   return typeOf(def.key);
@@ -1120,7 +1115,12 @@ export function buildCardEntry<T extends CardInput>(p: T, ctx: CardContext): Car
     overall: overallGrade(radar.overall),
     overallPct: radar.overall,
     radar,
-    type: playerType(radar.axes, axisWeights(p.position), p.position),
+    type: playerType(
+      radar.axes,
+      axisWeights(p.position),
+      p.position,
+      radar.components.playmaking.find((c) => c.key === "astPerGame")?.pct ?? null,
+    ),
     qualified: isQualified(p, ctx.rule),
     stats: cardStats(p, ctx.pools, ctx.rule, ctx.thresholds),
     gradeGroup: { key: gk, label: GRADE_GROUP_LABELS[gk], count: ctx.grading.groups[gk]?.count ?? 0 },

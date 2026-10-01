@@ -296,13 +296,16 @@ assert.equal(playerType(ax({ shooting: 75, rebound: 60 }), axisWeights("FC"), "F
 assert.equal(playerType(ax({ playmaking: 75, rebound: 60 }), axisWeights("C")).label, "플레이메이커"); // 포지션 없으면 일반 규칙
 assert.equal(playerType(ax({ playmaking: 69, rebound: 60 }), axisWeights("C"), "C").label, "플레이메이커"); // 문턱 70 미만
 assert.equal(playerType(ax({ playmaking: 75, rebound: 90 }), axisWeights("C"), "C").label, "리바운더"); // 가장 높은 축이 아니면 세분 유형 아님
-assert.equal(playerType(ax({ defense: 85, shooting: 40 }), axisWeights("G"), "G").label, "락다운 디펜더");
-assert.equal(playerType(ax({ defense: 85, shooting: 40 }), axisWeights("F"), "F").label, "락다운 디펜더");
-assert.equal(playerType(ax({ defense: 85, shooting: 60 }), axisWeights("G"), "G").label, "수비수"); // 슛도 좋으면 그냥 수비수
-assert.equal(playerType(ax({ defense: 85, shooting: 40, offense: 75 }), axisWeights("G"), "G").label, "수비수"); // 득점도 좋으면 그냥 수비수
-assert.equal(playerType(ax({ defense: 85, shooting: 40 }), axisWeights("C"), "C").label, "수비수"); // 빅맨에겐 락다운 없음
-assert.equal(playerType(ax({ rebound: 75 }), axisWeights("GF"), "GF").label, "리바운딩 가드");
-assert.equal(playerType(ax({ rebound: 75 }), axisWeights("F"), "F").label, "리바운더"); // 포워드에겐 없음
+assert.equal(playerType(ax({ defense: 85, shooting: 40 }), axisWeights("G"), "G").label, "수비수"); // 락다운 디펜더는 수비수로 합침
+assert.equal(playerType(ax({ rebound: 75 }), axisWeights("GF"), "GF").label, "리바운더"); // 리바운딩 가드는 리바운더로 합침
+// 슈팅이 가장 높은 축 → 경기당 어시스트 백분위로 나눔
+assert.equal(playerType(ax({ shooting: 90 }), axisWeights("G"), "G", 85).label, "플레이메이커");
+assert.equal(playerType(ax({ shooting: 90 }), axisWeights("G"), "G", 70).label, "플레이메이커");
+assert.equal(playerType(ax({ shooting: 90 }), axisWeights("G"), "G", 69.9).label, "슈터");
+assert.equal(playerType(ax({ shooting: 90 }), axisWeights("F"), "F", 40).label, "슈터");
+assert.equal(playerType(ax({ shooting: 90 }), axisWeights("F"), "F", 39.9).label, "스팟업 슈터");
+assert.equal(playerType(ax({ shooting: 90 }), axisWeights("F"), "F", null).label, "슈터"); // 어시스트 값 없음
+assert.equal(playerType(ax({ shooting: 75, rebound: 60 }), axisWeights("C"), "C", 10).label, "스트레치 빅맨"); // 빅맨 판정이 먼저
 // 올라운더가 세분 유형보다 먼저
 assert.equal(playerType(ax({ offense: 70, defense: 65, rebound: 80, shooting: 61, playmaking: 90, efficiency: 60 }), axisWeights("C"), "C").label, "올라운더");
 // 라벨은 lib/glossary PLAYER_TYPES 한 곳에서 읽는다: 모든 키가 판정 결과로 나올 수 있고, 라벨이 표와 같다
@@ -312,8 +315,6 @@ assert.equal(playerType(ax({ offense: 70, defense: 65, rebound: 80, shooting: 61
     [{ offense: 70, defense: 65, rebound: 80, shooting: 61, playmaking: 90, efficiency: 60 }, null],
     [{ playmaking: 75 }, "C"],
     [{ shooting: 75 }, "C"],
-    [{ defense: 85, shooting: 40 }, "G"],
-    [{ rebound: 75 }, "G"],
     [{ offense: 10 }, null],
     [{ offense: 95 }, null],
     [{ defense: 90 }, null],
@@ -326,6 +327,8 @@ assert.equal(playerType(ax({ offense: 70, defense: 65, rebound: 80, shooting: 61
     const t = playerType(ax(o), axisWeights(pos), pos);
     seen.set(t.key, t.label);
   }
+  const spot = playerType(ax({ shooting: 90 }), axisWeights("F"), "F", 10);
+  seen.set(spot.key, spot.label);
   const t0 = playerType({});
   seen.set(t0.key, t0.label);
   assert.equal(seen.size, PLAYER_TYPES.length);
