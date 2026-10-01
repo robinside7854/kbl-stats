@@ -108,7 +108,7 @@ export const LEADER_STATS: Record<LeaderStatKey, LeaderStatDef> = {
   tpPct: { key: "tpPct", label: "3점 성공률", short: "3점%", kind: "rate", better: "high" },
   ftPct: { key: "ftPct", label: "자유투 성공률", short: "자유투%", kind: "rate", better: "high" },
   tsPct: { key: "tsPct", label: "TS%", short: "TS%", kind: "rate", better: "high" },
-  // USG%: 표 열로만 (부문 카드에는 넣지 않는다 — 공격 점유율이라 "높을수록 잘함"이 아니다). 없는 시즌은 null → "–"
+  // USG%: 공격 점유율(높을수록 "많이 맡는다" — 잘한다는 뜻은 아님). 2026-10-01 사용자 요청으로 부문(고급 묶음)에도 넣음. 없는 시즌은 null → 칩 숨김
   usgPct: { key: "usgPct", label: "USG%", short: "USG%", kind: "rate", better: "high" },
   per: { key: "per", label: "PER", short: "PER", kind: "rate", better: "high" },
   // 허슬: KBL 이 2025-26 부터 기록 (coverage.hustle). 없는 시즌은 null → 부문 칩에서 숨긴다
@@ -121,11 +121,46 @@ export const LEADER_STATS: Record<LeaderStatKey, LeaderStatDef> = {
   arc3Pct: { key: "arc3Pct", label: "아크 3점 성공률", short: "아크3%", kind: "zone", zone: "arc3", better: "high" },
 };
 
-/** 상단 부문 선택지 (1~3위 카드). 순서 = 화면 표시 순서 */
-export const LEADER_CATEGORIES: readonly LeaderStatKey[] = [
-  "points", "reb", "ast", "stl", "blk", "tpm", "tov", "fgPct", "tpPct", "ftPct", "tsPct", "per",
-  "defl", "screen", "rimPct", "midPct", "corner3Pct", "arc3Pct",
+/**
+ * 부문 묶음 (2026-10-01: 부문 칩이 18개로 늘어 한 줄을 옆으로 밀어야 했다 → 묶음을 먼저 고르고 그 안의 부문을 고른다).
+ * 순서 = 화면 순서. 그 시즌에 값이 없는 부문은 빠지고, 부문이 하나도 없는 묶음(옛 시즌 허슬·슛 구역)은 묶음째 숨긴다.
+ */
+export type LeaderCategoryGroupKey = "basic" | "shooting" | "zones" | "advanced" | "hustle";
+
+export interface LeaderCategoryGroup {
+  key: LeaderCategoryGroupKey;
+  label: string;
+  categories: readonly LeaderStatKey[];
+}
+
+export const LEADER_CATEGORY_GROUPS: readonly LeaderCategoryGroup[] = [
+  { key: "basic", label: "기본", categories: ["points", "reb", "ast", "stl", "blk", "tov"] },
+  { key: "shooting", label: "슈팅", categories: ["tpm", "fgPct", "tpPct", "ftPct"] },
+  { key: "zones", label: "슛 구역", categories: ["rimPct", "midPct", "corner3Pct", "arc3Pct"] },
+  { key: "advanced", label: "고급", categories: ["per", "tsPct", "usgPct"] },
+  { key: "hustle", label: "허슬", categories: ["defl", "screen"] },
 ];
+
+/** 상단 부문 선택지 (1~3위 카드) = 묶음 순서대로 펼친 것 */
+export const LEADER_CATEGORIES: readonly LeaderStatKey[] = LEADER_CATEGORY_GROUPS.flatMap((g) => g.categories);
+
+/** 부문이 속한 묶음 (부문 목록에 없으면 기본) */
+export function categoryGroupOf(key: LeaderStatKey): LeaderCategoryGroupKey {
+  return LEADER_CATEGORY_GROUPS.find((g) => g.categories.includes(key))?.key ?? "basic";
+}
+
+/** 그 시즌에 고를 수 있는 묶음과 그 안의 부문 (available = availableCategories 결과). 빈 묶음은 뺀다 */
+export function availableCategoryGroups(available: readonly LeaderStatKey[]): LeaderCategoryGroup[] {
+  return LEADER_CATEGORY_GROUPS.map((g) => ({ ...g, categories: g.categories.filter((k) => available.includes(k)) })).filter(
+    (g) => g.categories.length > 0,
+  );
+}
+
+/** 묶음 칩 안의 짧은 이름: 슛 구역 묶음은 " 성공률"을 뗀다(묶음 이름이 이미 말해 줌) */
+export function categoryChipLabel(key: LeaderStatKey): string {
+  const def = LEADER_STATS[key];
+  return def.kind === "zone" ? def.label.replace(" 성공률", "") : def.label;
+}
 
 /** 그 시즌에 값이 있는 부문만 (허슬은 2025-26, 슛 구역은 슛 차트 있는 시즌). 값이 하나도 없으면 칩을 숨긴다 */
 export function availableCategories(players: readonly LeaderPlayer[]): LeaderStatKey[] {

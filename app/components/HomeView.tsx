@@ -1,5 +1,6 @@
 // 홈 "이번 시즌 한눈에" (PLAN.md §2-4, §3 ⑤, §5-4). 서버 컴포넌트 — 계산은 app/page.tsx 가 lib/ 함수로 끝내고 결과만 받는다.
-// 구성(모바일 우선): 개막 전 안내 → 히어로(득점 1위 표지) → 부문별 1~3위 카드 줄 → 바로가기(큰 버튼 선수·순위표 + 링크 줄 팀 분포·비교·용어) → 시즌 목록.
+// 구성(모바일 우선): 개막 전 안내 → 히어로(득점 1위 표지) → 오늘 생일 → 부문별 1~3위 카드 줄.
+// 바로가기·시즌별 목록은 2026-10-01 사용자 요청으로 뺐다(상단 메뉴·시즌 선택과 겹침).
 import Link from "next/link";
 import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
 import type { CardTeam, LeaderPlayer, SeasonOption, TeamColor } from "@/lib/types";
@@ -9,7 +10,7 @@ import { seasonShortLabel } from "@/lib/career";
 import { mixHex, teamShortLabel } from "@/lib/images";
 import { playerHref } from "@/lib/cardview";
 import { nationalityOf, NATIONALITY_LABELS, positionLabel } from "@/lib/roster";
-import { IconArrowRight, IconChevronDown, IconChevronRight } from "./icons";
+import { IconArrowRight, IconChevronRight } from "./icons";
 import PlayerAvatar from "./PlayerAvatar";
 import TeamLogo from "./TeamLogo";
 import BirthdayStrip, { type BirthdayPlayer } from "./BirthdayStrip";
@@ -29,8 +30,6 @@ interface Props {
   categories: HomeCategory[];
   teams: CardTeam[];
   qualifyText: string;
-  recentSeasons: SeasonOption[];
-  olderSeasons: SeasonOption[];
   /** 오늘 생일 후보 (현역 = 이 시즌 명단, 생년월일 있는 선수) */
   birthdays: BirthdayPlayer[];
 }
@@ -38,23 +37,11 @@ interface Props {
 /** 순위표 부문 링크 (득점은 기본 부문이라 쿼리 없음 — lib/leaders DEFAULT_CATEGORY) */
 const leadersHref = (code: number, key: LeaderStatKey) => `/season/${code}/leaders${key === "points" ? "" : `?cat=${key}`}`;
 
-export default function HomeView({ season, fetchedLabel, upcoming, categories, teams, qualifyText, recentSeasons, olderSeasons, birthdays }: Props) {
+export default function HomeView({ season, fetchedLabel, upcoming, categories, teams, qualifyText, birthdays }: Props) {
   const teamByCode = new Map(teams.map((t) => [t.teamCode, t]));
   const code = season.seasonCode;
   const short = seasonShortLabel(season.seasonLabel);
   const scoring = categories.find((c) => c.key === "points")?.entries[0] ?? null;
-
-  // 큰 버튼 2개(자주 가는 화면) + 작은 링크 줄 — 같은 카드 6칸 반복을 없앤다 (디자인 점검 A7)
-  const primary = [
-    { href: "/players", title: "선수", desc: "이름 검색, 포지션·팀별 선수 카드" },
-    { href: `/season/${code}/leaders`, title: "순위표", desc: `${short} 부문별 전체 순위` },
-  ];
-  const secondary = [
-    { href: `/season/${code}/teams`, title: "팀 분포" },
-    { href: "/compare", title: "비교" },
-    { href: "/records", title: "역대 기록" },
-    { href: "/glossary", title: "용어" },
-  ];
 
   return (
     <main className="pb-2">
@@ -95,75 +82,7 @@ export default function HomeView({ season, fetchedLabel, upcoming, categories, t
         </p>
       </section>
 
-      {/* 화면 바로가기: 큰 버튼 2개 + 작은 링크 줄 */}
-      <section aria-labelledby="screens-title" className="mx-auto mt-8 max-w-5xl px-4">
-        <h2 id="screens-title" className="text-h2 font-bold">
-          바로가기
-        </h2>
-        <ul className="mt-3 grid grid-cols-2 gap-3">
-          {primary.map((s) => (
-            <li key={s.href}>
-              <Link href={s.href} className={BIG_BUTTON}>
-                <span className="flex items-center gap-1 text-lg font-bold text-ink">
-                  {s.title} <IconChevronRight size={20} />
-                </span>
-                <span className="mt-1 text-sub text-ink-2">{s.desc}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-        <ul className="mt-2 flex flex-wrap items-center gap-x-1 text-body">
-          {secondary.map((s) => (
-            <li key={s.href}>
-              <Link
-                href={s.href}
-                className="focus-ring inline-flex h-11 items-center gap-0.5 rounded-control px-2 font-semibold text-ink-2 underline-offset-4 transition-colors duration-200 hover:text-ink hover:underline"
-              >
-                {s.title}
-                <IconChevronRight size={16} />
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      {/* 시즌 목록 → 순위표 */}
-      <section aria-labelledby="seasons-title" className="mx-auto mt-8 max-w-5xl px-4">
-        <h2 id="seasons-title" className="text-h2 font-bold">
-          시즌별 순위표
-        </h2>
-        <SeasonChips seasons={recentSeasons} className="mt-3" />
-        {olderSeasons.length > 0 && (
-          <details className="group mt-2">
-            <summary className="focus-ring inline-flex h-10 cursor-pointer list-none items-center gap-1 rounded-control text-body font-semibold text-ink-2 transition-colors duration-200 hover:text-ink [&::-webkit-details-marker]:hidden">
-              전체 보기 ({olderSeasons.length}개 시즌 더)
-              <IconChevronDown size={16} className="transition-transform duration-200 group-open:rotate-180" />
-            </summary>
-            <SeasonChips seasons={olderSeasons} className="mt-2" />
-          </details>
-        )}
-      </section>
     </main>
-  );
-}
-
-const BIG_BUTTON =
-  "focus-ring flex h-full min-h-24 w-full flex-col justify-between surface-card rounded-container p-4 text-left transition-colors duration-200 hover:bg-surface-2";
-
-function SeasonChips({ seasons, className = "" }: { seasons: SeasonOption[]; className?: string }) {
-  return (
-    <ul className={`flex flex-wrap gap-1.5 ${className}`}>
-      {seasons.map((s) => (
-        <li key={s.seasonCode}>
-          <Link
-            href={`/season/${s.seasonCode}/leaders`}
-            className="focus-ring inline-flex h-10 items-center rounded-control border border-line bg-surface px-3 text-body font-semibold text-ink-2 transition-colors duration-200 hover:bg-surface-2 hover:text-ink"
-          >
-            {seasonShortLabel(s.seasonLabel)}
-          </Link>
-        </li>
-      ))}
-    </ul>
   );
 }
 

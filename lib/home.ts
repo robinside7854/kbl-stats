@@ -37,12 +37,6 @@ export function pickHomeSeason(all: readonly SeasonOption[], withPlayers: readon
   return { shown, upcoming };
 }
 
-/** 시즌 목록을 최신순으로 나눠 앞 n개(기본 6)와 나머지로 */
-export function splitRecentSeasons<T extends { seasonCode: number }>(list: readonly T[], n = 6): { recent: T[]; older: T[] } {
-  const sorted = [...list].sort((a, b) => b.seasonCode - a.seasonCode);
-  return { recent: sorted.slice(0, n), older: sorted.slice(n) };
-}
-
 // ─────────────────────────────────────────────
 // 오늘 생일인 현역 선수 (2026-10-01 사용자 요청) — 홈 "오늘 생일" 줄
 // ─────────────────────────────────────────────

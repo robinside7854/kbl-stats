@@ -7,14 +7,14 @@ import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
 import type { BirthdayPlayer } from "./components/BirthdayStrip";
 import { filterLeaders, topLeaders } from "@/lib/leaders";
 import { DEFAULT_QUALIFY, qualifyLabel } from "@/lib/metrics";
-import { HOME_CATEGORIES, pickHomeSeason, splitRecentSeasons } from "@/lib/home";
+import { HOME_CATEGORIES, pickHomeSeason } from "@/lib/home";
 import HomeView from "./components/HomeView";
 import SiteNav from "./components/SiteNav";
 import SourceFooter, { formatFetchedAt } from "./components/SourceFooter";
 
 export const metadata: Metadata = {
   title: "KBL - Stats Reference · 이번 시즌 한눈에",
-  description: "KBL 정규시즌 부문별 1~3위, 플레이어 카드, 순위표, 팀별 선수 분포, 1997년부터 모든 선수 기록. 비영리 팬 프로젝트.",
+  description: "KBL 정규시즌 부문별 1~3위, 플레이어 카드, 리더보드, 팀별 선수 분포, 1997년부터 모든 선수 기록. 비영리 팬 프로젝트.",
 };
 
 export default function HomePage() {
@@ -26,7 +26,6 @@ export default function HomePage() {
   // 부문별 1~3위: 경기당, 기본 표본 기준 (순위표 기본 화면과 같은 값)
   const qualified = filterLeaders(toLeaderPlayers(season), { origin: "all", teamCode: null, rule: DEFAULT_QUALIFY });
   const categories = HOME_CATEGORIES.map((key) => ({ key, entries: topLeaders(qualified, key, "perGame", 3) }));
-  const { recent, older } = splitRecentSeasons(withPlayers, 6);
 
   // 오늘 생일 후보: 홈 시즌 명단(= 현역) 중 생년월일이 있는 선수. "오늘" 판정은 브라우저(BirthdayStrip)가 한다
   const teams = toCardTeams(season);
@@ -48,8 +47,6 @@ export default function HomePage() {
         teams={teams}
         birthdays={birthdays}
         qualifyText={qualifyLabel(DEFAULT_QUALIFY)}
-        recentSeasons={recent}
-        olderSeasons={older}
       />
       <SourceFooter fetchedAt={season.fetchedAt} wide />
     </>

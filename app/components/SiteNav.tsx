@@ -19,7 +19,7 @@ export type SiteView = "home" | "players" | "player" | "leaders" | "teams" | "co
 const MENU: { views: SiteView[]; label: string; href: (seasonCode: number) => string }[] = [
   { views: ["home"], label: "홈", href: () => "/" },
   { views: ["players", "player"], label: "선수", href: () => "/players" },
-  { views: ["leaders"], label: "순위표", href: (c) => `/season/${c}/leaders` },
+  { views: ["leaders"], label: "리더보드", href: (c) => `/season/${c}/leaders` },
   { views: ["teams"], label: "팀 분포", href: (c) => `/season/${c}/teams` },
   { views: ["compare"], label: "비교", href: () => "/compare" },
   { views: ["records"], label: "역대 기록", href: () => "/records" },

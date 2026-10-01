@@ -16,6 +16,10 @@ import { attemptsNote, attemptThresholds, QUALIFY_PRESETS, qualifyLabel } from "
 import {
   attemptName,
   availableCategories,
+  availableCategoryGroups,
+  categoryChipLabel,
+  categoryGroupOf,
+  type LeaderCategoryGroupKey,
   columnOrder,
   DEFAULT_LEADERS_STATE,
   clearLeaderFilter,
@@ -211,6 +215,8 @@ export default function LeadersView({ seasonLabel, players, teams, seasonHighs =
   // 이 시즌에 기록이 있는 부문만 칩으로 (허슬은 2025-26, 슛 구역은 슛 차트 있는 시즌). 공유 링크의 부문이 없으면 기본 부문
   const categories = useMemo(() => availableCategories(players), [players]);
   const category = categories.includes(state.category) ? state.category : DEFAULT_LEADERS_STATE.category;
+  const groups = useMemo(() => availableCategoryGroups(categories), [categories]);
+  const groupKey = categoryGroupOf(category);
   const rule = QUALIFY_PRESETS[presetIdx];
   const columns = columnOrder(category);
   const sortKey = sort?.key ?? category;
@@ -251,6 +257,12 @@ export default function LeadersView({ seasonLabel, players, teams, seasonHighs =
     a.remove();
     // 바로 지우면 일부 브라우저가 파일 이름을 잃는다 — 다운로드가 시작된 뒤에 정리
     setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function chooseGroup(key: LeaderCategoryGroupKey) {
+    if (key === groupKey) return;
+    const first = groups.find((g) => g.key === key)?.categories[0];
+    if (first) chooseCategory(first);
   }
 
   function chooseCategory(key: LeaderStatKey) {
@@ -357,14 +369,29 @@ export default function LeadersView({ seasonLabel, players, teams, seasonHighs =
     <main className="mx-auto max-w-5xl px-4 pt-5">
       <header className="mb-3">
         <p className="text-sub font-medium text-ink-3">{seasonLabel} KBL 정규시즌</p>
-        <h1 className="mt-0.5 text-h1 font-bold">시즌 순위표</h1>
+        <h1 className="mt-0.5 text-h1 font-bold">시즌 리더보드</h1>
       </header>
 
-      {/* 1차 컨트롤: 부문 칩 한 줄 (칩이 많으면 이 줄만 옆으로 민다) */}
+      {/* 1차 컨트롤: 묶음(기본·슈팅·슛 구역·고급·허슬) → 그 묶음의 부문 칩. 옆으로 밀지 않아도 다 보이게 */}
+      <div role="group" aria-label="부문 묶음" className="grid auto-cols-fr grid-flow-col rounded-control border border-line bg-surface p-0.5">
+        {groups.map((g) => (
+          <button
+            key={g.key}
+            type="button"
+            aria-pressed={g.key === groupKey}
+            onClick={() => chooseGroup(g.key)}
+            className={`focus-ring-inset h-10 min-w-0 cursor-pointer whitespace-nowrap rounded-md px-1 text-body font-semibold transition-colors duration-200 ${
+              g.key === groupKey ? "bg-ink text-bg" : "text-ink-2 hover:bg-surface-2"
+            }`}
+          >
+            {g.label}
+          </button>
+        ))}
+      </div>
       <ChipRow
         label="부문 선택"
-        scroll
-        chips={categories.map((key) => ({ value: key, label: LEADER_STATS[key].label }))}
+        className="mt-2"
+        chips={(groups.find((g) => g.key === groupKey)?.categories ?? []).map((key) => ({ value: key, label: categoryChipLabel(key) }))}
         value={category}
         onChange={chooseCategory}
       />
@@ -487,7 +514,7 @@ export default function LeadersView({ seasonLabel, players, teams, seasonHighs =
                 type="button"
                 onClick={downloadCsv}
                 className="focus-ring inline-flex h-10 items-center rounded-control border border-line bg-surface px-3 text-sub font-semibold text-ink-2 transition-colors duration-200 hover:bg-surface-2 hover:text-ink"
-                title="지금 보이는 순위표(필터·정렬·단위 그대로)를 CSV 파일로 받기"
+                title="지금 보이는 리더보드(필터·정렬·단위 그대로)를 CSV 파일로 받기"
               >
                 CSV 내려받기
               </button>

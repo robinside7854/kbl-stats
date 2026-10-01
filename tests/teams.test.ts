@@ -27,7 +27,7 @@ import {
   teamEmphasis,
   toggleTeam,
 } from "../lib/distribution";
-import { pickHomeSeason, splitRecentSeasons } from "../lib/home";
+import { pickHomeSeason } from "../lib/home";
 import { DEFAULT_QUALIFY, QUALIFY_PRESETS } from "../lib/metrics";
 
 const PALETTE = ["#2a78d6", "#eb6834", "#1baf7a"];
@@ -129,9 +129,6 @@ assert.deepEqual(pickHomeSeason([S(45), S(49), S(47)], [S(45), S(47)]), { shown:
 // 개막 후: 안내 없음
 assert.deepEqual(pickHomeSeason([S(45), S(47)], [S(47), S(45)]), { shown: S(47), upcoming: null });
 assert.deepEqual(pickHomeSeason([], []), { shown: null, upcoming: null });
-const split = splitRecentSeasons([1, 2, 3, 4, 5, 6, 7, 8].map(S), 6);
-assert.deepEqual(split.recent.map((s) => s.seasonCode), [8, 7, 6, 5, 4, 3]);
-assert.deepEqual(split.older.map((s) => s.seasonCode), [2, 1]);
 
 // 팀 분포 필터 칩: 포지션·표본 기준만 (지표·팀은 1차 컨트롤)
 assert.deepEqual(distributionFilterChips(DEFAULT_DISTRIBUTION_STATE), []);

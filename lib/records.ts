@@ -117,13 +117,24 @@ export interface RecordRow {
 }
 
 /**
- * 통산 순위: 국적 필터 → (경기당이면 RECORDS_MIN_GAMES 경기 이상) → 값 큰 순.
+ * 통산 순위: 국적·현역 필터 → (경기당이면 RECORDS_MIN_GAMES 경기 이상) → 값 큰 순.
  * 같은 값은 같은 순위(1, 2, 2, 4), 같은 값 안에서는 경기 많은 순 → 이름순.
  */
-export function rankCareerTotals(totals: readonly CareerTotal[], key: RecordStatKey, mode: RecordMode, origin: RecordOrigin): RecordRow[] {
+export function rankCareerTotals(
+  totals: readonly CareerTotal[],
+  key: RecordStatKey,
+  mode: RecordMode,
+  origin: RecordOrigin,
+  /** 주면 그 시즌에 뛴 선수(현역, isActiveCareer)만 — 순위도 현역끼리 다시 매긴다 */
+  activeSeasonCode?: number,
+): RecordRow[] {
   const effMode: RecordMode = key === "games" ? "total" : mode;
   const pool = totals.filter(
-    (t) => (origin === "all" || t.origin === origin) && (effMode === "total" || t.games >= RECORDS_MIN_GAMES) && t[key] > 0,
+    (t) =>
+      (origin === "all" || t.origin === origin) &&
+      (activeSeasonCode === undefined || isActiveCareer(t, activeSeasonCode)) &&
+      (effMode === "total" || t.games >= RECORDS_MIN_GAMES) &&
+      t[key] > 0,
   );
   const sorted = pool
     .map((t) => ({ total: t, value: recordValue(t, key, effMode) }))

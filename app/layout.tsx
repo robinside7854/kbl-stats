@@ -4,7 +4,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "KBL - Stats Reference",
-  description: "KBL 정규시즌 선수 기록을 플레이어 카드·순위표·팀 분포·비교로 보는 비영리 팬 프로젝트.",
+  description: "KBL 정규시즌 선수 기록을 플레이어 카드·리더보드·팀 분포·비교로 보는 비영리 팬 프로젝트.",
 };
 
 export const viewport: Viewport = {

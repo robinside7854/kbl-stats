@@ -125,6 +125,8 @@ assert.equal(a.lastTeam, "T3");
 assert.equal(a.lastSeasonCode, 3);
 assert.equal(isActiveCareer(a, 3), true);
 assert.equal(isActiveCareer(totals.find((x) => x.id === "b")!, 3), false);
+// 현역만: 시즌 3에 뛴 a 만, 순위는 현역끼리 1위
+assert.deepEqual(rankCareerTotals(totals, "points", "total", "all", 3).map((r) => [r.total.id, r.rank]), [["a", 1]]);
 close(recordValue(a, "points", "perGame"), 16);
 // 합계: a·c 동점(4000) → 같은 순위, 경기 많은 a(250) 먼저
 assert.deepEqual(rankCareerTotals(totals, "points", "total", "all").map((r) => [r.total.id, r.rank]), [["a", 1], ["c", 1], ["b", 3]]);

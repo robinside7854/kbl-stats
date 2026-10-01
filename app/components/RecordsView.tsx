@@ -1,5 +1,5 @@
 "use client";
-// 역대 통산 순위 화면: 부문 칩 · 합계/경기당 · 국적(전체/국내/외국인) → 순위 목록 50명씩 "더 보기".
+// 역대 통산 순위 화면: 부문 칩 · 합계/경기당 · 국적(전체/국내/외국인) · 현역만(?active=1) → 순위 목록 50명씩 "더 보기".
 // 순위·표기는 lib/records 순수 함수. 선택 상태는 주소 ?cat=&mode=&origin= 에 남긴다(정적 HTML 은 기본 상태: 통산 득점 합계).
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -36,6 +36,7 @@ export default function RecordsView({ totals, spanLabel, latestSeasonCode }: { t
   const [cat, setCat] = useState<RecordStatKey>("points");
   const [mode, setMode] = useState<RecordMode>("total");
   const [origin, setOrigin] = useState<RecordOrigin>("all");
+  const [activeOnly, setActiveOnly] = useState(false);
   const [limit, setLimit] = useState(RECORDS_PAGE_SIZE);
 
   useEffect(() => {
@@ -45,20 +46,25 @@ export default function RecordsView({ totals, spanLabel, latestSeasonCode }: { t
     if (qs.get("mode") === "perGame") setMode("perGame");
     const o = qs.get("origin");
     if (o === "domestic" || o === "foreign") setOrigin(o);
+    if (qs.get("active") === "1") setActiveOnly(true);
   }, []);
   useEffect(() => {
     const qs = new URLSearchParams();
     if (cat !== "points") qs.set("cat", cat);
     if (mode !== "total") qs.set("mode", mode);
     if (origin !== "all") qs.set("origin", origin);
+    if (activeOnly) qs.set("active", "1");
     const q = qs.toString();
     window.history.replaceState(null, "", `${window.location.pathname}${q ? `?${q}` : ""}`);
     setLimit(RECORDS_PAGE_SIZE);
-  }, [cat, mode, origin]);
+  }, [cat, mode, origin, activeOnly]);
 
   const def = RECORD_STATS.find((d) => d.key === cat)!;
   const effMode: RecordMode = def.perGame ? mode : "total";
-  const rows = useMemo(() => rankCareerTotals(totals, cat, effMode, origin), [totals, cat, effMode, origin]);
+  const rows = useMemo(
+    () => rankCareerTotals(totals, cat, effMode, origin, activeOnly ? latestSeasonCode : undefined),
+    [totals, cat, effMode, origin, activeOnly, latestSeasonCode],
+  );
   const shown = rows.slice(0, limit);
   const title = `${effMode === "perGame" ? "통산 경기당" : "통산"} ${def.label}`;
 
@@ -75,6 +81,16 @@ export default function RecordsView({ totals, spanLabel, latestSeasonCode }: { t
       <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
         {def.perGame && <Segmented label="통산 합계 또는 경기당" options={MODE_OPTIONS} value={mode} onChange={setMode} />}
         <Segmented label="국적" options={ORIGIN_OPTIONS} value={origin} onChange={setOrigin} />
+        <button
+          type="button"
+          aria-pressed={activeOnly}
+          onClick={() => setActiveOnly((v) => !v)}
+          className={`focus-ring-inset flex h-10 cursor-pointer items-center whitespace-nowrap rounded-control border px-3 text-body font-semibold transition-colors duration-200 ${
+            activeOnly ? "border-ink bg-ink text-bg" : "border-line bg-surface text-ink-2 hover:bg-surface-2"
+          }`}
+        >
+          현역만
+        </button>
       </div>
       {effMode === "perGame" && <p className="mt-2 text-sub text-ink-3">경기당 순위는 통산 {RECORDS_MIN_GAMES}경기 이상 선수만</p>}
 

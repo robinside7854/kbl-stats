@@ -9,6 +9,9 @@ import {
   formatStat,
   isRankEligible,
   LEADER_CATEGORIES,
+  availableCategoryGroups,
+  categoryChipLabel,
+  categoryGroupOf,
   leadersQueryString,
   madeAttempts,
   parseLeadersQuery,
@@ -108,7 +111,17 @@ assert.deepEqual(top.map((e) => [e.player.id, e.value, e.rank]), [["p3", 25, 1],
 assert.equal(topLeaders([], "points", "perGame").length, 0);
 
 // 부문: 3점 성공·USG%·PIE 없음, 턴오버·3점%·자유투% 있음
-assert.deepEqual([...LEADER_CATEGORIES], ["points", "reb", "ast", "stl", "blk", "tpm", "tov", "fgPct", "tpPct", "ftPct", "tsPct", "per", "defl", "screen", "rimPct", "midPct", "corner3Pct", "arc3Pct"]); // 허슬·슛 구역 2026-10-01
+// 부문 = 묶음 순서대로 (기본 · 슈팅 · 슛 구역 · 고급(USG% 포함) · 허슬, 2026-10-01)
+assert.deepEqual([...LEADER_CATEGORIES], ["points", "reb", "ast", "stl", "blk", "tov", "tpm", "fgPct", "tpPct", "ftPct", "rimPct", "midPct", "corner3Pct", "arc3Pct", "per", "tsPct", "usgPct", "defl", "screen"]);
+assert.equal(categoryGroupOf("usgPct"), "advanced");
+assert.equal(categoryGroupOf("corner3Pct"), "zones");
+// 옛 시즌처럼 허슬·슛 구역·USG% 가 없으면 그 묶음은 빠지고, 고급은 PER·TS% 만
+assert.deepEqual(
+  availableCategoryGroups(["points", "reb", "tpm", "per", "tsPct"]).map((g) => [g.key, [...g.categories]]),
+  [["basic", ["points", "reb"]], ["shooting", ["tpm"]], ["advanced", ["per", "tsPct"]]],
+);
+assert.equal(categoryChipLabel("rimPct"), "골밑");
+assert.equal(categoryChipLabel("tpPct"), "3점 성공률");
 // 3점 성공(2026-10-01 홈 부문 추가): 경기당 성공 개수, 열은 3점% 바로 앞
 assert.equal(columnOrder("points").indexOf("tpm"), columnOrder("points").indexOf("tpPct") - 1);
 assert.deepEqual(columnOrder("tpm").slice(0, 3), ["tpm", "games", "minutes"]);
@@ -239,12 +252,12 @@ assert.deepEqual(resetLeaderFilters(fs0), { ...DEFAULT_LEADERS_STATE, category: 
 
 console.log("leaders: 모든 검사 통과");
 
-// ── USG% 열: 표 열로만(부문 카드 아님), 없는 시즌(null)은 "–"·순위 없음 ──
+// ── USG% 열·부문(고급 묶음, 2026-10-01): 없는 시즌(null)은 "–"·순위 없음 ──
 {
   const { TABLE_COLUMNS: cols, LEADER_CATEGORIES: cats, LEADER_STATS: defs } = await import("../lib/leaders");
   assert.ok(cols.includes("usgPct"));
   assert.equal(cols.indexOf("usgPct"), cols.indexOf("tsPct") + 1); // TS% 바로 뒤
-  assert.ok(!cats.includes("usgPct"));
+  assert.ok(cats.includes("usgPct"));
   assert.equal(defs.usgPct.short, "USG%");
   const noUsg = mk({ id: "nu", usgPct: null });
   assert.ok(Number.isNaN(statValue(noUsg, "usgPct", "perGame")));
