@@ -1,4 +1,4 @@
-# KBL 스탯 대시보드 (가칭)
+# KBL - Stats Reference (가제, 2026-10-01)
 
 > 이 파일은 Claude Code가 이 프로젝트에서 작업할 때 매 세션 자동으로 읽는 "프로젝트 기억"이다.
 > 세션 시작 시 이 파일과 `SCOPE.md`를 먼저 읽고, 세션 종료 시 하단 세션 로그에 한 줄 남긴다.
@@ -47,6 +47,7 @@ KBL 공홈은 화면을 그릴 때 아래 두 서버에서 JSON을 받아온다.
 
 ### 이미지 (2026-09-30 Actions 러너에서 공홈 HTML·JS·CSS 확인 — 상세는 PLAN.md §5)
 - 선수 사진: `https://kbl.or.kr/files/kbl/players-photo/{playerNo}.png` (옛 선수도 있음, 없으면 200이지만 HTML 반환)
+- **리그 로고**: `https://kbl.or.kr/assets/img/logo/logo-kbl.svg` (2026-10-01 Actions 러너 확인 200 image/svg+xml 2.9KB, 아이콘판 `/assets/img/ico/logo/ic-kbl.svg`). 값은 `data/codes/site.json`
 - 현재 팀 로고: `https://kbl.or.kr/assets/img/ico/logo/ic-{teamLogoName}.svg` (정관장만 `/assets/img/logo/logo-jkj.png`), 옛 팀 로고: `.../ico/logo/old/{teamLogoName}e.png`
 - **사진 숨김**: KBL 이 코치가 된 선수 사진을 코치 사진으로 바꿔 둔 경우 `data/codes/photo-overrides.json`의 `hide`에 선수 번호(문자열)를 적는다 → 다음 가공(`npm run process`, 매일 Actions) 때 그 선수 `photoUrl: null`(대체 디자인). 사용자가 번호를 알려 주면 여기에 추가만 하면 된다
 - 규칙: 레포에 복사하지 않고 핫링크. 주소는 `scripts/process.ts`가 processed JSON에 써 넣고 화면은 그 값만 쓴다(원칙 1). 로드 실패 시 팀 색+이니셜 대체, 환경변수로 전체 끄기 가능해야 함. 하단 출처에 "사진·로고 © KBL 및 각 구단".
@@ -166,7 +167,7 @@ kbl-stats/
 ├── public/shots/{seasonCode}/{playerNo}.json ← 빌드 전 생성되는 선수·시즌 슛 파일 (선수 상세 시즌 전환 때 받음, 최대 약 16KB). git 제외
 ├── public/cards/{seasonCode}.json ← 빌드 전 생성되는 시즌 카드 데이터 (선수 탭·선수 상세 시즌 전환·비교 탭이 브라우저에서 받음, lib/cards.ts SeasonCardsFile). git 제외
 ├── data/
-│   ├── codes/           ← 시즌·팀·경기구분 코드표 (API에서 받아 저장) + 손으로 관리하는 예외 둘: team-colors.json(팀 색), photo-overrides.json(사진 숨길 선수 번호 hide)
+│   ├── codes/           ← 시즌·팀·경기구분 코드표 (API에서 받아 저장) + 손으로 관리하는 예외 셋: team-colors.json(팀 색), photo-overrides.json(사진 숨길 선수 번호 hide), site.json(사이트 이름·리그 로고 주소 — app/components/SiteLogo 가 읽음)
 │   ├── raw/{seasonCode}/traditional.json, advanced.json, ... + raw/players/players.json(선수 마스터, 페이지 응답 배열)
 │   │    + raw/highs/{seasonCode}/{playerNo}.json(한 경기 최다) + raw/gamelogs/{seasonCode}/{playerNo}.json(경기별 기록) + raw/profiles/{playerNo}.json(프로필)
 │   │    + raw/games/{seasonCode}/list.json(서버 C 경기 목록) + raw/shots/{seasonCode}/{gmkey}.json(슛 차트)
@@ -245,6 +246,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-01 (사이트 이름·로고): 가제 **"KBL - Stats Reference"**(상단·페이지 제목), 상단 이름 왼쪽에 KBL 리그 로고(`app/components/SiteLogo`, 주소는 `data/codes/site.json`, 실패·스위치 off 면 "KBL" 글자 대체). 로고 주소는 조사용 워크플로(`claude/probe-league-logo` 브랜치 — GitHub 앱 권한상 삭제 403이라 남아 있음, 손으로 지워도 됨)로 확인. main 배포.
 - 2026-10-01 (피드백 8차): ① 슈팅 축에 **자유투 성공률**(`ftPct`, 경기당 자유투 시도가 리그 평균 이상인 선수만 — `RadarThresholds.fta`) 추가 → 슈팅 = 3점 성공·시도·성공률 + 미드레인지 시도·성공률 + 자유투%. ② 등급 집단을 **국내 / 외국인(외국+아시아쿼터) 두 풀로 고정**(`shouldMergeAsia`: 아시아쿼터가 있으면 인원과 관계없이 항상 합산, 라벨 "외국인 선수(아시아쿼터 포함)"; `MIN_GRADE_GROUP`은 참고 상수). 2025-26 국내 등급 분포 변화 거의 없음(이정현 S 87.2). main 배포.
 - 2026-10-01 (슛 차트 3점 호 수정): 코트 그림의 3점 호 SVG `A` 명령 large-arc 플래그가 1 이라 브라우저가 다른 쪽 타원 중심(바스켓 앞 3m)을 골라 호가 약 9.8m 까지 그려졌다(3점 점이 호 안쪽에 보임). 0 0 으로 고쳐 호 끝이 6.75m(김낙현 2025-26 차트에서 측정 6.745m). 판정(`isThreePx`)은 원래 맞았음(좌표 3점 202 vs 공식 192). 테스트에 호 끝점·플래그 검사 추가. main 배포.
 - 2026-10-01 (피드백 7차 — 레이더 6축·포지션 종합): ① 칭호 "15시즌 클럽" → **"롱런"**. ② 레이더를 **6축 공격·수비·리바운드·슈팅·리딩·효율**로 개편(`lib/metrics RADAR_AXIS_COMPONENTS`, 사용자 정의): 공격 = 경기당 득점·야투 성공·야투 시도·자유투 시도·USG% / 수비 = 스틸·블록·굿디펜스·디플렉션(파울 뺌) / 리바운드 = 공격·수비 리바운드·REB%(박스아웃은 KBL 미기록) / 슈팅 = 3점 성공·시도·성공률 + **미드레인지 시도·성공률(슛 차트 구역, coverage.shots 2006-07~)** / 리딩 = 어시스트·AST/TO·TOV%·AST%(경기당 턴오버는 벤치 편향이라 뺌) / 효율 = PER·TS%·eFG%. +/-·스크린 어시스트·2점%·허슬 축 폐지. CardPlayer·카드 파일 v3 에 fgm·midA·midM·rebPct·astPct 추가, `radarGeometry` 를 n각형 일반식으로. ③ **종합 등급 포지션 가중치**(`axisWeights·ROLE_AXIS_WEIGHTS`): 가드(G·GF) 리딩 ×1.5·리바운드 ×0.5, 포워드 전부 1, 빅맨(FC·C) 리바운드 ×1.5·슈팅·리딩 ×0.5 — 레이더 축은 그대로, 종합·유형 라벨만. 실측(2025-26 국내): 리바운드 가드 37·빅맨 83, 슈팅 55·37, 리딩 64·35. ④ 유형 라벨 세분(`playerType`, 가장 높은 축이 포지션상 낮기 쉬운 축일 때만): 플레이메이킹 빅맨·스트레치 빅맨·락다운 디펜더(수비 ≥80, 슈팅 <55, 공격 <70)·리바운딩 가드 + 일반 득점원·수비수·리바운더·슈터·플레이메이커·효율형. 처음 "그 축 ≥70 이면" 규칙은 이정현(S·S·리바 81)을 리바운딩 가드로 만들어 폐기. 결과(2025-26): 이정현·허훈 A→S, 하윤기 A, 워니 득점원, 유형 분포 리바운더 29·플레이메이커 20·슈터 20·수비수 19·효율형 19·롤 14·득점원 8·올라운더 8·세분 5. 검증: typecheck·test 12벌·build·slop 0, Playwright 390/1280.

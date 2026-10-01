@@ -9,7 +9,7 @@ import SiteNav from "@/app/components/SiteNav";
 import SourceFooter from "@/app/components/SourceFooter";
 
 export const metadata: Metadata = {
-  title: "선수 비교 · KBL 팬 스탯",
+  title: "선수 비교 · KBL - Stats Reference",
   description: "KBL 두 선수(또는 한 선수의 두 시즌) 플레이어 카드를 나란히 놓고 스탯·등급 비교. 비영리 팬 프로젝트.",
 };
 

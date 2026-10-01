@@ -3,7 +3,7 @@ import { FONT_CDN_ORIGIN, PRETENDARD_CSS_URL } from "./components/webFont";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "KBL 팬 스탯",
+  title: "KBL - Stats Reference",
   description: "KBL 정규시즌 선수 기록을 플레이어 카드·순위표·팀 분포·비교로 보는 비영리 팬 프로젝트.",
 };
 

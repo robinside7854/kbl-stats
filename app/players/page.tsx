@@ -6,7 +6,7 @@ import PlayersView from "@/app/components/PlayersView";
 import SourceFooter from "@/app/components/SourceFooter";
 
 export const metadata: Metadata = {
-  title: "선수 · KBL 팬 스탯",
+  title: "선수 · KBL - Stats Reference",
   description: "KBL 선수 검색과 시즌별 선수 목록. 포지션·국적·팀으로 거르고 종합 등급 순으로. 비영리 팬 프로젝트.",
 };
 

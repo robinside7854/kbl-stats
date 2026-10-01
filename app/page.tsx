@@ -11,7 +11,7 @@ import SiteNav from "./components/SiteNav";
 import SourceFooter, { formatFetchedAt } from "./components/SourceFooter";
 
 export const metadata: Metadata = {
-  title: "KBL 팬 스탯 · 이번 시즌 한눈에",
+  title: "KBL - Stats Reference · 이번 시즌 한눈에",
   description: "KBL 정규시즌 부문별 1~3위, 플레이어 카드, 순위표, 팀별 선수 분포, 1997년부터 모든 선수 기록. 비영리 팬 프로젝트.",
 };
 

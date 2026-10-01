@@ -12,6 +12,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { SeasonOption } from "@/lib/types";
 import PlayerSearch from "./PlayerSearch";
+import SiteLogo, { SITE_NAME } from "./SiteLogo";
 
 export type SiteView = "home" | "players" | "player" | "leaders" | "teams" | "compare" | "glossary";
 
@@ -55,8 +56,9 @@ export default function SiteNav({ seasons, seasonCode, view, onSeasonChange, wid
     <header className="border-b border-line bg-surface">
       <div className={`mx-auto ${wide ? "max-w-5xl" : "max-w-3xl"} px-4`}>
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 pt-3">
-          <Link href="/" className="focus-ring order-1 inline-flex h-10 shrink-0 items-center rounded-control text-body font-bold tracking-tight text-ink">
-            KBL 팬 스탯
+          <Link href="/" className="focus-ring order-1 inline-flex h-10 shrink-0 items-center gap-2 rounded-control text-body font-bold tracking-tight text-ink">
+            <SiteLogo />
+            {SITE_NAME}
           </Link>
           {!hideSearch && <PlayerSearch className="order-3 w-full sm:order-2 sm:w-auto sm:max-w-xs sm:flex-1" />}
           {showSeason && (

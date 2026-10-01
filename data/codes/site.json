@@ -1,0 +1,5 @@
+{
+  "_comment": "사이트 이름·리그 로고 — 손으로 관리하는 파일(data/codes 예외). 로고 주소는 KBL 공홈 상단 로고(2026-10-01 Actions 러너로 확인: 200 image/svg+xml). 화면(app/)은 이 값만 읽고 KBL 주소를 직접 쓰지 않는다(원칙 1). 로고가 안 뜨거나 NEXT_PUBLIC_OFFICIAL_IMAGES=off 면 글자 \"KBL\" 대체.",
+  "name": "KBL - Stats Reference",
+  "leagueLogoUrl": "https://kbl.or.kr/assets/img/logo/logo-kbl.svg"
+}

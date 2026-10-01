@@ -12,7 +12,7 @@ import SiteNav from "@/app/components/SiteNav";
 import SourceFooter from "@/app/components/SourceFooter";
 
 export const metadata: Metadata = {
-  title: "용어 풀이 · KBL 팬 스탯",
+  title: "용어 풀이 · KBL - Stats Reference",
   description: "PER·TS%·USG%·AST%·REB%·백분위 등급 등 이 사이트에 나오는 지표의 뜻과 계산식, KBL 값과 맞춰 본 결과. 비영리 팬 프로젝트.",
 };
 
