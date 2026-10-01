@@ -19,7 +19,7 @@ import { toCardPlayers as convertCardPlayers, toCardTeams, toLeaderPlayers as co
 import { buildSeasonHighCards, type SeasonHighCard } from "./highs";
 import { careerHighAchievements, careerHighTabs, type CareerHighRow, type HighAchievement, type HighsTab } from "./career";
 import { buildPlayerShotsFile, type PlayerShotsFile, type ShotPoint } from "./shots";
-import { sumCareerTotals, type CareerTotal } from "./records";
+import { isActiveCareer, nextMilestones, sumCareerTotals, type CareerTotal, type Milestone } from "./records";
 import { nationalityOf } from "./roster";
 import { findSimilar, toAxisVector, type SimilarEntry, type SimilarVector } from "./similar";
 import { pickPrimeSeasons, primeCandidatesOf, type PrimeCandidate } from "./prime";
@@ -456,4 +456,23 @@ export function loadCareerTotals(): CareerTotal[] {
   }
   careerTotals = sumCareerTotals(rows);
   return careerTotals;
+}
+
+/** 현역 선수의 다음 통산 이정표 (lib/records nextMilestones). 은퇴 선수·기록 없는 선수는 [] */
+export function loadMilestones(playerNo: string): Milestone[] {
+  const all = loadCareerTotals();
+  const me = all.find((t) => t.id === playerNo);
+  const latest = listSeasonsWithPlayers()[0]?.seasonCode;
+  if (!me || latest === undefined || !isActiveCareer(me, latest)) return [];
+  return nextMilestones(me, all);
+}
+
+/** 선수 탭 "칭호로 찾기": 선수 번호 → 칭호 배지 키 목록 (배지 없는 선수는 없음) */
+export function loadBadgeKeys(): Record<string, string[]> {
+  const out: Record<string, string[]> = {};
+  for (const e of loadPlayersIndex()) {
+    const keys = loadPlayerBadges(e.id).map((b) => b.key);
+    if (keys.length) out[e.id] = keys;
+  }
+  return out;
 }

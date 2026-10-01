@@ -192,11 +192,11 @@ assert.equal(compareHref({ id: "1", seasonCode: 47 }), "/compare?a=1:47"); // �
 
 // ── 선수 탭 주소 ──
 const pctx = { seasons: [45, 47], latest: 47 };
-assert.deepEqual(parsePlayersQuery("", pctx), { season: 47, position: "all", origin: "all", teamCode: null });
-const ps = { season: 45, position: "G" as const, origin: "asia" as const, teamCode: "55" };
+assert.deepEqual(parsePlayersQuery("", pctx), { season: 47, position: "all", origin: "all", teamCode: null, badge: null });
+const ps = { season: 45, position: "G" as const, origin: "asia" as const, teamCode: "55", badge: null };
 assert.equal(playersQueryString(ps, 47), "?season=45&pos=g&origin=asia&team=55");
 assert.deepEqual(parsePlayersQuery(playersQueryString(ps, 47), pctx), ps);
-assert.deepEqual(parsePlayersQuery("?season=13&pos=q&origin=x&team=a", pctx), { season: 47, position: "all", origin: "all", teamCode: null });
+assert.deepEqual(parsePlayersQuery("?season=13&pos=q&origin=x&team=a", pctx), { season: 47, position: "all", origin: "all", teamCode: null, badge: null });
 assert.equal(positionFromParam("c"), "C");
 assert.equal(nationalityFromParam("for"), "foreign");
 
@@ -351,3 +351,37 @@ console.log("cardview: 카드 범위·그리드·비교표·주소·용어 앵�
   assert.deepEqual(parseStyleQuery(styleQueryString(q)), q);
   assert.equal(styleQueryString({ kind: "role", type: null, origin: "all" }), "");
 }
+
+// ── 칭호로 찾기 (선수 탭 badge 필터) ──
+import { componentValueText, percentileBarGroups, percentileTone } from "../lib/cardview";
+{
+  const badgeOf: Record<string, string[]> = { "101": ["scoringKing", "veteran"], "104": ["scoringKing"], "106": ["oneClub"] };
+  const of = (id: string) => badgeOf[id] ?? [];
+  assert.deepEqual(ids(filterGridEntries(grid, { position: "all", origin: "all", teamCode: null, badge: "scoringKing" }, of)).sort(), ["101", "104"]);
+  assert.deepEqual(ids(filterGridEntries(grid, { position: "C", origin: "all", teamCode: null, badge: "scoringKing" }, of)), ["104"]);
+  assert.equal(filterGridEntries(grid, { position: "all", origin: "all", teamCode: null, badge: null }, of).length, grid.length);
+  const ps2 = { season: 45, position: "all" as const, origin: "all" as const, teamCode: null, badge: "scoringKing" };
+  assert.equal(playersQueryString(ps2, 47), "?season=45&badge=scoringKing");
+  assert.equal(parsePlayersQuery("?badge=scoringKing", { seasons: [45, 47], latest: 47 }).badge, "scoringKing");
+  assert.equal(parsePlayersQuery("?badge=<x>", { seasons: [45, 47], latest: 47 }).badge, null);
+  assert.deepEqual(gridFilterChips({ position: "all", origin: "all", teamCode: null, badge: "scoringKing" }, (c) => c, () => "득점왕"), [{ field: "badge", label: "득점왕" }]);
+  assert.equal(clearGridFilter(ps2, "badge").badge, null);
+}
+
+// ── 세부 능력치 백분위 막대 ──
+{
+  const v = buildSeasonCardView(cards, "101", "all")!;
+  const groups = percentileBarGroups(v.entry.radar);
+  assert.equal(groups.length, RADAR_AXES.length);
+  const offense = groups.find((g) => g.axis === "offense")!;
+  assert.equal(offense.rows[0].label, "득점"); // "경기당 " 뗌
+  assert.equal(offense.rows[0].valueText, "20.0"); // 400점 ÷ 20경기
+  for (const g of groups) for (const r of g.rows) assert.ok(r.pct === null || (r.pct >= 0 && r.pct <= 100));
+  assert.equal(componentValueText("tpPct", 33), "33.0%");
+  assert.equal(componentValueText("astTo", 1.3), "1.30");
+  assert.equal(percentileTone(50), 0);
+  assert.equal(percentileTone(100), 1);
+  assert.equal(percentileTone(0), -1);
+  assert.equal(percentileTone(75), 0.5);
+}
+console.log("cardview: 칭호 필터·백분위 막대 통과");

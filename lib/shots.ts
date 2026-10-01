@@ -422,3 +422,82 @@ export function courtPoints(points: readonly ShotPoint[]): { missed: ShotPoint[]
   }
   return { missed, made, outside };
 }
+
+// ─────────────────────────────────────────────
+// 구역 색 (핫/콜드, 2026-10-01 — NBA.com 슛 차트 참고): 구역 성공률 − 리그 평균(%p)을 발산형 색으로
+// ─────────────────────────────────────────────
+
+/** 이 시도 수 미만 구역은 색을 칠하지 않는다 (표본 적음 — 회색) */
+export const ZONE_HEAT_MIN_ATTEMPTS = 10;
+/** 리그 평균과 차이 ±이 값(%p) 이상이면 가장 진한 색 */
+export const ZONE_HEAT_RANGE = 10;
+
+/** 구역 한 줄 → 색 위치 -1(차가움) ~ 1(뜨거움). 표본 적음·리그 기록 없음이면 null */
+export function zoneHeat(r: Pick<ZoneRow, "attempts" | "pct" | "leaguePct">): number | null {
+  if (r.attempts < ZONE_HEAT_MIN_ATTEMPTS || r.pct === null || r.leaguePct === null) return null;
+  return Math.max(-1, Math.min(1, (r.pct - r.leaguePct) / ZONE_HEAT_RANGE));
+}
+
+/** 리그 평균 대비 %p 표기 ("+3.2", "−1.5", 없으면 null) */
+export function zoneDiffText(r: Pick<ZoneRow, "pct" | "leaguePct">): string | null {
+  if (r.pct === null || r.leaguePct === null) return null;
+  const d = r.pct - r.leaguePct;
+  return `${d >= 0 ? "+" : "−"}${Math.abs(d).toFixed(1)}`;
+}
+
+export interface CourtZoneShape {
+  key: ShotZoneKey;
+  /** 채울 path 들 (같은 구역이 둘로 나뉜 코너는 2개) */
+  paths: string[];
+  /** evenodd 로 채울지 (구멍 뚫린 구역: 페인트 = 사각형 − 골밑 원, 미드 = 3점 안 − 페인트) */
+  evenOdd: boolean;
+  /** 아크 3점: 코너 띠를 뺀 아래쪽만 (clip 사각형 path) */
+  clip?: string;
+  /** 숫자 라벨 위치 (그림 좌표: x = 좌우, y = 바스켓에서 앞쪽) — 코너는 양쪽 */
+  labels: { x: number; y: number; vertical?: boolean }[];
+}
+
+/**
+ * 코트 그림 위 구역 5개 모양 (courtGeometry 와 같은 좌표·상수, 판정 shotZone 과 같은 경계).
+ * 골밑 = 반지름 1.5m 원, 페인트 = 페인트 사각형 − 골밑, 미드 = 3점 라인 안 − 페인트 사각형,
+ * 코너 3점 = 베이스라인에서 3m 까지의 좌우 띠(코너 직선 바깥), 아크 3점 = 3점 라인 바깥 중 코너 띠 아래.
+ */
+export function courtZoneShapes(): CourtZoneShape[] {
+  const C = COURT;
+  const base = -C.basketToBaseline;
+  const half = base + C.halfLength;
+  const w = C.width / 2;
+  const ftLine = base + C.paintLength;
+  const c = C.threeCorner;
+  const yi = C.threeArcRx * Math.sqrt(Math.max(0, 1 - (c / C.threeArcRy) ** 2));
+  const r = RIM_RADIUS_M;
+  const cornerEnd = base + CORNER_DEPTH_M;
+  const circle = `M${f2(-r)} 0A${f2(r)} ${f2(r)} 0 1 0 ${f2(r)} 0A${f2(r)} ${f2(r)} 0 1 0 ${f2(-r)} 0Z`;
+  const paintRect = `M${f2(-C.paintHalfWidth)} ${f2(base)}H${f2(C.paintHalfWidth)}V${f2(ftLine)}H${f2(-C.paintHalfWidth)}Z`;
+  const inside3 = `M${f2(-c)} ${f2(base)}V${f2(yi)}A${f2(C.threeArcRy)} ${f2(C.threeArcRx)} 0 0 0 ${f2(c)} ${f2(yi)}V${f2(base)}Z`;
+  const courtRect = `M${f2(-w)} ${f2(base)}H${f2(w)}V${f2(half)}H${f2(-w)}Z`;
+  return [
+    { key: "rim", paths: [circle], evenOdd: false, labels: [{ x: 0, y: 0.75 }] },
+    { key: "paint", paths: [paintRect + circle], evenOdd: true, labels: [{ x: 0, y: 3 }] },
+    { key: "mid", paths: [inside3 + paintRect], evenOdd: true, labels: [{ x: 0, y: 5.45 }] },
+    {
+      key: "corner3",
+      paths: [
+        `M${f2(-w)} ${f2(base)}H${f2(-c)}V${f2(cornerEnd)}H${f2(-w)}Z`,
+        `M${f2(c)} ${f2(base)}H${f2(w)}V${f2(cornerEnd)}H${f2(c)}Z`,
+      ],
+      evenOdd: false,
+      labels: [
+        { x: -(c + w) / 2, y: base + CORNER_DEPTH_M / 2, vertical: true },
+        { x: (c + w) / 2, y: base + CORNER_DEPTH_M / 2, vertical: true },
+      ],
+    },
+    {
+      key: "arc3",
+      paths: [courtRect + inside3],
+      evenOdd: true,
+      clip: `M${f2(-w)} ${f2(cornerEnd)}H${f2(w)}V${f2(half)}H${f2(-w)}Z`,
+      labels: [{ x: 0, y: 8.4 }],
+    },
+  ];
+}

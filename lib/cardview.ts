@@ -16,6 +16,8 @@ import {
   gradeScore,
   overallWeightNote,
   RADAR_AXES,
+  RADAR_AXIS_LABELS,
+  RADAR_COMPONENTS,
   perGame,
   qualifyLabel,
   type CardContext,
@@ -25,6 +27,9 @@ import {
   type CardStatRank,
   type Grade,
   type GradingContext,
+  type RadarAxis,
+  type RadarComponentKey,
+  type RadarScore,
 } from "./metrics";
 import {
   filterByNationality,
@@ -204,6 +209,8 @@ export interface GridFilter {
   origin: NationalityFilter;
   /** null 이면 전체 팀 */
   teamCode: string | null;
+  /** 칭호 배지 키 (lib/badges BadgeKey, 2026-10-01 "칭호로 선수 찾기"). 없거나 null 이면 전체 */
+  badge?: string | null;
 }
 
 /** 선수 탭 그리드 첫 화면 카드 수. "더 보기"를 누를 때마다 이만큼 더 (디자인 점검 A3) */
@@ -216,23 +223,37 @@ export type GridFilterField = keyof GridFilter;
  * 적용 중 필터 요약 칩 (기본값 아닌 것만, 시트 안 순서). teamLabel: 팀 코드 → 표시 이름.
  * 형식은 lib/leaders leaderFilterChips 와 같다 ({ field, label }).
  */
-export function gridFilterChips(f: GridFilter, teamLabel: (code: string) => string): { field: GridFilterField; label: string }[] {
+export function gridFilterChips(
+  f: GridFilter,
+  teamLabel: (code: string) => string,
+  badgeLabel: (key: string) => string = (k) => k,
+): { field: GridFilterField; label: string }[] {
   const out: { field: GridFilterField; label: string }[] = [];
   if (f.position !== "all") out.push({ field: "position", label: positionFilterLabel(f.position) });
   if (f.origin !== "all") out.push({ field: "origin", label: nationalityFilterLabel(f.origin) });
   if (f.teamCode !== null) out.push({ field: "teamCode", label: teamLabel(f.teamCode) });
+  if (f.badge) out.push({ field: "badge", label: badgeLabel(f.badge) });
   return out;
 }
 
 /** 칩의 ✕: 그 항목만 기본값(전체)으로 */
 export function clearGridFilter<T extends GridFilter>(f: T, field: GridFilterField): T {
-  return { ...f, [field]: field === "teamCode" ? null : "all" };
+  return { ...f, [field]: field === "teamCode" || field === "badge" ? null : "all" };
 }
 
-/** 포지션·국적(lib/roster)·팀으로 거른다 */
-export function filterGridEntries(list: readonly GridEntry[], f: GridFilter): GridEntry[] {
+/** 포지션·국적(lib/roster)·팀·칭호로 거른다. badgesOf: 선수 번호 → 그 선수의 칭호 배지 키 (통산 기준) */
+export function filterGridEntries(
+  list: readonly GridEntry[],
+  f: GridFilter,
+  badgesOf: (id: string) => readonly string[] = () => [],
+): GridEntry[] {
   const players = filterByNationality(filterByPosition(list.map((e) => e.player), f.position), f.origin);
-  const keep = new Set(players.filter((p) => f.teamCode === null || p.teamCode === f.teamCode).map((p) => p.id));
+  const keep = new Set(
+    players
+      .filter((p) => f.teamCode === null || p.teamCode === f.teamCode)
+      .filter((p) => !f.badge || badgesOf(p.id).includes(f.badge))
+      .map((p) => p.id),
+  );
   return list.filter((e) => keep.has(e.player.id));
 }
 
@@ -462,18 +483,20 @@ export interface PlayersState extends GridFilter {
 }
 
 /**
- * 선수 탭 쿼리 ?season=45&pos=g&origin=for&team=55 → 상태. 목록에 없는 시즌이면 latest.
+ * 선수 탭 쿼리 ?season=45&pos=g&origin=for&team=55&badge=scoringKing → 상태. 칭호는 형식만 본다(목록에 없는 키면 화면이 버린다). 목록에 없는 시즌이면 latest.
  * 팀은 형식만 본다(시즌마다 팀이 달라 그 시즌 파일을 받은 뒤 화면이 없는 팀을 버린다).
  */
 export function parsePlayersQuery(search: string, ctx: { seasons: readonly number[]; latest: number }): PlayersState {
   const qs = new URLSearchParams(search);
   const s = qs.get("season");
   const team = qs.get("team");
+  const badge = qs.get("badge");
   return {
     season: s && DIGITS.test(s) && ctx.seasons.includes(Number(s)) ? Number(s) : ctx.latest,
     position: positionFromParam(qs.get("pos")),
     origin: nationalityFromParam(qs.get("origin")),
     teamCode: team && DIGITS.test(team) ? team : null,
+    badge: badge && /^[a-zA-Z0-9]{1,30}$/.test(badge) ? badge : null,
   };
 }
 
@@ -484,6 +507,7 @@ export function playersQueryString(s: PlayersState, latest: number): string {
   if (s.position !== "all") qs.set("pos", positionParam(s.position));
   if (s.origin !== "all") qs.set("origin", nationalityParam(s.origin));
   if (s.teamCode) qs.set("team", s.teamCode);
+  if (s.badge) qs.set("badge", s.badge);
   const str = qs.toString();
   return str ? `?${str}` : "";
 }
@@ -616,4 +640,57 @@ export function radarGeometry(
   const used = outer * (upK + downK) + upC + downC;
   const cy = Math.round((height - used) / 2 + outer * upK + upC);
   return { outer, cy };
+}
+
+// ─────────────────────────────────────────────
+// 세부 능력치 백분위 막대 (선수 상세 카드 아래, 2026-10-01 — Baseball Savant "Percentile Rankings" 참고)
+// 레이더 6축의 구성 요소 하나하나를 같은 국적 집단 안 백분위로. 색은 낮음 파랑 · 50 회색 · 높음 빨강(lib/teams divergingFill).
+// ─────────────────────────────────────────────
+
+export interface PercentileBarRow {
+  key: RadarComponentKey;
+  /** 표시 이름 ("경기당 " 은 뗀다 — 묶음 머리에 "누적 기록은 경기당"이 있다) */
+  label: string;
+  /** 그 선수 값 표기 (예: "23.2", "38.5%", "1.82") */
+  valueText: string;
+  /** 0~100 (시도 기준 미달 등으로 없으면 null — 막대 없이 "–") */
+  pct: number | null;
+}
+
+export interface PercentileBarGroup {
+  axis: RadarAxis;
+  label: string;
+  /** 축 백분위 (레이더 값) */
+  axisPct: number | null;
+  rows: PercentileBarRow[];
+}
+
+const RATE_COMPONENTS = new Set<RadarComponentKey>(["usgPct", "rebPct", "tpPct", "midPct", "ftPct", "tovPct", "astPct", "tsPct", "efgPct"]);
+
+/** 구성 요소 값 표기: 성공률·% 지표는 "38.5%", AST/TO 는 소수 2자리, 나머지 소수 1자리 */
+export function componentValueText(key: RadarComponentKey, value: number): string {
+  if (!Number.isFinite(value)) return "–";
+  if (RATE_COMPONENTS.has(key)) return `${value.toFixed(1)}%`;
+  if (key === "astTo") return value.toFixed(2);
+  return value.toFixed(1);
+}
+
+/** 레이더 점수 → 축별 막대 묶음 (그 시즌에 기록이 있는 구성 요소만, 순서 = RADAR_AXIS_COMPONENTS) */
+export function percentileBarGroups(radar: Pick<RadarScore, "axes" | "components">): PercentileBarGroup[] {
+  return RADAR_AXES.map((axis) => ({
+    axis,
+    label: RADAR_AXIS_LABELS[axis],
+    axisPct: radar.axes[axis],
+    rows: radar.components[axis].map((c) => ({
+      key: c.key,
+      label: RADAR_COMPONENTS[c.key].label.replace(/^경기당 /, ""),
+      valueText: componentValueText(c.key, c.value),
+      pct: c.pct === null ? null : Math.round(c.pct),
+    })),
+  })).filter((g) => g.rows.length > 0);
+}
+
+/** 백분위 → 발산형 색 위치 -1(0, 파랑) ~ 0(50, 회색) ~ 1(100, 빨강) */
+export function percentileTone(pct: number): number {
+  return Math.max(-1, Math.min(1, (pct - 50) / 50));
 }

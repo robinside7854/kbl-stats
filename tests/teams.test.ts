@@ -109,3 +109,12 @@ console.log("teams.test.ts: 모든 테스트 통과");
   assert.deepEqual(birthdaysOn(ps, "2028-02-29").map((b) => [b.player.id, b.age]), [["5", 32]]);
   assert.deepEqual(birthdaysOn(ps, "엉터리"), []);
 }
+
+// ── 발산형 색 ──
+import { divergingFill } from "../lib/teams";
+assert.equal(divergingFill(0), "color-mix(in oklab, var(--div-hot) 0%, var(--div-mid))");
+assert.equal(divergingFill(1), "color-mix(in oklab, var(--div-hot) 100%, var(--div-mid))");
+assert.equal(divergingFill(-0.5), "color-mix(in oklab, var(--div-cold) 50%, var(--div-mid))");
+assert.equal(divergingFill(-3), "color-mix(in oklab, var(--div-cold) 100%, var(--div-mid))"); // 범위 밖은 끝으로
+assert.equal(divergingFill(NaN), "color-mix(in oklab, var(--div-hot) 0%, var(--div-mid))");
+console.log("teams: 발산형 색 통과");

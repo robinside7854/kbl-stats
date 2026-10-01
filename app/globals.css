@@ -39,6 +39,11 @@
   --cat-6: #008300;
   --cat-7: #4a3aa7;
   --cat-8: #e34948;
+  /* 발산형(diverging) 두 끝 + 가운데 회색 (dataviz 기본: 파랑 ↔ 빨강, 가운데는 색 없는 회색).
+     백분위 막대(낮음 파랑 · 높음 빨강)·슛 차트 구역(리그 평균보다 낮음/높음)에 쓴다 — lib/teams divergingFill */
+  --div-cold: #2a78d6;
+  --div-mid: #e3e2de;
+  --div-hot: #e34948;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -75,6 +80,9 @@
     --cat-6: #008300;
     --cat-7: #9085e9;
     --cat-8: #e66767;
+    --div-cold: #3987e5;
+    --div-mid: #383835;
+    --div-hot: #e66767;
   }
 }
 

@@ -2,14 +2,27 @@
 // 선수 상세 "슛 차트" 섹션 (PLAN.md §14): 하프코트 SVG 위 슛 점 + 구역표 5줄 + 주 공격 유형 칩.
 // - 코트는 직접 그린 SVG(차트 라이브러리 아님). 선 위치·viewBox 는 lib/shots courtGeometry(구역 판정과 같은 상수), 점 거르기는 courtPoints.
 // - 점: 성공 = 팀 색 채움(바탕 대비 3:1 보정), 실패 = ink-3 테두리만 — 색이 아니라 모양(채움/빈 원)으로도 구분된다.
-// - 구역표: 구역 · 시도 비중 막대(팀 색) · 시도 · 성공률 · 리그 평균. 리그보다 높으면 굵게만(색 남발 금지). 계산은 lib/shots zoneRows.
+// - 구역 색 / 슛 위치 전환 (2026-10-01, NBA.com 핫/콜드 참고): 구역 색 = 구역 성공률 − 리그 평균(%p)을 발산형 색(파랑 낮음·회색·빨강 높음,
+//   ±10%p 에서 가장 진함, 시도 10개 미만은 회색). 구역 안 숫자는 성공률(ink 글자 + 표면색 테두리). 계산은 lib/shots zoneHeat·courtZoneShapes.
+// - 구역표: 구역 · 시도 비중 막대(팀 색) · 시도 · 성공률 · 리그 평균 · 리그 대비 %p. 리그보다 높으면 굵게. 계산은 lib/shots zoneRows.
 // - 시즌: 부모(PlayerSeasonCards)의 시즌 칩을 따른다. 첫 화면(최신 시즌)은 서버가 넣은 값(initial), 다른 시즌은
 //   우리 정적 파일 /shots/{시즌}/{선수}.json 을 받는다(빌드 전 scripts/build-shots.ts — KBL 호출 아님). 슛 데이터 없는 시즌은 받지 않고 한 줄 안내.
 // - PC(1024px 이상): 코트 왼쪽 · 구역표 오른쪽. 모바일: 코트(폭 가득) → 구역표.
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { offenseTypeDef, offenseTypeHelp } from "@/lib/glossary";
-import { courtGeometry, courtPoints, zoneRows, type PlayerShotsFile } from "@/lib/shots";
-import { desaturate, ensureMarkContrast } from "@/lib/teams";
+import {
+  courtGeometry,
+  courtPoints,
+  courtZoneShapes,
+  ZONE_HEAT_MIN_ATTEMPTS,
+  ZONE_HEAT_RANGE,
+  zoneDiffText,
+  zoneHeat,
+  zoneRows,
+  type PlayerShotsFile,
+} from "@/lib/shots";
+import { desaturate, divergingFill, ensureMarkContrast } from "@/lib/teams";
+import Segmented from "./Segmented";
 import HelpPopover from "./HelpPopover";
 import { IconInfo } from "./icons";
 import InfoLink from "./InfoLink";
@@ -69,6 +82,15 @@ function useShots(playerId: string, seasonCode: number, available: readonly numb
 const NF = new Intl.NumberFormat("ko-KR");
 const pctText = (v: number | null) => (v === null ? "–" : `${v.toFixed(1)}%`);
 const COURT = courtGeometry();
+const ZONE_SHAPES = courtZoneShapes();
+/** 구역 숫자 글자 크기 (m) */
+const ZONE_FONT = 0.62;
+
+type ChartMode = "zones" | "dots";
+const MODE_OPTIONS: { value: ChartMode; label: string }[] = [
+  { value: "zones", label: "구역 색" },
+  { value: "dots", label: "슛 위치" },
+];
 /** 점 반지름 (m) — 모바일 폭(약 360px)에서 약 3.3px, PC(460px)에서 약 4.2px */
 const DOT_R = 0.14;
 
@@ -155,6 +177,10 @@ interface BodyProps {
 function ShotChartBody({ file, seasonShort, madeColor, missColor, lineColor, barColor }: BodyProps) {
   const { zones, league } = file;
   const rows = zoneRows(zones, league);
+  const hasLeagueRows = league !== null;
+  const [mode, setMode] = useState<ChartMode>(hasLeagueRows ? "zones" : "dots");
+  const clipId = useId().replace(/:/g, "");
+  const rowByKey = new Map(rows.map((r) => [r.key, r]));
   const { made, missed } = courtPoints(file.points);
   const total = zones.total;
   const totalPct = total.attempts > 0 ? (total.made / total.attempts) * 100 : null;
@@ -163,43 +189,121 @@ function ShotChartBody({ file, seasonShort, madeColor, missColor, lineColor, bar
   return (
     <div className="grid gap-4 lg:grid-cols-[460px_minmax(0,1fr)] lg:items-start">
       <figure className="surface-card rounded-container p-2">
+        {hasLeagueRows && (
+          <div className="mb-1.5 flex justify-end">
+            <Segmented label="슛 차트 보기" options={MODE_OPTIONS} value={mode} onChange={setMode} />
+          </div>
+        )}
         <svg
           viewBox={COURT.viewBox}
           className="block h-auto w-full"
           role="img"
-          aria-label={`${seasonShort} 정규시즌 슛 ${NF.format(total.attempts)}개 위치, 성공 ${NF.format(total.made)}개. 구역별 숫자는 옆 표에 있습니다.`}
+          aria-label={
+            mode === "zones"
+              ? `${seasonShort} 정규시즌 구역별 성공률을 리그 평균과 비교한 색. 구역별 숫자는 옆 표에 있습니다.`
+              : `${seasonShort} 정규시즌 슛 ${NF.format(total.attempts)}개 위치, 성공 ${NF.format(total.made)}개. 구역별 숫자는 옆 표에 있습니다.`
+          }
         >
+          {mode === "zones" && (
+            <g>
+              {ZONE_SHAPES.map((z) => {
+                const heat = zoneHeat(rowByKey.get(z.key)!);
+                const fill = heat === null ? "var(--surface-2)" : divergingFill(heat);
+                return (
+                  <g key={z.key} clipPath={z.clip ? `url(#${clipId}-${z.key})` : undefined}>
+                    {z.clip && (
+                      <clipPath id={`${clipId}-${z.key}`}>
+                        <path d={z.clip} />
+                      </clipPath>
+                    )}
+                    {z.paths.map((d, i) => (
+                      <path key={i} d={d} fill={fill} fillRule={z.evenOdd ? "evenodd" : "nonzero"} />
+                    ))}
+                  </g>
+                );
+              })}
+            </g>
+          )}
           <g fill="none" stroke={lineColor} strokeWidth={1} vectorEffect="non-scaling-stroke">
             {COURT.lines.map((d, i) => (
               <path key={i} d={d} vectorEffect="non-scaling-stroke" />
             ))}
             <circle cx={COURT.rim.cx} cy={COURT.rim.cy} r={COURT.rim.r} vectorEffect="non-scaling-stroke" />
           </g>
+          {mode === "zones" ? (
+            <g
+              fontSize={ZONE_FONT}
+              fontWeight={700}
+              textAnchor="middle"
+              dominantBaseline="central"
+              fill="var(--ink)"
+              stroke="var(--surface)"
+              strokeWidth={0.14}
+              paintOrder="stroke"
+              className="tabular"
+            >
+              {ZONE_SHAPES.flatMap((z) =>
+                z.labels.map((l, i) => {
+                  const r = rowByKey.get(z.key)!;
+                  return (
+                    <text
+                      key={`${z.key}-${i}`}
+                      x={l.x}
+                      y={l.y}
+                      transform={l.vertical ? `rotate(-90 ${l.x} ${l.y})` : undefined}
+                      fontSize={l.vertical ? ZONE_FONT * 0.8 : ZONE_FONT}
+                    >
+                      {r.attempts === 0 ? "–" : pctText(r.pct)}
+                    </text>
+                  );
+                }),
+              )}
+            </g>
+          ) : (
+            <>
           <g fill="none" stroke={missColor} strokeWidth={1.25}>
-            {missed.map((p, i) => (
-              <circle key={i} cx={p[1]} cy={p[0]} r={DOT_R} vectorEffect="non-scaling-stroke" />
-            ))}
-          </g>
-          <g fill={madeColor} fillOpacity={0.88}>
-            {made.map((p, i) => (
-              <circle key={i} cx={p[1]} cy={p[0]} r={DOT_R} />
-            ))}
-          </g>
+                {missed.map((p, i) => (
+                  <circle key={i} cx={p[1]} cy={p[0]} r={DOT_R} vectorEffect="non-scaling-stroke" />
+                ))}
+              </g>
+              <g fill={madeColor} fillOpacity={0.88}>
+                {made.map((p, i) => (
+                  <circle key={i} cx={p[1]} cy={p[0]} r={DOT_R} />
+                ))}
+              </g>
+            </>
+          )}
         </svg>
         <figcaption className="tabular flex flex-wrap items-center gap-x-3 gap-y-1 px-1 pt-2 text-sub text-ink-2">
           <span className="font-semibold text-ink">
             {seasonShort} · 슛 {NF.format(total.attempts)}개 · {pctText(totalPct)}
           </span>
+          {mode === "zones" ? (
+            <>
+              <span className="inline-flex items-center gap-1">
+                <span aria-hidden className="block h-2.5 w-5 rounded-md" style={{ background: divergingFill(-1) }} />
+                리그보다 낮음
+              </span>
+              <span className="inline-flex items-center gap-1">
+                <span aria-hidden className="block h-2.5 w-5 rounded-md" style={{ background: divergingFill(1) }} />
+                높음 (±{ZONE_HEAT_RANGE}%p 이상 가장 진함)
+              </span>
+              <span className="text-ink-3">시도 {ZONE_HEAT_MIN_ATTEMPTS}개 미만은 회색</span>
+            </>
+          ) : (
+            <>
           <span className="inline-flex items-center gap-1">
-            {/* deslop-ignore-next-line 19 */}
-            <span aria-hidden className="block h-2.5 w-2.5 rounded-full" style={{ background: madeColor }} />
-            성공
-          </span>
-          <span className="inline-flex items-center gap-1">
-            {/* deslop-ignore-next-line 19 */}
-            <span aria-hidden className="block h-2.5 w-2.5 rounded-full border-[1.5px]" style={{ borderColor: missColor }} />
-            실패
-          </span>
+                {/* deslop-ignore-next-line 19 */}
+                <span aria-hidden className="block h-2.5 w-2.5 rounded-full" style={{ background: madeColor }} />
+                성공
+              </span>
+              <span className="inline-flex items-center gap-1">
+                {/* deslop-ignore-next-line 19 */}
+                <span aria-hidden className="block h-2.5 w-2.5 rounded-full border-[1.5px]" style={{ borderColor: missColor }} />
+                실패
+              </span>
+            </>
+          )}
         </figcaption>
       </figure>
 
@@ -215,7 +319,13 @@ function ShotChartBody({ file, seasonShort, madeColor, missColor, lineColor, bar
               <th scope="col" className="py-2 pr-2 text-right font-medium">시도</th>
               <th scope="col" className="py-2 pr-2 text-right font-medium">성공률</th>
               {hasLeague && (
-                <th scope="col" className="py-2 text-right font-medium">리그</th>
+                <th scope="col" className="py-2 pr-2 text-right font-medium">리그</th>
+              )}
+              {hasLeague && (
+                <th scope="col" className="py-2 text-right font-medium">
+                  <span aria-hidden>±</span>
+                  <span className="sr-only">리그 대비 %p</span>
+                </th>
               )}
             </tr>
           </thead>
@@ -238,7 +348,19 @@ function ShotChartBody({ file, seasonShort, madeColor, missColor, lineColor, bar
                   {pctText(r.pct)}
                   {r.aboveLeague && <span className="sr-only"> (리그 평균보다 높음)</span>}
                 </td>
-                {hasLeague && <td className="border-t border-line text-right text-ink-3">{pctText(r.leaguePct)}</td>}
+                {hasLeague && <td className="border-t border-line pr-2 text-right text-ink-3">{pctText(r.leaguePct)}</td>}
+                {hasLeague && (
+                  <td className="border-t border-line text-right">
+                    <span className="inline-flex items-center justify-end gap-1 whitespace-nowrap text-ink-2">
+                      <span
+                        aria-hidden
+                        className="block h-2.5 w-2.5 rounded-sm"
+                        style={{ background: zoneHeat(r) === null ? "var(--surface-2)" : divergingFill(zoneHeat(r)!) }}
+                      />
+                      {zoneDiffText(r) ?? "–"}
+                    </span>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>

@@ -158,3 +158,58 @@ const NF1 = new Intl.NumberFormat("ko-KR", { minimumFractionDigits: 1, maximumFr
 export function formatRecord(value: number, key: RecordStatKey, mode: RecordMode): string {
   return mode === "perGame" && key !== "games" ? NF1.format(value) : NF0.format(Math.round(value));
 }
+
+// ─────────────────────────────────────────────
+// 통산 이정표 (2026-10-01 — Basketball-Reference 의 통산 기록 맥락 참고): "통산 5,000점까지 123점 · 지금 역대 41위"
+// 현역 선수만 (은퇴 선수는 더 쌓이지 않는다). 부문별 다음 이정표 = 지금 값보다 큰 가장 가까운 단계(STEP 의 배수).
+// ─────────────────────────────────────────────
+
+/** 부문별 이정표 간격 (우리 규칙: KBL 정규시즌 54경기 기준으로 2~3시즌에 한 번쯤 닿는 크기) */
+export const MILESTONE_STEPS: Readonly<Partial<Record<RecordStatKey, number>>> = {
+  points: 1000,
+  reb: 500,
+  ast: 500,
+  stl: 100,
+  blk: 100,
+  tpm: 100,
+  games: 100,
+  wins: 100,
+};
+
+/** 화면에 보이는 이정표 수 (가장 가까운 것부터) */
+export const MILESTONE_COUNT = 3;
+
+export interface Milestone {
+  key: RecordStatKey;
+  label: string;
+  unit: string;
+  /** 지금 통산 값 */
+  current: number;
+  /** 다음 이정표 값 */
+  target: number;
+  /** 남은 값 */
+  remaining: number;
+  /** 지금 이 부문 역대 순위 (통산 합계, 같은 값은 같은 순위) */
+  rank: number;
+}
+
+/**
+ * 한 선수의 다음 이정표 MILESTONE_COUNT 개 — 남은 양이 간격에 비해 작은 순(곧 닿는 것부터).
+ * 0 인 부문(예: 3점을 안 던지는 센터)은 뺀다. all: 역대 순위를 매길 전체 통산 목록(자기 자신 포함).
+ */
+export function nextMilestones(t: CareerTotal, all: readonly CareerTotal[], n = MILESTONE_COUNT): Milestone[] {
+  const out: Milestone[] = [];
+  const ratio = new Map<RecordStatKey, number>();
+  for (const def of RECORD_STATS) {
+    const step = MILESTONE_STEPS[def.key];
+    const current = t[def.key];
+    if (!step || current <= 0) continue;
+    const target = (Math.floor(current / step) + 1) * step;
+    const remaining = target - current;
+    const rank = 1 + all.filter((o) => o[def.key] > current).length;
+    out.push({ key: def.key, label: def.label, unit: def.unit, current, target, remaining, rank });
+    ratio.set(def.key, remaining / step);
+  }
+  const order = (k: RecordStatKey) => RECORD_STATS.findIndex((d) => d.key === k);
+  return out.sort((a, b) => ratio.get(a.key)! - ratio.get(b.key)! || order(a.key) - order(b.key)).slice(0, n);
+}

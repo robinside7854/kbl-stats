@@ -149,3 +149,17 @@ assert.equal(formatRecord(4000, "points", "total"), "4,000");
 assert.equal(formatRecord(16, "points", "perGame"), "16.0");
 
 console.log("reference: 30분당·허슬/슛 구역·CSV·리그 1위·비슷한 선수·역대 통산 통과");
+
+// ── 통산 이정표 ──
+import { MILESTONE_STEPS, nextMilestones } from "../lib/records";
+{
+  const me = { ...totals.find((x) => x.id === "a")!, points: 4877, reb: 1490, ast: 120, stl: 5, blk: 0, tpm: 0, games: 250, wins: 199 };
+  const others = [me, { ...me, id: "z", points: 6000, reb: 100, ast: 10, wins: 50 }, { ...me, id: "y", points: 4877, reb: 100 }];
+  const ms = nextMilestones(me, others);
+  // 남은 양 ÷ 간격이 작은 순: 승리 199→200 (1/100), 리바 1490→1500 (10/500), 득점 4877→5000 (123/1000)
+  assert.deepEqual(ms.map((m) => [m.key, m.target, m.remaining]), [["wins", 200, 1], ["reb", 1500, 10], ["points", 5000, 123]]);
+  assert.equal(ms.find((m) => m.key === "points")!.rank, 2); // 6000 한 명 위, 같은 4877 은 같은 순위
+  assert.equal(nextMilestones({ ...me, blk: 0 }, others, 20).some((m) => m.key === "blk"), false); // 0 인 부문 제외
+  assert.equal(MILESTONE_STEPS.points, 1000);
+}
+console.log("reference: 통산 이정표 통과");

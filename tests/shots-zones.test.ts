@@ -158,3 +158,22 @@ assert.equal(cp.made.length, 2);
 assert.equal(cp.missed.length, 1);
 assert.equal(cp.outside, 2);
 console.log("shots-zones: 코트 그림 통과");
+
+// ── 구역 색 (핫/콜드) ──
+import { courtZoneShapes, SHOT_ZONE_KEYS, ZONE_HEAT_MIN_ATTEMPTS, zoneDiffText, zoneHeat } from "../lib/shots";
+{
+  assert.equal(zoneHeat({ attempts: 50, pct: 45, leaguePct: 40 }), 0.5); // +5%p / 10
+  assert.equal(zoneHeat({ attempts: 50, pct: 20, leaguePct: 40 }), -1); // −20%p → 끝까지
+  assert.equal(zoneHeat({ attempts: ZONE_HEAT_MIN_ATTEMPTS - 1, pct: 80, leaguePct: 40 }), null); // 표본 적음
+  assert.equal(zoneHeat({ attempts: 50, pct: 45, leaguePct: null }), null);
+  assert.equal(zoneDiffText({ pct: 45, leaguePct: 41.8 }), "+3.2");
+  assert.equal(zoneDiffText({ pct: 38.5, leaguePct: 40 }), "−1.5");
+  assert.equal(zoneDiffText({ pct: null, leaguePct: 40 }), null);
+  const shapes = courtZoneShapes();
+  assert.deepEqual(shapes.map((z) => z.key), [...SHOT_ZONE_KEYS]);
+  assert.equal(shapes.find((z) => z.key === "corner3")!.paths.length, 2); // 양쪽 코너
+  assert.equal(shapes.find((z) => z.key === "corner3")!.labels.length, 2);
+  assert.ok(shapes.find((z) => z.key === "arc3")!.clip); // 코너 띠 아래만
+  for (const z of shapes) for (const d of z.paths) assert.ok(!/NaN|undefined/.test(d), z.key);
+}
+console.log("shots-zones: 구역 색 통과");

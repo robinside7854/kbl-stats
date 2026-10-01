@@ -267,3 +267,15 @@ export function comparePairColors(a: string, b: string, palette: readonly string
   if (oklabDistance(a, b) >= MIN_PAIR_DISTANCE || palette.length < 2) return [a, b];
   return [palette[0], palette[1]];
 }
+
+/**
+ * 발산형 색 (2026-10-01, 백분위 막대·슛 차트 구역): t = -1(낮음) ~ 0(보통) ~ 1(높음).
+ * dataviz 규칙: 두 끝은 파랑(--div-cold)·빨강(--div-hot), 가운데는 색 없는 회색(--div-mid). 라이트·다크 토큰을 CSS 가 고른다.
+ * 결과는 CSS color 값 (color-mix) — 인라인 style 의 background 로 쓴다. 글자에는 쓰지 않는다(글자는 ink 토큰).
+ */
+export function divergingFill(t: number): string {
+  const v = Math.max(-1, Math.min(1, Number.isFinite(t) ? t : 0));
+  const pole = v >= 0 ? "var(--div-hot)" : "var(--div-cold)";
+  const share = Math.round(Math.abs(v) * 100);
+  return `color-mix(in oklab, ${pole} ${share}%, var(--div-mid))`;
+}

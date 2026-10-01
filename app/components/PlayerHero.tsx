@@ -13,6 +13,7 @@ import PlayerAvatar from "./PlayerAvatar";
 import FavoriteButton from "./FavoriteButton";
 import TeamLogo from "./TeamLogo";
 import TeamJersey from "./TeamJersey";
+import { MILESTONE_STEPS, type Milestone } from "@/lib/records";
 import BadgeRow, { type BadgeItem } from "./BadgeRow";
 
 const FALLBACK: TeamColor = FALLBACK_TEAM_COLOR;
@@ -28,9 +29,11 @@ interface Props {
   today: string;
   /** 칭호 배지 (우선순위 순, 빌드 시점 lib/badges playerBadges) */
   badges: BadgeItem[];
+  /** 현역 선수의 다음 통산 이정표 (lib/records nextMilestones, 은퇴 선수는 []) */
+  milestones?: Milestone[];
 }
 
-export default function PlayerHero({ entry, seasons, today, badges }: Props) {
+export default function PlayerHero({ entry, seasons, today, badges, milestones = [] }: Props) {
   const latest = seasons[seasons.length - 1];
   const first = seasons[0];
   const team = latest?.team ?? null;
@@ -137,6 +140,45 @@ export default function PlayerHero({ entry, seasons, today, badges }: Props) {
         <p className="mt-1.5 text-caption text-ink-3">
           통산 {sum.seasons}시즌 정규시즌 · 득점~블록은 경기당 · 승패는 뛴 경기만{sum.winPct !== null ? ` (승률 ${NF1.format(sum.winPct)}%)` : ""}
         </p>
+
+        {milestones.length > 0 && (
+          <section aria-labelledby="milestones-title" className="mt-4">
+            <p id="milestones-title" className="text-sub font-semibold text-ink-2">
+              다음 이정표 <span className="font-normal text-ink-3">· 통산 정규시즌</span>
+            </p>
+            <ul className="tabular mt-1.5 grid gap-2 sm:grid-cols-3">
+              {milestones.map((m) => {
+                const step = MILESTONE_STEPS[m.key] ?? m.target;
+                const done = Math.min(1, Math.max(0, (m.current - (m.target - step)) / step));
+                return (
+                  <li key={m.key} className="surface-card rounded-card px-3 py-2.5">
+                    <p className="flex items-baseline justify-between gap-2 text-sub">
+                      <span className="font-semibold text-ink">
+                        {m.label} {NF0.format(m.target)}
+                        {m.unit}
+                      </span>
+                      <span className="text-ink-3">역대 {NF0.format(m.rank)}위</span>
+                    </p>
+                    <span
+                      className="mt-1.5 block h-2 overflow-hidden rounded-md bg-surface-2"
+                      role="progressbar"
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-valuenow={Math.round(done * 100)}
+                      aria-label={`${m.label} ${NF0.format(m.target)}${m.unit}까지 ${Math.round(done * 100)}%`}
+                    >
+                      <span className="block h-full rounded-md bg-series-1" style={{ width: `${done * 100}%` }} />
+                    </span>
+                    <p className="mt-1 text-caption text-ink-2">
+                      지금 {NF0.format(m.current)}
+                      {m.unit} · <b className="font-bold text-ink">{NF0.format(m.remaining)}{m.unit}</b> 남음
+                    </p>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
 
         <div className="mt-4">
           <p id="stints-title" className="text-sub font-semibold text-ink-2">소속 팀 이력</p>

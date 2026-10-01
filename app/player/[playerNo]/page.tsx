@@ -19,6 +19,7 @@ import {
   loadSeasonData,
   loadPrimeSeason,
   loadSimilarPlayers,
+  loadMilestones,
 } from "@/lib/data";
 import { activeSpanLabel, seoulDateIso } from "@/lib/career";
 import { buildSeasonCardView } from "@/lib/cardview";
@@ -75,7 +76,7 @@ export default async function PlayerPage({ params }: { params: Params }) {
     <>
       <SiteNav seasons={allSeasons} seasonCode={allSeasons[0]?.seasonCode ?? latest.seasonCode} view="player" wide />
       <main className="pb-2">
-        <PlayerHero entry={entry} seasons={seasons} today={today} badges={badges} />
+        <PlayerHero entry={entry} seasons={seasons} today={today} badges={badges} milestones={loadMilestones(playerNo)} />
         <div className="mx-auto mt-6 max-w-5xl px-4">
           {card ? (
             <PlayerSeasonCards

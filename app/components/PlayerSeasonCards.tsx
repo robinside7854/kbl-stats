@@ -34,6 +34,7 @@ import ShotChart from "./ShotChart";
 import type { PlayerShotsFile } from "@/lib/shots";
 import type { SimilarEntry } from "@/lib/similar";
 import SimilarPlayers from "./SimilarPlayers";
+import PercentileBars from "./PercentileBars";
 
 /** 시즌별 기록표 등 다른 컴포넌트가 카드 시즌을 바꿀 때 보내는 이벤트 이름 */
 export const PLAYER_SEASON_EVENT = "player-season";
@@ -172,6 +173,12 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
       <p className="mt-3 text-sub leading-relaxed text-ink-3">
         등급은 같은 국적 집단 안, 순위는 리그 전체{groupLabel ? "(또는 같은 포지션)" : ""} 기준입니다 <InfoLink term="radarAxes" />. 사진은 모든 시즌에 같은 한 장입니다.
       </p>
+      {/* 세부 능력치 백분위 막대 (Baseball Savant 방식): 카드와 같은 시즌·같은 등급 집단 */}
+      {view && (
+        <div className="mt-6">
+          <PercentileBars view={view} seasonShort={labelOf(view.seasonCode)} />
+        </div>
+      )}
       <div className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start">
         <div className="min-w-0">{aside}</div>
         <HighlightCards title={highlight.title} items={highlight.items} teamPrimary={view?.team?.color.primary ?? FALLBACK_TEAM_COLOR.primary} />
