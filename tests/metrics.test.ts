@@ -107,7 +107,8 @@ assert.deepEqual(RADAR_AXES.map((a) => RADAR_AXIS_LABELS[a]), ["공격", "수비
 assert.deepEqual([...RADAR_AXIS_COMPONENTS.offense], ["ptsPerGame", "fgmPerGame", "fgaPerGame", "ftaPerGame", "usgPct"]);
 assert.deepEqual([...RADAR_AXIS_COMPONENTS.defense], ["stlPerGame", "blkPerGame", "gdPerGame", "deflPerGame"]);
 assert.deepEqual([...RADAR_AXIS_COMPONENTS.rebound], ["orebPerGame", "drebPerGame", "rebPct"]);
-assert.deepEqual([...RADAR_AXIS_COMPONENTS.shooting], ["tpmPerGame", "tpaPerGame", "tpPct", "midAPerGame", "midPct"]);
+assert.deepEqual([...RADAR_AXIS_COMPONENTS.shooting], ["tpmPerGame", "tpaPerGame", "tpPct", "midAPerGame", "midPct", "ftPct"]); // 자유투% 2026-10-01 추가
+assert.equal(RADAR_COMPONENTS.ftPct.attempt, "fta");
 assert.deepEqual([...RADAR_AXIS_COMPONENTS.playmaking], ["astPerGame", "astTo", "tovPct", "astPct"]); // 경기당 턴오버는 벤치 편향이라 뺌
 assert.deepEqual([...RADAR_AXIS_COMPONENTS.efficiency], ["per", "tsPct", "efgPct"]);
 assert.equal(RADAR_COMPONENTS.tovPct.better, "low"); // TOV% 는 반전
@@ -120,7 +121,7 @@ assert.ok(!Object.keys(RADAR_COMPONENTS).includes("pmPerGame"));
 const rp = (o: Partial<GradeInput> = {}): GradeInput => ({
   games: 20, minutes: 400, points: 200, ast: 40, stl: 20, blk: 10, tov: 30, fgm: 80, fga: 160, fta: 40, oreb: 20, dreb: 60,
   tpm: 20, tpa: 60, goodDef: 10, deflections: 20, midA: 40, midM: 16,
-  tpPct: 33, usgPct: 20, rebPct: 10, astPct: 15, tsPct: 55, efgPct: 50, tovPct: 12, astTo: 1.5, per: 15,
+  tpPct: 33, ftPct: 75, usgPct: 20, rebPct: 10, astPct: 15, tsPct: 55, efgPct: 50, tovPct: 12, astTo: 1.5, per: 15,
   nationality: "domestic", isForeign: false,
   ...o,
 });
@@ -141,7 +142,7 @@ assert.equal(componentValue(rp(), "tsPct"), 55);
 const full = { advanced: true, plusMinus: true, goodDef: true, hustle: true, shots: true };
 const old = { advanced: false, plusMinus: true, goodDef: false, hustle: false };
 const pool = [rp(), rp({ points: 300 }), rp({ points: 100 })];
-assert.equal(activeRadarComponents(pool, DEFAULT_QUALIFY, full).length, 24);
+assert.equal(activeRadarComponents(pool, DEFAULT_QUALIFY, full).length, 25);
 const oldActive = activeRadarComponents(pool, DEFAULT_QUALIFY, old);
 for (const k of ["usgPct", "rebPct", "astPct", "gdPerGame", "deflPerGame", "midAPerGame", "midPct"] as const) assert.ok(!oldActive.includes(k), k);
 assert.ok(oldActive.includes("stlPerGame") && oldActive.includes("per"));
@@ -154,6 +155,12 @@ assert.ok(!activeRadarComponents(noEfg, DEFAULT_QUALIFY, full).includes("efgPct"
 const rt = radarAttemptThresholds([rp({ tpa: 20, midA: 20 }), rp({ tpa: 100, midA: 60 }), rp({ games: 2, minutes: 10, tpa: 99, midA: 99 })], DEFAULT_QUALIFY);
 close(rt.tpa, 3); // (1 + 5) / 2, 표본 미달 제외
 close(rt.midA, 2); // (1 + 3) / 2
+close(rt.fta, 2);  // 기본 fta 40 / 20경기
+// 자유투 성공률도 시도 기준: 경기당 자유투 시도가 평균 미만이면 그 선수만 항목 제외
+{
+  const fewFt = radarScore(rp({ fta: 4, ftPct: 100 }), buildGradingContext([rp(), rp({ fta: 4, ftPct: 100 }), rp({ fta: 60 })], DEFAULT_QUALIFY, full));
+  assert.equal(fewFt.components.shooting.find((c) => c.key === "ftPct")!.pct, null);
+}
 
 // ── 국적 집단: 등급은 같은 국적 집단 안 ──
 // 국내 3명(득점 100·200·300) + 외국 3명(득점 600·700·800) → 국내 1위도 공격 축이 집단 안 최고
@@ -182,14 +189,14 @@ assert.ok(!radarScore(pool[0], gOld).components.offense.some((c) => c.key === "u
 assert.ok(!radarScore(pool[0], gOld).components.defense.some((c) => c.key === "deflPerGame"));
 assert.ok(!radarScore(pool[0], gOld).components.shooting.some((c) => c.key === "midPct"));
 
-// 소집단 합산: 표본 충족 아시아쿼터가 MIN_GRADE_GROUP(8) 미만이면 외국과 한 집단
+// 두 풀 고정(2026-10-01): 아시아쿼터가 한 명이라도 있으면 인원과 관계없이 외국과 한 집단
 assert.equal(MIN_GRADE_GROUP, 8);
 const asia = (n: number) => Array.from({ length: n }, (_, i) => rp({ points: 300 + i, nationality: "asia", isForeign: true }));
 assert.equal(shouldMergeAsia([...dom, ...forn, ...asia(7)], DEFAULT_QUALIFY), true);
-assert.equal(shouldMergeAsia([...dom, ...forn, ...asia(8)], DEFAULT_QUALIFY), false);
-assert.equal(shouldMergeAsia([...dom, ...asia(7), rp({ games: 1, nationality: "asia" })], DEFAULT_QUALIFY), true); // 표본 미달은 세지 않음
+assert.equal(shouldMergeAsia([...dom, ...forn, ...asia(8)], DEFAULT_QUALIFY), true); // 8명 이상이어도 합산
+assert.equal(shouldMergeAsia([...dom, ...forn, ...asia(20)], DEFAULT_QUALIFY), true);
 assert.equal(shouldMergeAsia([...dom, ...forn], DEFAULT_QUALIFY), false); // 아시아쿼터 0명
-assert.equal(shouldMergeAsia([...dom, rp({ games: 1, nationality: "asia" })], DEFAULT_QUALIFY), true); // 있지만 표본 충족 0명
+assert.equal(shouldMergeAsia([...dom, rp({ games: 1, nationality: "asia" })], DEFAULT_QUALIFY), true); // 표본 미달이어도 있으면 합산
 assert.equal(gradeGroupOf({ nationality: "asia", isForeign: true }, true), "foreignAsia");
 assert.equal(gradeGroupOf({ nationality: "foreign", isForeign: true }, true), "foreignAsia");
 assert.equal(gradeGroupOf({ nationality: "asia", isForeign: true }, false), "asia");
@@ -199,8 +206,9 @@ const gm = buildGradingContext([...dom, ...forn, ...asia(3)], DEFAULT_QUALIFY, f
 assert.equal(gm.groups.foreignAsia?.count, 6);
 assert.equal(gm.groups.asia, undefined);
 const gs = buildGradingContext([...dom, ...forn, ...asia(8)], DEFAULT_QUALIFY, full);
-assert.equal(gs.groups.asia?.count, 8);
-assert.equal(gs.groups.foreign?.count, 3);
+assert.equal(gs.groups.asia, undefined);           // 아시아쿼터 따로 집단을 만들지 않는다
+assert.equal(gs.groups.foreign, undefined);
+assert.equal(gs.groups.foreignAsia?.count, 11);    // 외국 3 + 아시아쿼터 8
 
 // 종합 원점수 = 6축 평균 (null 제외)
 assert.equal(overallScore({ offense: 90, defense: 80, rebound: 70, shooting: 60, playmaking: 50, efficiency: 70 }), 70);

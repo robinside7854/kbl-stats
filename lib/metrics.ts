@@ -193,7 +193,7 @@ export function seasonCoverage(players: readonly CoverageInput[], threshold = 0.
 //      낮을수록 좋은 항목(TOV%)은 percentileRankLow(반전).
 //   2) 축 원점수 = 그 선수에게 쓸 수 있는 구성 요소 백분위의 단순 평균(가중치 모두 1).
 //      - 시즌에 기록이 없는 항목은 뺀다(activeRadarComponents: coverage 플래그 + KBL 계산값은 0 아닌 비율 50%).
-//      - 성공률(3점%·미드레인지%)은 그 선수의 경기당 시도가 리그 평균 이상일 때만 넣는다(아니면 그 선수만 그 항목 제외).
+//      - 성공률(3점%·미드레인지%·자유투%)은 그 선수의 경기당 시도가 리그 평균 이상일 때만 넣는다(아니면 그 선수만 그 항목 제외).
 //      - 남은 구성 요소가 0개면 축은 null → 화면 "-".
 //   3) 축 백분위(레이더 값·축 등급) = 축 원점수를 같은 집단 표본 충족 선수들의 축 원점수에 대어 다시 percentileRank.
 //      왜 한 번 더: 백분위 여러 개를 평균하면 값이 50 근처로 모여(상위 10%라도 평균은 70대) S~F 경계(90/75/…)가
@@ -203,7 +203,7 @@ export function seasonCoverage(players: readonly CoverageInput[], threshold = 0.
 //   공격   — 순수 득점: 경기당 득점·야투 성공·야투 시도·자유투 시도 + USG%(있는 시즌만). 어시스트는 리딩으로 옮김
 //   수비   — 경기당 스틸·블록·굿디펜스(2000-01~)·디플렉션(2025-26~). 파울은 뺌(수비 적극성의 대가라 감점이 애매)
 //   리바운드 — 경기당 공격·수비 리바운드 + REB%(2025-26~). 박스아웃은 KBL 이 기록하지 않아 없음
-//   슈팅   — 골밑을 뺀 외곽: 경기당 3점 성공·3점 시도·3점 성공률 + 경기당 미드레인지 시도·미드레인지 성공률(슛 차트 있는 2006-07~, lib/shots 구역)
+//   슈팅   — 골밑을 뺀 슛 감각: 경기당 3점 성공·3점 시도·3점 성공률 + 경기당 미드레인지 시도·미드레인지 성공률(슛 차트 있는 2006-07~, lib/shots 구역) + 자유투 성공률(2026-10-01 추가)
 //   리딩   — 경기당 어시스트·AST/TO·TOV%(반전) + AST%(2025-26~). 경기당 턴오버(반전)는 넣었다가 뺐다 — 공을 덜 만지는 벤치 선수가 올라가서(비율인 TOV% 만)
 //   효율   — PER·TS%·eFG%
 // 가중치: 축 안에서는 전부 1(단순 평균). 근거 — 팬이 "무엇이 몇 %"로 바로 이해할 수 있고, 어느 항목을 더 무겁게 볼지에 대한
@@ -226,7 +226,7 @@ export type RadarComponentKey =
   | "ptsPerGame" | "fgmPerGame" | "fgaPerGame" | "ftaPerGame" | "usgPct"
   | "stlPerGame" | "blkPerGame" | "gdPerGame" | "deflPerGame"
   | "orebPerGame" | "drebPerGame" | "rebPct"
-  | "tpmPerGame" | "tpaPerGame" | "tpPct" | "midAPerGame" | "midPct"
+  | "tpmPerGame" | "tpaPerGame" | "tpPct" | "midAPerGame" | "midPct" | "ftPct"
   | "astPerGame" | "astTo" | "tovPct" | "astPct"
   | "per" | "tsPct" | "efgPct";
 
@@ -240,8 +240,8 @@ export interface RadarComponentDef {
   requires?: keyof SeasonCoverage;
   /** KBL 계산값(없으면 0으로 온다) → 표본 충족 선수 절반 이상이 0 이면 그 시즌엔 뺀다 (coverageFlag) */
   kblComputed?: boolean;
-  /** 성공률: 경기당 시도(tpa·midA)가 리그 평균(radarAttemptThresholds) 이상인 선수만 */
-  attempt?: "tpa" | "midA";
+  /** 성공률: 경기당 시도(tpa·midA·fta)가 리그 평균(radarAttemptThresholds) 이상인 선수만 */
+  attempt?: "tpa" | "midA" | "fta";
 }
 
 /** 구성 요소 정의 */
@@ -263,6 +263,7 @@ export const RADAR_COMPONENTS: Record<RadarComponentKey, RadarComponentDef> = {
   tpPct: { key: "tpPct", label: "3점 성공률", better: "high", attempt: "tpa" },
   midAPerGame: { key: "midAPerGame", label: "경기당 미드레인지 시도", better: "high", requires: "shots" },
   midPct: { key: "midPct", label: "미드레인지 성공률", better: "high", requires: "shots", attempt: "midA" },
+  ftPct: { key: "ftPct", label: "자유투 성공률", better: "high", attempt: "fta" },
   astPerGame: { key: "astPerGame", label: "경기당 어시스트", better: "high" },
   astTo: { key: "astTo", label: "AST/TO", better: "high", kblComputed: true },
   tovPct: { key: "tovPct", label: "TOV%", better: "low", kblComputed: true },
@@ -277,7 +278,7 @@ export const RADAR_AXIS_COMPONENTS: Record<RadarAxis, readonly RadarComponentKey
   offense: ["ptsPerGame", "fgmPerGame", "fgaPerGame", "ftaPerGame", "usgPct"],
   defense: ["stlPerGame", "blkPerGame", "gdPerGame", "deflPerGame"],
   rebound: ["orebPerGame", "drebPerGame", "rebPct"],
-  shooting: ["tpmPerGame", "tpaPerGame", "tpPct", "midAPerGame", "midPct"],
+  shooting: ["tpmPerGame", "tpaPerGame", "tpPct", "midAPerGame", "midPct", "ftPct"],
   playmaking: ["astPerGame", "astTo", "tovPct", "astPct"],
   efficiency: ["per", "tsPct", "efgPct"],
 };
@@ -295,7 +296,7 @@ export interface RadarInput {
   goodDef: number; deflections: number;
   /** 미드레인지 슛 시도·성공 (슛 차트 구역, coverage.shots 시즌만. 없으면 0) */
   midA: number; midM: number;
-  tpPct: number;                                  // KBL 계산 성공률 (0~100)
+  tpPct: number; ftPct: number;                   // KBL 계산 성공률 (0~100)
   usgPct: number; rebPct: number; astPct: number; // 2차 스탯 (coverage.advanced 시즌만 의미)
   tsPct: number; efgPct: number; tovPct: number; astTo: number; per: number;
 }
@@ -322,16 +323,17 @@ export function componentValue(p: RadarInput, key: RadarComponentKey): number {
   }
 }
 
-/** 레이더 성공률 항목의 시도 기준: 표본 충족 선수의 경기당 3점·미드레인지 시도 평균 (attemptThresholds 와 같은 방식) */
+/** 레이더 성공률 항목의 시도 기준: 표본 충족 선수의 경기당 3점·미드레인지·자유투 시도 평균 (attemptThresholds 와 같은 방식) */
 export interface RadarThresholds {
   tpa: number;
   midA: number;
+  fta: number;
 }
 
 export function radarAttemptThresholds(players: readonly RadarInput[], rule: QualifyRule): RadarThresholds {
   const q = players.filter((p) => isQualified(p, rule) && p.games > 0);
-  const mean = (f: "tpa" | "midA") => (q.length ? q.reduce((s, p) => s + p[f] / p.games, 0) / q.length : 0);
-  return { tpa: mean("tpa"), midA: mean("midA") };
+  const mean = (f: "tpa" | "midA" | "fta") => (q.length ? q.reduce((s, p) => s + p[f] / p.games, 0) / q.length : 0);
+  return { tpa: mean("tpa"), midA: mean("midA"), fta: mean("fta") };
 }
 
 /** 이 선수에게 이 구성 요소를 쓸 수 있나 (성공률은 시도 기준) */
@@ -366,12 +368,12 @@ export function activeRadarComponents(
 // (2025-26 실측: 국내 표본 충족 109명 중 최고 등급 B). → 등급(백분위)은 같은 국적 집단 안에서 매긴다.
 // 순위("n위/총원")는 지금처럼 리그 전체(또는 같은 포지션)다 — 등급과 순위는 다른 질문에 답한다.
 // 국적은 lib/roster nationalityOf 와 같은 규칙: 선수 마스터 값, 없으면 isForeign(이름 추정)으로 국내/외국 2집단.
+// 집단은 국내 / 외국인(외국+아시아쿼터) 둘뿐이다(2026-10-01 사용자 결정 — 아시아쿼터도 외국인 풀).
 
 /**
- * 아시아쿼터 집단 최소 인원 (표본 충족 선수 기준). 이보다 적으면 외국 집단과 합쳐 계산한다.
- * 이유: 몇 명뿐인 집단에서는 한 명이 곧 상위 10~20% 라 등급이 의미 없이 튄다(3명이면 1위가 S, 2위가 B).
- * 8명이면 한 칸이 약 12%p 로 S(상위 10%)·A(25%) 경계를 겨우 구분할 수 있는 최소 크기다.
- * 2025-26 아시아쿼터 표본 충족은 10명 → 따로, 도입 초기 시즌(2020-21~)은 몇 명뿐이라 합산.
+ * (2026-10-01 피드백 8차) 등급 집단은 **국내 / 외국인(외국+아시아쿼터) 두 풀**로 고정한다 — 사용자 결정:
+ * 국내 선수와 용병을 한 풀에서 비교하는 것은 무리이고, 아시아쿼터는 외국인 풀에 넣는다.
+ * 전엔 아시아쿼터가 표본 충족 8명(MIN_GRADE_GROUP) 이상이면 따로 집단을 만들었다 — 상수는 참고용으로 남긴다.
  */
 export const MIN_GRADE_GROUP = 8;
 
@@ -382,7 +384,7 @@ export const GRADE_GROUP_LABELS: Record<GradeGroupKey, string> = {
   domestic: "국내 선수",
   foreign: "외국 선수",
   asia: "아시아쿼터 선수",
-  foreignAsia: "아시아쿼터·외국 합산",
+  foreignAsia: "외국인 선수(아시아쿼터 포함)",
 };
 
 export interface GradeInput extends RadarInput {
@@ -405,12 +407,11 @@ export function gradeGroupOf(p: { nationality: Nationality | null; isForeign: bo
 }
 
 /**
- * 아시아쿼터를 외국과 합칠지: 그 시즌에 아시아쿼터 선수가 있고, 그중 표본 충족이 MIN_GRADE_GROUP 명 미만이면 합친다.
- * 아시아쿼터가 아예 없는 시즌(도입 전, 선수 마스터 없는 시즌)은 합치지 않는다 → 외국 선수는 그냥 "외국 선수" 집단.
+ * 아시아쿼터를 외국과 합칠지: 그 시즌에 아시아쿼터 선수가 한 명이라도 있으면 **항상** 합친다(두 풀 고정, 2026-10-01).
+ * 아시아쿼터가 아예 없는 시즌(도입 전, 선수 마스터 없는 시즌)은 합칠 대상이 없어 외국 선수는 그냥 "외국 선수" 집단.
  */
-export function shouldMergeAsia(players: readonly GradeInput[], rule: QualifyRule): boolean {
-  const asia = players.filter((p) => nationalityKey(p) === "asia");
-  return asia.length > 0 && asia.filter((p) => isQualified(p, rule)).length < MIN_GRADE_GROUP;
+export function shouldMergeAsia(players: readonly GradeInput[], _rule: QualifyRule): boolean {
+  return players.some((p) => nationalityKey(p) === "asia");
 }
 
 /** 한 국적 집단의 비교 재료 */

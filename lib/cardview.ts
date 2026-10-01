@@ -62,7 +62,7 @@ export interface SeasonCardView {
   ruleLabel: string;
   /** 순위 집단 중 표본 기준 충족 선수 수 */
   qualifiedCount: number;
-  /** 등급 기준 표기, 예: "국내 선수 109명 중" / "아시아쿼터·외국 합산 31명 중" */
+  /** 등급 기준 표기, 예: "국내 선수 109명 중" / "외국인 선수(아시아쿼터 포함) 31명 중" */
   gradeLabel: string;
   /** 이 시즌 기록이 없어 레이더에서 빠진 구성 요소, 예: ["USG%", "경기당 디플렉션"] */
   missingComponents: string[];
