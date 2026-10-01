@@ -86,10 +86,22 @@ assert.equal(zonePct({ a: 0, m: 0 }), null);
 assert.equal(s1.offenseType, "inside");    // 골밑+페인트 40/60 = 67%
 
 assert.equal(zoneSummary(many({ rim: [10, 5], arc3: [30, 10], corner3: [10, 4] })).offenseType, "shooter");   // 3점 80%, 코너 10/40 = 25%
-// 코너 슈터형(2026-10-01): 3점 ≥ 50% 이고 3점 시도 중 코너 ≥ 30%. 경계 30% 는 포함, 3점 비중이 모자라면 코너가 많아도 아님
-assert.equal(zoneSummary(many({ rim: [10, 5], arc3: [28, 10], corner3: [12, 4] })).offenseType, "cornerShooter"); // 코너 12/40 = 30%
+// 코너 슈터형(2026-10-01 개정): 코너 전문 = 전체 슛 중 코너 3점 ≥ 20% 그리고 3점 중 코너 ≥ 35% (3점 비중 조건 없음)
+assert.equal(zoneSummary(many({ rim: [10, 5], arc3: [28, 10], corner3: [12, 4] })).offenseType, "shooter");       // 코너 24% 지만 3점 중 30% → 슈터형
 assert.equal(zoneSummary(many({ rim: [10, 5], arc3: [20, 8], corner3: [30, 12] })).offenseType, "cornerShooter"); // 코너 60%
-assert.equal(zoneSummary(many({ rim: [30, 10], mid: [20, 5], corner3: [20, 8] })).offenseType, "balanced");       // 3점 29%, 코너 100% — 슈터 아님(안 43·미드 29)
+assert.equal(zoneSummary(many({ rim: [30, 10], mid: [20, 5], corner3: [20, 8] })).offenseType, "cornerShooter");  // 3점 29% 여도 코너만 던지면 코너 전문
+// 경계: 코너 20%·3점 중 35.1% → 코너 전문 / 코너 20%·3점 중 33.9% → 3점 슈터형
+assert.equal(zoneSummary(many({ rim: [43, 1], arc3: [37, 1], corner3: [20, 1] })).offenseType, "cornerShooter");
+assert.equal(zoneSummary(many({ rim: [41, 1], arc3: [39, 1], corner3: [20, 1] })).offenseType, "shooter");
+// 코너 좌우: 정규화 y > 0 = 오른쪽
+{
+  const sm = zoneSummary([
+    { x: -1.2, y: 6.6, made: true, three: true },
+    { x: -1.2, y: -6.6, made: false, three: true },
+    { x: -1.2, y: -6.6, made: true, three: true },
+  ]);
+  assert.deepEqual(sm.corners, { left: { a: 2, m: 1 }, right: { a: 1, m: 1 } });
+}
 assert.equal(cornerShareOfThrees(zoneSummary(many({ rim: [10, 5], arc3: [28, 10], corner3: [12, 4] }))), 0.3);
 assert.equal(cornerShareOfThrees(zoneSummary(many({ rim: [10, 5] }))), 0);
 assert.equal(zoneSummary(many({ rim: [15, 5], mid: [20, 8], arc3: [15, 5] })).offenseType, "midrange");       // 미드 40%

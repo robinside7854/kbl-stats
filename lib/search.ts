@@ -90,3 +90,18 @@ export function buildSearchIndex(
 export function searchSpanLabel(e: { from: string; to: string }): string {
   return e.from === e.to ? e.from : `${e.from} ~ ${e.to}`;
 }
+
+/**
+ * 랜덤 카드 뽑기 (2026-10-01, 헤더 "랜덤 카드" — 재미 요소): 검색 색인에서 선수 한 명, 시즌 하나.
+ * 시즌은 그 선수의 프라임 시즌(있으면), 없으면 뛴 시즌 중 무작위. rand 는 0 이상 1 미만 난수 함수(테스트에서 고정).
+ */
+export function pickRandomCard(
+  entries: readonly Pick<SearchEntry, "id" | "seasons" | "prime">[],
+  rand: () => number = Math.random,
+): { id: string; seasonCode: number } | null {
+  const list = entries.filter((e) => e.seasons.length > 0);
+  if (list.length === 0) return null;
+  const e = list[Math.min(list.length - 1, Math.floor(rand() * list.length))];
+  const season = e.prime ?? e.seasons[Math.min(e.seasons.length - 1, Math.floor(rand() * e.seasons.length))];
+  return { id: e.id, seasonCode: season };
+}

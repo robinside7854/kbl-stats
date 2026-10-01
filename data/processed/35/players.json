@@ -2,7 +2,7 @@
   "seasonCode": 35,
   "seasonLabel": "2019-2020",
   "gameType": "regular",
-  "fetchedAt": "2026-10-01T09:04:17.109Z",
+  "fetchedAt": "2026-10-01T09:52:46.315Z",
   "coverage": {
     "advanced": true,
     "plusMinus": true,
@@ -381,7 +381,17 @@
             "m": 62
           }
         },
-        "offenseType": "insideOut"
+        "offenseType": "insideOut",
+        "corners": {
+          "left": {
+            "a": 5,
+            "m": 3
+          },
+          "right": {
+            "a": 13,
+            "m": 4
+          }
+        }
       }
     },
     {
@@ -591,7 +601,17 @@
             "m": 53
           }
         },
-        "offenseType": "inside"
+        "offenseType": "inside",
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -795,7 +815,17 @@
             "m": 1
           }
         },
-        "offenseType": "inside"
+        "offenseType": "inside",
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -999,7 +1029,17 @@
             "m": 8
           }
         },
-        "offenseType": "inside"
+        "offenseType": "inside",
+        "corners": {
+          "left": {
+            "a": 1,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -1203,7 +1243,17 @@
             "m": 38
           }
         },
-        "offenseType": "inside"
+        "offenseType": "inside",
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 3,
+            "m": 1
+          }
+        }
       }
     },
     {
@@ -1411,7 +1461,17 @@
             "m": 50
           }
         },
-        "offenseType": "balanced"
+        "offenseType": "balanced",
+        "corners": {
+          "left": {
+            "a": 10,
+            "m": 6
+          },
+          "right": {
+            "a": 12,
+            "m": 4
+          }
+        }
       }
     },
     {
@@ -1621,7 +1681,17 @@
             "m": 11
           }
         },
-        "offenseType": "inside"
+        "offenseType": "inside",
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 1,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -1831,7 +1901,17 @@
             "m": 56
           }
         },
-        "offenseType": "insideOut"
+        "offenseType": "insideOut",
+        "corners": {
+          "left": {
+            "a": 10,
+            "m": 3
+          },
+          "right": {
+            "a": 6,
+            "m": 1
+          }
+        }
       }
     },
     {
@@ -2039,7 +2119,17 @@
             "m": 77
           }
         },
-        "offenseType": "shooter"
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 13,
+            "m": 3
+          },
+          "right": {
+            "a": 11,
+            "m": 2
+          }
+        }
       }
     },
     {
@@ -2243,7 +2333,17 @@
             "m": 8
           }
         },
-        "offenseType": "inside"
+        "offenseType": "inside",
+        "corners": {
+          "left": {
+            "a": 2,
+            "m": 0
+          },
+          "right": {
+            "a": 1,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -2451,7 +2551,17 @@
             "m": 18
           }
         },
-        "offenseType": "inside"
+        "offenseType": "inside",
+        "corners": {
+          "left": {
+            "a": 6,
+            "m": 2
+          },
+          "right": {
+            "a": 3,
+            "m": 1
+          }
+        }
       }
     },
     {
@@ -2661,7 +2771,17 @@
             "m": 34
           }
         },
-        "offenseType": "inside"
+        "offenseType": "inside",
+        "corners": {
+          "left": {
+            "a": 5,
+            "m": 0
+          },
+          "right": {
+            "a": 2,
+            "m": 1
+          }
+        }
       }
     },
     {
@@ -2871,7 +2991,17 @@
             "m": 6
           }
         },
-        "offenseType": "inside"
+        "offenseType": "inside",
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -3081,7 +3211,17 @@
             "m": 50
           }
         },
-        "offenseType": "insideOut"
+        "offenseType": "insideOut",
+        "corners": {
+          "left": {
+            "a": 4,
+            "m": 0
+          },
+          "right": {
+            "a": 8,
+            "m": 1
+          }
+        }
       }
     },
     {
@@ -3295,7 +3435,17 @@
             "m": 69
           }
         },
-        "offenseType": "balanced"
+        "offenseType": "balanced",
+        "corners": {
+          "left": {
+            "a": 4,
+            "m": 1
+          },
+          "right": {
+            "a": 9,
+            "m": 3
+          }
+        }
       }
     },
     {
@@ -3503,7 +3653,17 @@
             "m": 40
           }
         },
-        "offenseType": "insideOut"
+        "offenseType": "insideOut",
+        "corners": {
+          "left": {
+            "a": 15,
+            "m": 6
+          },
+          "right": {
+            "a": 12,
+            "m": 5
+          }
+        }
       }
     },
     {
@@ -3711,7 +3871,17 @@
             "m": 79
           }
         },
-        "offenseType": "shooter"
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 13,
+            "m": 5
+          },
+          "right": {
+            "a": 12,
+            "m": 4
+          }
+        }
       }
     },
     {
@@ -3921,7 +4091,17 @@
             "m": 31
           }
         },
-        "offenseType": "inside"
+        "offenseType": "inside",
+        "corners": {
+          "left": {
+            "a": 4,
+            "m": 1
+          },
+          "right": {
+            "a": 11,
+            "m": 2
+          }
+        }
       }
     },
     {
@@ -4129,7 +4309,17 @@
             "m": 33
           }
         },
-        "offenseType": "inside"
+        "offenseType": "inside",
+        "corners": {
+          "left": {
+            "a": 10,
+            "m": 3
+          },
+          "right": {
+            "a": 4,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -4343,7 +4533,17 @@
             "m": 81
           }
         },
-        "offenseType": "shooter"
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 15,
+            "m": 2
+          },
+          "right": {
+            "a": 18,
+            "m": 7
+          }
+        }
       }
     },
     {
@@ -4551,7 +4751,17 @@
             "m": 63
           }
         },
-        "offenseType": "shooter"
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 11,
+            "m": 4
+          },
+          "right": {
+            "a": 12,
+            "m": 7
+          }
+        }
       }
     },
     {
@@ -4759,7 +4969,17 @@
             "m": 42
           }
         },
-        "offenseType": "insideOut"
+        "offenseType": "insideOut",
+        "corners": {
+          "left": {
+            "a": 29,
+            "m": 9
+          },
+          "right": {
+            "a": 8,
+            "m": 3
+          }
+        }
       }
     },
     {
@@ -4967,7 +5187,17 @@
             "m": 29
           }
         },
-        "offenseType": "midrange"
+        "offenseType": "midrange",
+        "corners": {
+          "left": {
+            "a": 3,
+            "m": 1
+          },
+          "right": {
+            "a": 4,
+            "m": 2
+          }
+        }
       }
     },
     {
@@ -5181,7 +5411,17 @@
             "m": 76
           }
         },
-        "offenseType": "shooter"
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 4,
+            "m": 2
+          },
+          "right": {
+            "a": 1,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -5385,7 +5625,17 @@
             "m": 10
           }
         },
-        "offenseType": "inside"
+        "offenseType": "inside",
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 2,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -5589,7 +5839,17 @@
             "m": 25
           }
         },
-        "offenseType": "inside"
+        "offenseType": "inside",
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 1,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -5797,7 +6057,17 @@
             "m": 70
           }
         },
-        "offenseType": "shooter"
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 5,
+            "m": 3
+          },
+          "right": {
+            "a": 15,
+            "m": 7
+          }
+        }
       }
     },
     {
@@ -6005,7 +6275,17 @@
             "m": 52
           }
         },
-        "offenseType": "shooter"
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 24,
+            "m": 7
+          },
+          "right": {
+            "a": 18,
+            "m": 10
+          }
+        }
       }
     },
     {
@@ -6213,7 +6493,17 @@
             "m": 1
           }
         },
-        "offenseType": "inside"
+        "offenseType": "inside",
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -6427,7 +6717,17 @@
             "m": 45
           }
         },
-        "offenseType": "shooter"
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 14,
+            "m": 6
+          },
+          "right": {
+            "a": 22,
+            "m": 11
+          }
+        }
       }
     },
     {
@@ -6635,7 +6935,17 @@
             "m": 35
           }
         },
-        "offenseType": "midrange"
+        "offenseType": "midrange",
+        "corners": {
+          "left": {
+            "a": 9,
+            "m": 3
+          },
+          "right": {
+            "a": 11,
+            "m": 2
+          }
+        }
       }
     },
     {
@@ -6845,7 +7155,17 @@
             "m": 30
           }
         },
-        "offenseType": "balanced"
+        "offenseType": "balanced",
+        "corners": {
+          "left": {
+            "a": 1,
+            "m": 0
+          },
+          "right": {
+            "a": 1,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -7053,7 +7373,17 @@
             "m": 37
           }
         },
-        "offenseType": "insideOut"
+        "offenseType": "insideOut",
+        "corners": {
+          "left": {
+            "a": 11,
+            "m": 5
+          },
+          "right": {
+            "a": 9,
+            "m": 3
+          }
+        }
       }
     },
     {
@@ -7261,7 +7591,17 @@
             "m": 0
           }
         },
-        "offenseType": "inside"
+        "offenseType": "inside",
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -7469,7 +7809,17 @@
             "m": 10
           }
         },
-        "offenseType": "balanced"
+        "offenseType": "balanced",
+        "corners": {
+          "left": {
+            "a": 4,
+            "m": 0
+          },
+          "right": {
+            "a": 2,
+            "m": 2
+          }
+        }
       }
     },
     {
@@ -7679,7 +8029,17 @@
             "m": 25
           }
         },
-        "offenseType": "insideOut"
+        "offenseType": "insideOut",
+        "corners": {
+          "left": {
+            "a": 4,
+            "m": 1
+          },
+          "right": {
+            "a": 6,
+            "m": 2
+          }
+        }
       }
     },
     {
@@ -7887,7 +8247,17 @@
             "m": 52
           }
         },
-        "offenseType": "shooter"
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 14,
+            "m": 3
+          },
+          "right": {
+            "a": 16,
+            "m": 7
+          }
+        }
       }
     },
     {
@@ -8095,7 +8465,17 @@
             "m": 24
           }
         },
-        "offenseType": "insideOut"
+        "offenseType": "insideOut",
+        "corners": {
+          "left": {
+            "a": 11,
+            "m": 1
+          },
+          "right": {
+            "a": 10,
+            "m": 4
+          }
+        }
       }
     },
     {
@@ -8303,7 +8683,17 @@
             "m": 31
           }
         },
-        "offenseType": "insideOut"
+        "offenseType": "insideOut",
+        "corners": {
+          "left": {
+            "a": 3,
+            "m": 1
+          },
+          "right": {
+            "a": 3,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -8511,7 +8901,17 @@
             "m": 17
           }
         },
-        "offenseType": "inside"
+        "offenseType": "inside",
+        "corners": {
+          "left": {
+            "a": 8,
+            "m": 3
+          },
+          "right": {
+            "a": 9,
+            "m": 5
+          }
+        }
       }
     },
     {
@@ -8721,7 +9121,17 @@
             "m": 42
           }
         },
-        "offenseType": "shooter"
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 1,
+            "m": 1
+          },
+          "right": {
+            "a": 5,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -8935,7 +9345,17 @@
             "m": 32
           }
         },
-        "offenseType": "insideOut"
+        "offenseType": "insideOut",
+        "corners": {
+          "left": {
+            "a": 10,
+            "m": 2
+          },
+          "right": {
+            "a": 3,
+            "m": 1
+          }
+        }
       }
     },
     {
@@ -9149,7 +9569,17 @@
             "m": 45
           }
         },
-        "offenseType": "shooter"
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 11,
+            "m": 5
+          },
+          "right": {
+            "a": 9,
+            "m": 4
+          }
+        }
       }
     },
     {
@@ -9357,7 +9787,17 @@
             "m": 41
           }
         },
-        "offenseType": "shooter"
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 16,
+            "m": 6
+          },
+          "right": {
+            "a": 27,
+            "m": 12
+          }
+        }
       }
     },
     {
@@ -9567,7 +10007,17 @@
             "m": 18
           }
         },
-        "offenseType": "balanced"
+        "offenseType": "balanced",
+        "corners": {
+          "left": {
+            "a": 3,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -9781,7 +10231,17 @@
             "m": 24
           }
         },
-        "offenseType": "insideOut"
+        "offenseType": "insideOut",
+        "corners": {
+          "left": {
+            "a": 5,
+            "m": 2
+          },
+          "right": {
+            "a": 1,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -9989,7 +10449,17 @@
             "m": 43
           }
         },
-        "offenseType": "shooter"
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 13,
+            "m": 3
+          },
+          "right": {
+            "a": 21,
+            "m": 8
+          }
+        }
       }
     },
     {
@@ -10197,7 +10667,17 @@
             "m": 24
           }
         },
-        "offenseType": "insideOut"
+        "offenseType": "insideOut",
+        "corners": {
+          "left": {
+            "a": 10,
+            "m": 2
+          },
+          "right": {
+            "a": 12,
+            "m": 5
+          }
+        }
       }
     },
     {
@@ -10411,7 +10891,17 @@
             "m": 2
           }
         },
-        "offenseType": "inside"
+        "offenseType": "inside",
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -10621,7 +11111,17 @@
             "m": 18
           }
         },
-        "offenseType": "inside"
+        "offenseType": "inside",
+        "corners": {
+          "left": {
+            "a": 6,
+            "m": 3
+          },
+          "right": {
+            "a": 3,
+            "m": 2
+          }
+        }
       }
     },
     {
@@ -10829,7 +11329,17 @@
             "m": 46
           }
         },
-        "offenseType": "shooter"
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 4,
+            "m": 1
+          },
+          "right": {
+            "a": 11,
+            "m": 2
+          }
+        }
       }
     },
     {
@@ -11043,7 +11553,17 @@
             "m": 2
           }
         },
-        "offenseType": "inside"
+        "offenseType": "inside",
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -11257,7 +11777,17 @@
             "m": 23
           }
         },
-        "offenseType": "insideOut"
+        "offenseType": "insideOut",
+        "corners": {
+          "left": {
+            "a": 2,
+            "m": 1
+          },
+          "right": {
+            "a": 5,
+            "m": 4
+          }
+        }
       }
     },
     {
@@ -11465,7 +11995,17 @@
             "m": 20
           }
         },
-        "offenseType": "insideOut"
+        "offenseType": "insideOut",
+        "corners": {
+          "left": {
+            "a": 3,
+            "m": 3
+          },
+          "right": {
+            "a": 9,
+            "m": 4
+          }
+        }
       }
     },
     {
@@ -11679,7 +12219,17 @@
             "m": 32
           }
         },
-        "offenseType": "shooter"
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 11,
+            "m": 5
+          },
+          "right": {
+            "a": 5,
+            "m": 4
+          }
+        }
       }
     },
     {
@@ -11887,7 +12437,17 @@
             "m": 26
           }
         },
-        "offenseType": "shooter"
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 4,
+            "m": 1
+          },
+          "right": {
+            "a": 15,
+            "m": 8
+          }
+        }
       }
     },
     {
@@ -12097,7 +12657,17 @@
             "m": 0
           }
         },
-        "offenseType": "inside"
+        "offenseType": "inside",
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -12311,7 +12881,17 @@
             "m": 15
           }
         },
-        "offenseType": "insideOut"
+        "offenseType": "cornerShooter",
+        "corners": {
+          "left": {
+            "a": 15,
+            "m": 7
+          },
+          "right": {
+            "a": 26,
+            "m": 9
+          }
+        }
       }
     },
     {
@@ -12519,7 +13099,17 @@
             "m": 20
           }
         },
-        "offenseType": "balanced"
+        "offenseType": "balanced",
+        "corners": {
+          "left": {
+            "a": 5,
+            "m": 1
+          },
+          "right": {
+            "a": 5,
+            "m": 1
+          }
+        }
       }
     },
     {
@@ -12727,7 +13317,17 @@
             "m": 22
           }
         },
-        "offenseType": "balanced"
+        "offenseType": "balanced",
+        "corners": {
+          "left": {
+            "a": 13,
+            "m": 5
+          },
+          "right": {
+            "a": 13,
+            "m": 5
+          }
+        }
       }
     },
     {
@@ -12935,7 +13535,17 @@
             "m": 21
           }
         },
-        "offenseType": "insideOut"
+        "offenseType": "insideOut",
+        "corners": {
+          "left": {
+            "a": 2,
+            "m": 0
+          },
+          "right": {
+            "a": 4,
+            "m": 3
+          }
+        }
       }
     },
     {
@@ -13143,7 +13753,17 @@
             "m": 22
           }
         },
-        "offenseType": "cornerShooter"
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 15,
+            "m": 6
+          },
+          "right": {
+            "a": 18,
+            "m": 5
+          }
+        }
       }
     },
     {
@@ -13351,7 +13971,17 @@
             "m": 27
           }
         },
-        "offenseType": "insideOut"
+        "offenseType": "insideOut",
+        "corners": {
+          "left": {
+            "a": 12,
+            "m": 5
+          },
+          "right": {
+            "a": 9,
+            "m": 2
+          }
+        }
       }
     },
     {
@@ -13559,7 +14189,17 @@
             "m": 23
           }
         },
-        "offenseType": "balanced"
+        "offenseType": "balanced",
+        "corners": {
+          "left": {
+            "a": 3,
+            "m": 2
+          },
+          "right": {
+            "a": 5,
+            "m": 4
+          }
+        }
       }
     },
     {
@@ -13767,7 +14407,17 @@
             "m": 31
           }
         },
-        "offenseType": "shooter"
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 6,
+            "m": 1
+          },
+          "right": {
+            "a": 1,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -13975,7 +14625,17 @@
             "m": 28
           }
         },
-        "offenseType": "shooter"
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 4,
+            "m": 2
+          },
+          "right": {
+            "a": 6,
+            "m": 4
+          }
+        }
       }
     },
     {
@@ -14183,7 +14843,17 @@
             "m": 21
           }
         },
-        "offenseType": "balanced"
+        "offenseType": "balanced",
+        "corners": {
+          "left": {
+            "a": 2,
+            "m": 1
+          },
+          "right": {
+            "a": 5,
+            "m": 3
+          }
+        }
       }
     },
     {
@@ -14391,7 +15061,17 @@
             "m": 24
           }
         },
-        "offenseType": "cornerShooter"
+        "offenseType": "cornerShooter",
+        "corners": {
+          "left": {
+            "a": 28,
+            "m": 13
+          },
+          "right": {
+            "a": 21,
+            "m": 6
+          }
+        }
       }
     },
     {
@@ -14605,7 +15285,17 @@
             "m": 41
           }
         },
-        "offenseType": "shooter"
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 12,
+            "m": 4
+          },
+          "right": {
+            "a": 3,
+            "m": 1
+          }
+        }
       }
     },
     {
@@ -14813,7 +15503,17 @@
             "m": 32
           }
         },
-        "offenseType": "shooter"
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 2,
+            "m": 0
+          },
+          "right": {
+            "a": 5,
+            "m": 1
+          }
+        }
       }
     },
     {
@@ -15027,7 +15727,17 @@
             "m": 23
           }
         },
-        "offenseType": "cornerShooter"
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 11,
+            "m": 3
+          },
+          "right": {
+            "a": 14,
+            "m": 5
+          }
+        }
       }
     },
     {
@@ -15235,7 +15945,17 @@
             "m": 1
           }
         },
-        "offenseType": "inside"
+        "offenseType": "inside",
+        "corners": {
+          "left": {
+            "a": 1,
+            "m": 0
+          },
+          "right": {
+            "a": 1,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -15443,7 +16163,17 @@
             "m": 11
           }
         },
-        "offenseType": "insideOut"
+        "offenseType": "insideOut",
+        "corners": {
+          "left": {
+            "a": 7,
+            "m": 3
+          },
+          "right": {
+            "a": 8,
+            "m": 5
+          }
+        }
       }
     },
     {
@@ -15651,7 +16381,17 @@
             "m": 11
           }
         },
-        "offenseType": "balanced"
+        "offenseType": "balanced",
+        "corners": {
+          "left": {
+            "a": 3,
+            "m": 0
+          },
+          "right": {
+            "a": 3,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -15865,7 +16605,17 @@
             "m": 32
           }
         },
-        "offenseType": "shooter"
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 3,
+            "m": 1
+          },
+          "right": {
+            "a": 3,
+            "m": 1
+          }
+        }
       }
     },
     {
@@ -16079,7 +16829,17 @@
             "m": 15
           }
         },
-        "offenseType": "insideOut"
+        "offenseType": "insideOut",
+        "corners": {
+          "left": {
+            "a": 9,
+            "m": 1
+          },
+          "right": {
+            "a": 3,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -16287,7 +17047,17 @@
             "m": 25
           }
         },
-        "offenseType": "shooter"
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 3,
+            "m": 0
+          },
+          "right": {
+            "a": 6,
+            "m": 1
+          }
+        }
       }
     },
     {
@@ -16501,7 +17271,17 @@
             "m": 28
           }
         },
-        "offenseType": "shooter"
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 5,
+            "m": 3
+          },
+          "right": {
+            "a": 8,
+            "m": 3
+          }
+        }
       }
     },
     {
@@ -16709,7 +17489,17 @@
             "m": 21
           }
         },
-        "offenseType": "balanced"
+        "offenseType": "balanced",
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 2,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -16917,7 +17707,17 @@
             "m": 20
           }
         },
-        "offenseType": "cornerShooter"
+        "offenseType": "cornerShooter",
+        "corners": {
+          "left": {
+            "a": 15,
+            "m": 6
+          },
+          "right": {
+            "a": 26,
+            "m": 4
+          }
+        }
       }
     },
     {
@@ -17131,7 +17931,17 @@
             "m": 11
           }
         },
-        "offenseType": "insideOut"
+        "offenseType": "insideOut",
+        "corners": {
+          "left": {
+            "a": 4,
+            "m": 1
+          },
+          "right": {
+            "a": 3,
+            "m": 1
+          }
+        }
       }
     },
     {
@@ -17335,7 +18145,17 @@
             "m": 6
           }
         },
-        "offenseType": "balanced"
+        "offenseType": "balanced",
+        "corners": {
+          "left": {
+            "a": 7,
+            "m": 3
+          },
+          "right": {
+            "a": 8,
+            "m": 1
+          }
+        }
       }
     },
     {
@@ -17543,7 +18363,17 @@
             "m": 28
           }
         },
-        "offenseType": "shooter"
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 2,
+            "m": 0
+          },
+          "right": {
+            "a": 6,
+            "m": 3
+          }
+        }
       }
     },
     {
@@ -17747,7 +18577,17 @@
             "m": 2
           }
         },
-        "offenseType": "inside"
+        "offenseType": "inside",
+        "corners": {
+          "left": {
+            "a": 1,
+            "m": 1
+          },
+          "right": {
+            "a": 1,
+            "m": 1
+          }
+        }
       }
     },
     {
@@ -17961,7 +18801,17 @@
             "m": 19
           }
         },
-        "offenseType": "balanced"
+        "offenseType": "balanced",
+        "corners": {
+          "left": {
+            "a": 2,
+            "m": 2
+          },
+          "right": {
+            "a": 5,
+            "m": 2
+          }
+        }
       }
     },
     {
@@ -18169,7 +19019,17 @@
             "m": 24
           }
         },
-        "offenseType": "shooter"
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 1,
+            "m": 1
+          },
+          "right": {
+            "a": 7,
+            "m": 2
+          }
+        }
       }
     },
     {
@@ -18377,7 +19237,17 @@
             "m": 16
           }
         },
-        "offenseType": "balanced"
+        "offenseType": "balanced",
+        "corners": {
+          "left": {
+            "a": 2,
+            "m": 0
+          },
+          "right": {
+            "a": 2,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -18587,7 +19457,17 @@
             "m": 3
           }
         },
-        "offenseType": "inside"
+        "offenseType": "inside",
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -18795,7 +19675,17 @@
             "m": 16
           }
         },
-        "offenseType": "midrange"
+        "offenseType": "midrange",
+        "corners": {
+          "left": {
+            "a": 3,
+            "m": 0
+          },
+          "right": {
+            "a": 1,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -19003,7 +19893,17 @@
             "m": 11
           }
         },
-        "offenseType": "midrange"
+        "offenseType": "midrange",
+        "corners": {
+          "left": {
+            "a": 1,
+            "m": 1
+          },
+          "right": {
+            "a": 6,
+            "m": 2
+          }
+        }
       }
     },
     {
@@ -19211,7 +20111,17 @@
             "m": 9
           }
         },
-        "offenseType": "insideOut"
+        "offenseType": "insideOut",
+        "corners": {
+          "left": {
+            "a": 8,
+            "m": 2
+          },
+          "right": {
+            "a": 16,
+            "m": 4
+          }
+        }
       }
     },
     {
@@ -19419,7 +20329,17 @@
             "m": 8
           }
         },
-        "offenseType": "insideOut"
+        "offenseType": "insideOut",
+        "corners": {
+          "left": {
+            "a": 3,
+            "m": 2
+          },
+          "right": {
+            "a": 5,
+            "m": 2
+          }
+        }
       }
     },
     {
@@ -19627,7 +20547,17 @@
             "m": 18
           }
         },
-        "offenseType": "shooter"
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 7,
+            "m": 1
+          },
+          "right": {
+            "a": 8,
+            "m": 1
+          }
+        }
       }
     },
     {
@@ -19831,7 +20761,17 @@
             "m": 11
           }
         },
-        "offenseType": "insideOut"
+        "offenseType": "insideOut",
+        "corners": {
+          "left": {
+            "a": 1,
+            "m": 0
+          },
+          "right": {
+            "a": 2,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -20039,7 +20979,17 @@
             "m": 14
           }
         },
-        "offenseType": "shooter"
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 7,
+            "m": 1
+          },
+          "right": {
+            "a": 6,
+            "m": 1
+          }
+        }
       }
     },
     {
@@ -20247,7 +21197,17 @@
             "m": 8
           }
         },
-        "offenseType": "inside"
+        "offenseType": "inside",
+        "corners": {
+          "left": {
+            "a": 1,
+            "m": 0
+          },
+          "right": {
+            "a": 1,
+            "m": 1
+          }
+        }
       }
     },
     {
@@ -20457,7 +21417,17 @@
             "m": 0
           }
         },
-        "offenseType": "inside"
+        "offenseType": "inside",
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -20665,7 +21635,17 @@
             "m": 15
           }
         },
-        "offenseType": "shooter"
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 6,
+            "m": 3
+          },
+          "right": {
+            "a": 12,
+            "m": 5
+          }
+        }
       }
     },
     {
@@ -20873,7 +21853,17 @@
             "m": 12
           }
         },
-        "offenseType": "cornerShooter"
+        "offenseType": "cornerShooter",
+        "corners": {
+          "left": {
+            "a": 11,
+            "m": 6
+          },
+          "right": {
+            "a": 19,
+            "m": 8
+          }
+        }
       }
     },
     {
@@ -21081,7 +22071,17 @@
             "m": 8
           }
         },
-        "offenseType": "insideOut"
+        "offenseType": "insideOut",
+        "corners": {
+          "left": {
+            "a": 7,
+            "m": 2
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -21289,7 +22289,17 @@
             "m": 9
           }
         },
-        "offenseType": "shooter"
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 6,
+            "m": 3
+          },
+          "right": {
+            "a": 7,
+            "m": 3
+          }
+        }
       }
     },
     {
@@ -21497,7 +22507,17 @@
             "m": 11
           }
         },
-        "offenseType": "cornerShooter"
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 8,
+            "m": 2
+          },
+          "right": {
+            "a": 9,
+            "m": 3
+          }
+        }
       }
     },
     {
@@ -21705,7 +22725,17 @@
             "m": 7
           }
         },
-        "offenseType": "insideOut"
+        "offenseType": "insideOut",
+        "corners": {
+          "left": {
+            "a": 1,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -21913,7 +22943,17 @@
             "m": 7
           }
         },
-        "offenseType": "shooter"
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 4,
+            "m": 3
+          },
+          "right": {
+            "a": 5,
+            "m": 2
+          }
+        }
       }
     },
     {
@@ -22123,7 +23163,17 @@
             "m": 2
           }
         },
-        "offenseType": "inside"
+        "offenseType": "inside",
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -22331,7 +23381,17 @@
             "m": 7
           }
         },
-        "offenseType": "inside"
+        "offenseType": "inside",
+        "corners": {
+          "left": {
+            "a": 4,
+            "m": 0
+          },
+          "right": {
+            "a": 1,
+            "m": 1
+          }
+        }
       }
     },
     {
@@ -22545,7 +23605,17 @@
             "m": 9
           }
         },
-        "offenseType": "insideOut"
+        "offenseType": "insideOut",
+        "corners": {
+          "left": {
+            "a": 2,
+            "m": 1
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -22753,7 +23823,17 @@
             "m": 7
           }
         },
-        "offenseType": "insideOut"
+        "offenseType": "insideOut",
+        "corners": {
+          "left": {
+            "a": 6,
+            "m": 3
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -22961,7 +24041,17 @@
             "m": 11
           }
         },
-        "offenseType": "shooter"
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 2,
+            "m": 0
+          },
+          "right": {
+            "a": 8,
+            "m": 2
+          }
+        }
       }
     },
     {
@@ -23169,7 +24259,17 @@
             "m": 1
           }
         },
-        "offenseType": "inside"
+        "offenseType": "inside",
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -23377,7 +24477,17 @@
             "m": 13
           }
         },
-        "offenseType": "shooter"
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 7,
+            "m": 3
+          },
+          "right": {
+            "a": 2,
+            "m": 1
+          }
+        }
       }
     },
     {
@@ -23587,7 +24697,17 @@
             "m": 0
           }
         },
-        "offenseType": "inside"
+        "offenseType": "inside",
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -23797,7 +24917,17 @@
             "m": 3
           }
         },
-        "offenseType": "midrange"
+        "offenseType": "midrange",
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -24011,7 +25141,17 @@
             "m": 12
           }
         },
-        "offenseType": "shooter"
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 6,
+            "m": 4
+          },
+          "right": {
+            "a": 4,
+            "m": 1
+          }
+        }
       }
     },
     {
@@ -24219,7 +25359,17 @@
             "m": 8
           }
         },
-        "offenseType": "cornerShooter"
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 5,
+            "m": 0
+          },
+          "right": {
+            "a": 13,
+            "m": 7
+          }
+        }
       }
     },
     {
@@ -24433,7 +25583,17 @@
             "m": 4
           }
         },
-        "offenseType": "balanced"
+        "offenseType": "balanced",
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 1,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -24641,7 +25801,17 @@
             "m": 4
           }
         },
-        "offenseType": "insideOut"
+        "offenseType": "insideOut",
+        "corners": {
+          "left": {
+            "a": 1,
+            "m": 0
+          },
+          "right": {
+            "a": 4,
+            "m": 3
+          }
+        }
       }
     },
     {
@@ -24851,7 +26021,17 @@
             "m": 3
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -25065,7 +26245,17 @@
             "m": 12
           }
         },
-        "offenseType": "shooter"
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 6,
+            "m": 1
+          },
+          "right": {
+            "a": 6,
+            "m": 2
+          }
+        }
       }
     },
     {
@@ -25275,7 +26465,17 @@
             "m": 2
           }
         },
-        "offenseType": "inside"
+        "offenseType": "inside",
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -25483,7 +26683,17 @@
             "m": 6
           }
         },
-        "offenseType": "cornerShooter"
+        "offenseType": "cornerShooter",
+        "corners": {
+          "left": {
+            "a": 9,
+            "m": 3
+          },
+          "right": {
+            "a": 10,
+            "m": 6
+          }
+        }
       }
     },
     {
@@ -25697,7 +26907,17 @@
             "m": 3
           }
         },
-        "offenseType": "balanced"
+        "offenseType": "balanced",
+        "corners": {
+          "left": {
+            "a": 1,
+            "m": 0
+          },
+          "right": {
+            "a": 3,
+            "m": 1
+          }
+        }
       }
     },
     {
@@ -25911,7 +27131,17 @@
             "m": 7
           }
         },
-        "offenseType": "midrange"
+        "offenseType": "midrange",
+        "corners": {
+          "left": {
+            "a": 1,
+            "m": 1
+          },
+          "right": {
+            "a": 2,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -26115,7 +27345,17 @@
             "m": 4
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 1,
+            "m": 1
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -26323,7 +27563,17 @@
             "m": 0
           }
         },
-        "offenseType": "midrange"
+        "offenseType": "midrange",
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -26531,7 +27781,17 @@
             "m": 1
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 3,
+            "m": 2
+          },
+          "right": {
+            "a": 1,
+            "m": 1
+          }
+        }
       }
     },
     {
@@ -26745,7 +28005,17 @@
             "m": 2
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -26959,7 +28229,17 @@
             "m": 1
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 1,
+            "m": 0
+          },
+          "right": {
+            "a": 4,
+            "m": 2
+          }
+        }
       }
     },
     {
@@ -27169,7 +28449,17 @@
             "m": 5
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 1,
+            "m": 0
+          },
+          "right": {
+            "a": 1,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -27377,7 +28667,17 @@
             "m": 1
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 2,
+            "m": 1
+          },
+          "right": {
+            "a": 1,
+            "m": 1
+          }
+        }
       }
     },
     {
@@ -27581,7 +28881,17 @@
             "m": 0
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -27789,7 +29099,17 @@
             "m": 1
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -28003,7 +29323,17 @@
             "m": 2
           }
         },
-        "offenseType": "midrange"
+        "offenseType": "midrange",
+        "corners": {
+          "left": {
+            "a": 2,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -28211,7 +29541,17 @@
             "m": 7
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 4,
+            "m": 2
+          },
+          "right": {
+            "a": 3,
+            "m": 1
+          }
+        }
       }
     },
     {
@@ -28419,7 +29759,17 @@
             "m": 5
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 4,
+            "m": 1
+          },
+          "right": {
+            "a": 2,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -28627,7 +29977,17 @@
             "m": 2
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 1,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -28835,7 +30195,17 @@
             "m": 6
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 1,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -29043,7 +30413,17 @@
             "m": 4
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 8,
+            "m": 2
+          },
+          "right": {
+            "a": 3,
+            "m": 1
+          }
+        }
       }
     },
     {
@@ -29251,7 +30631,17 @@
             "m": 6
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 6,
+            "m": 2
+          }
+        }
       }
     },
     {
@@ -29459,7 +30849,17 @@
             "m": 6
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 4,
+            "m": 0
+          },
+          "right": {
+            "a": 3,
+            "m": 1
+          }
+        }
       }
     },
     {
@@ -29673,7 +31073,17 @@
             "m": 0
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -29887,7 +31297,17 @@
             "m": 3
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 7,
+            "m": 0
+          },
+          "right": {
+            "a": 3,
+            "m": 2
+          }
+        }
       }
     },
     {
@@ -30101,7 +31521,17 @@
             "m": 3
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -30309,7 +31739,17 @@
             "m": 1
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 3,
+            "m": 1
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -30517,7 +31957,17 @@
             "m": 1
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 3,
+            "m": 1
+          },
+          "right": {
+            "a": 2,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -30731,7 +32181,17 @@
             "m": 1
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 2,
+            "m": 1
+          },
+          "right": {
+            "a": 1,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -30941,7 +32401,17 @@
             "m": 0
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -31149,7 +32619,17 @@
             "m": 1
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 2,
+            "m": 1
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -31357,7 +32837,17 @@
             "m": 1
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 1,
+            "m": 1
+          },
+          "right": {
+            "a": 1,
+            "m": 1
+          }
+        }
       }
     },
     {
@@ -31567,7 +33057,17 @@
             "m": 0
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 1,
+            "m": 1
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -31775,7 +33275,17 @@
             "m": 3
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 1,
+            "m": 0
+          },
+          "right": {
+            "a": 2,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -31989,7 +33499,17 @@
             "m": 1
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 1,
+            "m": 1
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -32197,7 +33717,17 @@
             "m": 0
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 2,
+            "m": 1
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -32405,7 +33935,17 @@
             "m": 1
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -32613,7 +34153,17 @@
             "m": 1
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 4,
+            "m": 1
+          },
+          "right": {
+            "a": 1,
+            "m": 1
+          }
+        }
       }
     },
     {
@@ -32821,7 +34371,17 @@
             "m": 2
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 1,
+            "m": 0
+          },
+          "right": {
+            "a": 2,
+            "m": 1
+          }
+        }
       }
     },
     {
@@ -33035,7 +34595,17 @@
             "m": 0
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -33243,7 +34813,17 @@
             "m": 0
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -33457,7 +35037,17 @@
             "m": 1
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 1,
+            "m": 0
+          },
+          "right": {
+            "a": 2,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -33665,7 +35255,17 @@
             "m": 0
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -33873,7 +35473,17 @@
             "m": 0
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 1,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -34081,7 +35691,17 @@
             "m": 2
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -34289,7 +35909,17 @@
             "m": 0
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 1,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -34497,7 +36127,17 @@
             "m": 1
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -34705,7 +36345,17 @@
             "m": 0
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -34913,7 +36563,17 @@
             "m": 0
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -35121,7 +36781,17 @@
             "m": 0
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 1,
+            "m": 0
+          },
+          "right": {
+            "a": 1,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -35329,7 +36999,17 @@
             "m": 0
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -35537,7 +37217,17 @@
             "m": 0
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -35745,7 +37435,17 @@
             "m": 1
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -35953,7 +37653,17 @@
             "m": 0
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -36157,7 +37867,17 @@
             "m": 0
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 1,
+            "m": 1
+          },
+          "right": {
+            "a": 5,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -36365,7 +38085,17 @@
             "m": 0
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -36573,7 +38303,17 @@
             "m": 0
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -36781,7 +38521,17 @@
             "m": 0
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -36989,7 +38739,17 @@
             "m": 0
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -37193,7 +38953,17 @@
             "m": 0
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 1,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -37401,7 +39171,17 @@
             "m": 0
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -37609,7 +39389,17 @@
             "m": 0
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -38177,7 +39967,17 @@
             "m": 0
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -38385,7 +40185,17 @@
             "m": 0
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -38773,7 +40583,17 @@
             "m": 0
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     },
     {
@@ -38981,7 +40801,17 @@
             "m": 0
           }
         },
-        "offenseType": null
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 1,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
       }
     }
   ],

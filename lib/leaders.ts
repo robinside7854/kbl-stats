@@ -31,7 +31,7 @@ import {
   type PositionFilter,
 } from "./roster";
 import type { LeaderPlayer } from "./types";
-import type { ShotZoneKey } from "./shots";
+import type { LeaderZoneKey } from "./shots";
 
 // ─────────────────────────────────────────────
 // 지표 정의
@@ -61,6 +61,8 @@ export type LeaderStatKey =
   | "midPct"
   | "corner3Pct"
   | "arc3Pct"
+  | "corner3LPct"
+  | "corner3RPct"
   | "winPct";
 
 /** 경기당 / 시즌 합계 / 30분당 (30분당 = 시즌 누적 ÷ 출전 분 × 30, lib/metrics per30 — NBA 의 36분(3쿼터)을 KBL 10분 쿼터에 맞춤) */
@@ -88,7 +90,7 @@ export interface LeaderStatDef {
    */
   kind: "count" | "games" | "rate" | "zone";
   /** zone 지표의 구역 (lib/shots) */
-  zone?: ShotZoneKey;
+  zone?: LeaderZoneKey;
   /** high: 클수록 상위(기본) / low: 작을수록 상위 (턴오버) — 1~3위 카드·순위·기본 정렬 방향 */
   better: "high" | "low";
 }
@@ -122,6 +124,9 @@ export const LEADER_STATS: Record<LeaderStatKey, LeaderStatDef> = {
   rimPct: { key: "rimPct", label: "골밑 성공률", short: "골밑%", kind: "zone", zone: "rim", better: "high" },
   midPct: { key: "midPct", label: "미드레인지 성공률", short: "미드%", kind: "zone", zone: "mid", better: "high" },
   corner3Pct: { key: "corner3Pct", label: "코너 3점 성공률", short: "코너3%", kind: "zone", zone: "corner3", better: "high" },
+  // 코너 좌우 (슈터가 바스켓을 볼 때 기준, lib/shots cornerSide) — 2026-10-01 사용자 요청
+  corner3LPct: { key: "corner3LPct", label: "왼쪽 코너 3점 성공률", short: "왼코너%", kind: "zone", zone: "corner3L", better: "high" },
+  corner3RPct: { key: "corner3RPct", label: "오른쪽 코너 3점 성공률", short: "오른코너%", kind: "zone", zone: "corner3R", better: "high" },
   arc3Pct: { key: "arc3Pct", label: "아크 3점 성공률", short: "아크3%", kind: "zone", zone: "arc3", better: "high" },
 };
 
@@ -140,7 +145,7 @@ export interface LeaderCategoryGroup {
 export const LEADER_CATEGORY_GROUPS: readonly LeaderCategoryGroup[] = [
   { key: "basic", label: "기본", categories: ["points", "reb", "ast", "stl", "blk", "tov", "winPct"] },
   { key: "shooting", label: "슈팅", categories: ["tpm", "fgPct", "tpPct", "ftPct"] },
-  { key: "zones", label: "슛 구역", categories: ["rimPct", "midPct", "corner3Pct", "arc3Pct"] },
+  { key: "zones", label: "슛 구역", categories: ["rimPct", "midPct", "corner3Pct", "corner3LPct", "corner3RPct", "arc3Pct"] },
   { key: "advanced", label: "고급", categories: ["per", "tsPct", "usgPct"] },
   { key: "hustle", label: "허슬", categories: ["defl", "screen"] },
 ];
@@ -236,19 +241,20 @@ export type ZoneStatKey = "rimPct" | "midPct" | "corner3Pct" | "arc3Pct";
 
 /** 순위표 시도 기준: 야투·3점·자유투(카드와 같은 값) + 슛 구역별 경기당 시도 리그 평균 */
 export interface LeaderThresholds extends AttemptThresholds {
-  zones?: Partial<Record<ShotZoneKey, number>>;
+  zones?: Partial<Record<LeaderZoneKey, number>>;
 }
 
 /**
  * 슛 구역 시도 기준 = 표본 충족 + 슛 데이터 있는 선수의 그 구역 경기당 시도 평균 (attemptThresholds 와 같은 방식).
  * 1개 던져 1개 넣은 100%가 1위가 되지 않게 — 우리 사이트 규칙.
  */
-export function zoneThresholds(players: readonly LeaderPlayer[], rule: QualifyRule): Partial<Record<ShotZoneKey, number>> {
+export function zoneThresholds(players: readonly LeaderPlayer[], rule: QualifyRule): Partial<Record<LeaderZoneKey, number>> {
   const q = players.filter((p) => isQualified(p, rule) && p.games > 0 && p.zones);
-  const out: Partial<Record<ShotZoneKey, number>> = {};
+  const out: Partial<Record<LeaderZoneKey, number>> = {};
   if (q.length === 0) return out;
-  for (const key of ["rim", "paint", "mid", "corner3", "arc3"] as const) {
-    out[key] = q.reduce((s, p) => s + p.zones![key].a / p.games, 0) / q.length;
+  for (const key of ["rim", "paint", "mid", "corner3", "arc3", "corner3L", "corner3R"] as const) {
+    const withKey = q.filter((p) => p.zones![key]);
+    if (withKey.length) out[key] = withKey.reduce((s, p) => s + p.zones![key]!.a / p.games, 0) / withKey.length;
   }
   return out;
 }

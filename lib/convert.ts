@@ -112,7 +112,13 @@ export function toLeaderPlayers(season: SeasonData, photoOf: PhotoLookup = () =>
     // 허슬은 coverage.hustle 시즌만 (그 밖은 0 이 "기록 없음"이라 null)
     deflections: season.coverage?.hustle ? (p.deflections ?? 0) : null,
     screenAst: season.coverage?.hustle ? (p.screenAst ?? 0) : null,
-    zones: p.shotZones?.zones ?? null,
+    // 5구역 + 코너 좌우(있을 때만) — 리더보드 슛 구역 부문
+    zones: p.shotZones
+      ? {
+          ...p.shotZones.zones,
+          ...(p.shotZones.corners ? { corner3L: p.shotZones.corners.left, corner3R: p.shotZones.corners.right } : {}),
+        }
+      : null,
   }));
 }
 

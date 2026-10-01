@@ -280,7 +280,7 @@ assert.ok(radarScore(rp({ points: 900, fgm: 350, fga: 600, fta: 200, ast: 200, s
 // 유형 라벨 (6축)
 const ax = (o: Partial<Record<string, number | null>>) => ({ offense: 50, defense: 20, rebound: 30, shooting: 30, playmaking: 39, efficiency: 5, ...o });
 assert.equal(playerType(ax({ offense: 70, defense: 65, rebound: 80, shooting: 61, playmaking: 90, efficiency: 60 })).label, "올라운더");
-assert.equal(playerType(ax({ offense: 10 })).label, "궂은일 담당 롤 플레이어");
+assert.equal(playerType(ax({ offense: 10 })).label, "롤플레이어");
 assert.equal(playerType(ax({ offense: 95 })).label, "득점원");
 assert.equal(playerType(ax({ defense: 90 })).label, "수비수");
 assert.equal(playerType(ax({ rebound: 90 })).label, "리바운더");

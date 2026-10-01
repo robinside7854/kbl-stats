@@ -7,11 +7,12 @@
 //   새 시즌에 없는 값(선수·팀)은 각 화면이 쿼리를 읽을 때 기본값으로 되돌린다.
 // - 선수 탭: 한 페이지 안에서 시즌을 바꾸므로 onSeasonChange 로 화면에 알린다 (PlayersView 가 이 막대를 직접 그린다).
 // 순위표·팀 분포 메뉴는 seasonCode(그 화면의 시즌, 없으면 최신 시즌)로 연결한다.
-// 검색창: 모바일은 둘째 줄 전체 폭, 640px 이상은 첫 줄 가운데.
+// 검색창: 모바일은 아래 줄 전체 폭, 640px 이상은 첫 줄 가운데. "랜덤 카드" 버튼(RandomCardButton)은 모바일 첫 줄 오른쪽·PC 맨 끝.
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { SeasonOption } from "@/lib/types";
 import PlayerSearch from "./PlayerSearch";
+import RandomCardButton from "./RandomCardButton";
 import SiteLogo, { SITE_NAME } from "./SiteLogo";
 
 export type SiteView = "home" | "players" | "player" | "leaders" | "teams" | "compare" | "glossary" | "records";
@@ -61,9 +62,11 @@ export default function SiteNav({ seasons, seasonCode, view, onSeasonChange, wid
             <SiteLogo />
             {SITE_NAME}
           </Link>
-          {!hideSearch && <PlayerSearch className="order-3 w-full sm:order-2 sm:w-auto sm:max-w-xs sm:flex-1" />}
+          {/* 랜덤 카드: 모바일은 첫 줄 오른쪽, PC 는 맨 끝 */}
+          <RandomCardButton className="order-2 sm:order-4" />
+          {!hideSearch && <PlayerSearch className="order-4 w-full sm:order-2 sm:w-auto sm:max-w-xs sm:flex-1" />}
           {showSeason && (
-            <label className="order-2 flex min-w-0 items-center gap-2 text-sub font-medium text-ink-2 sm:order-3">
+            <label className="order-3 flex min-w-0 items-center gap-2 text-sub font-medium text-ink-2 sm:order-3">
               <span className="shrink-0">시즌</span>
               <select
                 aria-label="시즌 선택"

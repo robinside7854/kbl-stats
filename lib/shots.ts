@@ -15,6 +15,7 @@
 //   y = 좌우 거리(+ = 슈터가 바스켓을 볼 때 오른쪽). d = 1(오른쪽 바스켓)은 코트를 180° 돌린 것이라 x·y 부호를 둘 다 뒤집어 맞춘다.
 
 import {
+  OFFENSE_CORNER_ALL_MIN,
   OFFENSE_CORNER_MIN,
   OFFENSE_INSIDE_MIN,
   OFFENSE_INSIDE_OUT_MIN,
@@ -173,12 +174,29 @@ export interface ZoneCount {
 }
 export type ZoneCounts = Record<ShotZoneKey, ZoneCount>;
 
+/**
+ * 코너 3점 좌우 (2026-10-01 사용자 요청). 슈터가 바스켓을 바라볼 때 기준 — 정규화 좌표 y > 0 이 오른쪽(normalizeShot 주석).
+ * 리더보드 "왼쪽/오른쪽 코너 3점 성공률" 부문용.
+ */
+export type CornerSide = "left" | "right";
+export const CORNER_ZONE_KEYS = { left: "corner3L", right: "corner3R" } as const;
+/** 리더보드가 쓰는 구역 키 = 5구역 + 코너 좌우 */
+export type LeaderZoneKey = ShotZoneKey | "corner3L" | "corner3R";
+export type LeaderZoneCounts = ZoneCounts & Partial<Record<"corner3L" | "corner3R", ZoneCount>>;
+
+/** 코너 3점 한 점의 좌우 */
+export function cornerSide(s: Pick<NormalizedShot, "y">): CornerSide {
+  return s.y > 0 ? "right" : "left";
+}
+
 /** 선수 한 명·한 시즌의 구역 집계 (processed players[].shotZones) */
 export interface ShotZoneSummary {
   total: { attempts: number; made: number };
   zones: ZoneCounts;
   /** 주 공격 유형 — 슛 50개 미만이면 null */
   offenseType: OffenseTypeKey | null;
+  /** 코너 3점 좌우 (옛 processed 파일엔 없음) */
+  corners?: Record<CornerSide, ZoneCount>;
 }
 
 export function emptyZoneCounts(): ZoneCounts {
@@ -188,17 +206,24 @@ export function emptyZoneCounts(): ZoneCounts {
 /** 점 목록 → 구역별 시도·성공 + 전체 + 공격 유형 */
 export function zoneSummary(shots: readonly NormalizedShot[]): ShotZoneSummary {
   const zones = emptyZoneCounts();
+  const corners: Record<CornerSide, ZoneCount> = { left: { a: 0, m: 0 }, right: { a: 0, m: 0 } };
   let made = 0;
   for (const s of shots) {
-    const z = zones[shotZone(s)];
+    const key = shotZone(s);
+    const z = zones[key];
     z.a++;
     if (s.made) {
       z.m++;
       made++;
     }
+    if (key === "corner3") {
+      const c = corners[cornerSide(s)];
+      c.a++;
+      if (s.made) c.m++;
+    }
   }
   const total = { attempts: shots.length, made };
-  return { total, zones, offenseType: offenseType({ total, zones }) };
+  return { total, zones, offenseType: offenseType({ total, zones }), corners };
 }
 
 /** 성공률(0~100). 시도 0 이면 null */
@@ -237,7 +262,8 @@ export function cornerShareOfThrees(s: Pick<ShotZoneSummary, "zones">): number {
 /**
  * 구역 시도 비중으로 주 공격 유형. 위에서부터 먼저 맞는 규칙(성공률은 보지 않는다):
  *   슛 50개 미만 → null (표본 부족)
- *   골밑+페인트 ≥ 55% → inside · 3점(코너+아크) ≥ 50% → 3점 시도 중 코너 ≥ 30% 면 cornerShooter, 아니면 shooter · 미드레인지 ≥ 30% → midrange
+ *   골밑+페인트 ≥ 55% → inside · 코너 3점이 전체 슛의 20% 이상이고 3점 중 35% 이상 → cornerShooter
+ *   · 3점(코너+아크) ≥ 50% → shooter (코너 비중과 무관) · 미드레인지 ≥ 30% → midrange
  *   3점 ≥ 35% 그리고 골밑+페인트 ≥ 35% → insideOut · 그 외 → balanced
  * 출처: 우리 사이트 규칙 (문턱 근거는 lib/glossary.ts OFFENSE_TYPES 주석).
  */
@@ -247,7 +273,9 @@ export function offenseType(s: Pick<ShotZoneSummary, "total" | "zones">): Offens
   const three = shareOf(s, "corner3") + shareOf(s, "arc3");
   const mid = shareOf(s, "mid");
   if (inside >= OFFENSE_INSIDE_MIN) return "inside";
-  if (three >= OFFENSE_SHOOTER_MIN) return cornerShareOfThrees(s) >= OFFENSE_CORNER_MIN ? "cornerShooter" : "shooter";
+  // 코너 전문이 먼저: 전체 슛 중 코너 3점 비중과 3점 중 코너 비중이 둘 다 높을 때 (3점 비중 조건 없음)
+  if (shareOf(s, "corner3") >= OFFENSE_CORNER_ALL_MIN && cornerShareOfThrees(s) >= OFFENSE_CORNER_MIN) return "cornerShooter";
+  if (three >= OFFENSE_SHOOTER_MIN) return "shooter";
   if (mid >= OFFENSE_MID_MIN) return "midrange";
   if (three >= OFFENSE_INSIDE_OUT_MIN && inside >= OFFENSE_INSIDE_OUT_MIN) return "insideOut";
   return "balanced";

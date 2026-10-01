@@ -112,7 +112,7 @@ assert.equal(topLeaders([], "points", "perGame").length, 0);
 
 // 부문: 3점 성공·USG%·PIE 없음, 턴오버·3점%·자유투% 있음
 // 부문 = 묶음 순서대로 (기본 · 슈팅 · 슛 구역 · 고급(USG% 포함) · 허슬, 2026-10-01)
-assert.deepEqual([...LEADER_CATEGORIES], ["points", "reb", "ast", "stl", "blk", "tov", "winPct", "tpm", "fgPct", "tpPct", "ftPct", "rimPct", "midPct", "corner3Pct", "arc3Pct", "per", "tsPct", "usgPct", "defl", "screen"]);
+assert.deepEqual([...LEADER_CATEGORIES], ["points", "reb", "ast", "stl", "blk", "tov", "winPct", "tpm", "fgPct", "tpPct", "ftPct", "rimPct", "midPct", "corner3Pct", "corner3LPct", "corner3RPct", "arc3Pct", "per", "tsPct", "usgPct", "defl", "screen"]);
 assert.equal(categoryGroupOf("usgPct"), "advanced");
 assert.equal(categoryGroupOf("corner3Pct"), "zones");
 // 옛 시즌처럼 허슬·슛 구역·USG% 가 없으면 그 묶음은 빠지고, 고급은 PER·TS% 만

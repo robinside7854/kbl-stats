@@ -2,7 +2,7 @@
 // KBL 원본 필드명(kname, fgRt 등)은 scripts/process.ts에서 여기 이름으로 한 번만 변환한다.
 // app/ 은 이 타입과 data/processed/*.json 만 안다.
 
-import type { ShotZoneSummary, ZoneCounts } from "./shots";
+import type { LeaderZoneCounts, ShotZoneSummary, ZoneCounts } from "./shots";
 import type { OffenseTypeKey } from "./glossary";
 
 // ─────────────────────────────────────────────
@@ -341,7 +341,7 @@ export interface LeaderPlayer {
   deflections?: number | null;
   screenAst?: number | null;
   /** 슛 구역별 시도·성공 (슛 차트 있는 시즌·선수만, 아니면 null) — 순위표 구역 성공률 부문 */
-  zones?: ZoneCounts | null;
+  zones?: LeaderZoneCounts | null;
 }
 
 // ─────────────────────────────────────────────

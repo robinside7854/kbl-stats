@@ -222,7 +222,7 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     group: "shots",
     name: "슛 구역",
     short: "슛 차트의 점을 골밑·페인트·미드레인지·코너 3점·아크 3점으로 나눈 것입니다.",
-    note: "공홈 슛 차트 좌표로 직접 나눠서 공식 3점 기록과 2% 정도 다를 수 있습니다. 2006-07 시즌부터 있습니다.",
+    note: "공홈 슛 차트 좌표로 직접 나눠서 공식 기록과 조금 다를 수 있습니다. 코너 좌우는 슈터가 바스켓을 바라볼 때 기준입니다.",
     formula: "골밑: 바스켓 1.5m 안 · 페인트: 5.8 × 4.9m 안 · 코너 3점: 베이스라인에서 3m 안",
     source: null,
   },
@@ -232,7 +232,7 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     name: "주 공격 유형",
     short: "어느 구역에서 슛을 많이 던졌는지로 붙이는 라벨입니다.",
     note: "잘 넣었는지가 아니라 어디서 던졌는지만 봅니다. 슛이 50개보다 적으면 붙이지 않습니다.",
-    formula: "골밑+페인트 55% 이상이면 골밑 공격형 · 3점 50% 이상이면 3점 슈터형 (그중 코너가 30% 이상이면 코너 슈터형)",
+    formula: "골밑+페인트 55% 이상이면 골밑 공격형 · 코너 3점이 슛의 20% 이상이면 코너 슈터형 · 3점 50% 이상이면 3점 슈터형",
     source: null,
   },
   {
@@ -356,6 +356,8 @@ export const LEADER_COLUMN_GLOSSARY: Readonly<Record<string, GlossaryKey>> = {
   rimPct: "shotZones",
   midPct: "shotZones",
   corner3Pct: "shotZones",
+  corner3LPct: "shotZones",
+  corner3RPct: "shotZones",
   arc3Pct: "shotZones",
 };
 
@@ -452,7 +454,7 @@ export const PLAYER_TYPES: readonly PlayerTypeDef[] = [
   },
   {
     key: "role",
-    label: "궂은일 담당 롤 플레이어",
+    label: "롤플레이어",
     condition: `가장 높은 축이 ${TYPE_ROLE_MAX} 미만`,
     short: "눈에 띄는 축은 없지만 코트에서 제 몫을 하는 선수",
     axis: null,
@@ -508,8 +510,13 @@ export const OFFENSE_MIN_ATTEMPTS = 50;
 export const OFFENSE_INSIDE_MIN = 0.55;
 /** 3점 슈터형: 3점(코너+아크) 시도 비중 문턱 */
 export const OFFENSE_SHOOTER_MIN = 0.5;
-/** 코너 슈터형: 3점 슈터형 조건에 더해, 3점 시도 중 코너 3점 비중 문턱 */
-export const OFFENSE_CORNER_MIN = 0.3;
+/**
+ * 코너 슈터형 = 코너 3점 **전문** (2026-10-01 사용자 정의: "3점 슈터는 코너 비중과 상관없이, 코너 슈터는 코너에 특화된 선수"):
+ * 전체 슛 중 코너 3점 비중 ≥ OFFENSE_CORNER_ALL_MIN 그리고 3점 시도 중 코너 비중 ≥ OFFENSE_CORNER_MIN.
+ * 3점 비중 조건은 없다(코너만 기다리는 선수는 슛 절반이 3점이 아니어도 코너 전문). 2025-26: 최승욱·최현민·최원혁 3명, 2024-25: 7명.
+ */
+export const OFFENSE_CORNER_ALL_MIN = 0.2;
+export const OFFENSE_CORNER_MIN = 0.35;
 /** 미드레인지형: 미드레인지 시도 비중 문턱 */
 export const OFFENSE_MID_MIN = 0.3;
 /** 인사이드-아웃형: 3점 비중과 골밑+페인트 비중이 둘 다 이 값 이상 */
@@ -537,14 +544,14 @@ export const OFFENSE_TYPES: readonly OffenseTypeDef[] = [
   {
     key: "cornerShooter",
     label: "코너 슈터형",
-    condition: `3점(코너+아크) 시도 비중 ${pctText(OFFENSE_SHOOTER_MIN)} 이상 그리고 3점 시도 중 코너 3점 비중 ${pctText(OFFENSE_CORNER_MIN)} 이상`,
-    short: "슛 절반 이상이 3점이고, 그중 상당수를 코너에서 기다렸다 쏜다",
+    condition: `전체 슛 중 코너 3점 ${pctText(OFFENSE_CORNER_ALL_MIN)} 이상 그리고 3점 시도 중 코너 ${pctText(OFFENSE_CORNER_MIN)} 이상`,
+    short: "코너에서 기다렸다 쏘는 코너 3점 전문",
   },
   {
     key: "shooter",
     label: "3점 슈터형",
-    condition: `3점(코너+아크) 시도 비중 ${pctText(OFFENSE_SHOOTER_MIN)} 이상 (코너 비중은 ${pctText(OFFENSE_CORNER_MIN)} 미만)`,
-    short: "던지는 슛의 절반 이상이 3점, 주로 아크(정면·45도)에서",
+    condition: `3점(코너+아크) 시도 비중 ${pctText(OFFENSE_SHOOTER_MIN)} 이상 (코너 전문이 아니면 코너 비중과 상관없이)`,
+    short: "던지는 슛의 절반 이상이 3점",
   },
   {
     key: "midrange",

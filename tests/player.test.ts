@@ -194,3 +194,16 @@ assert.deepEqual(profileFacts({ positionLabel: null, heightCm: null, weightKg: n
   { label: "드래프트", value: "1998" },
 ]);
 console.log("player: 프로필 표기 통과");
+
+// 랜덤 카드 뽑기: 프라임 시즌이 있으면 그 시즌, 없으면 뛴 시즌 중 하나
+{
+  const { pickRandomCard } = await import("../lib/search");
+  const list = [
+    { id: "a", seasons: [43, 45, 47], prime: 45 },
+    { id: "b", seasons: [47] },
+    { id: "c", seasons: [] },
+  ];
+  assert.deepEqual(pickRandomCard(list, () => 0), { id: "a", seasonCode: 45 });
+  assert.deepEqual(pickRandomCard(list, () => 0.99), { id: "b", seasonCode: 47 });
+  assert.equal(pickRandomCard([], () => 0), null);
+}

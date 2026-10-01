@@ -152,3 +152,18 @@ export function PartyHat({ width, color, ink }: { width: number; color: string; 
     </svg>
   );
 }
+
+/** 주사위 (헤더 "랜덤 카드") */
+export function IconDice(p: IconProps) {
+  return (
+    <Svg {...p}>
+      <rect x="4" y="4" width="16" height="16" rx="3" />
+      {/* deslop-ignore-next-line 24 */}
+      <circle cx="9" cy="9" r="1.2" fill="currentColor" stroke="none" />
+      {/* deslop-ignore-next-line 24 */}
+      <circle cx="15" cy="15" r="1.2" fill="currentColor" stroke="none" />
+      {/* deslop-ignore-next-line 24 */}
+      <circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none" />
+    </Svg>
+  );
+}
