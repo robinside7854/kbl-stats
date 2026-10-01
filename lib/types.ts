@@ -332,6 +332,11 @@ export interface LeaderPlayer {
   /** USG% (표준 척도 ×5). 그 시즌에 USG% 가 없으면(coverage.advanced 아님) null → 화면 "–" */
   usgPct: number | null;
   per: number;
+  /** 디플렉션·스크린 어시스트 시즌 합계 (coverage.hustle 시즌만, 아니면 null) */
+  deflections?: number | null;
+  screenAst?: number | null;
+  /** 슛 구역별 시도·성공 (슛 차트 있는 시즌·선수만, 아니면 null) — 순위표 구역 성공률 부문 */
+  zones?: ZoneCounts | null;
 }
 
 // ─────────────────────────────────────────────
@@ -346,6 +351,8 @@ export interface CareerSeason extends LeaderPlayer {
   seasonCode: number;
   seasonLabel: string;    // 예: "2025-2026" (짧은 표기는 lib/career.ts seasonShortLabel)
   team: CardTeam | null;  // 그 시즌 팀 (로고·색·한글 약칭). 시즌 팀 목록에 없으면 null
+  /** 그 시즌 리그 1위 부문 (단위별 — lib/leaders seasonLeaderMarks). 기록표에서 굵게 */
+  leaderMarks?: Partial<Record<"perGame" | "total" | "per40", string[]>>;
 }
 
 export interface PlayerCareer {

@@ -107,6 +107,10 @@ export function toLeaderPlayers(season: SeasonData, photoOf: PhotoLookup = () =>
     // USG% 는 2차 스탯이 있는 시즌(coverage.advanced)만. 그 밖의 시즌은 일부 선수만 값이 있어 비교가 안 되므로 null
     usgPct: season.coverage?.advanced ? p.usgPct : null,
     per: p.per,
+    // 허슬은 coverage.hustle 시즌만 (그 밖은 0 이 "기록 없음"이라 null)
+    deflections: season.coverage?.hustle ? (p.deflections ?? 0) : null,
+    screenAst: season.coverage?.hustle ? (p.screenAst ?? 0) : null,
+    zones: p.shotZones?.zones ?? null,
   }));
 }
 

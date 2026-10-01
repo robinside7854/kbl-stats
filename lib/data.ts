@@ -19,6 +19,12 @@ import { toCardPlayers as convertCardPlayers, toCardTeams, toLeaderPlayers as co
 import { buildSeasonHighCards, type SeasonHighCard } from "./highs";
 import { careerHighAchievements, careerHighTabs, type CareerHighRow, type HighAchievement, type HighsTab } from "./career";
 import { buildPlayerShotsFile, type PlayerShotsFile, type ShotPoint } from "./shots";
+import { sumCareerTotals, type CareerTotal } from "./records";
+import { nationalityOf } from "./roster";
+import { findSimilar, toAxisVector, type SimilarEntry, type SimilarVector } from "./similar";
+import { gradeGroupOf, isQualified, radarScore } from "./metrics";
+import { seasonGrading } from "./cardview";
+import { seasonLeaderMarks, type LeaderStatKey, type StatMode } from "./leaders";
 import { buildBadgeIndex, playerBadges, type BadgeCareer, type BadgeIndex, type BadgeSeasonRow, type PlayerBadge } from "./badges";
 
 const PROCESSED_DIR = path.join(process.cwd(), "data", "processed");
@@ -105,6 +111,23 @@ function seasonLeaderRows(season: SeasonData): Map<string, LeaderPlayer> {
   return m;
 }
 
+const leaderMarksCache = new Map<number, Record<StatMode, Map<string, LeaderStatKey[]>>>();
+
+/** 시즌 리그 1위 부문 (경기당·합계·40분당) — 선수 페이지 기록표의 굵은 숫자 */
+function seasonMarks(season: SeasonData): Record<StatMode, Map<string, LeaderStatKey[]>> {
+  let m = leaderMarksCache.get(season.seasonCode);
+  if (!m) {
+    const rows = [...seasonLeaderRows(season).values()];
+    m = {
+      perGame: seasonLeaderMarks(rows, "perGame"),
+      total: seasonLeaderMarks(rows, "total"),
+      per40: seasonLeaderMarks(rows, "per40"),
+    };
+    leaderMarksCache.set(season.seasonCode, m);
+  }
+  return m;
+}
+
 function seasonTeams(season: SeasonData): CardTeam[] {
   let t = teamsCache.get(season.seasonCode);
   if (!t) {
@@ -132,6 +155,15 @@ export function loadPlayerCareer(playerNo: string): PlayerCareer | null {
       seasonCode: season.seasonCode,
       seasonLabel: season.seasonLabel,
       team: seasonTeams(season).find((t) => t.teamCode === row.teamCode) ?? null,
+      leaderMarks: (() => {
+        const marks = seasonMarks(season);
+        const out: CareerSeason["leaderMarks"] = {};
+        for (const mode of ["perGame", "total", "per40"] as const) {
+          const keys = marks[mode].get(playerNo);
+          if (keys?.length) out[mode] = keys;
+        }
+        return out;
+      })(),
     });
   }
   return { entry, seasons };
@@ -297,4 +329,93 @@ export function loadPlayerShots(seasonCode: number, playerNo: string): PlayerSho
 /** 그 선수 슛 차트가 있는 시즌 코드 (시즌 파일의 shotZones 기준) — 화면이 없는 시즌은 받지 않고 바로 "기록 없음" */
 export function playerShotSeasons(playerNo: string, seasonCodes: readonly number[]): number[] {
   return seasonCodes.filter((c) => !!loadSeasonData(c)?.players.find((p) => p.playerNo === playerNo)?.shotZones);
+}
+
+// ─────────────────────────────────────────────
+// 비슷한 선수 (lib/similar) — 전 시즌 표본 충족 선수의 6축 백분위 벡터를 한 번 만들어 둔다
+// ─────────────────────────────────────────────
+
+let similarPool: SimilarVector[] | null = null;
+
+function loadSimilarPool(): SimilarVector[] {
+  if (similarPool) return similarPool;
+  const out: SimilarVector[] = [];
+  for (const s of listSeasonsWithPlayers()) {
+    const cards = loadSeasonCards(s.seasonCode);
+    if (!cards) continue;
+    const grading = seasonGrading(cards);
+    for (const p of cards.players) {
+      if (!isQualified(p, cards.defaults.rule)) continue;
+      const axes = toAxisVector(radarScore(p, grading).axes);
+      if (!axes) continue;
+      out.push({ id: p.id, seasonCode: s.seasonCode, pool: gradeGroupOf(p, grading.mergeAsia) === "domestic" ? "domestic" : "foreign", pos: p.positionGroup, axes });
+    }
+  }
+  similarPool = out;
+  return out;
+}
+
+/** 한 선수의 시즌별 비슷한 시즌 5개 (표본 미달 시즌은 없음) */
+export function loadSimilarPlayers(playerNo: string): Record<number, SimilarEntry[]> {
+  const pool = loadSimilarPool();
+  const out: Record<number, SimilarEntry[]> = {};
+  for (const v of pool) {
+    if (v.id !== playerNo) continue;
+    out[v.seasonCode] = findSimilar(v, pool).map((m) => {
+      const cards = loadSeasonCards(m.seasonCode)!;
+      const p = cards.players.find((x) => x.id === m.id)!;
+      const team = cards.teams.find((t) => t.teamCode === p.teamCode);
+      return {
+        id: m.id,
+        nameKo: p.nameKo,
+        seasonCode: m.seasonCode,
+        seasonLabel: cards.seasonLabel,
+        teamShort: team?.shortName ?? p.teamShort,
+        teamColor: team?.color.primary ?? "#6b7280",
+        photoUrl: p.photoUrl,
+        score: Math.round(m.score * 10) / 10,
+      };
+    });
+  }
+  return out;
+}
+
+// ─────────────────────────────────────────────
+// 역대 통산 순위 (lib/records) — 전 시즌 선수 합계를 선수 번호로 더한다
+// ─────────────────────────────────────────────
+
+let careerTotals: CareerTotal[] | null = null;
+
+export function loadCareerTotals(): CareerTotal[] {
+  if (careerTotals) return careerTotals;
+  const rows = [];
+  for (const s of listSeasonsWithPlayers()) {
+    const season = loadSeasonData(s.seasonCode);
+    if (!season) continue;
+    const teams = seasonTeams(season);
+    for (const p of seasonLeaderRows(season).values()) {
+      const team = teams.find((t) => t.teamCode === p.teamCode);
+      const idx = findPlayerIndexEntry(p.id);
+      rows.push({
+        id: p.id,
+        nameKo: p.nameKo,
+        photoUrl: idx?.photoUrl ?? p.photoUrl,
+        origin: (nationalityOf(idx ?? p) === "domestic" ? "domestic" : "foreign") as "domestic" | "foreign",
+        seasonCode: season.seasonCode,
+        seasonLabel: season.seasonLabel,
+        teamShort: team?.shortName ?? p.teamShort,
+        teamColor: team?.color.primary ?? "#6b7280",
+        games: p.games,
+        minutes: p.minutes,
+        points: p.points,
+        reb: p.reb,
+        ast: p.ast,
+        stl: p.stl,
+        blk: p.blk,
+        tpm: p.tpm,
+      });
+    }
+  }
+  careerTotals = sumCareerTotals(rows);
+  return careerTotals;
 }

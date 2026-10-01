@@ -15,6 +15,7 @@ import type { CardTeam, LeaderPlayer } from "@/lib/types";
 import { attemptsNote, attemptThresholds, QUALIFY_PRESETS, qualifyLabel } from "@/lib/metrics";
 import {
   attemptName,
+  availableCategories,
   columnOrder,
   DEFAULT_LEADERS_STATE,
   clearLeaderFilter,
@@ -25,10 +26,10 @@ import {
   formatSummaryStat,
   isModeIndependent,
   isRankEligible,
-  LEADER_CATEGORIES,
   LEADER_STATS,
   LEADERS_PAGE_SIZE,
   leaderFilterChips,
+  leadersCsv,
   leadersQueryString,
   madeAttempts,
   parseLeadersQuery,
@@ -39,8 +40,10 @@ import {
   statTitle,
   statValue,
   topLeaders,
+  zoneThresholds,
   type LeaderEntry,
   type LeaderStatKey,
+  type LeaderThresholds,
   type LeadersState,
   type OriginFilter,
   type SortDir,
@@ -81,6 +84,7 @@ interface Props {
 
 const MODE_OPTIONS: { value: StatMode; label: string }[] = [
   { value: "perGame", label: "경기당" },
+  { value: "per40", label: "40분당" },
   { value: "total", label: "시즌 합계" },
 ];
 const ORIGIN_OPTIONS: { value: OriginFilter; label: string }[] = NATIONALITY_FILTERS.map((f) => ({ value: f, label: nationalityFilterLabel(f) }));
@@ -203,14 +207,20 @@ export default function LeadersView({ seasonLabel, players, teams, seasonHighs =
   }, [state]);
 
   const update = (patch: Partial<LeadersState>) => setState((s) => ({ ...s, ...patch }));
-  const { category, mode, origin, position, teamCode, presetIdx } = state;
+  const { mode, origin, position, teamCode, presetIdx } = state;
+  // 이 시즌에 기록이 있는 부문만 칩으로 (허슬은 2025-26, 슛 구역은 슛 차트 있는 시즌). 공유 링크의 부문이 없으면 기본 부문
+  const categories = useMemo(() => availableCategories(players), [players]);
+  const category = categories.includes(state.category) ? state.category : DEFAULT_LEADERS_STATE.category;
   const rule = QUALIFY_PRESETS[presetIdx];
   const columns = columnOrder(category);
   const sortKey = sort?.key ?? category;
   const sortDir = sort?.dir ?? defaultSortDir(category);
 
   // 성공률 시도 기준: 이 시즌 표본 충족 선수(포지션·국적·팀 필터 전 리그 전체)의 경기당 시도 평균 — 플레이어 카드와 같은 함수
-  const thresholds = useMemo(() => attemptThresholds(players, rule), [players, rule]);
+  const thresholds = useMemo<LeaderThresholds>(
+    () => ({ ...attemptThresholds(players, rule), zones: zoneThresholds(players, rule) }),
+    [players, rule],
+  );
 
   const filtered = useMemo(
     () => filterLeaders(players, { origin, position, teamCode, rule }),
@@ -227,6 +237,21 @@ export default function LeadersView({ seasonLabel, players, teams, seasonHighs =
   const ranks = useMemo(() => rankMap(filtered, sortKey, mode, thresholds), [filtered, sortKey, mode, thresholds]);
   const note = attemptsNote(thresholds);
   const teamName = (code: string) => teamShortLabel(teamByCode.get(code)?.shortName ?? code);
+
+  /** 지금 순위표를 CSV 로 (lib/leaders leadersCsv — 엑셀에서 바로 열린다) */
+  function downloadCsv() {
+    const csv = leadersCsv(rows, columns, mode, ranks, (p) => teamName(p.teamCode));
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `kbl-${seasonLabel}-${LEADER_STATS[sortKey].label}-${mode}.csv`.replace(/\s+/g, "");
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    // 바로 지우면 일부 브라우저가 파일 이름을 잃는다 — 다운로드가 시작된 뒤에 정리
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
 
   function chooseCategory(key: LeaderStatKey) {
     update({ category: key });
@@ -339,7 +364,7 @@ export default function LeadersView({ seasonLabel, players, teams, seasonHighs =
       <ChipRow
         label="부문 선택"
         scroll
-        chips={LEADER_CATEGORIES.map((key) => ({ value: key, label: LEADER_STATS[key].label }))}
+        chips={categories.map((key) => ({ value: key, label: LEADER_STATS[key].label }))}
         value={category}
         onChange={chooseCategory}
       />
@@ -353,7 +378,7 @@ export default function LeadersView({ seasonLabel, players, teams, seasonHighs =
           trailing={`${filtered.length}명`}
         >
           <FilterGroup label="기록 단위" hint={isModeIndependent(category) ? "지금 부문은 비율 지표라 단위와 관계없습니다" : undefined}>
-            <Segmented label="경기당 또는 시즌 합계" options={MODE_OPTIONS} value={mode} onChange={(v) => update({ mode: v })} />
+            <Segmented label="경기당, 40분당 또는 시즌 합계" options={MODE_OPTIONS} value={mode} onChange={(v) => update({ mode: v })} />
           </FilterGroup>
           <FilterGroup label="포지션" hint="GF는 가드, FC는 포워드로 묶습니다">
             <Segmented label="포지션" options={POSITION_OPTIONS} value={position} onChange={(v) => update({ position: v })} />
@@ -405,7 +430,11 @@ export default function LeadersView({ seasonLabel, players, teams, seasonHighs =
             {[
               (position !== "all" || origin !== "all") && "순위는 고른 집단 안 순위",
               LEADER_STATS[category].better === "low" && "적을수록 상위",
-              attemptName(category) && `경기당 시도 리그 평균(${note}) 이상만 순위`,
+              attemptName(category) &&
+                (LEADER_STATS[category].kind === "zone"
+                  ? `${attemptName(category)} 경기당 시도 리그 평균(${(thresholds.zones?.[LEADER_STATS[category].zone!] ?? 0).toFixed(1)}) 이상만 순위 · 슛 차트 좌표로 센 값`
+                  : `경기당 시도 리그 평균(${note}) 이상만 순위`),
+              mode === "per40" && LEADER_STATS[category].kind === "count" && "40분당 = 시즌 누적 ÷ 출전 분 × 40",
             ]
               .filter(Boolean)
               .join(" · ")}
@@ -452,8 +481,16 @@ export default function LeadersView({ seasonLabel, players, teams, seasonHighs =
       {rows.length > 0 && (
         <section aria-labelledby="all-ranks" className="mt-6">
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-            <h2 id="all-ranks" className="text-h2 font-bold">
+            <h2 id="all-ranks" className="flex items-center gap-2 text-h2 font-bold">
               전체 순위
+              <button
+                type="button"
+                onClick={downloadCsv}
+                className="focus-ring inline-flex h-10 items-center rounded-control border border-line bg-surface px-3 text-sub font-semibold text-ink-2 transition-colors duration-200 hover:bg-surface-2 hover:text-ink"
+                title="지금 보이는 순위표(필터·정렬·단위 그대로)를 CSV 파일로 받기"
+              >
+                CSV 내려받기
+              </button>
             </h2>
             {/* 모바일 정렬: 드롭다운 하나 (PC 는 열 제목을 누른다) */}
             <label className="flex items-center gap-2 text-sub font-medium text-ink-2 lg:hidden">

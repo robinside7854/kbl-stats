@@ -29,8 +29,10 @@ import TeamLogo from "./TeamLogo";
 
 const MODE_OPTIONS: { value: StatMode; label: string }[] = [
   { value: "perGame", label: "경기당" },
+  { value: "per40", label: "40분당" },
   { value: "total", label: "시즌 합계" },
 ];
+const MODE_LABEL: Record<StatMode, string> = { perGame: "경기당", per40: "40분당", total: "시즌 합계" };
 
 /** 모바일 접힌 행에 보이는 세 값 */
 const SUMMARY_KEYS: LeaderStatKey[] = ["points", "reb", "ast"];
@@ -48,6 +50,9 @@ export default function CareerTable({ seasons }: { seasons: CareerSeason[] }) {
   const rows = useMemo(() => [...seasons].sort((a, b) => b.seasonCode - a.seasonCode), [seasons]);
   const teamOf = (s: CareerSeason) => s.team?.shortName ?? s.teamShort;
   const value = (s: CareerSeason, key: LeaderStatKey) => formatStat(statValue(s, key, mode), key, mode);
+  // 그 시즌 리그 1위였던 칸은 굵게 (Basketball-Reference 방식, lib/leaders seasonLeaderMarks — 단위별로 다르다)
+  const led = (s: CareerSeason, key: LeaderStatKey) => !!s.leaderMarks?.[mode]?.includes(key);
+  const anyLed = rows.some((s) => (s.leaderMarks?.[mode]?.length ?? 0) > 0);
 
   const columns: RowColumn<CareerSeason>[] = [
     {
@@ -97,7 +102,12 @@ export default function CareerTable({ seasons }: { seasons: CareerSeason[] }) {
           const ma = madeAttempts(s, key);
           return (
             <>
-              <span className="block leading-tight">{value(s, key)}</span>
+              <span
+                className={`block leading-tight ${led(s, key) ? "font-black text-ink underline decoration-2 underline-offset-2" : ""}`}
+                title={led(s, key) ? `${seasonShortLabel(s.seasonLabel)} 리그 1위` : undefined}
+              >
+                {value(s, key)}
+              </span>
               {ma && <span className="block text-caption leading-tight text-ink-3">{formatMadeAttempts(ma)}</span>}
             </>
           );
@@ -112,12 +122,12 @@ export default function CareerTable({ seasons }: { seasons: CareerSeason[] }) {
         <h2 id="career-table-title" className="text-h2 font-bold">
           시즌별 기록
         </h2>
-        <Segmented label="경기당 또는 시즌 합계" options={MODE_OPTIONS} value={mode} onChange={setMode} />
+        <Segmented label="경기당, 40분당 또는 시즌 합계" options={MODE_OPTIONS} value={mode} onChange={setMode} />
       </div>
       <RowList
         rows={rows}
         rowKey={(s) => String(s.seasonCode)}
-        caption={`시즌별 정규시즌 기록 (${mode === "perGame" ? "경기당" : "시즌 합계"}), 최근 시즌이 위`}
+        caption={`시즌별 정규시즌 기록 (${MODE_LABEL[mode]}), 최근 시즌이 위`}
         columns={columns}
         unit="시즌"
         rowLabel={(s) =>
@@ -135,7 +145,9 @@ export default function CareerTable({ seasons }: { seasons: CareerSeason[] }) {
             </span>
             {SUMMARY_KEYS.map((k) => (
               <span key={k} className="w-11 shrink-0 text-right">
-                <span className="tabular block text-body font-bold leading-tight text-ink">{value(s, k)}</span>
+                <span className={`tabular block text-body leading-tight text-ink ${led(s, k) ? "font-black underline decoration-2 underline-offset-2" : "font-bold"}`}>
+                  {value(s, k)}
+                </span>
                 <span className="block text-caption leading-tight text-ink-3">{LEADER_STATS[k].short}</span>
               </span>
             ))}
@@ -147,9 +159,11 @@ export default function CareerTable({ seasons }: { seasons: CareerSeason[] }) {
             return {
               key,
               label: LEADER_STATS[key].short,
+              strong: led(s, key),
               value: (
                 <>
                   {value(s, key)}
+                  {led(s, key) && <span className="ml-1 text-caption font-semibold text-ink-2">리그 1위</span>}
                   {ma && <span className="ml-1 text-caption text-ink-3">{formatMadeAttempts(ma)}</span>}
                 </>
               ),
@@ -166,7 +180,9 @@ export default function CareerTable({ seasons }: { seasons: CareerSeason[] }) {
           </button>
         )}
       />
-      <p className="mt-2 text-sub text-ink-3">정규시즌만. 성공률 아래 작은 숫자는 시즌 합계 성공/시도. USG%는 2차 스탯이 있는 시즌(2025-26~)만, 없으면 –.</p>
+      <p className="mt-2 text-sub text-ink-3">
+        정규시즌만.{anyLed && " 굵은 밑줄 숫자는 그 시즌 리그 1위(10경기·100분 이상, 성공률은 시도 기준)."} 성공률 아래 작은 숫자는 시즌 합계 성공/시도. USG%는 2차 스탯이 있는 시즌(2025-26~)만, 없으면 –.
+      </p>
     </section>
   );
 }

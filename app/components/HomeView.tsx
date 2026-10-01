@@ -49,6 +49,7 @@ export default function HomeView({ season, fetchedLabel, upcoming, categories, t
   const secondary = [
     { href: `/season/${code}/teams`, title: "팀 분포" },
     { href: "/compare", title: "비교" },
+    { href: "/records", title: "역대 기록" },
     { href: "/glossary", title: "용어" },
   ];
 

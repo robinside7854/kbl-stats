@@ -1,7 +1,7 @@
 // 선수 페이지 (PLAN.md §2-2, §3 ③): 선수 색인(players-index.json)의 전원을 빌드 때 정적 생성한다.
 // 구성(모바일 우선): 머리말(팀 색·사진·칭호 배지·프로필·나이·국가·출신교·통산 요약 8칸) → 시즌 칩 + 플레이어 카드(순위 범위, PC 는 가로 카드) → 시즌별 추이 + 하이라이트 3개(PC 는 추이 오른쪽 열)
 // → 슛 차트(하프코트 점 + 구역표 + 주 공격 유형, 시즌 칩을 따름 — 최신 시즌은 정적 HTML, 다른 시즌은 /shots/{시즌}/{번호}.json)
-// → 시즌별 기록표 → 커리어 하이(통산 한 경기 최다 업적 카드 7개, 데이터 없으면 숨김).
+// → 비슷한 시즌(lib/similar, 시즌 칩을 따름) → 시즌별 기록표(리그 1위 굵게) → 커리어 하이(통산 한 경기 최다 업적 카드 7개, 데이터 없으면 숨김).
 // 데이터는 lib/data.ts 가 빌드 시점에 읽어 필요한 필드만 클라이언트 컴포넌트로 넘긴다.
 // 카드: 가장 최근 시즌·전체 범위는 여기서 계산해 정적 HTML에 넣고(lib/cardview), 다른 시즌·범위는 브라우저가 /cards/{코드}.json 으로.
 import type { Metadata } from "next";
@@ -17,6 +17,7 @@ import {
   playerShotSeasons,
   loadSeasonCards,
   loadSeasonData,
+  loadSimilarPlayers,
 } from "@/lib/data";
 import { activeSpanLabel, seoulDateIso } from "@/lib/career";
 import { buildSeasonCardView } from "@/lib/cardview";
@@ -86,6 +87,7 @@ export default async function PlayerPage({ params }: { params: Params }) {
               careerHighRows={highTabs.find((t) => t.key === "regular")?.rows ?? []}
               shotSeasons={playerShotSeasons(playerNo, seasons.map((s) => s.seasonCode))}
               initialShots={loadPlayerShots(latest.seasonCode, playerNo)}
+              similar={loadSimilarPlayers(playerNo)}
             />
           ) : (
             trend

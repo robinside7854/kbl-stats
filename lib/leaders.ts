@@ -4,10 +4,13 @@
 // 성공률(야투·3점·자유투)의 시도 기준은 lib/metrics.ts attemptThresholds — 플레이어 카드와 같은 함수.
 
 import {
+  attemptThresholds,
+  DEFAULT_QUALIFY,
   isPctKey,
   isQualified,
   meetsAttemptThreshold,
   PCT_ATTEMPTS,
+  per40,
   perGame,
   QUALIFY_PRESETS,
   qualifyShort,
@@ -27,6 +30,7 @@ import {
   type PositionFilter,
 } from "./roster";
 import type { LeaderPlayer } from "./types";
+import type { ShotZoneKey } from "./shots";
 
 // ─────────────────────────────────────────────
 // 지표 정의
@@ -48,10 +52,17 @@ export type LeaderStatKey =
   | "ftPct"
   | "tsPct"
   | "usgPct"
-  | "per";
+  | "per"
+  // 2026-10-01 (Basketball-Reference·NBA.com 참고): 허슬(2025-26만) · 슛 구역 성공률(슛 차트 있는 2006-07~)
+  | "defl"
+  | "screen"
+  | "rimPct"
+  | "midPct"
+  | "corner3Pct"
+  | "arc3Pct";
 
-/** 경기당 / 시즌 합계 */
-export type StatMode = "perGame" | "total";
+/** 경기당 / 시즌 합계 / 40분당 (40분당 = 시즌 누적 ÷ 출전 분 × 40, lib/metrics per40 — NBA 의 36분당을 KBL 40분 경기에 맞춤) */
+export type StatMode = "perGame" | "total" | "per40";
 /**
  * 전체 / 국내 / 외국 / 아시아쿼터 — 선수 마스터 국적(nationality) 기준 (lib/roster.ts filterByNationality).
  * 마스터가 없으면 이름 추정 isForeign 으로 국내/외국만 갈린다(아시아쿼터는 빈 목록).
@@ -71,8 +82,11 @@ export interface LeaderStatDef {
    * count: 시즌 누적값 → 경기당 모드면 perGame 환산
    * games: 경기 수 — 모드와 관계없이 그대로
    * rate : KBL 계산 비율·지수 — 모드와 관계없이 그대로
+   * zone : 슛 구역 성공률 (슛 차트 좌표로 우리가 센 성공 ÷ 시도) — 모드와 관계없이 그대로
    */
-  kind: "count" | "games" | "rate";
+  kind: "count" | "games" | "rate" | "zone";
+  /** zone 지표의 구역 (lib/shots) */
+  zone?: ShotZoneKey;
   /** high: 클수록 상위(기본) / low: 작을수록 상위 (턴오버) — 1~3위 카드·순위·기본 정렬 방향 */
   better: "high" | "low";
 }
@@ -97,12 +111,26 @@ export const LEADER_STATS: Record<LeaderStatKey, LeaderStatDef> = {
   // USG%: 표 열로만 (부문 카드에는 넣지 않는다 — 공격 점유율이라 "높을수록 잘함"이 아니다). 없는 시즌은 null → "–"
   usgPct: { key: "usgPct", label: "USG%", short: "USG%", kind: "rate", better: "high" },
   per: { key: "per", label: "PER", short: "PER", kind: "rate", better: "high" },
+  // 허슬: KBL 이 2025-26 부터 기록 (coverage.hustle). 없는 시즌은 null → 부문 칩에서 숨긴다
+  defl: { key: "defl", label: "디플렉션", short: "디플렉션", kind: "count", better: "high" },
+  screen: { key: "screen", label: "스크린 어시스트", short: "스크린A", kind: "count", better: "high" },
+  // 슛 구역 성공률: 그 구역 경기당 시도가 리그 평균 이상인 선수만 순위 (leaderThresholds.zones)
+  rimPct: { key: "rimPct", label: "골밑 성공률", short: "골밑%", kind: "zone", zone: "rim", better: "high" },
+  midPct: { key: "midPct", label: "미드레인지 성공률", short: "미드%", kind: "zone", zone: "mid", better: "high" },
+  corner3Pct: { key: "corner3Pct", label: "코너 3점 성공률", short: "코너3%", kind: "zone", zone: "corner3", better: "high" },
+  arc3Pct: { key: "arc3Pct", label: "아크 3점 성공률", short: "아크3%", kind: "zone", zone: "arc3", better: "high" },
 };
 
 /** 상단 부문 선택지 (1~3위 카드). 순서 = 화면 표시 순서 */
 export const LEADER_CATEGORIES: readonly LeaderStatKey[] = [
   "points", "reb", "ast", "stl", "blk", "tpm", "tov", "fgPct", "tpPct", "ftPct", "tsPct", "per",
+  "defl", "screen", "rimPct", "midPct", "corner3Pct", "arc3Pct",
 ];
+
+/** 그 시즌에 값이 있는 부문만 (허슬은 2025-26, 슛 구역은 슛 차트 있는 시즌). 값이 하나도 없으면 칩을 숨긴다 */
+export function availableCategories(players: readonly LeaderPlayer[]): LeaderStatKey[] {
+  return LEADER_CATEGORIES.filter((k) => players.some((p) => Number.isFinite(rawValue(p, k))));
+}
 
 /** 기본 부문: 팬이 가장 먼저 찾는 "득점왕" */
 export const DEFAULT_CATEGORY: LeaderStatKey = "points";
@@ -119,7 +147,8 @@ export const CORE_COLUMNS: readonly LeaderStatKey[] = ["games", "minutes", "poin
  */
 export function columnOrder(focus: LeaderStatKey): LeaderStatKey[] {
   const cols = [...TABLE_COLUMNS];
-  if (!cols.includes(focus) || CORE_COLUMNS.includes(focus)) return cols;
+  if (CORE_COLUMNS.includes(focus)) return cols;
+  // 표 기본 열에 없는 부문(허슬·슛 구역)도 맨 앞에 끼워 지금 보는 값이 보이게
   return [focus, ...cols.filter((k) => k !== focus)];
 }
 
@@ -132,24 +161,72 @@ export function defaultSortDir(key: LeaderStatKey): SortDir {
 // 값·필터·정렬·순위
 // ─────────────────────────────────────────────
 
-/** 표시·정렬에 쓰는 값. count 지표는 경기당 모드에서 perGame(누적, 경기 수). 값이 없으면(USG% 없는 시즌) NaN → 표기 "–"·정렬 맨 뒤 */
+/** 모드 환산 전 값 (시즌 누적·비율). 없으면 NaN — USG% 없는 시즌, 허슬 없는 시즌, 슛 차트 없는 시즌·그 구역 시도 0 */
+export function rawValue(p: LeaderPlayer, key: LeaderStatKey): number {
+  const def = LEADER_STATS[key];
+  if (def.kind === "zone") {
+    const z = p.zones?.[def.zone!];
+    return z && z.a > 0 ? (z.m / z.a) * 100 : NaN;
+  }
+  if (key === "defl") return p.deflections ?? NaN;
+  if (key === "screen") return p.screenAst ?? NaN;
+  return (p[key as keyof LeaderPlayer] as number | null | undefined) ?? NaN;
+}
+
+/** 표시·정렬에 쓰는 값. count 지표는 경기당 모드에서 perGame, 40분당 모드에서 per40. 값이 없으면 NaN → 표기 "–"·정렬 맨 뒤 */
 export function statValue(p: LeaderPlayer, key: LeaderStatKey, mode: StatMode): number {
-  const v = p[key] ?? NaN;
-  if (LEADER_STATS[key].kind === "count" && mode === "perGame") return perGame(v, p.games);
+  const v = rawValue(p, key);
+  if (LEADER_STATS[key].kind !== "count") return v;
+  // 출전시간은 40분당으로 바꾸면 의미가 없어(항상 40) 경기당으로 보여 준다
+  if (mode === "perGame" || (mode === "per40" && key === "minutes")) return perGame(v, p.games);
+  if (mode === "per40") return p.minutes > 0 ? per40(v, p.minutes) : NaN;
   return v;
 }
 
-/** 비율 지표는 경기당/합계 전환의 영향을 받지 않는다 */
+/** 비율 지표는 경기당/합계/40분당 전환의 영향을 받지 않는다 */
 export function isModeIndependent(key: LeaderStatKey): boolean {
   return LEADER_STATS[key].kind !== "count";
+}
+
+// ─────────────────────────────────────────────
+// 성공률 시도 기준 (야투·3점·자유투 = lib/metrics attemptThresholds + 슛 구역)
+// ─────────────────────────────────────────────
+
+export type ZoneStatKey = "rimPct" | "midPct" | "corner3Pct" | "arc3Pct";
+
+/** 순위표 시도 기준: 야투·3점·자유투(카드와 같은 값) + 슛 구역별 경기당 시도 리그 평균 */
+export interface LeaderThresholds extends AttemptThresholds {
+  zones?: Partial<Record<ShotZoneKey, number>>;
+}
+
+/**
+ * 슛 구역 시도 기준 = 표본 충족 + 슛 데이터 있는 선수의 그 구역 경기당 시도 평균 (attemptThresholds 와 같은 방식).
+ * 1개 던져 1개 넣은 100%가 1위가 되지 않게 — 우리 사이트 규칙.
+ */
+export function zoneThresholds(players: readonly LeaderPlayer[], rule: QualifyRule): Partial<Record<ShotZoneKey, number>> {
+  const q = players.filter((p) => isQualified(p, rule) && p.games > 0 && p.zones);
+  const out: Partial<Record<ShotZoneKey, number>> = {};
+  if (q.length === 0) return out;
+  for (const key of ["rim", "paint", "mid", "corner3", "arc3"] as const) {
+    out[key] = q.reduce((s, p) => s + p.zones![key].a / p.games, 0) / q.length;
+  }
+  return out;
 }
 
 /**
  * 이 지표의 순위에 들 수 있는가. 성공률(야투·3점·자유투)은 경기당 시도가 기준(t) 이상이어야 한다.
  * t 를 넘기지 않으면(undefined) 시도 기준 없이 모두 true.
  */
-export function isRankEligible(p: LeaderPlayer, key: LeaderStatKey, t?: AttemptThresholds): boolean {
-  if (!t || !isPctKey(key)) return true;
+export function isRankEligible(p: LeaderPlayer, key: LeaderStatKey, t?: LeaderThresholds): boolean {
+  if (!t) return true;
+  const def = LEADER_STATS[key];
+  if (def.kind === "zone") {
+    const min = t.zones?.[def.zone!];
+    const z = p.zones?.[def.zone!];
+    if (min === undefined) return true;
+    return !!z && p.games > 0 && z.a / p.games >= min;
+  }
+  if (!isPctKey(key)) return true;
   return meetsAttemptThreshold(p, key, t);
 }
 
@@ -248,6 +325,11 @@ export function topLeaders<T extends LeaderPlayer>(
 
 /** 성공률 열의 시즌 합계 성공/시도 (예: { made: 396, att: 794 }). 성공률이 아닌 지표는 null */
 export function madeAttempts(p: LeaderPlayer, key: LeaderStatKey): { made: number; att: number } | null {
+  const def = LEADER_STATS[key];
+  if (def.kind === "zone") {
+    const z = p.zones?.[def.zone!];
+    return z ? { made: z.m, att: z.a } : null;
+  }
   switch (key) {
     case "fgPct":
       return { made: p.fgm, att: p.fga };
@@ -262,6 +344,7 @@ export function madeAttempts(p: LeaderPlayer, key: LeaderStatKey): { made: numbe
 
 /** 성공률 지표의 시도 필드 이름 (예: "야투"). 성공률이 아니면 null */
 export function attemptName(key: LeaderStatKey): string | null {
+  if (LEADER_STATS[key].kind === "zone") return LEADER_STATS[key].label.replace(" 성공률", "");
   return isPctKey(key) ? PCT_ATTEMPTS[key].name : null;
 }
 
@@ -290,7 +373,8 @@ export function formatStat(value: number, key: LeaderStatKey, mode: StatMode): s
 export function statTitle(key: LeaderStatKey, mode: StatMode): string {
   const def = LEADER_STATS[key];
   if (def.kind !== "count") return def.label;
-  return `${mode === "perGame" ? "경기당" : "시즌 합계"} ${def.label}`;
+  if (mode === "per40" && key === "minutes") return `경기당 ${def.label}`;
+  return `${mode === "perGame" ? "경기당" : mode === "per40" ? "40분당" : "시즌 합계"} ${def.label}`;
 }
 
 // ─────────────────────────────────────────────
@@ -332,7 +416,7 @@ export function parseLeadersQuery(
   const q = Number(qs.get("q"));
   return {
     category: cat && LEADER_CATEGORIES.includes(cat) ? cat : d.category,
-    mode: qs.get("mode") === "total" ? "total" : d.mode,
+    mode: qs.get("mode") === "total" ? "total" : qs.get("mode") === "per40" ? "per40" : d.mode,
     origin: nationalityFromParam(qs.get("origin")),
     position: positionFromParam(qs.get("pos")),
     teamCode: team && ctx.teamCodes.includes(team) ? team : d.teamCode,
@@ -410,7 +494,7 @@ export function leaderFilterChips(
 ): FilterChipInfo<LeaderFilterField>[] {
   const d = DEFAULT_LEADERS_STATE;
   const out: FilterChipInfo<LeaderFilterField>[] = [];
-  if (s.mode !== d.mode) out.push({ field: "mode", label: s.mode === "total" ? "시즌 합계" : "경기당" });
+  if (s.mode !== d.mode) out.push({ field: "mode", label: s.mode === "total" ? "시즌 합계" : s.mode === "per40" ? "40분당" : "경기당" });
   if (s.position !== d.position) out.push({ field: "position", label: positionFilterLabelOf(s.position) });
   if (s.origin !== d.origin) out.push({ field: "origin", label: nationalityFilterLabelOf(s.origin) });
   if (s.teamCode !== null) out.push({ field: "teamCode", label: teamLabel(s.teamCode) });
@@ -426,4 +510,73 @@ export function clearLeaderFilter(s: LeadersState, field: LeaderFilterField): Le
 /** 필터 시트의 "초기화": 부문은 그대로 두고 나머지를 기본값으로 */
 export function resetLeaderFilters(s: LeadersState): LeadersState {
   return { ...DEFAULT_LEADERS_STATE, category: s.category };
+}
+
+// ─────────────────────────────────────────────
+// CSV 내려받기 (Basketball-Reference "Share & Export" 참고, 2026-10-01)
+// ─────────────────────────────────────────────
+
+const csvCell = (v: string | number) => {
+  const t = String(v);
+  return /[",\n]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t;
+};
+
+/**
+ * 지금 화면의 순위표(필터·정렬·단위 그대로) → CSV 문자열. 엑셀에서 한글이 깨지지 않게 앞에 BOM 을 붙인다.
+ * 열: 순위 · 선수 · 팀 · 포지션 · columns (표기는 화면과 같은 formatStat), 성공률은 성공/시도 열을 하나 더.
+ */
+export function leadersCsv(
+  rows: readonly LeaderPlayer[],
+  columns: readonly LeaderStatKey[],
+  mode: StatMode,
+  ranks: ReadonlyMap<string, number>,
+  teamName: (p: LeaderPlayer) => string,
+): string {
+  const head = ["순위", "선수", "팀", "포지션"];
+  for (const k of columns) {
+    head.push(statTitle(k, mode));
+    if (attemptName(k)) head.push(`${LEADER_STATS[k].short} 성공/시도`);
+  }
+  const lines = [head.map(csvCell).join(",")];
+  for (const p of rows) {
+    const cells: (string | number)[] = [ranks.get(p.id) ?? "", p.nameKo, teamName(p), p.position ?? ""];
+    for (const k of columns) {
+      const v = statValue(p, k, mode);
+      cells.push(Number.isFinite(v) ? formatStat(v, k, mode).replace(/,/g, "") : "");
+      if (attemptName(k)) {
+        const ma = madeAttempts(p, k);
+        cells.push(ma ? `${ma.made}/${ma.att}` : "");
+      }
+    }
+    lines.push(cells.map(csvCell).join(","));
+  }
+  return "\uFEFF" + lines.join("\r\n");
+}
+
+// ─────────────────────────────────────────────
+// 시즌 리그 1위 표시 (Basketball-Reference 기록표의 굵은 숫자, 2026-10-01)
+// ─────────────────────────────────────────────
+
+/** 굵게 표시할 부문: 많을수록 좋은 기록·성공률·지수 (턴오버·파울은 "적은 1위"라 헷갈려서, USG% 는 높을수록 잘함이 아니라서 뺀다) */
+export const LEADER_MARK_KEYS: readonly LeaderStatKey[] = [
+  "points", "reb", "ast", "stl", "blk", "tpm", "fgPct", "tpPct", "ftPct", "tsPct", "per",
+];
+
+/**
+ * 한 시즌 리그 1위 부문 (선수 id → 1위였던 부문). 순위표 기본값과 같은 규칙: 기본 표본 기준(DEFAULT_QUALIFY),
+ * 성공률은 시도 기준, 공동 1위 포함. 모드별로 다르다(합계 1위 ≠ 경기당 1위).
+ */
+export function seasonLeaderMarks(players: readonly LeaderPlayer[], mode: StatMode): Map<string, LeaderStatKey[]> {
+  const pool = players.filter((p) => isQualified(p, DEFAULT_QUALIFY));
+  const t = attemptThresholds(players, DEFAULT_QUALIFY);
+  const out = new Map<string, LeaderStatKey[]>();
+  for (const key of LEADER_MARK_KEYS) {
+    for (const [id, r] of rankMap(pool, key, mode, t)) {
+      if (r !== 1) continue;
+      const list = out.get(id) ?? [];
+      list.push(key);
+      out.set(id, list);
+    }
+  }
+  return out;
 }

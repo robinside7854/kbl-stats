@@ -29,6 +29,8 @@ import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
 import HighlightCards from "./HighlightCards";
 import ShotChart from "./ShotChart";
 import type { PlayerShotsFile } from "@/lib/shots";
+import type { SimilarEntry } from "@/lib/similar";
+import SimilarPlayers from "./SimilarPlayers";
 
 /** 시즌별 기록표 등 다른 컴포넌트가 카드 시즌을 바꿀 때 보내는 이벤트 이름 */
 export const PLAYER_SEASON_EVENT = "player-season";
@@ -50,9 +52,11 @@ interface Props {
   shotSeasons: number[];
   /** 서버가 넣은 최신 시즌 슛 파일 (없으면 null) */
   initialShots: PlayerShotsFile | null;
+  /** 시즌별 비슷한 시즌 5개 (빌드 때 lib/similar). 표본 미달 시즌은 키가 없다 */
+  similar?: Record<number, SimilarEntry[]>;
 }
 
-export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, groupLabel, aside, careerHighRows, shotSeasons, initialShots }: Props) {
+export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, groupLabel, aside, careerHighRows, shotSeasons, initialShots, similar }: Props) {
   const codes = useMemo(() => seasons.map((s) => s.seasonCode), [seasons]);
   const labelOf = (code: number) => seasonShortLabel(seasons.find((s) => s.seasonCode === code)?.seasonLabel ?? String(code));
   const [state, setState] = useState<PlayerViewState>({ season: initial.seasonCode, scope: "all" });
@@ -164,6 +168,12 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
           teamPrimary={view?.team?.color.primary ?? FALLBACK_TEAM_COLOR.primary}
         />
       </div>
+      {/* 비슷한 시즌: 카드와 같은 시즌을 따른다 */}
+      {similar && (
+        <div className="mt-8">
+          <SimilarPlayers items={similar[season]} seasonShort={labelOf(season)} />
+        </div>
+      )}
     </div>
   );
 }

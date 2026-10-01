@@ -108,7 +108,7 @@ assert.deepEqual(top.map((e) => [e.player.id, e.value, e.rank]), [["p3", 25, 1],
 assert.equal(topLeaders([], "points", "perGame").length, 0);
 
 // 부문: 3점 성공·USG%·PIE 없음, 턴오버·3점%·자유투% 있음
-assert.deepEqual([...LEADER_CATEGORIES], ["points", "reb", "ast", "stl", "blk", "tpm", "tov", "fgPct", "tpPct", "ftPct", "tsPct", "per"]);
+assert.deepEqual([...LEADER_CATEGORIES], ["points", "reb", "ast", "stl", "blk", "tpm", "tov", "fgPct", "tpPct", "ftPct", "tsPct", "per", "defl", "screen", "rimPct", "midPct", "corner3Pct", "arc3Pct"]); // 허슬·슛 구역 2026-10-01
 // 3점 성공(2026-10-01 홈 부문 추가): 경기당 성공 개수, 열은 3점% 바로 앞
 assert.equal(columnOrder("points").indexOf("tpm"), columnOrder("points").indexOf("tpPct") - 1);
 assert.deepEqual(columnOrder("tpm").slice(0, 3), ["tpm", "games", "minutes"]);

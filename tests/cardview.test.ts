@@ -24,6 +24,7 @@ import {
   rankShort,
   sortGridEntries,
 } from "../lib/cardview";
+import { LEADER_CATEGORIES } from "../lib/leaders";
 import { glossaryHref, GLOSSARY, GLOSSARY_ANCHORS, LEADER_COLUMN_GLOSSARY, RADAR_AXIS_GLOSSARY } from "../lib/glossary";
 import { TABLE_COLUMNS } from "../lib/leaders";
 import { RADAR_AXES } from "../lib/metrics";
@@ -202,7 +203,8 @@ assert.equal(nationalityFromParam("for"), "foreign");
 // ── 용어 탭 앵커 ──
 assert.equal(glossaryHref("tsPct"), "/glossary#ts");
 assert.equal(new Set(Object.values(GLOSSARY_ANCHORS)).size, GLOSSARY.length); // 앵커 중복 없음
-for (const k of Object.keys(LEADER_COLUMN_GLOSSARY)) assert.ok((TABLE_COLUMNS as readonly string[]).includes(k), k);
+// 용어가 달린 열은 표 기본 열이거나 부문 칩(허슬·슛 구역 — 고르면 맨 앞 열로 붙는다)
+for (const k of Object.keys(LEADER_COLUMN_GLOSSARY)) assert.ok([...TABLE_COLUMNS, ...LEADER_CATEGORIES].includes(k as never), k);
 for (const a of RADAR_AXES) assert.ok(RADAR_AXIS_GLOSSARY[a], a); // 모든 레이더 축에 풀이
 assert.equal(glossaryHref("radarAxes"), "/glossary#radar");
 assert.equal(LEADER_COLUMN_GLOSSARY.usgPct, "usgPct"); // USG% 열 ⓘ

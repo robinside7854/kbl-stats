@@ -28,7 +28,10 @@ export type GlossaryKey =
   | "playerTypes"
   | "badges"
   | "shotZones"
-  | "offenseTypes";
+  | "offenseTypes"
+  | "similar"
+  | "hustle"
+  | "records";
 
 export interface GlossaryEntry {
   key: GlossaryKey;
@@ -225,6 +228,31 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     brief: "슛 50개 이상 · 골밑+페인트 ≥ 55% 골밑형 · 3점 ≥ 50% 슈터형(3점 중 코너 ≥ 30% 면 코너 슈터형) · 미드 ≥ 30% 미드레인지형",
     note: "우리 사이트 규칙입니다(lib/shots.ts offenseType, 문턱은 lib/glossary.ts OFFENSE_TYPES). 성공률이 아니라 시도 비중만 봅니다 — 잘 넣는지는 구역표의 성공률·리그 평균으로 봅니다. 슛이 50개 미만이면 붙이지 않습니다. 아래 '주 공격 유형' 표에 전체 목록이 있습니다.",
   },
+  {
+    key: "similar",
+    name: "비슷한 시즌",
+    short: "레이더 6축 모양이 가장 가까운 다른 선수의 시즌. 시대가 달라도 그 시즌에서 맡은 역할이 비슷한 선수가 나온다",
+    formula: "유사도 = 100 × (1 − 6축 백분위 거리 ÷ (100 × √6)) · 같은 국적 풀(국내 / 외국인)·같은 포지션 묶음(가드·포워드·센터)끼리만 · 한 선수는 가장 비슷한 시즌 하나만",
+    source: "https://www.basketball-reference.com/about/similar.html",
+    brief: "6축 백분위 거리로 계산 · 같은 국적 풀·같은 포지션끼리 · 100 에 가까울수록 비슷",
+    note: "우리 사이트 규칙입니다(lib/similar.ts). Basketball-Reference 의 Similarity Scores 개념을 따왔지만 계산식은 다릅니다. 축 값이 각 시즌 안 백분위라, 실제 기록 크기가 아니라 '그 시즌 리그에서의 위치'가 비슷한 선수를 찾습니다. 표본 기준(10경기·100분)을 넘긴 시즌만 비교합니다.",
+  },
+  {
+    key: "hustle",
+    name: "디플렉션 · 스크린 어시스트",
+    short: "디플렉션은 상대 패스·드리블을 손으로 쳐 낸 횟수, 스크린 어시스트는 내 스크린 직후 동료가 득점한 횟수",
+    formula: "KBL 기록값 그대로 (경기당 = 시즌 합계 ÷ 경기 수)",
+    source: null,
+    note: "KBL 이 2025-26 시즌부터 기록합니다. 그 이전 시즌 순위표에는 이 부문이 나오지 않습니다.",
+  },
+  {
+    key: "records",
+    name: "역대 통산 순위",
+    short: "1997 시즌부터 지금까지 정규시즌 기록을 선수별로 모두 더한 순위",
+    formula: "통산 합계 = 시즌 합계의 합 · 통산 경기당 = 통산 합계 ÷ 통산 경기 (경기당 순위는 통산 200경기 이상만)",
+    source: null,
+    note: "우리 계산입니다(lib/records.ts). KBL 공식 홈페이지 시즌 기록을 더한 값이라 KBL 이 발표하는 통산 기록과 다를 수 있습니다(예: 기록 정정). 정규시즌만 셉니다.",
+  },
 ];
 
 const BY_KEY = new Map(GLOSSARY.map((e) => [e.key, e]));
@@ -260,6 +288,9 @@ export const GLOSSARY_ANCHORS: Record<GlossaryKey, string> = {
   badges: "badges",
   shotZones: "shot-zones",
   offenseTypes: "offense-types",
+  similar: "similar",
+  hustle: "hustle",
+  records: "records",
 };
 
 /** 도움말 팝오버 한 개의 내용 (app/components/HelpPopover — 그 자리에서 뜨는 ⓘ 설명) */
@@ -304,6 +335,12 @@ export const LEADER_COLUMN_GLOSSARY: Readonly<Record<string, GlossaryKey>> = {
   fgPct: "attempts",
   tpPct: "attempts",
   ftPct: "attempts",
+  defl: "hustle",
+  screen: "hustle",
+  rimPct: "shotZones",
+  midPct: "shotZones",
+  corner3Pct: "shotZones",
+  arc3Pct: "shotZones",
 };
 
 /** 레이더 축(lib/metrics RadarAxis) → 용어. 6축 모두 "레이더 6축" 한 항목에서 구성 요소를 풀이한다 */
