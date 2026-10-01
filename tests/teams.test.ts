@@ -162,3 +162,24 @@ for (const theme of gradeThemes)
       }
 
 console.log("teams.test.ts: 모든 테스트 통과");
+
+// ── 오늘 생일 (lib/home birthdaysOn·kstDateString) ──
+{
+  const { birthdaysOn, kstDateString } = await import("../lib/home");
+  // 한국 시간: UTC 2026-09-30 15:30 = KST 10-01 00:30
+  assert.equal(kstDateString(new Date("2026-09-30T15:30:00Z")), "2026-10-01");
+  assert.equal(kstDateString(new Date("2026-09-30T14:59:00Z")), "2026-09-30");
+  const ps = [
+    { id: "1", nameKo: "나", birthday: "1994-10-01" },
+    { id: "2", nameKo: "가", birthday: "1990-10-01" },
+    { id: "3", nameKo: "다", birthday: "1994-10-02" },
+    { id: "4", nameKo: "라", birthday: null },
+    { id: "5", nameKo: "마", birthday: "1996-02-29" },
+    { id: "1", nameKo: "나", birthday: "1994-10-01" }, // 같은 선수 두 번(이적) → 한 번
+  ];
+  assert.deepEqual(birthdaysOn(ps, "2026-10-01").map((b) => [b.player.id, b.age]), [["2", 36], ["1", 32]]);
+  assert.deepEqual(birthdaysOn(ps, "2026-02-28").map((b) => b.player.id), ["5"]); // 윤년 아님 → 2월 28일
+  assert.deepEqual(birthdaysOn(ps, "2028-02-28").map((b) => b.player.id), []);
+  assert.deepEqual(birthdaysOn(ps, "2028-02-29").map((b) => [b.player.id, b.age]), [["5", 32]]);
+  assert.deepEqual(birthdaysOn(ps, "엉터리"), []);
+}

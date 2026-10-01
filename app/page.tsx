@@ -2,7 +2,9 @@
 // 개막 전(코드표 최신 시즌이 선수 0명)이면 직전 시즌으로 만들고 안내를 붙인다 — 시즌 코드는 코드표에서 비교(lib/home pickHomeSeason).
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { listAllSeasons, listSeasonsWithPlayers, loadSeasonData, toCardTeams, toLeaderPlayers } from "@/lib/data";
+import { findPlayerIndexEntry, listAllSeasons, listSeasonsWithPlayers, loadSeasonData, toCardTeams, toLeaderPlayers } from "@/lib/data";
+import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
+import type { BirthdayPlayer } from "./components/BirthdayStrip";
 import { filterLeaders, topLeaders } from "@/lib/leaders";
 import { DEFAULT_QUALIFY, qualifyLabel } from "@/lib/metrics";
 import { HOME_CATEGORIES, pickHomeSeason, splitRecentSeasons } from "@/lib/home";
@@ -26,6 +28,15 @@ export default function HomePage() {
   const categories = HOME_CATEGORIES.map((key) => ({ key, entries: topLeaders(qualified, key, "perGame", 3) }));
   const { recent, older } = splitRecentSeasons(withPlayers, 6);
 
+  // 오늘 생일 후보: 홈 시즌 명단(= 현역) 중 생년월일이 있는 선수. "오늘" 판정은 브라우저(BirthdayStrip)가 한다
+  const teams = toCardTeams(season);
+  const birthdays: BirthdayPlayer[] = toLeaderPlayers(season).flatMap((p) => {
+    const birthday = findPlayerIndexEntry(p.id)?.birthday ?? null;
+    if (!birthday) return [];
+    const team = teams.find((t) => t.teamCode === p.teamCode);
+    return [{ id: p.id, nameKo: p.nameKo, birthday, photoUrl: p.photoUrl, teamName: team?.shortName ?? p.teamShort, color: team?.color ?? FALLBACK_TEAM_COLOR }];
+  });
+
   return (
     <>
       <SiteNav seasons={withPlayers} seasonCode={shown.seasonCode} view="home" wide />
@@ -34,7 +45,8 @@ export default function HomePage() {
         fetchedLabel={formatFetchedAt(season.fetchedAt)}
         upcoming={upcoming}
         categories={categories}
-        teams={toCardTeams(season)}
+        teams={teams}
+        birthdays={birthdays}
         qualifyText={qualifyLabel(DEFAULT_QUALIFY)}
         recentSeasons={recent}
         olderSeasons={older}

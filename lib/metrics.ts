@@ -200,7 +200,8 @@ export function seasonCoverage(players: readonly CoverageInput[], threshold = 0.
 //   3) 축 백분위(레이더 값·축 등급) = 축 원점수를 같은 집단 표본 충족 선수들의 축 원점수에 대어 다시 percentileRank.
 //      왜 한 번 더: 백분위 여러 개를 평균하면 값이 50 근처로 모여(상위 10%라도 평균은 70대) S~F 경계(90/75/…)가
 //      "집단 안 위치"라는 뜻을 잃는다. 다시 순위를 매기면 S = 그 집단 상위 10% 가 그대로 지켜진다.
-//   4) 종합 = 6축 백분위의 **포지션별 가중** 평균(axisWeights)에 종합 전용 컷을 직접 댄다(overallScore).
+//   4) 종합 = 6축 백분위의 **포지션별 가중** 평균(axisWeights, overallScore)을 같은 집단 안에서 **다시 백분위**로 바꾸고(overallPercentile)
+//      종합 컷(OVERALL_GRADE_CUTS — S 상위 5%)을 댄다. 2026-10-01 사용자 결정: "매 시즌 S 는 몇 명만".
 // 축 구성(2026-10-01 사용자 정의):
 //   공격   — 순수 득점: 경기당 득점·야투 성공·야투 시도·자유투 시도 + USG%(있는 시즌만). 어시스트는 리딩으로 옮김
 //   수비   — 경기당 스틸·블록·굿디펜스(2000-01~)·디플렉션(2025-26~). 파울은 뺌(수비 적극성의 대가라 감점이 애매)
@@ -425,6 +426,8 @@ export interface GradeGroupRef {
   comp: Partial<Record<RadarComponentKey, number[]>>;
   /** 축별 원점수 배열 (표본 충족 선수, null 제외) */
   axisRaw: Record<RadarAxis, number[]>;
+  /** 종합 점수(6축 가중 평균, 각자 포지션 가중치) 배열 — 종합 백분위의 비교 대상 (표본 충족 선수, null 제외) */
+  overallRaw: number[];
 }
 
 /** 한 시즌·한 표본 기준의 등급 재료 (리그 전체 선수로 만든다 — 카드 순위 범위와 관계없다) */
@@ -453,10 +456,12 @@ export interface RadarScore {
   /** 축별 구성 요소 (활성 요소만, 순서 = RADAR_AXIS_COMPONENTS) */
   components: Record<RadarAxis, RadarComponentScore[]>;
   /**
-   * 종합 점수 (종합 등급) = 6축 백분위(axes)의 포지션별 가중 평균 — 다시 순위 매기지 않는다 (overallScore, axisWeights).
-   * 0~100 척도라 종합 전용 컷(OVERALL_GRADE_CUTS)을 그대로 대면 S 는 "6축 가중 평균 85 이상" = 여러 축이 동시에 높은 선수만 받는다.
+   * 종합 백분위 (종합 등급) = 종합 점수(overallAvg)를 같은 집단 표본 충족 선수들의 종합 점수에 대어 다시 매긴 백분위.
+   * 99 면 "그 풀 상위 1%". 종합 등급은 이 값에 OVERALL_GRADE_CUTS(S 95 = 상위 5%)를 댄다.
    */
   overall: number | null;
+  /** 종합 점수 = 6축 백분위(axes)의 포지션별 가중 평균 (overallScore, axisWeights) — 재순위 전 값 */
+  overallAvg: number | null;
 }
 
 const mean = (xs: readonly number[]) => (xs.length ? xs.reduce((s, v) => s + v, 0) / xs.length : null);
@@ -498,10 +503,10 @@ function axisPercentiles(raw: Record<RadarAxis, number | null>, g: Pick<GradeGro
 
 /**
  * 종합 점수 = 6축 백분위의 가중 평균 (null 축은 빼고, 전부 null 이면 null). weights 를 안 주면 6축 같은 비중.
- * 종합 등급 = 이 값에 종합 전용 컷(OVERALL_GRADE_CUTS 85/70/55/40/25)을 **직접** 댄다 — 집단 안에서 다시 순위 매기지 않는다.
- * (2026-09-30 피드백 3차: 다시 순위를 매기면 "평균이 집단 상위 10%"만 되면 S 라, 한 축만 뛰어나도 S 가 나왔다 —
- *  예: 강성욱 2025-26 축 S·A·D·A·A → 재순위 종합 S. 평균에 컷을 직접 대면 S 는 축 평균이 컷 이상 = 여러 축이 동시에 높아야 한다.
- *  처음엔 축 컷 90 을 그대로 댔더니 2025-26 종합 S 가 0명이라 종합 전용 컷 85/70/55/40/25 로 내렸다.)
+ * 종합 등급은 이 값을 집단 안에서 **다시 백분위**로 바꿔(overallPercentile) 종합 컷(OVERALL_GRADE_CUTS)을 댄다.
+ * 변천: 2026-09-30 피드백 3차에 "평균에 컷 직접(85/70/…)"으로 바꿨으나(재순위 + 축 컷 90 이면 S 가 상위 10% 로 많고
+ * 한 축만 뛰어난 선수도 S 였다), 2026-10-01 사용자가 "종합도 백분위로, 매 시즌 S 는 몇 명만"을 원해 재순위 + S 상위 5% 로 돌아왔다.
+ * 평균 자체가 여러 축이 함께 높아야 올라가므로 상위 5% 는 여전히 다재다능한 선수 쪽이다.
  * 축 등급은 그대로 "구성 요소 백분위 평균 → 집단 안 재순위" (백분위 몇 개의 평균은 50 근처로 모이기 때문).
  * 가중치(axisWeights): 포지션별 역할 묶음(가드·포워드·빅맨)에 맞춰 축 비중을 바꾼다 (아래 ROLE_AXIS_WEIGHTS).
  */
@@ -606,7 +611,12 @@ export function buildGradingContext(
     const raws = members.map((p) => axisRawScores(p, { comp }, { active, thresholds }).raw);
     const axisRaw = emptyAxes<number[]>(() => []);
     for (const r of raws) for (const a of RADAR_AXES) if (r[a] !== null) axisRaw[a].push(r[a]!);
-    groups[key] = { key, count: members.length, comp, axisRaw };
+    const overallRaw: number[] = [];
+    members.forEach((p, i) => {
+      const v = overallScore(axisPercentiles(raws[i], { axisRaw }), axisWeights(p.position));
+      if (v !== null) overallRaw.push(v);
+    });
+    groups[key] = { key, count: members.length, comp, axisRaw, overallRaw };
   }
   return { rule, active, thresholds, mergeAsia, advanced: coverage.advanced, groups };
 }
@@ -614,11 +624,17 @@ export function buildGradingContext(
 /** 한 선수의 레이더·종합 점수 (그 선수 국적 집단 기준). 표본 미달 선수도 집단에 대어 계산한다 */
 export function radarScore(p: GradeInput, ctx: GradingContext): RadarScore {
   const g = ctx.groups[gradeGroupOf(p, ctx.mergeAsia)];
-  const empty: GradeGroupRef = { key: "domestic", count: 0, comp: {}, axisRaw: emptyAxes<number[]>(() => []) };
+  const empty: GradeGroupRef = { key: "domestic", count: 0, comp: {}, axisRaw: emptyAxes<number[]>(() => []), overallRaw: [] };
   const ref = g ?? empty;
   const { raw, components } = axisRawScores(p, ref, ctx);
   const axes = axisPercentiles(raw, ref);
-  return { axes, raw, components, overall: overallScore(axes, axisWeights(p.position)) };
+  const overallAvg = overallScore(axes, axisWeights(p.position));
+  return { axes, raw, components, overallAvg, overall: overallPercentile(overallAvg, ref.overallRaw) };
+}
+
+/** 종합 점수 → 같은 집단 안 백분위 (비교 대상이 없으면 null) */
+export function overallPercentile(avg: number | null, groupOverall: readonly number[]): number | null {
+  return avg === null || groupOverall.length === 0 ? null : percentileRank(avg, groupOverall);
 }
 
 /** 시즌에 기록이 없어 빠진 구성 요소 이름 (카드 아래 안내, 예: ["USG%", "경기당 디플렉션"]) */
@@ -905,16 +921,16 @@ export const GRADE_CUTS: readonly (readonly [Grade, number])[] = [
 ];
 
 /**
- * 종합 등급 전용 컷 (6축 백분위 가중 평균 = overallScore 에 직접 댄다). 축 등급 컷(GRADE_CUTS)보다 한 단계 낮다.
- * 이유(2026-09-30 피드백): 5축 평균은 여러 축이 동시에 높아야 올라가서, 축 컷 90 을 그대로 대면 2025-26 종합 S 가 0명이었다
- * (5축 평균 최고 이정현 86.7). 85 로 낮춰도 S 는 "다섯 축 평균 85 이상" = 여러 축이 모두 상위권인 선수뿐이다.
+ * 종합 등급 컷 (종합 백분위 = 그 풀 안 순위에 댄다, 2026-10-01).
+ * S 상위 5% · A 다음 15%(상위 20%) · B 다음 25%(상위 45%) · C 다음 25% · D 다음 20% · F 하위 10%.
+ * 축 등급(상위 10% S)보다 S 를 좁혀 "매 시즌 S 는 몇 명" — 2025-26 국내 표본 충족 약 110명이면 S 5~6명, 외국인 풀 약 30명이면 1~2명.
  */
 export const OVERALL_GRADE_CUTS: readonly (readonly [Grade, number])[] = [
-  ["S", 85],
-  ["A", 70],
+  ["S", 95],
+  ["A", 80],
   ["B", 55],
-  ["C", 40],
-  ["D", 25],
+  ["C", 30],
+  ["D", 10],
   ["F", -Infinity],
 ];
 
@@ -929,7 +945,7 @@ export function percentileGrade(pct: number | null | undefined): Grade | "-" {
   return gradeByCuts(pct, GRADE_CUTS);
 }
 
-/** 종합 점수(6축 가중 평균) → 종합 등급 (OVERALL_GRADE_CUTS) */
+/** 종합 백분위 → 종합 등급 (OVERALL_GRADE_CUTS) */
 export function overallGrade(score: number | null | undefined): Grade | "-" {
   return gradeByCuts(score, OVERALL_GRADE_CUTS);
 }
@@ -1005,9 +1021,9 @@ export interface CardEntryOf<T> {
   pct: Record<RadarAxis, number | null>;
   /** 축별 등급 (percentileGrade) */
   grades: Record<RadarAxis, Grade | "-">;
-  /** 종합 등급 (6축 백분위의 포지션별 가중 평균 → overallGrade = OVERALL_GRADE_CUTS 85/70/55/40/25, 재순위 없음) */
+  /** 종합 등급 (6축 백분위의 포지션별 가중 평균 → 풀 안 백분위 → overallGrade = OVERALL_GRADE_CUTS, S 상위 5%) */
   overall: Grade | "-";
-  /** 종합 점수 = 6축 백분위 가중 평균 (0~100, 포지션별 가중치 axisWeights) */
+  /** 종합 백분위 (0~100, 풀 안 순위 — 99 면 상위 1%) */
   overallPct: number | null;
   /** 축별 구성 요소 값·백분위 (툴팁·표 보기) */
   radar: RadarScore;
@@ -1099,4 +1115,10 @@ export function careerSummary(seasons: readonly CareerSummaryInput[]): CareerSum
     fgPct: madePct(sum("fgm"), sum("fga")),
     tpPct: madePct(sum("tpm"), sum("tpa")),
   };
+}
+
+/** 백분위 → "상위 N%" (N = 100 − 백분위, 올림·최소 1). 카드 종합 등급 툴팁·읽기 라벨. null → null */
+export function topShareLabel(pct: number | null | undefined): string | null {
+  if (pct === null || pct === undefined || !Number.isFinite(pct)) return null;
+  return `상위 ${Math.max(1, Math.ceil(100 - pct))}%`;
 }

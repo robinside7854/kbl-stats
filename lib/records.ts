@@ -45,6 +45,8 @@ export interface CareerTotal {
   seasons: number;
   firstLabel: string;
   lastLabel: string;
+  /** 마지막으로 뛴 시즌 코드 — 현역 판정(isActiveCareer)에 쓴다 */
+  lastSeasonCode: number;
   /** 마지막 시즌 팀 한글 약칭·색 */
   lastTeam: string;
   lastTeamColor: string;
@@ -59,7 +61,7 @@ export interface CareerTotal {
 }
 
 /** 시즌 합계 행들을 선수별로 더한다 (같은 선수의 여러 시즌 → 하나). 순서 무관 */
-export function sumCareerTotals<T extends Omit<CareerTotal, "seasons" | "firstLabel" | "lastLabel" | "lastTeam" | "lastTeamColor"> & { seasonCode: number; seasonLabel: string; teamShort: string; teamColor: string }>(
+export function sumCareerTotals<T extends Omit<CareerTotal, "seasons" | "firstLabel" | "lastLabel" | "lastSeasonCode" | "lastTeam" | "lastTeamColor"> & { seasonCode: number; seasonLabel: string; teamShort: string; teamColor: string }>(
   rows: readonly T[],
 ): CareerTotal[] {
   const by = new Map<string, CareerTotal & { firstCode: number; lastCode: number }>();
@@ -69,7 +71,7 @@ export function sumCareerTotals<T extends Omit<CareerTotal, "seasons" | "firstLa
     if (!cur) {
       by.set(r.id, {
         id: r.id, nameKo: r.nameKo, photoUrl: r.photoUrl, origin: r.origin,
-        seasons: 1, firstLabel: r.seasonLabel, lastLabel: r.seasonLabel, lastTeam: r.teamShort, lastTeamColor: r.teamColor,
+        seasons: 1, firstLabel: r.seasonLabel, lastLabel: r.seasonLabel, lastSeasonCode: r.seasonCode, lastTeam: r.teamShort, lastTeamColor: r.teamColor,
         firstCode: r.seasonCode, lastCode: r.seasonCode,
         games: r.games, minutes: r.minutes, points: r.points, reb: r.reb, ast: r.ast, stl: r.stl, blk: r.blk, tpm: r.tpm,
       });
@@ -84,6 +86,7 @@ export function sumCareerTotals<T extends Omit<CareerTotal, "seasons" | "firstLa
     if (r.seasonCode > cur.lastCode) {
       cur.lastCode = r.seasonCode;
       cur.lastLabel = r.seasonLabel;
+      cur.lastSeasonCode = r.seasonCode;
       cur.lastTeam = r.teamShort;
       cur.lastTeamColor = r.teamColor;
       cur.nameKo = r.nameKo;
@@ -91,6 +94,14 @@ export function sumCareerTotals<T extends Omit<CareerTotal, "seasons" | "firstLa
     }
   }
   return [...by.values()].map(({ firstCode: _f, lastCode: _l, ...t }) => t);
+}
+
+/**
+ * 현역 판정: 기록이 있는 가장 최근 시즌(latestSeasonCode — 코드표에서 선수 있는 최신 시즌)에 뛰었으면 현역.
+ * 개막 전에는 직전 시즌 선수가 현역이다(은퇴 발표는 KBL 기록에 없어 다음 시즌 첫 경기 전까지는 구분하지 못한다).
+ */
+export function isActiveCareer(t: Pick<CareerTotal, "lastSeasonCode">, latestSeasonCode: number): boolean {
+  return t.lastSeasonCode === latestSeasonCode;
 }
 
 /** 화면 값: 합계 그대로, 경기당은 통산 합계 ÷ 통산 경기 (경기 수 부문은 항상 합계) */

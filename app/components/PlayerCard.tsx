@@ -21,6 +21,7 @@ import {
   RADAR_AXIS_LABELS,
   RADAR_COMPONENTS,
   rankTier,
+  topShareLabel as topShare,
   type CardEntryOf,
   type CardStatEntry,
   type Grade,
@@ -341,7 +342,8 @@ function OverallBadge({
         color: tone.ink,
         boxShadow: "0 0 0 2px rgba(255,255,255,0.85)",
       }}
-      aria-label={`종합 등급 ${entry.overall}`}
+      aria-label={`종합 등급 ${entry.overall}${topShare(entry.overallPct) ? `, ${entry.gradeGroup.label} ${topShare(entry.overallPct)}` : ""}`}
+      title={topShare(entry.overallPct) ? `${entry.gradeGroup.label} ${topShare(entry.overallPct)}` : undefined}
     >
       <span className="font-bold leading-none" style={{ fontSize: Math.round(d.statLabel * 0.8), opacity: 0.85 }}>
         종합
@@ -624,7 +626,7 @@ export default function PlayerCard({ view, colors, size = "sm", seriesColor, exp
         등급 기준: {gradeLabel}
         {!exportMode && <HelpPopover term="percentileGrade" ariaLabel="등급 컷과 계산 방법" className="font-normal" />}
         {exportMode && (
-          <span className="font-normal text-ink-3">축 S 상위 10% · A 25% · B 45% · C 65% · D 85% · 종합 = 6축 포지션별 가중 평균 S 85 · A 70 · B 55 · C 40 · D 25</span>
+          <span className="font-normal text-ink-3">축 S 상위 10% · A 25% · B 45% · C 65% · D 85% · 종합 = 6축 포지션별 가중 평균의 순위 S 상위 5% · A 20% · B 45% · C 70% · D 90%</span>
         )}
       </p>
       <CardRadar entry={entry} color={color} colors={colors} d={d} seriesColor={seriesColor} fixedWidth={exportMode ? CARD_LG_WIDTH - 2 * d.pad : undefined} />

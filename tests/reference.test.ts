@@ -19,7 +19,7 @@ import {
 } from "../lib/leaders";
 import { attemptThresholds, DEFAULT_QUALIFY } from "../lib/metrics";
 import { findSimilar, similarityScore, toAxisVector, type SimilarVector } from "../lib/similar";
-import { formatRecord, rankCareerTotals, recordValue, RECORDS_MIN_GAMES, sumCareerTotals, type CareerTotal } from "../lib/records";
+import { formatRecord, isActiveCareer, rankCareerTotals, recordValue, RECORDS_MIN_GAMES, sumCareerTotals, type CareerTotal } from "../lib/records";
 import { emptyZoneCounts } from "../lib/shots";
 import type { LeaderPlayer } from "../lib/types";
 
@@ -121,6 +121,10 @@ assert.equal(a.seasons, 2);
 assert.equal(a.firstLabel, "2001");
 assert.equal(a.lastLabel, "2003");
 assert.equal(a.lastTeam, "T3");
+// 현역 = 가장 최근 시즌(여기선 3)에 뛴 선수
+assert.equal(a.lastSeasonCode, 3);
+assert.equal(isActiveCareer(a, 3), true);
+assert.equal(isActiveCareer(totals.find((x) => x.id === "b")!, 3), false);
 close(recordValue(a, "points", "perGame"), 16);
 // 합계: a·c 동점(4000) → 같은 순위, 경기 많은 a(250) 먼저
 assert.deepEqual(rankCareerTotals(totals, "points", "total", "all").map((r) => [r.total.id, r.rank]), [["a", 1], ["c", 1], ["b", 3]]);

@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   formatRecord,
+  isActiveCareer,
   rankCareerTotals,
   RECORD_STATS,
   RECORDS_MIN_GAMES,
@@ -31,7 +32,7 @@ const ORIGIN_OPTIONS: { value: RecordOrigin; label: string }[] = [
   { value: "foreign", label: "외국인" },
 ];
 
-export default function RecordsView({ totals, spanLabel }: { totals: CareerTotal[]; spanLabel: string }) {
+export default function RecordsView({ totals, spanLabel, latestSeasonCode }: { totals: CareerTotal[]; spanLabel: string; latestSeasonCode: number }) {
   const [cat, setCat] = useState<RecordStatKey>("points");
   const [mode, setMode] = useState<RecordMode>("total");
   const [origin, setOrigin] = useState<RecordOrigin>("all");
@@ -102,7 +103,12 @@ export default function RecordsView({ totals, spanLabel }: { totals: CareerTotal
                       size={r.rank <= 3 ? 40 : 32}
                     />
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-body font-semibold leading-tight text-ink">{t.nameKo}</span>
+                      <span className="flex min-w-0 items-center gap-1.5">
+                        <span className="truncate text-body font-semibold leading-tight text-ink">{t.nameKo}</span>
+                        {isActiveCareer(t, latestSeasonCode) && (
+                          <span className="shrink-0 rounded-control border border-series-1 px-1.5 py-0.5 text-caption font-bold leading-none text-series-1">현역</span>
+                        )}
+                      </span>
                       <span className="block truncate text-sub text-ink-3">
                         {span} · {t.seasons}시즌 · {t.games.toLocaleString("ko-KR")}경기 · {teamShortLabel(t.lastTeam)}
                       </span>

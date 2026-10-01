@@ -124,3 +124,31 @@ export function IconInfo(p: IconProps) {
     </Svg>
   );
 }
+
+/** 생일 케이크 (홈 "오늘 생일") */
+export function IconCake(p: IconProps) {
+  return (
+    <Svg {...p}>
+      <path d="M12 3.5c.9 1 .9 2 0 2.7-.9-.7-.9-1.7 0-2.7Z" />
+      <path d="M12 6.2V9" />
+      <rect x="4" y="9" width="16" height="5" rx="1.5" />
+      <path d="M4 14v5.5h16V14" />
+      <path d="M4 16.5c1.3 0 1.3-1 2.7-1s1.3 1 2.6 1 1.4-1 2.7-1 1.3 1 2.7 1 1.3-1 2.6-1 1.4 1 2.7 1" />
+    </Svg>
+  );
+}
+
+/**
+ * 생일 고깔모자 (아바타 위에 비스듬히 얹는 장식, 홈 "오늘 생일"). 아이콘 크기 규칙 밖의 장식이라 width 만 받는다.
+ * 색: 몸통 = 팀 색(color), 줄무늬·방울 = 흰색 — 팀 색이 어두워도 밝아도 보이게 가는 외곽선(ink)을 두른다.
+ */
+export function PartyHat({ width, color, ink }: { width: number; color: string; ink: string }) {
+  return (
+    <svg aria-hidden width={width} height={width * 1.25} viewBox="0 0 32 40">
+      <path d="M16 6 29 37H3Z" fill={color} stroke={ink} strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M11.5 17 21 14.5M8.6 24.5 23.6 20.6M5.8 31.6 26.3 26.4" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round" />
+      {/* deslop-ignore-next-line 24 — 사용자가 요청한 생일 고깔모자 장식 */}
+      <circle cx="16" cy="5" r="3.6" fill="#ffffff" stroke={ink} strokeWidth="1.5" />
+    </svg>
+  );
+}

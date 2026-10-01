@@ -12,6 +12,7 @@ import { nationalityOf, NATIONALITY_LABELS, positionLabel } from "@/lib/roster";
 import { IconArrowRight, IconChevronDown, IconChevronRight } from "./icons";
 import PlayerAvatar from "./PlayerAvatar";
 import TeamLogo from "./TeamLogo";
+import BirthdayStrip, { type BirthdayPlayer } from "./BirthdayStrip";
 
 const GRAY: TeamColor = FALLBACK_TEAM_COLOR;
 
@@ -30,12 +31,14 @@ interface Props {
   qualifyText: string;
   recentSeasons: SeasonOption[];
   olderSeasons: SeasonOption[];
+  /** 오늘 생일 후보 (현역 = 이 시즌 명단, 생년월일 있는 선수) */
+  birthdays: BirthdayPlayer[];
 }
 
 /** 순위표 부문 링크 (득점은 기본 부문이라 쿼리 없음 — lib/leaders DEFAULT_CATEGORY) */
 const leadersHref = (code: number, key: LeaderStatKey) => `/season/${code}/leaders${key === "points" ? "" : `?cat=${key}`}`;
 
-export default function HomeView({ season, fetchedLabel, upcoming, categories, teams, qualifyText, recentSeasons, olderSeasons }: Props) {
+export default function HomeView({ season, fetchedLabel, upcoming, categories, teams, qualifyText, recentSeasons, olderSeasons, birthdays }: Props) {
   const teamByCode = new Map(teams.map((t) => [t.teamCode, t]));
   const code = season.seasonCode;
   const short = seasonShortLabel(season.seasonLabel);
@@ -69,6 +72,8 @@ export default function HomeView({ season, fetchedLabel, upcoming, categories, t
       </div>
 
       {scoring && <Hero entry={scoring} team={teamByCode.get(scoring.player.teamCode)} seasonCode={code} />}
+
+      <BirthdayStrip players={birthdays} seasonCode={code} />
 
       {/* 부문별 1~3위 */}
       <section aria-labelledby="leaders-title" className="mx-auto mt-8 max-w-5xl px-4">

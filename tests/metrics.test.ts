@@ -19,6 +19,8 @@ import {
   MIN_GRADE_GROUP,
   missingComponentLabels,
   overallScore,
+  overallPercentile,
+  topShareLabel,
   overallWeightNote,
   axisWeights,
   ROLE_AXIS_WEIGHTS,
@@ -238,10 +240,11 @@ assert.equal(overallWeightNote("FC"), "빅맨이라 리바운드 ×1.5 · 슈팅
 assert.equal(overallWeightNote("G"), "가드라 리바운드 ×0.5 · 리딩 ×1.5");
 assert.equal(overallWeightNote("F"), null);
 assert.equal(overallWeightNote(null), null);
-// 종합 점수 = 5축 백분위(axes) 평균 그대로 — 집단 안에서 다시 순위 매기지 않는다 (2026-09-30 피드백 3차)
+// 종합 점수(overallAvg) = 6축 백분위 가중 평균, 종합(overall) = 그 값의 집단 안 백분위 (2026-10-01)
 for (const p of pool) {
   const r = radarScore(p, g);
-  assert.equal(r.overall, overallScore(r.axes, axisWeights(p.position)));
+  assert.equal(r.overallAvg, overallScore(r.axes, axisWeights(p.position)));
+  assert.equal(r.overall, overallPercentile(r.overallAvg, g.groups.domestic!.overallRaw));
 }
 // 같은 기록이라도 포지션에 따라 종합 가중치가 다르다 (레이더 축 값은 같다)
 {
@@ -249,21 +252,26 @@ for (const p of pool) {
   const asC = radarScore({ ...base, position: "C" }, g);
   const asG = radarScore({ ...base, position: "G" }, g);
   assert.deepEqual(asC.axes, asG.axes);
-  assert.equal(asC.overall, overallScore(asG.axes, axisWeights("C")));
-  assert.equal(asG.overall, overallScore(asG.axes, axisWeights("G")));
+  assert.equal(asC.overallAvg, overallScore(asG.axes, axisWeights("C")));
+  assert.equal(asG.overallAvg, overallScore(asG.axes, axisWeights("G")));
+  // 종합 등급의 값은 종합 점수(가중 평균)를 같은 집단 종합 점수 배열에 대어 다시 매긴 백분위
+  assert.equal(asC.overall, overallPercentile(asC.overallAvg, g.groups.domestic!.overallRaw));
 }
-// 한 축만 S(99)이고 나머지가 평범하면 종합은 S 가 아니다: (99 + 70 + 20 + 70 + 70 + 70) / 6 = 66.5 → B
-assert.equal(overallGrade(overallScore({ offense: 99, defense: 70, rebound: 20, shooting: 70, playmaking: 70, efficiency: 70 })), "B");
-// 종합 S 는 6축 평균 85 이상 = 여러 축이 동시에 높아야 한다 (종합 전용 컷 OVERALL_GRADE_CUTS)
-assert.equal(overallGrade(overallScore({ offense: 95, defense: 90, rebound: 88, shooting: 92, playmaking: 90, efficiency: 90 })), "S");
-assert.equal(overallGrade(overallScore({ offense: 99, defense: 99, rebound: 99, shooting: 99, playmaking: 99, efficiency: 50 })), "S"); // 90.8 (축 컷이면 S 지만 평균이라 86+)
-assert.equal(overallGrade(overallScore({ offense: 90, defense: 90, rebound: 90, shooting: 90, playmaking: 90, efficiency: 50 })), "A"); // 83.3
-// 종합 컷 경계: S ≥ 85, A ≥ 70, B ≥ 55, C ≥ 40, D ≥ 25, F < 25 (축 컷 90/75/55/35/15 와 다르다)
-assert.deepEqual(OVERALL_GRADE_CUTS.map(([g, c]) => [g, c]), [["S", 85], ["A", 70], ["B", 55], ["C", 40], ["D", 25], ["F", -Infinity]]);
+// 종합 백분위: 집단 종합 점수에 대어 순위 (mid-rank), 비교 대상이 없거나 점수가 없으면 null
+assert.equal(overallPercentile(80, [10, 20, 30, 80]), 87.5);
+assert.equal(overallPercentile(null, [10, 20]), null);
+assert.equal(overallPercentile(50, []), null);
+// 종합 컷 경계 (종합 백분위): S ≥ 95(상위 5%), A ≥ 80, B ≥ 55, C ≥ 30, D ≥ 10, F < 10
+assert.deepEqual(OVERALL_GRADE_CUTS.map(([g, c]) => [g, c]), [["S", 95], ["A", 80], ["B", 55], ["C", 30], ["D", 10], ["F", -Infinity]]);
 assert.deepEqual(
-  [100, 85, 84.99, 70, 69.9, 55, 54.9, 40, 39.9, 25, 24.9, 0].map((v) => overallGrade(v)),
+  [100, 95, 94.99, 80, 79.9, 55, 54.9, 30, 29.9, 10, 9.9, 0].map((v) => overallGrade(v)),
   ["S", "S", "A", "A", "B", "B", "C", "C", "D", "D", "F", "F"],
 );
+// 100명 집단이면 종합 S 는 5명 (상위 5%)
+{
+  const ref = Array.from({ length: 100 }, (_, i) => i);
+  assert.equal(ref.filter((v) => overallGrade(overallPercentile(v, ref)) === "S").length, 5);
+}
 assert.equal(overallGrade(null), "-");
 assert.equal(percentileGrade(86), "A"); // 축 등급은 그대로 90 컷
 // 모든 축 1위(집단 밖 선수라 백분위 100)면 종합도 100
@@ -335,3 +343,9 @@ assert.equal(QUALIFY_PRESETS[0], DEFAULT_QUALIFY);
 assert.equal(qualifyLabel(DEFAULT_QUALIFY), "10경기·100분 이상");
 assert.equal(qualifyShort(DEFAULT_QUALIFY), "10경기·100분+");
 console.log("metrics: 표본 프리셋 검사 통과");
+
+// 상위 N% 표기
+assert.equal(topShareLabel(99.5), "상위 1%");
+assert.equal(topShareLabel(95), "상위 5%");
+assert.equal(topShareLabel(80.2), "상위 20%");
+assert.equal(topShareLabel(null), null);

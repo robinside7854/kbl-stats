@@ -18,7 +18,7 @@ export default function RecordsPage() {
   return (
     <>
       <SiteNav seasons={seasons} seasonCode={latest?.seasonCode ?? 0} view="records" wide />
-      <RecordsView totals={loadCareerTotals()} spanLabel={`${oldest?.seasonLabel ?? ""} ~ ${latest?.seasonLabel ?? ""}`} />
+      <RecordsView totals={loadCareerTotals()} spanLabel={`${oldest?.seasonLabel ?? ""} ~ ${latest?.seasonLabel ?? ""}`} latestSeasonCode={latest?.seasonCode ?? 0} />
       <SourceFooter fetchedAt={latest ? loadSeasonData(latest.seasonCode)?.fetchedAt : undefined} wide />
     </>
   );

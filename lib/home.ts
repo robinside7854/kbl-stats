@@ -42,3 +42,47 @@ export function splitRecentSeasons<T extends { seasonCode: number }>(list: reado
   const sorted = [...list].sort((a, b) => b.seasonCode - a.seasonCode);
   return { recent: sorted.slice(0, n), older: sorted.slice(n) };
 }
+
+// ─────────────────────────────────────────────
+// 오늘 생일인 현역 선수 (2026-10-01 사용자 요청) — 홈 "오늘 생일" 줄
+// ─────────────────────────────────────────────
+// 현역 = 홈 시즌(선수 있는 가장 최근 시즌) 명단. 생년월일은 프로필 API(data/processed/players-index.json birthday "YYYY-MM-DD").
+// "오늘"은 브라우저에서 한국 시간으로 정한다 — 사이트는 하루 한 번 빌드되는 정적 HTML 이라 빌드 시각으로 정하면 하루가 어긋날 수 있다.
+
+export interface BirthdayCandidate {
+  id: string;
+  nameKo: string;
+  birthday: string | null;
+}
+
+/** 한국 시간 기준 날짜 "YYYY-MM-DD" */
+export function kstDateString(now: Date): string {
+  // en-CA 는 YYYY-MM-DD 모양
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
+}
+
+const isLeapYear = (y: number) => (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0;
+
+/**
+ * today("YYYY-MM-DD")가 생일인 선수 + 그날 맞는 만 나이. 2월 29일생은 윤년이 아니면 2월 28일에 넣는다.
+ * 순서: 나이 많은 순 → 이름순 (같은 날 여럿이면 고참 먼저).
+ */
+export function birthdaysOn<T extends BirthdayCandidate>(players: readonly T[], today: string): { player: T; age: number }[] {
+  const t = /^(\d{4})-(\d{2})-(\d{2})$/.exec(today);
+  if (!t) return [];
+  const year = Number(t[1]);
+  const md = `${t[2]}-${t[3]}`;
+  const seen = new Set<string>();
+  const out: { player: T; age: number }[] = [];
+  for (const p of players) {
+    const b = p.birthday ? /^(\d{4})-(\d{2})-(\d{2})$/.exec(p.birthday) : null;
+    if (!b || seen.has(p.id)) continue;
+    let bmd = `${b[2]}-${b[3]}`;
+    if (bmd === "02-29" && !isLeapYear(year)) bmd = "02-28";
+    const age = year - Number(b[1]);
+    if (bmd !== md || age <= 0) continue;
+    seen.add(p.id);
+    out.push({ player: p, age });
+  }
+  return out.sort((a, b) => b.age - a.age || a.player.nameKo.localeCompare(b.player.nameKo, "ko"));
+}
