@@ -26,7 +26,7 @@ import type { LeaderPlayer } from "../lib/types";
 function lp(id: string, o: Partial<LeaderPlayer> = {}): LeaderPlayer {
   return {
     id, nameKo: id, nameEn: id, teamCode: "55", teamShort: "SK", isForeign: false, position: null, positionGroup: null, nationality: null,
-    photoUrl: null, games: 50, minutes: 1000, points: 500, reb: 200, ast: 100, stl: 40, blk: 10, tov: 50, fouls: 100,
+    photoUrl: null, games: 50, wins: 25, losses: 25, minutes: 1000, points: 500, reb: 200, ast: 100, stl: 40, blk: 10, tov: 50, fouls: 100,
     fgm: 200, fga: 400, tpm: 30, tpa: 90, ftm: 70, fta: 100, fgPct: 50, tpPct: 33, ftPct: 70, tsPct: 55, usgPct: null, per: 15, ...o,
   };
 }

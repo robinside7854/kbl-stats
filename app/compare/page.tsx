@@ -2,7 +2,7 @@
 // 정적 HTML에는 기본 비교(최신 시즌 PER 1위 vs 직전 시즌 PER 1위 — 카드 파일 defaults.defaultPlayerId)를 서버가 계산해 넣고,
 // 주소에 다른 선수가 있으면 브라우저가 /cards/{코드}.json·/search-index.json(우리 정적 파일)을 받아 다시 그린다.
 import type { Metadata } from "next";
-import { findPlayerIndexEntry, listSeasonsWithPlayers, loadSeasonCards, loadSeasonData } from "@/lib/data";
+import { findPlayerIndexEntry, listSeasonsWithPlayers, loadPrimeSeason, loadSeasonCards, loadSeasonData } from "@/lib/data";
 import { buildSeasonCardView } from "@/lib/cardview";
 import CompareView, { type SlotInit } from "@/app/components/CompareView";
 import SiteNav from "@/app/components/SiteNav";
@@ -21,7 +21,7 @@ function defaultSlot(seasonCode: number | undefined): SlotInit | null {
   const view = cards && id ? buildSeasonCardView(cards, id, "all") : null;
   const entry = id ? findPlayerIndexEntry(id) : null;
   if (!view || !entry) return null;
-  return { id: entry.id, nameKo: entry.nameKo, seasons: entry.seasons.map((s) => s.seasonCode), view };
+  return { id: entry.id, nameKo: entry.nameKo, seasons: entry.seasons.map((s) => s.seasonCode), view, prime: loadPrimeSeason(entry.id) ?? undefined };
 }
 
 export default function ComparePage() {

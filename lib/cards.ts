@@ -72,8 +72,9 @@ const round4 = (v: number) => Math.round(v * 1e4) / 1e4;
 export function encodeSeasonCards(
   meta: { seasonCode: number; seasonLabel: string; coverage: SeasonCoverage; teams: CardTeam[] },
   players: readonly CardPlayer[],
+  /** 표본 기준 (통산 카드는 lib/career-cards CAREER_QUALIFY). 기본 DEFAULT_QUALIFY */
+  rule: QualifyRule = DEFAULT_QUALIFY,
 ): SeasonCardsFile {
-  const rule = DEFAULT_QUALIFY;
   return {
     v: CARDS_FILE_VERSION,
     seasonCode: meta.seasonCode,

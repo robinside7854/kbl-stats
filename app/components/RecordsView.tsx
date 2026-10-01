@@ -126,7 +126,7 @@ export default function RecordsView({ totals, spanLabel, latestSeasonCode }: { t
                         )}
                       </span>
                       <span className="block truncate text-sub text-ink-3">
-                        {span} · {t.seasons}시즌 · {t.games.toLocaleString("ko-KR")}경기 · {teamShortLabel(t.lastTeam)}
+                        {span} · {t.seasons}시즌 · {t.games.toLocaleString("ko-KR")}경기{cat === "wins" ? ` · ${t.wins.toLocaleString("ko-KR")}승 ${t.losses.toLocaleString("ko-KR")}패` : ""} · {teamShortLabel(t.lastTeam)}
                       </span>
                     </span>
                     <span className="shrink-0 text-right">

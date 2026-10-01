@@ -14,6 +14,7 @@ import { PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart } from "r
 import Link from "next/link";
 import type { CardPlayer, TeamColor } from "@/lib/types";
 import { cardFootStats, radarGeometry, rankHeading, rankPhrase, type SeasonCardView } from "@/lib/cardview";
+import { CAREER_CODE } from "@/lib/career-cards";
 import { offenseTypeDef, playerTypeHelp } from "@/lib/glossary";
 import { nationalityOf, NATIONALITY_LABELS, positionLabel } from "@/lib/roster";
 import {
@@ -22,6 +23,7 @@ import {
   RADAR_COMPONENTS,
   rankTier,
   topShareLabel as topShare,
+  gradeScore,
   type CardEntryOf,
   type CardStatEntry,
   type Grade,
@@ -252,11 +254,12 @@ function GradeTick(props: {
   const bx = x + ux * (blockW / 2 + 2);
   const by = y + uy * (blockH / 2 + 2);
   const top = by - blockH / 2;
-  // 꼭짓점 아래 작은 숫자 = 축 백분위(0~100, 같은 국적 집단 안)
-  const raw = fmtPct(entry.pct[axis]);
+  // 꼭짓점 아래 숫자 = 등급 점수(1~99, 백분위 기준 — lib/metrics gradeScore)
+  const score = gradeScore(entry.pct[axis]);
+  const raw = score === null ? "–" : String(score);
   return (
     <g>
-      <title>{`${RADAR_AXIS_LABELS[axis]} 백분위 ${raw} · 등급 ${grade} — ${componentsText(entry, axis)}`}</title>
+      <title>{`${RADAR_AXIS_LABELS[axis]} ${grade} ${raw}점(99점 만점) — ${componentsText(entry, axis)}`}</title>
       <rect
         x={bx - chip / 2}
         y={top}
@@ -286,7 +289,8 @@ function GradeTick(props: {
         y={top + chip + 5 + d.tickLabel + d.tickValue * 0.9}
         textAnchor="middle"
         fontSize={d.tickValue}
-        fill={colors.ink3}
+        fontWeight={700}
+        fill={colors.ink2}
         style={{ fontVariantNumeric: "tabular-nums" }}
       >
         {raw}
@@ -342,14 +346,18 @@ function OverallBadge({
         color: tone.ink,
         boxShadow: "0 0 0 2px rgba(255,255,255,0.85)",
       }}
-      aria-label={`종합 등급 ${entry.overall}${topShare(entry.overallPct) ? `, ${entry.gradeGroup.label} ${topShare(entry.overallPct)}` : ""}`}
+      aria-label={`종합 등급 ${entry.overall} ${gradeScore(entry.overallPct) ?? "–"}점${topShare(entry.overallPct) ? `, ${entry.gradeGroup.label} ${topShare(entry.overallPct)}` : ""}`}
       title={topShare(entry.overallPct) ? `${entry.gradeGroup.label} ${topShare(entry.overallPct)}` : undefined}
     >
       <span className="font-bold leading-none" style={{ fontSize: Math.round(d.statLabel * 0.8), opacity: 0.85 }}>
         종합
       </span>
-      <span className="font-black leading-none" style={{ fontSize: d.ovr * 0.82 }}>
+      <span className="font-black leading-none" style={{ fontSize: d.ovr * 0.72 }}>
         {entry.overall}
+      </span>
+      {/* 종합 점수 (1~99) */}
+      <span className="tabular font-bold leading-none" style={{ fontSize: Math.round(d.statLabel * 0.85) }}>
+        {gradeScore(entry.overallPct) ?? "–"}
       </span>
     </span>
   );
@@ -591,7 +599,7 @@ export default function PlayerCard({ view, colors, size = "sm", seriesColor, exp
           경기당 기록 <span className="font-medium text-ink-3">· {p.games}경기</span>
         </h3>
         <span className={groupLabel ? "font-semibold text-ink-2" : "text-ink-3"} style={{ fontSize: d.statLabel }}>
-          {rankHeading(groupLabel)}
+          {view.seasonCode === CAREER_CODE && !groupLabel ? "통산 순위" : rankHeading(groupLabel)}
         </span>
       </div>
       <div className={`grid grid-cols-3 ${roomy ? "gap-2" : "gap-1.5"}`}>
@@ -638,18 +646,18 @@ export default function PlayerCard({ view, colors, size = "sm", seriesColor, exp
       )}
       {missingComponents.length > 0 && (
         <p className="pb-1 leading-snug text-ink-3" style={{ fontSize: small }}>
-          이 시즌 기록이 없어 뺀 항목: {missingComponents.join("·")}
+          {view.seasonCode === CAREER_CODE ? "통산 비교에서 뺀 항목" : "이 시즌 기록이 없어 뺀 항목"}: {missingComponents.join("·")}
         </p>
       )}
       {/* 스크린리더·표 보기: 축별 백분위·등급·구성 요소. 표는 sr-only 폭(1px)을 무시하고 늘어나므로 div 로 감싼다 */}
       <div className="sr-only">
         <table>
-          <caption>레이더 6축: 축 백분위(0~100, {gradeLabel}), 등급, 구성 요소 값과 백분위</caption>
+          <caption>레이더 6축: 점수(99점 만점, {gradeLabel}), 등급, 구성 요소 값과 백분위</caption>
           <tbody>
             {RADAR_AXES.map((axis) => (
               <tr key={axis}>
                 <th scope="row">{RADAR_AXIS_LABELS[axis]}</th>
-                <td>{fmtPct(entry.pct[axis])}</td>
+                <td>{gradeScore(entry.pct[axis]) ?? "–"}점</td>
                 <td>{entry.grades[axis] ?? "-"}</td>
                 <td>{componentsText(entry, axis)}</td>
               </tr>

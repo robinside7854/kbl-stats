@@ -316,6 +316,9 @@ export interface LeaderPlayer {
   nationality: Nationality | null;
   photoUrl: string | null;
   games: number;
+  /** 뛴 경기의 팀 승·패 (결장 경기 제외 — KBL 선수 기록 그대로) */
+  wins: number;
+  losses: number;
   minutes: number;        // 시즌 누적 (분)
   points: number;         // 이하 시즌 누적
   reb: number;
@@ -380,4 +383,6 @@ export interface SearchEntry {
   positionGroup: PositionGroup | null; // 선수 마스터 (없으면 null)
   positionLabel: string | null;        // 예: "가드-포워드"
   color: { primary: string; text: string }; // 최근 팀 색 (아바타 대체 디자인)
+  /** 프라임 시즌 코드 (lib/prime — 표본 충족 시즌 2개 이상인 선수만) */
+  prime?: number;
 }

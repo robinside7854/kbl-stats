@@ -20,6 +20,8 @@ import {
 import { seasonShortLabel } from "@/lib/career";
 import CardDeck, { type DeckCard } from "./CardDeck";
 import ChipRow from "./ChipRow";
+import { seasonChip } from "./PrimeTag";
+import { CAREER_CODE, CAREER_LABEL } from "@/lib/career-cards";
 import CompareHeadToHead from "./CompareHeadToHead";
 import CompareTable from "./CompareTable";
 import { IconChevronDown, IconChevronUp } from "./icons";
@@ -35,6 +37,7 @@ export interface SlotInit {
   /** 뛴 시즌 코드 (오름차순) */
   seasons: number[];
   view: SeasonCardView;
+  prime?: number;
 }
 
 interface Slot {
@@ -42,6 +45,8 @@ interface Slot {
   nameKo: string;
   seasons: number[];
   season: number;
+  /** 프라임 시즌 코드 (검색 색인) */
+  prime?: number;
 }
 
 interface Props {
@@ -52,13 +57,15 @@ interface Props {
 }
 
 const fromInit = (s: SlotInit | null): Slot | null =>
-  s ? { id: s.id, nameKo: s.nameKo, seasons: s.seasons, season: s.view.seasonCode } : null;
+  s ? { id: s.id, nameKo: s.nameKo, seasons: s.seasons, season: s.view.seasonCode, prime: s.prime } : null;
 
 const fromEntry = (e: SearchEntry, season?: number): Slot => ({
   id: e.id,
   nameKo: e.nameKo,
   seasons: e.seasons,
-  season: season !== undefined && e.seasons.includes(season) ? season : (latestSeason(e.seasons) ?? e.last),
+  // 통산(CAREER_CODE)도 고를 수 있다
+  season: season !== undefined && (season === CAREER_CODE || e.seasons.includes(season)) ? season : (latestSeason(e.seasons) ?? e.last),
+  prime: e.prime,
 });
 
 export default function CompareView({ seasons, initialA, initialB }: Props) {
@@ -68,7 +75,9 @@ export default function CompareView({ seasons, initialA, initialB }: Props) {
   const [queryError, setQueryError] = useState(false);
   // 모바일 좌우 비교에서 카드 2장 펼치기
   const [showCards, setShowCards] = useState(false);
-  const labelOf = (code: number) => seasonShortLabel(seasons.find((s) => s.seasonCode === code)?.seasonLabel ?? String(code));
+  const labelOf = (code: number) =>
+    code === CAREER_CODE ? CAREER_LABEL : seasonShortLabel(seasons.find((s) => s.seasonCode === code)?.seasonLabel ?? String(code));
+  const hrefOf = (id: string, code: number) => playerHref(id, code === CAREER_CODE ? undefined : code);
 
   // 공유 링크(?a=&b=)로 들어오면 검색 색인에서 선수 이름·뛴 시즌을 찾아 슬롯을 채운다
   useEffect(() => {
@@ -96,8 +105,8 @@ export default function CompareView({ seasons, initialA, initialB }: Props) {
   const va = useCardView(a?.id ?? null, a?.season ?? null, "all", initialA?.view);
   const vb = useCardView(b?.id ?? null, b?.season ?? null, "all", initialB?.view);
   const cards: DeckCard[] = [];
-  if (a && va.view) cards.push({ view: va.view, loading: va.status === "loading", nameHref: playerHref(a.id, va.view.seasonCode) });
-  if (b && vb.view) cards.push({ view: vb.view, loading: vb.status === "loading", nameHref: playerHref(b.id, vb.view.seasonCode) });
+  if (a && va.view) cards.push({ view: va.view, loading: va.status === "loading", nameHref: hrefOf(a.id, va.view.seasonCode) });
+  if (b && vb.view) cards.push({ view: vb.view, loading: vb.status === "loading", nameHref: hrefOf(b.id, vb.view.seasonCode) });
   // 공유 주소로 열려 아직 값이 없는 자리 → 스켈레톤 (디자인 점검 C3)
   const pending = [a && !va.view && va.status === "loading", b && !vb.view && vb.status === "loading"].filter(Boolean).length;
   const both = cards.length === 2 ? ([cards[0].view, cards[1].view] as const) : null;
@@ -119,11 +128,17 @@ export default function CompareView({ seasons, initialA, initialB }: Props) {
       />
       {slot && (
         <div className="mt-2.5">
-          <p className="mb-1.5 text-sub font-semibold text-ink-2">시즌 · {slot.seasons.length}시즌 뛰었음</p>
+          <p className="mb-1.5 text-sub font-semibold text-ink-2">
+            시즌 · {slot.seasons.length}시즌 뛰었음
+            {slot.season === CAREER_CODE && <span className="font-normal text-ink-3"> · 통산은 100경기 이상 선수끼리 비교</span>}
+          </p>
           <ChipRow
             label={`선수 ${name} 시즌`}
             scroll
-            chips={[...slot.seasons].reverse().map((c) => ({ value: c, label: labelOf(c) }))}
+            chips={[
+              { value: CAREER_CODE, label: CAREER_LABEL, aria: "통산 (전 시즌 합계)" },
+              ...[...slot.seasons].reverse().map((c) => seasonChip(c, labelOf(c), slot.prime)),
+            ]}
             value={slot.season}
             onChange={(c) => set({ ...slot, season: c })}
           />

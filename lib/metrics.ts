@@ -1145,6 +1145,11 @@ export interface CareerSummary {
   fgPct: number | null;
   /** 통산 3점 성공률 = 전 시즌 3점 성공 합계 ÷ 시도 합계 × 100. 시도 0이면 null */
   tpPct: number | null;
+  /** 통산 승·패 — 본인이 뛴 경기의 팀 결과만 (KBL 선수 기록의 승·패, 결장 경기는 없음) */
+  wins: number;
+  losses: number;
+  /** 통산 승률 = 승 ÷ (승 + 패) × 100. 경기 0이면 null */
+  winPct: number | null;
 }
 
 /** 통산 요약 입력 (시즌 합계 — 순위표 행 LeaderPlayer·CareerSeason 과 같은 필드) */
@@ -1159,6 +1164,9 @@ export interface CareerSummaryInput {
   fga: number;
   tpm: number;
   tpa: number;
+  /** 뛴 경기의 팀 승·패 (옛 데이터엔 없을 수 있어 선택) */
+  wins?: number;
+  losses?: number;
 }
 
 /** 성공 합계 ÷ 시도 합계 × 100 (시도 0이면 null) */
@@ -1173,8 +1181,10 @@ export function madePct(made: number, att: number): number | null {
  * 성공률도 같은 이유로 시즌 성공률의 평균이 아니라 "성공 합계 ÷ 시도 합계"(Basketball-Reference 통산 FG% 와 같음).
  */
 export function careerSummary(seasons: readonly CareerSummaryInput[]): CareerSummary {
-  const sum = (k: keyof CareerSummaryInput) => seasons.reduce((s, x) => s + (Number.isFinite(x[k]) ? x[k] : 0), 0);
+  const sum = (k: keyof CareerSummaryInput) => seasons.reduce((s, x) => s + (Number.isFinite(x[k]) ? (x[k] as number) : 0), 0);
   const games = sum("games");
+  const wins = sum("wins");
+  const losses = sum("losses");
   return {
     seasons: seasons.length,
     games,
@@ -1185,7 +1195,29 @@ export function careerSummary(seasons: readonly CareerSummaryInput[]): CareerSum
     blk: perGame(sum("blk"), games),
     fgPct: madePct(sum("fgm"), sum("fga")),
     tpPct: madePct(sum("tpm"), sum("tpa")),
+    wins,
+    losses,
+    winPct: winPct(wins, losses),
   };
+}
+
+/**
+ * 승률 = 승 ÷ (승 + 패) × 100. 승·패는 KBL 선수 기록 그대로 = 그 선수가 뛴 경기의 팀 결과(결장한 경기는 들어가지 않는다).
+ * 2026-10-01 확인: 시즌 행 663개 중 639개가 승 + 패 = 경기 수, 24개는 1경기 차(KBL 원본). 경기 0이면 null.
+ */
+export function winPct(wins: number, losses: number): number | null {
+  const g = wins + losses;
+  return g > 0 ? (wins / g) * 100 : null;
+}
+
+/**
+ * 등급 점수 (2026-10-01 사용자 요청 "등급에도 점수, 만점 99"): 백분위를 반올림해 1~99 로 자른 값.
+ * 게임 카드 능력치처럼 99 가 최고 — 축 등급 S(백분위 90 이상)는 90~99점, 종합 S(상위 5%)는 95~99점.
+ */
+export const GRADE_SCORE_MAX = 99;
+export function gradeScore(pct: number | null | undefined): number | null {
+  if (pct === null || pct === undefined || !Number.isFinite(pct)) return null;
+  return Math.min(GRADE_SCORE_MAX, Math.max(1, Math.round(pct)));
 }
 
 /** 백분위 → "상위 N%" (N = 100 − 백분위, 올림·최소 1). 카드 종합 등급 툴팁·읽기 라벨. null → null */

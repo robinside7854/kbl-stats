@@ -40,7 +40,17 @@ assert.equal(sum.fgPct, (401 / 810) * 100);          // ≈ 49.5
 assert.equal(sum.tpPct, (50 / 155) * 100);           // ≈ 32.3 (평균이면 16.7)
 // 시도 0 → null (3점을 한 번도 안 던진 센터 등)
 assert.equal(careerSummary([{ games: 10, points: 40, reb: 50, ast: 5, ...z, fgm: 20, fga: 40 }]).tpPct, null);
-assert.deepEqual(careerSummary([]), { seasons: 0, games: 0, points: 0, reb: 0, ast: 0, stl: 0, blk: 0, fgPct: null, tpPct: null });
+assert.deepEqual(careerSummary([]), { seasons: 0, games: 0, points: 0, reb: 0, ast: 0, stl: 0, blk: 0, fgPct: null, tpPct: null, wins: 0, losses: 0, winPct: null });
+// 통산 승패: 뛴 경기의 승·패 합, 승률 = 승 ÷ (승 + 패)
+{
+  const w = careerSummary([
+    { games: 50, points: 0, reb: 0, ast: 0, ...z, fgm: 0, fga: 0, wins: 30, losses: 20 },
+    { games: 10, points: 0, reb: 0, ast: 0, ...z, fgm: 0, fga: 0, wins: 2, losses: 8 },
+  ]);
+  assert.equal(w.wins, 32);
+  assert.equal(w.losses, 28);
+  assert.ok(Math.abs(w.winPct! - (32 / 60) * 100) < 1e-9);
+}
 console.log("player: 통산 계산 통과");
 
 // ── 시즌 표기 ──

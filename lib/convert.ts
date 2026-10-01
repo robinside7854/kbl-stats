@@ -86,6 +86,8 @@ export function toLeaderPlayers(season: SeasonData, photoOf: PhotoLookup = () =>
     nationality: p.nationality ?? null,
     photoUrl: photoOf(p.playerNo),
     games: p.games,
+    wins: p.wins ?? 0,
+    losses: p.losses ?? 0,
     minutes: p.minutes,
     points: p.points,
     reb: p.reb,

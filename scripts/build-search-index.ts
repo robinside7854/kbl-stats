@@ -6,6 +6,9 @@ import { existsSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { buildSearchIndex } from "../lib/search.js";
+import { decodeSeasonCards, encodeSeasonCards } from "../lib/cards.js";
+import { toCardPlayers, toCardTeams } from "../lib/convert.js";
+import { pickPrimeSeasons, primeCandidatesOf, type PrimeCandidate } from "../lib/prime.js";
 import type { PlayerIndexEntry, SeasonData, SeasonOption } from "../lib/types.js";
 
 const ROOT = process.cwd();
@@ -30,6 +33,27 @@ async function main() {
     (code) => labelByCode.get(code) ?? String(code),
     (team, code) => colorBySeason.get(code)?.get(team),
   );
+  // 프라임 시즌: 전 시즌 카드 데이터(public/cards 와 같은 encode→decode)로 계산해 비교 탭 시즌 칩에 표시 (lib/prime)
+  const candidates: PrimeCandidate[] = [];
+  for (const s of seasons) {
+    const file = join(PROCESSED, String(s.seasonCode), "players.json");
+    if (!existsSync(file)) continue;
+    const season = JSON.parse(await readFile(file, "utf8")) as SeasonData;
+    if (season.players.length === 0) continue;
+    const cards = decodeSeasonCards(
+      encodeSeasonCards(
+        { seasonCode: season.seasonCode, seasonLabel: season.seasonLabel, coverage: season.coverage, teams: toCardTeams(season) },
+        toCardPlayers(season, () => null),
+      ),
+    );
+    candidates.push(...primeCandidatesOf(cards));
+  }
+  const prime = pickPrimeSeasons(candidates);
+  for (const e of entries) {
+    const c = prime.get(e.id);
+    if (c !== undefined) e.prime = c;
+  }
+
   await mkdir(join(ROOT, "public"), { recursive: true });
   const json = JSON.stringify(entries);
   await writeFile(join(ROOT, "public", "search-index.json"), json, "utf8");

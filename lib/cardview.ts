@@ -13,6 +13,7 @@ import {
   buildGradingContext,
   CARD_STATS,
   missingComponentLabels,
+  gradeScore,
   overallWeightNote,
   RADAR_AXES,
   perGame,
@@ -164,6 +165,8 @@ export interface GridEntry {
   player: CardPlayer;
   /** 종합 등급 (국적 집단 기준 — 선수 상세 카드와 같다). 표본 미달이면 "-" */
   overall: Grade | "-";
+  /** 종합 점수 1~99 (gradeScore). 표본 미달이면 null */
+  score: number | null;
   qualified: boolean;
   /** 경기당 득점 */
   ppg: number;
@@ -177,7 +180,7 @@ export function buildGridEntries(cards: SeasonCards): GridEntry[] {
   const ctx = seasonContext(cards, "all");
   return cards.players.map((p) => {
     const e = buildCardEntry(p, ctx);
-    return { player: p, overall: e.qualified ? e.overall : "-", qualified: e.qualified, ppg: perGame(p.points, p.games) };
+    return { player: p, overall: e.qualified ? e.overall : "-", score: e.qualified ? gradeScore(e.overallPct) : null, qualified: e.qualified, ppg: perGame(p.points, p.games) };
   });
 }
 
@@ -290,7 +293,7 @@ function betterGrade(a: Grade | "-", b: Grade | "-"): CompareSide {
   return ia === ib ? "tie" : ia < ib ? "a" : "b";
 }
 
-type EntryLike = Pick<CardEntryOf<CardPlayer>, "stats" | "overall" | "qualified" | "usgPct">;
+type EntryLike = Pick<CardEntryOf<CardPlayer>, "stats" | "overall" | "qualified" | "usgPct" | "overallPct">;
 
 /**
  * 두 카드의 비교표: 카드 스탯 10개(득점 … 자유투 성공률 + 파울, lib/metrics CARD_STATS 순서) + USG% + 종합 등급.
@@ -346,8 +349,8 @@ export function compareCardEntries(a: EntryLike, b: EntryLike): CompareRow[] {
     label: "종합 등급",
     a: null,
     b: null,
-    aText: ga === "-" ? "표본 미달" : ga,
-    bText: gb === "-" ? "표본 미달" : gb,
+    aText: ga === "-" ? "표본 미달" : `${ga} · ${gradeScore(a.overallPct) ?? "–"}점`,
+    bText: gb === "-" ? "표본 미달" : `${gb} · ${gradeScore(b.overallPct) ?? "–"}점`,
     aRank: null,
     bRank: null,
     better: betterGrade(ga, gb),

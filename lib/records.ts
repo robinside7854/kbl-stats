@@ -5,7 +5,7 @@
 
 import { perGame } from "./metrics";
 
-export type RecordStatKey = "points" | "reb" | "ast" | "stl" | "blk" | "tpm" | "games" | "minutes";
+export type RecordStatKey = "points" | "reb" | "ast" | "stl" | "blk" | "tpm" | "games" | "minutes" | "wins";
 export type RecordMode = "total" | "perGame";
 export type RecordOrigin = "all" | "domestic" | "foreign";
 
@@ -28,6 +28,8 @@ export const RECORD_STATS: readonly RecordStatDef[] = [
   { key: "tpm", label: "3점 성공", unit: "개", perGame: true },
   { key: "games", label: "출전 경기", unit: "경기", perGame: false },
   { key: "minutes", label: "출전 시간", unit: "분", perGame: true },
+  // 승리: 뛴 경기에서 팀이 이긴 횟수 (결장 제외). 경기당은 의미가 없어 합계만
+  { key: "wins", label: "승리", unit: "승", perGame: false },
 ];
 
 /** 경기당 순위에 들어가는 최소 통산 경기 (정규시즌 54경기 × 약 4시즌) */
@@ -58,6 +60,9 @@ export interface CareerTotal {
   stl: number;
   blk: number;
   tpm: number;
+  /** 뛴 경기의 팀 승·패 */
+  wins: number;
+  losses: number;
 }
 
 /** 시즌 합계 행들을 선수별로 더한다 (같은 선수의 여러 시즌 → 하나). 순서 무관 */
@@ -65,7 +70,7 @@ export function sumCareerTotals<T extends Omit<CareerTotal, "seasons" | "firstLa
   rows: readonly T[],
 ): CareerTotal[] {
   const by = new Map<string, CareerTotal & { firstCode: number; lastCode: number }>();
-  const add = ["games", "minutes", "points", "reb", "ast", "stl", "blk", "tpm"] as const;
+  const add = ["games", "minutes", "points", "reb", "ast", "stl", "blk", "tpm", "wins", "losses"] as const;
   for (const r of rows) {
     const cur = by.get(r.id);
     if (!cur) {
@@ -73,7 +78,7 @@ export function sumCareerTotals<T extends Omit<CareerTotal, "seasons" | "firstLa
         id: r.id, nameKo: r.nameKo, photoUrl: r.photoUrl, origin: r.origin,
         seasons: 1, firstLabel: r.seasonLabel, lastLabel: r.seasonLabel, lastSeasonCode: r.seasonCode, lastTeam: r.teamShort, lastTeamColor: r.teamColor,
         firstCode: r.seasonCode, lastCode: r.seasonCode,
-        games: r.games, minutes: r.minutes, points: r.points, reb: r.reb, ast: r.ast, stl: r.stl, blk: r.blk, tpm: r.tpm,
+        games: r.games, minutes: r.minutes, points: r.points, reb: r.reb, ast: r.ast, stl: r.stl, blk: r.blk, tpm: r.tpm, wins: r.wins, losses: r.losses,
       });
       continue;
     }
@@ -106,7 +111,7 @@ export function isActiveCareer(t: Pick<CareerTotal, "lastSeasonCode">, latestSea
 
 /** 화면 값: 합계 그대로, 경기당은 통산 합계 ÷ 통산 경기 (경기 수 부문은 항상 합계) */
 export function recordValue(t: CareerTotal, key: RecordStatKey, mode: RecordMode): number {
-  if (mode === "perGame" && key !== "games") return perGame(t[key], t.games);
+  if (mode === "perGame" && key !== "games" && key !== "wins") return perGame(t[key], t.games);
   return t[key];
 }
 
@@ -128,7 +133,7 @@ export function rankCareerTotals(
   /** 주면 그 시즌에 뛴 선수(현역, isActiveCareer)만 — 순위도 현역끼리 다시 매긴다 */
   activeSeasonCode?: number,
 ): RecordRow[] {
-  const effMode: RecordMode = key === "games" ? "total" : mode;
+  const effMode: RecordMode = key === "games" || key === "wins" ? "total" : mode;
   const pool = totals.filter(
     (t) =>
       (origin === "all" || t.origin === origin) &&

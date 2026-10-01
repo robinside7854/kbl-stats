@@ -6,7 +6,8 @@
 import { existsSync } from "node:fs";
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { encodeSeasonCards } from "../lib/cards.js";
+import { decodeSeasonCards, encodeSeasonCards, type SeasonCards } from "../lib/cards.js";
+import { buildCareerCards, CAREER_CODE, CAREER_COVERAGE, CAREER_LABEL, CAREER_QUALIFY } from "../lib/career-cards.js";
 import { toCardPlayers, toCardTeams } from "../lib/convert.js";
 import type { PlayerIndexEntry, SeasonData, SeasonOption } from "../lib/types.js";
 
@@ -30,6 +31,7 @@ async function main() {
 
   const sizes: string[] = [];
   let maxKb = 0;
+  const all: SeasonCards[] = [];
   for (const s of seasons) {
     const season = await readJson<SeasonData | null>(join(PROCESSED, String(s.seasonCode), "players.json"), null);
     if (!season || season.players.length === 0) continue;
@@ -38,11 +40,24 @@ async function main() {
       { seasonCode: season.seasonCode, seasonLabel: season.seasonLabel, coverage: season.coverage, teams: toCardTeams(season) },
       players,
     );
+    all.push(decodeSeasonCards(file));
     const json = JSON.stringify(file);
     await writeFile(join(OUT, `${season.seasonCode}.json`), json, "utf8");
     const kb = json.length / 1024;
     maxKb = Math.max(maxKb, kb);
     sizes.push(`${season.seasonCode}:${kb.toFixed(0)}`);
+  }
+  // 통산 카드 (비교 탭 "통산" 칩, 코드 0) — 전 시즌을 선수별로 더한 것 (lib/career-cards)
+  if (all.length > 0) {
+    const career = buildCareerCards(all);
+    const file = encodeSeasonCards(
+      { seasonCode: CAREER_CODE, seasonLabel: CAREER_LABEL, coverage: CAREER_COVERAGE, teams: career.teams },
+      career.players,
+      CAREER_QUALIFY,
+    );
+    const json = JSON.stringify(file);
+    await writeFile(join(OUT, `${CAREER_CODE}.json`), json, "utf8");
+    sizes.push(`통산:${(json.length / 1024).toFixed(0)}`);
   }
   console.log(`카드 데이터: ${sizes.length}개 시즌 → public/cards/ (최대 ${maxKb.toFixed(0)}KB) [${sizes.join(" ")}]`);
 }

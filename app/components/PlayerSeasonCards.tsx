@@ -18,6 +18,7 @@ import { compareHref, parsePlayerQuery, playerQueryString, type CardScope, type 
 import { seasonShortLabel } from "@/lib/career";
 import CardDeck from "./CardDeck";
 import ChipRow from "./ChipRow";
+import PrimeTag, { seasonChip } from "./PrimeTag";
 import { IconChevronRight } from "./icons";
 import InfoLink from "./InfoLink";
 import { PlayerCardSkeleton } from "./PlayerCard";
@@ -54,9 +55,11 @@ interface Props {
   initialShots: PlayerShotsFile | null;
   /** 시즌별 비슷한 시즌 5개 (빌드 때 lib/similar). 표본 미달 시즌은 키가 없다 */
   similar?: Record<number, SimilarEntry[]>;
+  /** 프라임 시즌 코드 (lib/prime). 없으면 null */
+  primeSeason?: number | null;
 }
 
-export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, groupLabel, aside, careerHighRows, shotSeasons, initialShots, similar }: Props) {
+export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, groupLabel, aside, careerHighRows, shotSeasons, initialShots, similar, primeSeason }: Props) {
   const codes = useMemo(() => seasons.map((s) => s.seasonCode), [seasons]);
   const labelOf = (code: number) => seasonShortLabel(seasons.find((s) => s.seasonCode === code)?.seasonLabel ?? String(code));
   const [state, setState] = useState<PlayerViewState>({ season: initial.seasonCode, scope: "all" });
@@ -84,7 +87,7 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
     { value: "all", label: "전체" },
     { value: "position", label: groupLabel ? `같은 포지션 (${groupLabel})` : "같은 포지션" },
   ];
-  const seasonChips = [...codes].reverse().map((c) => ({ value: c, label: labelOf(c), aria: `${labelOf(c)} 시즌` }));
+  const seasonChips = [...codes].reverse().map((c) => seasonChip(c, labelOf(c), primeSeason));
 
   const view = a.view;
   // 하이라이트: 고른 시즌 순위 1~10위 부문 최대 3개, 없으면 정규시즌 커리어 하이 상위 3개 (lib/cardview)
@@ -125,9 +128,21 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
       <section aria-label="카드 보기 설정" className="space-y-2.5">
         <div>
           <h2 className="text-h2 font-bold">시즌 카드</h2>
-          <p className="mb-1.5 mt-1 text-sub font-semibold text-ink-2">
-            시즌 <span className="font-normal text-ink-3">· {seasons.length}시즌 뛰었음</span>
-          </p>
+          <div className="mb-1.5 mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+            <p className="text-sub font-semibold text-ink-2">
+              시즌 <span className="font-normal text-ink-3">· {seasons.length}시즌 뛰었음</span>
+            </p>
+            {/* 프라임 시즌 바로 가기: 칩 줄이 최신 시즌부터라 옛 프라임 시즌은 화면 밖에 있을 수 있다 */}
+            {primeSeason != null && primeSeason !== season && codes.includes(primeSeason) && (
+              <button
+                type="button"
+                onClick={() => setState((s) => ({ ...s, season: primeSeason }))}
+                className="focus-ring inline-flex h-10 cursor-pointer items-center gap-1.5 rounded-control px-1 text-sub font-semibold text-ink-2 transition-colors duration-200 hover:text-ink"
+              >
+                <PrimeTag /> {labelOf(primeSeason)} 보기
+              </button>
+            )}
+          </div>
           <ChipRow label="카드 시즌 선택" chips={seasonChips} value={season} onChange={(c) => setState((s) => ({ ...s, season: c }))} scroll />
         </div>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">

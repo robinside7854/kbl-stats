@@ -65,18 +65,19 @@ interface Props {
 }
 
 /** 종합 등급 배지 — 플레이어 카드와 같은 색 규칙(lib/teams gradeTone: S 금색, A·B 팀 색, C 이하 무채색). 글자가 곧 등급 */
-function GradeBadge({ grade, team, colors }: { grade: Grade | "-"; team?: CardTeam; colors: ThemeColors }) {
+function GradeBadge({ grade, score, team, colors }: { grade: Grade | "-"; score: number | null; team?: CardTeam; colors: ThemeColors }) {
   if (grade === "-") {
     return <span className="rounded-control bg-surface-2 px-1.5 py-0.5 text-caption font-semibold text-ink-2">표본 미달</span>;
   }
   const tone = gradeTone(grade, team?.color ?? FALLBACK_TEAM_COLOR, colors);
   return (
     <span
-      className="inline-flex h-7 w-7 items-center justify-center rounded-control border-[1.5px] text-base font-black"
+      className="tabular inline-flex h-7 items-center justify-center gap-1 rounded-control border-[1.5px] px-1.5 text-base font-black"
       style={{ background: tone.bg, color: tone.ink, borderColor: tone.border }}
-      aria-label={`종합 등급 ${grade}`}
+      aria-label={`종합 등급 ${grade}${score !== null ? ` ${score}점` : ""}`}
     >
       {grade}
+      {score !== null && <span className="text-caption font-bold">{score}</span>}
     </span>
   );
 }
@@ -88,11 +89,11 @@ function GridCard({ e, team, seasonCode, colors, badge }: { e: GridEntry; team?:
     <Link
       href={playerHref(p.id, seasonCode)}
       className="focus-ring surface-card tabular flex h-full min-w-0 flex-col rounded-container p-3 transition-colors duration-200 hover:bg-surface-2"
-      aria-label={`${p.nameKo}, ${team?.shortName ?? p.teamShort}${pos ? `, ${pos}` : ""}${badge ? `, 칭호 ${badge}` : ""}, 종합 등급 ${e.overall === "-" ? "표본 미달" : e.overall}, 경기당 ${formatCardValue(e.ppg, false)}점`}
+      aria-label={`${p.nameKo}, ${team?.shortName ?? p.teamShort}${pos ? `, ${pos}` : ""}${badge ? `, 칭호 ${badge}` : ""}, 종합 등급 ${e.overall === "-" ? "표본 미달" : `${e.overall} ${e.score ?? ""}점`}, 경기당 ${formatCardValue(e.ppg, false)}점`}
     >
       <span className="flex items-start justify-between gap-2">
         <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={team?.color} size={52} />
-        <GradeBadge grade={e.overall} team={team} colors={colors} />
+        <GradeBadge grade={e.overall} score={e.score} team={team} colors={colors} />
       </span>
       <span className="mt-2 line-clamp-2 text-body font-bold leading-tight text-ink break-keep">{p.nameKo}</span>
       <span className="mt-1 flex min-w-0 items-center gap-1 text-caption text-ink-2">

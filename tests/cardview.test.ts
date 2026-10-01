@@ -288,3 +288,51 @@ console.log("cardview: 카드 범위·그리드·비교표·주소·용어 앵�
   assert.equal(compareBarShares({ a: -2, b: 3 }), null);
   console.log("cardview: 비교 막대 통과");
 }
+
+// ── 프라임 시즌 (lib/prime pickPrimeSeasons) ──
+{
+  const { pickPrimeSeasons } = await import("../lib/prime");
+  const m = pickPrimeSeasons([
+    { id: "a", seasonCode: 41, score: 70, per: 18 },
+    { id: "a", seasonCode: 43, score: 82, per: 15 },
+    { id: "a", seasonCode: 45, score: 82, per: 20 }, // 점수 같으면 PER 높은 시즌
+    { id: "b", seasonCode: 47, score: 90, per: 25 }, // 표본 충족 시즌 하나뿐 → 없음
+  ]);
+  assert.equal(m.get("a"), 45);
+  assert.equal(m.has("b"), false);
+}
+// ── 등급 점수 (lib/metrics gradeScore): 1~99 ──
+{
+  const { gradeScore } = await import("../lib/metrics");
+  assert.equal(gradeScore(99.6), 99);
+  assert.equal(gradeScore(100), 99);
+  assert.equal(gradeScore(0.2), 1);
+  assert.equal(gradeScore(72.4), 72);
+  assert.equal(gradeScore(null), null);
+}
+
+// ── 통산 카드 (lib/career-cards buildCareerCards): 합계·성공률 다시 계산·PER 출전 가중·팀 코드 시즌 붙임 ──
+{
+  const { buildCareerCards } = await import("../lib/career-cards");
+  const base = (o: Record<string, unknown>) => ({
+    id: "x", nameKo: "가", nameEn: "", teamName: "", teamShort: "", teamCode: "55", isForeign: false, position: null, positionGroup: null,
+    nationality: null, photoUrl: null, games: 0, minutes: 0, points: 0, reb: 0, ast: 0, stl: 0, blk: 0, tov: 0, fouls: 0, fga: 0, tpa: 0,
+    fta: 0, fgPct: 0, tpPct: 0, ftPct: 0, fgm: 0, twoPa: 0, twoPPct: 0, tpm: 0, oreb: 0, dreb: 0, goodDef: 0, deflections: 0, screenAst: 0,
+    plusMinus: 0, midA: 0, midM: 0, per: 0, usgPct: 0, rebPct: 0, astPct: 0, tsPct: 0, efgPct: 0, tovPct: 0, astTo: 0, offenseType: null, ...o,
+  });
+  const season = (code: number, teamCode: string, o: Record<string, unknown>) =>
+    ({ seasonCode: code, seasonLabel: String(code), teams: [{ teamCode, shortName: `T${code}` }], players: [base({ teamCode, ...o })] }) as never;
+  const { players, teams } = buildCareerCards([
+    season(45, "10", { games: 50, minutes: 1000, points: 500, fga: 400, fgm: 200, fta: 100, ftPct: 80, tov: 50, ast: 100, per: 20 }),
+    season(47, "55", { games: 50, minutes: 3000, points: 700, fga: 600, fgm: 240, fta: 0, ftPct: 0, tov: 50, ast: 50, per: 10 }),
+  ]);
+  const c = players[0];
+  assert.equal(c.games, 100);
+  assert.equal(c.points, 1200);
+  assert.equal(c.fgPct, 44); // 440 / 1000
+  assert.equal(c.ftPct, 80); // 자유투는 첫 시즌만 (80 / 100)
+  assert.equal(c.per, 12.5); // (20 × 1000 + 10 × 3000) / 4000
+  assert.equal(c.astTo, 1.5);
+  assert.equal(c.teamCode, "47-55"); // 마지막 시즌 팀
+  assert.equal(teams[0].teamCode, "47-55");
+}

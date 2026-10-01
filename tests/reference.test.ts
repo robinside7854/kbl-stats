@@ -25,7 +25,7 @@ import type { LeaderPlayer } from "../lib/types";
 
 const close = (a: number, b: number) => assert.ok(Math.abs(a - b) < 1e-9, `${a} ≠ ${b}`);
 const mk = (o: Partial<LeaderPlayer> & { id: string }): LeaderPlayer => ({
-  nameKo: o.id, nameEn: "", teamCode: "55", teamShort: "SK", isForeign: false, photoUrl: null,
+  nameKo: o.id, nameEn: "", teamCode: "55", teamShort: "SK", isForeign: false, photoUrl: null, wins: 0, losses: 0,
   position: null, positionGroup: null, nationality: null,
   games: 20, minutes: 400, points: 200, reb: 100, ast: 50, stl: 10, blk: 5, tov: 30, fouls: 40,
   fgm: 72, fga: 160, tpm: 20, tpa: 60, ftm: 30, fta: 40,
@@ -111,7 +111,7 @@ assert.equal(sim[1].seasonCode, 30);
 // ── 역대 통산 순위 ──
 const row = (id: string, seasonCode: number, games: number, points: number, origin: "domestic" | "foreign" = "domestic") => ({
   id, nameKo: id, photoUrl: null, origin, seasonCode, seasonLabel: `${2000 + seasonCode}`, teamShort: `T${seasonCode}`, teamColor: "#000",
-  games, minutes: games * 30, points, reb: 0, ast: 0, stl: 0, blk: 0, tpm: 0,
+  games, minutes: games * 30, points, reb: 0, ast: 0, stl: 0, blk: 0, tpm: 0, wins: Math.floor(games / 2), losses: games - Math.floor(games / 2),
 });
 const totals: CareerTotal[] = sumCareerTotals([row("a", 1, 150, 3000), row("a", 3, 100, 1000), row("b", 2, 54, 1500), row("c", 2, 210, 4000, "foreign")]);
 const a = totals.find((x) => x.id === "a")!;

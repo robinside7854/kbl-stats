@@ -16,6 +16,7 @@ import {
   qualifyShort,
   type AttemptThresholds,
   type QualifyRule,
+  winPct,
 } from "./metrics";
 import {
   filterByNationality,
@@ -59,7 +60,8 @@ export type LeaderStatKey =
   | "rimPct"
   | "midPct"
   | "corner3Pct"
-  | "arc3Pct";
+  | "arc3Pct"
+  | "winPct";
 
 /** 경기당 / 시즌 합계 / 30분당 (30분당 = 시즌 누적 ÷ 출전 분 × 30, lib/metrics per30 — NBA 의 36분(3쿼터)을 KBL 10분 쿼터에 맞춤) */
 export type StatMode = "perGame" | "total" | "per30";
@@ -111,6 +113,8 @@ export const LEADER_STATS: Record<LeaderStatKey, LeaderStatDef> = {
   // USG%: 공격 점유율(높을수록 "많이 맡는다" — 잘한다는 뜻은 아님). 2026-10-01 사용자 요청으로 부문(고급 묶음)에도 넣음. 없는 시즌은 null → 칩 숨김
   usgPct: { key: "usgPct", label: "USG%", short: "USG%", kind: "rate", better: "high" },
   per: { key: "per", label: "PER", short: "PER", kind: "rate", better: "high" },
+  // 승률: 그 선수가 뛴 경기의 팀 승률 (결장 경기 제외, lib/metrics winPct). 2026-10-01 사용자 요청
+  winPct: { key: "winPct", label: "승률", short: "승률", kind: "rate", better: "high" },
   // 허슬: KBL 이 2025-26 부터 기록 (coverage.hustle). 없는 시즌은 null → 부문 칩에서 숨긴다
   defl: { key: "defl", label: "디플렉션", short: "디플렉션", kind: "count", better: "high" },
   screen: { key: "screen", label: "스크린 어시스트", short: "스크린A", kind: "count", better: "high" },
@@ -134,7 +138,7 @@ export interface LeaderCategoryGroup {
 }
 
 export const LEADER_CATEGORY_GROUPS: readonly LeaderCategoryGroup[] = [
-  { key: "basic", label: "기본", categories: ["points", "reb", "ast", "stl", "blk", "tov"] },
+  { key: "basic", label: "기본", categories: ["points", "reb", "ast", "stl", "blk", "tov", "winPct"] },
   { key: "shooting", label: "슈팅", categories: ["tpm", "fgPct", "tpPct", "ftPct"] },
   { key: "zones", label: "슛 구역", categories: ["rimPct", "midPct", "corner3Pct", "arc3Pct"] },
   { key: "advanced", label: "고급", categories: ["per", "tsPct", "usgPct"] },
@@ -203,6 +207,7 @@ export function rawValue(p: LeaderPlayer, key: LeaderStatKey): number {
     const z = p.zones?.[def.zone!];
     return z && z.a > 0 ? (z.m / z.a) * 100 : NaN;
   }
+  if (key === "winPct") return winPct(p.wins ?? 0, p.losses ?? 0) ?? NaN;
   if (key === "defl") return p.deflections ?? NaN;
   if (key === "screen") return p.screenAst ?? NaN;
   return (p[key as keyof LeaderPlayer] as number | null | undefined) ?? NaN;
@@ -359,8 +364,10 @@ export function topLeaders<T extends LeaderPlayer>(
 }
 
 /** 성공률 열의 시즌 합계 성공/시도 (예: { made: 396, att: 794 }). 성공률이 아닌 지표는 null */
-export function madeAttempts(p: LeaderPlayer, key: LeaderStatKey): { made: number; att: number } | null {
+export function madeAttempts(p: LeaderPlayer, key: LeaderStatKey): { made: number; att: number; text?: string } | null {
   const def = LEADER_STATS[key];
+  // 승률 칸 아래는 "31승 21패"
+  if (key === "winPct") return { made: p.wins ?? 0, att: (p.wins ?? 0) + (p.losses ?? 0), text: `${p.wins ?? 0}승 ${p.losses ?? 0}패` };
   if (def.kind === "zone") {
     const z = p.zones?.[def.zone!];
     return z ? { made: z.m, att: z.a } : null;
@@ -392,7 +399,8 @@ const NF0 = nf(0);
 const NF1 = nf(1);
 
 /** 성공/시도 표기, 예: "396/794" (시즌 합계 — 경기당 모드에서도 합계 그대로) */
-export function formatMadeAttempts(m: { made: number; att: number }): string {
+export function formatMadeAttempts(m: { made: number; att: number; text?: string }): string {
+  if (m.text) return m.text;
   return `${NF0.format(m.made)}/${NF0.format(m.att)}`;
 }
 

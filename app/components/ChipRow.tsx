@@ -8,6 +8,8 @@ export interface Chip<T extends string | number> {
   label: React.ReactNode;
   /** 스크린리더용 이름 (label 이 그림일 때) */
   aria?: string;
+  /** 다른 칩보다 눈에 띄게 (프라임 시즌): 안 고른 상태에서도 금색 테두리 */
+  highlight?: boolean;
 }
 
 interface Props<T extends string | number> {
@@ -36,7 +38,11 @@ export default function ChipRow<T extends string | number>({ label, chips, value
             aria-label={c.aria}
             onClick={() => onChange(c.value)}
             className={`focus-ring-inset flex h-10 shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-control border px-3 text-body font-semibold transition-colors duration-200 ${
-              on ? "border-ink bg-ink text-bg" : "border-line bg-surface text-ink-2 hover:bg-surface-2"
+              on
+                ? "border-ink bg-ink text-bg"
+                : c.highlight
+                  ? "border-[var(--grade-s)] bg-surface text-ink ring-1 ring-[var(--grade-s)] hover:bg-surface-2"
+                  : "border-line bg-surface text-ink-2 hover:bg-surface-2"
             }`}
           >
             {c.label}

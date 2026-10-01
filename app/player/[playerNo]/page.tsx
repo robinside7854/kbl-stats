@@ -17,6 +17,7 @@ import {
   playerShotSeasons,
   loadSeasonCards,
   loadSeasonData,
+  loadPrimeSeason,
   loadSimilarPlayers,
 } from "@/lib/data";
 import { activeSpanLabel, seoulDateIso } from "@/lib/career";
@@ -88,6 +89,7 @@ export default async function PlayerPage({ params }: { params: Params }) {
               shotSeasons={playerShotSeasons(playerNo, seasons.map((s) => s.seasonCode))}
               initialShots={loadPlayerShots(latest.seasonCode, playerNo)}
               similar={loadSimilarPlayers(playerNo)}
+              primeSeason={loadPrimeSeason(playerNo)}
             />
           ) : (
             trend

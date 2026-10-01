@@ -7,7 +7,7 @@
 import { useEffect, useRef, useState } from "react";
 import { PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart } from "recharts";
 import { compareBarShares, compareCardEntries, radarGeometry, rankShort, type SeasonCardView } from "@/lib/cardview";
-import { RADAR_AXES, RADAR_AXIS_LABELS } from "@/lib/metrics";
+import { gradeScore, RADAR_AXES, RADAR_AXIS_LABELS } from "@/lib/metrics";
 import { comparePairColors, ensureMarkContrast, FALLBACK_TEAM_COLOR } from "@/lib/teams";
 import { IconArrowUp } from "./icons";
 import PlayerAvatar from "./PlayerAvatar";
@@ -24,7 +24,7 @@ interface Props {
 }
 
 const RADAR_H = 280;
-const TICK = { w: 56, h: 30 };
+const TICK = { w: 70, h: 30 };
 
 /** 꼭짓점 라벨: 축 이름 + "A등급 · B등급" (글자는 잉크 색, 등급 옆 작은 색 점이 선수 구분) */
 function Tick(props: {
@@ -51,13 +51,15 @@ function Tick(props: {
         {RADAR_AXIS_LABELS[axis]}
       </text>
       {/* deslop-ignore-next-line 24 */}
-      <circle cx={bx - 17} cy={top + 23} r={3.5} fill={ca} />
-      <text x={bx - 9} y={top + 27} fontSize={12} fontWeight={800} fill={colors.ink}>
+      <circle cx={bx - 30} cy={top + 23} r={3.5} fill={ca} />
+      <text x={bx - 24} y={top + 27} fontSize={12} fontWeight={800} fill={colors.ink} style={{ fontVariantNumeric: "tabular-nums" }}>
         {a.entry.grades[axis]}
+        <tspan fontSize={10} fontWeight={600} fill={colors.ink2}>{gradeScore(a.entry.pct[axis]) ?? ""}</tspan>
       </text>
       <rect x={bx + 3} y={top + 19.5} width={7} height={7} fill={cb} />
-      <text x={bx + 13} y={top + 27} fontSize={12} fontWeight={800} fill={colors.ink}>
+      <text x={bx + 13} y={top + 27} fontSize={12} fontWeight={800} fill={colors.ink} style={{ fontVariantNumeric: "tabular-nums" }}>
         {b.entry.grades[axis]}
+        <tspan fontSize={10} fontWeight={600} fill={colors.ink2}>{gradeScore(b.entry.pct[axis]) ?? ""}</tspan>
       </text>
     </g>
   );

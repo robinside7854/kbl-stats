@@ -22,6 +22,7 @@ import { buildPlayerShotsFile, type PlayerShotsFile, type ShotPoint } from "./sh
 import { sumCareerTotals, type CareerTotal } from "./records";
 import { nationalityOf } from "./roster";
 import { findSimilar, toAxisVector, type SimilarEntry, type SimilarVector } from "./similar";
+import { pickPrimeSeasons, primeCandidatesOf, type PrimeCandidate } from "./prime";
 import { gradeGroupOf, isQualified, radarScore } from "./metrics";
 import { seasonGrading } from "./cardview";
 import { seasonLeaderMarks, type LeaderStatKey, type StatMode } from "./leaders";
@@ -381,6 +382,25 @@ export function loadSimilarPlayers(playerNo: string): Record<number, SimilarEntr
 }
 
 // ─────────────────────────────────────────────
+// 프라임 시즌 (lib/prime) — 전 시즌을 한 번 훑어 선수 번호 → 시즌 코드
+// ─────────────────────────────────────────────
+
+let primeSeasons: Map<string, number> | null = null;
+
+/** 그 선수의 프라임 시즌 코드 (표본 충족 시즌이 2개 미만이면 null) */
+export function loadPrimeSeason(playerNo: string): number | null {
+  if (!primeSeasons) {
+    const cands: PrimeCandidate[] = [];
+    for (const s of listSeasonsWithPlayers()) {
+      const cards = loadSeasonCards(s.seasonCode);
+      if (cards) cands.push(...primeCandidatesOf(cards));
+    }
+    primeSeasons = pickPrimeSeasons(cands);
+  }
+  return primeSeasons.get(playerNo) ?? null;
+}
+
+// ─────────────────────────────────────────────
 // 역대 통산 순위 (lib/records) — 전 시즌 선수 합계를 선수 번호로 더한다
 // ─────────────────────────────────────────────
 
@@ -413,6 +433,8 @@ export function loadCareerTotals(): CareerTotal[] {
         stl: p.stl,
         blk: p.blk,
         tpm: p.tpm,
+        wins: p.wins,
+        losses: p.losses,
       });
     }
   }

@@ -28,7 +28,9 @@ export type GlossaryKey =
   | "offenseTypes"
   | "similar"
   | "hustle"
-  | "records";
+  | "records"
+  | "winPct"
+  | "prime";
 
 /** 용어 화면의 묶음 (순서 = 화면 순서) */
 export type GlossaryGroup = "stats" | "grades" | "shots" | "etc";
@@ -147,9 +149,18 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     group: "grades",
     name: "백분위와 등급",
     short: "같은 시즌 선수 중 나보다 아래에 있는 선수의 비율입니다. 90이면 상위 10%입니다.",
-    note: "국내 선수는 국내 선수끼리, 외국인 선수는 외국인 선수끼리 비교합니다. 종합 등급 S는 상위 5%라 시즌마다 몇 명만 받습니다.",
+    note: "등급 옆 숫자는 백분위를 1~99점으로 나타낸 점수입니다. 국내·외국인 선수를 따로 비교하고, 종합 S는 상위 5%만 받습니다.",
     formula: "레이더 축: S 90 이상 · A 75 · B 55 · C 35 · D 15 / 종합: S 상위 5% · A 20% · B 45% · C 70% · D 90%",
     source: WIKI_PERCENTILE_RANK,
+  },
+  {
+    key: "prime",
+    group: "grades",
+    name: "프라임 시즌",
+    short: "그 선수가 가장 잘했던 시즌입니다. 시즌 칩에 금색으로 표시합니다.",
+    note: "종합 점수가 가장 높았던 시즌을 고릅니다. 같은 시즌 선수와 비교한 값이라 시대가 달라도 견줄 수 있습니다.",
+    formula: "10경기·100분 이상 뛴 시즌이 2개 이상인 선수만",
+    source: null,
   },
   {
     key: "radarAxes",
@@ -241,10 +252,19 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     source: null,
   },
   {
+    key: "winPct",
+    group: "etc",
+    name: "승률",
+    short: "그 선수가 뛴 경기에서 팀이 이긴 비율입니다. 결장한 경기는 빼고 셉니다.",
+    note: "팀 성적이 섞인 기록이라 개인 실력만 보여 주지는 않습니다.",
+    formula: "승 ÷ (승 + 패)",
+    source: null,
+  },
+  {
     key: "records",
     group: "etc",
     name: "역대 통산 순위",
-    short: "1997 시즌부터 정규시즌 기록을 선수별로 모두 더한 순위입니다.",
+    short: "1997 시즌부터 정규시즌 기록을 선수별로 모두 더한 순위입니다. 비교 탭의 '통산' 칩도 같은 합계입니다.",
     note: "시즌 기록을 더한 값이라 KBL 공식 통산 기록과 조금 다를 수 있습니다. 경기당 순위는 200경기 이상 뛴 선수만 넣습니다.",
     source: null,
   },
@@ -284,6 +304,8 @@ export const GLOSSARY_ANCHORS: Record<GlossaryKey, string> = {
   similar: "similar",
   hustle: "hustle",
   records: "records",
+  winPct: "win-pct",
+  prime: "prime",
 };
 
 /** 도움말 팝오버 한 개의 내용 (app/components/HelpPopover — 그 자리에서 뜨는 ⓘ 설명) */
@@ -325,6 +347,7 @@ export const LEADER_COLUMN_GLOSSARY: Readonly<Record<string, GlossaryKey>> = {
   tsPct: "tsPct",
   usgPct: "usgPct",
   per: "per",
+  winPct: "winPct",
   fgPct: "attempts",
   tpPct: "attempts",
   ftPct: "attempts",

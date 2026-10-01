@@ -42,7 +42,7 @@ export default function PlayerHero({ entry, seasons, today, badges }: Props) {
   const facts = [...profileFacts(entry), ...personalFacts(entry, today)];
   // 통산 타일 8칸: 경기 · 경기당 득점·리바운드·어시스트·스틸·블록 · 통산 야투%·3점%(성공 합계 ÷ 시도 합계). 계산은 careerSummary
   const tiles = [
-    { label: "통산 경기", value: NF0.format(sum.games), perGame: false },
+    { label: "통산 경기", value: NF0.format(sum.games), perGame: false, sub: `${NF0.format(sum.wins)}승 ${NF0.format(sum.losses)}패` },
     { label: "득점", value: NF1.format(sum.points), perGame: true },
     { label: "리바운드", value: NF1.format(sum.reb), perGame: true },
     { label: "어시스트", value: NF1.format(sum.ast), perGame: true },
@@ -127,11 +127,12 @@ export default function PlayerHero({ entry, seasons, today, badges }: Props) {
                 {t.label}
               </dt>
               <dd className="mt-0.5 text-xl font-bold tracking-tight text-ink sm:text-3xl lg:text-2xl">{t.value}</dd>
+              {"sub" in t && t.sub && <dd className="mt-0.5 truncate text-caption text-ink-3">{t.sub}</dd>}
             </div>
           ))}
         </dl>
         <p className="mt-1.5 text-caption text-ink-3">
-          통산 {sum.seasons}시즌 정규시즌 기준 · 득점~블록은 경기당(전 시즌 합계 ÷ 전 시즌 경기 수), 야투%·3점%는 전 시즌 성공 합계 ÷ 시도 합계
+          통산 {sum.seasons}시즌 정규시즌 · 득점~블록은 경기당 · 승패는 뛴 경기만{sum.winPct !== null ? ` (승률 ${NF1.format(sum.winPct)}%)` : ""}
         </p>
 
         <div className="mt-4">
