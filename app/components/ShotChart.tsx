@@ -3,7 +3,7 @@
 // - 코트는 직접 그린 SVG(차트 라이브러리 아님). 선 위치·viewBox 는 lib/shots courtGeometry(구역 판정과 같은 상수), 점 거르기는 courtPoints.
 // - 점: 성공 = 팀 색 채움(바탕 대비 3:1 보정), 실패 = ink-3 테두리만 — 색이 아니라 모양(채움/빈 원)으로도 구분된다.
 // - 구역 색 / 슛 위치 전환 (2026-10-01, NBA.com 핫/콜드 참고): 구역 색 = 구역 성공률 − 리그 평균(%p)을 발산형 색(파랑 낮음·회색·빨강 높음,
-//   ±10%p 에서 가장 진함, 시도 10개 미만은 회색). 구역 안 숫자는 성공률(ink 글자 + 표면색 테두리). 계산은 lib/shots zoneHeat·courtZoneShapes.
+//   ±10%p 에서 가장 진함, 시도 10개 미만은 빗금 — 회색은 "리그 평균과 비슷" 한 가지 뜻만). 구역 안 숫자는 성공률(ink 글자 + 표면색 테두리). 계산은 lib/shots zoneHeat·courtZoneShapes.
 // - 구역표: 구역 · 시도 비중 막대(팀 색) · 시도 · 성공률 · 리그 평균 · 리그 대비 %p. 리그보다 높으면 굵게. 계산은 lib/shots zoneRows.
 // - 시즌: 부모(PlayerSeasonCards)의 시즌 칩을 따른다. 첫 화면(최신 시즌)은 서버가 넣은 값(initial), 다른 시즌은
 //   우리 정적 파일 /shots/{시즌}/{선수}.json 을 받는다(빌드 전 scripts/build-shots.ts — KBL 호출 아님). 슛 데이터 없는 시즌은 받지 않고 한 줄 안내.
@@ -85,6 +85,10 @@ const COURT = courtGeometry();
 const ZONE_SHAPES = courtZoneShapes();
 /** 구역 숫자 글자 크기 (m) */
 const ZONE_FONT = 0.62;
+
+/** 표본 적음(시도 10개 미만) 표시: 회색 칠 대신 빗금 — 가운데 회색("리그 평균과 비슷")과 헷갈리지 않게 (2026-10-01 사용자 지적) */
+// deslop-ignore-next-line 06
+const HATCH_CSS = "repeating-linear-gradient(45deg, var(--ink-3) 0 1px, var(--surface) 1px 4px)";
 
 type ChartMode = "zones" | "dots";
 const MODE_OPTIONS: { value: ChartMode; label: string }[] = [
@@ -205,10 +209,18 @@ function ShotChartBody({ file, seasonShort, madeColor, missColor, lineColor, bar
           }
         >
           {mode === "zones" && (
+            <defs>
+              <pattern id={`${clipId}-hatch`} width={0.45} height={0.45} patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                <rect width={0.45} height={0.45} fill="var(--surface)" />
+                <line x1={0} y1={0} x2={0} y2={0.45} stroke="var(--ink-3)" strokeWidth={0.07} />
+              </pattern>
+            </defs>
+          )}
+          {mode === "zones" && (
             <g>
               {ZONE_SHAPES.map((z) => {
                 const heat = zoneHeat(rowByKey.get(z.key)!);
-                const fill = heat === null ? "var(--surface-2)" : divergingFill(heat);
+                const fill = heat === null ? `url(#${clipId}-hatch)` : divergingFill(heat);
                 return (
                   <g key={z.key} clipPath={z.clip ? `url(#${clipId}-${z.key})` : undefined}>
                     {z.clip && (
@@ -285,10 +297,18 @@ function ShotChartBody({ file, seasonShort, madeColor, missColor, lineColor, bar
                 리그보다 낮음
               </span>
               <span className="inline-flex items-center gap-1">
-                <span aria-hidden className="block h-2.5 w-5 rounded-md" style={{ background: divergingFill(1) }} />
-                높음 (±{ZONE_HEAT_RANGE}%p 이상 가장 진함)
+                <span aria-hidden className="block h-2.5 w-5 rounded-md" style={{ background: divergingFill(0) }} />
+                비슷
               </span>
-              <span className="text-ink-3">시도 {ZONE_HEAT_MIN_ATTEMPTS}개 미만은 회색</span>
+              <span className="inline-flex items-center gap-1">
+                <span aria-hidden className="block h-2.5 w-5 rounded-md" style={{ background: divergingFill(1) }} />
+                높음
+              </span>
+              <span className="inline-flex items-center gap-1">
+                <span aria-hidden className="block h-2.5 w-5 rounded-md border border-line" style={{ background: HATCH_CSS }} />
+                시도 {ZONE_HEAT_MIN_ATTEMPTS}개 미만
+              </span>
+              <span className="text-ink-3">±{ZONE_HEAT_RANGE}%p 이상이면 가장 진함</span>
             </>
           ) : (
             <>
@@ -355,7 +375,7 @@ function ShotChartBody({ file, seasonShort, madeColor, missColor, lineColor, bar
                       <span
                         aria-hidden
                         className="block h-2.5 w-2.5 rounded-sm"
-                        style={{ background: zoneHeat(r) === null ? "var(--surface-2)" : divergingFill(zoneHeat(r)!) }}
+                        style={{ background: zoneHeat(r) === null ? HATCH_CSS : divergingFill(zoneHeat(r)!) }}
                       />
                       {zoneDiffText(r) ?? "–"}
                     </span>

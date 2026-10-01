@@ -239,7 +239,7 @@ assert.equal(ageOn("19940131", "2026-09-30"), null);
 assert.equal(ageOn("2030-01-01", "2026-09-30"), null);
 assert.equal(seoulDateIso(new Date("2026-09-30T15:30:00Z")), "2026-10-01");
 assert.deepEqual(personalFacts({ birthday: "1994-01-31", country: "미국", school: "Stony brook" }, "2026-09-30"), [
-  { label: "나이", value: "만 32세" },
+  { label: "나이", value: "만 32세 (1994년생)" },
   { label: "국적", value: "미국" },
   { label: "출신교", value: "Stony brook" },
 ]);

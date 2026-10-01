@@ -246,7 +246,8 @@ export function personalFacts(
 ): ProfileFact[] {
   const out: ProfileFact[] = [];
   const age = ageOn(p.birthday, today);
-  if (age !== null) out.push({ label: "나이", value: `만 ${age}세` });
+  // 나이 옆 태어난 해 (2026-10-01 사용자 요청): "만 32세 (1994년생)"
+  if (age !== null) out.push({ label: "나이", value: `만 ${age}세 (${p.birthday!.slice(0, 4)}년생)` });
   if (p.country) out.push({ label: "국적", value: p.country });
   if (p.school) out.push({ label: "출신교", value: p.school });
   return out;
