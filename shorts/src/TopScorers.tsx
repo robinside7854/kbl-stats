@@ -31,7 +31,7 @@ export const prog = (frame: number, start: number, dur: number) =>
 /** 아래에서 올라오며 나타남 */
 export const rise = (p: number, dist = 36): CSSProperties => ({ opacity: p, transform: `translateY(${(1 - p) * dist}px)` });
 
-function useFont() {
+export function useFont() {
   const [handle] = useState(() => delayRender("Pretendard"));
   useEffect(() => {
     const face = new FontFace("Pretendard Variable", `url(${staticFile("fonts/PretendardVariable.woff2")}) format("woff2")`, {
@@ -499,7 +499,7 @@ function OutroScene({ props, scene }: { props: EpisodeProps; scene: EpisodeScene
 // 전체
 // ─────────────────────────────────────────────
 
-const SCENE: Record<EpisodeScene["kind"], (x: { props: EpisodeProps; scene: EpisodeScene }) => ReactNode> = {
+const SCENE: Record<"cover" | "player" | "compare" | "outro", (x: { props: EpisodeProps; scene: EpisodeScene }) => ReactNode> = {
   cover: CoverScene,
   player: PlayerScene,
   compare: CompareScene,
@@ -531,7 +531,7 @@ export function TopScorers(props: EpisodeProps) {
         const dur = Math.round(scene.seconds * FPS);
         const start = from;
         from += dur;
-        const Comp = SCENE[scene.kind];
+        const Comp = SCENE[scene.kind as keyof typeof SCENE];
         return (
           <Sequence key={scene.id} from={start} durationInFrames={dur} name={scene.id}>
             <Comp props={props} scene={scene} />

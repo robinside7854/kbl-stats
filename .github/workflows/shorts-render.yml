@@ -13,8 +13,11 @@
 # 작업 (아래 "작업" 줄에 공백으로): render = 영상, voices = 목소리 후보 샘플(scripts/eleven-voices.ts), bgm = 배경음악 만들기(scripts/eleven-bgm.ts)
 #   배경음악은 한 번 만들면 shorts-renders 브랜치 bgm/ 에 두고 렌더마다 재사용한다
 #
-# 실행 횟수: 0
+# 에피소드 (렌더할 것만, 공백으로): top5 = 지난 시즌 득점 TOP 5(scripts/build-short.ts), milestones = 개막전 대기록(build-short-milestones.ts),
+#   quiz = 슛 차트 퀴즈(build-short-quiz.ts). 포맷마다 디자인·컴포지션이 다르다(에피소드 JSON 의 composition)
+# 실행 횟수: 1
 # 작업: render
+# 에피소드: milestones quiz
 name: 숏폼 렌더
 
 on:
@@ -87,9 +90,28 @@ jobs:
           SHORTS_TEMPO: ${{ vars.SHORTS_TEMPO }}
         run: npx tsx scripts/eleven-voices.ts
 
-      - name: 에피소드 만들기 (지난 시즌 국내 득점 TOP 5)
+      - name: 현역 명단 (개막전 대기록용, 실패해도 계속)
         if: steps.gate.outputs.run == 'true' && steps.gate.outputs.render == 'true'
-        run: npx tsx scripts/build-short.ts
+        run: |
+          eps=$(grep -m1 -E '^# 에피소드:' .github/workflows/shorts-render.yml | sed 's/^# 에피소드://')
+          case " $eps " in *" milestones "*) npx tsx scripts/fetch-active.ts || echo "::warning::현역 명단을 못 받음 — 지난 시즌 명단으로 대신";; esac
+
+      - name: 에피소드 만들기
+        if: steps.gate.outputs.run == 'true' && steps.gate.outputs.render == 'true'
+        run: |
+          eps=$(grep -m1 -E '^# 에피소드:' .github/workflows/shorts-render.yml | sed 's/^# 에피소드://')
+          : > /tmp/episodes.txt
+          for e in $eps; do
+            case "$e" in
+              top5) script=scripts/build-short.ts ;;
+              milestones) script=scripts/build-short-milestones.ts ;;
+              quiz) script=scripts/build-short-quiz.ts ;;
+              *) echo "::error::모르는 에피소드 $e"; exit 1 ;;
+            esac
+            npx tsx "$script" | tee /tmp/build.log
+            grep -oE 'shorts/episodes/[^ ]+/episode.json' /tmp/build.log | head -1 >> /tmp/episodes.txt
+          done
+          cat /tmp/episodes.txt
 
       - name: 배경음악 준비 (이번에 만든 것 → 없으면 shorts-renders 브랜치 bgm/sports.mp3)
         if: steps.gate.outputs.run == 'true' && steps.gate.outputs.render == 'true'
@@ -109,19 +131,22 @@ jobs:
           SHORTS_TEMPO: ${{ vars.SHORTS_TEMPO }}
           GOOGLE_TTS_API_KEY: ${{ secrets.GOOGLE_TTS_API_KEY }}
         run: |
-          for f in shorts/episodes/*/episode.json; do npx tsx scripts/prepare-short.ts "$f"; done
+          while read -r f <&3; do npx tsx scripts/prepare-short.ts "$f"; done 3< /tmp/episodes.txt
 
       - name: 렌더 (1080×1920 mp4)
         if: steps.gate.outputs.run == 'true' && steps.gate.outputs.render == 'true'
         run: |
           mkdir -p shorts/out
           cd shorts
-          for d in public/*/props.json; do
-            slug=$(basename "$(dirname "$d")")
-            npx remotion render src/index.ts TopScorers "out/$slug.mp4" --props="$d" --codec=h264 --crf=18 --concurrency=100% --log=warn
+          while read -r f <&3; do
+            slug=$(basename "$(dirname "$f")")
+            d="public/$slug/props.json"
+            comp=$(node -e "console.log(require('./$d').composition || 'TopScorers')")
+            echo "렌더: $slug ($comp)"
+            npx remotion render src/index.ts "$comp" "out/$slug.mp4" --props="$d" --codec=h264 --crf=18 --concurrency=100% --log=warn
             cp "public/$slug/upload.txt" "out/$slug.txt"
             npx remotion ffprobe -v error -show_entries format=duration,size -of default=nw=1 "out/$slug.mp4"
-          done
+          done 3< /tmp/episodes.txt
 
       - uses: actions/upload-artifact@v4
         if: steps.gate.outputs.run == 'true'

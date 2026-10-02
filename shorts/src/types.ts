@@ -52,7 +52,7 @@ export interface CourtZone {
 
 export interface EpisodeScene {
   id: string;
-  kind: "cover" | "player" | "compare" | "outro";
+  kind: "cover" | "player" | "compare" | "outro" | "milestone" | "question" | "answer";
   playerNo?: string;
   caption: string;
   chunks: string[];

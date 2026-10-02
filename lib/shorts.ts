@@ -89,7 +89,7 @@ export interface Callout {
 /** 가장 큰 출처 비중이 이 값 미만이면 "균형형" — 한쪽으로 쏠리지 않은 득점 */
 export const BALANCED_MAX_SHARE = 40;
 
-const particle = (word: string, withBatchim: string, without: string) => {
+export const particle = (word: string, withBatchim: string, without: string) => {
   const last = word.charCodeAt(word.length - 1);
   if (last < 0xac00 || last > 0xd7a3) {
     // 숫자·영문 끝: "3점" 처럼 한글로 끝나는 경우만 받침 판정, 그 밖은 받침 없음 처리

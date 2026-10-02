@@ -170,3 +170,35 @@ import { insightCasual, outOfTen } from "../lib/shorts";
   assert.match(lines[4], /^득점 절반 이상이 3점\. 자유투는 5명 중 제일 적음/);
 }
 console.log("shorts: 캐주얼 설명 통과");
+
+// 새 포맷: 개막전 대기록·슛 차트 퀴즈 (2026-10-02)
+import { countWords, ordinalWords, pickMilestones, milestoneLine, pickQuiz, quizQuestionLine, quizAnswerLine } from "../lib/shorts-formats";
+{
+  assert.equal(countWords(2, "개"), "두 개");
+  assert.equal(countWords(3, "경기"), "세 경기");
+  assert.equal(countWords(15, "점"), "15점");
+  assert.equal(ordinalWords(2), "두 번째");
+  assert.equal(ordinalWords(1), "첫 번째");
+  const base = { games: 100, points: 0, reb: 0, ast: 0, stl: 0, blk: 0, tpm: 0, wins: 0 };
+  const all = [
+    { ...base, playerNo: "a", name: "가", tpm: 1198, games: 700 }, // 3점 1200까지 2개
+    { ...base, playerNo: "b", name: "나", tpm: 1669, games: 600 }, // 이미 넘은 선수 (역대 1명)
+    { ...base, playerNo: "c", name: "다", points: 1985, games: 100 }, // 득점 2000까지 15점
+    { ...base, playerNo: "d", name: "라", tpm: 98, games: 50 }, // 첫 단계(100개)는 빼야 함
+    ...[1, 2, 3].map((k) => ({ ...base, playerNo: `x${k}`, name: `은퇴${k}`, points: 5000 + k })), // 득점 2000 넘은 은퇴 선수 셋 → "다"는 역대 4번째
+  ];
+  const picks = pickMilestones(all, new Set(["a", "c", "d"]));
+  assert.deepEqual(picks.map((p) => p.playerNo), ["c", "a"]); // 희귀한(역대 2번째) 기록이 마지막
+  assert.equal(picks[1].nth, 2);
+  assert.equal(milestoneLine({ pick: picks[1], team: "DB", movedFrom: null, index: 1, last: true }), "그리고 마지막, DB의 가! 3점 1200개까지 딱 두 개 남았는데, 달성하면 KBL 역대 두 번째야.");
+  assert.match(milestoneLine({ pick: picks[0], team: "DB", movedFrom: "현대모비스", index: 0, last: false }), /^먼저 이번에 DB로 옮긴 다는 득점 2000점까지 15점 남았어/);
+  const q = pickQuiz([
+    { playerNo: "1", name: "센터", team: "LG", position: "센터", ppg: 16, inside: 88, mid: 10, three: 2, shots: 500 },
+    { playerNo: "2", name: "슈터", team: "KCC", position: "가드", ppg: 16.4, inside: 26, mid: 16, three: 58, shots: 500 },
+    { playerNo: "3", name: "에이스", team: "SK", position: "센터", ppg: 23.2, inside: 52, mid: 20, three: 28, shots: 900 },
+  ]);
+  assert.deepEqual(q.map((x) => x.kind), ["inside", "three", "leader"]);
+  assert.match(quizQuestionLine(q[0], 0), /^첫 번째 문제\. 3점은 거의 안 던지고, 슛 88%가 페인트 안이야\. 누굴까\? 셋, 둘, 하나!$/);
+  assert.equal(quizAnswerLine(q[2]), "정답은 SK의 에이스! 경기당 23.2점이었어.");
+}
+console.log("shorts: 개막전 대기록·퀴즈 통과");
