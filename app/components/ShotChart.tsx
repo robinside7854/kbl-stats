@@ -28,6 +28,7 @@ import { IconInfo } from "./icons";
 import InfoLink from "./InfoLink";
 import Skeleton from "./Skeleton";
 import { useThemeColors } from "./useThemeColors";
+import { trackFilters } from "./track";
 
 // 선수·시즌 파일은 한 번만 받는다 (시즌 칩을 오가도 다시 받지 않음)
 const cache = new Map<string, Promise<PlayerShotsFile>>();
@@ -195,7 +196,7 @@ function ShotChartBody({ file, seasonShort, madeColor, missColor, lineColor, bar
       <figure className="surface-card rounded-container p-2">
         {hasLeagueRows && (
           <div className="mb-1.5 flex justify-end">
-            <Segmented label="슛 차트 보기" options={MODE_OPTIONS} value={mode} onChange={setMode} />
+            <Segmented label="슛 차트 보기" options={MODE_OPTIONS} value={mode} onChange={(v) => { trackFilters("shot_chart", { view: v }); setMode(v); }} />
           </div>
         )}
         <svg

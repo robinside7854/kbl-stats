@@ -57,6 +57,7 @@ import TeamLogo from "./TeamLogo";
 import { primeSeasonCards, useSeasonCards } from "./useSeasonCards";
 import { useThemeColors, type ThemeColors } from "./useThemeColors";
 import { FALLBACK_TEAM_COLOR, gradeTone } from "@/lib/teams";
+import { trackFilters } from "./track";
 
 interface Props {
   /** 선수가 있는 시즌 (최신이 먼저) */
@@ -183,7 +184,10 @@ export default function PlayersView({ seasons, latest, initialFile, topBadges, b
     [all, state.position, state.origin, teamCode, badge, badgeKeys, school, schools],
   );
   const { shown, remaining } = takeFirst(filtered, limit);
-  const update = (patch: Partial<PlayersState>) => setState((s) => ({ ...s, ...patch }));
+  const update = (patch: Partial<PlayersState>) => {
+    trackFilters("players", patch);
+    setState((s) => ({ ...s, ...patch }));
+  };
   // 불러오는 동안 제목은 고른 시즌으로 (그리드는 스켈레톤)
   const headSeason = status === "loading" ? state.season : shownSeason;
   const seasonLabel = seasons.find((s) => s.seasonCode === headSeason)?.seasonLabel ?? String(headSeason);

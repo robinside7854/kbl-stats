@@ -21,6 +21,7 @@ import ChipRow from "./ChipRow";
 import InfoLink from "./InfoLink";
 import PlayerAvatar from "./PlayerAvatar";
 import Segmented from "./Segmented";
+import { trackFilters } from "./track";
 
 const MODE_OPTIONS: { value: RecordMode; label: string }[] = [
   { value: "total", label: "통산 합계" },
@@ -77,14 +78,17 @@ export default function RecordsView({ totals, spanLabel, latestSeasonCode }: { t
         </h1>
       </header>
 
-      <ChipRow label="부문 선택" scroll chips={RECORD_STATS.map((d) => ({ value: d.key, label: d.label }))} value={cat} onChange={setCat} />
+      <ChipRow label="부문 선택" scroll chips={RECORD_STATS.map((d) => ({ value: d.key, label: d.label }))} value={cat} onChange={(v) => { trackFilters("records", { category: v }); setCat(v); }} />
       <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
-        {def.perGame && <Segmented label="통산 합계 또는 경기당" options={MODE_OPTIONS} value={mode} onChange={setMode} />}
-        <Segmented label="국적" options={ORIGIN_OPTIONS} value={origin} onChange={setOrigin} />
+        {def.perGame && <Segmented label="통산 합계 또는 경기당" options={MODE_OPTIONS} value={mode} onChange={(v) => { trackFilters("records", { mode: v }); setMode(v); }} />}
+        <Segmented label="국적" options={ORIGIN_OPTIONS} value={origin} onChange={(v) => { trackFilters("records", { origin: v }); setOrigin(v); }} />
         <button
           type="button"
           aria-pressed={activeOnly}
-          onClick={() => setActiveOnly((v) => !v)}
+          onClick={() => {
+            trackFilters("records", { active_only: !activeOnly });
+            setActiveOnly((v) => !v);
+          }}
           className={`focus-ring-inset flex h-10 cursor-pointer items-center whitespace-nowrap rounded-control border px-3 text-body font-semibold transition-colors duration-200 ${
             activeOnly ? "border-ink bg-ink text-bg" : "border-line bg-surface text-ink-2 hover:bg-surface-2"
           }`}
