@@ -1,7 +1,8 @@
 # 팬 숏폼(YouTube Shorts) 렌더 — 에피소드 JSON → AI 목소리 + 사진 → mp4 (scripts/build-short.ts · prepare-short.ts · shorts/)
 # 영상은 사이트가 아니라 유튜브에 올린다. 업로드와 "공개" 버튼은 사람이 한다(2026-10-02 사용자 결정).
 #
-# 실행 방법: 아래 "실행 횟수" 숫자를 1 올려 푸시 (main 또는 claude/ 작업 브랜치). 0 이면 아무것도 하지 않는다.
+# 실행 방법: 아래 "실행 횟수" 숫자를 0 이 아닌 값으로 바꿔 claude/ 작업 브랜치에 푸시. 0 이면 아무것도 하지 않는다.
+# (main 은 트리거에서 뺐다 — main 병합 때마다 같은 영상을 또 만들어 ElevenLabs 글자 수를 쓰지 않게. 렌더가 끝나면 0 으로 되돌린다)
 # 결과:
 #   - Actions 실행 화면 아래 Artifacts 에 mp4 + upload.txt(제목·설명·태그)
 #   - shorts-renders 브랜치에 같은 파일 (휴대폰에서 GitHub 앱으로 받기 쉽게)
@@ -10,13 +11,13 @@
 #   없으면 GOOGLE_TTS_API_KEY → Google Cloud TTS, 그것도 없으면 edge-tts(키 없는 시제품용)
 #   말투 조절은 Variables 에 ELEVENLABS_MODEL·ELEVENLABS_STABILITY·ELEVENLABS_STYLE·ELEVENLABS_SPEED (없으면 기본값)
 #
-# 실행 횟수: 8
+# 실행 횟수: 0
 name: 숏폼 렌더
 
 on:
   workflow_dispatch:
   push:
-    branches: [main, "claude/**"]
+    branches: ["claude/**"]
     paths:
       - ".github/workflows/shorts-render.yml"
 

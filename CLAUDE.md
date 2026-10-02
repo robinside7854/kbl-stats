@@ -296,6 +296,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-02 (숏폼 3차: ElevenLabs 첫 렌더): 실패 2번(① Secrets 에 키 ID 를 넣음 → `sk_` 키로 교체 ② 무료 플랜은 Voice Library 목소리를 API 로 못 씀 → 사용자 Starter 업그레이드) 뒤 성공 — 64.3초, 목소리 15초·설치 19초(ffmpeg·edge-tts 설치 생략, Remotion 내장 ffprobe). 렌더 워크플로는 claude/** 브랜치만 트리거(main 병합 때 중복 렌더로 ElevenLabs 글자 수 낭비 방지), 끝나면 실행 횟수 0. 사용자 요청: 렌더 실패는 즉시 알릴 것 — 렌더를 걸면 단계별로 확인한다.
 - 2026-10-02 (푸터 개발자 정보): 모든 화면 푸터에 "만든 사람: ksr-admin · 문의 kbl-stats-ref@naver.com"(`DeveloperContact`, 값은 `data/codes/site.json developer`). 이메일은 브라우저에서 이어 붙여 정적 HTML 에는 "[at]" 글자만(빌드 HTML 에 주소 0건 확인), 누르면 메일 앱, GA4 `contact_click`(매개변수 없음). 검증: typecheck·test·build·slop 0, Playwright 390 mailto 링크 확인. main 배포.
 - 2026-10-02 (배포 한도): 운영 배포 누락 원인 = Vercel Hobby 하루 배포 100회 초과(`api-deployments-free-per-day`, 미리보기 포함해서 셈). 사용자 결정으로 `vercel.json` 추가 — main 만 배포, 다른 브랜치는 배포 안 함(`"**": false, "main": true`, 여러 규칙이 맞으면 하나라도 true 면 배포). 한도가 풀린 뒤 첫 main 배포부터 적용, 그때 54-0 후보 표 변경도 같이 반영됨. 배포 규칙에 "main 푸시는 요청 단위로 묶기" 추가.
 - 2026-10-02 (운영 배포 누락): 54-0 후보 표 커밋(fa8ebb12·7fafe102)을 main 에 올렸는데 Vercel 운영(Production) 배포가 생기지 않음 — 브랜치 미리보기만 Ready, 운영은 그 전 7d8b805 에 머묾(그 사이 main 의 숏폼 커밋도 운영 배포 없음). 이 기록 커밋으로 main 배포를 다시 시도. 원인 후보: Vercel Hobby 하루 배포 100회 한도·웹훅 누락. **main 에 올린 뒤에는 Deployments 에 Production 줄이 생겼는지 사용자에게 확인받을 것.**
