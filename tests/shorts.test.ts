@@ -104,3 +104,39 @@ for (const [i, sources] of top5.entries()) {
 // 유일한 포지션이 가드면(가드는 페인트 이유가 안 됨) 포지션 문구를 붙이지 않는다
 assert.doesNotMatch(topScorerLine({ rank: 3, name: "안영준", ppg: 15, sources: top5[2], callout: c[2], tpPct: 30, ftPct: 80, onlyPosition: "가드" }).caption, /유일한/);
 console.log("shorts: v3 태그·빠르기 시각·짧은 대사 통과");
+
+// 선수별 인사이트 — 다섯 명이 서로 다른 화면 + 비교가 들어간 대사 (2026-10-02)
+import { buildInsight, insightLine, timesWords } from "../lib/shorts";
+{
+  const groups = ["G", "G", "F", "G", "G"];
+  const ctx = {
+    five: top5.map((sources, i) => ({ sources, callout: c[i], positionGroup: groups[i] })),
+    leaguePpg: [18.6, 16.4, 14.9, 13.1, 12.8, 9, 8, 7, 6, 5, 4, 3, 2, 1],
+    leagueFta: [
+      { id: "a", name: "이정현", value: 5.16 },
+      { id: "c", name: "안영준", value: 3.32 },
+      { id: "b", name: "허웅", value: 3.09 },
+    ],
+  };
+  const ids = ["a", "b", "c", "d", "e"];
+  const names = ["이정현", "허웅", "안영준", "허훈", "서명진"];
+  const ins = top5.map((_, i) => buildInsight(i, ctx, { id: ids[i], ftm: 221, games: 49 }));
+  assert.deepEqual(ins.map((x) => x.layout), ["counter", "ladder", "lineup", "split", "shotmap"]);
+  assert.equal(new Set(ins.map((x) => x.layout)).size, 5, "다섯 명이 다른 화면");
+  const ladder = ins[1] as Extract<(typeof ins)[number], { layout: "ladder" }>;
+  assert.equal(ladder.beaten, 8); // 8.4 미만 경기당 득점
+  assert.equal(timesWords(5.16 / 3.32), "1.5배");
+  const lines = ins.map((x, i) => insightLine({ rank: i + 1, name: names[i], ppg: 15, sources: top5[i], callout: c[i], tpPct: 40.6, ftPct: 87 }, x).caption);
+  assert.match(lines[0], /자유투를 진짜 잘 뜯어내요.*국내 1위, 2위보다 1\.5배/);
+  assert.match(lines[2], /유일한 포워드예요.*페인트/);
+  assert.match(lines[3], /안 39%, 밖 36%/);
+  assert.match(lines[4], /자유투는 제일 적어요/);
+  for (const l of lines) {
+    assert.ok(l.length <= 52, `${l.length}자: ${l}`);
+    assert.ok(!/의외로|기록했|나타났|대망의|비밀은|—/.test(l), l);
+  }
+  // 가드가 유일한 포지션이면 lineup 이 아니다
+  const g = buildInsight(2, { ...ctx, five: ctx.five.map((x, i) => ({ ...x, positionGroup: i === 2 ? "G" : "F" })) }, { id: "c", ftm: 95, games: 37 });
+  assert.notEqual(g.layout, "lineup");
+}
+console.log("shorts: 선수별 인사이트 통과");

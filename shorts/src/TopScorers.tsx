@@ -18,17 +18,18 @@ import {
 } from "remotion";
 import { C, FONT, FPS, SAFE, SOURCE_COLOR } from "./theme";
 import type { EpisodePlayer, EpisodeProps, EpisodeScene, ScoringSource } from "./types";
+import { INSIGHT_SCENES } from "./InsightScenes";
 
 // ─────────────────────────────────────────────
 // 공통
 // ─────────────────────────────────────────────
 
-const EASE = Easing.bezier(0.2, 0.8, 0.2, 1);
+export const EASE = Easing.bezier(0.2, 0.8, 0.2, 1);
 /** frame 이 start 에서 dur 프레임 동안 0 → 1 */
-const prog = (frame: number, start: number, dur: number) =>
+export const prog = (frame: number, start: number, dur: number) =>
   interpolate(frame, [start, start + dur], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: EASE });
 /** 아래에서 올라오며 나타남 */
-const rise = (p: number, dist = 36): CSSProperties => ({ opacity: p, transform: `translateY(${(1 - p) * dist}px)` });
+export const rise = (p: number, dist = 36): CSSProperties => ({ opacity: p, transform: `translateY(${(1 - p) * dist}px)` });
 
 function useFont() {
   const [handle] = useState(() => delayRender("Pretendard"));
@@ -46,7 +47,7 @@ function useFont() {
   }, [handle]);
 }
 
-const text = (size: number, weight: number, color: string = C.ink, extra: CSSProperties = {}): CSSProperties => ({
+export const text = (size: number, weight: number, color: string = C.ink, extra: CSSProperties = {}): CSSProperties => ({
   fontFamily: FONT,
   fontSize: size,
   fontWeight: weight,
@@ -57,7 +58,7 @@ const text = (size: number, weight: number, color: string = C.ink, extra: CSSPro
   ...extra,
 });
 
-function Masthead({ season, section }: { season: string; section: string }) {
+export function Masthead({ season, section }: { season: string; section: string }) {
   return (
     <div style={{ position: "absolute", left: SAFE.left, right: W_PAD, top: SAFE.top }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
@@ -71,9 +72,9 @@ function Masthead({ season, section }: { season: string; section: string }) {
     </div>
   );
 }
-const W_PAD = 1080 - SAFE.right;
+export const W_PAD = 1080 - SAFE.right;
 
-function Credits() {
+export function Credits() {
   return (
     <div style={{ position: "absolute", left: SAFE.left, right: W_PAD, top: SAFE.bottom - 4, ...text(20, 500, C.ink3) }}>
       기록 KBL 공식 홈페이지 · 사진 © KBL 및 각 구단 · 비영리 팬 채널
@@ -82,7 +83,7 @@ function Credits() {
 }
 
 /** 자막 — 대본 조각을 글자 수 비율로 나눠 보여 준다 */
-function Caption({ scene }: { scene: EpisodeScene }) {
+export function Caption({ scene }: { scene: EpisodeScene }) {
   const frame = useCurrentFrame();
   const speak = Math.max(1, (scene.seconds - 0.25) * FPS);
   const lens = scene.chunks.map((c) => c.replace(/\s+/g, "").length || 1);
@@ -123,7 +124,7 @@ function initials(name: string) {
 }
 
 /** 선수 사진 — 없으면 팀 색 바탕 + 이름 글자 (사이트 대체 디자인과 같은 규칙) */
-function Photo({ p, width, height, style }: { p: EpisodePlayer; width: number; height: number; style?: CSSProperties }) {
+export function Photo({ p, width, height, style }: { p: EpisodePlayer; width: number; height: number; style?: CSSProperties }) {
   return (
     <div style={{ position: "relative", width, height, background: p.team.color, overflow: "hidden", ...style }}>
       {p.photoFile ? (
@@ -147,7 +148,7 @@ function Photo({ p, width, height, style }: { p: EpisodePlayer; width: number; h
   );
 }
 
-function TeamMark({ p, size }: { p: EpisodePlayer; size: number }) {
+export function TeamMark({ p, size }: { p: EpisodePlayer; size: number }) {
   if (!p.team.logoFile) return null;
   return <Img src={staticFile(p.team.logoFile)} style={{ width: size, height: size, objectFit: "contain" }} />;
 }
@@ -223,7 +224,7 @@ function ShotInset({ p, court, width, appear }: { p: EpisodePlayer; court: Episo
   );
 }
 
-function CountUp({ value, p, decimals = 1 }: { value: number; p: number; decimals?: number }) {
+export function CountUp({ value, p, decimals = 1 }: { value: number; p: number; decimals?: number }) {
   return <>{(value * p).toFixed(decimals)}</>;
 }
 
@@ -292,8 +293,15 @@ function CoverScene({ props, scene }: { props: EpisodeProps; scene: EpisodeScene
 }
 
 function PlayerScene({ props, scene }: { props: EpisodeProps; scene: EpisodeScene }) {
-  const frame = useCurrentFrame();
   const p = props.players.find((x) => x.playerNo === scene.playerNo)!;
+  // 선수마다 특징에 맞는 다른 화면 (lib/shorts buildInsight) — classic 만 아래 공통 틀
+  const Insight = p.insight && p.insight.layout !== "classic" ? INSIGHT_SCENES[p.insight.layout] : null;
+  if (Insight) return <Insight props={props} scene={scene} p={p} />;
+  return <ClassicPlayerScene props={props} scene={scene} p={p} />;
+}
+
+function ClassicPlayerScene({ props, scene, p }: { props: EpisodeProps; scene: EpisodeScene; p: EpisodePlayer }) {
+  const frame = useCurrentFrame();
   const meta = [p.team.name, p.position, `${p.games}경기 · 경기당 ${p.mpg}분`].filter(Boolean).join(" · ");
   const bar = prog(frame, 14, 22);
   const top = [...p.sources].sort((a, b) => b.share - a.share)[0];
@@ -383,8 +391,8 @@ function CompareScene({ props, scene }: { props: EpisodeProps; scene: EpisodeSce
     <AbsoluteFill>
       <Masthead season={props.seasonLabel} section="한눈에 비교" />
       <div style={{ position: "absolute", left: SAFE.left, top: 236, ...rise(prog(frame, 0, 10)) }}>
-        <div style={text(84, 900)}>득점은 어디서 나왔나</div>
-        <div style={text(26, 600, C.ink2, { marginTop: 10 })}>득점 중 비중 · 2점은 슛 위치(공식 슛 차트) 기준으로 나눔</div>
+        <div style={text(96, 900)}>올 시즌 득점왕은?</div>
+        <div style={text(28, 600, C.ink2, { marginTop: 10 })}>지난 시즌 TOP 5 득점 출처 · 2점은 공식 슛 차트 위치로 나눔</div>
         <div style={{ marginTop: 26 }}>
           <Legend />
         </div>

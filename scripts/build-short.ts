@@ -10,17 +10,18 @@ import path from "node:path";
 import { toLeaderPlayers } from "../lib/convert";
 import { filterLeaders, topLeaders } from "../lib/leaders";
 import { DEFAULT_QUALIFY } from "../lib/metrics";
-import { courtGeometry, courtPoints, type ShotPoint } from "../lib/shots";
+import { courtGeometry, courtPoints, courtZoneShapes, isThreePx, PX_PER_M, shotZone, type ShotPoint } from "../lib/shots";
 import { OFFENSE_TYPES } from "../lib/glossary";
 import { seasonShortLabel } from "../lib/career";
 import {
+  buildInsight,
   captionChunks,
+  insightLine,
   pickCallouts,
   sampleShots,
   scoringBreakdown,
   SCORING_SOURCES,
   toSpeech,
-  topScorerLine,
   type ScoringSource,
 } from "../lib/shorts";
 import type { SeasonData } from "../lib/types";
@@ -91,12 +92,28 @@ const onlyPositionOf = (i: number) => {
   return g && groups.filter((x) => x === g).length === 1 ? GROUP_NAME[g] ?? null : null;
 };
 
+// 인사이트 비교 집단 = 같은 국내 표본 충족 선수들 (득점 순위와 같은 집단)
+const poolRaw = pool.map((l) => rawOf.get(l.id)!).filter((r) => r.games > 0);
+const insightCtx = {
+  five: top.map(({ player }, i) => ({ sources: breakdowns[i], callout: callouts[i], positionGroup: groups[i] })),
+  leaguePpg: poolRaw.map((r) => r.points / r.games),
+  leagueFta: poolRaw.map((r) => ({ id: r.playerNo, name: r.nameKo, value: r.fta / r.games })),
+};
+
+// 슛 점에 득점 출처 번호를 붙인다 (0 페인트(골밑 포함) · 1 미드 · 2 3점) — 장면이 그 구역 점만 강조
+const SOURCE_INDEX = { rim: 0, paint: 0, mid: 1, corner3: 2, arc3: 2 } as const;
+const tagShot = (pt: ShotPoint): [number, number, number, number] => {
+  const three = isThreePx(Math.abs(pt[0]) * PX_PER_M, Math.abs(pt[1]) * PX_PER_M);
+  return [pt[0], pt[1], pt[2], SOURCE_INDEX[shotZone({ x: pt[0], y: pt[1], three })]];
+};
+
 const players = top.map(({ player, value, rank }, i) => {
   const raw = rawOf.get(player.id)!;
   const team = teamOf.get(player.teamCode);
   const offense = raw.shotZones?.offenseType ?? null;
   const pts = courtPoints(shotsBy[player.id] ?? []);
-  const line = topScorerLine({
+  const insight = buildInsight(i, insightCtx, { id: player.id, ftm: raw.ftm, games: raw.games });
+  const line = insightLine({
     rank,
     name: player.nameKo,
     ppg: Math.round(value * 10) / 10,
@@ -105,7 +122,7 @@ const players = top.map(({ player, value, rank }, i) => {
     tpPct: raw.tpPct,
     ftPct: raw.ftPct,
     onlyPosition: onlyPositionOf(i),
-  });
+  }, insight);
   return {
     rank,
     playerNo: player.id,
@@ -130,7 +147,12 @@ const players = top.map(({ player, value, rank }, i) => {
     callout: callouts[i],
     offenseType: offense ? (OFFENSE_TYPES.find((t) => t.key === offense)?.label ?? null) : null,
     // 슛 점: 실패 먼저·성공 나중 (성공이 위에 그려지게), 각 최대 260개
-    shots: { missed: sampleShots(pts.missed, 260), made: sampleShots(pts.made, 260), total: pts.missed.length + pts.made.length },
+    shots: {
+      missed: sampleShots(pts.missed, 260).map(tagShot),
+      made: sampleShots(pts.made, 260).map(tagShot),
+      total: pts.missed.length + pts.made.length,
+    },
+    insight,
     line,
   };
 });
@@ -158,7 +180,7 @@ const scenes = [
   {
     id: "compare",
     kind: "compare" as const,
-    caption: "여러분 팀 에이스는 어떤 스타일? 댓글로 알려 줘요!",
+    caption: "올 시즌 득점왕은 누가 될까요? 댓글로 찍어 주세요!",
   },
 ].map((s) => ({ ...s, speech: toSpeech(s.caption), chunks: captionChunks(s.caption) }));
 
@@ -183,7 +205,7 @@ const episode = {
   ].join("\n"),
   tags: ["KBL", "농구", "프로농구", ...players.map((p) => p.name), "shorts"],
   sourceSources: SCORING_SOURCES.map((s) => ({ key: s.key, label: s.label })),
-  court: { viewBox: court.viewBox, lines: court.lines, rim: court.rim },
+  court: { viewBox: court.viewBox, lines: court.lines, rim: court.rim, zones: courtZoneShapes() },
   players,
   scenes,
 };

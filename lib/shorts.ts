@@ -299,6 +299,145 @@ export function topScorerLine(p: TopScorerScriptInput): ScriptLine {
   return { caption: line, speech: line };
 }
 
+// ─────────────────────────────────────────────
+// 선수별 인사이트 — 장면마다 다른 화면(layout)과 "숫자를 읽는 게 아니라 뜻을 말하는" 대사
+// (2026-10-02 사용자: "다섯 명이 같은 틀로 흘러가 단조롭다, 특징을 인사이트로")
+// 규칙: 그 선수의 특징(callout) → 화면 하나. 숫자는 전부 데이터에서, 비교 대상(다섯 명·국내 선수)을 같이 말한다.
+// ─────────────────────────────────────────────
+
+export type InsightLayout = "shotmap" | "split" | "lineup" | "ladder" | "counter" | "classic";
+
+export type Insight =
+  /** 슛 지도 — 그 출처 구역에 불을 켠다. lowFtShare: 다섯 명 중 자유투 비중 꼴찌면 그 값 */
+  | { layout: "shotmap"; focus: ScoringSourceKey; share: number; lowFtShare: number | null }
+  /** 저울 — 두 출처가 거의 같다 */
+  | { layout: "split"; a: ScoringSource; b: ScoringSource }
+  /** 다섯 명 포지션 줄 — 혼자 다른 포지션 → 그래서 이 출처 */
+  | { layout: "lineup"; positions: (string | null)[]; me: number; only: string; focus: ScoringSourceKey; share: number }
+  /** 사다리 — 한 출처 점수만으로 국내 선수 몇 %의 전체 득점을 넘나 */
+  | { layout: "ladder"; focus: ScoringSourceKey; value: number; beatPct: number; beaten: number; total: number; ppgs: number[] }
+  /** 계수기 — 자유투 시도 국내 순위 + 시즌 자유투 성공 개수 */
+  | { layout: "counter"; ftm: number; ftPerGame: number; rank: number; ratioToNext: number | null; leaders: { name: string; value: number; me: boolean }[] }
+  | { layout: "classic" };
+
+export interface InsightContext {
+  /** 다섯 명 (순위 순) */
+  five: { sources: ScoringSource[]; callout: Callout; positionGroup: string | null }[];
+  /** 비교 집단(국내 표본 충족) 선수의 경기당 득점 */
+  leaguePpg: number[];
+  /** 비교 집단의 경기당 자유투 시도 (이름 포함) */
+  leagueFta: { id: string; name: string; value: number }[];
+}
+
+const POSITION_NAME: Record<string, string> = { G: "가드", F: "포워드", C: "센터" };
+
+/** 다섯 명 중 i 번째 선수의 화면·대사 재료 */
+export function buildInsight(i: number, ctx: InsightContext, me: { id: string; ftm: number; games: number }): Insight {
+  const p = ctx.five[i];
+  const c = p.callout;
+  const src = (k: ScoringSourceKey) => p.sources.find((x) => x.key === k)!;
+  const groups = ctx.five.map((x) => x.positionGroup);
+  const onlyGroup = p.positionGroup && groups.filter((g) => g === p.positionGroup).length === 1 ? p.positionGroup : null;
+
+  if (c.source === "ft") {
+    const sorted = [...ctx.leagueFta].sort((a, b) => b.value - a.value);
+    const rank = sorted.findIndex((x) => x.id === me.id) + 1;
+    const next = sorted[rank] ?? null;
+    const mine = sorted[rank - 1];
+    return {
+      layout: "counter",
+      ftm: me.ftm,
+      ftPerGame: src("ft").perGame,
+      rank,
+      ratioToNext: rank === 1 && next && next.value > 0 ? mine.value / next.value : null,
+      leaders: sorted.slice(0, 5).map((x) => ({ name: x.name, value: r1(x.value), me: x.id === me.id })),
+    };
+  }
+  if (c.source === "three" && c.kind === "perGameTop") {
+    const v = src("three").perGame;
+    const beaten = ctx.leaguePpg.filter((x) => x < v).length;
+    return {
+      layout: "ladder",
+      focus: "three",
+      value: v,
+      beaten,
+      total: ctx.leaguePpg.length,
+      beatPct: Math.floor((beaten / Math.max(1, ctx.leaguePpg.length)) * 10) * 10,
+      ppgs: [...ctx.leaguePpg].sort((a, b) => a - b).map(r1),
+    };
+  }
+  if (c.kind === "balanced") {
+    const [a, b] = [...p.sources].sort((x, y) => y.share - x.share);
+    return { layout: "split", a, b };
+  }
+  if (c.source === "paint" && onlyGroup && onlyGroup !== "G") {
+    return {
+      layout: "lineup",
+      positions: groups.map((g) => (g ? (POSITION_NAME[g] ?? null) : null)),
+      me: i,
+      only: POSITION_NAME[onlyGroup] ?? onlyGroup,
+      focus: "paint",
+      share: src("paint").share,
+    };
+  }
+  if (c.source === "three" || c.source === "mid" || c.source === "paint") {
+    const ftShares = ctx.five.map((x) => x.sources.find((s) => s.key === "ft")!.share);
+    const myFt = ftShares[i];
+    return { layout: "shotmap", focus: c.source, share: src(c.source).share, lowFtShare: myFt === Math.min(...ftShares) ? myFt : null };
+  }
+  return { layout: "classic" };
+}
+
+/** 몇 배를 말로 — 소수 한 자리 내림 (1.55 → "1.5배") */
+export function timesWords(ratio: number): string {
+  return `${Math.floor(ratio * 10) / 10}배`;
+}
+
+/** 인사이트 → 대사 (쇼츠 말투, 두 마디). classic 이면 기존 topScorerLine */
+export function insightLine(p: TopScorerScriptInput, insight: Insight): ScriptLine {
+  const n = p.name;
+  const R = `${p.rank}위 ${n}`;
+  let line: string;
+  switch (insight.layout) {
+    case "counter": {
+      const head = `${R}, 자유투를 진짜 잘 뜯어내요.`;
+      line =
+        insight.rank === 1
+          ? `${head} 자유투 시도 국내 1위` + (insight.ratioToNext && insight.ratioToNext >= 1.2 ? `, 2위보다 ${timesWords(insight.ratioToNext)}!` : "!")
+          : `${head} 자유투 시도 국내 ${insight.rank}위!`;
+      break;
+    }
+    case "ladder":
+      line = `${R}, 3점으로만 경기당 ${pointsWords(insight.value)}. 국내 선수 ${insight.beatPct}%는 다 합쳐도 이만큼 못 넣어요!`;
+      break;
+    case "split": {
+      const inOut = new Set([insight.a.key, insight.b.key]);
+      const pair =
+        inOut.has("paint") && inOut.has("three")
+          ? `안 ${Math.round(insight.a.key === "paint" ? insight.a.share : insight.b.share)}%, 밖 ${Math.round(insight.a.key === "three" ? insight.a.share : insight.b.share)}%`
+          : `${insight.a.label} ${Math.round(insight.a.share)}%, ${insight.b.label} ${Math.round(insight.b.share)}%`;
+      line = `${p.rank}위 ${eunNeun(n)} ${pair}. 어디를 막아도 답이 있는 타입!`;
+      break;
+    }
+    case "lineup":
+      line = `${R}, 다섯 명 중 유일한 ${ieyo(insight.only)}. 그래서 득점 ${iGa(shareNoun(insight.share))} 페인트!`;
+      break;
+    case "shotmap": {
+      const label = SCORING_SOURCES.find((x) => x.key === insight.focus)!.label;
+      const head = `${R}! 득점 ${iGa(shareNoun(insight.share))} ${label}.`;
+      line = insight.lowFtShare !== null && insight.focus === "three" ? `${head} 자유투는 제일 적어요, 밖에서 끝내는 타입!` : `${head}`;
+      if (insight.lowFtShare === null && insight.focus === "three") {
+        const pct = pctFloorWords(p.tpPct);
+        if (pct) line += ` 성공률도 ${pct} 넘고요.`;
+      }
+      break;
+    }
+    default:
+      return topScorerLine(p);
+  }
+  return { caption: line, speech: line };
+}
+
 /** 마무리 비교 한 줄 — "밖에서는 A, 안에서는 B, 자유투는 C" (같은 사람이 겹치면 묶는다) */
 export function compareLine(names: { threeShare: string; threePerGame: string; paint: string; ft: string }): string {
   const outside = names.threeShare === names.threePerGame ? names.threeShare : `${irang(names.threeShare)} ${names.threePerGame}`;
