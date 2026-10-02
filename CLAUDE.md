@@ -159,6 +159,7 @@ kbl-stats/
 │   ├── build-shots.ts   ← 선수별 슛 차트 파일 public/shots/{seasonCode}/{playerNo}.json 생성 (prebuild·predev, lib/shots PlayerShotsFile: 점·구역·리그 합계, git 제외)
 │   ├── build-game.ts    ← 54-0 게임 후보 풀 public/game/pool.json 생성 (prebuild·predev, lib/game-pool buildGamePool, 시즌 30개 × 팀, 약 1.1MB·gzip 156KB, git 제외)
 │   ├── build-search-index.ts ← 검색용 경량 색인 public/search-index.json 생성 (npm prebuild·predev 로 자동 실행, 생성물은 .gitignore)
+│   ├── build-short-milestones.ts · build-short-quiz.ts · short-common.ts · fetch-active.ts ← 숏폼 포맷 B(개막전 대기록)·C(슛 차트 퀴즈) 빌더, 현역 명단(regSc=Y)
 │   ├── build-short.ts   ← 팬 숏폼 에피소드 JSON (지난 시즌 국내 득점 TOP 5 득점 유형, 규칙 lib/shorts) → shorts/episodes/{slug}/episode.json (커밋)
 │   ├── prepare-short.ts ← 숏폼 렌더 준비: AI 목소리(ELEVENLABS_API_KEY+VOICE_ID 면 ElevenLabs 한 번에 읽기·글자 시각, 아니면 GOOGLE_TTS_API_KEY → Google, 그다음 edge-tts, 다 없으면 추정 길이)·사진·로고 받기·글꼴 복사 → shorts/public/{slug}/props.json·upload.txt (git 제외)
 │   └── build-cards.ts   ← 비교 탭용 시즌별 카드 데이터 public/cards/{seasonCode}.json 생성 (prebuild·predev, 형식은 lib/cards.ts v2 — 레이더 구성 요소 열 포함, 시즌당 약 28~55KB, git 제외)
@@ -296,6 +297,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-03 (숏폼 새 포맷 B·C — 개막 D-1): 사용자 "개막 직전 주제, 디자인부터 완전 다른 템플릿 여러 개로 반응 비교" → B 개막전 대기록(`lib/shorts-formats pickMilestones·milestoneLine`, 현역 = `scripts/fetch-active.ts` regSc=Y 명단 → data/raw/players/active.json, 지금 팀 = 마스터(이적 반영), 렌더러 `shorts/src/Milestones.tsx` 검정+노랑 전광판) · C 슛 차트 퀴즈(`pickQuiz`·문제/정답 대사, `shorts/src/Quiz.tsx` 보라 네온 게임쇼, 타이머). 빌더 `scripts/build-short-milestones.ts`·`build-short-quiz.ts`·공용 `short-common.ts`, 작은 수 고유어 `countWords`·`ordinalWords`. 워크플로 `# 에피소드:` 줄(top5·milestones·quiz)로 만들 것만, 에피소드 `composition` 으로 렌더. 결과: B 44.2초(해먼즈 DB 이적·워니·박지훈·안영준·이정현(DB) 3점 1200 역대 2번째 — 현역 명단으로 최진수 빠짐), C 42.1초(마레이·허웅·워니). main 배포.
 - 2026-10-02 (숏폼 9차: 3점형 차별화): 사용자 "허훈 지옥의 이지선다 / 안영준 유일하게 포워드라 인사이드 득점이 눈에 띔 / 서명진·허웅 둘 다 3점 베이스라 차별화" → `buildInsight` 다섯 명에 `tpPct`·`mid`(슛 차트 미드 비중·성공률) 입력: 3점형 shotmap 선수가 3점 성공률·미드 비중 5명 중 1위면 `tpPctTop`·`midTop` → "점퍼 장인"(3점·미드 구역 같이 켜기, 40.6%·20.7%), 다른 3점형이 있는 ladder 는 `volume` → "양으로 승부하는 슈터"(볼륨 슈터 꼬리표). 목소리 빠르기 기본 1.18. 렌더 53.0초(아직 길다 — 사용자 판단 대기). main 배포.
 - 2026-10-02 (숏폼 8차: 이어지는 대본·어두운 디자인): 사용자 "호흡이 짧게 끊기고 선수마다 틀이 뻔함, 기계 같음 / 안영준은 '아무래도 포워드라서~' / 보고서 같은 디자인·베이지 배경 / 선수는 늘 소속과 같이(SK의 안영준)" → `insightLine` 한두 문장으로 이어 말하기(`team`·`prevTeam` 입력, 같은 팀이면 "같은 KCC의", 1위는 "그리고 1위", 표지 끝 "5위부터 가 보자"), 디자인 `shorts/src/theme.ts` 어두운 바탕(#0E1014)+흰 글자+주황 액센트, 장면마다 팀 색 빛 `Glow`, 머리는 주황 꼬리표 하나(이중선·STATS REFERENCE 삭제), 어두운 팀 색은 글자에 쓸 때 `onDark`로 밝힘. 렌더 50.2초(대본이 길어져 늘어남 — 줄이려면 대본 축소나 SHORTS_TEMPO). main 배포.
 - 2026-10-02 (숏폼 7차: 캐주얼): 사용자 "정제된 리포트 같다, 캐주얼 버전" → 업로드 글 정리형 + 캐주얼 두 벌(`insightSummary`·`insightCasual`, episode `casual`, `upload.txt`), 이어서 "영상 대본도 캐주얼" → `insightLine` 반말(파울 뜯어내기 장인·혼자 포워드야·열에 여덟은 이만큼도 못 넣어 — 1~10은 고유어 `nativeCount`로 읽힘), 표지·마무리("올 시즌 득점왕 누가 될 것 같아? 댓글로 찍어 줘!")·장면 문구도 캐주얼. 렌더 39.6초. main 배포.
