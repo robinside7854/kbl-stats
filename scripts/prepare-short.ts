@@ -99,8 +99,15 @@ function ttsEdge(text: string, file: string) {
   });
 }
 
+/** 소리 파일 길이(초). ffprobe 가 없으면 Remotion 에 들어 있는 ffprobe 를 쓴다 (Actions 에서 ffmpeg 를 따로 설치하지 않으려고) */
 function durationOf(file: string): number {
-  const out = execFileSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", file]).toString().trim();
+  const args = ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", file];
+  let out: string;
+  try {
+    out = execFileSync("ffprobe", args).toString().trim();
+  } catch {
+    out = execFileSync("npx", ["remotion", "ffprobe", ...args], { cwd: path.join(ROOT, "shorts") }).toString().trim();
+  }
   const d = Number(out);
   if (!Number.isFinite(d) || d <= 0) throw new Error(`길이를 읽지 못함: ${file}`);
   return d;
