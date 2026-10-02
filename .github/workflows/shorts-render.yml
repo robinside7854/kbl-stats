@@ -7,7 +7,7 @@
 #   - shorts-renders 브랜치에 같은 파일 (휴대폰에서 GitHub 앱으로 받기 쉽게)
 # 목소리: 저장소 Secrets 에 GOOGLE_TTS_API_KEY 가 있으면 Google Cloud TTS(공식), 없으면 edge-tts(키 없는 시제품용)
 #
-# 실행 횟수: 1
+# 실행 횟수: 2
 name: 숏폼 렌더
 
 on:
@@ -57,7 +57,7 @@ jobs:
           npm ci
           (cd shorts && npm ci)
           pip install --quiet edge-tts
-          sudo apt-get install -y -qq fonts-noto-color-emoji >/dev/null || true
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg >/dev/null   # ffprobe — 목소리 길이 재기
 
       - name: 에피소드 만들기 (지난 시즌 국내 득점 TOP 5)
         if: steps.gate.outputs.run == 'true'
