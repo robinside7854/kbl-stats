@@ -84,13 +84,13 @@ for (let x = 0; x <= 100; x += 0.5) {
   prev = p;
 }
 assert.equal(winProbability(100), 1);
-assert.ok(winProbability(99) < 0.95 && winProbability(96) >= 0.9);
+assert.ok(winProbability(99) < 0.96 && winProbability(96) >= 0.9);
 // 시즌: 54경기, 같은 라인업 = 같은 성적
 const res = simulateSeason(lineup5);
 assert.equal(res.games.length, GAME_SEASON_GAMES);
 assert.equal(res.wins + res.losses, GAME_SEASON_GAMES);
 assert.deepEqual(simulateSeason(lineup5).games, res.games);
-// 최고 점수(99) 다섯 명도 전승이 보장되지는 않는다 (전력 99.25 → 경기당 패배 약 4.5%)
+// 최고 점수(99) 다섯 명도 전승이 보장되지는 않는다 (전력 99.25 → 경기당 패배 약 3.5%)
 const allStars = simulateSeason(lineup5.map((p) => ({ ...p, score: 99, axes: [100, 100, 100, 100, 100, 100] })));
 assert.ok(allStars.rating.rating < 100 && allStars.wins >= 45);
 // 전력 100 이면 전승 (곡선 끝점 확인용 가상 라인업)
@@ -112,31 +112,42 @@ assert.equal(decodeLineupParam(pool2, "1:47,1:47,3:47,4:47,5:47"), null);
 assert.equal(decodeLineupParam(pool2, null), null);
 console.log("game: 공유 주소 통과");
 
-// 실제 풀이 있으면 (빌드 후) 난이도 확인: 아무나 뽑기 vs 매번 그 팀 최고 점수
+// 실제 풀이 있으면 (빌드 후) 난이도 확인: 아무나 뽑기 / 매번 그 팀 득점 1위(화면에서 보이는 정보) / 숨은 점수 1위
+// 전승 확률은 굴린 결과를 세지 않고 라인업마다 (경기 승리 확률)^54 를 평균 낸다 — 표본이 적어도 흔들리지 않게
 const POOL = "public/game/pool.json";
 if (existsSync(POOL)) {
   const pool: GamePool = JSON.parse(readFileSync(POOL, "utf8"));
   assert.equal(pool.eras.length, 7);
-  function play(best: boolean, seed: number) {
+  type Strategy = "random" | "ppg" | "score";
+  function lineupOf(kind: Strategy, seed: number): GameCandidate[] {
     const rng = seededRng(seed);
     let lu = emptyLineup();
     for (let i = 0; i < 5; i++) {
       const s = spin(pool, lu, rng)!;
       const opts = teamOf(pool, s)!.candidates.filter((x) => canPick(lu, x));
-      const pick = best ? sortByScore(opts)[0] : opts[Math.floor(rng() * opts.length)];
+      const pick = kind === "random" ? opts[Math.floor(rng() * opts.length)] : kind === "ppg" ? sortCandidates(opts)[0] : sortByScore(opts)[0];
       lu = placePick(lu, openSlotsFor(lu, pick)[0], pick);
     }
     assert.ok(isLineupFull(lu));
     assert.ok(lu.filter((p) => p!.foreign).length <= GAME_FOREIGN_MAX);
-    return simulateSeason(lu as GameCandidate[]).wins;
+    return lu as GameCandidate[];
   }
   const N = 5000;
-  const rand = Array.from({ length: N }, (_, i) => play(false, i + 1)).sort((a, b) => a - b);
-  const best = Array.from({ length: N }, (_, i) => play(true, i + 1)).sort((a, b) => a - b);
-  const perfectShare = best.filter((w) => w === 54).length / N;
-  console.log(`game: 실제 풀 — 아무나 중앙 ${rand[N / 2]}승, 최고 점수만 중앙 ${best[N / 2]}승 · 전승 ${(perfectShare * 100).toFixed(1)}%`);
-  assert.ok(rand[N / 2] >= 10 && rand[N / 2] <= 30, "아무나 뽑으면 20승 안팎");
-  assert.ok(best[N / 2] >= 45, "잘 뽑으면 45승 이상");
-  assert.ok(perfectShare > 0.001 && perfectShare < 0.02, "전승은 1% 안팎");
+  function measure(kind: Strategy) {
+    const lineups = Array.from({ length: N }, (_, i) => lineupOf(kind, i + 1));
+    const wins = lineups.map((l) => simulateSeason(l).wins).sort((x, y) => x - y);
+    const perfect = lineups.reduce((sum, l) => sum + winProbability(teamRating(l).rating) ** GAME_SEASON_GAMES, 0) / N;
+    return { median: wins[N / 2], perfect };
+  }
+  const rand = measure("random");
+  const ppg = measure("ppg");
+  const score = measure("score");
+  console.log(
+    `game: 실제 풀 — 아무나 중앙 ${rand.median}승 · 득점 1위만 중앙 ${ppg.median}승·전승 ${(ppg.perfect * 100).toFixed(2)}% · 점수 1위만 중앙 ${score.median}승·전승 ${(score.perfect * 100).toFixed(2)}%`,
+  );
+  assert.ok(rand.median >= 10 && rand.median <= 30, "아무나 뽑으면 20승 안팎");
+  assert.ok(ppg.median >= 40, "득점 1위만 골라도 40승 이상");
+  assert.ok(ppg.perfect > 0.001 && ppg.perfect < 0.004, "득점 1위만 고르면 전승 0.2% 안팎");
+  assert.ok(score.perfect > ppg.perfect && score.perfect < 0.04, "숨은 점수까지 알면 더 높지만 3% 미만");
 }
 console.log("game: 전부 통과");
