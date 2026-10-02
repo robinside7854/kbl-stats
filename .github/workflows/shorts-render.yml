@@ -7,7 +7,7 @@
 #   - shorts-renders 브랜치에 같은 파일 (휴대폰에서 GitHub 앱으로 받기 쉽게)
 # 목소리: 저장소 Secrets 에 GOOGLE_TTS_API_KEY 가 있으면 Google Cloud TTS(공식), 없으면 edge-tts(키 없는 시제품용)
 #
-# 실행 횟수: 2
+# 실행 횟수: 3
 name: 숏폼 렌더
 
 on:
@@ -99,10 +99,10 @@ jobs:
           cp shorts/out/* "$tmp/"
           if git ls-remote --exit-code --heads origin shorts-renders >/dev/null; then
             git fetch -q origin shorts-renders
-            git checkout -q -B shorts-renders origin/shorts-renders
+            git checkout -qf -B shorts-renders origin/shorts-renders
           else
-            git checkout -q --orphan shorts-renders
-            git rm -rq --cached . >/dev/null
+            git checkout -qf --orphan shorts-renders
+            git rm -rqf --cached . >/dev/null
             find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
             printf '숏폼 렌더 결과만 모으는 브랜치 (코드 없음, 배포 안 함)\n' > README.md
             git add README.md
