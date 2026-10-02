@@ -21,6 +21,7 @@ import PlayerAvatar from "./PlayerAvatar";
 import Skeleton from "./Skeleton";
 import TeamLogo from "./TeamLogo";
 import { useCardSave } from "./useCardSave";
+import { trackEvent } from "./Analytics";
 import { useThemeColors, type ThemeColors } from "./useThemeColors";
 
 /** 처음 보여 줄 후보 수 (나머지는 "더 보기") */
@@ -93,6 +94,11 @@ export default function GameView() {
   }, [shared, full, lineup, teams]);
   const result = useMemo(() => (picked ? simulateSeason(picked.map((p) => p.c)) : null), [picked]);
 
+  // 직접 완성한 판만 센다(공유 링크로 본 결과는 빼고)
+  useEffect(() => {
+    if (result && !shared) trackEvent("game_complete", { wins: result.wins });
+  }, [result, shared]);
+
   // 결과가 나오면 주소에 라인업을 남긴다 (링크 공유)
   useEffect(() => {
     if (full && !shared) window.history.replaceState(null, "", `${window.location.pathname}?l=${encodeLineupParam(lineup)}`);
@@ -157,6 +163,7 @@ export default function GameView() {
   }
 
   function doSpin() {
+    trackEvent("game_spin");
     if (pool) animateTo(spin(pool, lineup, Math.random), { era: true, team: true });
   }
 
@@ -214,6 +221,7 @@ export default function GameView() {
   async function copyLink() {
     try {
       await navigator.clipboard.writeText(window.location.href);
+      trackEvent("game_share_link");
       setCopied(true);
     } catch {
       setCopied(false);
