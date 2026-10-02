@@ -1,6 +1,6 @@
 // 선수 페이지·검색 검증 (lib/metrics careerSummary·buildCardEntry, lib/career, lib/search). 실행: npm run test:player
 import assert from "node:assert/strict";
-import { profileFacts } from "../lib/career";
+import { championshipSummary, profileFacts } from "../lib/career";
 import {
   buildCardContext,
   buildCardEntry,
@@ -223,4 +223,17 @@ console.log("player: 프로필 표기 통과");
   assert.deepEqual(parseFavorites('["1","1","x",3,"2"]'), ["1", "2"]);
   assert.deepEqual(toggleFavorite(["1"], "2"), ["2", "1"]);
   assert.deepEqual(toggleFavorite(["2", "1"], "2"), ["1"]);
+}
+
+// ── 우승 횟수 (lib/career championshipSummary) ──
+{
+  const ss = [
+    { seasonCode: 25, seasonLabel: "2014-2015", teamShort: "모비스", team: { shortName: "현대모비스" } },
+    { seasonCode: 11, seasonLabel: "2006-2007", teamShort: "모비스", team: null },
+  ];
+  assert.deepEqual(championshipSummary([25, 11], ss), { count: 2, items: ["06-07 모비스", "14-15 현대모비스"] });
+  assert.equal(championshipSummary([], ss), null);
+  assert.equal(championshipSummary(undefined, ss), null);
+  assert.equal(championshipSummary([99], ss), null);                    // 뛴 시즌에 없는 코드는 뺀다
+  console.log("player: 우승 횟수 통과");
 }

@@ -200,6 +200,8 @@ export interface SeasonData {
   seasonHighLeaders?: SeasonHighLeaders | null;
   /** 슛 구역 리그 합계 (그 시즌 전 선수 합, lib/shots leagueZoneAverages). 슛 차트 raw 가 없으면 null */
   shotZoneLeague?: ZoneCounts | null;
+  /** 그 시즌 우승팀 (챔프전 4승, scripts/champions.ts). 경기 목록이 없거나 4승 팀이 없으면 null — 옛 파일엔 필드가 없다 */
+  champion?: { teamCode: string; teamName: string; wins: number; losses: number } | null;
 }
 
 // ─────────────────────────────────────────────
@@ -228,6 +230,8 @@ export interface PlayerIndexEntry extends PlayerProfile {
   birthday?: string | null;   // "1994-01-31"
   country?: string | null;    // 국가명, 예: "미국"
   school?: string | null;     // 출신 학교(univSch), 예: "Stony brook"
+  /** 우승 시즌 코드(오름차순) — 정규시즌 소속 팀이 그 시즌 우승팀인 시즌. 옛 색인엔 필드가 없다 */
+  championships?: number[];
 }
 
 // ─────────────────────────────────────────────

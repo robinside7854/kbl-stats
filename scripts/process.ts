@@ -12,6 +12,7 @@
 //
 // raw 파일은 절대 수정하지 않는다. 이 스크립트는 몇 번 다시 돌려도 같은 결과가 나와야 한다.
 
+import { championSeasonsOf, finalsChampion, type SeasonChampion } from "./champions";
 import { readdir, readFile, mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { DATA_DIR, SEASON_CODES_FALLBACK } from "./config.js";
@@ -46,6 +47,16 @@ const unknownHighsKeys = new Set<string>();
  * 한 시즌의 한 경기 최다 raw (data/raw/highs/{season}/*.json) → playerNo → 파싱 결과. 폴더가 없으면 빈 Map.
  * 깨진 파일은 건너뛴다(그 선수만 null).
  */
+/** 시즌 우승팀 (경기 목록 챔프전, scripts/champions.ts). 목록이 없거나 4승 팀이 없으면 null */
+async function readSeasonChampion(seasonCode: number): Promise<SeasonChampion | null> {
+  try {
+    const list = JSON.parse(await readFile(join(DATA_DIR, "raw", "games", String(seasonCode), "list.json"), "utf8"));
+    return finalsChampion(list, seasonCode);
+  } catch {
+    return null;
+  }
+}
+
 async function readSeasonHighs(seasonCode: number): Promise<Map<string, ParsedMostGame>> {
   const dir = join(DATA_DIR, "raw", "highs", String(seasonCode));
   const out = new Map<string, ParsedMostGame>();
@@ -406,6 +417,8 @@ async function processSeason(seasonCode: number): Promise<SeasonData> {
     // 부문별 시즌 하이 1위 (기록 부문 11개, 동률은 먼저 달성) — raw 가 없으면 null (lib/highs.ts)
     seasonHighLeaders: computeSeasonHighLeaders(players),
     shotZoneLeague: shots ? leagueZoneAverages(players.map((p) => p.shotZones)) : null,
+    // 우승팀 (챔프전 4승, scripts/champions.ts) — 경기 목록이 없거나 시즌 진행 중·취소면 null
+    champion: await readSeasonChampion(seasonCode),
   };
 
   const outDir = join(DATA_DIR, "processed", String(seasonCode));
@@ -461,6 +474,9 @@ function buildPlayersIndex(seasons: SeasonData[]): PlayerIndexEntry[] {
       e.seasons.push({ seasonCode: season.seasonCode, teamCode: p.teamCode, teamShort: koByTeam.get(p.teamCode) ?? teamShortNameKo(p.teamName), games: p.games });
     }
   }
+  // 우승 시즌: 정규시즌 소속 팀 = 그 시즌 우승팀 (scripts/champions.ts championSeasonsOf)
+  const champions = new Map(seasons.filter((s) => s.champion).map((s) => [s.seasonCode, s.champion!.teamCode]));
+  for (const e of byId.values()) e.championships = championSeasonsOf(e.seasons, champions);
   return [...byId.values()]
     .map(({ latest: _latest, ...e }) => e)
     .sort((a, b) => a.nameKo.localeCompare(b.nameKo, "ko") || a.id.localeCompare(b.id));

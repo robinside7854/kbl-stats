@@ -390,3 +390,32 @@ export function careerHighAchievements(
   }
   return out;
 }
+
+// ─────────────────────────────────────────────
+// 우승 횟수 (2026-10-02 사용자 요청) — 선수 히어로 칩 "우승 6회" + 시즌 목록 "06-07 모비스 · 09-10 모비스"
+// 재료: 색인 championships(정규시즌 소속 팀이 그 시즌 챔프전 우승팀인 시즌, scripts/champions.ts)
+// ─────────────────────────────────────────────
+
+export interface ChampionshipSummary {
+  count: number;
+  /** 오래된 시즌부터 "06-07 모비스" */
+  items: string[];
+}
+
+export function championshipSummary(
+  codes: readonly number[] | undefined,
+  seasons: readonly { seasonCode: number; seasonLabel: string; teamShort?: string; team?: { shortName: string } | null }[],
+): ChampionshipSummary | null {
+  if (!codes || codes.length === 0) return null;
+  const byCode = new Map(seasons.map((s) => [s.seasonCode, s]));
+  const items = [...codes]
+    .sort((a, b) => a - b)
+    .map((c) => {
+      const s = byCode.get(c);
+      if (!s) return null;
+      const team = s.team?.shortName ?? s.teamShort ?? "";
+      return `${seasonShortLabel(s.seasonLabel)}${team ? ` ${team}` : ""}`;
+    })
+    .filter((x): x is string => x !== null);
+  return items.length > 0 ? { count: items.length, items } : null;
+}
