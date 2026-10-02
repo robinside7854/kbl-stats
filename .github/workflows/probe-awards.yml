@@ -1,41 +1,28 @@
-# 조사용 1회 워크플로 — KBL 공홈 수상 기록(MVP·베스트5 등) API 주소 확인 (세션 환경은 kbl.or.kr 차단이라 러너에서). 확인 후 삭제.
+# 조사용 1회 워크플로 — KBL 공홈 역대수상현황(/record/award) 데이터가 든 JS 번들을 받아 이 브랜치에 커밋 (세션 환경은 kbl.or.kr 차단). 확인 후 삭제.
 name: KBL 수상 기록 주소 조사
 on:
   push:
     branches: [claude/probe-awards]
+    paths: [.github/workflows/probe-awards.yml]
+permissions:
+  contents: write
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
-      - name: 공홈 JS 받아서 수상 관련 문자열 찾기
-        timeout-minutes: 8
-        continue-on-error: true
+      - uses: actions/checkout@v4
+      - name: 번들 받기
         run: |
           UA="Mozilla/5.0"
-          curl --max-time 20 -sL -A "$UA" https://kbl.or.kr/record/award -o page.html || true
-          echo "== /record/award HTML =="; head -c 3000 page.html; echo
-          mkdir -p js
-          for s in $(grep -oE 'src="[^"]*\.js[^"]*"' page.html | sed -E 's/src="([^"]*)"/\1/'); do
-            u="$s"; case "$u" in //*) u="https:$u";; /*) u="https://kbl.or.kr$u";; esac
-            echo "get $u"; curl --max-time 30 -sL -A "$UA" "$u" -o "js/$(echo "$u" | md5sum | cut -c1-8).js" || true
-          done
-          ls -la js
-          python3 - <<'PY'
-          import re, glob
-          for f in glob.glob("js/*.js"):
-              s = open(f, encoding="utf-8", errors="ignore").read()
-              print("=====", f, len(s))
-              seen = set()
-              for m in re.finditer(r"award|Award|AWARD|prize|Prize|수상|MVP", s):
-                  a = max(0, m.start() - 200); b = m.end() + 200
-                  k = s[a:b]
-                  key = k[150:260]
-                  if key in seen: continue
-                  seen.add(key)
-                  print("--", k.replace("\n", " "))
-                  if len(seen) > 60: break
-              paths = sorted(set(re.findall(r'["\'`](/[A-Za-z][A-Za-z0-9_\-/]{2,80})["\'`]', s)))
-              print("== 경로 문자열", len(paths))
-              print("\n".join(p for p in paths if re.search(r"award|prize|record|history|player|league|hall|honor", p, re.I))[:6000])
-          PY
+          curl --max-time 20 -sL -A "$UA" https://kbl.or.kr/record/award -o page.html
+          src=$(grep -oE 'src="/assets/index-[^"]*\.js"' page.html | head -1 | sed -E 's/src="([^"]*)"/\1/')
+          echo "bundle: $src"
+          mkdir -p probe
+          curl --max-time 60 -sL -A "$UA" "https://kbl.or.kr$src" -o probe/bundle.js
+          ls -la probe
+      - name: 커밋
+        run: |
+          git config user.name "robinside7854"
+          git config user.email "252681033+robinside7854@users.noreply.github.com"
+          git add probe && git commit -m "조사: 공홈 번들 저장" && git push
