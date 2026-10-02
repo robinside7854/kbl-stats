@@ -1,6 +1,6 @@
 // 선수 페이지·검색 검증 (lib/metrics careerSummary·buildCardEntry, lib/career, lib/search). 실행: npm run test:player
 import assert from "node:assert/strict";
-import { awardChipText, awardLines, namuWikiSearchUrl, profileFacts } from "../lib/career";
+import { awardChipText, awardLines, profileFacts } from "../lib/career";
 import {
   buildCardContext,
   buildCardEntry,
@@ -247,5 +247,3 @@ console.log("player: 프로필 표기 통과");
   assert.equal(awardLines([{ key: "rookie", seasonCode: 3 }], [], ss, new Map([[3, "1998-1999"]]))[0].seasons, "98-99");
   console.log("player: 수상 경력 통과");
 }
-assert.equal(namuWikiSearchUrl(" 양동근 "), "https://namu.wiki/Search?q=%EC%96%91%EB%8F%99%EA%B7%BC%20%EB%86%8D%EA%B5%AC");
-console.log("player: 나무위키 링크 통과");

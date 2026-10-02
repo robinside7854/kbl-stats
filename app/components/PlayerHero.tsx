@@ -6,7 +6,7 @@
 import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
 import type { CareerSeason, PlayerIndexEntry, TeamColor } from "@/lib/types";
 import { careerSummary } from "@/lib/metrics";
-import { activeSpanLabel, awardChipText, awardLines, namuWikiSearchUrl, personalFacts, profileFacts, seasonRangeLabel, seasonShortLabel, teamStints } from "@/lib/career";
+import { activeSpanLabel, awardChipText, awardLines, personalFacts, profileFacts, seasonRangeLabel, seasonShortLabel, teamStints } from "@/lib/career";
 import { nationalityOf, NATIONALITY_LABELS } from "@/lib/roster";
 import { mixHex, teamShortLabel } from "@/lib/images";
 import PlayerAvatar from "./PlayerAvatar";
@@ -14,7 +14,7 @@ import FavoriteButton from "./FavoriteButton";
 import TeamLogo from "./TeamLogo";
 import TeamJersey from "./TeamJersey";
 import { MILESTONE_STEPS, type Milestone } from "@/lib/records";
-import { IconExternal, IconTrophy } from "./icons";
+import { IconTrophy } from "./icons";
 import BadgeRow, { type BadgeItem } from "./BadgeRow";
 
 const FALLBACK: TeamColor = FALLBACK_TEAM_COLOR;
@@ -90,20 +90,7 @@ export default function PlayerHero({ entry, seasons, today, badges, milestones =
               {entry.nameKo}
             </h1>
             <p className="mt-1 truncate text-sub font-medium opacity-85 sm:text-body">{entry.nameEn}</p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              <FavoriteButton playerId={entry.id} nameKo={entry.nameKo} />
-              {/* 나무위키: 동명이인이 많아 문서가 아니라 "이름 농구" 검색으로 보낸다 (lib/career namuWikiSearchUrl) */}
-              <a
-                href={namuWikiSearchUrl(entry.nameKo)}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={`나무위키에서 ${entry.nameKo} 찾기 (새 탭)`}
-                className="focus-ring inline-flex h-10 shrink-0 items-center gap-1.5 rounded-control bg-black/25 px-3 text-sub font-bold transition-colors duration-200 hover:bg-black/40"
-              >
-                나무위키
-                <IconExternal size={16} aria-hidden />
-              </a>
-            </div>
+            <FavoriteButton playerId={entry.id} nameKo={entry.nameKo} className="mt-2" />
             {badges.length > 0 && (
               <div className="mt-2.5">
                 <BadgeRow badges={badges} teamPrimary={color.primary} />

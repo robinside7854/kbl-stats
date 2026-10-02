@@ -391,14 +391,6 @@ export function careerHighAchievements(
   return out;
 }
 
-/**
- * 나무위키 검색 주소 (2026-10-02 사용자 요청). 문서 제목은 동명이인(배우 양동근 등)·"(농구선수)" 꼬리표가 제각각이라
- * 문서로 바로 가지 않고 "이름 농구" 검색 결과로 보낸다. 바깥 사이트 링크라 화면은 새 탭으로 연다.
- */
-export function namuWikiSearchUrl(nameKo: string): string {
-  return `https://namu.wiki/Search?q=${encodeURIComponent(`${nameKo.trim()} 농구`)}`;
-}
-
 // ─────────────────────────────────────────────
 // 수상 경력 (2026-10-02 사용자 요청) — 공홈 역대수상현황 → 색인 awards (scripts/awards.ts)
 // ─────────────────────────────────────────────
