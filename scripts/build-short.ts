@@ -18,6 +18,7 @@ import {
   captionChunks,
   insightLine,
   insightSummary,
+  insightCasual,
   pickCallouts,
   sampleShots,
   scoringBreakdown,
@@ -207,6 +208,20 @@ const episode = {
     "· 기록: KBL 공식 홈페이지 · 사진 © KBL 및 각 구단 · 비영리 팬 채널",
     "· 더 많은 기록: https://kbl-stats-reference.vercel.app",
   ].join("\n"),
+  // 캐주얼 버전 (커뮤니티 말투) — 업로드할 때 둘 중 고른다
+  casual: {
+    title: `득점 TOP 5인데 점수 내는 법이 다 다름 (${seasonLabel} KBL) #KBL #농구 #shorts`,
+    description: [
+      `${seasonLabel} 국내 득점 TOP 5, 근데 점수 내는 방식이 전부 다름`,
+      "",
+      ...players.map((p) => `${p.rank}위 ${p.name}(${p.team.name}) ${p.ppg}점: ${insightCasual(p.insight, p.callout)}`),
+      "",
+      "올 시즌 득점왕 누구 찍음? 댓글로 ㄱㄱ",
+      "",
+      "기록: KBL 공식 홈페이지 · 사진 © KBL 및 각 구단 · 비영리 팬 채널",
+      "더 많은 기록: https://kbl-stats-reference.vercel.app",
+    ].join("\n"),
+  },
   tags: ["KBL", "농구", "프로농구", "득점왕", ...players.map((p) => p.name), ...new Set(players.map((p) => p.team.name)), "shorts"],
   sourceSources: SCORING_SOURCES.map((s) => ({ key: s.key, label: s.label })),
   court: { viewBox: court.viewBox, lines: court.lines, rim: court.rim, zones: courtZoneShapes() },
@@ -217,5 +232,14 @@ const episode = {
 const outDir = path.join(ROOT, "shorts", "episodes", slug);
 fs.mkdirSync(outDir, { recursive: true });
 fs.writeFileSync(path.join(outDir, "episode.json"), JSON.stringify(episode, null, 2) + "\n");
+fs.writeFileSync(path.join(outDir, "upload.txt"), uploadText(episode));
 console.log(`에피소드 저장: shorts/episodes/${slug}/episode.json`);
 for (const s of scenes) console.log(`  [${s.id}] ${s.caption}`);
+
+/** 업로드 글 — 정리형 + 캐주얼 (prepare-short 도 같은 글을 렌더 결과 옆에 둔다) */
+export function uploadText(e: { title: string; description: string; tags: string[]; casual?: { title: string; description: string } }): string {
+  const out = ["===== 정리형 =====", "[제목]", e.title, "", "[설명]", e.description, ""];
+  if (e.casual) out.push("===== 캐주얼 =====", "[제목]", e.casual.title, "", "[설명]", e.casual.description, "");
+  out.push("[태그 — 공통]", e.tags.join(", "), "");
+  return out.join("\n");
+}

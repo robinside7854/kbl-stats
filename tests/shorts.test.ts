@@ -140,3 +140,21 @@ import { buildInsight, insightLine, timesWords } from "../lib/shorts";
   assert.notEqual(g.layout, "lineup");
 }
 console.log("shorts: 선수별 인사이트 통과");
+
+// 캐주얼 설명란 한 줄 (2026-10-02)
+import { insightCasual, outOfTen } from "../lib/shorts";
+{
+  assert.equal(outOfTen(88, 109), 8);
+  const ctx = {
+    five: top5.map((sources, i) => ({ sources, callout: c[i], positionGroup: ["G", "G", "F", "G", "G"][i] })),
+    leaguePpg: [18.6, 16.4, 9, 8, 7, 6, 5, 4, 3, 2],
+    leagueFta: [{ id: "a", name: "이정현", value: 5.16 }, { id: "c", name: "안영준", value: 3.32 }],
+  };
+  const lines = top5.map((_, i) => insightCasual(buildInsight(i, ctx, { id: ["a", "b", "c", "d", "e"][i], ftm: 221, games: 49 }), c[i]));
+  assert.match(lines[0], /파울 뜯어내기 장인.*국내 1위, 2위보다 1\.5배/);
+  assert.match(lines[1], /10명 중 7명/); // 10명 중 8.4 미만 7명
+  assert.equal(lines[2], "5명 중 혼자 포워드. 그래서 득점 거의 절반이 페인트");
+  assert.equal(lines[3], "안 39% 밖 36%, 어디 막아도 답 있음");
+  assert.match(lines[4], /^득점 절반 이상이 3점\. 자유투는 5명 중 제일 적음/);
+}
+console.log("shorts: 캐주얼 설명 통과");

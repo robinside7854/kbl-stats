@@ -462,6 +462,37 @@ export function insightSummary(insight: Insight, callout: Callout): string {
   }
 }
 
+/** 열 명 중 몇 명 (내림) — "10명 중 8명" */
+export function outOfTen(part: number, total: number): number {
+  return Math.floor((part / Math.max(1, total)) * 10);
+}
+
+/**
+ * 인사이트 → 캐주얼 설명란 한 줄 (2026-10-02 사용자: "정제된 리포트 같다, 캐주얼 버전도").
+ * 반말·커뮤니티 말투, 숫자는 데이터 그대로(내림). 이모지는 쓰지 않는다.
+ */
+export function insightCasual(insight: Insight, callout: Callout): string {
+  switch (insight.layout) {
+    case "counter": {
+      const ratio = insight.ratioToNext && insight.ratioToNext >= 1.2 ? `, 2위보다 ${timesWords(insight.ratioToNext)}` : "";
+      return `파울 뜯어내기 장인. 자유투 시도 국내 ${insight.rank}위${ratio}`;
+    }
+    case "ladder":
+      return `3점만 쏴도 경기당 ${insight.value}점. 국내 선수 10명 중 ${outOfTen(insight.beaten, insight.total)}명은 다 합쳐도 이것보다 적게 넣음`;
+    case "lineup":
+      return `5명 중 혼자 ${insight.only}. 그래서 득점 ${iGa(shareNoun(insight.share))} 페인트`;
+    case "split":
+      return `안 ${Math.round(insight.a.key === "paint" ? insight.a.share : insight.b.share)}% 밖 ${Math.round(insight.a.key === "paint" ? insight.b.share : insight.a.share)}%, 어디 막아도 답 있음`;
+    case "shotmap": {
+      const label = SCORING_SOURCES.find((x) => x.key === insight.focus)!.label;
+      const low = insight.lowFtShare !== null ? ". 자유투는 5명 중 제일 적음, 그냥 밖에서 끝냄" : "";
+      return `득점 ${iGa(shareNoun(insight.share))} ${label}${low}`;
+    }
+    default:
+      return callout.headline;
+  }
+}
+
 /** 마무리 비교 한 줄 — "밖에서는 A, 안에서는 B, 자유투는 C" (같은 사람이 겹치면 묶는다) */
 export function compareLine(names: { threeShare: string; threePerGame: string; paint: string; ft: string }): string {
   const outside = names.threeShare === names.threePerGame ? names.threeShare : `${irang(names.threeShare)} ${names.threePerGame}`;

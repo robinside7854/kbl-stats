@@ -213,7 +213,11 @@ fs.writeFileSync(path.join(outDir, "props.json"), JSON.stringify(props));
 // 유튜브 올릴 때 붙여 넣을 제목·설명·태그
 fs.writeFileSync(
   path.join(outDir, "upload.txt"),
-  [`[제목]`, episode.title, ``, `[설명]`, episode.description, ``, `[태그]`, episode.tags.join(", "), ``].join("\n"),
+  [
+    `===== 정리형 =====`, `[제목]`, episode.title, ``, `[설명]`, episode.description, ``,
+    ...(episode.casual ? [`===== 캐주얼 =====`, `[제목]`, episode.casual.title, ``, `[설명]`, episode.casual.description, ``] : []),
+    `[태그 — 공통]`, episode.tags.join(", "), ``,
+  ].join("\n"),
 );
 const total = scenes.reduce((a, s) => a + (s.seconds as number), 0);
 console.log(`렌더 입력: shorts/public/${slug}/props.json (약 ${total.toFixed(1)}초)`);
