@@ -102,7 +102,7 @@ export default function GameView() {
 
   /**
    * 릴 돌리기. 결과(next)는 이미 정해져 있고 화면은 보여 주기용으로 아무 값이나 번갈아 보이다가 멈춘다.
-   * reels.era 가 false 면 왼쪽 릴(시즌)은 그대로 두고 오른쪽만 돈다 (팀 다시 돌리기).
+   * reels 에서 true 인 릴만 돈다: 처음 돌리기는 둘 다(왼쪽이 먼저 멈춤), 시대 다시는 왼쪽만, 팀 다시는 오른쪽만.
    */
   function animateTo(next: Spin | null, reels: { era: boolean; team: boolean }) {
     if (!pool || !next) return;
@@ -111,36 +111,48 @@ export default function GameView() {
     setCurrent(null);
     if (timer.current) window.clearInterval(timer.current);
     const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) {
+    if (reduce || (!reels.era && !reels.team)) {
       setReelEra(next.era);
       setReelTeam(next);
       setCurrent(next);
       return;
     }
+    // 안 도는 릴은 바로 결과 값으로 (팀 다시: 시즌 그대로 / 시대 다시: 같은 팀의 그 시대 로고·이름)
+    if (!reels.era) setReelEra(next.era);
+    if (!reels.team) setReelTeam(next);
     setEraSpinning(reels.era);
     setTeamSpinning(reels.team);
+    // 둘 다 돌면 왼쪽 먼저·오른쪽 나중, 하나만 돌면 짧게
+    const eraStop = reels.era ? ERA_STOP_MS : 0;
+    const teamStop = reels.team ? (reels.era ? TEAM_STOP_MS : ERA_STOP_MS) : 0;
     const start = performance.now();
     let eraDone = !reels.era;
+    let teamDone = !reels.team;
     timer.current = window.setInterval(() => {
       const t = performance.now() - start;
       setTick((k) => k + 1);
       if (!eraDone) {
-        if (t >= ERA_STOP_MS) {
+        if (t >= eraStop) {
           eraDone = true;
           setReelEra(next.era);
           setEraSpinning(false);
         } else setReelEra(Math.floor(Math.random() * pool.eras.length));
       }
-      if (t >= (reels.era ? TEAM_STOP_MS : ERA_STOP_MS)) {
+      if (!teamDone) {
+        if (t >= teamStop) {
+          teamDone = true;
+          setReelTeam(next);
+          setTeamSpinning(false);
+        } else {
+          const era = pool.eras[Math.floor(Math.random() * pool.eras.length)];
+          setReelTeam({ era: era.index, teamCode: era.teams[Math.floor(Math.random() * era.teams.length)].teamCode });
+        }
+      }
+      if (eraDone && teamDone) {
         window.clearInterval(timer.current!);
         timer.current = null;
-        setReelTeam(next);
-        setTeamSpinning(false);
         setCurrent(next);
-        return;
       }
-      const era = pool.eras[Math.floor(Math.random() * pool.eras.length)];
-      setReelTeam({ era: era.index, teamCode: era.teams[Math.floor(Math.random() * era.teams.length)].teamCode });
     }, TICK_MS);
   }
 
@@ -161,7 +173,8 @@ export default function GameView() {
     const next = respinEra(pool, current, lineup, Math.random);
     if (!next) return;
     setEraSkip(false);
-    animateTo(next, { era: true, team: true });
+    // 팀은 그대로 두고 왼쪽 릴만 — 같은 팀이 다른 시대에 없어 팀도 바뀌는 드문 경우만 오른쪽도 돈다
+    animateTo(next, { era: true, team: next.teamCode !== current.teamCode });
   }
 
   function place(c: GameCandidate, slot: number) {
