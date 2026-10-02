@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import {
   canPick, decodeLineupParam, emptyLineup, encodeLineupParam, GAME_FOREIGN_MAX, GAME_SEASON_GAMES, isLineupFull, openSlotsFor,
-  pickBlockReason, placePick, respinEra, respinTeam, seededRng, simulateSeason, sortCandidates, spin, splitEras, teamOf, teamRating,
+  pickBlockReason, placePick, sortByScore, lineupTotals, respinEra, respinTeam, seededRng, simulateSeason, sortCandidates, spin, splitEras, teamOf, teamRating,
   winProbability, type GameCandidate, type GamePool, type Lineup, type Spin,
 } from "../lib/game";
 import type { Position } from "../lib/types";
@@ -17,7 +17,8 @@ assert.deepEqual(splitEras(Array.from({ length: 30 }, (_, i) => i)).flat(), Arra
 console.log("game: 시대 구간 통과");
 
 const c = (id: string, position: Position, foreign = false, score = 50, axes = [50, 50, 50, 50, 50, 50], seasonCode = 47): GameCandidate => ({
-  id, nameKo: `선수${id}`, seasonCode, season: "25-26", position, foreign, photoUrl: null, score, axes, ppg: 10, rpg: 5, apg: 3,
+  id, nameKo: `선수${id}`, seasonCode, season: "25-26", position, foreign, photoUrl: null, score, axes, ppg: 10, rpg: 5, apg: 3, spg: 1, bpg: 0.5,
+  span: "25-26", seasonCount: 1,
 });
 
 // 칸: 가드 2 · 포워드 2 · 센터 1, GF 는 가드·포워드, FC 는 포워드·센터
@@ -62,7 +63,10 @@ assert.deepEqual(respinTeam(tiny, s0, emptyLineup(), seededRng(3)), { era: 0, te
 assert.deepEqual(respinEra(tiny, s0, emptyLineup(), seededRng(3)), { era: 1, teamCode: "10" }); // 다른 구간, 같은 팀이 있으면 팀 유지
 assert.equal(respinEra({ eras: [tiny.eras[0]] }, s0, emptyLineup(), seededRng(3)), null); // 구간이 하나뿐이면 못 바꿈
 assert.equal(teamOf(tiny, { era: 1, teamCode: "30" })?.candidates[0].id, "d");
-assert.deepEqual(sortCandidates([c("1", "G", false, 70), c("2", "G", false, 90)]).map((x) => x.id), ["2", "1"]);
+// 화면 정렬은 득점순(점수 무관), 시뮬레이션 정렬은 점수순
+assert.deepEqual(sortCandidates([{ ...c("1", "G", false, 90), ppg: 8 }, { ...c("2", "G", false, 60), ppg: 20 }]).map((x) => x.id), ["2", "1"]);
+assert.deepEqual(sortByScore([{ ...c("1", "G", false, 90), ppg: 8 }, { ...c("2", "G", false, 60), ppg: 20 }]).map((x) => x.id), ["1", "2"]);
+assert.deepEqual(lineupTotals([c("1", "G"), c("2", "G")]), { ppg: 20, rpg: 10, apg: 6, spg: 2, bpg: 1 });
 console.log("game: 슬롯 돌리기 통과");
 
 // 전력: 평균 75% + 축 최고값 평균 25%, 약점 축
@@ -119,7 +123,7 @@ if (existsSync(POOL)) {
     for (let i = 0; i < 5; i++) {
       const s = spin(pool, lu, rng)!;
       const opts = teamOf(pool, s)!.candidates.filter((x) => canPick(lu, x));
-      const pick = best ? sortCandidates(opts)[0] : opts[Math.floor(rng() * opts.length)];
+      const pick = best ? sortByScore(opts)[0] : opts[Math.floor(rng() * opts.length)];
       lu = placePick(lu, openSlotsFor(lu, pick)[0], pick);
     }
     assert.ok(isLineupFull(lu));

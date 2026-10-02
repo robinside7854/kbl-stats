@@ -209,6 +209,24 @@ body {
   }
 }
 
+/* 54-0 슬롯머신 릴: 값이 바뀔 때마다 위에서 내려오는 한 칸 (GameView SlotReel, key 로 다시 그려 재생) */
+@keyframes reel-tick {
+  from {
+    transform: translateY(-60%);
+    opacity: 0.2;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+.reel-tick {
+  animation: reel-tick 70ms linear;
+}
+.reel-stop {
+  animation: reel-tick 240ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
 /* 움직임 줄이기 (C4): 전환·펄스·부드러운 스크롤을 끈다. 차트는 처음부터 isAnimationActive={false} */
 @media (prefers-reduced-motion: reduce) {
   *,

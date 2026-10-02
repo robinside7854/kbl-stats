@@ -24,7 +24,10 @@ export const GAME_ROUNDS = 5;
 // ─────────────────────────────────────────────
 // 데이터 (public/game/pool.json — scripts/build-game.ts 가 만든다)
 
-/** 후보 한 명 = 그 팀·그 구간에서 가장 좋았던 시즌 (종합 점수 기준) */
+/**
+ * 후보 한 명 = 그 팀·그 구간의 선수. score·axes 는 그 구간 최고 시즌(종합 점수 기준, 화면에는 안 보임),
+ * ppg~bpg 는 그 구간·그 팀에서 뛴 시즌 전체 평균(화면에 보이는 값)
+ */
 export interface GameCandidate {
   id: string;
   nameKo: string;
@@ -41,6 +44,11 @@ export interface GameCandidate {
   ppg: number;
   rpg: number;
   apg: number;
+  spg: number;
+  bpg: number;
+  /** 평균을 낸 시즌 구간 "97-00" (한 시즌이면 "98-99") */
+  span: string;
+  seasonCount: number;
 }
 
 export interface GameTeam {
@@ -221,9 +229,20 @@ export function teamOf(pool: GamePool, s: Spin): GameTeam | null {
   return pool.eras[s.era]?.teams.find((t) => t.teamCode === s.teamCode) ?? null;
 }
 
-/** 후보 정렬: 종합 점수 높은 순 → 경기당 득점 → 이름 */
+/** 화면 후보 정렬: 그 구간 경기당 득점 높은 순 → 이름 (등급·점수는 보여 주지 않는다 — 2026-10-02 사용자 요청) */
 export function sortCandidates(cs: readonly GameCandidate[]): GameCandidate[] {
-  return [...cs].sort((a, b) => b.score - a.score || b.ppg - a.ppg || a.nameKo.localeCompare(b.nameKo, "ko"));
+  return [...cs].sort((a, b) => b.ppg - a.ppg || a.nameKo.localeCompare(b.nameKo, "ko"));
+}
+
+/** 시뮬레이션·테스트용: 점수 높은 순 (화면에는 쓰지 않는다) */
+export function sortByScore(cs: readonly GameCandidate[]): GameCandidate[] {
+  return [...cs].sort((a, b) => b.score - a.score || b.ppg - a.ppg);
+}
+
+/** 라인업 합계 (결과 화면 팀 합계 줄) */
+export function lineupTotals(players: readonly GameCandidate[]) {
+  const sum = (k: "ppg" | "rpg" | "apg" | "spg" | "bpg") => Math.round(players.reduce((s, p) => s + p[k], 0) * 10) / 10;
+  return { ppg: sum("ppg"), rpg: sum("rpg"), apg: sum("apg"), spg: sum("spg"), bpg: sum("bpg") };
 }
 
 // ─────────────────────────────────────────────
