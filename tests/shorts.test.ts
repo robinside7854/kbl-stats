@@ -94,7 +94,13 @@ assert.equal(shareNoun(51.8), "절반 이상");
 assert.equal(shareNoun(45.5), "거의 절반");
 // 쇼츠 30~40초: 선수 한 줄은 45자 이하
 for (const [i, sources] of top5.entries()) {
-  const l = topScorerLine({ rank: i + 1, name: ["이정현", "허웅", "안영준", "허훈", "서명진"][i], ppg: 15, sources, callout: c[i], tpPct: 40.6, ftPct: 87 });
+  const l = topScorerLine({ rank: i + 1, name: ["이정현", "허웅", "안영준", "허훈", "서명진"][i], ppg: 15, sources, callout: c[i], tpPct: 40.6, ftPct: 87, onlyPosition: i === 2 ? "포워드" : null });
   assert.ok(l.caption.length <= 45, `${l.caption.length}자: ${l.caption}`);
+  // 뉴스·기사체 금지 (사용자: "너무 뉴스 같음")
+  assert.ok(!/의외로|기록했|나타났|차지했|대망의|비밀은/.test(l.caption), l.caption);
+  if (i === 0) assert.match(l.caption, /자유투를 진짜 잘 뜯어내요/);
+  if (i === 2) assert.match(l.caption, /유일한 포워드예요.*페인트/);
 }
+// 유일한 포지션이 가드면(가드는 페인트 이유가 안 됨) 포지션 문구를 붙이지 않는다
+assert.doesNotMatch(topScorerLine({ rank: 3, name: "안영준", ppg: 15, sources: top5[2], callout: c[2], tpPct: 30, ftPct: 80, onlyPosition: "가드" }).caption, /유일한/);
 console.log("shorts: v3 태그·빠르기 시각·짧은 대사 통과");

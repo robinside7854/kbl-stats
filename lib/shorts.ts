@@ -216,6 +216,8 @@ export interface TopScorerScriptInput {
   callout: Callout;
   tpPct: number;
   ftPct: number;
+  /** 포지션 묶음 이름("가드"·"포워드"·"센터") — 다섯 명 중 이 포지션이 이 선수 하나뿐일 때만, 아니면 null */
+  onlyPosition?: string | null;
 }
 
 // 말로 하는 숫자는 사람처럼 둥글게 — 정확한 값은 화면(막대·특징 칸)에 있다.
@@ -259,8 +261,10 @@ export function shareNoun(share: number): string {
 }
 
 /**
- * 선수 한 명 대사 — 쇼츠용 짧은 말 (2026-10-02 사용자: 전체 30~40초, 속도감).
- * 한 장면 약 4초 = 두 마디. 첫마디는 "N위 이름", 둘째 마디에 숫자 하나. 정확한 값은 화면에.
+ * 선수 한 명 대사 — 쇼츠 말투 (2026-10-02 사용자: 30~40초·속도감, "뉴스 같지 않게 편한 말투").
+ * 한 장면 약 4초 = 두 마디. 첫마디 "N위 이름", 둘째 마디에 숫자 하나. 정확한 값은 화면에.
+ * 말투: 해요체 + 짧은 감탄("진짜", "!", "~죠"), 기사체(“~를 기록”, “~로 나타났다”, “의외로”) 금지.
+ * 다섯 명 중 유일한 포지션이면 그걸 이유로 붙인다(예: 유일한 포워드 → 페인트 득점이 많은 이유).
  * 화면 자막 = 읽는 말 그대로.
  */
 export function topScorerLine(p: TopScorerScriptInput): ScriptLine {
@@ -268,25 +272,29 @@ export function topScorerLine(p: TopScorerScriptInput): ScriptLine {
   const s = (k: ScoringSourceKey) => p.sources.find((x) => x.key === k)!;
   const n = p.name;
   const R = `${p.rank}위 ${n}`;
+  const only = p.onlyPosition ?? null;
   let line: string;
   if (c.kind === "balanced") {
     const [a, b] = [...p.sources].sort((x, y) => y.share - x.share);
-    line = `${p.rank}위 ${eunNeun(n)} 안팎 반반. ${a.label} ${Math.round(a.share)}%, ${b.label} ${Math.round(b.share)}%예요.`;
+    line = `${p.rank}위 ${eunNeun(n)} 완전 반반! ${a.label} ${Math.round(a.share)}%, ${b.label} ${Math.round(b.share)}%.`;
   } else if (c.source === "three" && c.kind === "shareTop") {
     const pct = pctFloorWords(p.tpPct);
-    line = `${R}. 3점이 득점의 ${ieyo(shareNoun(s("three").share))}` + (pct ? `. 성공률도 ${pct} 넘어요.` : ".");
+    line = `${R}! 득점 ${iGa(shareNoun(s("three").share))} 3점이에요.` + (pct ? ` 성공률도 ${pct} 넘고요.` : "");
   } else if (c.source === "three") {
-    line = `${R}, 3점으로만 경기당 ${pointsWords(s("three").perGame)} 넣었어요. 다섯 명 중 제일 많아요.`;
+    line = `${R}, 3점으로만 경기당 ${pointsWords(s("three").perGame)} 넣어요. 이 중 1등!`;
   } else if (c.source === "paint") {
-    line = `${R}, 페인트가 득점의 ${ieyo(shareNoun(s("paint").share))}. 다섯 명 중 최고.`;
+    const noun = shareNoun(s("paint").share);
+    line =
+      only && only !== "가드"
+        ? `${R}, 다섯 명 중 유일한 ${ieyo(only)}. 그래서 득점 ${iGa(noun)} 페인트!`
+        : `${R}, 득점 ${iGa(noun)} 페인트! 안쪽은 이 선수예요.`;
   } else if (c.source === "ft") {
-    const pg = pointsWords(s("ft").perGame);
-    line = p.rank === 1 ? `1위 ${eunNeun(n)} 의외로 자유투예요. 자유투로만 경기당 ${pg}!` : `${R}, 자유투로만 경기당 ${pg}.`;
+    line = `${R}, 자유투를 진짜 잘 뜯어내요. 자유투로만 경기당 ${pointsWords(s("ft").perGame)}!`;
   } else if (c.source === "mid") {
-    line = `${R}, 미드레인지가 득점의 ${ieyo(shareNoun(s("mid").share))}.`;
+    line = `${R}, 득점 ${iGa(shareNoun(s("mid").share))} 미드레인지예요. 요즘 보기 드문 스타일!`;
   } else {
     const top = [...p.sources].sort((x, y) => y.share - x.share)[0];
-    line = `${R}, ${iGa(top.label)} 득점의 ${ieyo(shareNoun(top.share))}.`;
+    line = `${R}, 득점 ${iGa(shareNoun(top.share))} ${ieyo(top.label)}.`;
   }
   return { caption: line, speech: line };
 }
