@@ -2,7 +2,8 @@
 // 재료: 시즌 파일 seasonAwards (공홈 역대수상현황 → scripts/awards.ts → process). 여기서는 화면 순서·묶음·표기만 — 순수 함수.
 import type { CardTeam, SeasonAwardKey, SeasonAwards } from "./types";
 
-export type AwardGroup = "major" | "team5" | "regular" | "records" | "allStar" | "period";
+// 2026-10-02 사용자: 기록 부문(득점상 등)·올스타전은 어워즈에서 뺀다 (시즌 파일 seasonAwards 에는 남아 있음)
+export type AwardGroup = "major" | "team5" | "regular" | "period";
 
 /** 화면 순서·이름·묶음. 표에 없는 부문(옛 시즌의 기록 부문상·라운드 MVP 등)은 자동으로 빠진다 */
 export const SEASON_AWARD_DEFS: readonly { key: SeasonAwardKey; label: string; group: AwardGroup }[] = [
@@ -17,15 +18,6 @@ export const SEASON_AWARD_DEFS: readonly { key: SeasonAwardKey; label: string; g
   { key: "mip", label: "기량 발전상", group: "regular" },
   { key: "fairPlay", label: "페어플레이상", group: "regular" },
   { key: "popularity", label: "인기상", group: "regular" },
-  { key: "scoringTitle", label: "득점상", group: "records" },
-  { key: "threesTitle", label: "3점슛상", group: "records" },
-  { key: "reboundsTitle", label: "리바운드상", group: "records" },
-  { key: "assistsTitle", label: "어시스트상", group: "records" },
-  { key: "blocksTitle", label: "블록상", group: "records" },
-  { key: "stealsTitle", label: "스틸상", group: "records" },
-  { key: "allStarMvp", label: "올스타전 MVP", group: "allStar" },
-  { key: "allStar3pt", label: "3점슛 콘테스트", group: "allStar" },
-  { key: "allStarDunk", label: "덩크슛 콘테스트", group: "allStar" },
   { key: "roundMvp", label: "라운드 MVP", group: "period" },
   { key: "monthMvp", label: "월간 MVP", group: "period" },
 ];
@@ -34,8 +26,6 @@ export const AWARD_GROUP_LABELS: Record<AwardGroup, string> = {
   major: "주요 시상",
   team5: "올-KBL 팀",
   regular: "정규리그 시상",
-  records: "기록 부문",
-  allStar: "올스타전",
   period: "라운드·월간 MVP",
 };
 

@@ -1,6 +1,7 @@
 // 시즌 어워즈 (2026-10-02 사용자 요청): 마감된 시즌 리더보드 맨 위에 그 시즌 개인 수상 전부.
 // 순서: 챔피언·정규리그 1위 → 주요 시상(MVP·외국선수 MVP·챔프전 MVP·신인상, 큰 카드) → 베스트5·수비 5걸(5명 줄)
-//      → 정규리그 시상·기록 부문·올스타전·라운드/월간 MVP(작은 목록). 데이터·순서는 lib/awards buildSeasonAwardsView.
+//      → 정규리그 시상(사진 줄) → 라운드/월간 MVP(작은 목록). 데이터·순서는 lib/awards buildSeasonAwardsView.
+// 기록 부문·올스타전은 2026-10-02 사용자 요청으로 뺐다.
 // 공홈 역대수상현황 표 그대로라 시상 이름은 그 시즌 표기와 조금 다를 수 있다(2025-26 국내선수 MVP = 정규리그 MVP 줄).
 import Link from "next/link";
 import type { AwardItemView, AwardWinnerView, SeasonAwardsView } from "@/lib/awards";
@@ -50,15 +51,16 @@ function MajorCard({ item }: { item: AwardItemView }) {
   );
 }
 
-/** 베스트5·수비 5걸: 5명 한 줄 (사진 + 이름 + 팀) */
-function TeamFiveCard({ item }: { item: AwardItemView }) {
+/** 사진 줄 카드: 베스트5·수비 5걸(한 상의 5명) / 정규리그 시상(상마다 한 칸, 위에 상 이름) */
+function PhotoRow({ title, cells }: { title: string; cells: { caption: string | null; w: AwardWinnerView }[] }) {
   return (
     <div className="surface-card rounded-card p-3">
-      <p className="text-sub font-bold text-ink">{item.label}</p>
-      <ul className="mt-2 grid grid-cols-5 gap-1.5">
-        {item.winners.map((w, i) => {
+      <p className="text-sub font-bold text-ink">{title}</p>
+      <ul className="mt-2 grid grid-cols-5 gap-x-1.5 gap-y-3">
+        {cells.map(({ caption, w }, i) => {
           const inner = (
             <>
+              {caption && <span className="mb-1 flex h-8 w-full items-end justify-center break-keep text-caption font-semibold leading-tight text-ink-2">{caption}</span>}
               <PlayerAvatar photoUrl={w.photoUrl} nameKo={w.name} color={w.team?.color ?? FALLBACK_TEAM_COLOR} size={44} />
               <span className="mt-1 w-full truncate text-caption font-semibold text-ink">{w.name}</span>
               <span className="w-full truncate text-caption text-ink-3">{w.teamLabel}</span>
@@ -105,7 +107,8 @@ function ListGroup({ label, items }: { label: string; items: AwardItemView[] }) 
 export default function SeasonAwardsBoard({ view, seasonShort }: { view: SeasonAwardsView; seasonShort: string }) {
   const major = view.groups.find((g) => g.group === "major");
   const team5 = view.groups.find((g) => g.group === "team5");
-  const rest = view.groups.filter((g) => g.group !== "major" && g.group !== "team5");
+  const regular = view.groups.find((g) => g.group === "regular");
+  const rest = view.groups.filter((g) => g.group === "period");
   return (
     <section aria-labelledby="season-awards-title" className="mb-6">
       <h2 id="season-awards-title" className="flex items-center gap-1.5 text-h2 font-bold">
@@ -145,11 +148,18 @@ export default function SeasonAwardsBoard({ view, seasonShort }: { view: SeasonA
         </ul>
       )}
 
-      {team5 && (
-        <div className="mt-3 grid gap-2 lg:grid-cols-2">
-          {team5.items.map((it) => (
-            <TeamFiveCard key={it.key} item={it} />
+      {/* 베스트5 → 바로 아래 수비 5걸 → 정규리그 시상 (모두 사진 줄) */}
+      {(team5 || regular) && (
+        <div className="mt-3 grid gap-2">
+          {team5?.items.map((it) => (
+            <PhotoRow key={it.key} title={it.label} cells={it.winners.map((w) => ({ caption: null, w }))} />
           ))}
+          {regular && (
+            <PhotoRow
+              title={regular.label}
+              cells={regular.items.flatMap((it) => it.winners.map((w) => ({ caption: it.label, w })))}
+            />
+          )}
         </div>
       )}
 

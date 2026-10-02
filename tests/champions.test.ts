@@ -84,7 +84,8 @@ import { buildSeasonAwardsView } from "../lib/awards";
   const v = buildSeasonAwardsView(
     {
       awards: [
-        { key: "allStarMvp", winners: [{ playerNo: "2", name: "나이트", team: "소노", teamCode: null, note: null }] },
+        { key: "allStarMvp", winners: [{ playerNo: "3", name: "빠짐", team: "SK", teamCode: null, note: null }] },
+        { key: "sixthMan", winners: [{ playerNo: "2", name: "나이트", team: "소노", teamCode: null, note: null }] },
         { key: "mvp", winners: [{ playerNo: "1", name: "허훈", team: "KCC", teamCode: "60", note: null }] },
         { key: "roundMvp", winners: [{ playerNo: null, name: "모름", team: "SK", teamCode: null, note: "1라운드" }] },
         { key: "best5", winners: [] },
@@ -96,7 +97,7 @@ import { buildSeasonAwardsView } from "../lib/awards";
     teams as never,
     (id) => (id === "2" ? { nameKo: "네이던 나이트", photoUrl: "p.png" } : null),
   )!;
-  assert.deepEqual(v.groups.map((g) => g.group), ["major", "allStar", "period"]);          // 화면 순서, 빈 부문은 뺀다
+  assert.deepEqual(v.groups.map((g) => g.group), ["major", "regular", "period"]);          // 화면 순서, 빈 부문·올스타는 뺀다
   assert.equal(v.groups[0].items[0].winners[0].teamLabel, "KCC");
   assert.equal(v.groups[0].items[0].winners[0].href, "/player/1?season=47");
   assert.equal(v.groups[1].items[0].winners[0].name, "네이던 나이트");                      // 색인 공식 이름
