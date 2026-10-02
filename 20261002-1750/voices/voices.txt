@@ -1,0 +1,22 @@
+목소리 후보 (모델 eleven_v3, 빠르기 ×1.12, 대본: 표지 + 1위)
+
+01. Chris - Warm and Clear — young · seoul · casual · informative_educational
+    Young Male Korean with a Bright Voice. Great for Informative content.
+    ELEVENLABS_VOICE_ID = PDoCXqBQFGsvfO0hNkEs
+02. Taehyung - Natural, Friendly and Clear — young · standard · casual · social_media
+    Young Korean male voice. Good for Social Media.
+    ELEVENLABS_VOICE_ID = m3gJBS8OofDJfycyA2Ip
+03. Krys - Cheerful, Clear and Measured — young · seoul · excited · narrative_story
+    Bright, Stable voice of a Korean male. Perfect for Video Narration & Storytelling.
+    ELEVENLABS_VOICE_ID = 1W00IGEmNmwmsDeYy7ag
+04. David - Warm, Measured and Clear — young · standard · calm · narrative_story
+    Young male voice. Great for Narrations.
+    ELEVENLABS_VOICE_ID = v1jVu1Ky28piIPEJqRrm
+05. Kyle - Friendly, Natural and Guttural — young · standard · confident · informative_educational
+    Very deep and attractive male voice. Appropriate for lecture.
+    ELEVENLABS_VOICE_ID = RU7aSi6lT4uQBXMLgDxK
+06. Min-joon - Neutral, Measured and Clear — young · standard · confident · narrative_story
+    Young adult, Male, Perfect for professional korean narration, youtube storytelling, intelligent speech, audio book, gaming, class, education & motivation
+    ELEVENLABS_VOICE_ID = nbrxrAz3eYm9NgojrmFK
+
+마음에 드는 번호의 ID 를 GitHub Secrets ELEVENLABS_VOICE_ID 에 넣으면 다음 렌더부터 그 목소리입니다.
