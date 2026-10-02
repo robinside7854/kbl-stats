@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import {
   canPick, decodeLineupParam, emptyLineup, encodeLineupParam, GAME_FOREIGN_MAX, GAME_SEASON_GAMES, isLineupFull, openSlotsFor,
-  pickBlockReason, placePick, sortByScore, lineupTotals, respinEra, respinTeam, seededRng, simulateSeason, sortCandidates, spin, spinCandidates, teamsOf, teamOfCandidate, GAME_SPIN_TEAMS, teamRating,
+  pickBlockReason, placePick, sortByScore, filterByPositionChip, sortCandidatesBy, lineupTotals, respinEra, respinTeam, seededRng, simulateSeason, sortCandidates, spin, spinCandidates, teamsOf, teamOfCandidate, GAME_SPIN_TEAMS, teamRating,
   winProbability, type GameCandidate, type GamePool, type Lineup, type Spin,
 } from "../lib/game";
 import type { Position } from "../lib/types";
@@ -94,6 +94,14 @@ assert.equal(pickBlockReason(withA, sameB), "이미 뽑은 선수");
 // 화면 정렬은 득점순(점수 무관), 시뮬레이션 정렬은 점수순
 assert.deepEqual(sortCandidates([{ ...c("1", "G", false, 90), ppg: 8 }, { ...c("2", "G", false, 60), ppg: 20 }]).map((x) => x.id), ["2", "1"]);
 assert.deepEqual(sortByScore([{ ...c("1", "G", false, 90), ppg: 8 }, { ...c("2", "G", false, 60), ppg: 20 }]).map((x) => x.id), ["1", "2"]);
+// 포지션 칩: 겸업은 두 칩에 / 정렬 칩: 내림·오름, 같으면 득점
+const mix = [{ ...c("g", "G"), rpg: 2 }, { ...c("gf", "GF"), rpg: 4 }, { ...c("f", "F"), rpg: 6 }, { ...c("fc", "FC"), rpg: 8, ppg: 12 }, { ...c("cc", "C"), rpg: 8, ppg: 15 }];
+assert.deepEqual(filterByPositionChip(mix, "G").map((x) => x.id), ["g", "gf"]);
+assert.deepEqual(filterByPositionChip(mix, "F").map((x) => x.id), ["gf", "f", "fc"]);
+assert.deepEqual(filterByPositionChip(mix, "C").map((x) => x.id), ["fc", "cc"]);
+assert.equal(filterByPositionChip(mix, "all").length, 5);
+assert.deepEqual(sortCandidatesBy(mix, "rpg", "desc").map((x) => x.id), ["cc", "fc", "f", "gf", "g"]); // 8·8 은 득점 높은 cc 먼저
+assert.deepEqual(sortCandidatesBy(mix, "rpg", "asc").map((x) => x.id), ["g", "gf", "f", "cc", "fc"]);
 assert.deepEqual(lineupTotals([c("1", "G"), c("2", "G")]), { ppg: 20, rpg: 10, apg: 6, spg: 2, bpg: 1 });
 console.log("game: 슬롯 돌리기 통과");
 

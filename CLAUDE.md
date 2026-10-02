@@ -255,7 +255,7 @@ kbl-stats/
   |---|---|---|
   | page_view | (GA 자동) | 화면 열기·이동 |
   | nav_click | menu, place(top/bottom) | 상단·하단 메뉴 |
-  | filter_change | screen, filter, value | 필터·부문·단위·시즌·보기 전환 (리더보드·선수 탭·역대 기록·선수 상세 시즌/순위 범위/프라임·추이 지표·슛 차트 보기·비교 시즌/카드 보기·상단 시즌 선택) |
+  | filter_change | screen, filter, value | 필터·부문·단위·시즌·보기 전환 (54-0 후보 포지션 칩 position·정렬 칩 sort(예: rpg_asc), 리더보드·선수 탭·역대 기록·선수 상세 시즌/순위 범위/프라임·추이 지표·슛 차트 보기·비교 시즌/카드 보기·상단 시즌 선택) |
   | filter_reset | screen | 필터 초기화 |
   | help_open | topic | ⓘ 도움말 열기 (어떤 용어가 어려운지) |
   | csv_download | season, category, mode | 리더보드 CSV |
@@ -295,6 +295,7 @@ kbl-stats/
 
 ## 세션 로그
 - 2026-10-02 (숏폼 시제품): 사용자 결정(공식 사진 사용·수익 없는 팬 계정·AI 목소리 20대 남성·매거진 톤·공개 버튼은 사람·SCOPE IN 사이트 밖 유튜브) → 첫 포맷 "25-26 국내 득점 TOP 5 득점 유형"(이정현·허웅·안영준·허훈·서명진, 득점을 페인트·미드·3점·자유투로 — 합 = 공식 득점) 구현. `lib/shorts.ts`(규칙·대사)·`scripts/build-short.ts`(에피소드 JSON)·`scripts/prepare-short.ts`(목소리·사진)·`shorts/`(Remotion 렌더러)·`.github/workflows/shorts-render.yml`(실행 횟수 올려 푸시 → Artifacts + `shorts-renders` 브랜치). 세션 환경은 KBL 사진·음성 서버 차단이라 렌더는 Actions 에서. Actions 4회: ① 러너에 ffprobe 없음 → ffmpeg 설치 ② 렌더 브랜치 checkout -f ③ edge-tts +12% 로 72초 → 대사 줄이고 +20% ④ 55.3초 완성. 검증: typecheck·test(shorts 추가)·build, 프레임 확인. 다음: 채널 개설(사용자), 매일 주제 자동 선정·API 비공개 업로드는 다음 단계.
+- 2026-10-02 (54-0 후보 칩): 사용자 요청 — 후보 목록 위에 **포지션 칩**(전체·가드·포워드·센터 + 인원, 그 칸에 들어갈 수 있는 기준 — GF 는 가드·포워드, FC 는 포워드·센터 둘 다, `lib/game filterByPositionChip`)과 **정렬 칩**(득점·리바·어시·스틸·블록, 같은 칩 다시 누르면 내림↔오름, `sortCandidatesBy`, 같으면 득점 → 이름). GA4: filter_change screen=game, filter=position|sort. 정렬은 다음 슬롯에도 유지, 포지션은 슬롯마다 전체로. 정렬 기준 기록 이름표를 진하게, 0명이면 "전체 보기". 검증: test(겸업 두 칩·내림/오름·동점)·typecheck·build·slop 0, Playwright 390: 센터 칩 → 센터만, 리바 내림/오름 순서 확인, 다음 슬롯 포지션 전체·정렬 유지, 완주 390/1280. main 배포.
 - 2026-10-02 (GA4 이벤트 확장·규칙): 사용자 지시 — 반응을 볼 이벤트 추가: nav_click(상단/하단 메뉴)·filter_change(리더보드·선수 탭·역대 기록·선수 상세 시즌/범위/프라임·추이 지표·슛 차트 보기·비교·상단 시즌, `track.ts trackFilters`)·filter_reset·help_open(ⓘ 용어)·csv_download. 그리고 **"새 메뉴·기능은 GA4 이벤트 작업 선행"** 규칙을 CLAUDE.md "방문 통계 규칙"에 저장(이벤트 표 포함). 검증: typecheck·test·build·slop 0, Playwright(가짜 gtag)로 filter_change·help_open·nav_click 확인. 덤: 로컬 public/game/pool.json 이 옛 형식이라 game 테스트가 실패 → build:game 다시 만들어 통과(코드 문제 아님). main 배포.
 - 2026-10-02 (54-0 한 시즌 + 팀 3개): 시뮬레이션 비교(시대 구간 나누기 9가지·한 시즌 팀 1/2/3개 — 균등 7구간은 08-12·16-21 처럼 리그 흐름이 바뀐 시즌을 가로질러 해석이 갈리고, 한 시즌 팀 1개는 후보 9명이라 너무 어려움) 후 사용자 결정으로 **한 시즌 + 팀 3개**(후보 약 28명). `lib/game-pool` 구간 = 시즌 하나(30개, 기록 = 그 시즌), `Spin.teamCodes`(3개)·`GAME_SPIN_TEAMS`·`teamsOf`·`teamOfCandidate`·`spinCandidates`, 팀 다시 = 같은 시즌 새 팀 3개(지금 팀은 되도록 뺌), 시즌 다시 = 지금 팀이 가장 많이 남는 다른 시즌(없는 자리만 채움), `splitEras`·`GAME_ERA_COUNT` 삭제. 같은 선수는 시즌이 달라도 한 번만(선수 번호, 테스트 추가). 난이도 다시 맞춤: `WIN_CURVE` 96·98·99 = 원래의 0.75배(7.5%·5.625%·4.5%) → 득점 1위만 고르면 전승 0.20%·중앙 46승, 숨은 점수 1위 2.1%, 아무나 17승. 화면: 오른쪽 릴에 팀 3개(로고·이름), 후보 줄에 팀 로고·이름, "시즌 다시", 용어 문구. pool.json 1,081KB(gzip 156KB). 검증: typecheck·test·build·slop 0, Playwright 390/1280 완주·공유 링크·이미지 저장, 시즌 다시 = 왼쪽만(03-04 → 09-10, LG·SK·모비스 유지)·팀 다시 = 오른쪽만. main 배포.
 - 2026-10-02 (도메인): 사용자가 Vercel 주소를 **https://kbl-stats-reference.vercel.app** 으로 바꿈(옛 kbl-stats-mu.vercel.app 은 Vercel 도메인 설정에 남아 있으면 계속 열림). 코드에는 사이트 주소가 하드코딩된 곳이 없음(grep 0) — GA4 는 측정 ID 기준이라 도메인이 바뀌어도 그대로 수집. 나중에 OG 미리보기(metadataBase)를 만들 때는 주소를 site.json 한 곳에 둘 것.
