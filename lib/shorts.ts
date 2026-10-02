@@ -395,20 +395,18 @@ export function timesWords(ratio: number): string {
 
 /** 인사이트 → 대사 (쇼츠 말투, 두 마디). classic 이면 기존 topScorerLine */
 export function insightLine(p: TopScorerScriptInput, insight: Insight): ScriptLine {
+  // 2026-10-02 사용자: "영상 대본도 캐주얼하게" → 반말·친구한테 말하듯. 숫자는 그대로 데이터에서.
   const n = p.name;
   const R = `${p.rank}위 ${n}`;
   let line: string;
   switch (insight.layout) {
     case "counter": {
-      const head = `${R}, 자유투를 진짜 잘 뜯어내요.`;
-      line =
-        insight.rank === 1
-          ? `${head} 자유투 시도 국내 1위` + (insight.ratioToNext && insight.ratioToNext >= 1.2 ? `, 2위보다 ${timesWords(insight.ratioToNext)}!` : "!")
-          : `${head} 자유투 시도 국내 ${insight.rank}위!`;
+      const ratio = insight.ratioToNext && insight.ratioToNext >= 1.2 ? `, 2위보다 ${timesWords(insight.ratioToNext)}` : "";
+      line = `${R}, 파울 뜯어내기 장인. 자유투 시도 국내 ${insight.rank}위${ratio}!`;
       break;
     }
     case "ladder":
-      line = `${R}, 3점으로만 경기당 ${pointsWords(insight.value)}. 국내 선수 ${insight.beatPct}%는 다 합쳐도 이만큼 못 넣어요!`;
+      line = `${R}, 3점만으로 경기당 ${pointsWords(insight.value)}. 국내 선수 열에 ${nativeCount(outOfTen(insight.beaten, insight.total))}은 이만큼도 못 넣어!`;
       break;
     case "split": {
       const inOut = new Set([insight.a.key, insight.b.key]);
@@ -416,19 +414,19 @@ export function insightLine(p: TopScorerScriptInput, insight: Insight): ScriptLi
         inOut.has("paint") && inOut.has("three")
           ? `안 ${Math.round(insight.a.key === "paint" ? insight.a.share : insight.b.share)}%, 밖 ${Math.round(insight.a.key === "three" ? insight.a.share : insight.b.share)}%`
           : `${insight.a.label} ${Math.round(insight.a.share)}%, ${insight.b.label} ${Math.round(insight.b.share)}%`;
-      line = `${p.rank}위 ${eunNeun(n)} ${pair}. 어디를 막아도 답이 있는 타입!`;
+      line = `${p.rank}위 ${eunNeun(n)} ${pair}. 어디 막아도 답이 있어!`;
       break;
     }
     case "lineup":
-      line = `${R}, 다섯 명 중 유일한 ${ieyo(insight.only)}. 그래서 득점 ${iGa(shareNoun(insight.share))} 페인트!`;
+      line = `${R}, 다섯 명 중 혼자 ${iya(insight.only)}. 그러니까 득점 ${iGa(shareNoun(insight.share))} 페인트!`;
       break;
     case "shotmap": {
       const label = SCORING_SOURCES.find((x) => x.key === insight.focus)!.label;
       const head = `${R}! 득점 ${iGa(shareNoun(insight.share))} ${label}.`;
-      line = insight.lowFtShare !== null && insight.focus === "three" ? `${head} 자유투는 제일 적어요, 밖에서 끝내는 타입!` : `${head}`;
+      line = insight.lowFtShare !== null && insight.focus === "three" ? `${head} 자유투는 제일 적어, 그냥 밖에서 끝내!` : `${head}`;
       if (insight.lowFtShare === null && insight.focus === "three") {
         const pct = pctFloorWords(p.tpPct);
-        if (pct) line += ` 성공률도 ${pct} 넘고요.`;
+        if (pct) line += ` 성공률도 ${pct} 넘어.`;
       }
       break;
     }
@@ -436,6 +434,15 @@ export function insightLine(p: TopScorerScriptInput, insight: Insight): ScriptLi
       return topScorerLine(p);
   }
   return { caption: line, speech: line };
+}
+
+/** 이야/야 — "포워드야", "센터야" */
+const iya = (w: string) => w + particle(w, "이야", "야");
+
+const NATIVE_COUNT = ["", "하나", "둘", "셋", "넷", "다섯", "여섯", "일곱", "여덟", "아홉", "열"];
+/** 1~10 고유어 (읽을 때 "팔"이 아니라 "여덟") */
+export function nativeCount(n: number): string {
+  return NATIVE_COUNT[Math.max(0, Math.min(10, Math.floor(n)))] || String(n);
 }
 
 /** 인사이트 → 유튜브 설명란 한 줄 (영상보다 정확한 숫자, 소수 한 자리) */

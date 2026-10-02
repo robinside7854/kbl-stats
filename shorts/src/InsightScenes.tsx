@@ -216,7 +216,7 @@ function SplitScene({ props, scene, p }: SceneProps) {
         <div style={{ position: "absolute", left: beam / 2 - 160, top: 162, width: 320, height: 8, background: C.ink, borderRadius: 4 }} />
       </div>
       <div style={{ position: "absolute", left: SAFE.left, right: W_PAD, top: 1214, textAlign: "center", ...rise(prog(f, 48, 12)) }}>
-        <span style={text(56, 900)}>어디를 막아도 답이 있다</span>
+        <span style={text(56, 900)}>어디 막아도 답 있음</span>
       </div>
     </Frame>
   );
@@ -259,7 +259,7 @@ function LineupScene({ props, scene, p }: SceneProps) {
       </div>
       <div style={{ position: "absolute", left: SAFE.left, right: W_PAD, top: 640, ...rise(prog(f, 22, 10)) }}>
         <div style={{ display: "inline-block", background: p.team.color, borderRadius: 8, padding: "10px 22px", ...text(40, 900, "#fff") }}>
-          유일한 {ins.only}
+          혼자 {ins.only}
         </div>
         <div style={text(96, 900, C.ink, { marginTop: 14 })}>{p.name}</div>
       </div>
@@ -342,7 +342,7 @@ function LadderScene({ props, scene, p }: SceneProps) {
       </div>
       <div style={{ position: "absolute", left: SAFE.left, right: W_PAD, top: 1214, ...rise(prog(f, 50, 10)) }}>
         <span style={text(54, 900)}>
-          {ins.beaten}명<span style={text(36, 700, C.ink2)}>({ins.beatPct}% 이상)</span>이 이보다 적게 넣었다
+          {ins.total}명 중 {ins.beaten}명<span style={text(36, 700, C.ink2)}>은 다 합쳐도 이만큼 못 넣음</span>
         </span>
       </div>
     </Frame>

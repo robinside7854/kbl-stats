@@ -127,10 +127,11 @@ import { buildInsight, insightLine, timesWords } from "../lib/shorts";
   assert.equal(ladder.beaten, 8); // 8.4 미만 경기당 득점
   assert.equal(timesWords(5.16 / 3.32), "1.5배");
   const lines = ins.map((x, i) => insightLine({ rank: i + 1, name: names[i], ppg: 15, sources: top5[i], callout: c[i], tpPct: 40.6, ftPct: 87 }, x).caption);
-  assert.match(lines[0], /자유투를 진짜 잘 뜯어내요.*국내 1위, 2위보다 1\.5배/);
-  assert.match(lines[2], /유일한 포워드예요.*페인트/);
+  assert.match(lines[0], /파울 뜯어내기 장인.*국내 1위, 2위보다 1\.5배/);
+  assert.match(lines[2], /혼자 포워드야.*페인트/);
   assert.match(lines[3], /안 39%, 밖 36%/);
-  assert.match(lines[4], /자유투는 제일 적어요/);
+  assert.match(lines[4], /자유투는 제일 적어/);
+  assert.match(lines[1], /열에 다섯은/); // 14명 중 8명 → 고유어로 읽게
   for (const l of lines) {
     assert.ok(l.length <= 52, `${l.length}자: ${l}`);
     assert.ok(!/의외로|기록했|나타났|대망의|비밀은|—/.test(l), l);
