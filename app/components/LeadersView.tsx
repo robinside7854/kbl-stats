@@ -11,7 +11,7 @@
 // 선택 상태는 주소 쿼리(?cat=&mode=&origin=&pos=&team=&q=)에 남긴다. useSearchParams 대신 window.location 을 읽어
 // 정적 HTML에 기본 상태(경기당 득점)의 카드·표가 그대로 렌더링되게 한다 (CardExplorer 와 같은 방식).
 import { seasonShortLabel } from "@/lib/career";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import type { CardTeam, LeaderPlayer } from "@/lib/types";
 import { attemptsNote, attemptThresholds, QUALIFY_PRESETS, qualifyLabel } from "@/lib/metrics";
 import {
@@ -85,6 +85,8 @@ interface Props {
   teams: CardTeam[];
   /** 이 시즌 한 경기 최다 카드 (서버에서 계산). 빈 배열이면 섹션을 숨긴다 */
   seasonHighs?: SeasonHighCard[];
+  /** 마감된 시즌의 어워즈 (서버에서 그린 SeasonAwardsBoard, 없으면 null) — 머리말 바로 아래 */
+  awards?: ReactNode;
 }
 
 const MODE_OPTIONS: { value: StatMode; label: string }[] = [
@@ -193,7 +195,7 @@ function CoverCard({
   );
 }
 
-export default function LeadersView({ seasonLabel, players, teams, seasonHighs = [] }: Props) {
+export default function LeadersView({ seasonLabel, players, teams, seasonHighs = [], awards = null }: Props) {
   const [state, setState] = useState<LeadersState>(DEFAULT_LEADERS_STATE);
   // 표 정렬 (null 이면 선택한 부문의 "상위" 방향 — 턴오버는 적은 순)
   const [sort, setSort] = useState<{ key: LeaderStatKey; dir: SortDir } | null>(null);
@@ -372,6 +374,9 @@ export default function LeadersView({ seasonLabel, players, teams, seasonHighs =
         <p className="text-sub font-medium text-ink-3">{seasonShortLabel(seasonLabel)} KBL 정규시즌</p>
         <h1 className="mt-0.5 text-h1 font-bold">시즌 리더보드</h1>
       </header>
+
+      {awards}
+      {awards && <h2 className="mb-2 text-h2 font-bold">부문별 순위</h2>}
 
       {/* 1차 컨트롤: 묶음(기본·슈팅·슛 구역·고급·허슬) → 그 묶음의 부문 칩. 옆으로 밀지 않아도 다 보이게 */}
       <div role="group" aria-label="부문 묶음" className="grid auto-cols-fr grid-flow-col rounded-control border border-line bg-surface p-0.5">

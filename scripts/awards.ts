@@ -141,11 +141,11 @@ export function isAwardsData(v: unknown): boolean {
 // 표 → 수상 행 (시즌·부문·이름·팀). 화면에 쓰는 부문만 (감독상·인기상·페어플레이·월간/라운드 MVP·기록 부문은 뺀다)
 // ─────────────────────────────────────────────
 
-import type { AwardKey } from "../lib/types.js";
-export type { AwardKey };
+import type { AwardKey, SeasonAwardKey } from "../lib/types.js";
+export type { AwardKey, SeasonAwardKey };
 
-/** 비계량 부문 표의 item → 우리 키 (2025-26 부터 MVP 가 국내/외국으로 나뉨) */
-const REGULAR_ITEM_KEYS: Record<string, AwardKey> = {
+/** 비계량·계량 부문 표의 item → 우리 키 (2025-26 부터 MVP 가 국내/외국으로 나뉨). 감독상은 선수 상이 아니라 뺀다 */
+const ITEM_KEYS: Record<string, SeasonAwardKey> = {
   MVP: "mvp",
   "국내선수 MVP": "mvp",
   외국선수상: "foreignMvp",
@@ -156,15 +156,30 @@ const REGULAR_ITEM_KEYS: Record<string, AwardKey> = {
   "기량 발전상": "mip",
   베스트5: "best5",
   "수비 5걸상": "defense5",
+  "이성구 페어플레이상(모범선수상)": "fairPlay",
+  인기상: "popularity",
+  득점상: "scoringTitle",
+  "3점슛상": "threesTitle",
+  리바운드상: "reboundsTitle",
+  어시스트상: "assistsTitle",
+  블록상: "blocksTitle",
+  스틸상: "stealsTitle",
 };
 
+/** 선수 프로필(색인 awards)에 쓰는 부문 — 나머지는 시즌 어워즈 화면에만 */
+export const PROFILE_AWARD_KEYS: ReadonlySet<string> = new Set<AwardKey>([
+  "mvp", "foreignMvp", "finalsMvp", "allStarMvp", "best5", "defense5", "rookie", "defensive", "sixthMan", "mip",
+]);
+
 export interface AwardRow {
-  key: AwardKey;
+  key: SeasonAwardKey;
   /** "2023-2024" / "1997" (우리 seasonLabel 형식) */
   seasonLabel: string;
   name: string;
   /** 괄호 안 팀 표기 그대로, 예: "현대모비스" */
   team: string;
+  /** 라운드·월간 MVP 의 "1라운드"·"11월", 올스타 덩크의 "국내"/"국외", "1일차" 등. 없으면 null */
+  note: string | null;
 }
 
 /** "2023~2024" · "*2019~2020" · "97~98" · "99~2000" · "97" → "2023-2024" · "1997-1998" · "1999-2000" · "1997". 모르면 null */
@@ -177,42 +192,102 @@ export function awardSeasonLabel(raw: string): string | null {
   return m ? full(m[1]) : null;
 }
 
-/** 칸 하나 "이름(팀)" 여러 줄 → [{name, team}]. "-"·"※대상자 없음"·괄호 없는 줄은 뺀다. "이름\n(팀)" 처럼 줄이 나뉜 것도 붙인다 */
-export function parseNameTeamCell(cell: unknown): { name: string; team: string }[] {
+/**
+ * 칸 하나 "이름(팀)" 여러 줄 → [{name, team, note}]. "-"·"※대상자 없음"·표 수("45표(총 73표)")·괄호 없는 줄은 뺀다.
+ * "이름\n(팀)" 처럼 줄이 나뉜 것은 붙이고, 한 줄에 여럿("양동근(모비스)/박상오(SK)", "이승준(삼성), 김경언(SK)")은 나눈다.
+ * 줄 앞 꼬리표 "국내 :"·"국외 :"·"1일차:" 는 note 로.
+ */
+export function parseNameTeamCell(cell: unknown): { name: string; team: string; note: string | null }[] {
   const text = (Array.isArray(cell) ? cell.flat(3) : [cell]).filter((x) => typeof x === "string").join("\n");
   const joined = text.replace(/\n\s*\(/g, "(");
-  const out: { name: string; team: string }[] = [];
-  for (const line of joined.split("\n")) {
-    const m = /^\s*\*?\s*([^()\d][^()]*?)\s*\(([^()]+)\)\s*$/.exec(line);
-    if (m) out.push({ name: m[1].trim(), team: m[2].trim() });
+  const out: { name: string; team: string; note: string | null }[] = [];
+  for (const rawLine of joined.split("\n")) {
+    let line = rawLine.trim();
+    let note: string | null = null;
+    const tag = /^(국내|국외|\d+일차)\s*:\s*/.exec(line);
+    if (tag) {
+      note = tag[1];
+      line = line.slice(tag[0].length);
+    }
+    for (const part of line.split(/\s*[/,]\s*(?=[^()]*\()/)) {
+      const m = /^\*?\s*([^()\d][^()]*?)\s*\(([^()]+)\)\s*$/.exec(part.trim());
+      if (m) out.push({ name: m[1].trim(), team: m[2].trim(), note });
+    }
   }
   return out;
 }
 
-/** 수상 표 데이터 → 수상 행. 섹션 이름으로 찾는다(순서가 바뀌어도 됨) */
+/** 수상 표 데이터 → 수상 행 (개인상 전부). 섹션 이름으로 찾는다(순서가 바뀌어도 됨) */
 export function awardRows(data: unknown): AwardRow[] {
   if (!isAwardsData(data)) return [];
   const out: AwardRow[] = [];
-  const push = (key: AwardKey, seasonRaw: string, cell: unknown) => {
+  const push = (key: SeasonAwardKey, seasonRaw: string, cell: unknown, note: string | null = null) => {
     const seasonLabel = awardSeasonLabel(seasonRaw);
     if (!seasonLabel) return;
-    for (const p of parseNameTeamCell(cell)) out.push({ key, seasonLabel, ...p });
+    for (const p of parseNameTeamCell(cell)) out.push({ key, seasonLabel, name: p.name, team: p.team, note: p.note ?? note });
   };
   for (const sec of data as Raw[]) {
     const name = String(sec.name);
     for (const t of sec.values as Raw[]) {
-      const cols = (t.colName as unknown[]).map(String);
+      const cols = (t.colName as unknown[]).map((c) => String(c).trim());
       for (const r of t.data as Raw[]) {
-        const values = Array.isArray(r.value) ? r.value : [];
-        if (name === "정규시즌 비계량 부문 수상자") {
-          const key = REGULAR_ITEM_KEYS[String(r.item).trim()];
-          if (key) values.forEach((v: unknown, i: number) => push(key, cols[i + 1] ?? "", v));
+        const values: unknown[] = Array.isArray(r.value) ? r.value : [];
+        const item = String(r.item).replace(/\s*\n\s*/g, "").trim();
+        if (name === "정규시즌 비계량 부문 수상자" || name === "정규시즌 계량 부문 수상자") {
+          const key = ITEM_KEYS[item];
+          if (key) values.forEach((v, i) => push(key, cols[i + 1] ?? "", v));
         } else if (name === "플레이오프 우승팀 및 MVP") {
           const i = cols.indexOf("MVP");
-          if (i > 0) push("finalsMvp", String(r.item), values[i - 1]);
+          if (i > 0) push("finalsMvp", item, values[i - 1]);
         } else if (name === "올스타전 MVP 및 수상자") {
-          const i = cols.indexOf("MVP");
-          if (i > 0) push("allStarMvp", String(r.item), values[i - 1]);
+          const col = (label: string) => cols.indexOf(label) - 1;
+          if (col("MVP") >= 0) push("allStarMvp", item, values[col("MVP")]);
+          if (col("3점슛 콘테스트") >= 0) push("allStar3pt", item, values[col("3점슛 콘테스트")]);
+          if (col("덩크슛 콘테스트") >= 0) push("allStarDunk", item, values[col("덩크슛 콘테스트")]);
+        } else if (name === "라운드 MVP" || name === "월간 MVP") {
+          values.forEach((v, i) => push(name === "라운드 MVP" ? "roundMvp" : "monthMvp", item, v, cols[i + 1] ?? null));
+        }
+      }
+    }
+  }
+  return out;
+}
+
+export interface SeasonTeamResult {
+  /** 정규시즌 1·2위 (팀 표기·"33승 12패 (0.733)") */
+  regular: { first: string; firstRecord: string; second: string; secondRecord: string } | null;
+  /** 챔프전 우승·준우승 ("KCC" · "4승 1패") */
+  finals: { champion: string; championRecord: string; runnerUp: string; runnerUpRecord: string } | null;
+}
+
+/** "KCC(4승 1패)" → ["KCC", "4승 1패"], 괄호 없으면 [글자, ""] */
+function teamAndRecord(v: unknown): [string, string] {
+  const t = String(v ?? "").trim();
+  const m = /^(.+?)\s*\(([^()]*)\)\s*$/.exec(t);
+  return m ? [m[1].trim(), m[2].trim()] : [t, ""];
+}
+
+/** 정규시즌 우승팀·챔프전 결과 → 시즌 라벨별. 코로나 등 결과가 없는 칸은 null */
+export function seasonTeamResults(data: unknown): Map<string, SeasonTeamResult> {
+  const out = new Map<string, SeasonTeamResult>();
+  if (!isAwardsData(data)) return out;
+  const get = (label: string) => {
+    let e = out.get(label);
+    if (!e) out.set(label, (e = { regular: null, finals: null }));
+    return e;
+  };
+  for (const sec of data as Raw[]) {
+    for (const t of sec.values as Raw[]) {
+      for (const r of t.data as Raw[]) {
+        const label = awardSeasonLabel(String(r.item));
+        const v: unknown[] = Array.isArray(r.value) ? r.value : [];
+        if (!label) continue;
+        if (sec.name === "정규시즌 우승팀 및 준우승팀" && v[0]) {
+          get(label).regular = { first: String(v[0]).trim(), firstRecord: String(v[1] ?? "").trim(), second: String(v[2] ?? "").trim(), secondRecord: String(v[3] ?? "").trim() };
+        } else if (sec.name === "플레이오프 우승팀 및 MVP") {
+          const [champion, championRecord] = teamAndRecord(v[0]);
+          const [runnerUp, runnerUpRecord] = teamAndRecord(v[1]);
+          if (champion && runnerUp && /승/.test(championRecord)) get(label).finals = { champion, championRecord, runnerUp, runnerUpRecord };
         }
       }
     }

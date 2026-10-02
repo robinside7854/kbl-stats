@@ -2,7 +2,7 @@
   "seasonCode": 19,
   "seasonLabel": "2011-2012",
   "gameType": "regular",
-  "fetchedAt": "2026-10-02T01:10:21.469Z",
+  "fetchedAt": "2026-10-02T01:20:56.850Z",
   "coverage": {
     "advanced": true,
     "plusMinus": true,
@@ -33942,5 +33942,185 @@
     "teamName": "안양 KGC",
     "wins": 4,
     "losses": 2
+  },
+  "seasonAwards": {
+    "awards": [
+      {
+        "key": "mvp",
+        "winners": [
+          {
+            "playerNo": "290218",
+            "name": "윤호영",
+            "team": "동부",
+            "teamCode": "16",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "rookie",
+        "winners": [
+          {
+            "playerNo": "290450",
+            "name": "오세근",
+            "team": "KGC",
+            "teamCode": "70",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "fairPlay",
+        "winners": [
+          {
+            "playerNo": "290407",
+            "name": "김선형",
+            "team": "SK",
+            "teamCode": "55",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "best5",
+        "winners": [
+          {
+            "playerNo": "210074",
+            "name": "양동근",
+            "team": "모비스",
+            "teamCode": "10",
+            "note": null
+          },
+          {
+            "playerNo": "290108",
+            "name": "김태술",
+            "team": "KGC",
+            "teamCode": "70",
+            "note": null
+          },
+          {
+            "playerNo": "215053",
+            "name": "김주성",
+            "team": "동부",
+            "teamCode": "16",
+            "note": null
+          },
+          {
+            "playerNo": "290218",
+            "name": "윤호영",
+            "team": "동부",
+            "teamCode": "16",
+            "note": null
+          },
+          {
+            "playerNo": "290450",
+            "name": "오세근",
+            "team": "KGC",
+            "teamCode": "70",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "monthMvp",
+        "winners": [
+          {
+            "playerNo": "290450",
+            "name": "오세근",
+            "team": "KGC",
+            "teamCode": "70",
+            "note": "11월"
+          },
+          {
+            "playerNo": "290450",
+            "name": "오세근",
+            "team": "KGC",
+            "teamCode": "70",
+            "note": "12월"
+          },
+          {
+            "playerNo": "290218",
+            "name": "윤호영",
+            "team": "동부",
+            "teamCode": "16",
+            "note": "1월"
+          },
+          {
+            "playerNo": "290100",
+            "name": "함지훈",
+            "team": "모비스",
+            "teamCode": "10",
+            "note": "2월"
+          }
+        ]
+      },
+      {
+        "key": "allStarMvp",
+        "winners": [
+          {
+            "playerNo": "290280",
+            "name": "문태영",
+            "team": "LG",
+            "teamCode": "50",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "allStar3pt",
+        "winners": [
+          {
+            "playerNo": "290287",
+            "name": "전태풍",
+            "team": "KCC",
+            "teamCode": "60",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "allStarDunk",
+        "winners": [
+          {
+            "playerNo": "290412",
+            "name": "김현민",
+            "team": "KT",
+            "teamCode": "06",
+            "note": "국내"
+          },
+          {
+            "playerNo": "290371",
+            "name": "찰스 로드",
+            "team": "KT",
+            "teamCode": "06",
+            "note": "국외"
+          }
+        ]
+      },
+      {
+        "key": "finalsMvp",
+        "winners": [
+          {
+            "playerNo": "290450",
+            "name": "오세근",
+            "team": "KGC",
+            "teamCode": "70",
+            "note": null
+          }
+        ]
+      }
+    ],
+    "regular": {
+      "first": "동부",
+      "firstRecord": "44승 10패 (0.815)",
+      "second": "KGC",
+      "secondRecord": "36승 18패 (0.667)"
+    },
+    "finals": {
+      "champion": "KGC",
+      "championRecord": "4승 2패",
+      "runnerUp": "동부",
+      "runnerUpRecord": "2승 4패"
+    }
   }
 }

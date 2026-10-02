@@ -50,8 +50,11 @@ assert.equal(awardSeasonLabel("97"), "1997");
 assert.equal(awardSeasonLabel("99~2000"), "1999-2000");
 assert.equal(awardSeasonLabel("*2019~2020"), "2019-2020");
 assert.equal(awardSeasonLabel("시즌별"), null);
-assert.deepEqual(parseNameTeamCell("크리스 윌리엄스\n(모비스)\n48표(총 78표)"), [{ name: "크리스 윌리엄스", team: "모비스" }]);
+assert.deepEqual(parseNameTeamCell("크리스 윌리엄스\n(모비스)\n48표(총 78표)"), [{ name: "크리스 윌리엄스", team: "모비스", note: null }]);
 assert.deepEqual(parseNameTeamCell("※대상자 없음"), []);
+assert.deepEqual(parseNameTeamCell("양동근(모비스)/박상오(SK)\n21표(97표)").map((p) => p.name), ["양동근", "박상오"]);   // 한 줄에 둘
+assert.deepEqual(parseNameTeamCell("국내 : 이승준(삼성), 김경언(SK)\n국외 : 조셉 테일러(KT&G)").map((p) => `${p.note}:${p.name}`), ["국내:이승준", "국내:김경언", "국외:조셉 테일러"]);
+assert.deepEqual(parseNameTeamCell("*코로나19로 인한 2020-2021시즌 올스타전 미개최"), []);
 assert.equal(bundleScriptSrc('<script type="module" src="/assets/index-B80iNXgn.js"></script>'), "/assets/index-B80iNXgn.js");
 assert.equal(bundleScriptSrc("<html></html>"), null);
 console.log("awards: 번들 읽기·수상 행 통과");
@@ -64,7 +67,7 @@ const roster = [
   { playerNo: "5", nameKo: "김민수", teamShort: "KT", teamName: "수원 KT" },
 ];
 const none = new Map<string, string[]>();
-const r = (name: string, team: string) => ({ key: "best5" as const, seasonLabel: "2017-2018", name, team });
+const r = (name: string, team: string) => ({ key: "best5" as const, seasonLabel: "2017-2018", name, team, note: null });
 assert.equal(matchAwardPlayer(r("애런헤인즈", "sk"), roster, none), "1");          // 공백 무시
 assert.equal(matchAwardPlayer(r("김민수", "KT"), roster, none), "5");              // 동명이인 → 팀
 assert.equal(matchAwardPlayer(r("나이트", "소노"), roster, none), "2");            // 성만
@@ -73,3 +76,33 @@ assert.equal(matchAwardPlayer(r("장병국", "SK"), roster, none), null);       
 assert.equal(matchAwardPlayer(r("라건아", "현대모비스"), [], new Map([["라건아", ["9"]]])), "9");  // 그 시즌 명단에 없으면 전체에서 하나뿐인 이름
 assert.equal(editDistance("카룰랑안", "카굴랑안"), 1);
 console.log("awards: 선수 연결 통과");
+
+// ── 시즌 어워즈 화면 (lib/awards buildSeasonAwardsView) ──
+import { buildSeasonAwardsView } from "../lib/awards";
+{
+  const teams = [{ teamCode: "60", shortName: "KCC", logoUrl: null, color: { primary: "#000", secondary: "#fff", text: "#fff" } }];
+  const v = buildSeasonAwardsView(
+    {
+      awards: [
+        { key: "allStarMvp", winners: [{ playerNo: "2", name: "나이트", team: "소노", teamCode: null, note: null }] },
+        { key: "mvp", winners: [{ playerNo: "1", name: "허훈", team: "KCC", teamCode: "60", note: null }] },
+        { key: "roundMvp", winners: [{ playerNo: null, name: "모름", team: "SK", teamCode: null, note: "1라운드" }] },
+        { key: "best5", winners: [] },
+      ],
+      regular: null,
+      finals: { champion: "KCC", championRecord: "4승 1패", runnerUp: "소노", runnerUpRecord: "1승 4패" },
+    },
+    47,
+    teams as never,
+    (id) => (id === "2" ? { nameKo: "네이던 나이트", photoUrl: "p.png" } : null),
+  )!;
+  assert.deepEqual(v.groups.map((g) => g.group), ["major", "allStar", "period"]);          // 화면 순서, 빈 부문은 뺀다
+  assert.equal(v.groups[0].items[0].winners[0].teamLabel, "KCC");
+  assert.equal(v.groups[0].items[0].winners[0].href, "/player/1?season=47");
+  assert.equal(v.groups[1].items[0].winners[0].name, "네이던 나이트");                      // 색인 공식 이름
+  assert.equal(v.groups[2].items[0].winners[0].href, null);                                  // 선수를 모르면 링크 없음
+  assert.equal(v.finals?.champion, "KCC");
+  assert.equal(buildSeasonAwardsView(null, 47, [], () => null), null);
+  assert.equal(buildSeasonAwardsView({ awards: [], regular: null, finals: null }, 47, [], () => null), null);
+  console.log("awards: 시즌 어워즈 화면 통과");
+}

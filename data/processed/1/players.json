@@ -2,7 +2,7 @@
   "seasonCode": 1,
   "seasonLabel": "1997",
   "gameType": "regular",
-  "fetchedAt": "2026-10-02T01:10:17.823Z",
+  "fetchedAt": "2026-10-02T01:20:54.045Z",
   "coverage": {
     "advanced": true,
     "plusMinus": false,
@@ -18497,5 +18497,240 @@
     "teamName": "부산기아",
     "wins": 4,
     "losses": 1
+  },
+  "seasonAwards": {
+    "awards": [
+      {
+        "key": "mvp",
+        "winners": [
+          {
+            "playerNo": "250058",
+            "name": "강동희",
+            "team": "기아",
+            "teamCode": "10",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "foreignMvp",
+        "winners": [
+          {
+            "playerNo": "215025",
+            "name": "제이슨 윌리포드",
+            "team": "나래",
+            "teamCode": "15",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "defensive",
+        "winners": [
+          {
+            "playerNo": "210016",
+            "name": "이훈재",
+            "team": "기아",
+            "teamCode": "10",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "sixthMan",
+        "winners": [
+          {
+            "playerNo": "210051",
+            "name": "김유택",
+            "team": "기아",
+            "teamCode": "10",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "mip",
+        "winners": [
+          {
+            "playerNo": "235018",
+            "name": "노기석",
+            "team": "삼성",
+            "teamCode": "35",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "fairPlay",
+        "winners": [
+          {
+            "playerNo": "230015",
+            "name": "김병철",
+            "team": "동양",
+            "teamCode": "30",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "best5",
+        "winners": [
+          {
+            "playerNo": "250058",
+            "name": "강동희",
+            "team": "기아",
+            "teamCode": "10",
+            "note": null
+          },
+          {
+            "playerNo": "240027",
+            "name": "제럴드 워커",
+            "team": "SBS",
+            "teamCode": "40",
+            "note": null
+          },
+          {
+            "playerNo": "245066",
+            "name": "정재근",
+            "team": "SBS",
+            "teamCode": "40",
+            "note": null
+          },
+          {
+            "playerNo": "230021",
+            "name": "전희철",
+            "team": "동양",
+            "teamCode": "30",
+            "note": null
+          },
+          {
+            "playerNo": "215025",
+            "name": "제이슨 윌리포드",
+            "team": "나래",
+            "teamCode": "15",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "defense5",
+        "winners": [
+          {
+            "playerNo": "250064",
+            "name": "이지승",
+            "team": "현대",
+            "teamCode": "45",
+            "note": null
+          },
+          {
+            "playerNo": "215018",
+            "name": "장윤섭",
+            "team": "나래",
+            "teamCode": "15",
+            "note": null
+          },
+          {
+            "playerNo": "220019",
+            "name": "김현국",
+            "team": "나산",
+            "teamCode": "20",
+            "note": null
+          },
+          {
+            "playerNo": "210016",
+            "name": "이훈재",
+            "team": "기아",
+            "teamCode": "10",
+            "note": null
+          },
+          {
+            "playerNo": "220168",
+            "name": "강병수",
+            "team": "나래",
+            "teamCode": "15",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "monthMvp",
+        "winners": [
+          {
+            "playerNo": "250058",
+            "name": "강동희",
+            "team": "기아",
+            "teamCode": "10",
+            "note": "2월"
+          },
+          {
+            "playerNo": "245066",
+            "name": "정재근",
+            "team": "SBS",
+            "teamCode": "40",
+            "note": "3월"
+          }
+        ]
+      },
+      {
+        "key": "allStarMvp",
+        "winners": [
+          {
+            "playerNo": "240027",
+            "name": "제럴드 워커",
+            "team": "SBS",
+            "teamCode": "40",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "allStar3pt",
+        "winners": [
+          {
+            "playerNo": "225019",
+            "name": "우지원",
+            "team": "대우",
+            "teamCode": "25",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "allStarDunk",
+        "winners": [
+          {
+            "playerNo": "235024",
+            "name": "빈스 킹",
+            "team": "삼성",
+            "teamCode": "35",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "finalsMvp",
+        "winners": [
+          {
+            "playerNo": "250058",
+            "name": "강동희",
+            "team": "기아",
+            "teamCode": "10",
+            "note": null
+          }
+        ]
+      }
+    ],
+    "regular": {
+      "first": "기아",
+      "firstRecord": "16승 5패 (0.762)",
+      "second": "SBS",
+      "secondRecord": "14승 7패 (0.667)"
+    },
+    "finals": {
+      "champion": "기아",
+      "championRecord": "4승 1패",
+      "runnerUp": "나래",
+      "runnerUpRecord": "1승 4패"
+    }
   }
 }

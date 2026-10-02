@@ -12,7 +12,7 @@
 //
 // raw 파일은 절대 수정하지 않는다. 이 스크립트는 몇 번 다시 돌려도 같은 결과가 나와야 한다.
 
-import { awardRows, matchAwardPlayer } from "./awards";
+import { awardRows, matchAwardPlayer, PROFILE_AWARD_KEYS, seasonTeamResults, type AwardRow } from "./awards";
 import { championSeasonsOf, finalsChampion, type SeasonChampion } from "./champions";
 import { readdir, readFile, mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -26,7 +26,7 @@ import { attachShotAttempts, parseGameLog, type GameLogRow } from "./gamelogs.js
 import { computeSeasonHighLeaders, SHOT_HIGH_KEYS } from "../lib/highs.js";
 import { regularGamesOf } from "./shots.js";
 import { leagueZoneAverages, normalizeShot, toShotPoint, zoneSummary, type NormalizedShot } from "../lib/shots.js";
-import type { CareerHighs, HighsSet, Player, PlayerIndexEntry, PlayerProfile, SeasonData, Team, TeamColor } from "../lib/types.js";
+import type { AwardKey, SeasonAwards, CareerHighs, HighsSet, Player, PlayerIndexEntry, PlayerProfile, SeasonData, Team, TeamColor } from "../lib/types.js";
 
 type Raw = Record<string, any>;
 
@@ -442,6 +442,62 @@ async function processSeason(seasonCode: number): Promise<SeasonData> {
   return out;
 }
 
+/** 수상 행 + 연결된 선수 (scripts/awards.ts matchAwardPlayer). 못 찾으면 playerNo null */
+interface MatchedAward {
+  row: AwardRow;
+  seasonCode: number;
+  playerNo: string | null;
+  teamCode: string | null;
+}
+let matchedAwards: MatchedAward[] = [];
+
+/** 수상 raw 전체 → 시즌·이름·팀으로 선수 번호 연결. 결과는 matchedAwards (색인·시즌 어워즈가 같이 쓴다) */
+function matchAwards(seasons: SeasonData[]): void {
+  if (!awardsRaw) {
+    console.warn("역대 수상 raw 없음(data/raw/awards/awards.json) → awards 는 빈 배열, seasonAwards null");
+    return;
+  }
+  const codeByLabel = new Map(seasons.map((s) => [s.seasonLabel, s.seasonCode]));
+  const allByName = new Map<string, string[]>();
+  for (const season of seasons) {
+    for (const p of season.players) {
+      const k = p.nameKo.replace(/[\s·.\-]/g, "");
+      const ids = allByName.get(k) ?? [];
+      if (!ids.includes(p.playerNo)) allByName.set(k, [...ids, p.playerNo]);
+    }
+  }
+  const rosterBySeason = new Map(
+    seasons.map((season) => {
+      const ko = new Map(season.teams.map((t) => [t.teamCode, t.shortNameKo]));
+      return [season.seasonCode, season.players.map((p) => ({ playerNo: p.playerNo, nameKo: p.nameKo, teamShort: ko.get(p.teamCode) ?? "", teamName: p.teamName, teamCode: p.teamCode }))];
+    }),
+  );
+  const unmatched: string[] = [];
+  for (const row of awardRows(awardsRaw)) {
+    const code = codeByLabel.get(row.seasonLabel);
+    if (code === undefined) continue;
+    const roster = rosterBySeason.get(code) ?? [];
+    const playerNo = matchAwardPlayer(row, roster, allByName);
+    if (!playerNo) unmatched.push(`${row.seasonLabel} ${row.key} ${row.name}(${row.team})`);
+    matchedAwards.push({ row, seasonCode: code, playerNo, teamCode: roster.find((p) => p.playerNo === playerNo)?.teamCode ?? null });
+  }
+  console.log(`역대 수상: ${matchedAwards.length}건, 선수 연결 실패 ${unmatched.length}건${unmatched.length ? ` — ${unmatched.join(", ")}` : ""}`);
+}
+
+/** 시즌 어워즈 (부문 순서는 수상 표 순서, 화면 순서는 lib/awards). 그 시즌 수상 행이 없으면 null */
+function seasonAwardsOf(season: SeasonData): SeasonAwards | null {
+  const rows = matchedAwards.filter((m) => m.seasonCode === season.seasonCode);
+  const results = awardsRaw ? seasonTeamResults(awardsRaw).get(season.seasonLabel) : undefined;
+  if (rows.length === 0) return null;
+  const byKey = new Map<string, SeasonAwards["awards"][number]>();
+  for (const m of rows) {
+    let e = byKey.get(m.row.key);
+    if (!e) byKey.set(m.row.key, (e = { key: m.row.key, winners: [] }));
+    e.winners.push({ playerNo: m.playerNo, name: m.row.name, team: m.row.team, teamCode: m.teamCode, note: m.row.note });
+  }
+  return { awards: [...byKey.values()], regular: results?.regular ?? null, finals: results?.finals ?? null };
+}
+
 /**
  * 선수 색인: playerNo 기준으로 전 시즌 등장 기록을 모은다.
  * 이름·영문명·외국인 여부는 가장 최근 시즌 값. 시즌은 오름차순, 선수는 한글 이름순(같으면 playerNo순).
@@ -479,33 +535,13 @@ function buildPlayersIndex(seasons: SeasonData[]): PlayerIndexEntry[] {
   // 우승 시즌: 정규시즌 소속 팀 = 그 시즌 우승팀 (scripts/champions.ts championSeasonsOf)
   const champions = new Map(seasons.filter((s) => s.champion).map((s) => [s.seasonCode, s.champion!.teamCode]));
   for (const e of byId.values()) e.championships = championSeasonsOf(e.seasons, champions);
-  // 역대 수상: 수상 행(시즌·이름·팀) → 선수 번호 (scripts/awards.ts matchAwardPlayer)
-  const codeByLabel = new Map(seasons.map((s) => [s.seasonLabel, s.seasonCode]));
-  const allByName = new Map<string, string[]>();
-  for (const e of byId.values()) {
-    const k = e.nameKo.replace(/[\s·.\-]/g, "");
-    allByName.set(k, [...(allByName.get(k) ?? []), e.id]);
-  }
-  const rosterBySeason = new Map(
-    seasons.map((season) => {
-      const ko = new Map(season.teams.map((t) => [t.teamCode, t.shortNameKo]));
-      return [season.seasonCode, season.players.map((p) => ({ playerNo: p.playerNo, nameKo: p.nameKo, teamShort: ko.get(p.teamCode) ?? "", teamName: p.teamName }))];
-    }),
-  );
-  const unmatched: string[] = [];
-  for (const row of awardsRaw ? awardRows(awardsRaw) : []) {
-    const code = codeByLabel.get(row.seasonLabel);
-    const id = code === undefined ? null : matchAwardPlayer(row, rosterBySeason.get(code) ?? [], allByName);
-    const e = id ? byId.get(id) : undefined;
-    if (!e || code === undefined) {
-      unmatched.push(`${row.seasonLabel} ${row.key} ${row.name}(${row.team})`);
-      continue;
-    }
-    (e.awards ??= []).push({ key: row.key, seasonCode: code });
+  // 역대 수상 (선수 프로필 부문만 — 시즌 어워즈 화면은 시즌 파일 seasonAwards)
+  for (const m of matchedAwards) {
+    if (!m.playerNo || !PROFILE_AWARD_KEYS.has(m.row.key)) continue;
+    const e = byId.get(m.playerNo);
+    if (e) (e.awards ??= []).push({ key: m.row.key as AwardKey, seasonCode: m.seasonCode });
   }
   for (const e of byId.values()) e.awards = (e.awards ?? []).sort((a, b) => a.seasonCode - b.seasonCode);
-  if (awardsRaw) console.log(`역대 수상: 선수 연결 실패 ${unmatched.length}건${unmatched.length ? ` — ${unmatched.join(", ")}` : ""}`);
-  else console.warn("역대 수상 raw 없음(data/raw/awards/awards.json) → awards 는 빈 배열");
   return [...byId.values()]
     .map(({ latest: _latest, ...e }) => e)
     .sort((a, b) => a.nameKo.localeCompare(b.nameKo, "ko") || a.id.localeCompare(b.id));
@@ -602,6 +638,14 @@ async function main() {
   await writeFile(join(DATA_DIR, "processed", "seasons.json"), JSON.stringify(index, null, 2), "utf8");
 
   // 선수 색인 — 검색·선수 페이지가 읽는다. 크기를 줄이면서 git diff는 읽히도록 "한 줄 = 선수 한 명"으로 저장
+  // 역대 수상 → 시즌 어워즈(시즌 파일에 덧붙여 다시 저장) + 색인 awards
+  matchAwards(done);
+  for (const season of done) {
+    const sa = seasonAwardsOf(season);
+    if (!sa && !season.seasonAwards) continue;
+    season.seasonAwards = sa;
+    await writeFile(join(DATA_DIR, "processed", String(season.seasonCode), "players.json"), JSON.stringify(season, null, 2), "utf8");
+  }
   const playersIndex = buildPlayersIndex(done);
   const indexJson = `[\n${playersIndex.map((e) => JSON.stringify(e)).join(",\n")}\n]\n`;
   await writeFile(join(DATA_DIR, "processed", "players-index.json"), indexJson, "utf8");
