@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Analytics from "./components/Analytics";
 import { FONT_CDN_ORIGIN, PRETENDARD_CSS_URL } from "./components/webFont";
 import "./globals.css";
 
@@ -27,7 +28,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* eslint-disable-next-line @next/next/no-css-tags */}
         <link rel="stylesheet" href={PRETENDARD_CSS_URL} crossOrigin="anonymous" />
       </head>
-      <body className="min-h-dvh">{children}</body>
+      <body className="min-h-dvh">
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }

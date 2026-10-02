@@ -35,6 +35,7 @@ import type { PlayerShotsFile } from "@/lib/shots";
 import type { SimilarEntry } from "@/lib/similar";
 import SimilarPlayers from "./SimilarPlayers";
 import PercentileBars from "./PercentileBars";
+import { trackFilters } from "./track";
 
 /** 시즌별 기록표 등 다른 컴포넌트가 카드 시즌을 바꿀 때 보내는 이벤트 이름 */
 export const PLAYER_SEASON_EVENT = "player-season";
@@ -141,21 +142,30 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
             {primeSeason != null && primeSeason !== season && codes.includes(primeSeason) && (
               <button
                 type="button"
-                onClick={() => setState((s) => ({ ...s, season: primeSeason }))}
+                onClick={() => {
+                  trackFilters("player", { season: primeSeason, via: "prime" });
+                  setState((s) => ({ ...s, season: primeSeason }));
+                }}
                 className="focus-ring inline-flex h-10 cursor-pointer items-center gap-1.5 rounded-control px-1 text-sub font-semibold text-ink-2 transition-colors duration-200 hover:text-ink"
               >
                 <PrimeTag /> {labelOf(primeSeason)} 보기
               </button>
             )}
           </div>
-          <ChipRow label="카드 시즌 선택" chips={seasonChips} value={season} onChange={(c) => setState((s) => ({ ...s, season: c }))} scroll />
+          <ChipRow label="카드 시즌 선택" chips={seasonChips} value={season} onChange={(c) => {
+          trackFilters("player", { season: c });
+          setState((s) => ({ ...s, season: c }));
+        }} scroll />
         </div>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
           <Segmented
             label="순위 비교 범위"
             options={groupLabel ? scopeOptions : scopeOptions.slice(0, 1)}
             value={scope}
-            onChange={(v) => setState((s) => ({ ...s, scope: v }))}
+            onChange={(v) => {
+              trackFilters("player", { scope: v });
+              setState((s) => ({ ...s, scope: v }));
+            }}
           />
           <Link
             href={compareHref({ id: playerId, seasonCode: season })}
@@ -199,7 +209,10 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
         season={season}
         labelOf={labelOf}
         primeSeason={primeSeason}
-        onChange={(c) => setState((s) => ({ ...s, season: c }))}
+        onChange={(c) => {
+          trackFilters("player", { season: c });
+          setState((s) => ({ ...s, season: c }));
+        }}
         anchor={chipsEl}
       />
       {/* 비슷한 시즌: 카드와 같은 시즌을 따른다 */}

@@ -14,6 +14,7 @@ import { IconSearch } from "./icons";
 import PlayerAvatar from "./PlayerAvatar";
 import Skeleton from "./Skeleton";
 import { loadSearchIndex } from "./useSearchIndex";
+import { trackEvent } from "./track";
 
 interface Props {
   className?: string;
@@ -69,6 +70,7 @@ export default function PlayerSearch({
     setOpen(false);
     setQuery("");
     inputRef.current?.blur();
+    trackEvent("search_select", { player_no: e.id, mode: onSelect ? "compare" : "go" });
     if (onSelect) onSelect(e);
     else router.push(`/player/${e.id}`);
   }

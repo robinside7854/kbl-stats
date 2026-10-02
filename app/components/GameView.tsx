@@ -1,30 +1,34 @@
 "use client";
 // 54-0 게임 화면 (규칙·점수는 lib/game.ts — 여기서는 계산하지 않고 부르기만).
-// 순서: 주전 다섯 칸(가드 2·포워드 2·센터 1) → 슬롯머신 두 대(왼쪽 시즌 구간 · 오른쪽 팀, 버튼 하나로 같이 돌고 왼쪽이 먼저 멈춤)
-//   → 그 팀 후보 중 한 명 고르기(그 구간 평균 기록, 득점순 — 등급·점수는 안 보임) → 다섯 번 → 농구 코트 위 5명 + 54경기 결과·기록.
+// 순서: 주전 다섯 칸(가드 2·포워드 2·센터 1) → 슬롯머신 두 대(왼쪽 시즌 하나 · 오른쪽 팀 3개, 버튼 하나로 같이 돌고 왼쪽이 먼저 멈춤)
+//   → 세 팀 후보 중 한 명 고르기(그 시즌 기록, 득점순 — 등급·점수는 안 보임) → 다섯 번 → 농구 코트 위 5명 + 54경기 결과·기록.
 // 결과는 주소 ?l= 로 남겨 링크로 공유, 이미지 저장은 공식 사진 없는 사본(useCardSave).
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   canPick, decodeLineupParam, emptyLineup, encodeLineupParam, foreignCount, GAME_FOREIGN_MAX, GAME_ROUNDS, GAME_SEASON_GAMES,
   GAME_SLOTS, isLineupFull, lineupTotals, openSlotsFor, pickBlockReason, placePick, respinEra, respinTeam, resultVerdict,
-  simulateSeason, SLOT_LABELS, sortCandidates, spin, teamOf, type GameCandidate, type GamePool, type GameTeam, type Lineup,
+  simulateSeason, SLOT_LABELS, spin, teamOfCandidate, teamsOf, GAME_SPIN_TEAMS, filterByPositionChip, sortCandidatesBy, POSITION_CHIPS, SORT_COLUMNS, nextSort, type PositionChip, type SortDir, type SortKey, type SortStat, type GameCandidate, type GamePool, type GameTeam, type Lineup,
   type SeasonResult, type Spin,
 } from "@/lib/game";
-import { RADAR_AXES, RADAR_AXIS_LABELS } from "@/lib/metrics";
+import { overallGrade, RADAR_AXES, RADAR_AXIS_LABELS } from "@/lib/metrics";
 import { playerHref } from "@/lib/cardview";
 import { positionLabel } from "@/lib/roster";
-import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
+import { FALLBACK_TEAM_COLOR, gradeTone } from "@/lib/teams";
+import type { TeamColor } from "@/lib/types";
 import { teamShortLabel } from "@/lib/images";
+import ChipRow from "./ChipRow";
+import { IconChevronDown, IconChevronUp } from "./icons";
 import InfoLink from "./InfoLink";
 import PlayerAvatar from "./PlayerAvatar";
 import Skeleton from "./Skeleton";
 import TeamLogo from "./TeamLogo";
 import { useCardSave } from "./useCardSave";
+import { trackEvent, trackFilters } from "./track";
 import { useThemeColors, type ThemeColors } from "./useThemeColors";
 
-/** 처음 보여 줄 후보 수 (나머지는 "더 보기") */
-const CANDIDATES_VISIBLE = 8;
+/** 처음 보여 줄 후보 수 (나머지는 "더 보기") — 팀 3개라 후보가 보통 25~30명 */
+const CANDIDATES_VISIBLE = 10;
 /** 릴이 멈추는 시각 (ms) — 왼쪽(시즌)이 먼저, 오른쪽(팀)이 나중. 동작 줄이기 설정이면 바로 멈춘다 */
 const ERA_STOP_MS = 800;
 const TEAM_STOP_MS = 1300;
@@ -53,7 +57,7 @@ export default function GameView() {
   const [teams, setTeams] = useState<(GameTeam | null)[]>(() => GAME_SLOTS.map(() => null));
   /** 정해진 슬롯 (릴이 다 멈춘 뒤) */
   const [current, setCurrent] = useState<Spin | null>(null);
-  /** 릴에 지금 보이는 값 — 왼쪽 시즌 구간, 오른쪽 팀 */
+  /** 릴에 지금 보이는 값 — 왼쪽 시즌, 오른쪽 팀 3개 */
   const [reelEra, setReelEra] = useState<number | null>(null);
   const [reelTeam, setReelTeam] = useState<Spin | null>(null);
   const [eraSpinning, setEraSpinning] = useState(false);
@@ -63,6 +67,8 @@ export default function GameView() {
   const [eraSkip, setEraSkip] = useState(true);
   const [choosing, setChoosing] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
+  /** 후보 정렬 (다음 슬롯에도 유지) — 포지션 칩은 슬롯마다 "전체"로 돌아간다(CandidateList 안 상태) */
+  const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({ key: "ppg", dir: "desc" });
   const [shared, setShared] = useState<Picked[] | null>(null);
   const [copied, setCopied] = useState(false);
   const timer = useRef<number | null>(null);
@@ -93,6 +99,11 @@ export default function GameView() {
   }, [shared, full, lineup, teams]);
   const result = useMemo(() => (picked ? simulateSeason(picked.map((p) => p.c)) : null), [picked]);
 
+  // 직접 완성한 판만 센다(공유 링크로 본 결과는 빼고)
+  useEffect(() => {
+    if (result && !shared) trackEvent("game_complete", { wins: result.wins });
+  }, [result, shared]);
+
   // 결과가 나오면 주소에 라인업을 남긴다 (링크 공유)
   useEffect(() => {
     if (full && !shared) window.history.replaceState(null, "", `${window.location.pathname}?l=${encodeLineupParam(lineup)}`);
@@ -102,7 +113,7 @@ export default function GameView() {
 
   /**
    * 릴 돌리기. 결과(next)는 이미 정해져 있고 화면은 보여 주기용으로 아무 값이나 번갈아 보이다가 멈춘다.
-   * reels 에서 true 인 릴만 돈다: 처음 돌리기는 둘 다(왼쪽이 먼저 멈춤), 시대 다시는 왼쪽만, 팀 다시는 오른쪽만.
+   * reels 에서 true 인 릴만 돈다: 처음 돌리기는 둘 다(왼쪽이 먼저 멈춤), 시즌 다시는 왼쪽만, 팀 다시는 오른쪽만.
    */
   function animateTo(next: Spin | null, reels: { era: boolean; team: boolean }) {
     if (!pool || !next) return;
@@ -117,7 +128,7 @@ export default function GameView() {
       setCurrent(next);
       return;
     }
-    // 안 도는 릴은 바로 결과 값으로 (팀 다시: 시즌 그대로 / 시대 다시: 같은 팀의 그 시대 로고·이름)
+    // 안 도는 릴은 바로 결과 값으로 (팀 다시: 시즌 그대로 / 시즌 다시: 같은 팀들의 그 시즌 로고·이름)
     if (!reels.era) setReelEra(next.era);
     if (!reels.team) setReelTeam(next);
     setEraSpinning(reels.era);
@@ -145,7 +156,8 @@ export default function GameView() {
           setTeamSpinning(false);
         } else {
           const era = pool.eras[Math.floor(Math.random() * pool.eras.length)];
-          setReelTeam({ era: era.index, teamCode: era.teams[Math.floor(Math.random() * era.teams.length)].teamCode });
+          const shuffled = [...era.teams].sort(() => Math.random() - 0.5).slice(0, GAME_SPIN_TEAMS);
+          setReelTeam({ era: era.index, teamCodes: shuffled.map((t) => t.teamCode) });
         }
       }
       if (eraDone && teamDone) {
@@ -157,6 +169,7 @@ export default function GameView() {
   }
 
   function doSpin() {
+    trackEvent("game_spin");
     if (pool) animateTo(spin(pool, lineup, Math.random), { era: true, team: true });
   }
 
@@ -173,13 +186,15 @@ export default function GameView() {
     const next = respinEra(pool, current, lineup, Math.random);
     if (!next) return;
     setEraSkip(false);
-    // 팀은 그대로 두고 왼쪽 릴만 — 같은 팀이 다른 시대에 없어 팀도 바뀌는 드문 경우만 오른쪽도 돈다
-    animateTo(next, { era: true, team: next.teamCode !== current.teamCode });
+    // 팀은 그대로 두고 왼쪽 릴만 — 지금 팀이 그 시즌에 없어 팀이 바뀌는 경우만 오른쪽도 돈다
+    const teamChanged = next.teamCodes.length !== current.teamCodes.length || next.teamCodes.some((c, i) => c !== current.teamCodes[i]);
+    animateTo(next, { era: true, team: teamChanged });
   }
 
   function place(c: GameCandidate, slot: number) {
     if (!pool || !current) return;
-    const team = teamOf(pool, current)!;
+    const team = teamOfCandidate(pool, current, c);
+    if (!team) return;
     setLineup((l) => placePick(l, slot, c));
     setTeams((t) => t.map((x, i) => (i === slot ? team : x)));
     setCurrent(null);
@@ -214,6 +229,7 @@ export default function GameView() {
   async function copyLink() {
     try {
       await navigator.clipboard.writeText(window.location.href);
+      trackEvent("game_share_link");
       setCopied(true);
     } catch {
       setCopied(false);
@@ -222,8 +238,8 @@ export default function GameView() {
 
   const round = lineup.filter(Boolean).length;
   const eraLabel = pool && reelEra !== null ? pool.eras[reelEra]?.label ?? null : null;
-  const reelTeamObj = pool && reelTeam ? teamOf(pool, reelTeam) : null;
-  const currentTeam = pool && current ? teamOf(pool, current) : null;
+  const reelTeams = pool && reelTeam ? teamsOf(pool, reelTeam) : [];
+  const currentTeams = pool && current ? teamsOf(pool, current) : [];
 
   return (
     <main className="mx-auto max-w-3xl px-4 pt-5">
@@ -231,7 +247,7 @@ export default function GameView() {
         <h1 className="flex items-center gap-1 text-h1 font-bold">
           54-0 <InfoLink term="game54" className="ml-1" />
         </h1>
-        <p className="mt-0.5 text-sub text-ink-2">시대와 팀을 뽑아 역대 주전 5명을 꾸리고 54전 전승에 도전하세요.</p>
+        <p className="mt-0.5 text-sub text-ink-2">시즌과 팀 3개를 뽑아 역대 주전 5명을 꾸리고 54전 전승에 도전하세요.</p>
       </header>
 
       {loadError ? (
@@ -260,11 +276,15 @@ export default function GameView() {
                   <ReelBlank />
                 )}
               </SlotReel>
-              <SlotReel title="팀" spinning={teamSpinning} tick={tick}>
-                {reelTeamObj ? (
-                  <span className="flex min-w-0 flex-col items-center gap-1.5">
-                    <TeamLogo logoUrl={reelTeamObj.logoUrl} shortName={reelTeamObj.name} color={reelTeamObj.color} size={48} />
-                    <span className="max-w-full truncate text-body font-bold text-ink sm:text-h2">{reelTeamObj.name}</span>
+              <SlotReel title={`팀 ${GAME_SPIN_TEAMS}개`} spinning={teamSpinning} tick={tick}>
+                {reelTeams.length > 0 ? (
+                  <span className="flex w-full min-w-0 flex-col gap-1.5">
+                    {reelTeams.map((t) => (
+                      <span key={t.teamCode} className="flex min-w-0 items-center gap-2">
+                        <TeamLogo logoUrl={t.logoUrl} shortName={t.name} color={t.color} size={28} />
+                        <span className="min-w-0 truncate text-sub font-bold text-ink sm:text-body">{t.name}</span>
+                      </span>
+                    ))}
                   </span>
                 ) : (
                   <ReelBlank />
@@ -282,15 +302,17 @@ export default function GameView() {
             )}
             {(current || spinning) && (
               <div className="mt-3 grid grid-cols-2 gap-2">
-                <SkipButton label="시대 다시" left={eraSkip} disabled={spinning} onClick={doRespinEra} />
+                <SkipButton label="시즌 다시" left={eraSkip} disabled={spinning} onClick={doRespinEra} />
                 <SkipButton label="팀 다시" left={teamSkip} disabled={spinning} onClick={doRespinTeam} />
               </div>
             )}
           </section>
 
-          {current && currentTeam && !spinning && (
+          {current && currentTeams.length > 0 && !spinning && (
             <CandidateList
-              team={currentTeam}
+              teams={currentTeams}
+              sort={sort}
+              onSort={setSort}
               lineup={lineup}
               choosing={choosing}
               showAll={showAll}
@@ -348,7 +370,7 @@ function SkipButton({ label, left, disabled, onClick }: { label: string; left: b
   );
 }
 
-/** 주전 다섯 칸 (등급·점수 없이 사진·이름·구간만) */
+/** 주전 다섯 칸 — 등급은 여기서도 숨기고 마지막 결과 화면에서만 공개 */
 function LineupBoard({ lineup, teams }: { lineup: Lineup; teams: (GameTeam | null)[] }) {
   return (
     <ol aria-label="주전 라인업" className="grid grid-cols-5 gap-1.5 sm:gap-2">
@@ -363,7 +385,9 @@ function LineupBoard({ lineup, teams }: { lineup: Lineup; teams: (GameTeam | nul
             <span className="text-caption font-semibold text-ink-3">{SLOT_LABELS[g]}</span>
             {c && team ? (
               <>
-                <PlayerAvatar photoUrl={c.photoUrl} nameKo={c.nameKo} color={team.color} size={44} className="mt-1" />
+                <span className="mt-1">
+                  <PlayerAvatar photoUrl={c.photoUrl} nameKo={c.nameKo} color={team.color} size={44} />
+                </span>
                 <span className="mt-1 w-full truncate text-caption font-bold text-ink">{c.nameKo}</span>
                 <span className="tabular w-full truncate text-caption text-ink-3">{c.span}</span>
               </>
@@ -379,22 +403,17 @@ function LineupBoard({ lineup, teams }: { lineup: Lineup; teams: (GameTeam | nul
   );
 }
 
-/** 기록 다섯 칸 (이름표 + 숫자) */
-function StatStrip({ c, dim = false }: { c: Pick<GameCandidate, "ppg" | "rpg" | "apg" | "spg" | "bpg">; dim?: boolean }) {
-  return (
-    <span className="tabular grid grid-cols-5 gap-1 text-center">
-      {STAT_COLS.map((s) => (
-        <span key={s.key} className="flex flex-col">
-          <span className="text-caption text-ink-3">{s.label}</span>
-          <span className={`text-body font-bold ${dim ? "text-ink-3" : "text-ink"}`}>{c[s.key].toFixed(1)}</span>
-        </span>
-      ))}
-    </span>
-  );
-}
+/**
+ * 후보 표 열 너비 — 머리글과 줄이 같은 격자를 쓴다. 폰(390px)에서도 가로 스크롤 없이 9열:
+ * 이름(나머지) · 팀 로고 · 포지션 약자 · 숫자 6열. PC 는 사진·팀 이름·포지션 이름까지
+ */
+const CAND_GRID =
+  "grid grid-cols-[minmax(0,1fr)_1.5rem_2.5rem_repeat(6,1.75rem)] items-center sm:grid-cols-[minmax(0,1fr)_6rem_5.5rem_repeat(6,3rem)] sm:gap-x-2";
 
 interface ListProps {
-  team: GameTeam;
+  teams: GameTeam[];
+  sort: { key: SortKey; dir: SortDir };
+  onSort: (s: { key: SortKey; dir: SortDir }) => void;
   lineup: Lineup;
   choosing: string | null;
   showAll: boolean;
@@ -403,64 +422,147 @@ interface ListProps {
   onPlace: (c: GameCandidate, slot: number) => void;
 }
 
-/** 그 팀·그 구간 후보: 고를 수 있는 선수 먼저(그 구간 경기당 득점 순), 못 고르는 선수는 흐리게 + 까닭. 등급·점수는 보이지 않는다 */
-function CandidateList({ team, lineup, choosing, showAll, onShowAll, onChoose, onPlace }: ListProps) {
-  const sorted = sortCandidates(team.candidates);
+/** 세 팀 후보를 표 하나로: 머리글을 누르면 그 열로 정렬(다시 누르면 반대 순서). 고를 수 있는 선수 먼저, 못 고르는 선수는 흐리게 + 까닭. 등급·점수는 보이지 않는다 */
+function CandidateList({ teams, sort, onSort, lineup, choosing, showAll, onShowAll, onChoose, onPlace }: ListProps) {
+  const [pos, setPos] = useState<PositionChip>("all");
+  const teamOf = new Map(teams.flatMap((t) => t.candidates.map((c) => [c, t] as const)));
+  const all = teams.flatMap((t) => t.candidates);
+  const sorted = sortCandidatesBy(filterByPositionChip(all, pos), sort.key, sort.dir, (c) => teamOf.get(c)?.name ?? "");
   const ordered = [...sorted.filter((c) => canPick(lineup, c)), ...sorted.filter((c) => !canPick(lineup, c))];
   const visible = showAll ? ordered : ordered.slice(0, CANDIDATES_VISIBLE);
   return (
     <section aria-labelledby="cand-title" className="mt-4">
       <h2 id="cand-title" className="text-h2 font-bold">
-        한 명을 고르세요 <span className="text-sub font-medium text-ink-3">{team.candidates.length}명 · 그 시대 경기당 평균</span>
+        한 명을 고르세요 <span className="text-sub font-medium text-ink-3">{all.length}명 · 그 시즌 경기당 기록</span>
       </h2>
-      <ul className="surface-card mt-2 divide-y divide-line rounded-container">
-        {visible.map((c) => {
-          const reason = pickBlockReason(lineup, c);
-          const slots = openSlotsFor(lineup, c);
-          const pos = positionLabel(c.position);
-          return (
-            <li key={`${c.id}:${c.seasonCode}`}>
-              <button
-                type="button"
-                disabled={!!reason}
-                onClick={() => onChoose(c)}
-                aria-expanded={slots.length > 1 ? choosing === c.id : undefined}
-                className="focus-ring-inset flex w-full cursor-pointer flex-col gap-2 px-3 py-2.5 text-left transition-colors duration-200 hover:bg-surface-2 disabled:cursor-not-allowed disabled:hover:bg-transparent sm:flex-row sm:items-center sm:gap-3"
-              >
-                <span className="flex min-w-0 flex-1 items-center gap-3">
-                  <PlayerAvatar photoUrl={c.photoUrl} nameKo={c.nameKo} color={team.color} size={40} className={reason ? "opacity-40" : ""} />
-                  <span className="min-w-0 flex-1">
-                    <span className={`flex items-center gap-1.5 text-body font-bold ${reason ? "text-ink-3" : "text-ink"}`}>
-                      <span className="truncate">{c.nameKo}</span>
-                      {c.foreign && <span className="shrink-0 rounded-control border border-line px-1 text-caption font-semibold text-ink-2">외국</span>}
-                    </span>
-                    <span className="tabular block truncate text-caption text-ink-2">
-                      {reason ?? `${pos ?? ""} · ${c.span}${c.seasonCount > 1 ? ` · ${c.seasonCount}시즌` : ""}`}
-                    </span>
+      <ChipRow
+        label="포지션"
+        className="mt-2"
+        chips={POSITION_CHIPS.map((p) => ({
+          value: p,
+          label: (
+            <>
+              {p === "all" ? "전체" : SLOT_LABELS[p]}
+              <span className="tabular text-sub font-medium opacity-70">{filterByPositionChip(all, p).length}</span>
+            </>
+          ),
+        }))}
+        value={pos}
+        onChange={(v) => {
+          setPos(v);
+          trackFilters("game", { position: v });
+        }}
+      />
+      {ordered.length === 0 ? (
+        <p className="surface-card mt-2 rounded-container px-4 py-6 text-center text-body text-ink-2">
+          이 포지션 선수가 없습니다.{" "}
+          <button type="button" onClick={() => setPos("all")} className="focus-ring rounded-control font-semibold text-ink underline">
+            전체 보기
+          </button>
+        </p>
+      ) : (
+        <div className="surface-card mt-2 rounded-container">
+          {/* 머리글 = 정렬 버튼 */}
+          <div className={`${CAND_GRID} border-b border-line px-2 sm:px-3`}>
+            {SORT_COLUMNS.map((col) => {
+              const active = col.key === sort.key;
+              const dirText = active ? (sort.dir === "desc" ? (col.numeric ? "높은 순" : "역순") : col.numeric ? "낮은 순" : "가나다순") : "";
+              return (
+                <button
+                  key={col.key}
+                  type="button"
+                  onClick={() => {
+                    const next = nextSort(sort, col.key);
+                    onSort(next);
+                    trackFilters("game", { sort: `${next.key}_${next.dir}` });
+                  }}
+                  aria-label={`${col.label}${active ? ` (지금 ${dirText})` : ""} 정렬`}
+                  className={`focus-ring-inset flex h-11 min-w-0 cursor-pointer flex-col justify-center rounded-control text-caption transition-colors duration-200 hover:bg-surface-2 ${
+                    col.key === "name" ? "items-start pl-1" : "items-center"
+                  } ${active ? "font-bold text-ink" : "font-medium text-ink-3"}`}
+                >
+                  <span className="max-w-full truncate">
+                    {col.key === "team" ? (
+                      <>
+                        <span className="sm:hidden">팀</span>
+                        <span className="hidden sm:inline">{col.label}</span>
+                      </>
+                    ) : (
+                      col.label
+                    )}
                   </span>
+                  <span aria-hidden className="h-4">
+                    {active && (sort.dir === "desc" ? <IconChevronDown size={16} /> : <IconChevronUp size={16} />)}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <ul className="divide-y divide-line">
+            {visible.map((c) => {
+              const reason = pickBlockReason(lineup, c);
+              const slots = openSlotsFor(lineup, c);
+              const team = teamOf.get(c)!;
+              const num = (key: SortStat, text: string) => (
+                <span key={key} className={`text-center text-caption sm:text-body ${reason ? "text-ink-3" : key === sort.key ? "font-bold text-ink" : "text-ink-2"}`}>
+                  {text}
                 </span>
-                <span className="w-full sm:w-64 sm:shrink-0">
-                  <StatStrip c={c} dim={!!reason} />
-                </span>
-              </button>
-              {choosing === c.id && (
-                <div className="flex gap-2 px-3 pb-3">
-                  {[...new Set(slots.map((s) => GAME_SLOTS[s]))].map((g) => (
-                    <button
-                      key={g}
-                      type="button"
-                      onClick={() => onPlace(c, slots.find((s) => GAME_SLOTS[s] === g)!)}
-                      className="focus-ring h-10 flex-1 cursor-pointer rounded-control bg-ink text-sub font-bold text-surface transition-colors duration-200 hover:bg-ink-2"
-                    >
-                      {SLOT_LABELS[g]} 칸에
-                    </button>
-                  ))}
-                </div>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+              );
+              return (
+                <li key={`${c.id}:${c.seasonCode}`}>
+                  <button
+                    type="button"
+                    disabled={!!reason}
+                    onClick={() => onChoose(c)}
+                    aria-expanded={slots.length > 1 ? choosing === c.id : undefined}
+                    className={`${CAND_GRID} tabular focus-ring-inset min-h-12 w-full cursor-pointer px-2 py-1.5 text-left transition-colors duration-200 hover:bg-surface-2 disabled:cursor-not-allowed disabled:hover:bg-transparent sm:px-3`}
+                  >
+                    <span className="flex min-w-0 items-center gap-2 pl-1">
+                      <span className="hidden sm:inline-flex">
+                        <PlayerAvatar photoUrl={c.photoUrl} nameKo={c.nameKo} color={team.color} size={32} className={reason ? "opacity-40" : ""} />
+                      </span>
+                      <span className="min-w-0">
+                        <span className={`block truncate text-sub font-bold sm:text-body ${reason ? "text-ink-3" : "text-ink"}`}>{c.nameKo}</span>
+                        {(reason || c.foreign) && (
+                          <span className="block truncate text-caption text-ink-3">{reason ?? "외국 선수"}</span>
+                        )}
+                      </span>
+                    </span>
+                    <span className="flex min-w-0 items-center justify-center gap-1.5 sm:justify-start">
+                      <TeamLogo logoUrl={team.logoUrl} shortName={team.name} color={team.color} size={20} />
+                      <span className="hidden truncate text-sub text-ink-2 sm:inline">{team.name}</span>
+                    </span>
+                    <span className="truncate text-center text-caption font-semibold text-ink-2 sm:text-sub">
+                      <span className="sm:hidden">{c.position}</span>
+                      <span className="hidden sm:inline">{positionLabel(c.position) ?? c.position}</span>
+                    </span>
+                    {num("ppg", c.ppg.toFixed(1))}
+                    {num("rpg", c.rpg.toFixed(1))}
+                    {num("apg", c.apg.toFixed(1))}
+                    {num("spg", c.spg.toFixed(1))}
+                    {num("bpg", c.bpg.toFixed(1))}
+                    {num("tpPct", c.tpPct == null ? "–" : c.tpPct.toFixed(1))}
+                  </button>
+                  {choosing === c.id && (
+                    <div className="flex gap-2 px-3 pb-3">
+                      {[...new Set(slots.map((s) => GAME_SLOTS[s]))].map((g) => (
+                        <button
+                          key={g}
+                          type="button"
+                          onClick={() => onPlace(c, slots.find((s) => GAME_SLOTS[s] === g)!)}
+                          className="focus-ring h-10 flex-1 cursor-pointer rounded-control bg-ink text-sub font-bold text-surface transition-colors duration-200 hover:bg-ink-2"
+                        >
+                          {SLOT_LABELS[g]} 칸에
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
       {!showAll && ordered.length > CANDIDATES_VISIBLE && (
         <button
           type="button"
@@ -526,12 +628,16 @@ function ResultView({ picked, result, colors, shared, copied, onCopy, onRestart 
 }
 
 /** 코트 위 자리 (가로·세로 %, 바스켓은 아래 가운데). 칸 순서 = GAME_SLOTS (가드·가드·포워드·포워드·센터) */
+/**
+ * 좌우 대칭: 탑 1 · 윙 2 · 로우 2. 값은 상자 안 사진 가운데 위치(이름표는 사진 아래로 붙는다).
+ * 폰은 상자를 코트보다 조금 길게(15:16) 두고 남는 아래쪽(엔드라인 밖)을 로우 선수 이름표 자리로 쓴다
+ */
 const COURT_SPOTS: readonly { x: number; y: number }[] = [
-  { x: 50, y: 15 }, // 가드: 탑
-  { x: 17, y: 41 }, // 가드: 왼쪽 윙
-  { x: 83, y: 41 }, // 포워드: 오른쪽 윙
-  { x: 19, y: 75 }, // 포워드: 왼쪽 로우
-  { x: 63, y: 79 }, // 센터: 골밑
+  { x: 50, y: 11 }, // 가드: 탑
+  { x: 20, y: 32 }, // 가드: 왼쪽 윙
+  { x: 80, y: 32 }, // 포워드: 오른쪽 윙
+  { x: 24, y: 71 }, // 포워드: 왼쪽 로우
+  { x: 76, y: 71 }, // 센터: 오른쪽 로우(골밑)
 ];
 
 /** FIBA 하프코트 15m × 14m. 미터 단위 viewBox, 바스켓이 아래 */
@@ -544,7 +650,7 @@ function CourtLines() {
   const sideX = 0.9;
   const dy = Math.sqrt(6.75 ** 2 - (cx - sideX) ** 2);
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="absolute inset-0 h-full w-full" aria-hidden>
+    <svg viewBox={`0 0 ${W} ${H}`} className="absolute inset-0 h-full w-full" preserveAspectRatio="xMidYMin meet" aria-hidden>
       <g fill="none" stroke="var(--ink-3)" strokeWidth={0.06}>
         <rect x={0.03} y={0.03} width={W - 0.06} height={H - 0.06} />
         {/* 페인트 4.9 × 5.8, 자유투 원 r1.8 */}
@@ -585,30 +691,37 @@ function ResultCard({ picked, result, colors, official }: { picked: Picked[]; re
           </p>
           <p className="mt-1 text-body font-semibold text-ink">{resultVerdict(result.wins)}</p>
         </div>
-        <p className="tabular shrink-0 text-right text-caption text-ink-3">
-          최다 {result.longestStreak}연승
-          <br />팀 전력 {result.rating.rating.toFixed(1)}
-        </p>
+        <p className="tabular shrink-0 text-right text-caption text-ink-3">팀 전력 {result.rating.rating.toFixed(1)}</p>
       </div>
 
-      {/* 코트 위 다섯 명 */}
-      <div className="relative mt-4 aspect-[15/14] w-full overflow-hidden rounded-card bg-surface-2">
+      {/* 코트 위 다섯 명 — PC 에서도 너무 커지지 않게 폭을 묶는다 */}
+      <div className="relative mx-auto mt-4 aspect-[15/16] w-full max-w-md max-[359px]:aspect-[15/19] sm:aspect-[15/14] overflow-hidden rounded-card bg-surface-2">
         <CourtLines />
         {picked.map((p, i) => {
           const spot = COURT_SPOTS[i];
           return (
             <div
               key={p.c.id}
-              className="absolute flex w-28 -translate-x-1/2 -translate-y-1/2 flex-col items-center text-center"
+              className="absolute flex w-32 -translate-x-1/2 -translate-y-6 flex-col items-center text-center sm:-translate-y-8"
               style={{ left: `${spot.x}%`, top: `${spot.y}%` }}
             >
-              <PlayerAvatar photoUrl={p.c.photoUrl} nameKo={p.c.nameKo} color={p.team.color} size={56} official={official} />
-              <span className="mt-0.5 flex max-w-full flex-col rounded-control bg-surface px-1.5 py-0.5">
-                <span className="truncate text-caption font-bold text-ink">
-                  {p.c.nameKo}
-                  {p === mvp ? " · MVP" : ""}
+              {/* 폰은 코트가 작아 사진·이름표를 줄인다 (윙 이름표가 로우 사진에 겹치지 않게) */}
+              <span className="flex sm:hidden">
+                <PlayerAvatar photoUrl={p.c.photoUrl} nameKo={p.c.nameKo} color={p.team.color} size={48} official={official} />
+              </span>
+              <span className="hidden sm:flex">
+                <PlayerAvatar photoUrl={p.c.photoUrl} nameKo={p.c.nameKo} color={p.team.color} size={64} official={official} />
+              </span>
+              <span className="surface-card mt-1 flex max-w-full flex-col rounded-control px-1.5 py-0.5 sm:px-2 sm:py-1">
+                <span className="flex min-w-0 items-center justify-center gap-1">
+                  <span className="truncate text-sub font-bold text-ink">{p.c.nameKo}</span>
+                  <GradeChip score={p.c.score} color={p.team.color} colors={colors} />
                 </span>
                 <span className="tabular truncate text-caption text-ink-2">
+                  {SLOT_LABELS[GAME_SLOTS[i]]}
+                  {p === mvp ? " · MVP" : ""}
+                </span>
+                <span className="tabular truncate text-caption text-ink-3">
                   {teamShortLabel(p.team.name)} {p.c.span}
                 </span>
               </span>
@@ -617,15 +730,9 @@ function ResultCard({ picked, result, colors, official }: { picked: Picked[]; re
         })}
       </div>
 
-      <ol aria-label={`54경기 결과: ${result.wins}승 ${result.losses}패, 최다 연승 ${result.longestStreak}`} className="mt-4 grid grid-cols-[repeat(18,minmax(0,1fr))] gap-[3px]">
-        {result.games.map((w, i) => (
-          <li key={i} className={`aspect-square rounded-[2px] ${w ? "bg-ink" : "border border-line bg-surface-2"}`} />
-        ))}
-      </ol>
-
-      {/* 다섯 명 기록 (그 시대 경기당 평균) + 합계 */}
+      {/* 다섯 명 기록 (그 시즌 경기당) + 합계 */}
       <table className="tabular mt-4 w-full table-fixed text-caption">
-        <caption className="mb-1 text-left text-sub font-bold text-ink">경기당 기록 (그 시대 평균)</caption>
+        <caption className="mb-1 text-left text-sub font-bold text-ink">경기당 기록 (그 시즌)</caption>
         <thead>
           <tr className="text-ink-3">
             <th scope="col" className="w-[34%] py-1 text-left font-medium">선수</th>
@@ -676,16 +783,34 @@ function ResultCard({ picked, result, colors, official }: { picked: Picked[]; re
           const weak = a === result.rating.weakest;
           return (
             <li key={a} className="tabular flex items-center gap-2 text-caption">
-              <span className={`w-14 shrink-0 ${weak ? "font-bold text-ink" : "text-ink-2"}`}>{RADAR_AXIS_LABELS[a]}</span>
+              <span className={`flex w-24 shrink-0 items-center gap-1 ${weak ? "font-bold text-ink" : "text-ink-2"}`}>
+                {RADAR_AXIS_LABELS[a]}
+                {weak && <span className="rounded-control border border-line px-1 font-semibold text-ink-2">약점</span>}
+              </span>
               <span className="h-2 flex-1 overflow-hidden rounded-[2px] bg-surface-2">
                 <span className="block h-full" style={{ width: `${v}%`, background: colors.series1 }} />
               </span>
-              <span className="w-14 shrink-0 text-right text-ink-2">{weak ? `약점 ${v}` : v}</span>
+              <span className={`w-8 shrink-0 text-right ${weak ? "font-bold text-ink" : "text-ink-2"}`}>{v}</span>
             </li>
           );
         })}
       </ul>
       {!official && <p className="mt-3 text-caption text-ink-3">KBL - Stats Reference · 비영리 팬 프로젝트</p>}
     </div>
+  );
+}
+
+/** 뽑은 뒤에만 보이는 종합 등급 글자 (고를 때는 등급을 숨긴다) */
+function GradeChip({ score, color, colors }: { score: number; color: TeamColor; colors: ThemeColors }) {
+  const grade = overallGrade(score);
+  const tone = gradeTone(grade, color, colors);
+  return (
+    <span
+      className="inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-control border px-1 text-caption font-black"
+      style={{ background: tone.bg, color: tone.ink, borderColor: tone.border }}
+      aria-label={`종합 등급 ${grade}`}
+    >
+      {grade}
+    </span>
   );
 }

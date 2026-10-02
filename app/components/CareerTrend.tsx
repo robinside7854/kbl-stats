@@ -24,6 +24,7 @@ import {
 import { teamShortLabel } from "@/lib/images";
 import TeamLogo from "./TeamLogo";
 import { useThemeColors } from "./useThemeColors";
+import { trackFilters } from "./track";
 
 const GRAY: TeamColor = FALLBACK_TEAM_COLOR;
 
@@ -168,7 +169,10 @@ export default function CareerTrend({ seasons, allSeasons, fill = false }: Props
             key={m.key}
             type="button"
             aria-pressed={m.key === key}
-            onClick={() => setKey(m.key)}
+            onClick={() => {
+              trackFilters("trend", { metric: m.key });
+              setKey(m.key);
+            }}
             className={`focus-ring h-10 rounded-control border px-3 text-body font-semibold transition-colors duration-200 ${
               m.key === key ? "border-ink bg-ink text-bg" : "border-line bg-surface text-ink-2 hover:bg-surface-2"
             }`}

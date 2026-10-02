@@ -13,6 +13,7 @@ import Link from "next/link";
 import { helpContent, type GlossaryKey, type HelpContent } from "@/lib/glossary";
 import { IconClose, IconInfo } from "./icons";
 import { useMedia } from "./useMedia";
+import { trackEvent } from "./track";
 
 /** 다른 팝오버가 열릴 때 보내는 이벤트 (한 번에 하나만) */
 const OPEN_EVENT = "help-popover-open";
@@ -120,12 +121,17 @@ export default function HelpPopover({ term, content, compact = false, className 
     }
   }
 
+  function toggle() {
+    if (!open) trackEvent("help_open", { topic: term ?? c.title });
+    setOpen((o) => !o);
+  }
+
   const label = ariaLabel ?? `${c.title} 설명`;
   const trigger = children ? (
     <button
       ref={btnRef}
       type="button"
-      onClick={() => setOpen((o) => !o)}
+      onClick={toggle}
       aria-expanded={open}
       aria-controls={open ? panelId : undefined}
       aria-describedby={open ? descId : undefined}
@@ -139,7 +145,7 @@ export default function HelpPopover({ term, content, compact = false, className 
     <button
       ref={btnRef}
       type="button"
-      onClick={() => setOpen((o) => !o)}
+      onClick={toggle}
       aria-expanded={open}
       aria-controls={open ? panelId : undefined}
       aria-describedby={open ? descId : undefined}

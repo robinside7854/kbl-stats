@@ -29,6 +29,7 @@ import PlayerSearch from "./PlayerSearch";
 import { useCardView } from "./useSeasonCards";
 import { loadSearchIndex } from "./useSearchIndex";
 import { useThemeColors } from "./useThemeColors";
+import { trackFilters } from "./track";
 
 /** 서버가 넣어 주는 기본 슬롯 */
 export interface SlotInit {
@@ -140,7 +141,10 @@ export default function CompareView({ seasons, initialA, initialB }: Props) {
               ...[...slot.seasons].reverse().map((c) => seasonChip(c, labelOf(c), slot.prime)),
             ]}
             value={slot.season}
-            onChange={(c) => set({ ...slot, season: c })}
+            onChange={(c) => {
+              trackFilters("compare", { season: c });
+              set({ ...slot, season: c });
+            }}
           />
           {other && other.id !== slot.id && (
             <button
@@ -193,7 +197,10 @@ export default function CompareView({ seasons, initialA, initialB }: Props) {
               type="button"
               aria-expanded={showCards}
               aria-controls="compare-cards"
-              onClick={() => setShowCards((v) => !v)}
+              onClick={() => {
+                trackFilters("compare", { show_cards: !showCards });
+                setShowCards((v) => !v);
+              }}
               className="focus-ring inline-flex h-11 w-full cursor-pointer items-center justify-center gap-1 rounded-control border border-line bg-surface text-body font-semibold text-ink transition-colors duration-200 hover:bg-surface-2"
             >
               {showCards ? "카드 접기" : "카드 보기 · 이미지 저장"}

@@ -102,10 +102,11 @@ KBL 공홈은 화면을 그릴 때 아래 두 서버에서 JSON을 받아온다.
 - 언어: **TypeScript (Node.js)** — 수집 스크립트와 화면을 한 언어로. 비개발자가 Claude Code와 함께 유지하기에 파일 수가 적고 읽기 쉬움
 - 화면: **Next.js (App Router) + Tailwind CSS**, 배포는 **Vercel** — 이전 대시보드(basketball-stats-dashboard.vercel.app)와 같은 환경이라 익숙함
 - 차트: **Recharts** 하나만. 레이더·바·라인·산점도 전부 커버. 차트 라이브러리 두 개 이상 섞지 않는다
-- 데이터 저장: **레포 안의 JSON 파일** (`data/raw/`, `data/processed/`). DB 없음
+- 데이터 저장: **레포 안의 JSON 파일** (`data/raw/`, `data/processed/`). 지금은 DB 없음 — 커뮤니티 1단계(투표·예측)부터 DB 를 들인다(2026-10-02 사용자 결정, SCOPE.md 로드맵). 기록 데이터는 그 뒤에도 JSON 파일 그대로, DB 는 사용자 참여 데이터만
 - 수집 실행: **GitHub Actions 스케줄** (매일 새벽 1회) → 수집 스크립트 실행 → 변경분 커밋 → Vercel 자동 재배포
-- 절대 피함: DB(Supabase 등), 로그인/회원, 실시간 갱신, 서버 상태 유지가 필요한 구조, 브라우저에서 KBL API 직접 호출(CORS 차단됨, 아래 참고)
-- 이유: 규모가 작고 데이터가 하루 한 번만 바뀐다. 파일+정적 사이트가 가장 싸고(무료) 가장 덜 고장난다. 나중에 사업화하면 그때 DB로 옮긴다
+- 절대 피함: (로드맵 단계 확인 전의) DB·로그인/회원, 실시간 갱신, 서버 상태 유지가 필요한 구조, 브라우저에서 KBL API 직접 호출(CORS 차단됨, 아래 참고)
+- 이유: 규모가 작고 데이터가 하루 한 번만 바뀐다. 파일+정적 사이트가 가장 싸고(무료) 가장 덜 고장난다. 커뮤니티 단계가 시작되면 그 부분만 DB
+- 방문 통계: **GA4 측정 ID `G-03YNZDVE0F`**(사용자 구글 계정, 2026-10-02) — `app/components/Analytics.tsx`(서버 컴포넌트), ID 는 `lib/analytics gaMeasurementId`: **Vercel 운영 배포(VERCEL_ENV=production)에서만** 켜짐, 환경변수 `NEXT_PUBLIC_GA_ID` 가 있으면 우선(`off` 면 끔). 페이지 조회는 GA 자동, 버튼 이벤트는 `app/components/track.ts` `trackEvent`·`trackFilters`. 켜져 있으면 푸터에 쿠키 안내 한 줄. **이벤트 목록과 규칙은 아래 "방문 통계 규칙"**
 
 ## 아키텍처 원칙
 1. **수집(ETL)과 화면(Web)은 완전히 분리** — `scripts/`는 KBL API를 알고, `app/`은 `data/processed/*.json`만 안다. 화면 코드에 KBL 주소가 등장하면 안 된다. 왜: API가 바뀌어도 화면은 안 건드린다.
@@ -156,9 +157,12 @@ kbl-stats/
 │   ├── config.ts        ← 엔드포인트(선수 마스터 PLAYER_MASTER_PATH 포함), 시즌 목록, 요청 간격
 │   ├── player-master.ts ← 선수 마스터 raw → 프로필(position·positionGroup·nationality·heightCm·weightKg·backNumber·draft) 순수 함수, isForeignPlayer, 프로필 API raw → birthday·country·school(profileExtraFrom)
 │   ├── build-shots.ts   ← 선수별 슛 차트 파일 public/shots/{seasonCode}/{playerNo}.json 생성 (prebuild·predev, lib/shots PlayerShotsFile: 점·구역·리그 합계, git 제외)
-│   ├── build-game.ts    ← 54-0 게임 후보 풀 public/game/pool.json 생성 (prebuild·predev, lib/game-pool buildGamePool, 약 520KB·gzip 83KB, git 제외)
+│   ├── build-game.ts    ← 54-0 게임 후보 풀 public/game/pool.json 생성 (prebuild·predev, lib/game-pool buildGamePool, 시즌 30개 × 팀, 약 1.1MB·gzip 156KB, git 제외)
 │   ├── build-search-index.ts ← 검색용 경량 색인 public/search-index.json 생성 (npm prebuild·predev 로 자동 실행, 생성물은 .gitignore)
+│   ├── build-short.ts   ← 팬 숏폼 에피소드 JSON (지난 시즌 국내 득점 TOP 5 득점 유형, 규칙 lib/shorts) → shorts/episodes/{slug}/episode.json (커밋)
+│   ├── prepare-short.ts ← 숏폼 렌더 준비: AI 목소리(ELEVENLABS_API_KEY+VOICE_ID 면 ElevenLabs 한 번에 읽기·글자 시각, 아니면 GOOGLE_TTS_API_KEY → Google, 그다음 edge-tts, 다 없으면 추정 길이)·사진·로고 받기·글꼴 복사 → shorts/public/{slug}/props.json·upload.txt (git 제외)
 │   └── build-cards.ts   ← 비교 탭용 시즌별 카드 데이터 public/cards/{seasonCode}.json 생성 (prebuild·predev, 형식은 lib/cards.ts v2 — 레이더 구성 요소 열 포함, 시즌당 약 28~55KB, git 제외)
+├── shorts/              ← 팬 숏폼 영상 렌더러 (Remotion, 자체 package.json — 사이트 빌드와 따로 설치). src/TopScorers.tsx(매거진 톤 1080×1920: 표지 → 5위…1위 → 비교 → 질문), theme.ts(종이·잉크, 득점 출처 4색 = 사이트 --cat-1~4), episodes/{slug}/episode.json(커밋), public·out(git 제외). 렌더는 Actions shorts-render.yml(실행 횟수 올려 푸시 → Artifacts + shorts-renders 브랜치)
 ├── tests/
 │   ├── metrics.test.ts  ← lib/metrics.ts 검증 (npm run test:metrics)
 │   ├── leaders.test.ts  ← lib/leaders.ts 검증 (npm run test:leaders)
@@ -194,8 +198,9 @@ kbl-stats/
 │   ├── similar.ts       ← 비슷한 시즌 (순수: 6축 백분위 벡터 toAxisVector, 유사도 similarityScore, findSimilar(같은 국적 풀·같은 포지션 묶음, 선수당 최고 시즌 하나) — lib/data loadSimilarPlayers 가 전 시즌 풀을 빌드 때 한 번 만든다)
 │   ├── records.ts       ← 역대 통산 순위 (순수: RECORD_STATS, sumCareerTotals(시즌 합계 → 선수별), rankCareerTotals(합계/경기당 — 경기당은 통산 200경기 이상, 국적 전체/국내/외국인), formatRecord, 현역 isActiveCareer(마지막 시즌 = 기록 있는 최신 시즌) — lib/data loadCareerTotals)
 │   ├── teams.ts         ← 팀 한글 약칭 teamShortNameKo (연고지 지명 목록 HOME_CITIES — 하드코딩 예외, 이유 주석), 팀 색 배정 assignTeamColors(회색 기본값 팀 → 범주형 팔레트, 팀 순서, 순환 금지)·ensureMarkContrast·comparePairColors(OKLab 거리 < 15면 팔레트 1·2번), 핵심 의존도 teamDependency(상위 3명 득점 비중·표본 충족 수)
-│   ├── game.ts          ← 54-0 게임 규칙 (순수: 시대 구간 splitEras(7개, 남는 시즌은 최근 구간), 칸 GAME_SLOTS 가드2·포워드2·센터1(GF·FC 는 두 칸), 외국 선수 GAME_FOREIGN_MAX 2, 슬롯 spin(구간 반복 가능·고를 선수 있는 팀만)·respinTeam·respinEra, 전력 teamRating(종합 점수 평균 75% + 6축 최고값 평균 25%)·winProbability(WIN_CURVE 표 보간, 득점 1위만 고르면 전승 약 0.2%)·simulateSeason(라인업 시드 → 같은 라인업 같은 성적), 공유 ?l=번호:시즌,…)
-│   ├── game-pool.ts     ← 54-0 후보 풀 만들기 buildGamePool(시즌 카드 → 구간 × 팀 × 후보, 표본 충족·포지션 있는 선수, 점수·축은 그 구간·팀 최고 시즌, 화면 기록 5개는 그 구간·팀 평균) — 빌드 스크립트 전용
+│   ├── game.ts          ← 54-0 게임 규칙 (순수: 슬롯 = 시즌 하나 + 팀 3개(GAME_SPIN_TEAMS·teamsOf·spinCandidates), 칸 GAME_SLOTS 가드2·포워드2·센터1(GF·FC 는 두 칸), 외국 선수 GAME_FOREIGN_MAX 2, 슬롯 spin(시즌 반복 가능·고를 선수 있는 팀만)·respinTeam(같은 시즌 새 팀 3개)·respinEra(다른 시즌, 팀 유지), 같은 선수는 시즌이 달라도 한 번만, 전력 teamRating(종합 점수 평균 75% + 6축 최고값 평균 25%)·winProbability(WIN_CURVE 표 보간, 득점 1위만 고르면 전승 약 0.2%)·simulateSeason(라인업 시드 → 같은 라인업 같은 성적), 공유 ?l=번호:시즌,…)
+│   ├── game-pool.ts     ← 54-0 후보 풀 만들기 buildGamePool(시즌 카드 → 시즌 × 팀 × 후보, 표본 충족·포지션 있는 선수, 점수·축·기록 모두 그 시즌) — 빌드 스크립트 전용
+│   ├── shorts.ts        ← 팬 숏폼 규칙 (순수: 득점 출처 4개 scoringBreakdown(공식 2점·3점·자유투 + 2점을 슛 차트 구역 비율로 페인트/미드, 합 = 공식 득점), 선수별 특징 pickCallouts(비중·경기당 1위, MIN_TRAIT_SHARE 20, 균형형 BALANCED_MAX_SHARE 40), 대사 topScorerLine(해요체)·toSpeech·자막 captionChunks·길이 추정·슛 점 솎기)
 │   ├── favorites.ts     ← 즐겨찾기 (순수: parseFavorites·toggleFavorite, FAVORITES_VISIBLE 5 — 저장은 app/components/useFavorites localStorage)
 │   ├── prime.ts         ← 프라임 시즌 (pickPrimeSeasons·primeCandidatesOf)
 │   ├── career-cards.ts  ← 비교 탭 통산 카드 (buildCareerCards, CAREER_CODE 0, CAREER_QUALIFY 100경기·1,000분)
@@ -215,7 +220,7 @@ kbl-stats/
 │   ├── player/[playerNo]/page.tsx  ← 선수 상세 정적 1,329개 (히어로(프로필·국적·나이·국가·출신교) → 시즌 칩·순위 범위·시즌 비교 카드 → 추이 그래프 → 시즌별 기록표 → 커리어 하이)
 │   ├── records/page.tsx ← 역대 기록 (통산 순위: 부문 칩·합계/경기당·국적, RecordsView, 메뉴 "역대 기록")
 │   ├── compare/page.tsx ← 비교 탭 정적 1쪽 (?a=번호:코드&b=번호:코드, 기본은 최신·직전 시즌 PER 1위)
-│   ├── game/page.tsx    ← 54-0 게임 (GameView: 다섯 칸 → 슬롯머신 두 대(시즌·팀) → 후보 고르기(득점순, 등급 숨김) → 코트 위 5명·54경기 결과·기록 표·이미지 저장·링크 복사, /game/pool.json fetch, ?l= 공유 결과, 메뉴 "54-0")
+│   ├── game/page.tsx    ← 54-0 게임 (GameView: 다섯 칸 → 슬롯머신 두 대(시즌 하나·팀 3개) → 세 팀 후보 고르기(득점순, 등급 숨김) → 코트 위 5명·54경기 결과·기록 표·이미지 저장·링크 복사, /game/pool.json fetch, ?l= 공유 결과, 메뉴 "54-0")
 │   ├── glossary/page.tsx ← 용어 탭 (lib/glossary 표, 앵커 /glossary#ts)
 │   ├── season/[seasonCode]/leaders/page.tsx  ← 시즌 순위표 정적 페이지 (1~3위 표지 카드 + 이 시즌 한 경기 최다 카드 줄 + 정렬 표, 포지션·국적 칩, 파울 열)
 │   ├── (플레이스타일·팀 분포 탭은 없앰 → next.config redirects: /season/코드/(teams|playstyle) → 리더보드)
@@ -228,7 +233,7 @@ kbl-stats/
 │                           PlayerCard(게임식 플레이어 카드: 팀 색 상단+큰 사진 / 스탯 9개+순위(전체 또는 "가드 중") / 파울·출전 줄 / 레이더+등급, 입력은 SeasonCardView 하나),
 │                           LeadersView(순위표), TeamsView(팀 분포 산점도·팀 요약), HomeView(홈), SourceFooter, useThemeColors,
 │                           PlayerAvatar(circle·portrait)·TeamLogo(공식 이미지+대체 디자인, official={false}면 대체만), useOfficialImage(저장 filter excludeOfficialImages)
-└── .github/workflows/fetch.yml, backfill.yml, backfill-highs.yml, backfill-gamelogs.yml, backfill-shots.yml  ← 매일 새벽 수집 / 전체 재수집 / 한 경기 최다·프로필 과거 전체 백필 / 커리어 하이 경기별 기록 백필 / 슛 차트 백필(셋 다 실행 횟수 숫자 올려 푸시)
+└── .github/workflows/fetch.yml, backfill.yml, backfill-highs.yml, backfill-gamelogs.yml, backfill-shots.yml, shorts-render.yml(숏폼 렌더)  ← 매일 새벽 수집 / 전체 재수집 / 한 경기 최다·프로필 과거 전체 백필 / 커리어 하이 경기별 기록 백필 / 슛 차트 백필(셋 다 실행 횟수 숫자 올려 푸시)
 ```
 
 ## 후속 예정 (사용자가 하기로 한 일 — 지금은 만들지 않는다)
@@ -238,6 +243,29 @@ kbl-stats/
 - **작업이 끝나면 항상 main 브랜치에 배포한다.** Vercel 은 main 만 배포하므로 작업 브랜치에 푸시만 하고 끝내면 사용자는 옛 화면을 본다.
 - 순서: 작업 브랜치 커밋·푸시 → 검증(typecheck·test·build) 통과 → `git fetch origin main && git checkout main && git merge --ff-only <작업 브랜치>` (ff 가 안 되면 main 을 작업 브랜치에 먼저 merge 해 해결) → `git push origin main` → 작업 브랜치로 돌아온다. PR 승인을 기다리지 않는다.
 - 데이터 커밋(Actions)이 main 에 먼저 들어와 있을 수 있으니 merge 전에 반드시 fetch 한다.
+- **Vercel 무료 플랜은 24시간에 배포 100회까지**(넘으면 `api-deployments-free-per-day`, 2026-10-02 실제로 걸림). 그래서 `vercel.json git.deploymentEnabled` 로 **main 만 배포**하고 작업 브랜치(`claude/…` 등)는 미리보기 배포를 하지 않는다. main 푸시는 작은 수정마다 하지 말고 한 요청 단위로 묶는다
+
+## 방문 통계 규칙 (2026-10-02 사용자 지시 — 세션이 바뀌어도 지킨다)
+- **새 메뉴·화면·기능을 만들 때는 GA4 이벤트 작업을 먼저 한다.** 화면 코드를 쓰기 전에 "이 기능에서 무엇을 셀지"(이벤트 이름·매개변수)를 정하고, 기능과 같은 커밋에 `trackEvent`/`trackFilters` 호출을 넣는다. 이벤트 없는 새 기능은 끝난 것이 아니다
+- 새 메뉴는 `SiteNav` MENU 에 넣으면 `nav_click` 이 자동으로 붙는다. 새 필터·보기 전환은 `trackFilters("화면", { 항목: 값 })`, 그 밖의 행동은 `trackEvent("동사_명사", {...})`(영어 소문자·밑줄, 40자 이하)
+- 매개변수는 개인을 알아볼 수 없는 값만(선수 번호·시즌·화면·부문 이름). 이메일·이름 입력값·검색어 원문은 보내지 않는다
+- 새 매개변수를 만들면 사용자에게 "GA → 관리 → 맞춤 정의"에 등록할 이름을 알려 준다(등록 전 데이터는 보고서에서 안 보임)
+- 검증: 브라우저에서 `window.gtag` 를 가짜 함수로 바꿔 놓고 눌러 보아 이벤트가 나가는지 확인(Playwright `addInitScript`)
+- 지금 이벤트 (화면 이름 screen: leaders·players·records·player·trend·shot_chart·compare·home 등)
+  | 이벤트 | 매개변수 | 언제 |
+  |---|---|---|
+  | page_view | (GA 자동) | 화면 열기·이동 |
+  | nav_click | menu, place(top/bottom) | 상단·하단 메뉴 |
+  | filter_change | screen, filter, value | 필터·부문·단위·시즌·보기 전환 (54-0 후보 포지션 칩 position·표 머리글 정렬 sort(예: rpg_asc·tpPct_desc·name_asc), 리더보드·선수 탭·역대 기록·선수 상세 시즌/순위 범위/프라임·추이 지표·슛 차트 보기·비교 시즌/카드 보기·상단 시즌 선택) |
+  | filter_reset | screen | 필터 초기화 |
+  | help_open | topic | ⓘ 도움말 열기 (어떤 용어가 어려운지) |
+  | csv_download | season, category, mode | 리더보드 CSV |
+  | search_select | player_no, mode(go/compare) | 검색에서 선수 고르기 |
+  | random_card | player_no, season_code | 랜덤 카드 |
+  | image_save | file_name | 카드·54-0 이미지 저장 |
+  | favorite_add / favorite_remove | player_no | 즐겨찾기 |
+  | game_spin / game_complete(wins) / game_share_link | | 54-0 |
+  | contact_click | (없음) | 푸터 문의 이메일 누르기 |
 
 ## 코딩 규칙
 - 파일·변수 이름은 영어, 주석과 커밋 메시지는 한국어
@@ -245,6 +273,7 @@ kbl-stats/
 - 수집 스크립트는 실패 시 해당 시즌만 건너뛰고 나머지는 계속. 마지막에 실패 목록을 출력
 - 화면은 모바일 우선 (팬은 대부분 폰으로 본다)
 - 새 화면·차트를 만들기 전에 `SCOPE.md`의 IN 목록에 있는지 확인. 없으면 만들지 말고 사용자에게 묻는다
+- 새 메뉴·기능은 GA4 이벤트를 먼저 정하고 같은 커밋에 넣는다 (위 "방문 통계 규칙")
 - 새 지표를 추가할 때 계산식·출처 주석 필수
 
 ### 디자인 토큰 (2026-09-30 디자인 점검 B·C, 토큰은 `app/globals.css`)
@@ -262,13 +291,26 @@ kbl-stats/
 - 화면 컴포넌트에서 fetch로 KBL 서버 호출 (CORS로 실패하고, 원칙 1 위반)
 - raw 파일을 직접 수정하거나 가공 결과로 덮어쓰기
 - 시즌 코드·팀 코드를 코드에 하드코딩 (코드표 파일에서 읽는다)
-- "이왕 만드는 김에" 회원가입·댓글·실시간 기능 추가 (SCOPE.md OUT 항목)
+- "이왕 만드는 김에" 회원가입·댓글·실시간 기능 추가 — 커뮤니티는 SCOPE.md 로드맵 단계 순서대로, 사용자 확인 후에만
 - 차트 라이브러리 추가 설치
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
-- 2026-10-02 (푸터 개발자 정보): 모든 화면 푸터에 "만든 사람: ksr-admin · 문의 kbl-stats-ref@naver.com"(`DeveloperContact`, 값은 `data/codes/site.json developer`). 이메일은 브라우저에서 이어 붙여 정적 HTML 에는 "[at]" 글자만(빌드 HTML 에 주소 0건 확인), 누르면 메일 앱. 검증: typecheck·test·build·slop 0, Playwright 390 mailto 링크 확인. main 배포.
+- 2026-10-02 (푸터 개발자 정보): 모든 화면 푸터에 "만든 사람: ksr-admin · 문의 kbl-stats-ref@naver.com"(`DeveloperContact`, 값은 `data/codes/site.json developer`). 이메일은 브라우저에서 이어 붙여 정적 HTML 에는 "[at]" 글자만(빌드 HTML 에 주소 0건 확인), 누르면 메일 앱, GA4 `contact_click`(매개변수 없음). 검증: typecheck·test·build·slop 0, Playwright 390 mailto 링크 확인. main 배포.
+- 2026-10-02 (배포 한도): 운영 배포 누락 원인 = Vercel Hobby 하루 배포 100회 초과(`api-deployments-free-per-day`, 미리보기 포함해서 셈). 사용자 결정으로 `vercel.json` 추가 — main 만 배포, 다른 브랜치는 배포 안 함(`"**": false, "main": true`, 여러 규칙이 맞으면 하나라도 true 면 배포). 한도가 풀린 뒤 첫 main 배포부터 적용, 그때 54-0 후보 표 변경도 같이 반영됨. 배포 규칙에 "main 푸시는 요청 단위로 묶기" 추가.
+- 2026-10-02 (운영 배포 누락): 54-0 후보 표 커밋(fa8ebb12·7fafe102)을 main 에 올렸는데 Vercel 운영(Production) 배포가 생기지 않음 — 브랜치 미리보기만 Ready, 운영은 그 전 7d8b805 에 머묾(그 사이 main 의 숏폼 커밋도 운영 배포 없음). 이 기록 커밋으로 main 배포를 다시 시도. 원인 후보: Vercel Hobby 하루 배포 100회 한도·웹훅 누락. **main 에 올린 뒤에는 Deployments 에 Production 줄이 생겼는지 사용자에게 확인받을 것.**
+- 2026-10-02 (54-0 후보 표): 사용자 지시 — ① 등급은 **마지막 결과 화면에서만**(위 다섯 칸의 사진 모서리 등급 칩 삭제) ② 정렬 칩 → **표 머리글을 누르면 정렬**(같은 머리글 다시 = 반대 순서, 처음 누르면 글자 열은 오름·숫자 열은 내림, `lib/game SORT_COLUMNS·nextSort·sortCandidatesBy`) ③ 머리글 선수·소속팀·포지션·득점·리바·어시·스틸·블록·**3P%**(후보에 `tpPct` 추가 = 그 시즌 3점 성공 ÷ 시도, 시도 0이면 "–" 이고 정렬 때 늘 맨 뒤 / 포지션 순서 G→GF→F→FC→C). 폰은 9열을 가로 스크롤 없이(팀 = 로고, 포지션 = 약자, 머리글 "팀"), PC 는 사진·팀 이름·포지션 이름. 포지션 칩은 그대로. GA4 는 같은 filter_change sort. 검증: test(포지션·팀·3P% 없음 맨 뒤·nextSort)·typecheck·build·slop 0, Playwright 360/390/1280 가로 넘침 0·3P% 내림/오름·포지션 정렬·뽑은 뒤 칸에 등급 없음·가짜 gtag. main 배포.
+- 2026-10-02 (숏폼 2차: ElevenLabs·대본): 사용자 "너무 어색함" → 목소리 ElevenLabs(대본 전체 한 번에 읽기 + with-timestamps 글자 시각으로 장면·자막 맞춤, `lib/shorts sceneTimingsFromAlignment`, Secrets ELEVENLABS_API_KEY·ELEVENLABS_VOICE_ID, Variables 로 말투), 대본 사람 말투로 재작성(말버릇 금지 테스트, 숫자는 말로 둥글게 sharePredicate·pointsWords·pctFloorWords, compareLine). 키 등록 전이라 렌더는 아직 안 돌림(실행 횟수 그대로). 사용자 할 일: ElevenLabs 키·한국어 20대 남성 목소리 ID 를 Secrets 에.
+- 2026-10-02 (숏폼 시제품): 사용자 결정(공식 사진 사용·수익 없는 팬 계정·AI 목소리 20대 남성·매거진 톤·공개 버튼은 사람·SCOPE IN 사이트 밖 유튜브) → 첫 포맷 "25-26 국내 득점 TOP 5 득점 유형"(이정현·허웅·안영준·허훈·서명진, 득점을 페인트·미드·3점·자유투로 — 합 = 공식 득점) 구현. `lib/shorts.ts`(규칙·대사)·`scripts/build-short.ts`(에피소드 JSON)·`scripts/prepare-short.ts`(목소리·사진)·`shorts/`(Remotion 렌더러)·`.github/workflows/shorts-render.yml`(실행 횟수 올려 푸시 → Artifacts + `shorts-renders` 브랜치). 세션 환경은 KBL 사진·음성 서버 차단이라 렌더는 Actions 에서. Actions 4회: ① 러너에 ffprobe 없음 → ffmpeg 설치 ② 렌더 브랜치 checkout -f ③ edge-tts +12% 로 72초 → 대사 줄이고 +20% ④ 55.3초 완성. 검증: typecheck·test(shorts 추가)·build, 프레임 확인. 다음: 채널 개설(사용자), 매일 주제 자동 선정·API 비공개 업로드는 다음 단계.
+- 2026-10-02 (54-0 후보 칩): 사용자 요청 — 후보 목록 위에 **포지션 칩**(전체·가드·포워드·센터 + 인원, 그 칸에 들어갈 수 있는 기준 — GF 는 가드·포워드, FC 는 포워드·센터 둘 다, `lib/game filterByPositionChip`)과 **정렬 칩**(득점·리바·어시·스틸·블록, 같은 칩 다시 누르면 내림↔오름, `sortCandidatesBy`, 같으면 득점 → 이름). GA4: filter_change screen=game, filter=position|sort. 정렬은 다음 슬롯에도 유지, 포지션은 슬롯마다 전체로. 정렬 기준 기록 이름표를 진하게, 0명이면 "전체 보기". 검증: test(겸업 두 칩·내림/오름·동점)·typecheck·build·slop 0, Playwright 390: 센터 칩 → 센터만, 리바 내림/오름 순서 확인, 다음 슬롯 포지션 전체·정렬 유지, 완주 390/1280. main 배포.
+- 2026-10-02 (GA4 이벤트 확장·규칙): 사용자 지시 — 반응을 볼 이벤트 추가: nav_click(상단/하단 메뉴)·filter_change(리더보드·선수 탭·역대 기록·선수 상세 시즌/범위/프라임·추이 지표·슛 차트 보기·비교·상단 시즌, `track.ts trackFilters`)·filter_reset·help_open(ⓘ 용어)·csv_download. 그리고 **"새 메뉴·기능은 GA4 이벤트 작업 선행"** 규칙을 CLAUDE.md "방문 통계 규칙"에 저장(이벤트 표 포함). 검증: typecheck·test·build·slop 0, Playwright(가짜 gtag)로 filter_change·help_open·nav_click 확인. 덤: 로컬 public/game/pool.json 이 옛 형식이라 game 테스트가 실패 → build:game 다시 만들어 통과(코드 문제 아님). main 배포.
+- 2026-10-02 (54-0 한 시즌 + 팀 3개): 시뮬레이션 비교(시대 구간 나누기 9가지·한 시즌 팀 1/2/3개 — 균등 7구간은 08-12·16-21 처럼 리그 흐름이 바뀐 시즌을 가로질러 해석이 갈리고, 한 시즌 팀 1개는 후보 9명이라 너무 어려움) 후 사용자 결정으로 **한 시즌 + 팀 3개**(후보 약 28명). `lib/game-pool` 구간 = 시즌 하나(30개, 기록 = 그 시즌), `Spin.teamCodes`(3개)·`GAME_SPIN_TEAMS`·`teamsOf`·`teamOfCandidate`·`spinCandidates`, 팀 다시 = 같은 시즌 새 팀 3개(지금 팀은 되도록 뺌), 시즌 다시 = 지금 팀이 가장 많이 남는 다른 시즌(없는 자리만 채움), `splitEras`·`GAME_ERA_COUNT` 삭제. 같은 선수는 시즌이 달라도 한 번만(선수 번호, 테스트 추가). 난이도 다시 맞춤: `WIN_CURVE` 96·98·99 = 원래의 0.75배(7.5%·5.625%·4.5%) → 득점 1위만 고르면 전승 0.20%·중앙 46승, 숨은 점수 1위 2.1%, 아무나 17승. 화면: 오른쪽 릴에 팀 3개(로고·이름), 후보 줄에 팀 로고·이름, "시즌 다시", 용어 문구. pool.json 1,081KB(gzip 156KB). 검증: typecheck·test·build·slop 0, Playwright 390/1280 완주·공유 링크·이미지 저장, 시즌 다시 = 왼쪽만(03-04 → 09-10, LG·SK·모비스 유지)·팀 다시 = 오른쪽만. main 배포.
+- 2026-10-02 (도메인): 사용자가 Vercel 주소를 **https://kbl-stats-reference.vercel.app** 으로 바꿈(옛 kbl-stats-mu.vercel.app 은 Vercel 도메인 설정에 남아 있으면 계속 열림). 코드에는 사이트 주소가 하드코딩된 곳이 없음(grep 0) — GA4 는 측정 ID 기준이라 도메인이 바뀌어도 그대로 수집. 나중에 OG 미리보기(metadataBase)를 만들 때는 주소를 site.json 한 곳에 둘 것.
+- 2026-10-02 (GA4 측정 ID): 사용자 제공 ID `G-03YNZDVE0F` 를 코드 기본값으로(운영 배포만 켜짐, 미리보기·개발 꺼짐 — Vercel 환경변수 설정 불필요). Analytics 를 서버 컴포넌트로, 이벤트 함수는 `track.ts` 로 분리. 검증: typecheck·test·build(VERCEL_ENV=production 이면 스크립트·푸터 안내 있음, 없으면 0)·slop 0. main 배포.
+- 2026-10-02 (54-0 결과 화면 정리): 사용자 지시 — ① 코트를 PC 에서 `max-w-md`(448px)로 묶고 사진 64px·이름표(이름 + 종합 등급 칩 · 포지션(칸 이름)·MVP · 팀 시대)를 크게, 폰은 사진 48px ② 자리를 **좌우 대칭**(탑 50% · 윙 20/80% · 로우 24/76%, 값은 사진 가운데) — 폰은 상자를 코트보다 길게(15:16, 360px 미만 15:19, SVG `xMidYMin meet`)해 엔드라인 밖을 이름표 자리로 ③ **뽑은 뒤에만 등급 공개**(`GradeChip` = overallGrade(score)·gradeTone — 위 다섯 칸은 사진 모서리, 코트는 이름 옆) ④ 팀 능력치 "약점"을 축 이름 옆 칩으로(숫자와 분리) ⑤ 54경기 승패 칸·최다 연승 삭제. 검증: typecheck·test·build·slop 0, Playwright 320/360/390/1280 코트 안 사진·이름표 겹침 0·코트 밖 0, 완주·공유 링크·이미지 저장. main 배포.
+- 2026-10-02 (숏폼 자동화 검토): KBL 팬 유튜브 쇼츠(30~60초) 레퍼런스·템플릿·매일 자동 제작 검토 → `docs/shorts-automation-review-2026-10-02.md`. 결론: 주제 선정·대본(숫자 대조 검사)·Remotion 렌더(1080×1920, Actions)는 지금 데이터로 자동화 가능. 막히는 곳 ① 유튜브 API 프로젝트는 감사 통과 전 업로드가 비공개로만 됨 → 반자동(파일 받기) → 비공개 업로드+공개 버튼만 사람 → 예약 공개 3단계 ② 선수 사진은 영상에 복제·배포라 사이트 핫링크보다 위험 → 사진 없이(유니폼·실루엣) 시작 권장, 수익화는 KBL 서면 승낙 전 금지. 포맷 7개 요일 순환(주간 TOP5·VS·슛 차트·N년 전 오늘·퀴즈·이정표·역대) + 끼어들기(커리어 하이·이정표 달성·생일). 이 환경은 youtube.com 차단 → 조회수 순 레퍼런스 표는 YouTube API 키로 Actions 조사 제안. 2026-27 개막 10-03. 사용자 결정 대기. 코드 변경 없음.
 - 2026-10-02 (재미 요소 후보): 판타지 리그 보류(사용자). 국내에 없는 재미 요소 10개 정리 → `docs/fun-ideas-2026-10-02.md`(KBL 그리드·오늘의 선수 맞히기·드래프트 다시 하기·하이로우·학교 대항전·그날의 KBL·티어 리스트·득점왕 레이스·나이 곡선·내 키로 보는 KBL). 추천 1~3번. 사용자 결정 대기. 코드 변경 없음.
+- 2026-10-02 (GA4·로드맵·트래픽 용량): ① 사용자 결정 — 커뮤니티·DB 는 "향후 진행" → SCOPE.md OUT 에서 **로드맵 표(0~3단계)**로 옮기고 CLAUDE.md 기술 스택 문구 수정. ② **GA4 설치 코드**(`Analytics` + `lib/analytics`, 환경변수 `NEXT_PUBLIC_GA_ID` 가 G- 형식일 때만, 맞춤 이벤트 7개, 푸터 쿠키 안내) — 측정 ID 는 사용자가 GA 에서 만들어 Vercel 에 넣을 차례. ③ 용량 측정(빌드 결과): 첫 화면 JS 135~281KB(gzip), 선수 HTML 약 19KB·리더보드 52KB(gzip), 검색 색인 49KB·54-0 풀 97KB(gzip). 무료(Hobby) 한도 월 100GB·요청 100만 건 → 요청 수가 먼저 닿음, 하루 약 600~1,000 방문(세션)이 편한 선, 사진·로고·글꼴은 외부라 안 셈. 검증: typecheck·test·build(테스트 ID 로 스크립트·푸터 확인)·slop 0. main 배포.
 - 2026-10-02 (커뮤니티 검토): 활성 KBL 커뮤니티 조사(디시 농구 갤러리·KBL/남자농구 마이너 갤러리·매니아 KBL-Talk·I Love NBA·KBL 공식 앱 커뮤니티) → `docs/community-review-2026-10-02.md`. 제안: 게시판부터 열지 말고 0단계 공유 미리보기(OG 이미지)·유입 측정 → 1단계 로그인 없는 투표·경기 예측(키-값 저장소) → 2단계 구글 로그인 닉네임·응원팀·선수/경기 페이지 댓글 → 3단계 게시판. 스탯은 줄이지 말고 홈·메뉴 앞세움만 바꾸기. SCOPE OUT(커뮤니티)·DB 없음 원칙 변경은 사용자 결정 대기. 코드 변경 없음.
 - 2026-10-02 (54-0 다시 돌리기): 사용자 지시 — 다시 돌리기는 **누른 쪽 릴만** 돈다. 시대 다시 = 왼쪽만·팀 그대로(`respinEra` 가 같은 팀이 고를 선수와 함께 있는 구간 중에서만 뽑음, 그런 구간이 없는 팀만 팀도 바뀌고 그때만 오른쪽도 돔), 팀 다시 = 오른쪽만. `GameView animateTo` 릴별 멈춤 시각(하나만 돌면 0.8초). 검증: test(같은 팀 유지·없을 때만 팀 변경)·typecheck·build·slop 0, Playwright: 시대 다시 중 왼쪽만 돎·04-08 삼성 → 08-12 삼성, 팀 다시 중 오른쪽만 돎. main 배포.
 - 2026-10-02 (판타지 농구 조사): NBA 판타지(시즌 리그: 드래프트·카테고리 맞대결/로토/포인트·웨이버 / 데일리: 연봉 상한) 조사 → `docs/fantasy-review-2026-10-02.md`. 발견: KBL 은 이미 공식 'KBL Fantasy'(공홈 연혁)·챌린지 메뉴(드래프트·데일리 픽·위클리6·스탯 킹·대진, 포인트 상점)를 회원제로 운영, 그 전엔 판타지볼이 공식 업체. 제안: 안 A 로그인 없는 "위클리 판타지"(연봉 상한 5명·그 주 경기별 기록 포인트·브라우저 저장·공유 링크, 26-27 개막에 맞춰) / 안 B 친구 리그는 구글 로그인 때. SCOPE 추가는 사용자 결정 대기. 코드 변경 없음.

@@ -2,6 +2,7 @@
 // 즐겨찾기 별 버튼 (선수 상세 머리말). 이 브라우저에만 저장 (useFavorites, lib/favorites).
 import { IconStar } from "./icons";
 import { useFavorites } from "./useFavorites";
+import { trackEvent } from "./track";
 
 export default function FavoriteButton({ playerId, nameKo, className = "" }: { playerId: string; nameKo: string; className?: string }) {
   const { has, toggle, ready } = useFavorites();
@@ -9,7 +10,10 @@ export default function FavoriteButton({ playerId, nameKo, className = "" }: { p
   return (
     <button
       type="button"
-      onClick={() => toggle(playerId)}
+      onClick={() => {
+        trackEvent(on ? "favorite_remove" : "favorite_add", { player_no: playerId });
+        toggle(playerId);
+      }}
       aria-pressed={on}
       aria-label={on ? `${nameKo} 즐겨찾기 해제` : `${nameKo} 즐겨찾기`}
       className={`focus-ring inline-flex h-10 shrink-0 cursor-pointer items-center gap-1.5 rounded-control px-3 text-sub font-bold transition-colors duration-200 ${
