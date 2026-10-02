@@ -160,7 +160,7 @@ kbl-stats/
 │   ├── build-game.ts    ← 54-0 게임 후보 풀 public/game/pool.json 생성 (prebuild·predev, lib/game-pool buildGamePool, 시즌 30개 × 팀, 약 1.1MB·gzip 156KB, git 제외)
 │   ├── build-search-index.ts ← 검색용 경량 색인 public/search-index.json 생성 (npm prebuild·predev 로 자동 실행, 생성물은 .gitignore)
 │   ├── build-short.ts   ← 팬 숏폼 에피소드 JSON (지난 시즌 국내 득점 TOP 5 득점 유형, 규칙 lib/shorts) → shorts/episodes/{slug}/episode.json (커밋)
-│   ├── prepare-short.ts ← 숏폼 렌더 준비: 장면별 AI 목소리(GOOGLE_TTS_API_KEY 있으면 Google, 없으면 edge-tts, 둘 다 없으면 추정 길이)·사진·로고 받기·글꼴 복사 → shorts/public/{slug}/props.json·upload.txt (git 제외)
+│   ├── prepare-short.ts ← 숏폼 렌더 준비: AI 목소리(ELEVENLABS_API_KEY+VOICE_ID 면 ElevenLabs 한 번에 읽기·글자 시각, 아니면 GOOGLE_TTS_API_KEY → Google, 그다음 edge-tts, 다 없으면 추정 길이)·사진·로고 받기·글꼴 복사 → shorts/public/{slug}/props.json·upload.txt (git 제외)
 │   └── build-cards.ts   ← 비교 탭용 시즌별 카드 데이터 public/cards/{seasonCode}.json 생성 (prebuild·predev, 형식은 lib/cards.ts v2 — 레이더 구성 요소 열 포함, 시즌당 약 28~55KB, git 제외)
 ├── shorts/              ← 팬 숏폼 영상 렌더러 (Remotion, 자체 package.json — 사이트 빌드와 따로 설치). src/TopScorers.tsx(매거진 톤 1080×1920: 표지 → 5위…1위 → 비교 → 질문), theme.ts(종이·잉크, 득점 출처 4색 = 사이트 --cat-1~4), episodes/{slug}/episode.json(커밋), public·out(git 제외). 렌더는 Actions shorts-render.yml(실행 횟수 올려 푸시 → Artifacts + shorts-renders 브랜치)
 ├── tests/
@@ -294,6 +294,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-02 (숏폼 2차: ElevenLabs·대본): 사용자 "너무 어색함" → 목소리 ElevenLabs(대본 전체 한 번에 읽기 + with-timestamps 글자 시각으로 장면·자막 맞춤, `lib/shorts sceneTimingsFromAlignment`, Secrets ELEVENLABS_API_KEY·ELEVENLABS_VOICE_ID, Variables 로 말투), 대본 사람 말투로 재작성(말버릇 금지 테스트, 숫자는 말로 둥글게 sharePredicate·pointsWords·pctFloorWords, compareLine). 키 등록 전이라 렌더는 아직 안 돌림(실행 횟수 그대로). 사용자 할 일: ElevenLabs 키·한국어 20대 남성 목소리 ID 를 Secrets 에.
 - 2026-10-02 (숏폼 시제품): 사용자 결정(공식 사진 사용·수익 없는 팬 계정·AI 목소리 20대 남성·매거진 톤·공개 버튼은 사람·SCOPE IN 사이트 밖 유튜브) → 첫 포맷 "25-26 국내 득점 TOP 5 득점 유형"(이정현·허웅·안영준·허훈·서명진, 득점을 페인트·미드·3점·자유투로 — 합 = 공식 득점) 구현. `lib/shorts.ts`(규칙·대사)·`scripts/build-short.ts`(에피소드 JSON)·`scripts/prepare-short.ts`(목소리·사진)·`shorts/`(Remotion 렌더러)·`.github/workflows/shorts-render.yml`(실행 횟수 올려 푸시 → Artifacts + `shorts-renders` 브랜치). 세션 환경은 KBL 사진·음성 서버 차단이라 렌더는 Actions 에서. Actions 4회: ① 러너에 ffprobe 없음 → ffmpeg 설치 ② 렌더 브랜치 checkout -f ③ edge-tts +12% 로 72초 → 대사 줄이고 +20% ④ 55.3초 완성. 검증: typecheck·test(shorts 추가)·build, 프레임 확인. 다음: 채널 개설(사용자), 매일 주제 자동 선정·API 비공개 업로드는 다음 단계.
 - 2026-10-02 (54-0 후보 칩): 사용자 요청 — 후보 목록 위에 **포지션 칩**(전체·가드·포워드·센터 + 인원, 그 칸에 들어갈 수 있는 기준 — GF 는 가드·포워드, FC 는 포워드·센터 둘 다, `lib/game filterByPositionChip`)과 **정렬 칩**(득점·리바·어시·스틸·블록, 같은 칩 다시 누르면 내림↔오름, `sortCandidatesBy`, 같으면 득점 → 이름). GA4: filter_change screen=game, filter=position|sort. 정렬은 다음 슬롯에도 유지, 포지션은 슬롯마다 전체로. 정렬 기준 기록 이름표를 진하게, 0명이면 "전체 보기". 검증: test(겸업 두 칩·내림/오름·동점)·typecheck·build·slop 0, Playwright 390: 센터 칩 → 센터만, 리바 내림/오름 순서 확인, 다음 슬롯 포지션 전체·정렬 유지, 완주 390/1280. main 배포.
 - 2026-10-02 (GA4 이벤트 확장·규칙): 사용자 지시 — 반응을 볼 이벤트 추가: nav_click(상단/하단 메뉴)·filter_change(리더보드·선수 탭·역대 기록·선수 상세 시즌/범위/프라임·추이 지표·슛 차트 보기·비교·상단 시즌, `track.ts trackFilters`)·filter_reset·help_open(ⓘ 용어)·csv_download. 그리고 **"새 메뉴·기능은 GA4 이벤트 작업 선행"** 규칙을 CLAUDE.md "방문 통계 규칙"에 저장(이벤트 표 포함). 검증: typecheck·test·build·slop 0, Playwright(가짜 gtag)로 filter_change·help_open·nav_click 확인. 덤: 로컬 public/game/pool.json 이 옛 형식이라 game 테스트가 실패 → build:game 다시 만들어 통과(코드 문제 아님). main 배포.
