@@ -438,6 +438,30 @@ export function insightLine(p: TopScorerScriptInput, insight: Insight): ScriptLi
   return { caption: line, speech: line };
 }
 
+/** 인사이트 → 유튜브 설명란 한 줄 (영상보다 정확한 숫자, 소수 한 자리) */
+export function insightSummary(insight: Insight, callout: Callout): string {
+  switch (insight.layout) {
+    case "counter": {
+      const me = insight.leaders.find((l) => l.me);
+      const ratio = insight.ratioToNext && insight.ratioToNext >= 1.2 ? `, 2위의 ${timesWords(insight.ratioToNext)}` : "";
+      return `자유투 시도 국내 ${insight.rank}위${me ? `(경기당 ${me.value}개${ratio})` : ""}, 자유투로만 경기당 ${insight.ftPerGame}점`;
+    }
+    case "ladder":
+      return `3점으로만 경기당 ${insight.value}점, 국내 선수 ${insight.total}명 중 ${insight.beaten}명은 전체 득점이 이보다 적음`;
+    case "lineup":
+      return `TOP 5 중 유일한 ${insight.only}, 득점 ${Math.round(insight.share)}%가 페인트`;
+    case "split":
+      return `${insight.a.label} ${Math.round(insight.a.share)}% · ${insight.b.label} ${Math.round(insight.b.share)}%, 안팎 반반`;
+    case "shotmap": {
+      const label = SCORING_SOURCES.find((x) => x.key === insight.focus)!.label;
+      const low = insight.lowFtShare !== null ? `, 자유투 비중은 5명 중 최저(${Math.round(insight.lowFtShare)}%)` : "";
+      return `득점 ${Math.round(insight.share)}%가 ${label}${low}`;
+    }
+    default:
+      return callout.headline;
+  }
+}
+
 /** 마무리 비교 한 줄 — "밖에서는 A, 안에서는 B, 자유투는 C" (같은 사람이 겹치면 묶는다) */
 export function compareLine(names: { threeShare: string; threePerGame: string; paint: string; ft: string }): string {
   const outside = names.threeShare === names.threePerGame ? names.threeShare : `${irang(names.threeShare)} ${names.threePerGame}`;
