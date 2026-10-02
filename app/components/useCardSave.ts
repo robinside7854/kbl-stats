@@ -5,6 +5,7 @@
 //   혹시 공식 <img> 가 섞여도 filter(excludeOfficialImages)가 뺀다.
 // 글꼴: 저장 PNG 도 화면과 같은 Pretendard 로 그리도록, 사본에 나온 글자의 글꼴 조각만 넣는다(webFont pretendardEmbedCss).
 //   글꼴을 받지 못하면 글꼴 없이(시스템 글꼴로) 저장한다 — 저장 자체는 실패시키지 않는다.
+import { trackEvent } from "./Analytics";
 import { useRef, useState } from "react";
 import { toPng } from "html-to-image";
 import { excludeOfficialImages } from "./useOfficialImage";
@@ -45,6 +46,7 @@ export function useCardSave(background: string) {
       document.body.appendChild(link);
       link.click();
       link.remove();
+      trackEvent("image_save", { file_name: fileName });
     } catch {
       setSaveError("이미지 저장에 실패했습니다. 다시 시도해 주세요.");
     } finally {

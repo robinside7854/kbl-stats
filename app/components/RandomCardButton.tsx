@@ -7,6 +7,7 @@ import { pickRandomCard } from "@/lib/search";
 import { playerHref } from "@/lib/cardview";
 import { IconDice } from "./icons";
 import { loadSearchIndex } from "./useSearchIndex";
+import { trackEvent } from "./Analytics";
 
 export default function RandomCardButton({ className = "" }: { className?: string }) {
   const router = useRouter();
@@ -15,6 +16,7 @@ export default function RandomCardButton({ className = "" }: { className?: strin
     setBusy(true);
     try {
       const pick = pickRandomCard(await loadSearchIndex());
+      if (pick) trackEvent("random_card", { player_no: pick.id, season_code: pick.seasonCode });
       if (pick) router.push(playerHref(pick.id, pick.seasonCode));
     } finally {
       setBusy(false);
