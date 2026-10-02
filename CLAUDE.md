@@ -148,6 +148,7 @@ kbl-stats/
 │   ├── config.ts        ← 엔드포인트(선수 마스터 PLAYER_MASTER_PATH 포함), 시즌 목록, 요청 간격
 │   ├── player-master.ts ← 선수 마스터 raw → 프로필(position·positionGroup·nationality·heightCm·weightKg·backNumber·draft) 순수 함수, isForeignPlayer, 프로필 API raw → birthday·country·school(profileExtraFrom)
 │   ├── build-shots.ts   ← 선수별 슛 차트 파일 public/shots/{seasonCode}/{playerNo}.json 생성 (prebuild·predev, lib/shots PlayerShotsFile: 점·구역·리그 합계, git 제외)
+│   ├── build-game.ts    ← 54-0 게임 후보 풀 public/game/pool.json 생성 (prebuild·predev, lib/game-pool buildGamePool, 약 520KB·gzip 83KB, git 제외)
 │   ├── build-search-index.ts ← 검색용 경량 색인 public/search-index.json 생성 (npm prebuild·predev 로 자동 실행, 생성물은 .gitignore)
 │   └── build-cards.ts   ← 비교 탭용 시즌별 카드 데이터 public/cards/{seasonCode}.json 생성 (prebuild·predev, 형식은 lib/cards.ts v2 — 레이더 구성 요소 열 포함, 시즌당 약 28~55KB, git 제외)
 ├── tests/
@@ -162,6 +163,7 @@ kbl-stats/
 │   ├── shots-zones.test.ts ← lib/shots 정규화(양쪽 d 대칭)·3점 판정·구역 경계·집계·공격 유형·표본 미달·코트 그림 (npm run test:shotzones)
 │   ├── shots.test.ts    ← 슛 차트 월 구간·경기 목록 거르기·끝남 판정·형식 검사·이어받기 (npm run test:shots)
 │   ├── gamelogs.test.ts ← 경기별 기록 파싱·날짜 매칭·시도 수 붙이기·백필 대상 선정 (npm run test:gamelogs)
+│   ├── game.test.ts     ← 54-0 구간·칸·외국 선수 한도·슬롯·전력·시즌·공유 주소 + 실제 풀 난이도 (npm run test:game)
 │   └── highs.test.ts    ← 한 경기 최다 응답 파싱·프로필·매일 수집 대상 시즌(30일 경계)·백필 이어받기·시즌 하이 1위(동률·RATE 제외)·만 나이·커리어 하이 행 (npm run test:highs, 전부: npm test)
 ├── public/search-index.json ← 빌드 전 생성되는 검색 색인 (id·이름·최근 팀·첫/마지막 시즌·뛴 시즌 코드 seasons·photoUrl·팀 색·positionGroup·positionLabel, 약 370KB). git 제외
 ├── public/shots/{seasonCode}/{playerNo}.json ← 빌드 전 생성되는 선수·시즌 슛 파일 (선수 상세 시즌 전환 때 받음, 최대 약 16KB). git 제외
@@ -185,6 +187,8 @@ kbl-stats/
 │   ├── records.ts       ← 역대 통산 순위 (순수: RECORD_STATS, sumCareerTotals(시즌 합계 → 선수별), rankCareerTotals(합계/경기당 — 경기당은 통산 200경기 이상, 국적 전체/국내/외국인), formatRecord, 현역 isActiveCareer(마지막 시즌 = 기록 있는 최신 시즌) — lib/data loadCareerTotals)
 │   ├── teams.ts         ← 팀 한글 약칭 teamShortNameKo (연고지 지명 목록 HOME_CITIES — 하드코딩 예외, 이유 주석), 팀 색 배정 assignTeamColors(회색 기본값 팀 → 범주형 팔레트, 팀 순서, 순환 금지)·ensureMarkContrast·comparePairColors(OKLab 거리 < 15면 팔레트 1·2번), 핵심 의존도 teamDependency(상위 3명 득점 비중·표본 충족 수)
 │   ├── playstyle.ts     ← 플레이스타일 탭 (순수: buildStyleRows(표본 충족 선수의 역할 유형·공격 유형·종합 점수), groupStyles(유형별 묶음·유형 안 순위 = 종합 백분위 → PER), STYLE_TOP 10, 주소 쿼리 ?kind=&type=&origin=)
+│   ├── game.ts          ← 54-0 게임 규칙 (순수: 시대 구간 splitEras(7개, 남는 시즌은 최근 구간), 칸 GAME_SLOTS 가드2·포워드2·센터1(GF·FC 는 두 칸), 외국 선수 GAME_FOREIGN_MAX 2, 슬롯 spin(쓴 구간 제외·고를 선수 있는 팀만)·respinTeam·respinEra, 전력 teamRating(종합 점수 평균 75% + 6축 최고값 평균 25%)·winProbability(WIN_CURVE 표 보간, 99↑ 전승)·simulateSeason(라인업 시드 → 같은 라인업 같은 성적), 공유 ?l=번호:시즌,…)
+│   ├── game-pool.ts     ← 54-0 후보 풀 만들기 buildGamePool(시즌 카드 → 구간 × 팀 × 후보, 표본 충족·포지션 있는 선수, 같은 구간·팀은 종합 점수 최고 시즌 하나) — 빌드 스크립트 전용
 │   ├── favorites.ts     ← 즐겨찾기 (순수: parseFavorites·toggleFavorite, FAVORITES_VISIBLE 5 — 저장은 app/components/useFavorites localStorage)
 │   ├── prime.ts         ← 프라임 시즌 (pickPrimeSeasons·primeCandidatesOf)
 │   ├── career-cards.ts  ← 비교 탭 통산 카드 (buildCareerCards, CAREER_CODE 0, CAREER_QUALIFY 100경기·1,000분)
@@ -204,6 +208,7 @@ kbl-stats/
 │   ├── player/[playerNo]/page.tsx  ← 선수 상세 정적 1,329개 (히어로(프로필·국적·나이·국가·출신교) → 시즌 칩·순위 범위·시즌 비교 카드 → 추이 그래프 → 시즌별 기록표 → 커리어 하이)
 │   ├── records/page.tsx ← 역대 기록 (통산 순위: 부문 칩·합계/경기당·국적, RecordsView, 메뉴 "역대 기록")
 │   ├── compare/page.tsx ← 비교 탭 정적 1쪽 (?a=번호:코드&b=번호:코드, 기본은 최신·직전 시즌 PER 1위)
+│   ├── game/page.tsx    ← 54-0 게임 (GameView: 다섯 칸 → 슬롯(구간·팀) → 후보 고르기 → 54경기 결과·이미지 저장·링크 복사, /game/pool.json fetch, ?l= 공유 결과, 메뉴 "54-0")
 │   ├── glossary/page.tsx ← 용어 탭 (lib/glossary 표, 앵커 /glossary#ts)
 │   ├── season/[seasonCode]/leaders/page.tsx  ← 시즌 순위표 정적 페이지 (1~3위 표지 카드 + 이 시즌 한 경기 최다 카드 줄 + 정렬 표, 포지션·국적 칩, 파울 열)
 │   ├── season/[seasonCode]/playstyle/page.tsx  ← 플레이스타일 (PlaystyleView: 역할/공격 유형 → 유형 칩 → 유형 안 순위 1~10위 프로필 줄 + 더 보기). 옛 /season/코드/teams 는 next.config redirects 로 여기
@@ -255,6 +260,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-02 (54-0 게임): 사용자 결정(범위 IN·외국 선수 2명·시대 구간 7개·가드2/포워드2/센터1·오늘의 뽑기 없음)으로 `/game` 구현. 규칙 `lib/game.ts`, 풀 `scripts/build-game.ts` → `public/game/pool.json`(구간 97-00·00-04·04-08·08-12·12-16·16-21·21-26, 팀 10~13개, 후보 2,282명). 점수 = 그 시즌 종합 점수(국적 풀 안 백분위)라 원숫자 합처럼 외국 선수가 휩쓸지 않음. 한 번 쓴 구간은 다시 안 나옴(82-0 연대 규칙). 난이도(1,000판 시뮬레이션): 아무나 뽑기 중앙 18승, 매번 최고 점수 51승·전승 약 14%. 메뉴 "54-0"(모바일 하단 탭 7개). 검증: typecheck·test·build·slop 0, Playwright 320/390/1280 라이트/다크 5라운드 완주·가로 넘침 0·콘솔 에러 0·이미지 저장·공유 링크 같은 성적. main 배포.
 - 2026-10-02 (82-0 게임 검토): 82-0.com(NBA 역대 5인 뽑기 전승 게임) 검토 → `docs/game-54-0-review-2026-10-02.md`(KBL 버전 "54-0" 제안: 54경기·외국 선수 제한·시즌 안 백분위 점수·포지션 슬롯·데일리, 공유는 카드 PNG 재사용). 발견: 경기당 득점+리바+어시+스틸+블록 상위 100시즌 중 97개가 외국 선수 → 단순 합산 공식은 KBL 에서 깨짐. SCOPE 추가 여부 사용자 결정 대기. 코드 변경 없음.
 - 2026-10-02 (나무위키 링크·SNS 확인): 선수 히어로 즐겨찾기 옆 **"나무위키" 버튼**(새 탭, `lib/career namuWikiSearchUrl` — 동명이인(배우 양동근 등)이 많아 문서가 아니라 "이름 농구" 검색으로). SNS 는 프로필 raw `instagramLk·facebookLk·twitterLk` 가 1,329명 중 1명(이관희)만 있어 만들지 않음. 수상 기록(MVP·베스트5 등)은 우리 raw 에 없음 → 조사 워크플로 `claude/probe-awards` 브랜치. main 배포.
 - 2026-10-02 (우승 횟수): 선수 히어로에 **금색 "우승 N회" 칩 + 우승 시즌 줄**("06-07 모비스 · …"). 우승팀은 이미 받아 둔 경기 목록(`data/raw/games/{시즌}/list.json`)의 챔프전(gameCode 04) 점수로 4승 팀(`scripts/champions.ts finalsChampion`) → 시즌 파일 `champion`, 선수 색인 `championships`(정규시즌 소속 팀 = 우승팀인 시즌, `championSeasonsOf`). 1997~2025-26 판정이 역대 우승팀과 전부 일치, 2019-20 은 없음. 한계: 시즌 중 이적은 KBL 시즌 기록의 팀 하나로만 보고, 챔프전 출전 여부는 안 본다. 결과: 양동근 6·라건아·추승균·함지훈 5, 우승 선수 329명. 검증: typecheck·test·build·slop 0, Playwright 390/1280. main 배포.
