@@ -154,6 +154,13 @@ export default function SeasonAwardsBoard({ view, seasonShort }: { view: SeasonA
           {team5?.items.map((it) => (
             <PhotoRow key={it.key} title={it.label} cells={it.winners.map((w) => ({ caption: null, w }))} />
           ))}
+          {/* 수비 5걸이 공식 표에 "-" 뿐인 시즌(23-24 ~)은 자리를 비우지 않고 안내 한 줄 */}
+          {team5?.items.some((it) => it.key === "best5") && !team5.items.some((it) => it.key === "defense5") && (
+            <div className="surface-card rounded-card p-3">
+              <p className="text-sub font-bold text-ink">수비 5걸</p>
+              <p className="mt-1 text-sub text-ink-3">KBL 공식 기록에 이 시즌 수상자가 없습니다</p>
+            </div>
+          )}
           {regular && (
             <PhotoRow
               title={regular.label}
