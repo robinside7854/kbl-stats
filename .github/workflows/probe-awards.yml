@@ -8,46 +8,34 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - name: 공홈 JS 에서 수상 관련 경로 찾기
-        timeout-minutes: 5
+      - name: 공홈 JS 받아서 수상 관련 문자열 찾기
+        timeout-minutes: 8
         continue-on-error: true
         run: |
           UA="Mozilla/5.0"
-          curl --max-time 20 -sL -A "$UA" https://kbl.or.kr/ -o home.html || true
-          echo "== 메뉴 링크 중 award/prize/record =="
-          grep -oE 'href="[^"]*"' home.html | grep -iE 'award|prize|hall|record|history' | sort -u | head -60 || true
-          mkdir js
-          for s in $(grep -oE 'src="[^"]*\.js[^"]*"' home.html | sed -E 's/src="([^"]*)"/\1/' | head -40); do
+          curl --max-time 20 -sL -A "$UA" https://kbl.or.kr/record/award -o page.html || true
+          echo "== /record/award HTML =="; head -c 3000 page.html; echo
+          mkdir -p js
+          for s in $(grep -oE 'src="[^"]*\.js[^"]*"' page.html | sed -E 's/src="([^"]*)"/\1/'); do
             u="$s"; case "$u" in //*) u="https:$u";; /*) u="https://kbl.or.kr$u";; esac
-            curl --max-time 20 -sL -A "$UA" "$u" -o "js/$(echo "$u" | md5sum | cut -c1-8).js" || true
+            echo "get $u"; curl --max-time 30 -sL -A "$UA" "$u" -o "js/$(echo "$u" | md5sum | cut -c1-8).js" || true
           done
-          ls -la js | head -50
-          echo "== JS 안 award/prize/mvp/수상 주변 =="
-          grep -ohE '.{0,120}(award|Award|prize|Prize|AWARD|mvp|MVP|수상).{0,120}' js/*.js | sort -u | head -80 || true
-          echo "== JS 안 API 경로 후보 =="
-          grep -ohE '"/[a-zA-Z0-9_/{}$-]*(award|prize|mvp|hall)[a-zA-Z0-9_/{}$-]*"' js/*.js | sort -u | head -40 || true
-      - name: 기록 하위 페이지 HTML
-        timeout-minutes: 5
-        continue-on-error: true
-        run: |
-          UA="Mozilla/5.0"
-          for p in /record/award /record/awards /record/prize /record/history /league/award /league/history /record/main /awards; do
-            printf '%s -> ' "$p"; curl --max-time 20 -sL -A "$UA" -o page.html -w '%{http_code} %{size_download}\n' "https://kbl.or.kr$p"
-            grep -ohE '.{0,80}(수상|MVP|베스트).{0,80}' page.html | head -5 || true
-            for s in $(grep -oE 'src="[^"]*\.js[^"]*"' page.html | sed -E 's/src="([^"]*)"/\1/' | grep -viE 'jquery|gtag|google' | head -15); do
-              u="$s"; case "$u" in //*) u="https:$u";; /*) u="https://kbl.or.kr$u";; esac
-              curl --max-time 20 -sL -A "$UA" "$u" | grep -ohE '.{0,150}(award|prize|mvp|Award|Prize).{0,150}' | sort -u | head -15 || true
-            done
-          done
-      - name: API 후보 직접 호출
-        timeout-minutes: 5
-        continue-on-error: true
-        run: |
-          H1='-H Referer:https://kbl.or.kr/ -H Origin:https://kbl.or.kr -H Accept:application/json'
-          H2='-H channel:WEB -H lang:ko -H teamcode:XX -H X-Requested-With:XMLHttpRequest -H Referer:https://kbl.or.kr/'
-          for u in /api/v1/awards /api/v1/award /api/v1/Common/award /api/v1/records/awards /api/v1/players/awards/210074 /api/v1/players/categories/award/47/210074 /api/v1/players/profile/0/210074; do
-            printf 'B %s -> ' "$u"; curl --max-time 20 -s $H1 -o r.json -w '%{http_code} %{size_download}\n' "https://kbl-api.sports2i.com$u"; head -c 400 r.json; echo
-          done
-          for u in /award /awards /award/list /record/award /league/award /history/award /player/210074 /player/210074/award /player/awards?pcode=210074; do
-            printf 'C %s -> ' "$u"; curl --max-time 20 -s $H2 -o r.json -w '%{http_code} %{size_download}\n' "https://api.kbl.or.kr$u"; head -c 400 r.json; echo
-          done
+          ls -la js
+          python3 - <<'PY'
+          import re, glob
+          for f in glob.glob("js/*.js"):
+              s = open(f, encoding="utf-8", errors="ignore").read()
+              print("=====", f, len(s))
+              seen = set()
+              for m in re.finditer(r"award|Award|AWARD|prize|Prize|수상|MVP", s):
+                  a = max(0, m.start() - 200); b = m.end() + 200
+                  k = s[a:b]
+                  key = k[150:260]
+                  if key in seen: continue
+                  seen.add(key)
+                  print("--", k.replace("\n", " "))
+                  if len(seen) > 60: break
+              paths = sorted(set(re.findall(r'["\'`](/[A-Za-z][A-Za-z0-9_\-/]{2,80})["\'`]', s)))
+              print("== 경로 문자열", len(paths))
+              print("\n".join(p for p in paths if re.search(r"award|prize|record|history|player|league|hall|honor", p, re.I))[:6000])
+          PY
