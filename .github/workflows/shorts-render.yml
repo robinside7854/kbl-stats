@@ -10,7 +10,7 @@
 #   없으면 GOOGLE_TTS_API_KEY → Google Cloud TTS, 그것도 없으면 edge-tts(키 없는 시제품용)
 #   말투 조절은 Variables 에 ELEVENLABS_MODEL·ELEVENLABS_STABILITY·ELEVENLABS_STYLE·ELEVENLABS_SPEED (없으면 기본값)
 #
-# 실행 횟수: 5
+# 실행 횟수: 6
 name: 숏폼 렌더
 
 on:
