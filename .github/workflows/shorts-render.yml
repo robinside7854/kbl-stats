@@ -1,0 +1,115 @@
+# 팬 숏폼(YouTube Shorts) 렌더 — 에피소드 JSON → AI 목소리 + 사진 → mp4 (scripts/build-short.ts · prepare-short.ts · shorts/)
+# 영상은 사이트가 아니라 유튜브에 올린다. 업로드와 "공개" 버튼은 사람이 한다(2026-10-02 사용자 결정).
+#
+# 실행 방법: 아래 "실행 횟수" 숫자를 1 올려 푸시 (main 또는 claude/ 작업 브랜치). 0 이면 아무것도 하지 않는다.
+# 결과:
+#   - Actions 실행 화면 아래 Artifacts 에 mp4 + upload.txt(제목·설명·태그)
+#   - shorts-renders 브랜치에 같은 파일 (휴대폰에서 GitHub 앱으로 받기 쉽게)
+# 목소리: 저장소 Secrets 에 GOOGLE_TTS_API_KEY 가 있으면 Google Cloud TTS(공식), 없으면 edge-tts(키 없는 시제품용)
+#
+# 실행 횟수: 1
+name: 숏폼 렌더
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, "claude/**"]
+    paths:
+      - ".github/workflows/shorts-render.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: shorts-render
+  cancel-in-progress: false
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 실행 횟수 확인 (0 이면 건너뜀)
+        id: gate
+        run: |
+          n=$(grep -m1 -oE '^# 실행 횟수: [0-9]+' .github/workflows/shorts-render.yml | grep -oE '[0-9]+$' || echo 0)
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "$n" -gt 0 ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::실행 횟수가 0 이라 렌더하지 않습니다."
+          fi
+
+      - uses: actions/setup-node@v4
+        if: steps.gate.outputs.run == 'true'
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            shorts/package-lock.json
+
+      - name: 설치 (사이트 lib + 렌더러 + edge-tts)
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          npm ci
+          (cd shorts && npm ci)
+          pip install --quiet edge-tts
+          sudo apt-get install -y -qq fonts-noto-color-emoji >/dev/null || true
+
+      - name: 에피소드 만들기 (지난 시즌 국내 득점 TOP 5)
+        if: steps.gate.outputs.run == 'true'
+        run: npx tsx scripts/build-short.ts
+
+      - name: 목소리·사진 준비
+        if: steps.gate.outputs.run == 'true'
+        env:
+          GOOGLE_TTS_API_KEY: ${{ secrets.GOOGLE_TTS_API_KEY }}
+        run: |
+          for f in shorts/episodes/*/episode.json; do npx tsx scripts/prepare-short.ts "$f"; done
+
+      - name: 렌더 (1080×1920 mp4)
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          mkdir -p shorts/out
+          cd shorts
+          for d in public/*/props.json; do
+            slug=$(basename "$(dirname "$d")")
+            npx remotion render src/index.ts TopScorers "out/$slug.mp4" --props="$d" --codec=h264 --crf=18 --log=warn
+            cp "public/$slug/upload.txt" "out/$slug.txt"
+            ffprobe -v error -show_entries format=duration,size -of default=nw=1 "out/$slug.mp4"
+          done
+
+      - uses: actions/upload-artifact@v4
+        if: steps.gate.outputs.run == 'true'
+        with:
+          name: shorts
+          path: shorts/out/
+
+      - name: shorts-renders 브랜치에 올리기
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          stamp=$(TZ=Asia/Seoul date +%Y%m%d-%H%M)
+          src=$(git rev-parse --short HEAD)
+          git config user.name "kbl-stats-bot"
+          git config user.email "kbl-stats-bot@users.noreply.github.com"
+          tmp=$(mktemp -d)
+          cp shorts/out/* "$tmp/"
+          if git ls-remote --exit-code --heads origin shorts-renders >/dev/null; then
+            git fetch -q origin shorts-renders
+            git checkout -q -B shorts-renders origin/shorts-renders
+          else
+            git checkout -q --orphan shorts-renders
+            git rm -rq --cached . >/dev/null
+            find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+            printf '숏폼 렌더 결과만 모으는 브랜치 (코드 없음, 배포 안 함)\n' > README.md
+            git add README.md
+          fi
+          mkdir -p "$stamp"
+          cp "$tmp"/* "$stamp/"
+          git add "$stamp"
+          git commit -qm "숏폼 렌더 $stamp (소스 $src)"
+          git push -q origin shorts-renders
+          echo "::notice::shorts-renders 브랜치 $stamp 폴더에 올렸습니다."
