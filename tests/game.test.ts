@@ -3,13 +3,13 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import {
   canPick, decodeLineupParam, emptyLineup, encodeLineupParam, GAME_FOREIGN_MAX, GAME_SEASON_GAMES, isLineupFull, openSlotsFor,
-  pickBlockReason, placePick, sortByScore, filterByPositionChip, sortCandidatesBy, lineupTotals, respinEra, respinTeam, seededRng, simulateSeason, sortCandidates, spin, spinCandidates, teamsOf, teamOfCandidate, GAME_SPIN_TEAMS, teamRating,
+  pickBlockReason, placePick, sortByScore, filterByPositionChip, sortCandidatesBy, nextSort, lineupTotals, respinEra, respinTeam, seededRng, simulateSeason, sortCandidates, spin, spinCandidates, teamsOf, teamOfCandidate, GAME_SPIN_TEAMS, teamRating,
   winProbability, type GameCandidate, type GamePool, type Lineup, type Spin,
 } from "../lib/game";
 import type { Position } from "../lib/types";
 
 const c = (id: string, position: Position, foreign = false, score = 50, axes = [50, 50, 50, 50, 50, 50], seasonCode = 47): GameCandidate => ({
-  id, nameKo: `선수${id}`, seasonCode, season: "25-26", position, foreign, photoUrl: null, score, axes, ppg: 10, rpg: 5, apg: 3, spg: 1, bpg: 0.5,
+  id, nameKo: `선수${id}`, seasonCode, season: "25-26", position, foreign, photoUrl: null, score, axes, ppg: 10, rpg: 5, apg: 3, spg: 1, bpg: 0.5, tpPct: 30,
   span: "25-26", seasonCount: 1,
 });
 
@@ -102,6 +102,18 @@ assert.deepEqual(filterByPositionChip(mix, "C").map((x) => x.id), ["fc", "cc"]);
 assert.equal(filterByPositionChip(mix, "all").length, 5);
 assert.deepEqual(sortCandidatesBy(mix, "rpg", "desc").map((x) => x.id), ["cc", "fc", "f", "gf", "g"]); // 8·8 은 득점 높은 cc 먼저
 assert.deepEqual(sortCandidatesBy(mix, "rpg", "asc").map((x) => x.id), ["g", "gf", "f", "cc", "fc"]);
+// 머리글 정렬: 포지션 G→GF→F→FC→C, 팀 이름, 3P% 없는 선수는 방향과 관계없이 맨 뒤
+assert.deepEqual(sortCandidatesBy(mix, "pos", "asc").map((x) => x.id), ["g", "gf", "f", "fc", "cc"]);
+assert.deepEqual(sortCandidatesBy(mix, "pos", "desc").map((x) => x.id), ["cc", "fc", "f", "gf", "g"]);
+const teamName: Record<string, string> = { g: "SK", gf: "KCC", f: "LG", fc: "DB", cc: "KT" };
+assert.deepEqual(sortCandidatesBy(mix, "team", "asc", (x) => teamName[x.id]).map((x) => teamName[x.id]), ["DB", "KCC", "KT", "LG", "SK"]);
+const tp = [{ ...c("a", "G"), tpPct: 40 }, { ...c("b", "G"), tpPct: null }, { ...c("d", "G"), tpPct: 25 }];
+assert.deepEqual(sortCandidatesBy(tp, "tpPct", "desc").map((x) => x.id), ["a", "d", "b"]);
+assert.deepEqual(sortCandidatesBy(tp, "tpPct", "asc").map((x) => x.id), ["d", "a", "b"]);
+// 같은 열 다시 → 방향 전환, 다른 열 → 글자 열은 오름·숫자 열은 내림
+assert.deepEqual(nextSort({ key: "ppg", dir: "desc" }, "ppg"), { key: "ppg", dir: "asc" });
+assert.deepEqual(nextSort({ key: "ppg", dir: "desc" }, "name"), { key: "name", dir: "asc" });
+assert.deepEqual(nextSort({ key: "name", dir: "asc" }, "tpPct"), { key: "tpPct", dir: "desc" });
 assert.deepEqual(lineupTotals([c("1", "G"), c("2", "G")]), { ppg: 20, rpg: 10, apg: 6, spg: 2, bpg: 1 });
 console.log("game: 슬롯 돌리기 통과");
 

@@ -46,6 +46,8 @@ export interface GameCandidate {
   apg: number;
   spg: number;
   bpg: number;
+  /** 3점 성공률 0~100 (그 시즌 3점 시도가 없으면 null) */
+  tpPct: number | null;
   /** 평균을 낸 시즌 구간 "97-00" (한 시즌이면 "98-99") */
   span: string;
   seasonCount: number;
@@ -259,19 +261,60 @@ export function filterByPositionChip(cs: readonly GameCandidate[], chip: Positio
   return chip === "all" ? [...cs] : cs.filter((c) => slotGroupsFor(c.position).includes(chip));
 }
 
-/** 후보 목록 정렬 칩: 기록 다섯 개 × 내림/오름차순. 같으면 득점 → 이름 */
-export type SortStat = "ppg" | "rpg" | "apg" | "spg" | "bpg";
+/**
+ * 후보 목록 머리글 정렬: 이름·팀·포지션·기록 다섯 개·3점% × 내림/오름차순.
+ * 처음 누르면 글자 열(이름·팀·포지션)은 오름차순, 숫자 열은 내림차순. 같으면 득점 → 이름.
+ * 3점% 가 없는 선수(시도 0)는 방향과 관계없이 맨 뒤.
+ */
+export type SortStat = "ppg" | "rpg" | "apg" | "spg" | "bpg" | "tpPct";
+export type SortKey = "name" | "team" | "pos" | SortStat;
 export type SortDir = "desc" | "asc";
-export const SORT_STATS: readonly { key: SortStat; label: string }[] = [
-  { key: "ppg", label: "득점" },
-  { key: "rpg", label: "리바" },
-  { key: "apg", label: "어시" },
-  { key: "spg", label: "스틸" },
-  { key: "bpg", label: "블록" },
+export const SORT_COLUMNS: readonly { key: SortKey; label: string; numeric: boolean }[] = [
+  { key: "name", label: "선수", numeric: false },
+  { key: "team", label: "소속팀", numeric: false },
+  { key: "pos", label: "포지션", numeric: false },
+  { key: "ppg", label: "득점", numeric: true },
+  { key: "rpg", label: "리바", numeric: true },
+  { key: "apg", label: "어시", numeric: true },
+  { key: "spg", label: "스틸", numeric: true },
+  { key: "bpg", label: "블록", numeric: true },
+  { key: "tpPct", label: "3P%", numeric: true },
 ];
-export function sortCandidatesBy(cs: readonly GameCandidate[], key: SortStat, dir: SortDir): GameCandidate[] {
+/** 그 열을 처음 누를 때의 방향 */
+export function defaultSortDir(key: SortKey): SortDir {
+  return SORT_COLUMNS.find((c) => c.key === key)?.numeric === false ? "asc" : "desc";
+}
+/** 같은 열을 다시 누르면 방향만 바뀌고, 다른 열이면 그 열의 처음 방향 */
+export function nextSort(cur: { key: SortKey; dir: SortDir }, key: SortKey): { key: SortKey; dir: SortDir } {
+  return key === cur.key ? { key, dir: cur.dir === "desc" ? "asc" : "desc" } : { key, dir: defaultSortDir(key) };
+}
+const POSITION_ORDER: Record<string, number> = { G: 0, GF: 1, F: 2, FC: 3, C: 4 };
+export function sortCandidatesBy(
+  cs: readonly GameCandidate[],
+  key: SortKey,
+  dir: SortDir,
+  teamNameOf: (c: GameCandidate) => string = () => "",
+): GameCandidate[] {
   const sign = dir === "desc" ? -1 : 1;
-  return [...cs].sort((a, b) => sign * (a[key] - b[key]) || b.ppg - a.ppg || a.nameKo.localeCompare(b.nameKo, "ko"));
+  const tie = (a: GameCandidate, b: GameCandidate) => b.ppg - a.ppg || a.nameKo.localeCompare(b.nameKo, "ko");
+  return [...cs].sort((a, b) => {
+    switch (key) {
+      case "name":
+        return sign * a.nameKo.localeCompare(b.nameKo, "ko") || b.ppg - a.ppg;
+      case "team":
+        return sign * teamNameOf(a).localeCompare(teamNameOf(b), "ko") || tie(a, b);
+      case "pos":
+        return sign * ((POSITION_ORDER[a.position] ?? 9) - (POSITION_ORDER[b.position] ?? 9)) || tie(a, b);
+      case "tpPct": {
+        const x = a.tpPct ?? null;
+        const y = b.tpPct ?? null;
+        if (x === null || y === null) return x === y ? tie(a, b) : x === null ? 1 : -1;
+        return sign * (x - y) || tie(a, b);
+      }
+      default:
+        return sign * (a[key] - b[key]) || tie(a, b);
+    }
+  });
 }
 
 /** 시뮬레이션·테스트용: 점수 높은 순 (화면에는 쓰지 않는다) */

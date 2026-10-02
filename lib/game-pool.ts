@@ -2,7 +2,7 @@
 // 시즌 카드 데이터(public/cards 와 같은 값) → 시즌 × 팀 × 후보 선수 (2026-10-02 부터 구간 = 시즌 하나).
 //   - 후보: 표본 기준(카드 기본값 10경기·100분)을 넘기고 포지션이 있는 선수
 //   - 점수·축은 카드와 같은 계산 (lib/metrics buildCardEntry — 같은 국적 풀 안 백분위). 화면에는 안 보인다
-//   - 화면에 보이는 기록(경기당 득점·리바·어시·스틸·블록)은 그 시즌 기록
+//   - 화면에 보이는 기록(경기당 득점·리바·어시·스틸·블록·3점%)은 그 시즌 기록
 //   - 아래 합산 코드는 구간이 여러 시즌이던 때(시대 구간 7개)의 것 — 한 시즌이면 평균 = 그 시즌 값, span = 그 시즌 표기
 import { seasonContext } from "./cardview";
 import { seasonShortLabel, seasonRangeLabel } from "./career";
@@ -19,7 +19,7 @@ export function buildGamePool(all: readonly SeasonCards[]): GamePool {
   const eras: GameEra[] = seasons.map((c) => [c]).map((chunk, index) => {
     const teams = new Map<string, GameTeam>();
     const best = new Map<string, GameCandidate>(); // 팀|선수 → 후보 (점수 최고 시즌)
-    const totals = new Map<string, { games: number; pts: number; reb: number; ast: number; stl: number; blk: number; labels: string[] }>();
+    const totals = new Map<string, { games: number; pts: number; reb: number; ast: number; stl: number; blk: number; tpm: number; tpa: number; labels: string[] }>();
     for (const cards of chunk) {
       const ctx = seasonContext(cards, "all");
       for (const t of cards.teams) {
@@ -47,17 +47,20 @@ export function buildGamePool(all: readonly SeasonCards[]): GamePool {
           apg: r1(perGame(p.ast, p.games)),
           spg: r1(perGame(p.stl, p.games)),
           bpg: r1(perGame(p.blk, p.games)),
+          tpPct: p.tpa > 0 ? r1((p.tpm / p.tpa) * 100) : null,
           span: seasonShortLabel(cards.seasonLabel),
           seasonCount: 1,
         };
         const key = `${p.teamCode}|${p.id}`;
-        const t = totals.get(key) ?? { games: 0, pts: 0, reb: 0, ast: 0, stl: 0, blk: 0, labels: [] };
+        const t = totals.get(key) ?? { games: 0, pts: 0, reb: 0, ast: 0, stl: 0, blk: 0, tpm: 0, tpa: 0, labels: [] };
         t.games += p.games;
         t.pts += p.points;
         t.reb += p.reb;
         t.ast += p.ast;
         t.stl += p.stl;
         t.blk += p.blk;
+        t.tpm += p.tpm;
+        t.tpa += p.tpa;
         t.labels.push(cards.seasonLabel);
         totals.set(key, t);
         const b = best.get(key);
@@ -73,6 +76,7 @@ export function buildGamePool(all: readonly SeasonCards[]): GamePool {
         apg: r1(perGame(t.ast, t.games)),
         spg: r1(perGame(t.stl, t.games)),
         bpg: r1(perGame(t.blk, t.games)),
+        tpPct: t.tpa > 0 ? r1((t.tpm / t.tpa) * 100) : null,
         span: seasonRangeLabel(t.labels[0], t.labels[t.labels.length - 1]),
         seasonCount: t.labels.length,
       });
