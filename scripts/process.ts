@@ -12,6 +12,7 @@
 //
 // raw 파일은 절대 수정하지 않는다. 이 스크립트는 몇 번 다시 돌려도 같은 결과가 나와야 한다.
 
+import { awardRows, matchAwardPlayer } from "./awards";
 import { championSeasonsOf, finalsChampion, type SeasonChampion } from "./champions";
 import { readdir, readFile, mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -38,6 +39,7 @@ let profiles = new Map<string, PlayerProfile>();
  * 통산 한 경기 최다 (playerNo → 그 선수의 가장 최근 시즌 raw 의 AllTimes). processSeason 이 시즌 오름차순으로 채우므로
  * 나중 시즌이 덮어쓴다 = 최신 시즌 raw 우선.
  */
+let awardsRaw: unknown = null;
 const careerHighsByPlayer = new Map<string, CareerHighs>();
 /** 한 경기 최다 raw 가 있었던 시즌 수 (경고 한 줄용) */
 let highsSeasonCount = 0;
@@ -477,6 +479,33 @@ function buildPlayersIndex(seasons: SeasonData[]): PlayerIndexEntry[] {
   // 우승 시즌: 정규시즌 소속 팀 = 그 시즌 우승팀 (scripts/champions.ts championSeasonsOf)
   const champions = new Map(seasons.filter((s) => s.champion).map((s) => [s.seasonCode, s.champion!.teamCode]));
   for (const e of byId.values()) e.championships = championSeasonsOf(e.seasons, champions);
+  // 역대 수상: 수상 행(시즌·이름·팀) → 선수 번호 (scripts/awards.ts matchAwardPlayer)
+  const codeByLabel = new Map(seasons.map((s) => [s.seasonLabel, s.seasonCode]));
+  const allByName = new Map<string, string[]>();
+  for (const e of byId.values()) {
+    const k = e.nameKo.replace(/[\s·.\-]/g, "");
+    allByName.set(k, [...(allByName.get(k) ?? []), e.id]);
+  }
+  const rosterBySeason = new Map(
+    seasons.map((season) => {
+      const ko = new Map(season.teams.map((t) => [t.teamCode, t.shortNameKo]));
+      return [season.seasonCode, season.players.map((p) => ({ playerNo: p.playerNo, nameKo: p.nameKo, teamShort: ko.get(p.teamCode) ?? "", teamName: p.teamName }))];
+    }),
+  );
+  const unmatched: string[] = [];
+  for (const row of awardsRaw ? awardRows(awardsRaw) : []) {
+    const code = codeByLabel.get(row.seasonLabel);
+    const id = code === undefined ? null : matchAwardPlayer(row, rosterBySeason.get(code) ?? [], allByName);
+    const e = id ? byId.get(id) : undefined;
+    if (!e || code === undefined) {
+      unmatched.push(`${row.seasonLabel} ${row.key} ${row.name}(${row.team})`);
+      continue;
+    }
+    (e.awards ??= []).push({ key: row.key, seasonCode: code });
+  }
+  for (const e of byId.values()) e.awards = (e.awards ?? []).sort((a, b) => a.seasonCode - b.seasonCode);
+  if (awardsRaw) console.log(`역대 수상: 선수 연결 실패 ${unmatched.length}건${unmatched.length ? ` — ${unmatched.join(", ")}` : ""}`);
+  else console.warn("역대 수상 raw 없음(data/raw/awards/awards.json) → awards 는 빈 배열");
   return [...byId.values()]
     .map(({ latest: _latest, ...e }) => e)
     .sort((a, b) => a.nameKo.localeCompare(b.nameKo, "ko") || a.id.localeCompare(b.id));
@@ -525,6 +554,11 @@ async function readProfileExtras(): Promise<Map<string, ProfileExtra>> {
 }
 
 async function main() {
+  try {
+    awardsRaw = JSON.parse(await readFile(join(DATA_DIR, "raw", "awards", "awards.json"), "utf8"));
+  } catch {
+    awardsRaw = null;
+  }
   teamColors = await readTeamColors();
   hiddenPhotos = await readPhotoOverrides();
   profiles = await readProfiles();

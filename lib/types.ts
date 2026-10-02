@@ -232,6 +232,18 @@ export interface PlayerIndexEntry extends PlayerProfile {
   school?: string | null;     // 출신 학교(univSch), 예: "Stony brook"
   /** 우승 시즌 코드(오름차순) — 정규시즌 소속 팀이 그 시즌 우승팀인 시즌. 옛 색인엔 필드가 없다 */
   championships?: number[];
+  /** 역대 수상 (공홈 역대수상현황, scripts/awards.ts) — 시즌 오름차순. 옛 색인엔 필드가 없다 */
+  awards?: PlayerAward[];
+}
+
+/** 수상 부문: 정규리그 MVP(2025-26 부터 국내선수 MVP)·외국선수상(외국선수 MVP)·챔프전 MVP·올스타 MVP·베스트5·수비 5걸·신인상·최우수 수비상·식스맨상·기량 발전상 */
+export type AwardKey =
+  | "mvp" | "foreignMvp" | "finalsMvp" | "allStarMvp" | "best5" | "defense5"
+  | "rookie" | "defensive" | "sixthMan" | "mip";
+
+export interface PlayerAward {
+  key: AwardKey;
+  seasonCode: number;
 }
 
 // ─────────────────────────────────────────────

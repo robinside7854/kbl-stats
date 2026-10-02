@@ -20,9 +20,10 @@ import { join } from "node:path";
 import {
   STATS_API, CODES_API, GAME_CODE, SEASON_CODES_FALLBACK,
   DEFAULT_SEASONS, REQUEST_INTERVAL_MS, PAGE_SIZE, DATA_DIR,
-  PLAYER_MASTER_PATH, PLAYER_MASTER_REG_SC, PLAYER_MASTER_MAX_PAGES,
+  PLAYER_MASTER_PATH, PLAYER_MASTER_REG_SC, PLAYER_MASTER_MAX_PAGES, AWARDS_PAGE_URL, SITE_ORIGIN,
 } from "./config.js";
-import { getJson, saveRaw, sleep } from "./http.js";
+import { getJson, getText, saveRaw, sleep } from "./http.js";
+import { bundleScriptSrc, extractAwardsData } from "./awards.js";
 import { collectGameLogs, collectHighs, collectProfiles } from "./collect-extras.js";
 import { collectSeasonShots } from "./collect-shots.js";
 import { highsTargetSeasons, playerNosFromTraditional, todayKst, updateFirstSeen } from "./highs.js";
@@ -230,6 +231,21 @@ async function fetchSeason(seasonCode: number) {
   console.log(`[${label}] ${results.join(", ")}`);
 }
 
+/**
+ * 역대 수상 (공홈 역대수상현황 화면의 JS 번들 안 표) → data/raw/awards/awards.json (표 데이터 그대로, scripts/awards.ts).
+ * 요청 2회(화면 HTML + 번들 약 6MB). 표를 못 찾거나 형식이 다르면 저장하지 않는다(전날 파일 유지).
+ */
+async function fetchAwards(): Promise<void> {
+  const html = await getText(AWARDS_PAGE_URL);
+  const src = bundleScriptSrc(html);
+  if (!src) throw new Error("화면 HTML 에서 번들 주소를 못 찾음");
+  await sleep(REQUEST_INTERVAL_MS);
+  const data = extractAwardsData(await getText(`${SITE_ORIGIN}${src}`));
+  if (!data) throw new Error(`번들(${src})에서 수상 표를 못 찾음 — 화면 구조가 바뀌었을 수 있음`);
+  const file = await saveRaw("awards", "awards", data, true);
+  console.log(`[역대 수상] 섹션 ${data.length}개 → ${file}`);
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const all = args.includes("--all");
@@ -250,6 +266,16 @@ async function main() {
     console.error(`[선수 마스터] 실패: ${(e as Error).message}`);
     await sleep(REQUEST_INTERVAL_MS);
   }
+
+  // 역대 수상 (MVP·베스트5 등) — 실패해도 계속
+  try {
+    await sleep(REQUEST_INTERVAL_MS);
+    await fetchAwards();
+  } catch (e) {
+    failed.push(`awards(역대 수상): ${(e as Error).message}`);
+    console.error(`[역대 수상] 실패: ${(e as Error).message}`);
+  }
+  await sleep(REQUEST_INTERVAL_MS);
 
   console.log(`수집 대상 시즌 코드: ${targets.join(", ")}`);
 

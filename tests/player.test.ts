@@ -1,6 +1,6 @@
 // 선수 페이지·검색 검증 (lib/metrics careerSummary·buildCardEntry, lib/career, lib/search). 실행: npm run test:player
 import assert from "node:assert/strict";
-import { championshipSummary, namuWikiSearchUrl, profileFacts } from "../lib/career";
+import { awardChipText, awardLines, namuWikiSearchUrl, profileFacts } from "../lib/career";
 import {
   buildCardContext,
   buildCardEntry,
@@ -225,17 +225,27 @@ console.log("player: 프로필 표기 통과");
   assert.deepEqual(toggleFavorite(["2", "1"], "2"), ["1"]);
 }
 
-// ── 우승 횟수 (lib/career championshipSummary) ──
+// ── 수상 경력 (lib/career awardLines) ──
 {
   const ss = [
-    { seasonCode: 25, seasonLabel: "2014-2015", teamShort: "모비스", team: { shortName: "현대모비스" } },
-    { seasonCode: 11, seasonLabel: "2006-2007", teamShort: "모비스", team: null },
+    { seasonCode: 25, seasonLabel: "2014-2015" },
+    { seasonCode: 11, seasonLabel: "2006-2007" },
   ];
-  assert.deepEqual(championshipSummary([25, 11], ss), { count: 2, items: ["06-07 모비스", "14-15 현대모비스"] });
-  assert.equal(championshipSummary([], ss), null);
-  assert.equal(championshipSummary(undefined, ss), null);
-  assert.equal(championshipSummary([99], ss), null);                    // 뛴 시즌에 없는 코드는 뺀다
-  console.log("player: 우승 횟수 통과");
+  const lines = awardLines(
+    [{ key: "best5", seasonCode: 25 }, { key: "mvp", seasonCode: 25 }, { key: "mvp", seasonCode: 11 }, { key: "mvp", seasonCode: 11 }],
+    [11],
+    ss,
+  );
+  assert.deepEqual(lines.map((l) => [l.key, l.count, l.seasons, l.hero]), [
+    ["champion", 1, "06-07", true],
+    ["mvp", 2, "06-07 · 14-15", true],        // 같은 시즌 중복은 한 번, 오래된 시즌부터
+    ["best5", 1, "14-15", false],
+  ]);
+  assert.equal(awardChipText(lines[1]), "MVP 2회");
+  assert.equal(awardChipText(lines[0]), "우승 1회");
+  assert.deepEqual(awardLines(undefined, undefined, ss), []);
+  assert.equal(awardLines([{ key: "rookie", seasonCode: 3 }], [], ss, new Map([[3, "1998-1999"]]))[0].seasons, "98-99");
+  console.log("player: 수상 경력 통과");
 }
 assert.equal(namuWikiSearchUrl(" 양동근 "), "https://namu.wiki/Search?q=%EC%96%91%EB%8F%99%EA%B7%BC%20%EB%86%8D%EA%B5%AC");
 console.log("player: 나무위키 링크 통과");
