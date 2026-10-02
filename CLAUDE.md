@@ -195,7 +195,7 @@ kbl-stats/
 │   ├── records.ts       ← 역대 통산 순위 (순수: RECORD_STATS, sumCareerTotals(시즌 합계 → 선수별), rankCareerTotals(합계/경기당 — 경기당은 통산 200경기 이상, 국적 전체/국내/외국인), formatRecord, 현역 isActiveCareer(마지막 시즌 = 기록 있는 최신 시즌) — lib/data loadCareerTotals)
 │   ├── teams.ts         ← 팀 한글 약칭 teamShortNameKo (연고지 지명 목록 HOME_CITIES — 하드코딩 예외, 이유 주석), 팀 색 배정 assignTeamColors(회색 기본값 팀 → 범주형 팔레트, 팀 순서, 순환 금지)·ensureMarkContrast·comparePairColors(OKLab 거리 < 15면 팔레트 1·2번), 핵심 의존도 teamDependency(상위 3명 득점 비중·표본 충족 수)
 │   ├── game.ts          ← 54-0 게임 규칙 (순수: 시대 구간 splitEras(7개, 남는 시즌은 최근 구간), 칸 GAME_SLOTS 가드2·포워드2·센터1(GF·FC 는 두 칸), 외국 선수 GAME_FOREIGN_MAX 2, 슬롯 spin(구간 반복 가능·고를 선수 있는 팀만)·respinTeam·respinEra, 전력 teamRating(종합 점수 평균 75% + 6축 최고값 평균 25%)·winProbability(WIN_CURVE 표 보간, 전승은 잘 해도 약 1%)·simulateSeason(라인업 시드 → 같은 라인업 같은 성적), 공유 ?l=번호:시즌,…)
-│   ├── game-pool.ts     ← 54-0 후보 풀 만들기 buildGamePool(시즌 카드 → 구간 × 팀 × 후보, 표본 충족·포지션 있는 선수, 같은 구간·팀은 종합 점수 최고 시즌 하나) — 빌드 스크립트 전용
+│   ├── game-pool.ts     ← 54-0 후보 풀 만들기 buildGamePool(시즌 카드 → 구간 × 팀 × 후보, 표본 충족·포지션 있는 선수, 점수·축은 그 구간·팀 최고 시즌, 화면 기록 5개는 그 구간·팀 평균) — 빌드 스크립트 전용
 │   ├── favorites.ts     ← 즐겨찾기 (순수: parseFavorites·toggleFavorite, FAVORITES_VISIBLE 5 — 저장은 app/components/useFavorites localStorage)
 │   ├── prime.ts         ← 프라임 시즌 (pickPrimeSeasons·primeCandidatesOf)
 │   ├── career-cards.ts  ← 비교 탭 통산 카드 (buildCareerCards, CAREER_CODE 0, CAREER_QUALIFY 100경기·1,000분)
@@ -215,7 +215,7 @@ kbl-stats/
 │   ├── player/[playerNo]/page.tsx  ← 선수 상세 정적 1,329개 (히어로(프로필·국적·나이·국가·출신교) → 시즌 칩·순위 범위·시즌 비교 카드 → 추이 그래프 → 시즌별 기록표 → 커리어 하이)
 │   ├── records/page.tsx ← 역대 기록 (통산 순위: 부문 칩·합계/경기당·국적, RecordsView, 메뉴 "역대 기록")
 │   ├── compare/page.tsx ← 비교 탭 정적 1쪽 (?a=번호:코드&b=번호:코드, 기본은 최신·직전 시즌 PER 1위)
-│   ├── game/page.tsx    ← 54-0 게임 (GameView: 다섯 칸 → 슬롯(구간·팀) → 후보 고르기 → 54경기 결과·이미지 저장·링크 복사, /game/pool.json fetch, ?l= 공유 결과, 메뉴 "54-0")
+│   ├── game/page.tsx    ← 54-0 게임 (GameView: 다섯 칸 → 슬롯머신 두 대(시즌·팀) → 후보 고르기(득점순, 등급 숨김) → 코트 위 5명·54경기 결과·기록 표·이미지 저장·링크 복사, /game/pool.json fetch, ?l= 공유 결과, 메뉴 "54-0")
 │   ├── glossary/page.tsx ← 용어 탭 (lib/glossary 표, 앵커 /glossary#ts)
 │   ├── season/[seasonCode]/leaders/page.tsx  ← 시즌 순위표 정적 페이지 (1~3위 표지 카드 + 이 시즌 한 경기 최다 카드 줄 + 정렬 표, 포지션·국적 칩, 파울 열)
 │   ├── (플레이스타일·팀 분포 탭은 없앰 → next.config redirects: /season/코드/(teams|playstyle) → 리더보드)
@@ -268,6 +268,7 @@ kbl-stats/
 
 ## 세션 로그
 - 2026-10-02 (수상 가산점·플레이스타일 폐지): ① 사용자 "수비 5걸은 스탯에 안 보이는 수비력을 인정받은 것 — 등급에 가산점" → **그 시즌 수상을 그 시즌 등급에 가산**(`lib/metrics AWARD_GRADE_BONUS·awardBonusOf`): 축 가산 최우수 수비상 수비 +15·수비 5걸 수비 +10(축 백분위에 더함, 99.9 상한) / 종합 가산 정규리그·외국선수 MVP +10·베스트5 +5·챔프전 MVP +3(종합 점수에 더한 뒤 집단 안 재순위 — 집단 재료 buildGradingContext 에도 같은 가산). 신인·식스맨·기량 발전상은 가산 없음. 재료: 시즌 파일 seasonAwards → `toCardPlayers` 카드 `awards`(쉼표 문자열, 카드 파일 열 추가). 카드에 "수상 가산: …" 한 줄(`awardBonusNote`). S 는 여전히 상위 5% 라 상 받은 선수가 오르면 다른 선수가 밀림(예: 2025-26 워니 A→S·알바노 B→A, 해먼즈 S→A). ② **플레이스타일 탭 폐지**(페이지·PlaystyleView·lib/playstyle·IconStyle·테스트 삭제, 메뉴 6개, `/season/코드/(teams|playstyle)` → 리더보드 redirect). 검증: typecheck·test·build·slop 0, Playwright 카드 가산 줄·redirect 확인. main 배포.
+- 2026-10-02 (54-0 화면 개편): 사용자 지시 ① 후보는 **그 시대 평균 기록(그 팀·그 구간 표본 충족 시즌 합계 ÷ 경기) 득점순**, 등급·점수 안 보임(점수·축은 여전히 구간 최고 시즌 — `lib/game-pool`, `sortCandidates` 득점순·`sortByScore` 시뮬레이션용) ② 기록 다섯 칸 득점·리바·어시·**스틸·블록**(`spg·bpg`, 후보 `span`·`seasonCount`) ③ 결과 = **하프코트 SVG 위 5명**(사진·이름·팀·구간, MVP) + 54경기 칸 + 경기당 기록 표·합계(`lineupTotals`) + 팀 능력치 ④ **슬롯머신 두 대**(왼쪽 시즌 구간·오른쪽 팀, 버튼 하나로 같이 돌고 왼쪽 0.8초·오른쪽 1.3초에 멈춤, 팀 다시는 오른쪽만, globals.css `reel-tick`). 난이도 곡선은 그대로 — 등급이 안 보여 득점 1위만 고르면 전승 약 0.04%·중앙 44승, 점수를 아는 최선은 0.6%. 검증: typecheck·test·build·slop 0, Playwright 390/1280 라이트/다크 완주·가로 넘침 0·콘솔 에러 0·이미지 저장. main 배포.
 - 2026-10-02 (수비 5걸 안내): 사용자 "모바일에서 수비 5걸이 안 보임" → 원인은 화면이 아니라 데이터: 공홈 수상 표의 수비 5걸이 **23-24·24-25·25-26 시즌은 "-" 다섯 칸**(수상자 없음)이라 PC 에서도 빠져 있었음. 베스트5 가 있는데 수비 5걸이 없는 시즌은 "KBL 공식 기록에 이 시즌 수상자가 없습니다" 카드(`SeasonAwardsBoard`). 공홈이 나중에 채우면 다음 날 자동으로 사진 줄. main 배포.
 - 2026-10-02 (어워즈 정리): 사용자 지시 — 어워즈에서 **기록 부문(득점상 등)·올스타전 삭제**(`lib/awards SEASON_AWARD_DEFS`에서 뺌, 시즌 파일 `seasonAwards`에는 남음), 베스트5 **바로 아래 수비 5걸**(한 열로 쌓음), **정규리그 시상도 사진 줄**(`SeasonAwardsBoard PhotoRow`: 칸마다 상 이름 + 사진 + 이름·팀). 검증: typecheck·test·build·slop 0, Playwright 25-26 390·04-05 1280 가로 넘침 0. main 배포.
 - 2026-10-02 (54-0 조정): 사용자 지시 ① **시대 구간 중복 허용**(`spin(pool, lineup, rng)`, 시대 다시 돌리기는 지금과 다른 구간, 화면의 구간 칩 줄 삭제) ② **전승 확률 약 1%**(`WIN_CURVE` 위쪽 96→10%·98→7.5%·99→6% 패배, 100 이어야 확정). 2만 판 시뮬레이션: 아무나 중앙 18승 · 매번 최고 점수 49승·전승 0.6% · 다시 돌리기까지 잘 쓰면 50승·전승 1.0%. 검증: typecheck·test·build·slop 0, Playwright 390/1280. main 배포.
