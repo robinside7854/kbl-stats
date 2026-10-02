@@ -498,12 +498,14 @@ export function insightSummary(insight: Insight, callout: Callout): string {
       return `자유투 시도 국내 ${insight.rank}위${me ? `(경기당 ${me.value}개${ratio})` : ""}, 자유투로만 경기당 ${insight.ftPerGame}점`;
     }
     case "ladder":
-      return `3점으로만 경기당 ${insight.value}점, 국내 선수 ${insight.total}명 중 ${insight.beaten}명은 전체 득점이 이보다 적음`;
+      return `${insight.volume ? "TOP 5 중 경기당 3점 성공 1위(볼륨 슈터), " : ""}3점으로만 경기당 ${insight.value}점, 국내 선수 ${insight.total}명 중 ${insight.beaten}명은 전체 득점이 이보다 적음`;
     case "lineup":
       return `TOP 5 중 유일한 ${insight.only}, 득점 ${Math.round(insight.share)}%가 페인트`;
     case "split":
       return `${insight.a.label} ${Math.round(insight.a.share)}% · ${insight.b.label} ${Math.round(insight.b.share)}%, 안팎 반반`;
     case "shotmap": {
+      if (insight.tpPctTop != null && insight.midTop)
+        return `3점 성공률 ${insight.tpPctTop.toFixed(1)}%·슛 중 미드레인지 비중 ${insight.midTop.share}%, 둘 다 TOP 5 중 1위`;
       const label = SCORING_SOURCES.find((x) => x.key === insight.focus)!.label;
       const low = insight.lowFtShare !== null ? `, 자유투 비중은 5명 중 최저(${Math.round(insight.lowFtShare)}%)` : "";
       return `득점 ${Math.round(insight.share)}%가 ${label}${low}`;
@@ -529,12 +531,14 @@ export function insightCasual(insight: Insight, callout: Callout): string {
       return `파울 뜯어내기 장인. 자유투 시도 국내 ${insight.rank}위${ratio}`;
     }
     case "ladder":
-      return `3점만 쏴도 경기당 ${insight.value}점. 국내 선수 10명 중 ${outOfTen(insight.beaten, insight.total)}명은 다 합쳐도 이것보다 적게 넣음`;
+      return `${insight.volume ? "양으로 승부하는 볼륨 슈터. " : ""}3점만 쏴도 경기당 ${insight.value}점, 국내 선수 10명 중 ${outOfTen(insight.beaten, insight.total)}명은 다 합쳐도 이것보다 적게 넣음`;
     case "lineup":
-      return `5명 중 혼자 ${insight.only}. 그래서 득점 ${iGa(shareNoun(insight.share))} 페인트`;
+      return `5명 중 유일한 ${insight.only}, 인사이드 득점이 확 눈에 띔. 득점 ${iGa(shareNoun(insight.share))} 페인트`;
     case "split":
-      return `안 ${Math.round(insight.a.key === "paint" ? insight.a.share : insight.b.share)}% 밖 ${Math.round(insight.a.key === "paint" ? insight.b.share : insight.a.share)}%, 어디 막아도 답 있음`;
+      return `안 ${Math.round(insight.a.key === "paint" ? insight.a.share : insight.b.share)}% 밖 ${Math.round(insight.a.key === "paint" ? insight.b.share : insight.a.share)}%, 수비 입장에선 지옥의 이지선다`;
     case "shotmap": {
+      if (insight.tpPctTop != null && insight.midTop)
+        return `점퍼 장인. 3점 성공률 ${insight.tpPctTop.toFixed(1)}%, 슛 중 미드레인지 ${insight.midTop.share}% 둘 다 5명 중 1위`;
       const label = SCORING_SOURCES.find((x) => x.key === insight.focus)!.label;
       const low = insight.lowFtShare !== null ? ". 자유투는 5명 중 제일 적음, 그냥 밖에서 끝냄" : "";
       return `득점 ${iGa(shareNoun(insight.share))} ${label}${low}`;

@@ -165,8 +165,8 @@ import { insightCasual, outOfTen } from "../lib/shorts";
   const lines = top5.map((_, i) => insightCasual(buildInsight(i, ctx, { id: ["a", "b", "c", "d", "e"][i], ftm: 221, games: 49 }), c[i]));
   assert.match(lines[0], /파울 뜯어내기 장인.*국내 1위, 2위보다 1\.5배/);
   assert.match(lines[1], /10명 중 7명/); // 10명 중 8.4 미만 7명
-  assert.equal(lines[2], "5명 중 혼자 포워드. 그래서 득점 거의 절반이 페인트");
-  assert.equal(lines[3], "안 39% 밖 36%, 어디 막아도 답 있음");
+  assert.equal(lines[2], "5명 중 유일한 포워드, 인사이드 득점이 확 눈에 띔. 득점 거의 절반이 페인트");
+  assert.equal(lines[3], "안 39% 밖 36%, 수비 입장에선 지옥의 이지선다");
   assert.match(lines[4], /^득점 절반 이상이 3점\. 자유투는 5명 중 제일 적음/);
 }
 console.log("shorts: 캐주얼 설명 통과");
