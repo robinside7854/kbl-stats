@@ -38,6 +38,8 @@ export interface EpisodeScene {
   chunks: string[];
   audio: string | null;
   seconds: number;
+  /** 자막 조각별 시작 시각(장면 기준 초) — 한 번에 읽힌 내레이션(ElevenLabs)일 때만 */
+  chunkStarts?: number[] | null;
 }
 
 export interface EpisodeProps {
@@ -46,5 +48,7 @@ export interface EpisodeProps {
   court: { viewBox: string; lines: string[]; rim: { cx: number; cy: number; r: number } };
   players: EpisodePlayer[];
   scenes: EpisodeScene[];
+  /** 전체 내레이션 한 파일 (있으면 장면별 audio 대신) */
+  narration?: string | null;
   [key: string]: unknown;
 }

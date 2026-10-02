@@ -16,6 +16,7 @@ import { seasonShortLabel } from "../lib/career";
 import {
   captionChunks,
   pickCallouts,
+  compareLine,
   sampleShots,
   scoringBreakdown,
   SCORING_SOURCES,
@@ -131,6 +132,9 @@ const countdown = [...players].sort((a, b) => b.rank - a.rank);
 const leader = players[0];
 const threeTop = [...players].sort((a, b) => share(b, "three") - share(a, "three"))[0];
 const paintTop = [...players].sort((a, b) => share(b, "paint") - share(a, "paint"))[0];
+const perGame = (p: (typeof players)[number], k: string) => p.sources.find((s) => s.key === k)!.perGame;
+const threePgTop = [...players].sort((a, b) => perGame(b, "three") - perGame(a, "three"))[0];
+const ftTop = [...players].sort((a, b) => perGame(b, "ft") - perGame(a, "ft"))[0];
 function share(p: (typeof players)[number], k: string) {
   return p.sources.find((s) => s.key === k)!.share;
 }
@@ -139,18 +143,18 @@ const scenes = [
   {
     id: "cover",
     kind: "cover" as const,
-    caption: `${seasonLabel} 국내 득점 TOP 5. 점수 내는 방법이 전부 달랐어요.`,
+    caption: `${seasonLabel} 국내 득점 TOP 5를 보면요, 다섯 명이 점수 내는 방식이 다 달라요.`,
   },
   ...countdown.map((p) => ({ id: `rank-${p.rank}`, kind: "player" as const, playerNo: p.playerNo, caption: p.line.caption })),
   {
     id: "compare",
     kind: "compare" as const,
-    caption: `3점은 ${threeTop.name}, 페인트는 ${paintTop.name}, 자유투는 ${leader.name}.`,
+    caption: compareLine({ threeShare: threeTop.name, threePerGame: threePgTop.name, paint: paintTop.name, ft: ftTop.name }),
   },
   {
     id: "outro",
     kind: "outro" as const,
-    caption: "여러분 팀 에이스는 어떤 유형? 댓글로 알려주세요.",
+    caption: "여러분 팀 에이스는 어느 쪽에 가까워요? 댓글로 알려 주세요.",
   },
 ].map((s) => ({ ...s, speech: toSpeech(s.caption), chunks: captionChunks(s.caption) }));
 

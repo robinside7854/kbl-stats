@@ -42,3 +42,32 @@ for (const ch of captionChunks("대망의 1위 이정현, 18.6점. 비밀은 자
 }
 assert.equal(sampleShots([[1, 1, 1], [2, 2, 0], [3, 3, 1], [4, 4, 0]], 2).length, 2);
 console.log("shorts: 조사·자막·점 솎기 통과");
+
+// 한 번에 읽힌 내레이션 → 장면 길이·자막 시각 (글자당 0.1초로 만든 가짜 alignment)
+import { SCENE_JOINER, SCENE_LEAD, END_TAIL, sceneTimingsFromAlignment, sharePredicate, pointsWords, pctFloorWords, topScorerLine, compareLine } from "../lib/shorts";
+{
+  const texts = ["가나다, 라마.", "바사아."];
+  const full = texts.join(SCENE_JOINER);
+  const chars = [...full];
+  const a = { characters: chars, character_start_times_seconds: chars.map((_, i) => i * 0.1), character_end_times_seconds: chars.map((_, i) => i * 0.1 + 0.1) };
+  const t = sceneTimingsFromAlignment(texts, [["가나다,", "라마."], ["바사아."]], a, 1.5);
+  // 둘째 장면 첫 글자 "바" = 위치 10 → 1.0초, 화면은 SCENE_LEAD 먼저
+  assert.equal(t[0].seconds, Math.round((1.0 - SCENE_LEAD) * 100) / 100);
+  assert.deepEqual(t[0].chunkStarts, [0, 0.5]); // "라" = 위치 5
+  assert.equal(t[1].seconds, Math.round((1.5 + END_TAIL - (1.0 - SCENE_LEAD)) * 100) / 100);
+}
+assert.equal(sharePredicate(51.8), "전체 득점의 절반이 넘어요");
+assert.equal(sharePredicate(45.5), "전체의 거의 절반이에요");
+assert.equal(sharePredicate(24.3), "24%예요");
+assert.equal(pointsWords(8.4), "8점 넘게");
+assert.equal(pointsWords(4.5), "4.5점");
+assert.equal(pctFloorWords(40.6), "40%");
+assert.equal(pctFloorWords(31.1), null);
+assert.equal(compareLine({ threeShare: "서명진", threePerGame: "허웅", paint: "안영준", ft: "이정현" }), "정리하면 3점은 서명진이랑 허웅, 안쪽은 안영준, 자유투는 이정현이에요.");
+// AI 티 나는 말버릇이 대사에 없어야 한다
+const banned = /대망의|비밀은|균형형이에요|최다\.|—/;
+for (const [i, sources] of top5.entries()) {
+  const l = topScorerLine({ rank: i + 1, name: ["이정현", "허웅", "안영준", "허훈", "서명진"][i], ppg: 15, sources, callout: c[i], tpPct: 40.6, ftPct: 87 });
+  assert.ok(!banned.test(l.speech), l.speech);
+}
+console.log("shorts: 내레이션 시각·말 숫자·말버릇 통과");

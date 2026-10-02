@@ -5,7 +5,10 @@
 # 결과:
 #   - Actions 실행 화면 아래 Artifacts 에 mp4 + upload.txt(제목·설명·태그)
 #   - shorts-renders 브랜치에 같은 파일 (휴대폰에서 GitHub 앱으로 받기 쉽게)
-# 목소리: 저장소 Secrets 에 GOOGLE_TTS_API_KEY 가 있으면 Google Cloud TTS(공식), 없으면 edge-tts(키 없는 시제품용)
+# 목소리 (저장소 Settings → Secrets and variables → Actions → Secrets):
+#   ELEVENLABS_API_KEY + ELEVENLABS_VOICE_ID 가 있으면 ElevenLabs (대본 전체를 한 번에 읽힘, 권장)
+#   없으면 GOOGLE_TTS_API_KEY → Google Cloud TTS, 그것도 없으면 edge-tts(키 없는 시제품용)
+#   말투 조절은 Variables 에 ELEVENLABS_MODEL·ELEVENLABS_STABILITY·ELEVENLABS_STYLE·ELEVENLABS_SPEED (없으면 기본값)
 #
 # 실행 횟수: 5
 name: 숏폼 렌더
@@ -66,6 +69,12 @@ jobs:
       - name: 목소리·사진 준비
         if: steps.gate.outputs.run == 'true'
         env:
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          ELEVENLABS_VOICE_ID: ${{ secrets.ELEVENLABS_VOICE_ID }}
+          ELEVENLABS_MODEL: ${{ vars.ELEVENLABS_MODEL }}
+          ELEVENLABS_STABILITY: ${{ vars.ELEVENLABS_STABILITY }}
+          ELEVENLABS_STYLE: ${{ vars.ELEVENLABS_STYLE }}
+          ELEVENLABS_SPEED: ${{ vars.ELEVENLABS_SPEED }}
           GOOGLE_TTS_API_KEY: ${{ secrets.GOOGLE_TTS_API_KEY }}
         run: |
           for f in shorts/episodes/*/episode.json; do npx tsx scripts/prepare-short.ts "$f"; done

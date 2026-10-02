@@ -89,6 +89,15 @@ function Caption({ scene }: { scene: EpisodeScene }) {
   const total = lens.reduce((a, b) => a + b, 0);
   let acc = 0;
   let idx = scene.chunks.length - 1;
+  if (scene.chunkStarts && scene.chunkStarts.length === scene.chunks.length) {
+    // 실제 말 시각 — 그 조각을 말하기 시작한 순간부터 보인다
+    const t = frame / FPS;
+    idx = 0;
+    scene.chunkStarts.forEach((s, i) => {
+      if (t >= s) idx = i;
+    });
+    return <CaptionBox text={scene.chunks[idx] ?? ""} />;
+  }
   for (let i = 0; i < lens.length; i++) {
     acc += lens[i];
     if (frame < (acc / total) * speak) {
@@ -96,7 +105,10 @@ function Caption({ scene }: { scene: EpisodeScene }) {
       break;
     }
   }
-  const chunk = scene.chunks[idx] ?? "";
+  return <CaptionBox text={scene.chunks[idx] ?? ""} />;
+}
+
+function CaptionBox({ text: chunk }: { text: string }) {
   return (
     <div style={{ position: "absolute", left: SAFE.left, right: W_PAD, top: 1340, display: "flex", justifyContent: "center" }}>
       <div style={{ background: C.ink, padding: "14px 28px", borderRadius: 8, maxWidth: 960 }}>
@@ -488,6 +500,7 @@ export function TopScorers(props: EpisodeProps) {
   let from = 0;
   return (
     <AbsoluteFill style={{ background: C.paper, fontFamily: FONT }}>
+      {props.narration ? <Audio src={staticFile(props.narration)} /> : null}
       {props.scenes.map((scene) => {
         const dur = Math.round(scene.seconds * FPS);
         const start = from;
