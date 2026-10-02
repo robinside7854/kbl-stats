@@ -4,7 +4,7 @@
 import { perGame } from "./metrics";
 import { formatHighDate, formatHighShot, formatHighTimes, formatHighValue, HERO_HIGH_KEYS, highDef } from "./highs";
 import { CLUB_40, CLUB_50 } from "./badges";
-import type { CareerHighs, HighKey, HighRecord, HighsSet, SeasonHighLeader, SeasonHighLeaderKey } from "./types";
+import type { CareerHighs, HighKey, HighRecord, HighsSet, SeasonHighLeader, SeasonHighLeaderKey, AwardKey, PlayerAward } from "./types";
 
 // ─────────────────────────────────────────────
 // 시즌 표기
@@ -392,38 +392,60 @@ export function careerHighAchievements(
 }
 
 // ─────────────────────────────────────────────
-// 우승 횟수 (2026-10-02 사용자 요청) — 선수 히어로 칩 "우승 6회" + 시즌 목록 "06-07 모비스 · 09-10 모비스"
-// 재료: 색인 championships(정규시즌 소속 팀이 그 시즌 챔프전 우승팀인 시즌, scripts/champions.ts)
+// 수상 경력 (2026-10-02 사용자 요청) — 공홈 역대수상현황 → 색인 awards (scripts/awards.ts)
 // ─────────────────────────────────────────────
 
-export interface ChampionshipSummary {
+/** 화면 순서·이름. 외국선수상은 2025-26 부터 "외국선수 MVP" 로 이름이 바뀌었지만 한 줄로 센다 */
+export const AWARD_LABELS: readonly { key: AwardKey; label: string; hero: boolean }[] = [
+  { key: "mvp", label: "정규리그 MVP", hero: true },
+  { key: "finalsMvp", label: "챔프전 MVP", hero: true },
+  { key: "foreignMvp", label: "외국선수 MVP", hero: true },
+  { key: "best5", label: "베스트5", hero: false },
+  { key: "defensive", label: "최우수 수비상", hero: false },
+  { key: "defense5", label: "수비 5걸", hero: false },
+  { key: "rookie", label: "신인상", hero: false },
+  { key: "sixthMan", label: "식스맨상", hero: false },
+  { key: "mip", label: "기량 발전상", hero: false },
+  { key: "allStarMvp", label: "올스타전 MVP", hero: false },
+];
+
+export interface AwardLine {
+  key: AwardKey | "champion";
+  label: string;
   count: number;
-  /** 오래된 시즌부터 "06-07 모비스" */
-  items: string[];
+  /** "05-06 · 06-07" */
+  seasons: string;
+  /** 머리말 금색 칩에도 보이는 큰 상 (우승·MVP·챔프전 MVP·외국선수 MVP) */
+  hero: boolean;
 }
 
-export function championshipSummary(
-  codes: readonly number[] | undefined,
-  seasons: readonly { seasonCode: number; seasonLabel: string; teamShort?: string; team?: { shortName: string } | null }[],
-): ChampionshipSummary | null {
-  if (!codes || codes.length === 0) return null;
-  const byCode = new Map(seasons.map((s) => [s.seasonCode, s]));
-  const items = [...codes]
-    .sort((a, b) => a - b)
-    .map((c) => {
-      const s = byCode.get(c);
-      if (!s) return null;
-      const team = s.team?.shortName ?? s.teamShort ?? "";
-      return `${seasonShortLabel(s.seasonLabel)}${team ? ` ${team}` : ""}`;
-    })
-    .filter((x): x is string => x !== null);
-  return items.length > 0 ? { count: items.length, items } : null;
+/** 수상 경력 줄: 우승(있으면 맨 앞) → AWARD_LABELS 순서, 받은 상만. 같은 시즌 중복은 한 번 */
+export function awardLines(
+  awards: readonly PlayerAward[] | undefined,
+  championships: readonly number[] | undefined,
+  seasons: readonly { seasonCode: number; seasonLabel: string }[],
+  allLabels: ReadonlyMap<number, string> = new Map(),
+): AwardLine[] {
+  const labelOf = (c: number) => {
+    const l = seasons.find((s) => s.seasonCode === c)?.seasonLabel ?? allLabels.get(c);
+    return l ? seasonShortLabel(l) : String(c);
+  };
+  const line = (key: AwardLine["key"], label: string, codes: number[], hero: boolean): AwardLine | null => {
+    const uniq = [...new Set(codes)].sort((a, b) => a - b);
+    return uniq.length ? { key, label, count: uniq.length, seasons: uniq.map(labelOf).join(" · "), hero } : null;
+  };
+  const out: AwardLine[] = [];
+  const champ = line("champion", "우승", [...(championships ?? [])], true);
+  if (champ) out.push(champ);
+  for (const d of AWARD_LABELS) {
+    const l = line(d.key, d.label, (awards ?? []).filter((a) => a.key === d.key).map((a) => a.seasonCode), d.hero);
+    if (l) out.push(l);
+  }
+  return out;
 }
 
-/**
- * 나무위키 검색 주소 (2026-10-02 사용자 요청). 문서 제목은 동명이인(배우 양동근 등)·"(농구선수)" 꼬리표가 제각각이라
- * 문서로 바로 가지 않고 "이름 농구" 검색 결과로 보낸다. 바깥 사이트 링크라 화면은 새 탭으로 연다.
- */
-export function namuWikiSearchUrl(nameKo: string): string {
-  return `https://namu.wiki/Search?q=${encodeURIComponent(`${nameKo.trim()} 농구`)}`;
+/** 머리말 칩 글자: "우승 6회" · "MVP 4회" · "챔프전 MVP 3회" (정규리그 MVP 는 칩에서 줄여 "MVP") */
+export function awardChipText(l: AwardLine): string {
+  const short = l.key === "mvp" ? "MVP" : l.label;
+  return `${short} ${l.count}회`;
 }

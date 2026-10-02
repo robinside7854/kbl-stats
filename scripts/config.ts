@@ -45,6 +45,9 @@ export const PLAYER_GAMES_PATH = "/api/v1/players/categories/game";
  * 슛 차트  GET /match/{gmkey}/match-chart → { shootLog: [...] } — 경기당 1회. 형식·대상 선정은 scripts/shots.ts.
  */
 export const SITE_API = "https://api.kbl.or.kr";
+/** 공홈 역대수상현황 화면 (수상 표가 화면 JS 번들 안에 있다 — scripts/awards.ts) */
+export const SITE_ORIGIN = "https://kbl.or.kr";
+export const AWARDS_PAGE_URL = `${SITE_ORIGIN}/record/award`;
 export const matchListUrl = (fromDate: string, toDate: string) =>
   `${SITE_API}/match/list?${new URLSearchParams({ fromDate, toDate, tcodeList: "all" })}`;
 export const matchChartUrl = (gmkey: string) => `${SITE_API}/match/${encodeURIComponent(gmkey)}/match-chart`;

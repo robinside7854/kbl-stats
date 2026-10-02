@@ -35,6 +35,15 @@ export async function getJson(url: string): Promise<unknown> {
   return res.json();
 }
 
+/** 공홈 HTML·JS 같은 글 응답 (수상 표 번들용) */
+export async function getText(url: string): Promise<string> {
+  const res = await fetch(url, {
+    headers: { "User-Agent": "kbl-stats fan project (non-commercial; github.com/robinside7854/kbl-stats)", Referer: "https://kbl.or.kr/" },
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status} ${url}`);
+  return res.text();
+}
+
 /**
  * data/raw/{dir}/{name}.json 에 응답을 그대로 저장 (원칙 2).
  * compact: 들여쓰기 없이 — 파일이 수천 개인 한 경기 최다·프로필은 용량을 줄이려고 한 줄로 (내용은 응답 그대로).

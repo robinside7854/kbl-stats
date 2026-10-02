@@ -83,6 +83,12 @@ KBL 공홈은 화면을 그릴 때 아래 두 서버에서 JSON을 받아온다.
   - **커버리지 (2026-09-30 전체 백필)**: 슛 차트는 **2006-07(코드 11)부터** 존재 — 11~47 시즌 전부 270경기(2019-20은 213, 코로나 조기 종료), 빈 차트 0~4경기/시즌, 좌표 체계 전 시즌 동일(x≈30~700, y≈25~385; (0,0) 오류 점 시즌당 0~2개). **2005-06 이전(코드 1~10)은 슛 차트 없음** — 목록에 정규시즌 경기·점수는 있지만 `isEnded` 가 전부 0 이라 처음엔 건너뛰었고, `isEndedGame` 이 점수+지난 날짜도 끝난 것으로 보게 고쳐 재시도(실행 횟수 4)한 결과 2,334경기 전부 `shootLog` 빈 배열(빈 파일로 저장돼 다시 두드리지 않음). 이 시즌들은 `coverage.shots false`·`shotZones null`·shots.json 없음. raw 전체 약 65MB
   - 가공(`npm run process`): 목록의 정규시즌 gmkey(`regularGamesOf`, 목록이 없으면 `S{시즌}G01N…` 모양) 차트만 → 선수별 `players[].shotZones`(구역 5개 a·m + `offenseType`), 시즌 `shotZoneLeague`(리그 합계)·`coverage.shots`(선수 50% 이상), 점 좌표 `data/processed/{시즌}/shots.json`(한 줄 = 선수, `[x, y, made]` 미터 소수 2자리, 시즌당 약 510KB, 커밋 대상). 규칙은 `lib/shots.ts`(정규화·구역·유형)
 
+### 역대 수상 — 공홈 화면 JS 번들 (2026-10-02 Actions 러너 확인)
+- 공홈 "역대수상현황"(`https://kbl.or.kr/record/award`)은 API 를 부르지 않고 **앱 번들(`/assets/index-{해시}.js`, 약 6MB) 안의 표 데이터**를 그린다: `[{name:"정규시즌 비계량 부문 수상자"|"정규시즌 계량 부문 수상자"|"정규시즌 기록 부문 1위(평균)"|"월간 MVP"|"라운드 MVP"|"올스타전 MVP 및 수상자"|"플레이오프 우승팀 및 MVP"|"정규시즌 우승팀 및 준우승팀", values:[{header, colName:["부문","2023~2024",…], data:[{item:"MVP", value:["이선 알바노(DB)",…]}]}]}]` — 칸은 "이름(팀)", 베스트5·수비 5걸은 줄바꿈 5명
+- 수집: `npm run fetch` 가 매일 HTML → 번들 주소(`bundleScriptSrc`) → 번들(2회 요청) → 첫 섹션 이름을 닻으로 표만 읽어(`extractAwardsData` — **eval 하지 않는 리터럴 파서**) `data/raw/awards/awards.json`(표 그대로, 한 줄)에 저장. 못 찾으면 저장 안 함(전날 파일 유지). 번들이 바뀌어 닻을 못 찾으면 실패 목록에 남는다
+- 가공(`scripts/awards.ts awardRows·matchAwardPlayer`): 쓰는 부문 = 정규리그 MVP(2025-26 "국내선수 MVP")·외국선수상("외국선수 MVP")·챔프전 MVP·올스타전 MVP·베스트5·수비 5걸·신인상·최우수 수비상·식스맨상·기량 발전상 (감독상·인기상·페어플레이·월간/라운드 MVP·계량/기록 부문은 안 씀). 이름 → 선수 번호: 그 시즌 명단 같은 이름(공백 무시) → 동명이인은 팀 → 전체에서 하나뿐인 이름 → 같은 시즌·팀에서 한 글자 차이/성만(KBL 표 오타: 장병국=정병국, 캔디 라렌, 카룰랑안, "나이트"). 2026-10-02 기준 492건 전부 연결. 결과는 색인 `awards: [{key, seasonCode}]`
+- 우승팀은 따로 `data/raw/games/{시즌}/list.json` 챔프전(gameCode 04) 4승 팀(`scripts/champions.ts`) → 시즌 `champion`, 색인 `championships`
+
 ### 서버 A 추가 확인 (2026-09-30)
 - 팀 기록 `GET /api/records/team/general/traditional?seasonCode=&gameCode=01&sortDataSc=WIN_A&sortOrderSc=desc&perCn=0&lastCn=0&partIfList=0&draftNo=0` (화면 열: G W L MIN 승률 PTS 2PM… +/- SAST DFL DD2 TD3). advanced 등 다른 탭 주소는 같은 패턴 추정
 - 라인업 기록 `GET /api/records/lineup/traditional?seasonCode=&gameCode=01&sortDataSc=PLAY_SEC&sortOrderSc=desc&listCn=10&pageNo=1&perCn=0&lastCn=0&partIfList=0&draftNo=0` (5인 조합별 G MIN PTS … +/-). listCn ≤ 255 규칙 동일 추정
@@ -133,6 +139,8 @@ kbl-stats/
 ├── next.config.mjs, postcss.config.mjs  ← Next.js / Tailwind v4 설정
 ├── .env.example         ← NEXT_PUBLIC_OFFICIAL_IMAGES (공식 사진·로고 끄기 스위치) 설명
 ├── scripts/
+│   ├── awards.ts        ← 역대 수상: 공홈 번들 → 표(eval 없는 리터럴 파서 extractAwardsData) → 수상 행 awardRows → 선수 연결 matchAwardPlayer — 순수 함수
+│   ├── champions.ts     ← 시즌 우승팀(경기 목록 챔프전 4승 finalsChampion)·선수 우승 시즌 championSeasonsOf — 순수 함수
 │   ├── fetch.ts         ← KBL API 호출 + data/raw 저장 (API 주소는 여기와 config에만) + 현재 시즌 선수 한 경기 최다·경기별 기록·프로필
 │   ├── http.ts          ← getJson(공홈 헤더)·sleep·saveRaw 공용 (fetch·backfill-highs)
 │   ├── gamelogs.ts      ← 경기별 기록 raw → 슛 시도 수(parseGameLog·shotAttemptsFor 같은 날짜+성공 개수 일치·attachShotAttempts) + 백필 대상 gamelogTargets(커리어 하이 득점·3점·자유투 시즌) — 순수 함수
@@ -261,6 +269,9 @@ kbl-stats/
 
 ## 세션 로그
 - 2026-10-02 (54-0 게임): 사용자 결정(범위 IN·외국 선수 2명·시대 구간 7개·가드2/포워드2/센터1·오늘의 뽑기 없음)으로 `/game` 구현. 규칙 `lib/game.ts`, 풀 `scripts/build-game.ts` → `public/game/pool.json`(구간 97-00·00-04·04-08·08-12·12-16·16-21·21-26, 팀 10~13개, 후보 2,282명). 점수 = 그 시즌 종합 점수(국적 풀 안 백분위)라 원숫자 합처럼 외국 선수가 휩쓸지 않음. 한 번 쓴 구간은 다시 안 나옴(82-0 연대 규칙). 난이도(1,000판 시뮬레이션): 아무나 뽑기 중앙 18승, 매번 최고 점수 51승·전승 약 14%. 메뉴 "54-0"(모바일 하단 탭 7개). 검증: typecheck·test·build·slop 0, Playwright 320/390/1280 라이트/다크 5라운드 완주·가로 넘침 0·콘솔 에러 0·이미지 저장·공유 링크 같은 성적. main 배포.
+- 2026-10-02 (시즌 어워즈): 마감된 시즌(수상 기록이 있는 시즌) 리더보드 맨 위에 **어워즈**(`SeasonAwardsBoard`, 순서·묶음 `lib/awards buildSeasonAwardsView`): 챔피언·정규리그 1위 카드 → 주요 시상(정규리그 MVP·외국선수 MVP·챔프전 MVP·신인상, 사진 카드, MVP 금색) → 베스트5·수비 5걸(5명 줄) → 정규리그 시상(최우수 수비·식스맨·기량 발전·페어플레이·인기상)·기록 부문(득점상~스틸상, 2023-24~)·올스타전(MVP·3점·덩크)·라운드/월간 MVP 목록, 이름 → 그 시즌 선수 카드. 수상 파서를 개인상 전부로 넓힘(`scripts/awards.ts` 계량 부문·올스타 콘테스트·라운드/월간 MVP·"국내 :"·"1일차:" 꼬리표·한 줄 여러 명, `seasonTeamResults` 정규시즌 1·2위·챔프전 결과) → 시즌 파일 `seasonAwards`(751건 전부 선수 연결), 색인 `awards` 는 프로필 부문만(`PROFILE_AWARD_KEYS`). 감독상만 뺌. 검증: typecheck·test·build·slop 0, Playwright 25-26 390 라이트/1280 다크·97-98 390 가로 넘침 0·콘솔 에러 0. main 배포.
+- 2026-10-02 (나무위키 삭제): 사용자 지시로 선수 머리말 나무위키 버튼·`namuWikiSearchUrl` 삭제. main 배포.
+- 2026-10-02 (역대 수상): 공홈 역대수상현황 표(화면 JS 번들 안 데이터)를 매일 수집 → 선수 머리말 금색 칩(우승·MVP·챔프전 MVP·외국선수 MVP) + 통산 요약 아래 **수상 경력** 표(우승·정규리그 MVP·챔프전 MVP·외국선수 MVP·베스트5·최우수 수비상·수비 5걸·신인상·식스맨상·기량 발전상·올스타전 MVP, 시즌 목록). 492건 전부 선수 연결(예: 김주성 MVP 2·베스트5 8·챔프전 MVP 2, 양동근 MVP 4·챔프전 MVP 3, 이정현 두 명 구분). 우승 시즌 줄은 수상 경력 표로 옮김. 조사 브랜치 `claude/probe-awards`(번들 6MB 커밋 포함 — 지워도 됨). 검증: typecheck·test·build·slop 0, Playwright 390 라이트/1280 다크 가로 넘침 0·콘솔 에러 0. main 배포.
 - 2026-10-02 (82-0 게임 검토): 82-0.com(NBA 역대 5인 뽑기 전승 게임) 검토 → `docs/game-54-0-review-2026-10-02.md`(KBL 버전 "54-0" 제안: 54경기·외국 선수 제한·시즌 안 백분위 점수·포지션 슬롯·데일리, 공유는 카드 PNG 재사용). 발견: 경기당 득점+리바+어시+스틸+블록 상위 100시즌 중 97개가 외국 선수 → 단순 합산 공식은 KBL 에서 깨짐. SCOPE 추가 여부 사용자 결정 대기. 코드 변경 없음.
 - 2026-10-02 (나무위키 링크·SNS 확인): 선수 히어로 즐겨찾기 옆 **"나무위키" 버튼**(새 탭, `lib/career namuWikiSearchUrl` — 동명이인(배우 양동근 등)이 많아 문서가 아니라 "이름 농구" 검색으로). SNS 는 프로필 raw `instagramLk·facebookLk·twitterLk` 가 1,329명 중 1명(이관희)만 있어 만들지 않음. 수상 기록(MVP·베스트5 등)은 우리 raw 에 없음 → 조사 워크플로 `claude/probe-awards` 브랜치. main 배포.
 - 2026-10-02 (우승 횟수): 선수 히어로에 **금색 "우승 N회" 칩 + 우승 시즌 줄**("06-07 모비스 · …"). 우승팀은 이미 받아 둔 경기 목록(`data/raw/games/{시즌}/list.json`)의 챔프전(gameCode 04) 점수로 4승 팀(`scripts/champions.ts finalsChampion`) → 시즌 파일 `champion`, 선수 색인 `championships`(정규시즌 소속 팀 = 우승팀인 시즌, `championSeasonsOf`). 1997~2025-26 판정이 역대 우승팀과 전부 일치, 2019-20 은 없음. 한계: 시즌 중 이적은 KBL 시즌 기록의 팀 하나로만 보고, 챔프전 출전 여부는 안 본다. 결과: 양동근 6·라건아·추승균·함지훈 5, 우승 선수 329명. 검증: typecheck·test·build·slop 0, Playwright 390/1280. main 배포.

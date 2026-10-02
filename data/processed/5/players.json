@@ -2,7 +2,7 @@
   "seasonCode": 5,
   "seasonLabel": "2000-2001",
   "gameType": "regular",
-  "fetchedAt": "2026-10-02T00:39:39.112Z",
+  "fetchedAt": "2026-10-02T01:20:54.582Z",
   "coverage": {
     "advanced": true,
     "plusMinus": true,
@@ -26135,5 +26135,254 @@
     "teamName": "수원삼성",
     "wins": 4,
     "losses": 1
+  },
+  "seasonAwards": {
+    "awards": [
+      {
+        "key": "mvp",
+        "winners": [
+          {
+            "playerNo": "245027",
+            "name": "조성원",
+            "team": "LG",
+            "teamCode": "50",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "foreignMvp",
+        "winners": [
+          {
+            "playerNo": "235044",
+            "name": "아티머스 맥클래리",
+            "team": "삼성",
+            "teamCode": "35",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "rookie",
+        "winners": [
+          {
+            "playerNo": "235042",
+            "name": "이규섭",
+            "team": "삼성",
+            "teamCode": "35",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "defensive",
+        "winners": [
+          {
+            "playerNo": "215028",
+            "name": "양경민",
+            "team": "삼보",
+            "teamCode": "15",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "sixthMan",
+        "winners": [
+          {
+            "playerNo": "235038",
+            "name": "강혁",
+            "team": "삼성",
+            "teamCode": "35",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "mip",
+        "winners": [
+          {
+            "playerNo": "230036",
+            "name": "조우현",
+            "team": "LG",
+            "teamCode": "50",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "best5",
+        "winners": [
+          {
+            "playerNo": "215012",
+            "name": "주희정",
+            "team": "삼성",
+            "teamCode": "35",
+            "note": null
+          },
+          {
+            "playerNo": "250058",
+            "name": "강동희",
+            "team": "기아",
+            "teamCode": "10",
+            "note": null
+          },
+          {
+            "playerNo": "245027",
+            "name": "조성원",
+            "team": "LG",
+            "teamCode": "50",
+            "note": null
+          },
+          {
+            "playerNo": "235044",
+            "name": "아티머스 맥클래리",
+            "team": "삼성",
+            "teamCode": "35",
+            "note": null
+          },
+          {
+            "playerNo": "245035",
+            "name": "재키 존스",
+            "team": "SK",
+            "teamCode": "55",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "defense5",
+        "winners": [
+          {
+            "playerNo": "255041",
+            "name": "로데릭 하니발",
+            "team": "SK",
+            "teamCode": "55",
+            "note": null
+          },
+          {
+            "playerNo": "225037",
+            "name": "조동현",
+            "team": "신세기",
+            "teamCode": "37",
+            "note": null
+          },
+          {
+            "playerNo": "210014",
+            "name": "김영만",
+            "team": "기아",
+            "teamCode": "10",
+            "note": null
+          },
+          {
+            "playerNo": "215028",
+            "name": "양경민",
+            "team": "삼보",
+            "teamCode": "15",
+            "note": null
+          },
+          {
+            "playerNo": "245035",
+            "name": "재키 존스",
+            "team": "SK",
+            "teamCode": "55",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "monthMvp",
+        "winners": [
+          {
+            "playerNo": "245027",
+            "name": "조성원",
+            "team": "LG",
+            "teamCode": "50",
+            "note": "11월"
+          },
+          {
+            "playerNo": "245026",
+            "name": "이상민",
+            "team": "현대",
+            "teamCode": "45",
+            "note": "12월"
+          },
+          {
+            "playerNo": "220034",
+            "name": "조상현",
+            "team": "SK",
+            "teamCode": "55",
+            "note": "1월"
+          },
+          {
+            "playerNo": "255032",
+            "name": "서장훈",
+            "team": "SK",
+            "teamCode": "55",
+            "note": "2월"
+          }
+        ]
+      },
+      {
+        "key": "allStarMvp",
+        "winners": [
+          {
+            "playerNo": "235044",
+            "name": "아티머스 맥클래리",
+            "team": "삼성",
+            "teamCode": "35",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "allStar3pt",
+        "winners": [
+          {
+            "playerNo": "220034",
+            "name": "조상현",
+            "team": "SK",
+            "teamCode": "55",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "allStarDunk",
+        "winners": [
+          {
+            "playerNo": "230041",
+            "name": "데이먼 플린트",
+            "team": "현대",
+            "teamCode": "45",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "finalsMvp",
+        "winners": [
+          {
+            "playerNo": "215012",
+            "name": "주희정",
+            "team": "삼성",
+            "teamCode": "35",
+            "note": null
+          }
+        ]
+      }
+    ],
+    "regular": {
+      "first": "삼성",
+      "firstRecord": "34승 11패 (0.756)",
+      "second": "LG",
+      "secondRecord": "30승 15패 (0.667)"
+    },
+    "finals": {
+      "champion": "삼성",
+      "championRecord": "4승 1패",
+      "runnerUp": "LG",
+      "runnerUpRecord": "1승 4패"
+    }
   }
 }

@@ -2,7 +2,7 @@
   "seasonCode": 35,
   "seasonLabel": "2019-2020",
   "gameType": "regular",
-  "fetchedAt": "2026-10-02T00:39:45.731Z",
+  "fetchedAt": "2026-10-02T01:20:58.914Z",
   "coverage": {
     "advanced": true,
     "plusMinus": true,
@@ -40933,5 +40933,256 @@
       "m": 2895
     }
   },
-  "champion": null
+  "champion": null,
+  "seasonAwards": {
+    "awards": [
+      {
+        "key": "mvp",
+        "winners": [
+          {
+            "playerNo": "291085",
+            "name": "허훈",
+            "team": "KT",
+            "teamCode": "06",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "foreignMvp",
+        "winners": [
+          {
+            "playerNo": "291248",
+            "name": "자밀 워니",
+            "team": "SK",
+            "teamCode": "55",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "rookie",
+        "winners": [
+          {
+            "playerNo": "291287",
+            "name": "김훈",
+            "team": "DB",
+            "teamCode": "16",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "defensive",
+        "winners": [
+          {
+            "playerNo": "290661",
+            "name": "문성곤",
+            "team": "KGC",
+            "teamCode": "70",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "sixthMan",
+        "winners": [
+          {
+            "playerNo": "291070",
+            "name": "최성원",
+            "team": "SK",
+            "teamCode": "55",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "mip",
+        "winners": [
+          {
+            "playerNo": "291068",
+            "name": "김낙현",
+            "team": "전자랜드",
+            "teamCode": "65",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "best5",
+        "winners": [
+          {
+            "playerNo": "291085",
+            "name": "허훈",
+            "team": "KT",
+            "teamCode": "06",
+            "note": null
+          },
+          {
+            "playerNo": "290750",
+            "name": "김종규",
+            "team": "DB",
+            "teamCode": "16",
+            "note": null
+          },
+          {
+            "playerNo": "290897",
+            "name": "송교창",
+            "team": "KCC",
+            "teamCode": "60",
+            "note": null
+          },
+          {
+            "playerNo": "291248",
+            "name": "자밀 워니",
+            "team": "SK",
+            "teamCode": "55",
+            "note": null
+          },
+          {
+            "playerNo": "291242",
+            "name": "캔디 라렌",
+            "team": "LG",
+            "teamCode": "50",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "defense5",
+        "winners": [
+          {
+            "playerNo": "290661",
+            "name": "문성곤",
+            "team": "KGC",
+            "teamCode": "70",
+            "note": null
+          },
+          {
+            "playerNo": "291261",
+            "name": "치나누 오누아쿠",
+            "team": "DB",
+            "teamCode": "16",
+            "note": null
+          },
+          {
+            "playerNo": "291070",
+            "name": "최성원",
+            "team": "SK",
+            "teamCode": "55",
+            "note": null
+          },
+          {
+            "playerNo": "290787",
+            "name": "이승현",
+            "team": "오리온",
+            "teamCode": "30",
+            "note": null
+          },
+          {
+            "playerNo": "290539",
+            "name": "장재석",
+            "team": "현대모비스",
+            "teamCode": "30",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "popularity",
+        "winners": [
+          {
+            "playerNo": "290776",
+            "name": "허웅",
+            "team": "DB",
+            "teamCode": "16",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "roundMvp",
+        "winners": [
+          {
+            "playerNo": "291085",
+            "name": "허훈",
+            "team": "KT",
+            "teamCode": "06",
+            "note": "1라운드"
+          },
+          {
+            "playerNo": "290993",
+            "name": "최준용",
+            "team": "SK",
+            "teamCode": "55",
+            "note": "2라운드"
+          },
+          {
+            "playerNo": "290897",
+            "name": "송교창",
+            "team": "KCC",
+            "teamCode": "60",
+            "note": "3라운드"
+          },
+          {
+            "playerNo": "290738",
+            "name": "두경민",
+            "team": "DB",
+            "teamCode": "16",
+            "note": "4라운드"
+          }
+        ]
+      },
+      {
+        "key": "allStarMvp",
+        "winners": [
+          {
+            "playerNo": "290750",
+            "name": "김종규",
+            "team": "DB",
+            "teamCode": "16",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "allStar3pt",
+        "winners": [
+          {
+            "playerNo": "290993",
+            "name": "최준용",
+            "team": "SK",
+            "teamCode": "55",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "allStarDunk",
+        "winners": [
+          {
+            "playerNo": "290412",
+            "name": "김현민",
+            "team": "KT",
+            "teamCode": "06",
+            "note": "국내"
+          },
+          {
+            "playerNo": "290800",
+            "name": "트로이 길렌워터",
+            "team": "전자랜드",
+            "teamCode": "65",
+            "note": "국외"
+          }
+        ]
+      }
+    ],
+    "regular": {
+      "first": "공동1위\n원주DB 서울SK",
+      "firstRecord": "28승 15패 (0.651)\n*코로나19로 인한 시즌 조기종료",
+      "second": "",
+      "secondRecord": ""
+    },
+    "finals": null
+  }
 }

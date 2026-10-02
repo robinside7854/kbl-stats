@@ -202,6 +202,8 @@ export interface SeasonData {
   shotZoneLeague?: ZoneCounts | null;
   /** 그 시즌 우승팀 (챔프전 4승, scripts/champions.ts). 경기 목록이 없거나 4승 팀이 없으면 null — 옛 파일엔 필드가 없다 */
   champion?: { teamCode: string; teamName: string; wins: number; losses: number } | null;
+  /** 그 시즌 어워즈 (수상 raw 에 그 시즌이 있을 때만, 없으면 null — 시즌이 안 끝났거나 옛 파일) */
+  seasonAwards?: SeasonAwards | null;
 }
 
 // ─────────────────────────────────────────────
@@ -232,6 +234,44 @@ export interface PlayerIndexEntry extends PlayerProfile {
   school?: string | null;     // 출신 학교(univSch), 예: "Stony brook"
   /** 우승 시즌 코드(오름차순) — 정규시즌 소속 팀이 그 시즌 우승팀인 시즌. 옛 색인엔 필드가 없다 */
   championships?: number[];
+  /** 역대 수상 (공홈 역대수상현황, scripts/awards.ts) — 시즌 오름차순. 옛 색인엔 필드가 없다 */
+  awards?: PlayerAward[];
+}
+
+/** 수상 부문: 정규리그 MVP(2025-26 부터 국내선수 MVP)·외국선수상(외국선수 MVP)·챔프전 MVP·올스타 MVP·베스트5·수비 5걸·신인상·최우수 수비상·식스맨상·기량 발전상 */
+export type AwardKey =
+  | "mvp" | "foreignMvp" | "finalsMvp" | "allStarMvp" | "best5" | "defense5"
+  | "rookie" | "defensive" | "sixthMan" | "mip";
+
+/** 시즌 어워즈 화면 부문 (프로필 부문 + 페어플레이·인기상·기록 부문상·올스타 콘테스트·라운드/월간 MVP) */
+export type SeasonAwardKey =
+  | AwardKey
+  | "fairPlay" | "popularity"
+  | "scoringTitle" | "threesTitle" | "reboundsTitle" | "assistsTitle" | "blocksTitle" | "stealsTitle"
+  | "allStar3pt" | "allStarDunk" | "roundMvp" | "monthMvp";
+
+export interface SeasonAwardWinner {
+  /** 선수 번호 (못 찾으면 null — 이름만 보인다) */
+  playerNo: string | null;
+  name: string;
+  /** 수상 표의 팀 표기 그대로 */
+  team: string;
+  /** 그 시즌 소속 팀 코드 (선수를 찾았을 때) */
+  teamCode: string | null;
+  /** "1라운드"·"11월"·"국내" 등 */
+  note: string | null;
+}
+
+/** 그 시즌 어워즈 (공홈 역대수상현황 — scripts/awards.ts). 시즌 파일 seasonAwards */
+export interface SeasonAwards {
+  awards: { key: SeasonAwardKey; winners: SeasonAwardWinner[] }[];
+  regular: { first: string; firstRecord: string; second: string; secondRecord: string } | null;
+  finals: { champion: string; championRecord: string; runnerUp: string; runnerUpRecord: string } | null;
+}
+
+export interface PlayerAward {
+  key: AwardKey;
+  seasonCode: number;
 }
 
 // ─────────────────────────────────────────────

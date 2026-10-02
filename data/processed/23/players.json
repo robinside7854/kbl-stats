@@ -2,7 +2,7 @@
   "seasonCode": 23,
   "seasonLabel": "2013-2014",
   "gameType": "regular",
-  "fetchedAt": "2026-10-02T00:39:43.543Z",
+  "fetchedAt": "2026-10-02T01:20:57.388Z",
   "coverage": {
     "advanced": true,
     "plusMinus": true,
@@ -36648,5 +36648,249 @@
     "teamName": "울산모비스",
     "wins": 4,
     "losses": 2
+  },
+  "seasonAwards": {
+    "awards": [
+      {
+        "key": "mvp",
+        "winners": [
+          {
+            "playerNo": "290377",
+            "name": "문태종",
+            "team": "LG",
+            "teamCode": "50",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "rookie",
+        "winners": [
+          {
+            "playerNo": "290750",
+            "name": "김종규",
+            "team": "LG",
+            "teamCode": "50",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "defensive",
+        "winners": [
+          {
+            "playerNo": "290106",
+            "name": "양희종",
+            "team": "KGC",
+            "teamCode": "70",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "sixthMan",
+        "winners": [
+          {
+            "playerNo": "215012",
+            "name": "주희정",
+            "team": "SK",
+            "teamCode": "55",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "fairPlay",
+        "winners": [
+          {
+            "playerNo": "220194",
+            "name": "조성민",
+            "team": "KT",
+            "teamCode": "06",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "best5",
+        "winners": [
+          {
+            "playerNo": "210074",
+            "name": "양동근",
+            "team": "모비스",
+            "teamCode": "10",
+            "note": null
+          },
+          {
+            "playerNo": "290407",
+            "name": "김선형",
+            "team": "SK",
+            "teamCode": "55",
+            "note": null
+          },
+          {
+            "playerNo": "215053",
+            "name": "김주성",
+            "team": "동부",
+            "teamCode": "16",
+            "note": null
+          },
+          {
+            "playerNo": "290280",
+            "name": "문태영",
+            "team": "모비스",
+            "teamCode": "10",
+            "note": null
+          },
+          {
+            "playerNo": "290524",
+            "name": "리카르도 라틀리프",
+            "team": "모비스",
+            "teamCode": "10",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "defense5",
+        "winners": [
+          {
+            "playerNo": "210074",
+            "name": "양동근",
+            "team": "모비스",
+            "teamCode": "10",
+            "note": null
+          },
+          {
+            "playerNo": "290116",
+            "name": "신명호",
+            "team": "KCC",
+            "teamCode": "60",
+            "note": null
+          },
+          {
+            "playerNo": "290106",
+            "name": "양희종",
+            "team": "KGC",
+            "teamCode": "70",
+            "note": null
+          },
+          {
+            "playerNo": "215053",
+            "name": "김주성",
+            "team": "동부",
+            "teamCode": "16",
+            "note": null
+          },
+          {
+            "playerNo": "290524",
+            "name": "리카르도 라틀리프",
+            "team": "모비스",
+            "teamCode": "10",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "monthMvp",
+        "winners": [
+          {
+            "playerNo": "290505",
+            "name": "김시래",
+            "team": "LG",
+            "teamCode": "50",
+            "note": "11월"
+          },
+          {
+            "playerNo": "290280",
+            "name": "문태영",
+            "team": "모비스",
+            "teamCode": "10",
+            "note": "12월"
+          },
+          {
+            "playerNo": "220194",
+            "name": "조성민",
+            "team": "KT",
+            "teamCode": "06",
+            "note": "1월"
+          },
+          {
+            "playerNo": "290731",
+            "name": "데이본 제퍼슨",
+            "team": "LG",
+            "teamCode": "50",
+            "note": "2월"
+          }
+        ]
+      },
+      {
+        "key": "allStarMvp",
+        "winners": [
+          {
+            "playerNo": "290407",
+            "name": "김선형",
+            "team": "SK",
+            "teamCode": "55",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "allStar3pt",
+        "winners": [
+          {
+            "playerNo": "290351",
+            "name": "변기훈",
+            "team": "SK",
+            "teamCode": "55",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "allStarDunk",
+        "winners": [
+          {
+            "playerNo": "290276",
+            "name": "이승준",
+            "team": "동부",
+            "teamCode": "16",
+            "note": "국내"
+          },
+          {
+            "playerNo": "290736",
+            "name": "앤서니 리처드슨",
+            "team": "오리온스",
+            "teamCode": "30",
+            "note": "국외"
+          }
+        ]
+      },
+      {
+        "key": "finalsMvp",
+        "winners": [
+          {
+            "playerNo": "290280",
+            "name": "문태영",
+            "team": "모비스",
+            "teamCode": "10",
+            "note": null
+          }
+        ]
+      }
+    ],
+    "regular": {
+      "first": "LG",
+      "firstRecord": "40승 14패 (0.741)",
+      "second": "모비스",
+      "secondRecord": "40승 14패 (0.741)"
+    },
+    "finals": {
+      "champion": "모비스",
+      "championRecord": "4승 2패",
+      "runnerUp": "LG",
+      "runnerUpRecord": "2승 4패"
+    }
   }
 }

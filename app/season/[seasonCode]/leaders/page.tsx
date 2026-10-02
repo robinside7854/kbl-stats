@@ -1,9 +1,11 @@
 // 시즌 순위표 (PLAN.md §2-1). 빌드 시점에 JSON을 읽어 순위표에 필요한 필드만 클라이언트로 넘긴다.
-// "이 시즌 한 경기 최다" 카드도 여기서 만들어 넘긴다 (lib/data loadSeasonHighCards — 데이터 없으면 빈 배열 → 숨김).
+// 마감된 시즌은 맨 위에 그 시즌 어워즈(SeasonAwardsBoard). "이 시즌 한 경기 최다" 카드도 여기서 만들어 넘긴다 (lib/data loadSeasonHighCards — 데이터 없으면 빈 배열 → 숨김).
 import { seasonShortLabel } from "@/lib/career";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { listSeasonsWithPlayers, loadSeasonData, loadSeasonHighCards, toCardTeams, toLeaderPlayers } from "@/lib/data";
+import { findPlayerIndexEntry, listSeasonsWithPlayers, loadSeasonData, loadSeasonHighCards, toCardTeams, toLeaderPlayers } from "@/lib/data";
+import { buildSeasonAwardsView } from "@/lib/awards";
+import SeasonAwardsBoard from "@/app/components/SeasonAwardsBoard";
 import LeadersView from "@/app/components/LeadersView";
 import SiteNav from "@/app/components/SiteNav";
 import SourceFooter from "@/app/components/SourceFooter";
@@ -31,14 +33,19 @@ export default async function LeadersPage({ params }: { params: Params }) {
   const season = loadSeasonData(Number(seasonCode));
   if (!season || season.players.length === 0) notFound();
 
+  // 마감된 시즌(수상 기록이 있는 시즌)만 맨 위에 어워즈 — lib/awards
+  const teams = toCardTeams(season);
+  const awards = buildSeasonAwardsView(season.seasonAwards, season.seasonCode, teams, (id) => findPlayerIndexEntry(id));
+
   return (
     <>
       <SiteNav seasons={listSeasonsWithPlayers()} seasonCode={season.seasonCode} view="leaders" wide />
       <LeadersView
         seasonLabel={season.seasonLabel}
         players={toLeaderPlayers(season)}
-        teams={toCardTeams(season)}
+        teams={teams}
         seasonHighs={loadSeasonHighCards(season)}
+        awards={awards ? <SeasonAwardsBoard view={awards} seasonShort={seasonShortLabel(season.seasonLabel)} /> : null}
       />
       <SourceFooter fetchedAt={season.fetchedAt} wide />
     </>

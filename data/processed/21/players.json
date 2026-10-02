@@ -2,7 +2,7 @@
   "seasonCode": 21,
   "seasonLabel": "2012-2013",
   "gameType": "regular",
-  "fetchedAt": "2026-10-02T00:39:43.154Z",
+  "fetchedAt": "2026-10-02T01:20:57.126Z",
   "coverage": {
     "advanced": true,
     "plusMinus": true,
@@ -37890,5 +37890,216 @@
     "teamName": "울산모비스",
     "wins": 4,
     "losses": 0
+  },
+  "seasonAwards": {
+    "awards": [
+      {
+        "key": "mvp",
+        "winners": [
+          {
+            "playerNo": "290407",
+            "name": "김선형",
+            "team": "SK",
+            "teamCode": "55",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "rookie",
+        "winners": [
+          {
+            "playerNo": "290485",
+            "name": "최부경",
+            "team": "SK",
+            "teamCode": "55",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "defensive",
+        "winners": [
+          {
+            "playerNo": "210074",
+            "name": "양동근",
+            "team": "모비스",
+            "teamCode": "10",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "sixthMan",
+        "winners": [
+          {
+            "playerNo": "290351",
+            "name": "변기훈",
+            "team": "SK",
+            "teamCode": "55",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "fairPlay",
+        "winners": [
+          {
+            "playerNo": "255044",
+            "name": "임재현",
+            "team": "KCC",
+            "teamCode": "60",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "best5",
+        "winners": [
+          {
+            "playerNo": "220194",
+            "name": "조성민",
+            "team": "KT",
+            "teamCode": "06",
+            "note": null
+          },
+          {
+            "playerNo": "210074",
+            "name": "양동근",
+            "team": "모비스",
+            "teamCode": "10",
+            "note": null
+          },
+          {
+            "playerNo": "290377",
+            "name": "문태종",
+            "team": "LG",
+            "teamCode": "65",
+            "note": null
+          },
+          {
+            "playerNo": "290280",
+            "name": "문태영",
+            "team": "모비스",
+            "teamCode": "10",
+            "note": null
+          },
+          {
+            "playerNo": "290731",
+            "name": "데이본 제퍼슨",
+            "team": "LG",
+            "teamCode": null,
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "monthMvp",
+        "winners": [
+          {
+            "playerNo": "290407",
+            "name": "김선형",
+            "team": "SK",
+            "teamCode": "55",
+            "note": "11월"
+          },
+          {
+            "playerNo": "290407",
+            "name": "김선형",
+            "team": "SK",
+            "teamCode": "55",
+            "note": "12월"
+          },
+          {
+            "playerNo": "290276",
+            "name": "이승준",
+            "team": "동부",
+            "teamCode": "16",
+            "note": "1월"
+          },
+          {
+            "playerNo": "290407",
+            "name": "김선형",
+            "team": "SK",
+            "teamCode": "55",
+            "note": "2월"
+          },
+          {
+            "playerNo": "290280",
+            "name": "문태영",
+            "team": "모비스",
+            "teamCode": "10",
+            "note": "3월"
+          }
+        ]
+      },
+      {
+        "key": "allStarMvp",
+        "winners": [
+          {
+            "playerNo": "290525",
+            "name": "후안 파틸로",
+            "team": "KGC",
+            "teamCode": "70",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "allStar3pt",
+        "winners": [
+          {
+            "playerNo": "210074",
+            "name": "양동근",
+            "team": "모비스",
+            "teamCode": "10",
+            "note": null
+          }
+        ]
+      },
+      {
+        "key": "allStarDunk",
+        "winners": [
+          {
+            "playerNo": "290276",
+            "name": "이승준",
+            "team": "동부",
+            "teamCode": "16",
+            "note": "국내"
+          },
+          {
+            "playerNo": "290525",
+            "name": "후안 파틸로",
+            "team": "KGC",
+            "teamCode": "70",
+            "note": "국외"
+          }
+        ]
+      },
+      {
+        "key": "finalsMvp",
+        "winners": [
+          {
+            "playerNo": "210074",
+            "name": "양동근",
+            "team": "모비스",
+            "teamCode": "10",
+            "note": null
+          }
+        ]
+      }
+    ],
+    "regular": {
+      "first": "SK",
+      "firstRecord": "44승 10패 (0.815)",
+      "second": "모비스",
+      "secondRecord": "41승 13패 (0.759)"
+    },
+    "finals": {
+      "champion": "모비스",
+      "championRecord": "4승",
+      "runnerUp": "SK",
+      "runnerUpRecord": "4패"
+    }
   }
 }

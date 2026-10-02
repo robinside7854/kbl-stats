@@ -1,12 +1,12 @@
 // 선수 페이지 머리말 (PLAN.md §2-2 ①, §5-4): 최근 시즌 팀 색 배경 + 큰 세로 사진 + 로고 + 이름·소속·활동 기간,
 // 이름 아래 국적 배지(국내/외국/아시아쿼터)·활동 기간, 프로필 한 줄(포지션·키·몸무게·등번호·드래프트 — 선수 마스터,
-// 나이·국적(국가명)·출신교 — 서버 B 프로필, 없으면 뺌), 우승 횟수 칩(금색)·우승 시즌 줄,
+// 나이·국적(국가명)·출신교 — 서버 B 프로필, 없으면 뺌), 우승·MVP 금색 칩, 통산 요약 아래 수상 경력 표(lib/career awardLines),
 // 이름 아래 칭호 배지 줄(lib/badges, 최대 5개 + "+n"), 그 아래 통산 요약 8칸(모바일 4×2, PC 8×1)과 소속 팀 이력. 계산은 lib/metrics careerSummary, 표기는 lib/career.
 // 머리말 팀 색은 가장 최근 시즌 팀 (카드 영역은 고른 시즌 팀 색을 따로 쓴다).
 import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
 import type { CareerSeason, PlayerIndexEntry, TeamColor } from "@/lib/types";
 import { careerSummary } from "@/lib/metrics";
-import { activeSpanLabel, championshipSummary, namuWikiSearchUrl, personalFacts, profileFacts, seasonRangeLabel, seasonShortLabel, teamStints } from "@/lib/career";
+import { activeSpanLabel, awardChipText, awardLines, personalFacts, profileFacts, seasonRangeLabel, seasonShortLabel, teamStints } from "@/lib/career";
 import { nationalityOf, NATIONALITY_LABELS } from "@/lib/roster";
 import { mixHex, teamShortLabel } from "@/lib/images";
 import PlayerAvatar from "./PlayerAvatar";
@@ -14,7 +14,7 @@ import FavoriteButton from "./FavoriteButton";
 import TeamLogo from "./TeamLogo";
 import TeamJersey from "./TeamJersey";
 import { MILESTONE_STEPS, type Milestone } from "@/lib/records";
-import { IconExternal, IconTrophy } from "./icons";
+import { IconTrophy } from "./icons";
 import BadgeRow, { type BadgeItem } from "./BadgeRow";
 
 const FALLBACK: TeamColor = FALLBACK_TEAM_COLOR;
@@ -46,9 +46,8 @@ export default function PlayerHero({ entry, seasons, today, badges, milestones =
   const span = first && latest ? activeSpanLabel(first.seasonLabel, latest.seasonLabel, seasons.length) : "";
   const stints = teamStints(seasons);
   const facts = [...profileFacts(entry), ...personalFacts(entry, today)];
-  // 우승: 정규시즌 소속 팀이 그 시즌 챔프전 우승팀인 시즌 (scripts/champions.ts → 색인 championships)
-  const titles = championshipSummary(entry.championships, seasons);
-  if (titles) facts.push({ label: "우승", value: titles.items.join(" · ") });
+  // 우승(정규시즌 소속 팀 = 챔프전 우승팀, scripts/champions.ts) + 역대 수상(공홈 역대수상현황, scripts/awards.ts)
+  const awards = awardLines(entry.awards, entry.championships, seasons);
   // 통산 타일 8칸: 경기 · 경기당 득점·리바운드·어시스트·스틸·블록 · 통산 야투%·3점%(성공 합계 ÷ 시도 합계). 계산은 careerSummary
   const tiles = [
     { label: "통산 경기", value: NF0.format(sum.games), perGame: false, sub: `${NF0.format(sum.wins)}승 ${NF0.format(sum.losses)}패` },
@@ -91,20 +90,7 @@ export default function PlayerHero({ entry, seasons, today, badges, milestones =
               {entry.nameKo}
             </h1>
             <p className="mt-1 truncate text-sub font-medium opacity-85 sm:text-body">{entry.nameEn}</p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              <FavoriteButton playerId={entry.id} nameKo={entry.nameKo} />
-              {/* 나무위키: 동명이인이 많아 문서가 아니라 "이름 농구" 검색으로 보낸다 (lib/career namuWikiSearchUrl) */}
-              <a
-                href={namuWikiSearchUrl(entry.nameKo)}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={`나무위키에서 ${entry.nameKo} 찾기 (새 탭)`}
-                className="focus-ring inline-flex h-10 shrink-0 items-center gap-1.5 rounded-control bg-black/25 px-3 text-sub font-bold transition-colors duration-200 hover:bg-black/40"
-              >
-                나무위키
-                <IconExternal size={16} aria-hidden />
-              </a>
-            </div>
+            <FavoriteButton playerId={entry.id} nameKo={entry.nameKo} className="mt-2" />
             {badges.length > 0 && (
               <div className="mt-2.5">
                 <BadgeRow badges={badges} teamPrimary={color.primary} />
@@ -117,16 +103,19 @@ export default function PlayerHero({ entry, seasons, today, badges, milestones =
               <span className="rounded-control px-2 py-0.5" style={{ background: "rgba(0,0,0,0.25)" }}>
                 {span}
               </span>
-              {titles && (
-                <span
-                  className="inline-flex items-center gap-1 rounded-control px-2 py-0.5"
-                  style={{ background: "var(--grade-s)", color: "var(--grade-s-ink)" }}
-                  title={`챔피언결정전 우승: ${titles.items.join(", ")}`}
-                >
-                  <IconTrophy size={16} aria-hidden />
-                  우승 {titles.count}회
-                </span>
-              )}
+              {awards
+                .filter((a) => a.hero)
+                .map((a) => (
+                  <span
+                    key={a.key}
+                    className="inline-flex items-center gap-1 rounded-control px-2 py-0.5"
+                    style={{ background: "var(--grade-s)", color: "var(--grade-s-ink)" }}
+                    title={`${a.label}: ${a.seasons}`}
+                  >
+                    <IconTrophy size={16} aria-hidden />
+                    {awardChipText(a)}
+                  </span>
+                ))}
             </div>
             {facts.length > 0 && (
               <dl className="mt-3 flex max-w-md flex-wrap gap-x-3 gap-y-1 text-sub sm:text-body">
@@ -167,6 +156,23 @@ export default function PlayerHero({ entry, seasons, today, badges, milestones =
         <p className="mt-1.5 text-caption text-ink-3">
           통산 {sum.seasons}시즌 정규시즌 · 득점~블록은 경기당 · 승패는 뛴 경기만{sum.winPct !== null ? ` (승률 ${NF1.format(sum.winPct)}%)` : ""}
         </p>
+
+        {awards.length > 0 && (
+          <section aria-labelledby="awards-title" className="mt-4">
+            <p id="awards-title" className="text-sub font-semibold text-ink-2">
+              수상 경력 <span className="font-normal text-ink-3">· KBL 역대수상현황</span>
+            </p>
+            <dl className="surface-card tabular mt-1.5 divide-y divide-line rounded-card">
+              {awards.map((a) => (
+                <div key={a.key} className="grid grid-cols-[6.5rem_2.75rem_minmax(0,1fr)] items-baseline gap-2 px-3 py-2 text-sub sm:grid-cols-[8rem_3rem_minmax(0,1fr)]">
+                  <dt className="font-semibold text-ink">{a.label}</dt>
+                  <dd className="font-bold text-ink">{a.count}회</dd>
+                  <dd className="min-w-0 text-ink-2 [overflow-wrap:anywhere]">{a.seasons}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        )}
 
         {milestones.length > 0 && (
           <section aria-labelledby="milestones-title" className="mt-4">
