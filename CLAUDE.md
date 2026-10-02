@@ -156,6 +156,7 @@ kbl-stats/
 │   ├── config.ts        ← 엔드포인트(선수 마스터 PLAYER_MASTER_PATH 포함), 시즌 목록, 요청 간격
 │   ├── player-master.ts ← 선수 마스터 raw → 프로필(position·positionGroup·nationality·heightCm·weightKg·backNumber·draft) 순수 함수, isForeignPlayer, 프로필 API raw → birthday·country·school(profileExtraFrom)
 │   ├── build-shots.ts   ← 선수별 슛 차트 파일 public/shots/{seasonCode}/{playerNo}.json 생성 (prebuild·predev, lib/shots PlayerShotsFile: 점·구역·리그 합계, git 제외)
+│   ├── build-game.ts    ← 54-0 게임 후보 풀 public/game/pool.json 생성 (prebuild·predev, lib/game-pool buildGamePool, 약 520KB·gzip 83KB, git 제외)
 │   ├── build-search-index.ts ← 검색용 경량 색인 public/search-index.json 생성 (npm prebuild·predev 로 자동 실행, 생성물은 .gitignore)
 │   └── build-cards.ts   ← 비교 탭용 시즌별 카드 데이터 public/cards/{seasonCode}.json 생성 (prebuild·predev, 형식은 lib/cards.ts v2 — 레이더 구성 요소 열 포함, 시즌당 약 28~55KB, git 제외)
 ├── tests/
@@ -170,6 +171,7 @@ kbl-stats/
 │   ├── shots-zones.test.ts ← lib/shots 정규화(양쪽 d 대칭)·3점 판정·구역 경계·집계·공격 유형·표본 미달·코트 그림 (npm run test:shotzones)
 │   ├── shots.test.ts    ← 슛 차트 월 구간·경기 목록 거르기·끝남 판정·형식 검사·이어받기 (npm run test:shots)
 │   ├── gamelogs.test.ts ← 경기별 기록 파싱·날짜 매칭·시도 수 붙이기·백필 대상 선정 (npm run test:gamelogs)
+│   ├── game.test.ts     ← 54-0 구간·칸·외국 선수 한도·슬롯·전력·시즌·공유 주소 + 실제 풀 난이도 (npm run test:game)
 │   └── highs.test.ts    ← 한 경기 최다 응답 파싱·프로필·매일 수집 대상 시즌(30일 경계)·백필 이어받기·시즌 하이 1위(동률·RATE 제외)·만 나이·커리어 하이 행 (npm run test:highs, 전부: npm test)
 ├── public/search-index.json ← 빌드 전 생성되는 검색 색인 (id·이름·최근 팀·첫/마지막 시즌·뛴 시즌 코드 seasons·photoUrl·팀 색·positionGroup·positionLabel, 약 370KB). git 제외
 ├── public/shots/{seasonCode}/{playerNo}.json ← 빌드 전 생성되는 선수·시즌 슛 파일 (선수 상세 시즌 전환 때 받음, 최대 약 16KB). git 제외
@@ -193,6 +195,8 @@ kbl-stats/
 │   ├── records.ts       ← 역대 통산 순위 (순수: RECORD_STATS, sumCareerTotals(시즌 합계 → 선수별), rankCareerTotals(합계/경기당 — 경기당은 통산 200경기 이상, 국적 전체/국내/외국인), formatRecord, 현역 isActiveCareer(마지막 시즌 = 기록 있는 최신 시즌) — lib/data loadCareerTotals)
 │   ├── teams.ts         ← 팀 한글 약칭 teamShortNameKo (연고지 지명 목록 HOME_CITIES — 하드코딩 예외, 이유 주석), 팀 색 배정 assignTeamColors(회색 기본값 팀 → 범주형 팔레트, 팀 순서, 순환 금지)·ensureMarkContrast·comparePairColors(OKLab 거리 < 15면 팔레트 1·2번), 핵심 의존도 teamDependency(상위 3명 득점 비중·표본 충족 수)
 │   ├── playstyle.ts     ← 플레이스타일 탭 (순수: buildStyleRows(표본 충족 선수의 역할 유형·공격 유형·종합 점수), groupStyles(유형별 묶음·유형 안 순위 = 종합 백분위 → PER), STYLE_TOP 10, 주소 쿼리 ?kind=&type=&origin=)
+│   ├── game.ts          ← 54-0 게임 규칙 (순수: 시대 구간 splitEras(7개, 남는 시즌은 최근 구간), 칸 GAME_SLOTS 가드2·포워드2·센터1(GF·FC 는 두 칸), 외국 선수 GAME_FOREIGN_MAX 2, 슬롯 spin(구간 반복 가능·고를 선수 있는 팀만)·respinTeam·respinEra, 전력 teamRating(종합 점수 평균 75% + 6축 최고값 평균 25%)·winProbability(WIN_CURVE 표 보간, 전승은 잘 해도 약 1%)·simulateSeason(라인업 시드 → 같은 라인업 같은 성적), 공유 ?l=번호:시즌,…)
+│   ├── game-pool.ts     ← 54-0 후보 풀 만들기 buildGamePool(시즌 카드 → 구간 × 팀 × 후보, 표본 충족·포지션 있는 선수, 같은 구간·팀은 종합 점수 최고 시즌 하나) — 빌드 스크립트 전용
 │   ├── favorites.ts     ← 즐겨찾기 (순수: parseFavorites·toggleFavorite, FAVORITES_VISIBLE 5 — 저장은 app/components/useFavorites localStorage)
 │   ├── prime.ts         ← 프라임 시즌 (pickPrimeSeasons·primeCandidatesOf)
 │   ├── career-cards.ts  ← 비교 탭 통산 카드 (buildCareerCards, CAREER_CODE 0, CAREER_QUALIFY 100경기·1,000분)
@@ -212,6 +216,7 @@ kbl-stats/
 │   ├── player/[playerNo]/page.tsx  ← 선수 상세 정적 1,329개 (히어로(프로필·국적·나이·국가·출신교) → 시즌 칩·순위 범위·시즌 비교 카드 → 추이 그래프 → 시즌별 기록표 → 커리어 하이)
 │   ├── records/page.tsx ← 역대 기록 (통산 순위: 부문 칩·합계/경기당·국적, RecordsView, 메뉴 "역대 기록")
 │   ├── compare/page.tsx ← 비교 탭 정적 1쪽 (?a=번호:코드&b=번호:코드, 기본은 최신·직전 시즌 PER 1위)
+│   ├── game/page.tsx    ← 54-0 게임 (GameView: 다섯 칸 → 슬롯(구간·팀) → 후보 고르기 → 54경기 결과·이미지 저장·링크 복사, /game/pool.json fetch, ?l= 공유 결과, 메뉴 "54-0")
 │   ├── glossary/page.tsx ← 용어 탭 (lib/glossary 표, 앵커 /glossary#ts)
 │   ├── season/[seasonCode]/leaders/page.tsx  ← 시즌 순위표 정적 페이지 (1~3위 표지 카드 + 이 시즌 한 경기 최다 카드 줄 + 정렬 표, 포지션·국적 칩, 파울 열)
 │   ├── season/[seasonCode]/playstyle/page.tsx  ← 플레이스타일 (PlaystyleView: 역할/공격 유형 → 유형 칩 → 유형 안 순위 1~10위 프로필 줄 + 더 보기). 옛 /season/코드/teams 는 next.config redirects 로 여기
@@ -264,6 +269,8 @@ kbl-stats/
 
 ## 세션 로그
 - 2026-10-02 (어워즈 정리): 사용자 지시 — 어워즈에서 **기록 부문(득점상 등)·올스타전 삭제**(`lib/awards SEASON_AWARD_DEFS`에서 뺌, 시즌 파일 `seasonAwards`에는 남음), 베스트5 **바로 아래 수비 5걸**(한 열로 쌓음), **정규리그 시상도 사진 줄**(`SeasonAwardsBoard PhotoRow`: 칸마다 상 이름 + 사진 + 이름·팀). 검증: typecheck·test·build·slop 0, Playwright 25-26 390·04-05 1280 가로 넘침 0. main 배포.
+- 2026-10-02 (54-0 조정): 사용자 지시 ① **시대 구간 중복 허용**(`spin(pool, lineup, rng)`, 시대 다시 돌리기는 지금과 다른 구간, 화면의 구간 칩 줄 삭제) ② **전승 확률 약 1%**(`WIN_CURVE` 위쪽 96→10%·98→7.5%·99→6% 패배, 100 이어야 확정). 2만 판 시뮬레이션: 아무나 중앙 18승 · 매번 최고 점수 49승·전승 0.6% · 다시 돌리기까지 잘 쓰면 50승·전승 1.0%. 검증: typecheck·test·build·slop 0, Playwright 390/1280. main 배포.
+- 2026-10-02 (54-0 게임): 사용자 결정(범위 IN·외국 선수 2명·시대 구간 7개·가드2/포워드2/센터1·오늘의 뽑기 없음)으로 `/game` 구현. 규칙 `lib/game.ts`, 풀 `scripts/build-game.ts` → `public/game/pool.json`(구간 97-00·00-04·04-08·08-12·12-16·16-21·21-26, 팀 10~13개, 후보 2,282명). 점수 = 그 시즌 종합 점수(국적 풀 안 백분위)라 원숫자 합처럼 외국 선수가 휩쓸지 않음. 한 번 쓴 구간은 다시 안 나옴(82-0 연대 규칙). 난이도(1,000판 시뮬레이션): 아무나 뽑기 중앙 18승, 매번 최고 점수 51승·전승 약 14%. 메뉴 "54-0"(모바일 하단 탭 7개). 검증: typecheck·test·build·slop 0, Playwright 320/390/1280 라이트/다크 5라운드 완주·가로 넘침 0·콘솔 에러 0·이미지 저장·공유 링크 같은 성적. main 배포.
 - 2026-10-02 (시즌 어워즈): 마감된 시즌(수상 기록이 있는 시즌) 리더보드 맨 위에 **어워즈**(`SeasonAwardsBoard`, 순서·묶음 `lib/awards buildSeasonAwardsView`): 챔피언·정규리그 1위 카드 → 주요 시상(정규리그 MVP·외국선수 MVP·챔프전 MVP·신인상, 사진 카드, MVP 금색) → 베스트5·수비 5걸(5명 줄) → 정규리그 시상(최우수 수비·식스맨·기량 발전·페어플레이·인기상)·기록 부문(득점상~스틸상, 2023-24~)·올스타전(MVP·3점·덩크)·라운드/월간 MVP 목록, 이름 → 그 시즌 선수 카드. 수상 파서를 개인상 전부로 넓힘(`scripts/awards.ts` 계량 부문·올스타 콘테스트·라운드/월간 MVP·"국내 :"·"1일차:" 꼬리표·한 줄 여러 명, `seasonTeamResults` 정규시즌 1·2위·챔프전 결과) → 시즌 파일 `seasonAwards`(751건 전부 선수 연결), 색인 `awards` 는 프로필 부문만(`PROFILE_AWARD_KEYS`). 감독상만 뺌. 검증: typecheck·test·build·slop 0, Playwright 25-26 390 라이트/1280 다크·97-98 390 가로 넘침 0·콘솔 에러 0. main 배포.
 - 2026-10-02 (나무위키 삭제): 사용자 지시로 선수 머리말 나무위키 버튼·`namuWikiSearchUrl` 삭제. main 배포.
 - 2026-10-02 (역대 수상): 공홈 역대수상현황 표(화면 JS 번들 안 데이터)를 매일 수집 → 선수 머리말 금색 칩(우승·MVP·챔프전 MVP·외국선수 MVP) + 통산 요약 아래 **수상 경력** 표(우승·정규리그 MVP·챔프전 MVP·외국선수 MVP·베스트5·최우수 수비상·수비 5걸·신인상·식스맨상·기량 발전상·올스타전 MVP, 시즌 목록). 492건 전부 선수 연결(예: 김주성 MVP 2·베스트5 8·챔프전 MVP 2, 양동근 MVP 4·챔프전 MVP 3, 이정현 두 명 구분). 우승 시즌 줄은 수상 경력 표로 옮김. 조사 브랜치 `claude/probe-awards`(번들 6MB 커밋 포함 — 지워도 됨). 검증: typecheck·test·build·slop 0, Playwright 390 라이트/1280 다크 가로 넘침 0·콘솔 에러 0. main 배포.

@@ -236,3 +236,14 @@ export function IconStar({ filled = false, ...p }: IconProps & { filled?: boolea
     </Svg>
   );
 }
+
+/** 농구공 (54-0 게임) */
+export function IconBall(p: IconProps) {
+  return (
+    <Svg {...p}>
+      {/* deslop-ignore-next-line 24 */}
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M3.5 12h17M12 3.5v17M6 6c2.5 2.2 2.5 9.8 0 12M18 6c-2.5 2.2-2.5 9.8 0 12" />
+    </Svg>
+  );
+}

@@ -30,7 +30,8 @@ export type GlossaryKey =
   | "hustle"
   | "records"
   | "winPct"
-  | "prime";
+  | "prime"
+  | "game54";
 
 /** 용어 화면의 묶음 (순서 = 화면 순서) */
 export type GlossaryGroup = "stats" | "grades" | "shots" | "etc";
@@ -160,6 +161,15 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     short: "그 선수가 가장 잘했던 시즌입니다. 시즌 칩에 금색으로 표시합니다.",
     note: "종합 점수가 가장 높았던 시즌을 고릅니다. 같은 시즌 선수와 비교한 값이라 시대가 달라도 견줄 수 있습니다.",
     formula: "10경기·100분 이상 뛴 시즌이 2개 이상인 선수만",
+    source: null,
+  },
+  {
+    key: "game54",
+    group: "etc",
+    name: "54-0 게임",
+    short: "시대와 팀을 무작위로 뽑아 주전 5명을 꾸리고 54경기 전승에 도전하는 게임입니다.",
+    note: "자리는 가드 2·포워드 2·센터 1, 외국 선수는 2명까지입니다. 팀 다시 돌리기와 시대 다시 돌리기는 한 번씩 쓸 수 있습니다.",
+    formula: "팀 전력 = 다섯 명 종합 점수 평균 75% + 6축마다 가장 높은 선수 점수의 평균 25%",
     source: null,
   },
   {
@@ -306,6 +316,7 @@ export const GLOSSARY_ANCHORS: Record<GlossaryKey, string> = {
   records: "records",
   winPct: "win-pct",
   prime: "prime",
+  game54: "game-54-0",
 };
 
 /** 도움말 팝오버 한 개의 내용 (app/components/HelpPopover — 그 자리에서 뜨는 ⓘ 설명) */

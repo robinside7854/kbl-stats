@@ -16,10 +16,10 @@
     "test:champions": "tsx tests/champions.test.ts",
     "test:reference": "tsx tests/reference.test.ts",
     "test:leaders": "tsx tests/leaders.test.ts",
-    "test": "npm run test:metrics && npm run test:leaders && npm run test:card && npm run test:player && npm run test:teams && npm run test:roster && npm run test:cardview && npm run test:highs && npm run test:badges && npm run test:gamelogs && npm run test:shots && npm run test:shotzones && npm run test:reference && npm run test:champions",
+    "test": "npm run test:metrics && npm run test:leaders && npm run test:card && npm run test:player && npm run test:teams && npm run test:roster && npm run test:cardview && npm run test:highs && npm run test:badges && npm run test:gamelogs && npm run test:shots && npm run test:shotzones && npm run test:reference && npm run test:champions && npm run test:game",
     "test:card": "tsx tests/card.test.ts",
-    "prebuild": "tsx scripts/build-search-index.ts && tsx scripts/build-cards.ts && tsx scripts/build-shots.ts",
-    "predev": "tsx scripts/build-search-index.ts && tsx scripts/build-cards.ts && tsx scripts/build-shots.ts",
+    "prebuild": "tsx scripts/build-search-index.ts && tsx scripts/build-cards.ts && tsx scripts/build-shots.ts && tsx scripts/build-game.ts",
+    "predev": "tsx scripts/build-search-index.ts && tsx scripts/build-cards.ts && tsx scripts/build-shots.ts && tsx scripts/build-game.ts",
     "build:shots": "tsx scripts/build-shots.ts",
     "build:search": "tsx scripts/build-search-index.ts",
     "test:player": "tsx tests/player.test.ts",
@@ -34,7 +34,9 @@
     "test:gamelogs": "tsx tests/gamelogs.test.ts",
     "backfill:shots": "tsx scripts/backfill-shots.ts",
     "test:shots": "tsx tests/shots.test.ts",
-    "test:shotzones": "tsx tests/shots-zones.test.ts"
+    "test:shotzones": "tsx tests/shots-zones.test.ts",
+    "test:game": "tsx tests/game.test.ts",
+    "build:game": "tsx scripts/build-game.ts"
   },
   "engines": {
     "node": ">=20"
