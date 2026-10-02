@@ -7,7 +7,7 @@ import { pickRandomCard } from "@/lib/search";
 import { playerHref } from "@/lib/cardview";
 import { IconDice } from "./icons";
 import { loadSearchIndex } from "./useSearchIndex";
-import { trackEvent } from "./Analytics";
+import { trackEvent } from "./track";
 
 export default function RandomCardButton({ className = "" }: { className?: string }) {
   const router = useRouter();

@@ -14,7 +14,7 @@ import { IconSearch } from "./icons";
 import PlayerAvatar from "./PlayerAvatar";
 import Skeleton from "./Skeleton";
 import { loadSearchIndex } from "./useSearchIndex";
-import { trackEvent } from "./Analytics";
+import { trackEvent } from "./track";
 
 interface Props {
   className?: string;

@@ -2,7 +2,7 @@
 // 즐겨찾기 별 버튼 (선수 상세 머리말). 이 브라우저에만 저장 (useFavorites, lib/favorites).
 import { IconStar } from "./icons";
 import { useFavorites } from "./useFavorites";
-import { trackEvent } from "./Analytics";
+import { trackEvent } from "./track";
 
 export default function FavoriteButton({ playerId, nameKo, className = "" }: { playerId: string; nameKo: string; className?: string }) {
   const { has, toggle, ready } = useFavorites();

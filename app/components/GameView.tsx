@@ -22,7 +22,7 @@ import PlayerAvatar from "./PlayerAvatar";
 import Skeleton from "./Skeleton";
 import TeamLogo from "./TeamLogo";
 import { useCardSave } from "./useCardSave";
-import { trackEvent } from "./Analytics";
+import { trackEvent } from "./track";
 import { useThemeColors, type ThemeColors } from "./useThemeColors";
 
 /** 처음 보여 줄 후보 수 (나머지는 "더 보기") */

@@ -106,7 +106,7 @@ KBL 공홈은 화면을 그릴 때 아래 두 서버에서 JSON을 받아온다.
 - 수집 실행: **GitHub Actions 스케줄** (매일 새벽 1회) → 수집 스크립트 실행 → 변경분 커밋 → Vercel 자동 재배포
 - 절대 피함: (로드맵 단계 확인 전의) DB·로그인/회원, 실시간 갱신, 서버 상태 유지가 필요한 구조, 브라우저에서 KBL API 직접 호출(CORS 차단됨, 아래 참고)
 - 이유: 규모가 작고 데이터가 하루 한 번만 바뀐다. 파일+정적 사이트가 가장 싸고(무료) 가장 덜 고장난다. 커뮤니티 단계가 시작되면 그 부분만 DB
-- 방문 통계: **GA4** (`app/components/Analytics.tsx`, ID 는 `lib/analytics gaMeasurementId` ← Vercel 환경변수 `NEXT_PUBLIC_GA_ID`, 없으면 스크립트 자체를 안 넣음). 페이지 조회는 GA 자동, 버튼 이벤트는 `trackEvent`(search_select·random_card·image_save·favorite_add/remove·game_spin·game_complete·game_share_link). 켜져 있으면 푸터에 쿠키 안내 한 줄
+- 방문 통계: **GA4 측정 ID `G-03YNZDVE0F`**(사용자 구글 계정, 2026-10-02) — `app/components/Analytics.tsx`(서버 컴포넌트), ID 는 `lib/analytics gaMeasurementId`: **Vercel 운영 배포(VERCEL_ENV=production)에서만** 켜짐, 환경변수 `NEXT_PUBLIC_GA_ID` 가 있으면 우선(`off` 면 끔). 페이지 조회는 GA 자동, 버튼 이벤트는 `app/components/track.ts trackEvent`(search_select·random_card·image_save·favorite_add/remove·game_spin·game_complete·game_share_link). 켜져 있으면 푸터에 쿠키 안내 한 줄
 
 ## 아키텍처 원칙
 1. **수집(ETL)과 화면(Web)은 완전히 분리** — `scripts/`는 KBL API를 알고, `app/`은 `data/processed/*.json`만 안다. 화면 코드에 KBL 주소가 등장하면 안 된다. 왜: API가 바뀌어도 화면은 안 건드린다.
@@ -268,6 +268,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-02 (GA4 측정 ID): 사용자 제공 ID `G-03YNZDVE0F` 를 코드 기본값으로(운영 배포만 켜짐, 미리보기·개발 꺼짐 — Vercel 환경변수 설정 불필요). Analytics 를 서버 컴포넌트로, 이벤트 함수는 `track.ts` 로 분리. 검증: typecheck·test·build(VERCEL_ENV=production 이면 스크립트·푸터 안내 있음, 없으면 0)·slop 0. main 배포.
 - 2026-10-02 (54-0 결과 화면 정리): 사용자 지시 — ① 코트를 PC 에서 `max-w-md`(448px)로 묶고 사진 64px·이름표(이름 + 종합 등급 칩 · 포지션(칸 이름)·MVP · 팀 시대)를 크게, 폰은 사진 48px ② 자리를 **좌우 대칭**(탑 50% · 윙 20/80% · 로우 24/76%, 값은 사진 가운데) — 폰은 상자를 코트보다 길게(15:16, 360px 미만 15:19, SVG `xMidYMin meet`)해 엔드라인 밖을 이름표 자리로 ③ **뽑은 뒤에만 등급 공개**(`GradeChip` = overallGrade(score)·gradeTone — 위 다섯 칸은 사진 모서리, 코트는 이름 옆) ④ 팀 능력치 "약점"을 축 이름 옆 칩으로(숫자와 분리) ⑤ 54경기 승패 칸·최다 연승 삭제. 검증: typecheck·test·build·slop 0, Playwright 320/360/390/1280 코트 안 사진·이름표 겹침 0·코트 밖 0, 완주·공유 링크·이미지 저장. main 배포.
 - 2026-10-02 (숏폼 자동화 검토): KBL 팬 유튜브 쇼츠(30~60초) 레퍼런스·템플릿·매일 자동 제작 검토 → `docs/shorts-automation-review-2026-10-02.md`. 결론: 주제 선정·대본(숫자 대조 검사)·Remotion 렌더(1080×1920, Actions)는 지금 데이터로 자동화 가능. 막히는 곳 ① 유튜브 API 프로젝트는 감사 통과 전 업로드가 비공개로만 됨 → 반자동(파일 받기) → 비공개 업로드+공개 버튼만 사람 → 예약 공개 3단계 ② 선수 사진은 영상에 복제·배포라 사이트 핫링크보다 위험 → 사진 없이(유니폼·실루엣) 시작 권장, 수익화는 KBL 서면 승낙 전 금지. 포맷 7개 요일 순환(주간 TOP5·VS·슛 차트·N년 전 오늘·퀴즈·이정표·역대) + 끼어들기(커리어 하이·이정표 달성·생일). 이 환경은 youtube.com 차단 → 조회수 순 레퍼런스 표는 YouTube API 키로 Actions 조사 제안. 2026-27 개막 10-03. 사용자 결정 대기. 코드 변경 없음.
 - 2026-10-02 (재미 요소 후보): 판타지 리그 보류(사용자). 국내에 없는 재미 요소 10개 정리 → `docs/fun-ideas-2026-10-02.md`(KBL 그리드·오늘의 선수 맞히기·드래프트 다시 하기·하이로우·학교 대항전·그날의 KBL·티어 리스트·득점왕 레이스·나이 곡선·내 키로 보는 KBL). 추천 1~3번. 사용자 결정 대기. 코드 변경 없음.
