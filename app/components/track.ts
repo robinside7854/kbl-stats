@@ -11,3 +11,10 @@ export function trackEvent(name: string, params?: Record<string, string | number
     // 통계 실패가 화면을 막으면 안 된다
   }
 }
+
+/** 필터·보기 바꾸기 — 바뀐 항목마다 filter_change 하나 (screen: 화면 이름, filter: 항목 이름, value: 새 값) */
+export function trackFilters(screen: string, patch: Record<string, unknown>) {
+  for (const [filter, v] of Object.entries(patch)) {
+    trackEvent("filter_change", { screen, filter, value: v === null || v === undefined ? "none" : String(v) });
+  }
+}

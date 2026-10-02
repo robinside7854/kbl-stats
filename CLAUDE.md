@@ -106,7 +106,7 @@ KBL 공홈은 화면을 그릴 때 아래 두 서버에서 JSON을 받아온다.
 - 수집 실행: **GitHub Actions 스케줄** (매일 새벽 1회) → 수집 스크립트 실행 → 변경분 커밋 → Vercel 자동 재배포
 - 절대 피함: (로드맵 단계 확인 전의) DB·로그인/회원, 실시간 갱신, 서버 상태 유지가 필요한 구조, 브라우저에서 KBL API 직접 호출(CORS 차단됨, 아래 참고)
 - 이유: 규모가 작고 데이터가 하루 한 번만 바뀐다. 파일+정적 사이트가 가장 싸고(무료) 가장 덜 고장난다. 커뮤니티 단계가 시작되면 그 부분만 DB
-- 방문 통계: **GA4 측정 ID `G-03YNZDVE0F`**(사용자 구글 계정, 2026-10-02) — `app/components/Analytics.tsx`(서버 컴포넌트), ID 는 `lib/analytics gaMeasurementId`: **Vercel 운영 배포(VERCEL_ENV=production)에서만** 켜짐, 환경변수 `NEXT_PUBLIC_GA_ID` 가 있으면 우선(`off` 면 끔). 페이지 조회는 GA 자동, 버튼 이벤트는 `app/components/track.ts trackEvent`(search_select·random_card·image_save·favorite_add/remove·game_spin·game_complete·game_share_link). 켜져 있으면 푸터에 쿠키 안내 한 줄
+- 방문 통계: **GA4 측정 ID `G-03YNZDVE0F`**(사용자 구글 계정, 2026-10-02) — `app/components/Analytics.tsx`(서버 컴포넌트), ID 는 `lib/analytics gaMeasurementId`: **Vercel 운영 배포(VERCEL_ENV=production)에서만** 켜짐, 환경변수 `NEXT_PUBLIC_GA_ID` 가 있으면 우선(`off` 면 끔). 페이지 조회는 GA 자동, 버튼 이벤트는 `app/components/track.ts` `trackEvent`·`trackFilters`. 켜져 있으면 푸터에 쿠키 안내 한 줄. **이벤트 목록과 규칙은 아래 "방문 통계 규칙"**
 
 ## 아키텍처 원칙
 1. **수집(ETL)과 화면(Web)은 완전히 분리** — `scripts/`는 KBL API를 알고, `app/`은 `data/processed/*.json`만 안다. 화면 코드에 KBL 주소가 등장하면 안 된다. 왜: API가 바뀌어도 화면은 안 건드린다.
@@ -240,12 +240,34 @@ kbl-stats/
 - 순서: 작업 브랜치 커밋·푸시 → 검증(typecheck·test·build) 통과 → `git fetch origin main && git checkout main && git merge --ff-only <작업 브랜치>` (ff 가 안 되면 main 을 작업 브랜치에 먼저 merge 해 해결) → `git push origin main` → 작업 브랜치로 돌아온다. PR 승인을 기다리지 않는다.
 - 데이터 커밋(Actions)이 main 에 먼저 들어와 있을 수 있으니 merge 전에 반드시 fetch 한다.
 
+## 방문 통계 규칙 (2026-10-02 사용자 지시 — 세션이 바뀌어도 지킨다)
+- **새 메뉴·화면·기능을 만들 때는 GA4 이벤트 작업을 먼저 한다.** 화면 코드를 쓰기 전에 "이 기능에서 무엇을 셀지"(이벤트 이름·매개변수)를 정하고, 기능과 같은 커밋에 `trackEvent`/`trackFilters` 호출을 넣는다. 이벤트 없는 새 기능은 끝난 것이 아니다
+- 새 메뉴는 `SiteNav` MENU 에 넣으면 `nav_click` 이 자동으로 붙는다. 새 필터·보기 전환은 `trackFilters("화면", { 항목: 값 })`, 그 밖의 행동은 `trackEvent("동사_명사", {...})`(영어 소문자·밑줄, 40자 이하)
+- 매개변수는 개인을 알아볼 수 없는 값만(선수 번호·시즌·화면·부문 이름). 이메일·이름 입력값·검색어 원문은 보내지 않는다
+- 새 매개변수를 만들면 사용자에게 "GA → 관리 → 맞춤 정의"에 등록할 이름을 알려 준다(등록 전 데이터는 보고서에서 안 보임)
+- 검증: 브라우저에서 `window.gtag` 를 가짜 함수로 바꿔 놓고 눌러 보아 이벤트가 나가는지 확인(Playwright `addInitScript`)
+- 지금 이벤트 (화면 이름 screen: leaders·players·records·player·trend·shot_chart·compare·home 등)
+  | 이벤트 | 매개변수 | 언제 |
+  |---|---|---|
+  | page_view | (GA 자동) | 화면 열기·이동 |
+  | nav_click | menu, place(top/bottom) | 상단·하단 메뉴 |
+  | filter_change | screen, filter, value | 필터·부문·단위·시즌·보기 전환 (54-0 후보 포지션 칩 position·정렬 칩 sort(예: rpg_asc), 리더보드·선수 탭·역대 기록·선수 상세 시즌/순위 범위/프라임·추이 지표·슛 차트 보기·비교 시즌/카드 보기·상단 시즌 선택) |
+  | filter_reset | screen | 필터 초기화 |
+  | help_open | topic | ⓘ 도움말 열기 (어떤 용어가 어려운지) |
+  | csv_download | season, category, mode | 리더보드 CSV |
+  | search_select | player_no, mode(go/compare) | 검색에서 선수 고르기 |
+  | random_card | player_no, season_code | 랜덤 카드 |
+  | image_save | file_name | 카드·54-0 이미지 저장 |
+  | favorite_add / favorite_remove | player_no | 즐겨찾기 |
+  | game_spin / game_complete(wins) / game_share_link | | 54-0 |
+
 ## 코딩 규칙
 - 파일·변수 이름은 영어, 주석과 커밋 메시지는 한국어
 - KBL API 필드명(`kname`, `fgRt` 등)은 `lib/types.ts`에서 우리 이름(`nameKo`, `fgPct`)으로 한 번만 변환. 화면에는 KBL 원본 필드명이 나오지 않게
 - 수집 스크립트는 실패 시 해당 시즌만 건너뛰고 나머지는 계속. 마지막에 실패 목록을 출력
 - 화면은 모바일 우선 (팬은 대부분 폰으로 본다)
 - 새 화면·차트를 만들기 전에 `SCOPE.md`의 IN 목록에 있는지 확인. 없으면 만들지 말고 사용자에게 묻는다
+- 새 메뉴·기능은 GA4 이벤트를 먼저 정하고 같은 커밋에 넣는다 (위 "방문 통계 규칙")
 - 새 지표를 추가할 때 계산식·출처 주석 필수
 
 ### 디자인 토큰 (2026-09-30 디자인 점검 B·C, 토큰은 `app/globals.css`)
@@ -268,7 +290,8 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
-- 2026-10-02 (54-0 후보 칩): 사용자 요청 — 후보 목록 위에 **포지션 칩**(전체·가드·포워드·센터 + 인원, 그 칸에 들어갈 수 있는 기준 — GF 는 가드·포워드, FC 는 포워드·센터 둘 다, `lib/game filterByPositionChip`)과 **정렬 칩**(득점·리바·어시·스틸·블록, 같은 칩 다시 누르면 내림↔오름, `sortCandidatesBy`, 같으면 득점 → 이름). 정렬은 다음 슬롯에도 유지, 포지션은 슬롯마다 전체로. 정렬 기준 기록 이름표를 진하게, 0명이면 "전체 보기". 검증: test(겸업 두 칩·내림/오름·동점)·typecheck·build·slop 0, Playwright 390: 센터 칩 → 센터만, 리바 내림/오름 순서 확인, 다음 슬롯 포지션 전체·정렬 유지, 완주 390/1280. main 배포.
+- 2026-10-02 (54-0 후보 칩): 사용자 요청 — 후보 목록 위에 **포지션 칩**(전체·가드·포워드·센터 + 인원, 그 칸에 들어갈 수 있는 기준 — GF 는 가드·포워드, FC 는 포워드·센터 둘 다, `lib/game filterByPositionChip`)과 **정렬 칩**(득점·리바·어시·스틸·블록, 같은 칩 다시 누르면 내림↔오름, `sortCandidatesBy`, 같으면 득점 → 이름). GA4: filter_change screen=game, filter=position|sort. 정렬은 다음 슬롯에도 유지, 포지션은 슬롯마다 전체로. 정렬 기준 기록 이름표를 진하게, 0명이면 "전체 보기". 검증: test(겸업 두 칩·내림/오름·동점)·typecheck·build·slop 0, Playwright 390: 센터 칩 → 센터만, 리바 내림/오름 순서 확인, 다음 슬롯 포지션 전체·정렬 유지, 완주 390/1280. main 배포.
+- 2026-10-02 (GA4 이벤트 확장·규칙): 사용자 지시 — 반응을 볼 이벤트 추가: nav_click(상단/하단 메뉴)·filter_change(리더보드·선수 탭·역대 기록·선수 상세 시즌/범위/프라임·추이 지표·슛 차트 보기·비교·상단 시즌, `track.ts trackFilters`)·filter_reset·help_open(ⓘ 용어)·csv_download. 그리고 **"새 메뉴·기능은 GA4 이벤트 작업 선행"** 규칙을 CLAUDE.md "방문 통계 규칙"에 저장(이벤트 표 포함). 검증: typecheck·test·build·slop 0, Playwright(가짜 gtag)로 filter_change·help_open·nav_click 확인. 덤: 로컬 public/game/pool.json 이 옛 형식이라 game 테스트가 실패 → build:game 다시 만들어 통과(코드 문제 아님). main 배포.
 - 2026-10-02 (54-0 한 시즌 + 팀 3개): 시뮬레이션 비교(시대 구간 나누기 9가지·한 시즌 팀 1/2/3개 — 균등 7구간은 08-12·16-21 처럼 리그 흐름이 바뀐 시즌을 가로질러 해석이 갈리고, 한 시즌 팀 1개는 후보 9명이라 너무 어려움) 후 사용자 결정으로 **한 시즌 + 팀 3개**(후보 약 28명). `lib/game-pool` 구간 = 시즌 하나(30개, 기록 = 그 시즌), `Spin.teamCodes`(3개)·`GAME_SPIN_TEAMS`·`teamsOf`·`teamOfCandidate`·`spinCandidates`, 팀 다시 = 같은 시즌 새 팀 3개(지금 팀은 되도록 뺌), 시즌 다시 = 지금 팀이 가장 많이 남는 다른 시즌(없는 자리만 채움), `splitEras`·`GAME_ERA_COUNT` 삭제. 같은 선수는 시즌이 달라도 한 번만(선수 번호, 테스트 추가). 난이도 다시 맞춤: `WIN_CURVE` 96·98·99 = 원래의 0.75배(7.5%·5.625%·4.5%) → 득점 1위만 고르면 전승 0.20%·중앙 46승, 숨은 점수 1위 2.1%, 아무나 17승. 화면: 오른쪽 릴에 팀 3개(로고·이름), 후보 줄에 팀 로고·이름, "시즌 다시", 용어 문구. pool.json 1,081KB(gzip 156KB). 검증: typecheck·test·build·slop 0, Playwright 390/1280 완주·공유 링크·이미지 저장, 시즌 다시 = 왼쪽만(03-04 → 09-10, LG·SK·모비스 유지)·팀 다시 = 오른쪽만. main 배포.
 - 2026-10-02 (도메인): 사용자가 Vercel 주소를 **https://kbl-stats-reference.vercel.app** 으로 바꿈(옛 kbl-stats-mu.vercel.app 은 Vercel 도메인 설정에 남아 있으면 계속 열림). 코드에는 사이트 주소가 하드코딩된 곳이 없음(grep 0) — GA4 는 측정 ID 기준이라 도메인이 바뀌어도 그대로 수집. 나중에 OG 미리보기(metadataBase)를 만들 때는 주소를 site.json 한 곳에 둘 것.
 - 2026-10-02 (GA4 측정 ID): 사용자 제공 ID `G-03YNZDVE0F` 를 코드 기본값으로(운영 배포만 켜짐, 미리보기·개발 꺼짐 — Vercel 환경변수 설정 불필요). Analytics 를 서버 컴포넌트로, 이벤트 함수는 `track.ts` 로 분리. 검증: typecheck·test·build(VERCEL_ENV=production 이면 스크립트·푸터 안내 있음, 없으면 0)·slop 0. main 배포.

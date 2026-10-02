@@ -78,6 +78,7 @@ import RowList, { type RowColumn } from "./RowList";
 import SeasonHighStrip from "./SeasonHighStrip";
 import Segmented from "./Segmented";
 import TeamLogo from "./TeamLogo";
+import { trackEvent, trackFilters } from "./track";
 
 interface Props {
   seasonLabel: string;
@@ -213,7 +214,10 @@ export default function LeadersView({ seasonLabel, players, teams, seasonHighs =
     window.history.replaceState(null, "", `${window.location.pathname}${leadersQueryString(state)}`);
   }, [state]);
 
-  const update = (patch: Partial<LeadersState>) => setState((s) => ({ ...s, ...patch }));
+  const update = (patch: Partial<LeadersState>) => {
+    trackFilters("leaders", patch);
+    setState((s) => ({ ...s, ...patch }));
+  };
   const { mode, origin, position, teamCode, presetIdx } = state;
   // 이 시즌에 기록이 있는 부문만 칩으로 (허슬은 2025-26, 슛 구역은 슛 차트 있는 시즌). 공유 링크의 부문이 없으면 기본 부문
   const categories = useMemo(() => availableCategories(players), [players]);
@@ -249,6 +253,7 @@ export default function LeadersView({ seasonLabel, players, teams, seasonHighs =
 
   /** 지금 순위표를 CSV 로 (lib/leaders leadersCsv — 엑셀에서 바로 열린다) */
   function downloadCsv() {
+    trackEvent("csv_download", { season: seasonShortLabel(seasonLabel), category: sortKey, mode });
     const csv = leadersCsv(rows, columns, mode, ranks, (p) => teamName(p.teamCode));
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
@@ -496,7 +501,10 @@ export default function LeadersView({ seasonLabel, players, teams, seasonHighs =
             <p className="mt-1 text-sub text-ink-2">필터를 줄이거나 표본 기준을 낮춰 보세요.</p>
             <button
               type="button"
-              onClick={() => setState((s) => resetLeaderFilters(s))}
+              onClick={() => {
+                trackEvent("filter_reset", { screen: "leaders" });
+                setState((s) => resetLeaderFilters(s));
+              }}
               className="focus-ring mt-4 h-11 rounded-control border border-line bg-surface px-4 text-body font-semibold text-ink transition-colors duration-200 hover:bg-surface-2"
             >
               필터 초기화

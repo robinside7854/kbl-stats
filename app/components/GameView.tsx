@@ -24,7 +24,7 @@ import PlayerAvatar from "./PlayerAvatar";
 import Skeleton from "./Skeleton";
 import TeamLogo from "./TeamLogo";
 import { useCardSave } from "./useCardSave";
-import { trackEvent } from "./track";
+import { trackEvent, trackFilters } from "./track";
 import { useThemeColors, type ThemeColors } from "./useThemeColors";
 
 /** 처음 보여 줄 후보 수 (나머지는 "더 보기") — 팀 3개라 후보가 보통 25~30명 */
@@ -461,7 +461,10 @@ function CandidateList({ teams, sort, onSort, lineup, choosing, showAll, onShowA
           ),
         }))}
         value={pos}
-        onChange={setPos}
+        onChange={(v) => {
+          setPos(v);
+          trackFilters("game", { position: v });
+        }}
       />
       <ChipRow
         label="정렬 (같은 칩을 다시 누르면 순서가 바뀝니다)"
@@ -478,7 +481,11 @@ function CandidateList({ teams, sort, onSort, lineup, choosing, showAll, onShowA
           ),
         }))}
         value={sort.key}
-        onChange={(k) => onSort(k === sort.key ? { key: k, dir: sort.dir === "desc" ? "asc" : "desc" } : { key: k, dir: "desc" })}
+        onChange={(k) => {
+          const next: { key: SortStat; dir: SortDir } = k === sort.key ? { key: k, dir: sort.dir === "desc" ? "asc" : "desc" } : { key: k, dir: "desc" };
+          onSort(next);
+          trackFilters("game", { sort: `${next.key}_${next.dir}` });
+        }}
       />
       {ordered.length === 0 ? (
         <p className="surface-card mt-2 rounded-container px-4 py-6 text-center text-body text-ink-2">

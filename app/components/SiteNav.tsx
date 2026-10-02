@@ -16,6 +16,7 @@ import PlayerSearch from "./PlayerSearch";
 import RandomCardButton from "./RandomCardButton";
 import { IconBall, IconCompare, IconHome, IconLeaders, IconPlayer, IconTrophy } from "./icons";
 import SiteLogo, { SITE_HEADER_NAME } from "./SiteLogo";
+import { trackEvent, trackFilters } from "./track";
 
 export type SiteView = "home" | "players" | "player" | "leaders" | "compare" | "glossary" | "records" | "game";
 
@@ -51,6 +52,7 @@ export default function SiteNav({ seasons, seasonCode, view, onSeasonChange, wid
   const showSeason = !!route || !!onSeasonChange;
 
   function changeSeason(code: number) {
+    trackFilters(view, { season: code });
     if (onSeasonChange) onSeasonChange(code);
     else if (route) router.push(`${route(code)}${window.location.search}`);
   }
@@ -94,6 +96,7 @@ export default function SiteNav({ seasons, seasonCode, view, onSeasonChange, wid
               <Link
                 key={m.label}
                 href={m.href(seasonCode)}
+                onClick={() => trackEvent("nav_click", { menu: m.label, place: "top" })}
                 aria-current={active ? "page" : undefined}
                 className={`focus-ring-inset -mb-px flex h-11 shrink-0 items-center whitespace-nowrap border-b-2 px-2 text-body font-semibold transition-colors duration-200 sm:px-3 ${
                   active ? "border-ink text-ink" : "border-transparent text-ink-2 hover:text-ink"
@@ -118,6 +121,7 @@ export default function SiteNav({ seasons, seasonCode, view, onSeasonChange, wid
             <Link
               key={m.label}
               href={m.href(seasonCode)}
+              onClick={() => trackEvent("nav_click", { menu: m.label, place: "bottom" })}
               aria-current={active ? "page" : undefined}
               aria-label={m.label}
               className={`focus-ring-inset flex h-14 flex-col items-center justify-center gap-0.5 text-caption transition-colors duration-200 ${
