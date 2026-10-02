@@ -50,5 +50,7 @@ export interface EpisodeProps {
   scenes: EpisodeScene[];
   /** 전체 내레이션 한 파일 (있으면 장면별 audio 대신) */
   narration?: string | null;
+  /** 배경음악 (shorts/public 기준 경로) */
+  bgm?: string | null;
   [key: string]: unknown;
 }

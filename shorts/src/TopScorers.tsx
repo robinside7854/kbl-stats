@@ -496,11 +496,25 @@ const SCENE: Record<EpisodeScene["kind"], (x: { props: EpisodeProps; scene: Epis
 
 export function TopScorers(props: EpisodeProps) {
   useFont();
-  useVideoConfig();
+  const { durationInFrames } = useVideoConfig();
   let from = 0;
   return (
     <AbsoluteFill style={{ background: C.paper, fontFamily: FONT }}>
       {props.narration ? <Audio src={staticFile(props.narration)} /> : null}
+      {props.bgm ? (
+        // 배경음악: 목소리 밑에 작게 깔고(0.14), 처음 0.3초 올라오고 마지막 1.2초 사라진다
+        <Audio
+          src={staticFile(props.bgm)}
+          loop
+          volume={(f) =>
+            0.14 *
+            interpolate(f, [0, 9, durationInFrames - 36, durationInFrames], [0, 1, 1, 0], {
+              extrapolateLeft: "clamp",
+              extrapolateRight: "clamp",
+            })
+          }
+        />
+      ) : null}
       {props.scenes.map((scene) => {
         const dur = Math.round(scene.seconds * FPS);
         const start = from;

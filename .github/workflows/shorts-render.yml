@@ -9,9 +9,12 @@
 # 목소리 (저장소 Settings → Secrets and variables → Actions → Secrets):
 #   ELEVENLABS_API_KEY + ELEVENLABS_VOICE_ID 가 있으면 ElevenLabs (대본 전체를 한 번에 읽힘, 권장)
 #   없으면 GOOGLE_TTS_API_KEY → Google Cloud TTS, 그것도 없으면 edge-tts(키 없는 시제품용)
-#   말투 조절은 Variables 에 ELEVENLABS_MODEL·ELEVENLABS_STABILITY·ELEVENLABS_STYLE·ELEVENLABS_SPEED (없으면 기본값)
+#   말투 조절은 Variables 에 ELEVENLABS_MODEL(기본 eleven_v3)·ELEVENLABS_STABILITY(v3 는 0·0.5·1)·SHORTS_TEMPO(빠르기, 기본 1.12)
+# 작업 (아래 "작업" 줄에 공백으로): render = 영상, voices = 목소리 후보 샘플(scripts/eleven-voices.ts), bgm = 배경음악 만들기(scripts/eleven-bgm.ts)
+#   배경음악은 한 번 만들면 shorts-renders 브랜치 bgm/ 에 두고 렌더마다 재사용한다
 #
-# 실행 횟수: 0
+# 실행 횟수: 9
+# 작업: voices bgm render
 name: 숏폼 렌더
 
 on:
@@ -39,6 +42,11 @@ jobs:
         id: gate
         run: |
           n=$(grep -m1 -oE '^# 실행 횟수: [0-9]+' .github/workflows/shorts-render.yml | grep -oE '[0-9]+$' || echo 0)
+          tasks=$(grep -m1 -E '^# 작업:' .github/workflows/shorts-render.yml | sed 's/^# 작업://')
+          echo "작업:$tasks"
+          for t in render voices bgm; do
+            case " $tasks " in *" $t "*) echo "$t=true" >> "$GITHUB_OUTPUT";; *) echo "$t=false" >> "$GITHUB_OUTPUT";; esac
+          done
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "$n" -gt 0 ]; then
             echo "run=true" >> "$GITHUB_OUTPUT"
           else
@@ -65,25 +73,46 @@ jobs:
           # ffprobe 는 Remotion 에 들어 있어 따로 설치하지 않는다(prepare-short durationOf). edge-tts 는 ElevenLabs 키가 없을 때만
           if [ -z "$HAS_ELEVENLABS" ]; then pip install --quiet edge-tts; fi
 
+      - name: 배경음악 만들기 (ElevenLabs 음악)
+        if: steps.gate.outputs.run == 'true' && steps.gate.outputs.bgm == 'true'
+        env:
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+        run: npx tsx scripts/eleven-bgm.ts
+
+      - name: 목소리 후보 샘플 (ElevenLabs Voice Library 한국어 남성)
+        if: steps.gate.outputs.run == 'true' && steps.gate.outputs.voices == 'true'
+        env:
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          ELEVENLABS_MODEL: ${{ vars.ELEVENLABS_MODEL }}
+          SHORTS_TEMPO: ${{ vars.SHORTS_TEMPO }}
+        run: npx tsx scripts/eleven-voices.ts
+
       - name: 에피소드 만들기 (지난 시즌 국내 득점 TOP 5)
-        if: steps.gate.outputs.run == 'true'
+        if: steps.gate.outputs.run == 'true' && steps.gate.outputs.render == 'true'
         run: npx tsx scripts/build-short.ts
 
+      - name: 배경음악 준비 (이번에 만든 것 → 없으면 shorts-renders 브랜치 bgm/sports.mp3)
+        if: steps.gate.outputs.run == 'true' && steps.gate.outputs.render == 'true'
+        run: |
+          mkdir -p shorts/public/bgm
+          if [ -f shorts/out/bgm/sports-a.mp3 ]; then cp shorts/out/bgm/sports-a.mp3 shorts/public/bgm/sports.mp3;
+          elif git fetch -q origin shorts-renders 2>/dev/null && git show origin/shorts-renders:bgm/sports.mp3 > shorts/public/bgm/sports.mp3 2>/dev/null; then echo "기존 배경음악 사용";
+          else rm -f shorts/public/bgm/sports.mp3; echo "::notice::배경음악 없음 — 작업 줄에 bgm 을 넣어 한 번 만들 수 있습니다"; fi
+
       - name: 목소리·사진 준비
-        if: steps.gate.outputs.run == 'true'
+        if: steps.gate.outputs.run == 'true' && steps.gate.outputs.render == 'true'
         env:
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
           ELEVENLABS_VOICE_ID: ${{ secrets.ELEVENLABS_VOICE_ID }}
           ELEVENLABS_MODEL: ${{ vars.ELEVENLABS_MODEL }}
           ELEVENLABS_STABILITY: ${{ vars.ELEVENLABS_STABILITY }}
-          ELEVENLABS_STYLE: ${{ vars.ELEVENLABS_STYLE }}
-          ELEVENLABS_SPEED: ${{ vars.ELEVENLABS_SPEED }}
+          SHORTS_TEMPO: ${{ vars.SHORTS_TEMPO }}
           GOOGLE_TTS_API_KEY: ${{ secrets.GOOGLE_TTS_API_KEY }}
         run: |
           for f in shorts/episodes/*/episode.json; do npx tsx scripts/prepare-short.ts "$f"; done
 
       - name: 렌더 (1080×1920 mp4)
-        if: steps.gate.outputs.run == 'true'
+        if: steps.gate.outputs.run == 'true' && steps.gate.outputs.render == 'true'
         run: |
           mkdir -p shorts/out
           cd shorts
@@ -108,7 +137,7 @@ jobs:
           git config user.name "kbl-stats-bot"
           git config user.email "kbl-stats-bot@users.noreply.github.com"
           tmp=$(mktemp -d)
-          cp shorts/out/* "$tmp/"
+          cp -r shorts/out/. "$tmp/"
           if git ls-remote --exit-code --heads origin shorts-renders >/dev/null; then
             git fetch -q origin shorts-renders
             git checkout -qf -B shorts-renders origin/shorts-renders
@@ -120,8 +149,10 @@ jobs:
             git add README.md
           fi
           mkdir -p "$stamp"
-          cp "$tmp"/* "$stamp/"
+          cp -r "$tmp"/. "$stamp/"
           git add "$stamp"
+          # 새로 만든 배경음악은 렌더마다 재사용하도록 bgm/ 에도 (기본 = a)
+          if [ -f "$tmp/bgm/sports-a.mp3" ]; then mkdir -p bgm && cp "$tmp"/bgm/*.mp3 bgm/ && cp bgm/sports-a.mp3 bgm/sports.mp3 && git add bgm; fi
           git commit -qm "숏폼 렌더 $stamp (소스 $src)"
           git push -q origin shorts-renders
           echo "::notice::shorts-renders 브랜치 $stamp 폴더에 올렸습니다."

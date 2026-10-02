@@ -73,3 +73,28 @@ for (const [i, sources] of top5.entries()) {
   assert.ok(!banned.test(l.speech), l.speech);
 }
 console.log("shorts: 내레이션 시각·말 숫자·말버릇 통과");
+
+// v3 말투 태그·숫자 읽기로 글자 수가 달라져도 장면 시각을 글자 찾기로 맞춘다 + 빠르기(tempo)만큼 시각이 줄어든다
+import { shareNoun, stripVoiceTags } from "../lib/shorts";
+{
+  const texts = ["가나다, 라마.", "바사아."];
+  const full = "[excited] " + texts.join(SCENE_JOINER);
+  const chars = [...full];
+  const a = { characters: chars, character_start_times_seconds: chars.map((_, i) => i * 0.1), character_end_times_seconds: chars.map((_, i) => i * 0.1 + 0.1) };
+  const t = sceneTimingsFromAlignment(texts, [["가나다,", "라마."], ["바사아."]], a, 2, 2);
+  // "바" = 위치 20 → 2.0초 ÷ 2(빠르기) = 1.0초, 화면은 SCENE_LEAD 먼저
+  assert.equal(t[0].seconds, Math.round((1.0 - SCENE_LEAD) * 100) / 100);
+  assert.deepEqual(t[0].chunkStarts, [0, 0.75]); // "라" = 위치 15 → 0.75초
+  // 글자 시각이 없으면 글자 수 비율로 (장면 합 = 소리 길이 + 꼬리)
+  const e = sceneTimingsFromAlignment(texts, [["가나다,"], ["바사아."]], { characters: [], character_start_times_seconds: [], character_end_times_seconds: [] }, 10);
+  assert.ok(Math.abs(e.reduce((s, x) => s + x.seconds, 0) - (10 + END_TAIL)) < 0.05);
+}
+assert.equal(stripVoiceTags("[excited] 안녕 [laughs] 하세요"), "안녕 하세요");
+assert.equal(shareNoun(51.8), "절반 이상");
+assert.equal(shareNoun(45.5), "거의 절반");
+// 쇼츠 30~40초: 선수 한 줄은 45자 이하
+for (const [i, sources] of top5.entries()) {
+  const l = topScorerLine({ rank: i + 1, name: ["이정현", "허웅", "안영준", "허훈", "서명진"][i], ppg: 15, sources, callout: c[i], tpPct: 40.6, ftPct: 87 });
+  assert.ok(l.caption.length <= 45, `${l.caption.length}자: ${l.caption}`);
+}
+console.log("shorts: v3 태그·빠르기 시각·짧은 대사 통과");

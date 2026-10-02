@@ -250,41 +250,43 @@ const ieyo = (w: string) => w + particle(w, "이에요", "예요");
 /** 인데/인데 — 이름 뒤 "이정현인데" (받침 없으면 "인데"도 그대로 자연스러움) */
 const inde = (w: string) => w + "인데";
 
+/** 비중을 짧은 명사로: 50 이상 "절반 이상", 43~50 "거의 절반", 33.3 이상 "3분의 1 이상", 그 밖은 반올림 % */
+export function shareNoun(share: number): string {
+  if (share >= 50) return "절반 이상";
+  if (share >= 43) return "거의 절반";
+  if (share >= 100 / 3) return "3분의 1 이상";
+  return `${Math.round(share)}%`;
+}
+
 /**
- * 선수 한 명 대사 — 20대 남자가 친구한테 말하듯, 해요체. 장면 하나 약 5~7초.
- * 숫자는 말로 한두 개만 (정확한 값은 화면에). 순위마다 첫마디 모양을 바꿔 같은 틀이 반복되지 않게 한다.
+ * 선수 한 명 대사 — 쇼츠용 짧은 말 (2026-10-02 사용자: 전체 30~40초, 속도감).
+ * 한 장면 약 4초 = 두 마디. 첫마디는 "N위 이름", 둘째 마디에 숫자 하나. 정확한 값은 화면에.
  * 화면 자막 = 읽는 말 그대로.
  */
 export function topScorerLine(p: TopScorerScriptInput): ScriptLine {
   const c = p.callout;
   const s = (k: ScoringSourceKey) => p.sources.find((x) => x.key === k)!;
   const n = p.name;
-  const lead = p.rank === 1 ? `1위는 ${inde(n)},` : p.rank % 2 === 1 ? `${p.rank}위는 ${n}.` : `${p.rank}위 ${eunNeun(n)}`;
+  const R = `${p.rank}위 ${n}`;
   let line: string;
   if (c.kind === "balanced") {
     const [a, b] = [...p.sources].sort((x, y) => y.share - x.share);
-    const insideOut = new Set([a.key, b.key]).has("paint") && new Set([a.key, b.key]).has("three");
-    line = insideOut
-      ? `${p.rank}위 ${eunNeun(n)} 한쪽에 안 치우쳐요. 안에서 넣은 점수랑 3점으로 넣은 점수가 거의 비슷해요.`
-      : `${p.rank}위 ${eunNeun(n)} ${irang(a.label)} ${b.label} 비중이 거의 비슷해요.`;
+    line = `${p.rank}위 ${eunNeun(n)} 안팎 반반. ${a.label} ${Math.round(a.share)}%, ${b.label} ${Math.round(b.share)}%예요.`;
   } else if (c.source === "three" && c.kind === "shareTop") {
     const pct = pctFloorWords(p.tpPct);
-    line = `${lead} 3점으로 넣은 점수가 ${sharePredicate(s("three").share)}.` + (pct ? ` 성공률도 ${pct}를 넘기고요.` : "");
+    line = `${R}. 3점이 득점의 ${ieyo(shareNoun(s("three").share))}` + (pct ? `. 성공률도 ${pct} 넘어요.` : ".");
   } else if (c.source === "three") {
-    line = `${lead} 3점으로만 한 경기에 ${pointsWords(s("three").perGame)} 넣었어요. 다섯 명 중에 제일 많아요.`;
+    line = `${R}, 3점으로만 경기당 ${pointsWords(s("three").perGame)} 넣었어요. 다섯 명 중 제일 많아요.`;
   } else if (c.source === "paint") {
-    line = `${p.rank}위 ${eunNeun(n)} 안으로 파고드는 쪽이에요. 페인트에서 만든 점수가 ${sharePredicate(s("paint").share)}.`;
+    line = `${R}, 페인트가 득점의 ${ieyo(shareNoun(s("paint").share))}. 다섯 명 중 최고.`;
   } else if (c.source === "ft") {
-    const pg = s("ft").perGame;
-    line =
-      p.rank === 1
-        ? `${lead} 저는 이게 제일 의외였어요. 자유투로만 경기당 ${pointsWords(pg)}이에요. 파울을 그만큼 많이 얻어냈다는 얘기죠.`
-        : `${lead} 자유투로 버는 점수가 커요. 자유투로만 경기당 ${pointsWords(pg)}이에요.`;
+    const pg = pointsWords(s("ft").perGame);
+    line = p.rank === 1 ? `1위 ${eunNeun(n)} 의외로 자유투예요. 자유투로만 경기당 ${pg}!` : `${R}, 자유투로만 경기당 ${pg}.`;
   } else if (c.source === "mid") {
-    line = `${lead} 미드레인지에서 넣은 점수가 ${sharePredicate(s("mid").share)}.`;
+    line = `${R}, 미드레인지가 득점의 ${ieyo(shareNoun(s("mid").share))}.`;
   } else {
     const top = [...p.sources].sort((x, y) => y.share - x.share)[0];
-    line = `${lead} ${euroRo(top.label)} 넣은 점수가 ${sharePredicate(top.share)}.`;
+    line = `${R}, ${iGa(top.label)} 득점의 ${ieyo(shareNoun(top.share))}.`;
   }
   return { caption: line, speech: line };
 }
@@ -396,42 +398,68 @@ export interface SceneTiming {
   chunkStarts: number[];
 }
 
-/** 글자 위치 i 이후 첫 공백 아닌 글자의 시작 시각 */
-function startAt(a: Alignment, i: number): number {
-  for (let k = i; k < a.characters.length; k++) {
-    if (a.characters[k].trim()) return a.character_start_times_seconds[k];
-  }
-  return a.character_end_times_seconds[a.characters.length - 1] ?? 0;
-}
+/** ElevenLabs v3 말투 태그("[excited]" 등) 지우기 — 화면 자막·시각 찾기에는 태그가 없다 */
+export const stripVoiceTags = (t: string) => t.replace(/\[[a-z ]+\]\s*/gi, "");
+
+/** 시각 찾기용 비교 글자: 공백·문장부호 없이 (ElevenLabs 가 숫자·태그를 읽는 방식이 달라도 한글 글자는 그대로라서) */
+const keyChars = (t: string) => stripVoiceTags(t).replace(/[^0-9A-Za-z\u3131-\u318e\uac00-\ud7a3]/g, "");
 
 /**
- * texts: 장면별 읽는 말, chunks: 장면별 자막 조각(읽는 말을 나눈 것), alignment: 전체(texts.join(SCENE_JOINER))의 글자 시각.
- * 자막 조각은 읽는 말 안에서 순서대로 찾는다 (못 찾으면 글자 수 비율로 추정).
+ * texts: 장면별 읽는 말, chunks: 장면별 자막 조각(읽는 말 기준), alignment: 전체를 한 번에 읽힌 결과의 글자 시각.
+ * 글자 위치를 그대로 믿지 않고, 각 장면·조각의 첫 글자 몇 개를 alignment 글자열에서 순서대로 찾아 시각을 정한다
+ * (v3 말투 태그·숫자 읽기 변환으로 글자 수가 달라져도 어긋나지 않게). 못 찾으면 글자 수 비율로 추정.
+ * tempo: 읽힌 소리를 나중에 빠르게 돌린 배율 (시각을 1/tempo 로 줄인다).
  */
 export function sceneTimingsFromAlignment(
   texts: readonly string[],
   chunks: readonly (readonly string[])[],
   a: Alignment,
   audioSeconds: number,
+  tempo = 1,
 ): SceneTiming[] {
-  const offsets: number[] = [];
-  let pos = 0;
-  for (const t of texts) {
-    offsets.push(pos);
-    pos += t.length + SCENE_JOINER.length;
-  }
-  const starts = offsets.map((o, i) => (i === 0 ? 0 : Math.max(0, startAt(a, o) - SCENE_LEAD)));
-  return texts.map((t, i) => {
-    const begin = starts[i];
-    const end = i + 1 < texts.length ? starts[i + 1] : audioSeconds + END_TAIL;
-    let from = 0;
-    const chunkStarts = chunks[i].map((c, j) => {
-      const key = c.replace(/ /g, " ").slice(0, 4);
-      const at = t.indexOf(key, from);
-      if (at < 0) return j === 0 ? 0 : ((end - begin) * j) / chunks[i].length;
-      from = at + 1;
-      return j === 0 ? 0 : Math.max(0, startAt(a, offsets[i] + at) - begin);
+  // alignment 의 비교 글자열과 각 글자의 시작 시각
+  const ac: string[] = [];
+  const at: number[] = [];
+  a.characters.forEach((ch, i) => {
+    if (keyChars(ch)) {
+      ac.push(ch);
+      at.push(a.character_start_times_seconds[i] / tempo);
+    }
+  });
+  const hay = ac.join("");
+  let cursor = 0;
+  const find = (text: string): number | null => {
+    const k = keyChars(text).slice(0, 4);
+    if (!k) return null;
+    const i = hay.indexOf(k, cursor);
+    if (i < 0) return null;
+    cursor = i + 1;
+    return at[i];
+  };
+  const total = audioSeconds;
+  const lens = texts.map((t) => keyChars(t).length || 1);
+  const sum = lens.reduce((x, y) => x + y, 0);
+  const sceneStart: number[] = [];
+  let acc = 0;
+  const chunkAbs: (number | null)[][] = [];
+  texts.forEach((t, i) => {
+    const found = find(t);
+    const est = (acc / sum) * total;
+    sceneStart.push(i === 0 ? 0 : Math.max(0, (found ?? est) - SCENE_LEAD));
+    acc += lens[i];
+    // 이 장면의 자막 조각 (첫 조각은 장면 시작)
+    const cs = chunks[i].map((c, j) => (j === 0 ? null : find(c)));
+    chunkAbs.push(cs);
+  });
+  return texts.map((_, i) => {
+    const begin = sceneStart[i];
+    const end = i + 1 < texts.length ? sceneStart[i + 1] : total + END_TAIL;
+    const n = chunks[i].length;
+    const chunkStarts = chunkAbs[i].map((abs, j) => {
+      if (j === 0) return 0;
+      const rel = abs === null ? ((end - begin) * j) / n : abs - begin;
+      return Math.round(Math.min(Math.max(0, rel), end - begin) * 100) / 100;
     });
-    return { seconds: Math.round((end - begin) * 100) / 100, chunkStarts: chunkStarts.map((x) => Math.round(x * 100) / 100) };
+    return { seconds: Math.round((end - begin) * 100) / 100, chunkStarts };
   });
 }

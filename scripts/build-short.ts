@@ -16,7 +16,6 @@ import { seasonShortLabel } from "../lib/career";
 import {
   captionChunks,
   pickCallouts,
-  compareLine,
   sampleShots,
   scoringBreakdown,
   SCORING_SOURCES,
@@ -143,18 +142,14 @@ const scenes = [
   {
     id: "cover",
     kind: "cover" as const,
-    caption: `${seasonLabel} 국내 득점 TOP 5를 보면요, 다섯 명이 점수 내는 방식이 다 달라요.`,
+    caption: `${seasonLabel} 국내 득점 TOP 5, 점수 내는 방법이 다 달라요.`,
   },
   ...countdown.map((p) => ({ id: `rank-${p.rank}`, kind: "player" as const, playerNo: p.playerNo, caption: p.line.caption })),
+  // 비교 막대 화면 위에서 질문으로 끝낸다 (30~40초 맞추려고 정리 대사·마무리 장면을 합침)
   {
     id: "compare",
     kind: "compare" as const,
-    caption: compareLine({ threeShare: threeTop.name, threePerGame: threePgTop.name, paint: paintTop.name, ft: ftTop.name }),
-  },
-  {
-    id: "outro",
-    kind: "outro" as const,
-    caption: "여러분 팀 에이스는 어느 쪽에 가까워요? 댓글로 알려 주세요.",
+    caption: "여러분 팀 에이스는 어느 쪽이에요? 댓글로 알려 주세요!",
   },
 ].map((s) => ({ ...s, speech: toSpeech(s.caption), chunks: captionChunks(s.caption) }));
 
