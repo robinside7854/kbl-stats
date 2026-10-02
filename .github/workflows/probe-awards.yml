@@ -1,0 +1,46 @@
+# 조사용 1회 워크플로 — KBL 공홈 수상 기록(MVP·베스트5 등) API 주소 확인 (세션 환경은 kbl.or.kr 차단이라 러너에서). 확인 후 삭제.
+name: KBL 수상 기록 주소 조사
+on:
+  push:
+    branches: [claude/probe-awards]
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 공홈 JS 에서 수상 관련 경로 찾기
+        run: |
+          UA="Mozilla/5.0"
+          curl -sL -A "$UA" https://kbl.or.kr/ -o home.html || true
+          echo "== 메뉴 링크 중 award/prize/record =="
+          grep -oE 'href="[^"]*"' home.html | grep -iE 'award|prize|hall|record|history' | sort -u | head -60 || true
+          mkdir js
+          for s in $(grep -oE 'src="[^"]*\.js[^"]*"' home.html | sed -E 's/src="([^"]*)"/\1/' | head -40); do
+            u="$s"; case "$u" in //*) u="https:$u";; /*) u="https://kbl.or.kr$u";; esac
+            curl -sL -A "$UA" "$u" -o "js/$(echo "$u" | md5sum | cut -c1-8).js" || true
+          done
+          ls -la js | head -50
+          echo "== JS 안 award/prize/mvp/수상 주변 =="
+          grep -ohE '.{0,120}(award|Award|prize|Prize|AWARD|mvp|MVP|수상).{0,120}' js/*.js | sort -u | head -80 || true
+          echo "== JS 안 API 경로 후보 =="
+          grep -ohE '"/[a-zA-Z0-9_/{}$-]*(award|prize|mvp|hall)[a-zA-Z0-9_/{}$-]*"' js/*.js | sort -u | head -40 || true
+      - name: 기록 하위 페이지 HTML
+        run: |
+          UA="Mozilla/5.0"
+          for p in /record/award /record/awards /record/prize /record/history /league/award /league/history /record/main /awards; do
+            printf '%s -> ' "$p"; curl -sL -A "$UA" -o page.html -w '%{http_code} %{size_download}\n' "https://kbl.or.kr$p"
+            grep -ohE '.{0,80}(수상|MVP|베스트).{0,80}' page.html | head -5 || true
+            for s in $(grep -oE 'src="[^"]*\.js[^"]*"' page.html | sed -E 's/src="([^"]*)"/\1/' | grep -viE 'jquery|gtag|google' | head -15); do
+              u="$s"; case "$u" in //*) u="https:$u";; /*) u="https://kbl.or.kr$u";; esac
+              curl -sL -A "$UA" "$u" | grep -ohE '.{0,150}(award|prize|mvp|Award|Prize).{0,150}' | sort -u | head -15 || true
+            done
+          done
+      - name: API 후보 직접 호출
+        run: |
+          H1='-H Referer:https://kbl.or.kr/ -H Origin:https://kbl.or.kr -H Accept:application/json'
+          H2='-H channel:WEB -H lang:ko -H teamcode:XX -H X-Requested-With:XMLHttpRequest -H Referer:https://kbl.or.kr/'
+          for u in /api/v1/awards /api/v1/award /api/v1/Common/award /api/v1/records/awards /api/v1/players/awards/210074 /api/v1/players/categories/award/47/210074 /api/v1/players/profile/0/210074; do
+            printf 'B %s -> ' "$u"; curl -s $H1 -o r.json -w '%{http_code} %{size_download}\n' "https://kbl-api.sports2i.com$u"; head -c 400 r.json; echo
+          done
+          for u in /award /awards /award/list /record/award /league/award /history/award /player/210074 /player/210074/award /player/awards?pcode=210074; do
+            printf 'C %s -> ' "$u"; curl -s $H2 -o r.json -w '%{http_code} %{size_download}\n' "https://api.kbl.or.kr$u"; head -c 400 r.json; echo
+          done
