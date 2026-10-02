@@ -159,7 +159,10 @@ kbl-stats/
 │   ├── build-shots.ts   ← 선수별 슛 차트 파일 public/shots/{seasonCode}/{playerNo}.json 생성 (prebuild·predev, lib/shots PlayerShotsFile: 점·구역·리그 합계, git 제외)
 │   ├── build-game.ts    ← 54-0 게임 후보 풀 public/game/pool.json 생성 (prebuild·predev, lib/game-pool buildGamePool, 시즌 30개 × 팀, 약 1.1MB·gzip 156KB, git 제외)
 │   ├── build-search-index.ts ← 검색용 경량 색인 public/search-index.json 생성 (npm prebuild·predev 로 자동 실행, 생성물은 .gitignore)
+│   ├── build-short.ts   ← 팬 숏폼 에피소드 JSON (지난 시즌 국내 득점 TOP 5 득점 유형, 규칙 lib/shorts) → shorts/episodes/{slug}/episode.json (커밋)
+│   ├── prepare-short.ts ← 숏폼 렌더 준비: 장면별 AI 목소리(GOOGLE_TTS_API_KEY 있으면 Google, 없으면 edge-tts, 둘 다 없으면 추정 길이)·사진·로고 받기·글꼴 복사 → shorts/public/{slug}/props.json·upload.txt (git 제외)
 │   └── build-cards.ts   ← 비교 탭용 시즌별 카드 데이터 public/cards/{seasonCode}.json 생성 (prebuild·predev, 형식은 lib/cards.ts v2 — 레이더 구성 요소 열 포함, 시즌당 약 28~55KB, git 제외)
+├── shorts/              ← 팬 숏폼 영상 렌더러 (Remotion, 자체 package.json — 사이트 빌드와 따로 설치). src/TopScorers.tsx(매거진 톤 1080×1920: 표지 → 5위…1위 → 비교 → 질문), theme.ts(종이·잉크, 득점 출처 4색 = 사이트 --cat-1~4), episodes/{slug}/episode.json(커밋), public·out(git 제외). 렌더는 Actions shorts-render.yml(실행 횟수 올려 푸시 → Artifacts + shorts-renders 브랜치)
 ├── tests/
 │   ├── metrics.test.ts  ← lib/metrics.ts 검증 (npm run test:metrics)
 │   ├── leaders.test.ts  ← lib/leaders.ts 검증 (npm run test:leaders)
@@ -197,6 +200,7 @@ kbl-stats/
 │   ├── teams.ts         ← 팀 한글 약칭 teamShortNameKo (연고지 지명 목록 HOME_CITIES — 하드코딩 예외, 이유 주석), 팀 색 배정 assignTeamColors(회색 기본값 팀 → 범주형 팔레트, 팀 순서, 순환 금지)·ensureMarkContrast·comparePairColors(OKLab 거리 < 15면 팔레트 1·2번), 핵심 의존도 teamDependency(상위 3명 득점 비중·표본 충족 수)
 │   ├── game.ts          ← 54-0 게임 규칙 (순수: 슬롯 = 시즌 하나 + 팀 3개(GAME_SPIN_TEAMS·teamsOf·spinCandidates), 칸 GAME_SLOTS 가드2·포워드2·센터1(GF·FC 는 두 칸), 외국 선수 GAME_FOREIGN_MAX 2, 슬롯 spin(시즌 반복 가능·고를 선수 있는 팀만)·respinTeam(같은 시즌 새 팀 3개)·respinEra(다른 시즌, 팀 유지), 같은 선수는 시즌이 달라도 한 번만, 전력 teamRating(종합 점수 평균 75% + 6축 최고값 평균 25%)·winProbability(WIN_CURVE 표 보간, 득점 1위만 고르면 전승 약 0.2%)·simulateSeason(라인업 시드 → 같은 라인업 같은 성적), 공유 ?l=번호:시즌,…)
 │   ├── game-pool.ts     ← 54-0 후보 풀 만들기 buildGamePool(시즌 카드 → 시즌 × 팀 × 후보, 표본 충족·포지션 있는 선수, 점수·축·기록 모두 그 시즌) — 빌드 스크립트 전용
+│   ├── shorts.ts        ← 팬 숏폼 규칙 (순수: 득점 출처 4개 scoringBreakdown(공식 2점·3점·자유투 + 2점을 슛 차트 구역 비율로 페인트/미드, 합 = 공식 득점), 선수별 특징 pickCallouts(비중·경기당 1위, MIN_TRAIT_SHARE 20, 균형형 BALANCED_MAX_SHARE 40), 대사 topScorerLine(해요체)·toSpeech·자막 captionChunks·길이 추정·슛 점 솎기)
 │   ├── favorites.ts     ← 즐겨찾기 (순수: parseFavorites·toggleFavorite, FAVORITES_VISIBLE 5 — 저장은 app/components/useFavorites localStorage)
 │   ├── prime.ts         ← 프라임 시즌 (pickPrimeSeasons·primeCandidatesOf)
 │   ├── career-cards.ts  ← 비교 탭 통산 카드 (buildCareerCards, CAREER_CODE 0, CAREER_QUALIFY 100경기·1,000분)
@@ -229,7 +233,7 @@ kbl-stats/
 │                           PlayerCard(게임식 플레이어 카드: 팀 색 상단+큰 사진 / 스탯 9개+순위(전체 또는 "가드 중") / 파울·출전 줄 / 레이더+등급, 입력은 SeasonCardView 하나),
 │                           LeadersView(순위표), TeamsView(팀 분포 산점도·팀 요약), HomeView(홈), SourceFooter, useThemeColors,
 │                           PlayerAvatar(circle·portrait)·TeamLogo(공식 이미지+대체 디자인, official={false}면 대체만), useOfficialImage(저장 filter excludeOfficialImages)
-└── .github/workflows/fetch.yml, backfill.yml, backfill-highs.yml, backfill-gamelogs.yml, backfill-shots.yml  ← 매일 새벽 수집 / 전체 재수집 / 한 경기 최다·프로필 과거 전체 백필 / 커리어 하이 경기별 기록 백필 / 슛 차트 백필(셋 다 실행 횟수 숫자 올려 푸시)
+└── .github/workflows/fetch.yml, backfill.yml, backfill-highs.yml, backfill-gamelogs.yml, backfill-shots.yml, shorts-render.yml(숏폼 렌더)  ← 매일 새벽 수집 / 전체 재수집 / 한 경기 최다·프로필 과거 전체 백필 / 커리어 하이 경기별 기록 백필 / 슛 차트 백필(셋 다 실행 횟수 숫자 올려 푸시)
 ```
 
 ## 후속 예정 (사용자가 하기로 한 일 — 지금은 만들지 않는다)
@@ -290,6 +294,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-02 (숏폼 시제품): 사용자 결정(공식 사진 사용·수익 없는 팬 계정·AI 목소리 20대 남성·매거진 톤·공개 버튼은 사람·SCOPE IN 사이트 밖 유튜브) → 첫 포맷 "25-26 국내 득점 TOP 5 득점 유형"(이정현·허웅·안영준·허훈·서명진, 득점을 페인트·미드·3점·자유투로 — 합 = 공식 득점) 구현. `lib/shorts.ts`(규칙·대사)·`scripts/build-short.ts`(에피소드 JSON)·`scripts/prepare-short.ts`(목소리·사진)·`shorts/`(Remotion 렌더러)·`.github/workflows/shorts-render.yml`(실행 횟수 올려 푸시 → Artifacts + `shorts-renders` 브랜치). 세션 환경은 KBL 사진·음성 서버 차단이라 렌더는 Actions 에서. Actions 4회: ① 러너에 ffprobe 없음 → ffmpeg 설치 ② 렌더 브랜치 checkout -f ③ edge-tts +12% 로 72초 → 대사 줄이고 +20% ④ 55.3초 완성. 검증: typecheck·test(shorts 추가)·build, 프레임 확인. 다음: 채널 개설(사용자), 매일 주제 자동 선정·API 비공개 업로드는 다음 단계.
 - 2026-10-02 (GA4 이벤트 확장·규칙): 사용자 지시 — 반응을 볼 이벤트 추가: nav_click(상단/하단 메뉴)·filter_change(리더보드·선수 탭·역대 기록·선수 상세 시즌/범위/프라임·추이 지표·슛 차트 보기·비교·상단 시즌, `track.ts trackFilters`)·filter_reset·help_open(ⓘ 용어)·csv_download. 그리고 **"새 메뉴·기능은 GA4 이벤트 작업 선행"** 규칙을 CLAUDE.md "방문 통계 규칙"에 저장(이벤트 표 포함). 검증: typecheck·test·build·slop 0, Playwright(가짜 gtag)로 filter_change·help_open·nav_click 확인. 덤: 로컬 public/game/pool.json 이 옛 형식이라 game 테스트가 실패 → build:game 다시 만들어 통과(코드 문제 아님). main 배포.
 - 2026-10-02 (54-0 한 시즌 + 팀 3개): 시뮬레이션 비교(시대 구간 나누기 9가지·한 시즌 팀 1/2/3개 — 균등 7구간은 08-12·16-21 처럼 리그 흐름이 바뀐 시즌을 가로질러 해석이 갈리고, 한 시즌 팀 1개는 후보 9명이라 너무 어려움) 후 사용자 결정으로 **한 시즌 + 팀 3개**(후보 약 28명). `lib/game-pool` 구간 = 시즌 하나(30개, 기록 = 그 시즌), `Spin.teamCodes`(3개)·`GAME_SPIN_TEAMS`·`teamsOf`·`teamOfCandidate`·`spinCandidates`, 팀 다시 = 같은 시즌 새 팀 3개(지금 팀은 되도록 뺌), 시즌 다시 = 지금 팀이 가장 많이 남는 다른 시즌(없는 자리만 채움), `splitEras`·`GAME_ERA_COUNT` 삭제. 같은 선수는 시즌이 달라도 한 번만(선수 번호, 테스트 추가). 난이도 다시 맞춤: `WIN_CURVE` 96·98·99 = 원래의 0.75배(7.5%·5.625%·4.5%) → 득점 1위만 고르면 전승 0.20%·중앙 46승, 숨은 점수 1위 2.1%, 아무나 17승. 화면: 오른쪽 릴에 팀 3개(로고·이름), 후보 줄에 팀 로고·이름, "시즌 다시", 용어 문구. pool.json 1,081KB(gzip 156KB). 검증: typecheck·test·build·slop 0, Playwright 390/1280 완주·공유 링크·이미지 저장, 시즌 다시 = 왼쪽만(03-04 → 09-10, LG·SK·모비스 유지)·팀 다시 = 오른쪽만. main 배포.
 - 2026-10-02 (도메인): 사용자가 Vercel 주소를 **https://kbl-stats-reference.vercel.app** 으로 바꿈(옛 kbl-stats-mu.vercel.app 은 Vercel 도메인 설정에 남아 있으면 계속 열림). 코드에는 사이트 주소가 하드코딩된 곳이 없음(grep 0) — GA4 는 측정 ID 기준이라 도메인이 바뀌어도 그대로 수집. 나중에 OG 미리보기(metadataBase)를 만들 때는 주소를 site.json 한 곳에 둘 것.
