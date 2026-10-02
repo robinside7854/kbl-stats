@@ -9,11 +9,11 @@
 # 목소리 (저장소 Settings → Secrets and variables → Actions → Secrets):
 #   ELEVENLABS_API_KEY + ELEVENLABS_VOICE_ID 가 있으면 ElevenLabs (대본 전체를 한 번에 읽힘, 권장)
 #   없으면 GOOGLE_TTS_API_KEY → Google Cloud TTS, 그것도 없으면 edge-tts(키 없는 시제품용)
-#   말투 조절은 Variables 에 ELEVENLABS_MODEL(기본 eleven_v3)·ELEVENLABS_STABILITY(v3 는 0·0.5·1)·SHORTS_TEMPO(빠르기, 기본 1.12)
+#   말투 조절은 Variables 에 ELEVENLABS_MODEL(기본 eleven_v3)·ELEVENLABS_STABILITY(v3 는 0·0.5·1)·SHORTS_TEMPO(빠르기, 기본 1.18)
 # 작업 (아래 "작업" 줄에 공백으로): render = 영상, voices = 목소리 후보 샘플(scripts/eleven-voices.ts), bgm = 배경음악 만들기(scripts/eleven-bgm.ts)
 #   배경음악은 한 번 만들면 shorts-renders 브랜치 bgm/ 에 두고 렌더마다 재사용한다
 #
-# 실행 횟수: 0
+# 실행 횟수: 1
 # 작업: render
 name: 숏폼 렌더
 

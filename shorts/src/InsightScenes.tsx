@@ -119,29 +119,65 @@ function ShotmapScene({ props, scene, p }: SceneProps) {
   const f = useCurrentFrame();
   const ins = p.insight as Of<"shotmap">;
   const label = { paint: "페인트", mid: "미드레인지", three: "3점", ft: "자유투" }[ins.focus];
+  const jumper = ins.tpPctTop != null && !!ins.midTop;
   return (
     <Frame props={props} scene={scene} p={p}>
       <div style={{ position: "absolute", left: SAFE.left, top: 210, display: "flex", gap: 32, alignItems: "center", ...rise(prog(f, 0, 10)) }}>
         <Photo p={p} width={200} height={200} style={{ borderRadius: 100 }} />
         <NameBlock p={p} />
       </div>
-      <div style={{ position: "absolute", left: SAFE.left, top: 450, ...rise(prog(f, 4, 12), 30) }}>
-        <Court p={p} court={props.court} width={960} dots={prog(f, 6, 30)} zoneFill={prog(f, 26, 14)} focus={[ins.focus]} colors={{ [ins.focus]: SOURCE_COLOR[ins.focus] }} />
-      </div>
-      <div style={{ position: "absolute", left: SAFE.left, right: W_PAD, top: 1128, display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
-        <div style={rise(prog(f, 24, 12))}>
-          <div style={text(30, 700, C.ink2)}>득점 중 {label}</div>
-          <div style={text(150, 900, SOURCE_COLOR[ins.focus], { lineHeight: 1 })}>
-            <CountUp value={ins.share} p={prog(f, 24, 18)} decimals={0} />%
+      {/* 점퍼(3점 정확도 + 미드레인지) 장인이면 3점·미드 두 구역을 같이 켠다 */}
+      {jumper ? (
+        <div style={{ position: "absolute", left: SAFE.left, top: 440, ...rise(prog(f, 4, 12), 30) }}>
+          <div style={{ display: "flex", gap: 10, marginBottom: 12, ...rise(prog(f, 6, 10)) }}>
+            <span style={{ background: C.accent, borderRadius: 8, padding: "6px 16px", ...text(30, 900, "#fff") }}>점퍼 장인</span>
           </div>
+          <Court
+            p={p}
+            court={props.court}
+            width={860}
+            dots={prog(f, 6, 30)}
+            zoneFill={prog(f, 26, 14)}
+            focus={["three", "mid"]}
+            colors={{ three: SOURCE_COLOR.three, mid: SOURCE_COLOR.mid }}
+          />
         </div>
-        {ins.lowFtShare !== null ? (
-          <div style={{ background: C.ink, borderRadius: 8, padding: "16px 22px", marginBottom: 10, ...rise(prog(f, 44, 10)) }}>
-            <div style={text(24, 600, C.paper2)}>자유투 비중</div>
-            <div style={text(48, 900, C.paper)}>{pct0(ins.lowFtShare)} · 5명 중 최저</div>
+      ) : (
+        <div style={{ position: "absolute", left: SAFE.left, top: 450, ...rise(prog(f, 4, 12), 30) }}>
+          <Court p={p} court={props.court} width={960} dots={prog(f, 6, 30)} zoneFill={prog(f, 26, 14)} focus={[ins.focus]} colors={{ [ins.focus]: SOURCE_COLOR[ins.focus] }} />
+        </div>
+      )}
+      {jumper ? (
+        <div style={{ position: "absolute", left: SAFE.left, right: W_PAD, top: 1110, display: "flex", gap: 70 }}>
+          {[
+            { label: "3점 성공률", value: ins.tpPctTop!, color: SOURCE_COLOR.three, at: 24 },
+            { label: "슛 중 미드레인지", value: ins.midTop!.share, color: SOURCE_COLOR.mid, at: 40 },
+          ].map((b) => (
+            <div key={b.label} style={rise(prog(f, b.at, 12))}>
+              <div style={text(30, 700, C.ink2)}>{b.label}</div>
+              <div style={text(96, 900, b.color, { lineHeight: 1.05 })}>
+                <CountUp value={b.value} p={prog(f, b.at, 18)} />%
+              </div>
+              <div style={text(28, 800, C.ink)}>5명 중 1위</div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div style={{ position: "absolute", left: SAFE.left, right: W_PAD, top: 1128, display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+          <div style={rise(prog(f, 24, 12))}>
+            <div style={text(30, 700, C.ink2)}>득점 중 {label}</div>
+            <div style={text(150, 900, SOURCE_COLOR[ins.focus], { lineHeight: 1 })}>
+              <CountUp value={ins.share} p={prog(f, 24, 18)} decimals={0} />%
+            </div>
           </div>
-        ) : null}
-      </div>
+          {ins.lowFtShare !== null ? (
+            <div style={{ background: C.ink, borderRadius: 8, padding: "16px 22px", marginBottom: 10, ...rise(prog(f, 44, 10)) }}>
+              <div style={text(24, 600, C.paper2)}>자유투 비중</div>
+              <div style={text(48, 900, C.paper)}>{pct0(ins.lowFtShare)} · 5명 중 최저</div>
+            </div>
+          ) : null}
+        </div>
+      )}
     </Frame>
   );
 }
@@ -217,7 +253,7 @@ function SplitScene({ props, scene, p }: SceneProps) {
         <div style={{ position: "absolute", left: beam / 2 - 160, top: 162, width: 320, height: 8, background: C.ink, borderRadius: 4 }} />
       </div>
       <div style={{ position: "absolute", left: SAFE.left, right: W_PAD, top: 1214, textAlign: "center", ...rise(prog(f, 48, 12)) }}>
-        <span style={text(56, 900)}>어디 막아도 답 있음</span>
+        <span style={text(56, 900)}>어딜 막아도 지옥의 이지선다</span>
       </div>
     </Frame>
   );
@@ -260,7 +296,7 @@ function LineupScene({ props, scene, p }: SceneProps) {
       </div>
       <div style={{ position: "absolute", left: SAFE.left, right: W_PAD, top: 640, ...rise(prog(f, 22, 10)) }}>
         <div style={{ display: "inline-block", background: p.team.color, borderRadius: 8, padding: "10px 22px", ...text(40, 900, "#fff") }}>
-          혼자 {ins.only}
+          유일한 {ins.only}
         </div>
         <div style={text(96, 900, C.ink, { marginTop: 14 })}>{p.name}</div>
       </div>
@@ -310,7 +346,10 @@ function LadderScene({ props, scene, p }: SceneProps) {
       </div>
       <div style={{ position: "absolute", left: 470, right: W_PAD, top: 220, ...rise(prog(f, 4, 12)) }}>
         <NameBlock p={p} size={96} />
-        <div style={text(36, 800, C.ink2, { marginTop: 40 })}>3점으로만</div>
+        {ins.volume ? (
+          <div style={{ display: "inline-block", marginTop: 28, background: C.accent, borderRadius: 8, padding: "6px 16px", ...text(30, 900, "#fff") }}>볼륨 슈터</div>
+        ) : null}
+        <div style={text(36, 800, C.ink2, { marginTop: ins.volume ? 14 : 40 })}>3점으로만</div>
         <div style={text(200, 900, color, { lineHeight: 1 })}>
           <CountUp value={ins.value} p={prog(f, 8, 20)} />
         </div>

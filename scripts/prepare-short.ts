@@ -164,7 +164,7 @@ if (provider === "elevenlabs") {
   const file = path.join(outDir, "audio", "narration.mp3");
   const alignment = await ttsElevenLabs(fullText, file);
   // 쇼츠는 빠른 말이 낫다 (사용자: 30~40초, 속도감) — 읽힌 뒤 소리 자체를 빠르게
-  const tempo = Number(process.env.SHORTS_TEMPO || 1.12);
+  const tempo = Number(process.env.SHORTS_TEMPO || 1.18);
   speedUp(file, tempo);
   const total = durationOf(file);
   narration = `${slug}/audio/narration.mp3`;

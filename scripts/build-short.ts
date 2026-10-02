@@ -97,7 +97,18 @@ const onlyPositionOf = (i: number) => {
 // 인사이트 비교 집단 = 같은 국내 표본 충족 선수들 (득점 순위와 같은 집단)
 const poolRaw = pool.map((l) => rawOf.get(l.id)!).filter((r) => r.games > 0);
 const insightCtx = {
-  five: top.map(({ player }, i) => ({ sources: breakdowns[i], callout: callouts[i], positionGroup: groups[i] })),
+  five: top.map(({ player }, i) => {
+    const raw = rawOf.get(player.id)!;
+    const z = raw.shotZones?.zones;
+    const att = z ? Object.values(z).reduce((a, v) => a + v.a, 0) : 0;
+    return {
+      sources: breakdowns[i],
+      callout: callouts[i],
+      positionGroup: groups[i],
+      tpPct: raw.tpPct,
+      mid: z && att > 0 ? { share: Math.round((z.mid.a / att) * 1000) / 10, pct: Math.round((z.mid.m / Math.max(1, z.mid.a)) * 1000) / 10 } : null,
+    };
+  }),
   leaguePpg: poolRaw.map((r) => r.points / r.games),
   leagueFta: poolRaw.map((r) => ({ id: r.playerNo, name: r.nameKo, value: r.fta / r.games })),
 };
@@ -178,7 +189,7 @@ const scenes = [
   {
     id: "cover",
     kind: "cover" as const,
-    caption: `${seasonLabel} 국내 득점 TOP 5, 근데 다섯 명이 점수 내는 방식이 다 달라. 5위부터 가 보자.`,
+    caption: `${seasonLabel} 국내 득점 TOP 5, 근데 점수 내는 방식이 다 달라. 5위부터 가 보자.`,
   },
   ...countdown.map((p) => ({ id: `rank-${p.rank}`, kind: "player" as const, playerNo: p.playerNo, caption: p.line.caption })),
   // 비교 막대 화면 위에서 질문으로 끝낸다 (30~40초 맞추려고 정리 대사·마무리 장면을 합침)

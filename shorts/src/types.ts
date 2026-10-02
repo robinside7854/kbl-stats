@@ -36,10 +36,10 @@ export type ShotTuple = [number, number, number, number];
 
 /** lib/shorts Insight 와 같은 모양 (렌더러는 사이트 lib 를 import 하지 않는다) */
 export type Insight =
-  | { layout: "shotmap"; focus: SourceKey; share: number; lowFtShare: number | null }
+  | { layout: "shotmap"; focus: SourceKey; share: number; lowFtShare: number | null; tpPctTop?: number | null; midTop?: { share: number; pct: number } | null }
   | { layout: "split"; a: ScoringSource; b: ScoringSource }
   | { layout: "lineup"; positions: (string | null)[]; me: number; only: string; focus: SourceKey; share: number }
-  | { layout: "ladder"; focus: SourceKey; value: number; beatPct: number; beaten: number; total: number; ppgs: number[] }
+  | { layout: "ladder"; focus: SourceKey; value: number; beatPct: number; beaten: number; total: number; ppgs: number[]; volume?: boolean }
   | { layout: "counter"; ftm: number; ftPerGame: number; rank: number; ratioToNext: number | null; leaders: { name: string; value: number; me: boolean }[] }
   | { layout: "classic" };
 

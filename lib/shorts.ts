@@ -313,20 +313,37 @@ export type InsightLayout = "shotmap" | "split" | "lineup" | "ladder" | "counter
 
 export type Insight =
   /** 슛 지도 — 그 출처 구역에 불을 켠다. lowFtShare: 다섯 명 중 자유투 비중 꼴찌면 그 값 */
-  | { layout: "shotmap"; focus: ScoringSourceKey; share: number; lowFtShare: number | null }
+  | {
+      layout: "shotmap";
+      focus: ScoringSourceKey;
+      share: number;
+      lowFtShare: number | null;
+      /** 다섯 명 중 3점 성공률 1위면 그 값 (같은 3점형 선수와 구분 — 정확도) */
+      tpPctTop?: number | null;
+      /** 다섯 명 중 슛 시도 중 미드레인지 비중 1위면 그 값·미드 성공률 */
+      midTop?: { share: number; pct: number } | null;
+    }
   /** 저울 — 두 출처가 거의 같다 */
   | { layout: "split"; a: ScoringSource; b: ScoringSource }
   /** 다섯 명 포지션 줄 — 혼자 다른 포지션 → 그래서 이 출처 */
   | { layout: "lineup"; positions: (string | null)[]; me: number; only: string; focus: ScoringSourceKey; share: number }
   /** 사다리 — 한 출처 점수만으로 국내 선수 몇 %의 전체 득점을 넘나 */
-  | { layout: "ladder"; focus: ScoringSourceKey; value: number; beatPct: number; beaten: number; total: number; ppgs: number[] }
+  | { layout: "ladder"; focus: ScoringSourceKey; value: number; beatPct: number; beaten: number; total: number; ppgs: number[]; /** 다섯 명 중 다른 3점형 선수가 있으면 "양으로 승부" 로 구분 */ volume?: boolean }
   /** 계수기 — 자유투 시도 국내 순위 + 시즌 자유투 성공 개수 */
   | { layout: "counter"; ftm: number; ftPerGame: number; rank: number; ratioToNext: number | null; leaders: { name: string; value: number; me: boolean }[] }
   | { layout: "classic" };
 
 export interface InsightContext {
   /** 다섯 명 (순위 순) */
-  five: { sources: ScoringSource[]; callout: Callout; positionGroup: string | null }[];
+  five: {
+    sources: ScoringSource[];
+    callout: Callout;
+    positionGroup: string | null;
+    /** 3점 성공률 (%) */
+    tpPct?: number;
+    /** 슛 차트 시도 중 미드레인지 비중 (%)·미드 성공률 — 슛 차트 없으면 null */
+    mid?: { share: number; pct: number } | null;
+  }[];
   /** 비교 집단(국내 표본 충족) 선수의 경기당 득점 */
   leaguePpg: number[];
   /** 비교 집단의 경기당 자유투 시도 (이름 포함) */
@@ -368,6 +385,7 @@ export function buildInsight(i: number, ctx: InsightContext, me: { id: string; f
       total: ctx.leaguePpg.length,
       beatPct: Math.floor((beaten / Math.max(1, ctx.leaguePpg.length)) * 10) * 10,
       ppgs: [...ctx.leaguePpg].sort((a, b) => a - b).map(r1),
+      volume: ctx.five.some((x, j) => j !== i && x.callout.source === "three"),
     };
   }
   if (c.kind === "balanced") {
@@ -387,7 +405,20 @@ export function buildInsight(i: number, ctx: InsightContext, me: { id: string; f
   if (c.source === "three" || c.source === "mid" || c.source === "paint") {
     const ftShares = ctx.five.map((x) => x.sources.find((s) => s.key === "ft")!.share);
     const myFt = ftShares[i];
-    return { layout: "shotmap", focus: c.source, share: src(c.source).share, lowFtShare: myFt === Math.min(...ftShares) ? myFt : null };
+    // 다섯 명 안에 3점형이 둘이면(예: 서명진·허웅) 정확도·점프슛으로 구분한다 (2026-10-02 사용자: "둘 다 3점 베이스라 차별화")
+    const tps = ctx.five.map((x) => x.tpPct ?? -1);
+    const mids = ctx.five.map((x) => x.mid?.share ?? -1);
+    const me = ctx.five[i];
+    const tpPctTop = me.tpPct != null && tps[i] === Math.max(...tps) ? me.tpPct : null;
+    const midTop = me.mid && mids[i] === Math.max(...mids) ? me.mid : null;
+    return {
+      layout: "shotmap",
+      focus: c.source,
+      share: src(c.source).share,
+      lowFtShare: myFt === Math.min(...ftShares) ? myFt : null,
+      tpPctTop: c.source === "three" ? tpPctTop : null,
+      midTop: c.source === "three" ? midTop : null,
+    };
   }
   return { layout: "classic" };
 }
@@ -413,8 +444,9 @@ export function insightLine(p: TopScorerScriptInput, insight: Insight): ScriptLi
       break;
     }
     case "ladder": {
-      const body = `3점으로만 경기당 ${pointsWords(insight.value)} 넣는데, 국내 선수 열에 ${nativeCount(outOfTen(insight.beaten, insight.total))}은 이만큼도 못 넣어.`;
-      line = p.rank === 1 ? `그리고 1위, ${who}! ${body}` : `${eunNeun(rank)} ${who}. ${body}`;
+      const body = `3점만으로 경기당 ${pointsWords(insight.value)} 넣는데, 국내 선수 열에 ${nativeCount(outOfTen(insight.beaten, insight.total))}은 이만큼도 못 넣어.`;
+      const lead = insight.volume ? "이쪽은 양으로 승부하는 슈터야. " : "";
+      line = p.rank === 1 ? `그리고 1위, ${who}! ${lead}${body}` : `${eunNeun(rank)} ${who}. ${lead}${body}`;
       break;
     }
     case "split": {
@@ -423,16 +455,19 @@ export function insightLine(p: TopScorerScriptInput, insight: Insight): ScriptLi
         inOut.has("paint") && inOut.has("three")
           ? `안에서 ${Math.round(insight.a.key === "paint" ? insight.a.share : insight.b.share)}%, 밖에서 ${Math.round(insight.a.key === "three" ? insight.a.share : insight.b.share)}%`
           : `${insight.a.label} ${Math.round(insight.a.share)}%, ${insight.b.label} ${Math.round(insight.b.share)}%`;
-      line = `${eunNeun(rank)} ${who}인데, ${pair}로 거의 반반이라 어디를 막아도 답이 있어.`;
+      line = `${eunNeun(rank)} ${who}인데, ${pair}로 거의 반반이라 수비 입장에선 어딜 막아도 지옥의 이지선다야.`;
       break;
     }
     case "lineup":
-      line = `${rank} ${eunNeun(who)} 다섯 명 중 혼자 ${iya(insight.only)}. 아무래도 ${insight.only}${particle(insight.only, "이라서", "라서")} 득점 ${iGa(shareNoun(insight.share))} 페인트에서 나와.`;
+      line = `${rank} ${eunNeun(who)} 유일하게 ${insight.only}인데, 아무래도 다른 선수들보다 인사이드 득점이 눈에 띄지. 득점 ${iGa(shareNoun(insight.share))} 페인트야.`;
       break;
     case "shotmap": {
       const label = SCORING_SOURCES.find((x) => x.key === insight.focus)!.label;
       const head = `${rank} ${eunNeun(who)} 득점 ${iGa(shareNoun(insight.share))} ${label}`;
-      if (insight.lowFtShare !== null && insight.focus === "three") line = `${head}이라 자유투가 다섯 명 중 제일 적어. 밖에서 끝내는 스타일.`;
+      if (insight.tpPctTop != null && insight.midTop) {
+        const pct = pctFloorWords(insight.tpPctTop) ?? `${Math.floor(insight.tpPctTop)}%`;
+        line = `${rank} ${eunNeun(who)} 3점 성공률 ${pct}로 다섯 명 중 최고고, 미드레인지도 제일 많이 던지는 점퍼 장인이야.`;
+      } else if (insight.lowFtShare !== null && insight.focus === "three") line = `${head}이라 자유투가 다섯 명 중 제일 적어. 밖에서 끝내는 스타일.`;
       else {
         const pct = insight.focus === "three" ? pctFloorWords(p.tpPct) : null;
         line = pct ? `${head}인데, 성공률도 ${pct}가 넘어.` : `${head}${particle(label, "이야", "야")}.`;
