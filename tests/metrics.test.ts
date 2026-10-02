@@ -381,3 +381,18 @@ assert.equal(topShareLabel(null), null);
   assert.equal(a2.astPct, 0);
   assert.deepEqual(b0, { usgPct: 0, astPct: 0, rebPct: 0, orebPct: 0, drebPct: 0 }); // 출전 0분
 }
+
+// ── 수상 가산점 (awardBonusOf·radarScore) ──
+{
+  const { awardBonusOf, awardBonusNote } = await import("../lib/metrics");
+  const b = awardBonusOf("defense5,best5,rookie,defense5")!;
+  assert.deepEqual(b.axes, { defense: 10 });                  // 같은 상 두 번은 한 번, 신인상은 가산 없음
+  assert.equal(b.overall, 5);
+  assert.deepEqual(b.labels, ["수비 5걸", "베스트5"]);
+  assert.equal(awardBonusNote(b), "수비 5걸 수비 +10 · 베스트5 종합 +5");
+  assert.equal(awardBonusOf("defensive,defense5")!.axes.defense, 25);
+  assert.equal(awardBonusOf(""), null);
+  assert.equal(awardBonusOf("rookie,sixthMan"), null);
+  assert.equal(awardBonusOf(undefined), null);
+  console.log("metrics: 수상 가산점 통과");
+}

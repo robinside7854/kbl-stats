@@ -199,16 +199,6 @@ export function IconLeaders(p: IconProps) {
   );
 }
 
-/** 육각형 (플레이스타일 — 레이더 6축) */
-export function IconStyle(p: IconProps) {
-  return (
-    <Svg {...p}>
-      <path d="M12 3.5 19.5 7.75v8.5L12 20.5l-7.5-4.25v-8.5Z" />
-      <path d="M12 8.5 15.5 10.5v3.5L12 16l-3.5-2v-3.5Z" />
-    </Svg>
-  );
-}
-
 /** 좌우 화살표 (비교) */
 export function IconCompare(p: IconProps) {
   return (

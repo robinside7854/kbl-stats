@@ -18,6 +18,11 @@ export function koShortOf(season: SeasonData): (p: { teamCode: string; teamShort
  */
 export function toCardPlayers(season: SeasonData, photoOf: PhotoLookup = () => null): CardPlayer[] {
   const koShort = koShortOf(season);
+  // 그 시즌 수상 (선수 번호 → 상 키) — 등급 가산점 재료 (lib/metrics AWARD_GRADE_BONUS)
+  const awardsOf = new Map<string, string[]>();
+  for (const a of season.seasonAwards?.awards ?? []) {
+    for (const w of a.winners) if (w.playerNo) awardsOf.set(w.playerNo, [...(awardsOf.get(w.playerNo) ?? []), a.key]);
+  }
   return season.players.map((p) => ({
     id: p.playerNo,
     nameKo: p.nameKo,
@@ -68,6 +73,7 @@ export function toCardPlayers(season: SeasonData, photoOf: PhotoLookup = () => n
     astTo: p.astTo ?? 0,
     // 주 공격 유형 (슛 구역 비중) — 카드 유형 라벨 옆 작은 칩. 슛 데이터 없는 시즌·선수는 null
     offenseType: p.shotZones?.offenseType ?? null,
+    awards: [...new Set(awardsOf.get(p.playerNo) ?? [])].join(","),
   }));
 }
 

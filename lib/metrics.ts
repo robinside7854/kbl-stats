@@ -465,6 +465,8 @@ export interface GradeInput extends RadarInput {
   isForeign: boolean;
   /** 포지션 (선수 마스터). 종합 점수·유형 라벨의 축 가중치에 쓴다(axisWeights) — 없으면 가중치 전부 1 */
   position?: Position | null;
+  /** 그 시즌 수상 (쉼표로 이은 SeasonAwardKey, 예: "defense5,best5") — 등급 가산점(AWARD_GRADE_BONUS). 없으면 "" */
+  awards?: string;
 }
 
 /** 선수 국적 → 집단 (lib/roster nationalityOf 와 같은 규칙. 순환 import 를 피하려고 여기 한 줄로 둔다) */
@@ -530,8 +532,10 @@ export interface RadarScore {
    * 99 면 "그 풀 상위 1%". 종합 등급은 이 값에 OVERALL_GRADE_CUTS(S 95 = 상위 5%)를 댄다.
    */
   overall: number | null;
-  /** 종합 점수 = 6축 백분위(axes)의 포지션별 가중 평균 (overallScore, axisWeights) — 재순위 전 값 */
+  /** 종합 점수 = 6축 백분위(axes)의 포지션별 가중 평균 (overallScore, axisWeights) + 수상 종합 가산 — 재순위 전 값 */
   overallAvg: number | null;
+  /** 수상 가산점 (awardBonusOf). 받은 상이 없으면 null */
+  awardBonus: AwardBonus | null;
 }
 
 const mean = (xs: readonly number[]) => (xs.length ? xs.reduce((s, v) => s + v, 0) / xs.length : null);
@@ -654,6 +658,82 @@ export function overallWeightNote(position: Position | null | undefined): string
   return `${who}${role === "big" ? "이라" : "라"} ${parts.join(" · ")}`;
 }
 
+// ─────────────────────────────────────────────
+// 수상 가산점 (2026-10-02 사용자: "수비 5걸에 선정된 선수는 스탯에 보이지 않는 수비력을 인정받은 것 — 등급에 가산점")
+// ─────────────────────────────────────────────
+// 재료: 시즌 파일 seasonAwards (공홈 역대수상현황) → 카드 awards. 그 시즌에 받은 상만 그 시즌 등급에 더한다.
+//   축 가산(축 백분위에 더함, 99.9 상한): 최우수 수비상 수비 +15 · 수비 5걸 수비 +10 — 기록에 안 잡히는 수비(대인·도움 수비)를 인정
+//   종합 가산(종합 점수에 더함, 그 뒤 집단 안 재순위): 정규리그 MVP·외국선수 MVP +10 · 베스트5 +5 · 챔프전 MVP +3
+// 신인상·식스맨상·기량 발전상은 "그 집단 안에서" 주는 상이라 가산하지 않는다. 가산은 같은 집단 모든 선수에 똑같이 적용해
+// 재순위하므로(buildGradingContext) 상을 받은 선수만 위로 올라가고 기준이 흔들리지 않는다.
+// 숫자는 우리 규칙(KBL 공식 아님) — 바꾸려면 여기만 고친다.
+
+export interface AwardBonusRule {
+  label: string;
+  axis?: { axis: RadarAxis; pts: number };
+  overall?: number;
+}
+
+export const AWARD_GRADE_BONUS: Readonly<Record<string, AwardBonusRule>> = {
+  defensive: { label: "최우수 수비상", axis: { axis: "defense", pts: 15 } },
+  defense5: { label: "수비 5걸", axis: { axis: "defense", pts: 10 } },
+  mvp: { label: "정규리그 MVP", overall: 10 },
+  foreignMvp: { label: "외국선수 MVP", overall: 10 },
+  best5: { label: "베스트5", overall: 5 },
+  finalsMvp: { label: "챔프전 MVP", overall: 3 },
+};
+
+export interface AwardBonus {
+  /** 축별 더한 점수 */
+  axes: Partial<Record<RadarAxis, number>>;
+  /** 종합 점수에 더한 점수 */
+  overall: number;
+  /** 가산된 상 이름 (화면 안내), 예: ["수비 5걸", "베스트5"] */
+  labels: string[];
+}
+
+/** 카드 awards 문자열 → 가산점. 가산되는 상이 없으면 null */
+export function awardBonusOf(awards: string | null | undefined): AwardBonus | null {
+  if (!awards) return null;
+  const out: AwardBonus = { axes: {}, overall: 0, labels: [] };
+  for (const key of new Set(awards.split(",").map((k) => k.trim()))) {
+    const r = AWARD_GRADE_BONUS[key];
+    if (!r) continue;
+    out.labels.push(r.label);
+    if (r.axis) out.axes[r.axis.axis] = (out.axes[r.axis.axis] ?? 0) + r.axis.pts;
+    if (r.overall) out.overall += r.overall;
+  }
+  return out.labels.length ? out : null;
+}
+
+/** 축 백분위에 수상 가산 (값이 없는 축은 그대로 null, 상한 99.9) */
+function withAxisBonus(axes: Record<RadarAxis, number | null>, b: AwardBonus | null): Record<RadarAxis, number | null> {
+  if (!b) return axes;
+  const out = { ...axes };
+  for (const a of RADAR_AXES) {
+    const add = b.axes[a];
+    if (add && out[a] !== null) out[a] = Math.min(99.9, out[a]! + add);
+  }
+  return out;
+}
+
+/** 축(가산 후) → 종합 점수 + 종합 가산 */
+function overallWithBonus(axes: Record<RadarAxis, number | null>, position: Position | null | undefined, b: AwardBonus | null) {
+  const v = overallScore(axes, axisWeights(position));
+  return v === null ? null : v + (b?.overall ?? 0);
+}
+
+/** 수상 가산 안내 한 줄 (카드), 예: "수비 5걸 수비 +10 · 베스트5 종합 +5". 없으면 null */
+export function awardBonusNote(b: AwardBonus | null): string | null {
+  if (!b) return null;
+  return b.labels
+    .map((label) => {
+      const r = Object.values(AWARD_GRADE_BONUS).find((x) => x.label === label)!;
+      return r.axis ? `${label} ${RADAR_AXIS_LABELS[r.axis.axis]} +${r.axis.pts}` : `${label} 종합 +${r.overall}`;
+    })
+    .join(" · ");
+}
+
 /**
  * 시즌 등급 재료. players = 그 시즌 **리그 전체** 선수. 국적 집단마다 구성 요소·축·종합 원점수 배열을 만든다.
  */
@@ -683,7 +763,8 @@ export function buildGradingContext(
     for (const r of raws) for (const a of RADAR_AXES) if (r[a] !== null) axisRaw[a].push(r[a]!);
     const overallRaw: number[] = [];
     members.forEach((p, i) => {
-      const v = overallScore(axisPercentiles(raws[i], { axisRaw }), axisWeights(p.position));
+      const b = awardBonusOf(p.awards);
+      const v = overallWithBonus(withAxisBonus(axisPercentiles(raws[i], { axisRaw }), b), p.position, b);
       if (v !== null) overallRaw.push(v);
     });
     groups[key] = { key, count: members.length, comp, axisRaw, overallRaw };
@@ -697,9 +778,10 @@ export function radarScore(p: GradeInput, ctx: GradingContext): RadarScore {
   const empty: GradeGroupRef = { key: "domestic", count: 0, comp: {}, axisRaw: emptyAxes<number[]>(() => []), overallRaw: [] };
   const ref = g ?? empty;
   const { raw, components } = axisRawScores(p, ref, ctx);
-  const axes = axisPercentiles(raw, ref);
-  const overallAvg = overallScore(axes, axisWeights(p.position));
-  return { axes, raw, components, overallAvg, overall: overallPercentile(overallAvg, ref.overallRaw) };
+  const awardBonus = awardBonusOf(p.awards);
+  const axes = withAxisBonus(axisPercentiles(raw, ref), awardBonus);
+  const overallAvg = overallWithBonus(axes, p.position, awardBonus);
+  return { axes, raw, components, overallAvg, overall: overallPercentile(overallAvg, ref.overallRaw), awardBonus };
 }
 
 /** 종합 점수 → 같은 집단 안 백분위 (비교 대상이 없으면 null) */

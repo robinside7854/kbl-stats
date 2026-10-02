@@ -194,7 +194,6 @@ kbl-stats/
 │   ├── similar.ts       ← 비슷한 시즌 (순수: 6축 백분위 벡터 toAxisVector, 유사도 similarityScore, findSimilar(같은 국적 풀·같은 포지션 묶음, 선수당 최고 시즌 하나) — lib/data loadSimilarPlayers 가 전 시즌 풀을 빌드 때 한 번 만든다)
 │   ├── records.ts       ← 역대 통산 순위 (순수: RECORD_STATS, sumCareerTotals(시즌 합계 → 선수별), rankCareerTotals(합계/경기당 — 경기당은 통산 200경기 이상, 국적 전체/국내/외국인), formatRecord, 현역 isActiveCareer(마지막 시즌 = 기록 있는 최신 시즌) — lib/data loadCareerTotals)
 │   ├── teams.ts         ← 팀 한글 약칭 teamShortNameKo (연고지 지명 목록 HOME_CITIES — 하드코딩 예외, 이유 주석), 팀 색 배정 assignTeamColors(회색 기본값 팀 → 범주형 팔레트, 팀 순서, 순환 금지)·ensureMarkContrast·comparePairColors(OKLab 거리 < 15면 팔레트 1·2번), 핵심 의존도 teamDependency(상위 3명 득점 비중·표본 충족 수)
-│   ├── playstyle.ts     ← 플레이스타일 탭 (순수: buildStyleRows(표본 충족 선수의 역할 유형·공격 유형·종합 점수), groupStyles(유형별 묶음·유형 안 순위 = 종합 백분위 → PER), STYLE_TOP 10, 주소 쿼리 ?kind=&type=&origin=)
 │   ├── game.ts          ← 54-0 게임 규칙 (순수: 시대 구간 splitEras(7개, 남는 시즌은 최근 구간), 칸 GAME_SLOTS 가드2·포워드2·센터1(GF·FC 는 두 칸), 외국 선수 GAME_FOREIGN_MAX 2, 슬롯 spin(구간 반복 가능·고를 선수 있는 팀만)·respinTeam·respinEra, 전력 teamRating(종합 점수 평균 75% + 6축 최고값 평균 25%)·winProbability(WIN_CURVE 표 보간, 전승은 잘 해도 약 1%)·simulateSeason(라인업 시드 → 같은 라인업 같은 성적), 공유 ?l=번호:시즌,…)
 │   ├── game-pool.ts     ← 54-0 후보 풀 만들기 buildGamePool(시즌 카드 → 구간 × 팀 × 후보, 표본 충족·포지션 있는 선수, 같은 구간·팀은 종합 점수 최고 시즌 하나) — 빌드 스크립트 전용
 │   ├── favorites.ts     ← 즐겨찾기 (순수: parseFavorites·toggleFavorite, FAVORITES_VISIBLE 5 — 저장은 app/components/useFavorites localStorage)
@@ -219,7 +218,7 @@ kbl-stats/
 │   ├── game/page.tsx    ← 54-0 게임 (GameView: 다섯 칸 → 슬롯(구간·팀) → 후보 고르기 → 54경기 결과·이미지 저장·링크 복사, /game/pool.json fetch, ?l= 공유 결과, 메뉴 "54-0")
 │   ├── glossary/page.tsx ← 용어 탭 (lib/glossary 표, 앵커 /glossary#ts)
 │   ├── season/[seasonCode]/leaders/page.tsx  ← 시즌 순위표 정적 페이지 (1~3위 표지 카드 + 이 시즌 한 경기 최다 카드 줄 + 정렬 표, 포지션·국적 칩, 파울 열)
-│   ├── season/[seasonCode]/playstyle/page.tsx  ← 플레이스타일 (PlaystyleView: 역할/공격 유형 → 유형 칩 → 유형 안 순위 1~10위 프로필 줄 + 더 보기). 옛 /season/코드/teams 는 next.config redirects 로 여기
+│   ├── (플레이스타일·팀 분포 탭은 없앰 → next.config redirects: /season/코드/(teams|playstyle) → 리더보드)
 │   ├── (옛 /season/[코드] 플레이어 카드 탭은 없앰 → next.config.mjs redirects: ?p= 있으면 /player/번호?season=코드, 없으면 순위표)
 │   ├── not-found.tsx
 │   └── components/      ← SiteNav(상단: 사이트 이름·검색창(선수 탭은 hideSearch)·시즌 선택(순위표·팀 분포·선수 탭만)·메뉴 홈/선수/순위표/팀 분포/비교 — 용어는 메뉴에서 뺌), PlayerSearch(상단·큰 검색창·onSelect 선택 모드), useSearchIndex(/search-index.json 한 번 fetch — 우리 정적 파일),
@@ -268,6 +267,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-02 (수상 가산점·플레이스타일 폐지): ① 사용자 "수비 5걸은 스탯에 안 보이는 수비력을 인정받은 것 — 등급에 가산점" → **그 시즌 수상을 그 시즌 등급에 가산**(`lib/metrics AWARD_GRADE_BONUS·awardBonusOf`): 축 가산 최우수 수비상 수비 +15·수비 5걸 수비 +10(축 백분위에 더함, 99.9 상한) / 종합 가산 정규리그·외국선수 MVP +10·베스트5 +5·챔프전 MVP +3(종합 점수에 더한 뒤 집단 안 재순위 — 집단 재료 buildGradingContext 에도 같은 가산). 신인·식스맨·기량 발전상은 가산 없음. 재료: 시즌 파일 seasonAwards → `toCardPlayers` 카드 `awards`(쉼표 문자열, 카드 파일 열 추가). 카드에 "수상 가산: …" 한 줄(`awardBonusNote`). S 는 여전히 상위 5% 라 상 받은 선수가 오르면 다른 선수가 밀림(예: 2025-26 워니 A→S·알바노 B→A, 해먼즈 S→A). ② **플레이스타일 탭 폐지**(페이지·PlaystyleView·lib/playstyle·IconStyle·테스트 삭제, 메뉴 6개, `/season/코드/(teams|playstyle)` → 리더보드 redirect). 검증: typecheck·test·build·slop 0, Playwright 카드 가산 줄·redirect 확인. main 배포.
 - 2026-10-02 (수비 5걸 안내): 사용자 "모바일에서 수비 5걸이 안 보임" → 원인은 화면이 아니라 데이터: 공홈 수상 표의 수비 5걸이 **23-24·24-25·25-26 시즌은 "-" 다섯 칸**(수상자 없음)이라 PC 에서도 빠져 있었음. 베스트5 가 있는데 수비 5걸이 없는 시즌은 "KBL 공식 기록에 이 시즌 수상자가 없습니다" 카드(`SeasonAwardsBoard`). 공홈이 나중에 채우면 다음 날 자동으로 사진 줄. main 배포.
 - 2026-10-02 (어워즈 정리): 사용자 지시 — 어워즈에서 **기록 부문(득점상 등)·올스타전 삭제**(`lib/awards SEASON_AWARD_DEFS`에서 뺌, 시즌 파일 `seasonAwards`에는 남음), 베스트5 **바로 아래 수비 5걸**(한 열로 쌓음), **정규리그 시상도 사진 줄**(`SeasonAwardsBoard PhotoRow`: 칸마다 상 이름 + 사진 + 이름·팀). 검증: typecheck·test·build·slop 0, Playwright 25-26 390·04-05 1280 가로 넘침 0. main 배포.
 - 2026-10-02 (54-0 조정): 사용자 지시 ① **시대 구간 중복 허용**(`spin(pool, lineup, rng)`, 시대 다시 돌리기는 지금과 다른 구간, 화면의 구간 칩 줄 삭제) ② **전승 확률 약 1%**(`WIN_CURVE` 위쪽 96→10%·98→7.5%·99→6% 패배, 100 이어야 확정). 2만 판 시뮬레이션: 아무나 중앙 18승 · 매번 최고 점수 49승·전승 0.6% · 다시 돌리기까지 잘 쓰면 50승·전승 1.0%. 검증: typecheck·test·build·slop 0, Playwright 390/1280. main 배포.

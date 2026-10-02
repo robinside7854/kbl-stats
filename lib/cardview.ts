@@ -15,6 +15,7 @@ import {
   missingComponentLabels,
   gradeScore,
   overallWeightNote,
+  awardBonusNote,
   RADAR_AXES,
   RADAR_AXIS_LABELS,
   RADAR_COMPONENTS,
@@ -74,6 +75,8 @@ export interface SeasonCardView {
   missingComponents: string[];
   /** 포지션별 종합 가중치 안내 (lib/metrics overallWeightNote), 예: "센터라 3점 축은 종합에 넣지 않음". 가드 등은 null */
   overallNote: string | null;
+  /** 수상 가산점 안내 (lib/metrics awardBonusNote), 예: "수비 5걸 수비 +10". 없으면 null */
+  awardNote: string | null;
   /** 성공률 시도 기준 표기 (리그 전체 기준 — 집단을 좁혀도 같다) */
   attemptsLabel: string;
   /** 실제로 적용된 범위 (포지션을 모르면 "position" 요청도 "all") */
@@ -141,6 +144,7 @@ export function buildSeasonCardView(cards: SeasonCards, playerId: string, scope:
     gradeLabel: gradeBasisLabel(entry.gradeGroup),
     missingComponents: missingComponentLabels(ctx.grading),
     overallNote: overallWeightNote(p.position),
+    awardNote: awardBonusNote(entry.radar.awardBonus),
     attemptsLabel: attemptsNote(ctx.thresholds),
     scope: group === "all" ? "all" : "position",
     groupLabel: group === "all" ? null : POSITION_GROUP_LABELS[group],

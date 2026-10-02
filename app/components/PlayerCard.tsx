@@ -470,7 +470,7 @@ function CardRadar({
 // ─────────────────────────────────────────────
 
 export default function PlayerCard({ view, colors, size = "sm", seriesColor, exportMode = false, nameHref, layout = "vertical" }: Props) {
-  const { entry, seasonLabel, ruleLabel, qualifiedCount, attemptsLabel, groupLabel, gradeLabel, missingComponents, overallNote } = view;
+  const { entry, seasonLabel, ruleLabel, qualifiedCount, attemptsLabel, groupLabel, gradeLabel, missingComponents, overallNote, awardNote } = view;
   const team = view.team ?? undefined;
   const p = entry.player;
   const foot = cardFootStats(p);
@@ -643,6 +643,12 @@ export default function PlayerCard({ view, colors, size = "sm", seriesColor, exp
       {overallNote && (
         <p className="pb-1 leading-snug text-ink-3" style={{ fontSize: small }}>
           종합 등급: {overallNote}
+        </p>
+      )}
+      {/* 그 시즌 수상 가산점 (lib/metrics AWARD_GRADE_BONUS) */}
+      {awardNote && (
+        <p className="pb-1 leading-snug text-ink-3" style={{ fontSize: small }}>
+          수상 가산: {awardNote}
         </p>
       )}
       {missingComponents.length > 0 && (
