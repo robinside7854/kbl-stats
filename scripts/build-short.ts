@@ -124,6 +124,9 @@ const players = top.map(({ player, value, rank }, i) => {
     tpPct: raw.tpPct,
     ftPct: raw.ftPct,
     onlyPosition: onlyPositionOf(i),
+    team: team?.shortNameKo ?? player.teamShort,
+    // 영상은 5위 → 1위 순서라 "바로 앞" = 한 순위 아래 선수
+    prevTeam: i + 1 < top.length ? (teamOf.get(top[i + 1].player.teamCode)?.shortNameKo ?? top[i + 1].player.teamShort) : null,
   }, insight);
   return {
     rank,
@@ -175,14 +178,14 @@ const scenes = [
   {
     id: "cover",
     kind: "cover" as const,
-    caption: `${seasonLabel} 국내 득점 TOP 5! 근데 점수 내는 법이 다 달라.`,
+    caption: `${seasonLabel} 국내 득점 TOP 5, 근데 다섯 명이 점수 내는 방식이 다 달라. 5위부터 가 보자.`,
   },
   ...countdown.map((p) => ({ id: `rank-${p.rank}`, kind: "player" as const, playerNo: p.playerNo, caption: p.line.caption })),
   // 비교 막대 화면 위에서 질문으로 끝낸다 (30~40초 맞추려고 정리 대사·마무리 장면을 합침)
   {
     id: "compare",
     kind: "compare" as const,
-    caption: "올 시즌 득점왕 누가 될 것 같아? 댓글로 찍어 줘!",
+    caption: "자, 올 시즌 득점왕은 누가 될 것 같아? 댓글로 찍어 줘!",
   },
 ].map((s) => ({ ...s, speech: toSpeech(s.caption), chunks: captionChunks(s.caption) }));
 

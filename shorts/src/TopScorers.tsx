@@ -16,7 +16,7 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
-import { C, FONT, FPS, SAFE, SOURCE_COLOR } from "./theme";
+import { C, FONT, FPS, SAFE, SOURCE_COLOR, glow, onDark } from "./theme";
 import type { EpisodePlayer, EpisodeProps, EpisodeScene, ScoringSource } from "./types";
 import { INSIGHT_SCENES } from "./InsightScenes";
 
@@ -58,19 +58,19 @@ export const text = (size: number, weight: number, color: string = C.ink, extra:
   ...extra,
 });
 
+/** 위 머리 — 보고서식 이중선 대신 주황 꼬리표 하나 + 시즌 */
 export function Masthead({ season, section }: { season: string; section: string }) {
   return (
-    <div style={{ position: "absolute", left: SAFE.left, right: W_PAD, top: SAFE.top }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-        <span style={text(30, 900, C.ink, { letterSpacing: 6 })}>STATS REFERENCE</span>
-        <span style={text(26, 600, C.ink2)}>
-          {season} 시즌 리뷰 · {section}
-        </span>
-      </div>
-      <div style={{ height: 4, background: C.rule, marginTop: 14 }} />
-      <div style={{ height: 1.5, background: C.rule, marginTop: 5 }} />
+    <div style={{ position: "absolute", left: SAFE.left, right: W_PAD, top: SAFE.top, display: "flex", alignItems: "center", gap: 16 }}>
+      <span style={{ background: C.accent, borderRadius: 8, padding: "6px 16px", ...text(28, 900, "#fff") }}>{section}</span>
+      <span style={text(26, 700, C.ink2)}>{season} KBL 국내 득점 TOP 5</span>
     </div>
   );
+}
+
+/** 장면 바탕 빛 — 선수 장면은 팀 색, 나머지는 주황 */
+export function Glow({ color = C.accent, x, y }: { color?: string; x?: number; y?: number }) {
+  return <AbsoluteFill style={{ background: glow(onDark(color), x, y) }} />;
 }
 export const W_PAD = 1080 - SAFE.right;
 
@@ -238,7 +238,8 @@ function CoverScene({ props, scene }: { props: EpisodeProps; scene: EpisodeScene
   const lead = byRank[0];
   return (
     <AbsoluteFill>
-      <Masthead season={props.seasonLabel} section="득점 특집" />
+      <Glow />
+      <Masthead season={props.seasonLabel} section="득점 TOP 5" />
       <div style={{ position: "absolute", left: SAFE.left, top: 250, ...rise(prog(frame, 0, 10)) }}>
         <div style={text(40, 700, C.ink2)}>{props.seasonLabel} 정규시즌 · 국내 선수</div>
         <div style={text(150, 900, C.ink, { marginTop: 10 })}>득점 TOP</div>
@@ -248,7 +249,7 @@ function CoverScene({ props, scene }: { props: EpisodeProps; scene: EpisodeScene
           position: "absolute",
           right: W_PAD,
           top: 210,
-          ...text(470, 900, lead.team.color, { lineHeight: 1 }),
+          ...text(470, 900, onDark(lead.team.color), { lineHeight: 1 }),
           ...rise(prog(frame, 4, 12), 80),
         }}
       >
@@ -307,9 +308,10 @@ function ClassicPlayerScene({ props, scene, p }: { props: EpisodeProps; scene: E
   const top = [...p.sources].sort((a, b) => b.share - a.share)[0];
   return (
     <AbsoluteFill>
-      <Masthead season={props.seasonLabel} section={`국내 득점 ${p.rank}위`} />
+      <Glow color={p.team.color} />
+      <Masthead season={props.seasonLabel} section={`${p.rank}위`} />
       {/* 순위 숫자 + 이름 */}
-      <div style={{ position: "absolute", left: SAFE.left - 8, top: 196, ...text(330, 900, p.team.color, { lineHeight: 1 }), ...rise(prog(frame, 0, 10), 60) }}>
+      <div style={{ position: "absolute", left: SAFE.left - 8, top: 196, ...text(330, 900, onDark(p.team.color), { lineHeight: 1 }), ...rise(prog(frame, 0, 10), 60) }}>
         {p.rank}
       </div>
       <div style={{ position: "absolute", left: 300, top: 262, right: W_PAD, ...rise(prog(frame, 3, 10)) }}>
@@ -389,7 +391,8 @@ function CompareScene({ props, scene }: { props: EpisodeProps; scene: EpisodeSce
   }
   return (
     <AbsoluteFill>
-      <Masthead season={props.seasonLabel} section="한눈에 비교" />
+      <Glow x={15} y={8} />
+      <Masthead season={props.seasonLabel} section="득점왕 예측" />
       <div style={{ position: "absolute", left: SAFE.left, top: 236, ...rise(prog(frame, 0, 10)) }}>
         <div style={text(96, 900)}>올 시즌 득점왕은?</div>
         <div style={text(28, 600, C.ink2, { marginTop: 10 })}>지난 시즌 TOP 5 득점 출처 · 2점은 공식 슛 차트 위치로 나눔</div>
@@ -403,7 +406,7 @@ function CompareScene({ props, scene }: { props: EpisodeProps; scene: EpisodeSce
           <div key={p.playerNo} style={{ position: "absolute", left: SAFE.left, top: 520 + i * 160, width: 960, ...rise(a, 30) }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 10 }}>
               <span style={{ display: "flex", alignItems: "baseline", gap: 14 }}>
-                <span style={text(40, 900, p.team.color)}>{p.rank}</span>
+                <span style={text(40, 900, onDark(p.team.color))}>{p.rank}</span>
                 <span style={text(42, 800)}>{p.name}</span>
                 <span style={text(26, 600, C.ink2)}>{p.team.name}</span>
               </span>
@@ -456,7 +459,8 @@ function OutroScene({ props, scene }: { props: EpisodeProps; scene: EpisodeScene
   const byRank = [...props.players].sort((a, b) => a.rank - b.rank);
   return (
     <AbsoluteFill>
-      <Masthead season={props.seasonLabel} section="득점 특집" />
+      <Glow />
+      <Masthead season={props.seasonLabel} section="득점 TOP 5" />
       <div style={{ position: "absolute", left: SAFE.left, top: 270, right: W_PAD, ...rise(prog(frame, 0, 10)) }}>
         <div style={text(96, 900)}>여러분 팀 에이스는</div>
         <div style={text(96, 900)}>어떤 유형인가요?</div>
@@ -474,7 +478,7 @@ function OutroScene({ props, scene }: { props: EpisodeProps; scene: EpisodeScene
               ...rise(prog(frame, 4 + i * 3, 10), 24),
             }}
           >
-            <span style={{ width: 44, ...text(40, 900, p.team.color) }}>{p.rank}</span>
+            <span style={{ width: 44, ...text(40, 900, onDark(p.team.color)) }}>{p.rank}</span>
             <span style={{ width: 200, ...text(40, 800) }}>{p.name}</span>
             <span style={text(34, 700, C.ink2)}>{p.callout.headline}</span>
           </div>

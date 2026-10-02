@@ -126,14 +126,17 @@ import { buildInsight, insightLine, timesWords } from "../lib/shorts";
   const ladder = ins[1] as Extract<(typeof ins)[number], { layout: "ladder" }>;
   assert.equal(ladder.beaten, 8); // 8.4 미만 경기당 득점
   assert.equal(timesWords(5.16 / 3.32), "1.5배");
-  const lines = ins.map((x, i) => insightLine({ rank: i + 1, name: names[i], ppg: 15, sources: top5[i], callout: c[i], tpPct: 40.6, ftPct: 87 }, x).caption);
-  assert.match(lines[0], /파울 뜯어내기 장인.*국내 1위, 2위보다 1\.5배/);
-  assert.match(lines[2], /혼자 포워드야.*페인트/);
-  assert.match(lines[3], /안 39%, 밖 36%/);
-  assert.match(lines[4], /자유투는 제일 적어/);
+  const teams = ["소노", "KCC", "SK", "KCC", "현대모비스"];
+  const lines = ins.map((x, i) => insightLine({ rank: i + 1, name: names[i], ppg: 15, sources: top5[i], callout: c[i], tpPct: 40.6, ftPct: 87, team: teams[i], prevTeam: teams[i + 1] ?? null }, x).caption);
+  assert.equal(lines[0], "그리고 1위, 소노의 이정현! 파울을 진짜 잘 뜯어내서 자유투 시도가 국내 1위, 2위보다 1.5배나 많아.");
+  assert.equal(lines[2], "3위 SK의 안영준은 다섯 명 중 혼자 포워드야. 아무래도 포워드라서 득점 거의 절반이 페인트에서 나와.");
+  assert.equal(lines[3], "4위는 KCC의 허훈인데, 안에서 39%, 밖에서 36%로 거의 반반이라 어디를 막아도 답이 있어.");
+  assert.match(lines[4], /^5위 현대모비스의 서명진은 득점 절반 이상이 3점이라 자유투가 다섯 명 중 제일 적어/);
+  // 앞 선수와 같은 팀이면 "같은 KCC의"
+  assert.match(insightLine({ rank: 2, name: "허웅", ppg: 15, sources: top5[1], callout: c[1], tpPct: 40, ftPct: 80, team: "KCC", prevTeam: "KCC" }, ins[1]).caption, /^2위는 같은 KCC의 허웅\./);
   assert.match(lines[1], /열에 다섯은/); // 14명 중 8명 → 고유어로 읽게
   for (const l of lines) {
-    assert.ok(l.length <= 52, `${l.length}자: ${l}`);
+    assert.ok(l.length <= 62, `${l.length}자: ${l}`);
     assert.ok(!/의외로|기록했|나타났|대망의|비밀은|—/.test(l), l);
   }
   // 가드가 유일한 포지션이면 lineup 이 아니다

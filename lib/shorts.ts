@@ -218,6 +218,10 @@ export interface TopScorerScriptInput {
   ftPct: number;
   /** 포지션 묶음 이름("가드"·"포워드"·"센터") — 다섯 명 중 이 포지션이 이 선수 하나뿐일 때만, 아니면 null */
   onlyPosition?: string | null;
+  /** 소속 팀 짧은 이름 ("SK") — 대사에서 "SK의 안영준" 처럼 늘 같이 부른다 */
+  team?: string | null;
+  /** 바로 앞에 소개한 선수(한 순위 아래)의 팀 — 같으면 "같은 KCC의 허웅" */
+  prevTeam?: string | null;
 }
 
 // 말로 하는 숫자는 사람처럼 둥글게 — 정확한 값은 화면(막대·특징 칸)에 있다.
@@ -395,38 +399,43 @@ export function timesWords(ratio: number): string {
 
 /** 인사이트 → 대사 (쇼츠 말투, 두 마디). classic 이면 기존 topScorerLine */
 export function insightLine(p: TopScorerScriptInput, insight: Insight): ScriptLine {
-  // 2026-10-02 사용자: "영상 대본도 캐주얼하게" → 반말·친구한테 말하듯. 숫자는 그대로 데이터에서.
-  const n = p.name;
-  const R = `${p.rank}위 ${n}`;
+  // 2026-10-02 사용자: "호흡이 짧게 끊기고 선수마다 틀이 뻔하다, 기계 같다" → 한 선수를 한두 문장으로 이어 말한다.
+  // 늘 "팀의 이름"으로 소개(SK의 안영준), 앞 선수와 같은 팀이면 "같은 KCC의", 1위는 "그리고 1위"로 받는다.
+  // 반말·친구한테 말하듯. 숫자는 전부 데이터에서.
+  const who = p.team ? `${p.team === p.prevTeam ? "같은 " : ""}${p.team}의 ${p.name}` : p.name;
+  const rank = `${p.rank}위`;
   let line: string;
   switch (insight.layout) {
     case "counter": {
-      const ratio = insight.ratioToNext && insight.ratioToNext >= 1.2 ? `, 2위보다 ${timesWords(insight.ratioToNext)}` : "";
-      line = `${R}, 파울 뜯어내기 장인. 자유투 시도 국내 ${insight.rank}위${ratio}!`;
+      const ratio = insight.ratioToNext && insight.ratioToNext >= 1.2 ? `, 2위보다 ${timesWords(insight.ratioToNext)}나 많아` : "야";
+      const body = `파울을 진짜 잘 뜯어내서 자유투 시도가 국내 ${insight.rank}위${ratio}.`;
+      line = p.rank === 1 ? `그리고 1위, ${who}! ${body}` : `${rank} ${eunNeun(who)} ${body}`;
       break;
     }
-    case "ladder":
-      line = `${R}, 3점만으로 경기당 ${pointsWords(insight.value)}. 국내 선수 열에 ${nativeCount(outOfTen(insight.beaten, insight.total))}은 이만큼도 못 넣어!`;
+    case "ladder": {
+      const body = `3점으로만 경기당 ${pointsWords(insight.value)} 넣는데, 국내 선수 열에 ${nativeCount(outOfTen(insight.beaten, insight.total))}은 이만큼도 못 넣어.`;
+      line = p.rank === 1 ? `그리고 1위, ${who}! ${body}` : `${eunNeun(rank)} ${who}. ${body}`;
       break;
+    }
     case "split": {
       const inOut = new Set([insight.a.key, insight.b.key]);
       const pair =
         inOut.has("paint") && inOut.has("three")
-          ? `안 ${Math.round(insight.a.key === "paint" ? insight.a.share : insight.b.share)}%, 밖 ${Math.round(insight.a.key === "three" ? insight.a.share : insight.b.share)}%`
+          ? `안에서 ${Math.round(insight.a.key === "paint" ? insight.a.share : insight.b.share)}%, 밖에서 ${Math.round(insight.a.key === "three" ? insight.a.share : insight.b.share)}%`
           : `${insight.a.label} ${Math.round(insight.a.share)}%, ${insight.b.label} ${Math.round(insight.b.share)}%`;
-      line = `${p.rank}위 ${eunNeun(n)} ${pair}. 어디 막아도 답이 있어!`;
+      line = `${eunNeun(rank)} ${who}인데, ${pair}로 거의 반반이라 어디를 막아도 답이 있어.`;
       break;
     }
     case "lineup":
-      line = `${R}, 다섯 명 중 혼자 ${iya(insight.only)}. 그러니까 득점 ${iGa(shareNoun(insight.share))} 페인트!`;
+      line = `${rank} ${eunNeun(who)} 다섯 명 중 혼자 ${iya(insight.only)}. 아무래도 ${insight.only}${particle(insight.only, "이라서", "라서")} 득점 ${iGa(shareNoun(insight.share))} 페인트에서 나와.`;
       break;
     case "shotmap": {
       const label = SCORING_SOURCES.find((x) => x.key === insight.focus)!.label;
-      const head = `${R}! 득점 ${iGa(shareNoun(insight.share))} ${label}.`;
-      line = insight.lowFtShare !== null && insight.focus === "three" ? `${head} 자유투는 제일 적어, 그냥 밖에서 끝내!` : `${head}`;
-      if (insight.lowFtShare === null && insight.focus === "three") {
-        const pct = pctFloorWords(p.tpPct);
-        if (pct) line += ` 성공률도 ${pct} 넘어.`;
+      const head = `${rank} ${eunNeun(who)} 득점 ${iGa(shareNoun(insight.share))} ${label}`;
+      if (insight.lowFtShare !== null && insight.focus === "three") line = `${head}이라 자유투가 다섯 명 중 제일 적어. 밖에서 끝내는 스타일.`;
+      else {
+        const pct = insight.focus === "three" ? pctFloorWords(p.tpPct) : null;
+        line = pct ? `${head}인데, 성공률도 ${pct}가 넘어.` : `${head}${particle(label, "이야", "야")}.`;
       }
       break;
     }

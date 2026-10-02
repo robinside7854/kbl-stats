@@ -13,7 +13,7 @@
 # 작업 (아래 "작업" 줄에 공백으로): render = 영상, voices = 목소리 후보 샘플(scripts/eleven-voices.ts), bgm = 배경음악 만들기(scripts/eleven-bgm.ts)
 #   배경음악은 한 번 만들면 shorts-renders 브랜치 bgm/ 에 두고 렌더마다 재사용한다
 #
-# 실행 횟수: 0
+# 실행 횟수: 1
 # 작업: render
 name: 숏폼 렌더
 

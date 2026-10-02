@@ -5,9 +5,9 @@
 
 import type { ReactNode } from "react";
 import { AbsoluteFill, useCurrentFrame } from "remotion";
-import { C, SAFE, SOURCE_COLOR } from "./theme";
+import { C, SAFE, SOURCE_COLOR, onDark } from "./theme";
 import type { CourtZone, EpisodePlayer, EpisodeProps, EpisodeScene, Insight, ShotTuple, SourceKey } from "./types";
-import { Caption, CountUp, Credits, Masthead, Photo, TeamMark, W_PAD, prog, rise, text } from "./TopScorers";
+import { Caption, CountUp, Credits, Glow, Masthead, Photo, TeamMark, W_PAD, prog, rise, text } from "./TopScorers";
 
 type SceneProps = { props: EpisodeProps; scene: EpisodeScene; p: EpisodePlayer };
 type Of<L extends Insight["layout"]> = Extract<Insight, { layout: L }>;
@@ -89,7 +89,7 @@ function NameBlock({ p, size = 104, color = C.ink, sub = C.ink2 }: { p: EpisodeP
   return (
     <div>
       <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-        <span style={text(36, 900, color === C.ink ? p.team.color : color)}>{p.rank}위</span>
+        <span style={text(36, 900, color === C.ink ? onDark(p.team.color) : color)}>{p.rank}위</span>
         <TeamMark p={p} size={40} />
       </div>
       <div style={text(size, 900, color, { marginTop: 2 })}>{p.name}</div>
@@ -101,7 +101,8 @@ function NameBlock({ p, size = 104, color = C.ink, sub = C.ink2 }: { p: EpisodeP
 function Frame({ props, scene, p, children }: SceneProps & { children: ReactNode }) {
   return (
     <AbsoluteFill>
-      <Masthead season={props.seasonLabel} section={`국내 득점 ${p.rank}위`} />
+      <Glow color={p.team.color} />
+      <Masthead season={props.seasonLabel} section={`${p.rank}위`} />
       {children}
       <Caption scene={scene} />
       <Credits />
@@ -251,7 +252,7 @@ function LineupScene({ props, scene, p }: SceneProps) {
               }}
             >
               <Photo p={q} width={cardW} height={230} style={{ borderRadius: 6, outline: me ? `6px solid ${q.team.color}` : "none", outlineOffset: -1 }} />
-              <div style={text(30, 900, me ? q.team.color : C.ink2, { textAlign: "center", marginTop: 12 })}>{ins.positions[i] ?? "–"}</div>
+              <div style={text(30, 900, me ? onDark(q.team.color) : C.ink2, { textAlign: "center", marginTop: 12 })}>{ins.positions[i] ?? "–"}</div>
               <div style={text(24, 600, C.ink3, { textAlign: "center" })}>{q.name}</div>
             </div>
           );
@@ -333,11 +334,11 @@ function LadderScene({ props, scene, p }: SceneProps) {
           })}
           <line x1={0} x2={width} y1={base + 2} y2={base + 2} stroke={C.ink} strokeWidth={2} />
           {Array.from({ length: maxX / 5 + 1 }, (_, i) => i * 5).map((t) => (
-            <text key={t} x={xOf(t)} y={base + 38} textAnchor="middle" style={text(24, 600, C.ink2)}>
+            <text key={t} x={xOf(t)} y={base + 38} textAnchor="middle" fill={C.ink2} style={text(24, 600, C.ink2)}>
               {t}점
             </text>
           ))}
-          <line x1={mx} x2={mx} y1={6} y2={base + 2} stroke={p.team.color} strokeWidth={5} />
+          <line x1={mx} x2={mx} y1={6} y2={base + 2} stroke={onDark(p.team.color)} strokeWidth={5} />
         </svg>
       </div>
       <div style={{ position: "absolute", left: SAFE.left, right: W_PAD, top: 1214, ...rise(prog(f, 50, 10)) }}>
@@ -382,7 +383,7 @@ function CounterScene({ props, scene, p }: SceneProps) {
           const g = prog(f, 26 + i * 4, 18);
           return (
             <div key={l.name} style={{ display: "flex", alignItems: "center", marginTop: 18, opacity: prog(f, 24 + i * 4, 6) }}>
-              <span style={{ width: 52, ...text(34, 900, l.me ? p.team.color : C.ink3) }}>{i + 1}</span>
+              <span style={{ width: 52, ...text(34, 900, l.me ? onDark(p.team.color) : C.ink3) }}>{i + 1}</span>
               <span style={{ width: 150, ...text(32, l.me ? 900 : 700, l.me ? C.ink : C.ink2) }}>{l.name}</span>
               <div style={{ height: 52, width: (l.value / max) * barMax * g, background: l.me ? SOURCE_COLOR.ft : C.ink3, opacity: l.me ? 1 : 0.45, borderRadius: 4 }} />
               <span style={{ marginLeft: 14, ...text(34, 800, l.me ? C.ink : C.ink2) }}>{(l.value * g).toFixed(1)}</span>
