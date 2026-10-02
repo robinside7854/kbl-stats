@@ -62,6 +62,17 @@ const s0: Spin = { era: 0, teamCode: "10" };
 assert.deepEqual(respinTeam(tiny, s0, emptyLineup(), seededRng(3)), { era: 0, teamCode: "20" });
 assert.deepEqual(respinEra(tiny, s0, emptyLineup(), seededRng(3)), { era: 1, teamCode: "10" }); // 다른 구간, 같은 팀이 있으면 팀 유지
 assert.equal(respinEra({ eras: [tiny.eras[0]] }, s0, emptyLineup(), seededRng(3)), null); // 구간이 하나뿐이면 못 바꿈
+// 같은 팀이 있는 구간만 고른다 (팀 그대로) — 팀 10 은 구간 0·1 에, 팀 30 은 구간 1 에만
+const three: GamePool = { eras: [...tiny.eras, { index: 2, label: "C", seasonCodes: [3], teams: [team("10", [c("e", "G")]), team("40", [c("f", "F")])] }] };
+for (let seed = 1; seed < 40; seed++) {
+  const r = respinEra(three, s0, emptyLineup(), seededRng(seed))!;
+  assert.equal(r.teamCode, "10");
+  assert.notEqual(r.era, 0);
+}
+// 같은 팀이 다른 구간에 없으면 그때만 팀도 바뀐다
+const r30 = respinEra(three, { era: 1, teamCode: "30" }, emptyLineup(), seededRng(5))!;
+assert.notEqual(r30.era, 1);
+assert.notEqual(r30.teamCode, "30");
 assert.equal(teamOf(tiny, { era: 1, teamCode: "30" })?.candidates[0].id, "d");
 // 화면 정렬은 득점순(점수 무관), 시뮬레이션 정렬은 점수순
 assert.deepEqual(sortCandidates([{ ...c("1", "G", false, 90), ppg: 8 }, { ...c("2", "G", false, 60), ppg: 20 }]).map((x) => x.id), ["2", "1"]);

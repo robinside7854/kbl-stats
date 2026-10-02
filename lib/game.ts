@@ -213,16 +213,17 @@ export function respinTeam(pool: GamePool, current: Spin, lineup: Lineup, rng: R
 }
 
 /**
- * 시대 다시 돌리기: 지금과 다른 구간. 같은 팀(팀 코드)이 그 구간에도 있으면 팀은 그대로, 없으면 그 구간의 팀 하나.
- * 바꿀 구간이 없으면 null
+ * 시대 다시 돌리기: 지금과 다른 구간, 팀은 그대로 (2026-10-02 사용자 요청 "다시 돌리는 것만 돌게").
+ * 같은 팀(팀 코드)이 고를 선수와 함께 있는 구간 중에서 뽑는다. 그런 구간이 없을 때만(창단이 늦은 팀 등)
+ * 아무 구간의 아무 팀 — 이때는 팀도 바뀐다. 바꿀 구간이 아예 없으면 null
  */
 export function respinEra(pool: GamePool, current: Spin, lineup: Lineup, rng: Rng): Spin | null {
   const eras = validEras(pool, lineup, current.era);
   if (eras.length === 0) return null;
+  const sameTeamEras = eras.filter((e) => validTeams(pool, e, lineup).some((t) => t.teamCode === current.teamCode));
+  if (sameTeamEras.length > 0) return { era: pickOne(sameTeamEras, rng), teamCode: current.teamCode };
   const era = pickOne(eras, rng);
-  const teams = validTeams(pool, era, lineup);
-  const same = teams.find((t) => t.teamCode === current.teamCode);
-  return { era, teamCode: (same ?? pickOne(teams, rng)).teamCode };
+  return { era, teamCode: pickOne(validTeams(pool, era, lineup), rng).teamCode };
 }
 
 export function teamOf(pool: GamePool, s: Spin): GameTeam | null {
