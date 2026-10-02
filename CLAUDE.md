@@ -243,6 +243,7 @@ kbl-stats/
 - **작업이 끝나면 항상 main 브랜치에 배포한다.** Vercel 은 main 만 배포하므로 작업 브랜치에 푸시만 하고 끝내면 사용자는 옛 화면을 본다.
 - 순서: 작업 브랜치 커밋·푸시 → 검증(typecheck·test·build) 통과 → `git fetch origin main && git checkout main && git merge --ff-only <작업 브랜치>` (ff 가 안 되면 main 을 작업 브랜치에 먼저 merge 해 해결) → `git push origin main` → 작업 브랜치로 돌아온다. PR 승인을 기다리지 않는다.
 - 데이터 커밋(Actions)이 main 에 먼저 들어와 있을 수 있으니 merge 전에 반드시 fetch 한다.
+- **Vercel 무료 플랜은 24시간에 배포 100회까지**(넘으면 `api-deployments-free-per-day`, 2026-10-02 실제로 걸림). 그래서 `vercel.json git.deploymentEnabled` 로 **main 만 배포**하고 작업 브랜치(`claude/…` 등)는 미리보기 배포를 하지 않는다. main 푸시는 작은 수정마다 하지 말고 한 요청 단위로 묶는다
 
 ## 방문 통계 규칙 (2026-10-02 사용자 지시 — 세션이 바뀌어도 지킨다)
 - **새 메뉴·화면·기능을 만들 때는 GA4 이벤트 작업을 먼저 한다.** 화면 코드를 쓰기 전에 "이 기능에서 무엇을 셀지"(이벤트 이름·매개변수)를 정하고, 기능과 같은 커밋에 `trackEvent`/`trackFilters` 호출을 넣는다. 이벤트 없는 새 기능은 끝난 것이 아니다
@@ -294,6 +295,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-02 (배포 한도): 운영 배포 누락 원인 = Vercel Hobby 하루 배포 100회 초과(`api-deployments-free-per-day`, 미리보기 포함해서 셈). 사용자 결정으로 `vercel.json` 추가 — main 만 배포, 다른 브랜치는 배포 안 함(`"**": false, "main": true`, 여러 규칙이 맞으면 하나라도 true 면 배포). 한도가 풀린 뒤 첫 main 배포부터 적용, 그때 54-0 후보 표 변경도 같이 반영됨. 배포 규칙에 "main 푸시는 요청 단위로 묶기" 추가.
 - 2026-10-02 (운영 배포 누락): 54-0 후보 표 커밋(fa8ebb12·7fafe102)을 main 에 올렸는데 Vercel 운영(Production) 배포가 생기지 않음 — 브랜치 미리보기만 Ready, 운영은 그 전 7d8b805 에 머묾(그 사이 main 의 숏폼 커밋도 운영 배포 없음). 이 기록 커밋으로 main 배포를 다시 시도. 원인 후보: Vercel Hobby 하루 배포 100회 한도·웹훅 누락. **main 에 올린 뒤에는 Deployments 에 Production 줄이 생겼는지 사용자에게 확인받을 것.**
 - 2026-10-02 (54-0 후보 표): 사용자 지시 — ① 등급은 **마지막 결과 화면에서만**(위 다섯 칸의 사진 모서리 등급 칩 삭제) ② 정렬 칩 → **표 머리글을 누르면 정렬**(같은 머리글 다시 = 반대 순서, 처음 누르면 글자 열은 오름·숫자 열은 내림, `lib/game SORT_COLUMNS·nextSort·sortCandidatesBy`) ③ 머리글 선수·소속팀·포지션·득점·리바·어시·스틸·블록·**3P%**(후보에 `tpPct` 추가 = 그 시즌 3점 성공 ÷ 시도, 시도 0이면 "–" 이고 정렬 때 늘 맨 뒤 / 포지션 순서 G→GF→F→FC→C). 폰은 9열을 가로 스크롤 없이(팀 = 로고, 포지션 = 약자, 머리글 "팀"), PC 는 사진·팀 이름·포지션 이름. 포지션 칩은 그대로. GA4 는 같은 filter_change sort. 검증: test(포지션·팀·3P% 없음 맨 뒤·nextSort)·typecheck·build·slop 0, Playwright 360/390/1280 가로 넘침 0·3P% 내림/오름·포지션 정렬·뽑은 뒤 칸에 등급 없음·가짜 gtag. main 배포.
 - 2026-10-02 (숏폼 2차: ElevenLabs·대본): 사용자 "너무 어색함" → 목소리 ElevenLabs(대본 전체 한 번에 읽기 + with-timestamps 글자 시각으로 장면·자막 맞춤, `lib/shorts sceneTimingsFromAlignment`, Secrets ELEVENLABS_API_KEY·ELEVENLABS_VOICE_ID, Variables 로 말투), 대본 사람 말투로 재작성(말버릇 금지 테스트, 숫자는 말로 둥글게 sharePredicate·pointsWords·pctFloorWords, compareLine). 키 등록 전이라 렌더는 아직 안 돌림(실행 횟수 그대로). 사용자 할 일: ElevenLabs 키·한국어 20대 남성 목소리 ID 를 Secrets 에.
