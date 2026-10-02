@@ -162,7 +162,7 @@ kbl-stats/
 │   ├── build-short.ts   ← 팬 숏폼 에피소드 JSON (지난 시즌 국내 득점 TOP 5 득점 유형, 규칙 lib/shorts) → shorts/episodes/{slug}/episode.json (커밋)
 │   ├── prepare-short.ts ← 숏폼 렌더 준비: AI 목소리(ELEVENLABS_API_KEY+VOICE_ID 면 ElevenLabs 한 번에 읽기·글자 시각, 아니면 GOOGLE_TTS_API_KEY → Google, 그다음 edge-tts, 다 없으면 추정 길이)·사진·로고 받기·글꼴 복사 → shorts/public/{slug}/props.json·upload.txt (git 제외)
 │   └── build-cards.ts   ← 비교 탭용 시즌별 카드 데이터 public/cards/{seasonCode}.json 생성 (prebuild·predev, 형식은 lib/cards.ts v2 — 레이더 구성 요소 열 포함, 시즌당 약 28~55KB, git 제외)
-├── shorts/              ← 팬 숏폼 영상 렌더러 (Remotion, 자체 package.json — 사이트 빌드와 따로 설치). src/TopScorers.tsx(매거진 톤 1080×1920: 표지 → 5위…1위 → 비교 → 질문), theme.ts(종이·잉크, 득점 출처 4색 = 사이트 --cat-1~4), episodes/{slug}/episode.json(커밋), public·out(git 제외). 렌더는 Actions shorts-render.yml(실행 횟수 올려 푸시 → Artifacts + shorts-renders 브랜치)
+├── shorts/              ← 팬 숏폼 영상 렌더러 (Remotion, 자체 package.json — 사이트 빌드와 따로 설치). src/TopScorers.tsx(매거진 톤 1080×1920: 표지 → 5위…1위 → 비교·득점왕 질문)·InsightScenes.tsx(선수별 장면 5종), theme.ts(종이·잉크, 득점 출처 4색 = 사이트 --cat-1~4), episodes/{slug}/episode.json(커밋), public·out(git 제외). 렌더는 Actions shorts-render.yml(실행 횟수 올려 푸시 → Artifacts + shorts-renders 브랜치)
 ├── tests/
 │   ├── metrics.test.ts  ← lib/metrics.ts 검증 (npm run test:metrics)
 │   ├── leaders.test.ts  ← lib/leaders.ts 검증 (npm run test:leaders)
@@ -296,6 +296,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-02 (숏폼 6차: 선수별 장면·인사이트): 사용자 "다섯 명이 같은 틀이라 단조롭다, 숫자 나열 말고 인사이트로" → `lib/shorts buildInsight`(특징 → 화면 5종: 슛 지도(구역에 불)·저울(안/밖)·포지션 줄(혼자 다른 포지션)·사다리(한 출처 점수 vs 국내 선수 경기당 득점 분포)·계수기(시즌 자유투 성공 + 경기당 자유투 시도 국내 TOP 5)) + `insightLine`(비교 대상을 붙인 대사: 서명진 자유투 비중 5명 중 최저 → 밖에서 끝내는 타입, 허웅 3점만으로 국내 선수 80%(88/109)보다 많이, 이정현 자유투 시도 국내 1위·2위의 1.5배). 렌더러 `shorts/src/InsightScenes.tsx`, 슛 점에 출처 번호, 코트 구역 모양(courtZoneShapes). 마지막 장면 "올 시즌 득점왕은?". 로컬 미리보기는 `npx remotion still … --browser-executable=/opt/pw-browsers/chromium_headless_shell-1194/chrome-linux/headless_shell`. 렌더 41.0초. main 배포.
 - 2026-10-02 (숏폼 5차: 목소리·음악 확정·쇼츠 말투): 사용자 결정 — 목소리 후보 02 Taehyung(`m3gJBS8OofDJfycyA2Ip`, 워크플로 기본값·Variables `ELEVENLABS_VOICE_ID` 로 바꿀 수 있음, Secrets 값은 더 안 씀)·배경음악 A. 대본을 편한 쇼츠 말투로(`topScorerLine`, 기사체·"의외로" 금지 테스트), 다섯 명 중 혼자인 포지션 `onlyPosition`(안영준 유일한 포워드 → 페인트), 이정현 "자유투를 진짜 잘 뜯어내요". 렌더 39.0초(목소리 34초·전체 약 3분). main 배포.
 - 2026-10-02 (숏폼 4차: v3·짧은 대본·배경음악·목소리 후보): 사용자 피드백(말투 어눌·AI 호흡, 30~40초·속도감, 배경음악, 목소리 추천) → 모델 eleven_v3 기본(stability 0/0.5/1 만, 첫머리 [excited]), 읽은 뒤 atempo ×1.12(`SHORTS_TEMPO`), 대본을 장면당 두 마디로(`shareNoun`, 마무리 장면을 비교 화면 질문으로 합침) → **37.8초**. 장면·자막 시각은 alignment 글자열에서 첫 글자 찾기(태그·숫자 읽기로 글자 수가 달라져도 맞음). 배경음악 `scripts/eleven-bgm.ts`(Eleven Music `/v1/music` music_v1·연주곡·45초 2곡 → shorts-renders `bgm/`, 렌더마다 재사용, 볼륨 0.14·끝 1.2초 페이드). 목소리 후보 `scripts/eleven-voices.ts`(shared-voices ko·male·young 사용량 순 6개를 내 목소리에 추가 + 같은 대본 샘플 + voices.txt ID). 워크플로 `# 작업:` 줄(render·voices·bgm). 사용자 결정 대기: 목소리 번호·배경음악 A/B.
 - 2026-10-02 (숏폼 3차: ElevenLabs 첫 렌더): 실패 2번(① Secrets 에 키 ID 를 넣음 → `sk_` 키로 교체 ② 무료 플랜은 Voice Library 목소리를 API 로 못 씀 → 사용자 Starter 업그레이드) 뒤 성공 — 64.3초, 목소리 15초·설치 19초(ffmpeg·edge-tts 설치 생략, Remotion 내장 ffprobe). 렌더 워크플로는 claude/** 브랜치만 트리거(main 병합 때 중복 렌더로 ElevenLabs 글자 수 낭비 방지), 끝나면 실행 횟수 0. 사용자 요청: 렌더 실패는 즉시 알릴 것 — 렌더를 걸면 단계별로 확인한다.
