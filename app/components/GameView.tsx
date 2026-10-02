@@ -11,10 +11,11 @@ import {
   simulateSeason, SLOT_LABELS, sortCandidates, spin, teamOf, type GameCandidate, type GamePool, type GameTeam, type Lineup,
   type SeasonResult, type Spin,
 } from "@/lib/game";
-import { RADAR_AXES, RADAR_AXIS_LABELS } from "@/lib/metrics";
+import { overallGrade, RADAR_AXES, RADAR_AXIS_LABELS } from "@/lib/metrics";
 import { playerHref } from "@/lib/cardview";
 import { positionLabel } from "@/lib/roster";
-import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
+import { FALLBACK_TEAM_COLOR, gradeTone } from "@/lib/teams";
+import type { TeamColor } from "@/lib/types";
 import { teamShortLabel } from "@/lib/images";
 import InfoLink from "./InfoLink";
 import PlayerAvatar from "./PlayerAvatar";
@@ -253,7 +254,7 @@ export default function GameView() {
         <ResultView picked={picked} result={result} colors={colors} shared={!!shared} copied={copied} onCopy={copyLink} onRestart={restart} />
       ) : (
         <>
-          <LineupBoard lineup={lineup} teams={teams} />
+          <LineupBoard lineup={lineup} teams={teams} colors={colors} />
           <p className="tabular mt-2 text-sub text-ink-2">
             라운드 {Math.min(round + 1, GAME_ROUNDS)}/{GAME_ROUNDS} · 외국 선수 {foreignCount(lineup)}/{GAME_FOREIGN_MAX}
           </p>
@@ -356,8 +357,8 @@ function SkipButton({ label, left, disabled, onClick }: { label: string; left: b
   );
 }
 
-/** 주전 다섯 칸 (등급·점수 없이 사진·이름·구간만) */
-function LineupBoard({ lineup, teams }: { lineup: Lineup; teams: (GameTeam | null)[] }) {
+/** 주전 다섯 칸 — 뽑은 선수는 사진 모서리에 종합 등급(고를 때는 숨기고 뽑은 뒤에만 공개) */
+function LineupBoard({ lineup, teams, colors }: { lineup: Lineup; teams: (GameTeam | null)[]; colors: ThemeColors }) {
   return (
     <ol aria-label="주전 라인업" className="grid grid-cols-5 gap-1.5 sm:gap-2">
       {GAME_SLOTS.map((g, i) => {
@@ -371,7 +372,13 @@ function LineupBoard({ lineup, teams }: { lineup: Lineup; teams: (GameTeam | nul
             <span className="text-caption font-semibold text-ink-3">{SLOT_LABELS[g]}</span>
             {c && team ? (
               <>
-                <PlayerAvatar photoUrl={c.photoUrl} nameKo={c.nameKo} color={team.color} size={44} className="mt-1" />
+                {/* 칸이 좁아(폰 약 66px) 등급은 사진 오른쪽 위에 붙인다 — 이름 폭을 빼앗지 않게 */}
+                <span className="relative mt-1">
+                  <PlayerAvatar photoUrl={c.photoUrl} nameKo={c.nameKo} color={team.color} size={44} />
+                  <span className="absolute -top-1 -right-2.5">
+                    <GradeChip score={c.score} color={team.color} colors={colors} />
+                  </span>
+                </span>
                 <span className="mt-1 w-full truncate text-caption font-bold text-ink">{c.nameKo}</span>
                 <span className="tabular w-full truncate text-caption text-ink-3">{c.span}</span>
               </>
@@ -534,12 +541,16 @@ function ResultView({ picked, result, colors, shared, copied, onCopy, onRestart 
 }
 
 /** 코트 위 자리 (가로·세로 %, 바스켓은 아래 가운데). 칸 순서 = GAME_SLOTS (가드·가드·포워드·포워드·센터) */
+/**
+ * 좌우 대칭: 탑 1 · 윙 2 · 로우 2. 값은 상자 안 사진 가운데 위치(이름표는 사진 아래로 붙는다).
+ * 폰은 상자를 코트보다 조금 길게(15:16) 두고 남는 아래쪽(엔드라인 밖)을 로우 선수 이름표 자리로 쓴다
+ */
 const COURT_SPOTS: readonly { x: number; y: number }[] = [
-  { x: 50, y: 15 }, // 가드: 탑
-  { x: 17, y: 41 }, // 가드: 왼쪽 윙
-  { x: 83, y: 41 }, // 포워드: 오른쪽 윙
-  { x: 19, y: 75 }, // 포워드: 왼쪽 로우
-  { x: 63, y: 79 }, // 센터: 골밑
+  { x: 50, y: 11 }, // 가드: 탑
+  { x: 20, y: 32 }, // 가드: 왼쪽 윙
+  { x: 80, y: 32 }, // 포워드: 오른쪽 윙
+  { x: 24, y: 71 }, // 포워드: 왼쪽 로우
+  { x: 76, y: 71 }, // 센터: 오른쪽 로우(골밑)
 ];
 
 /** FIBA 하프코트 15m × 14m. 미터 단위 viewBox, 바스켓이 아래 */
@@ -552,7 +563,7 @@ function CourtLines() {
   const sideX = 0.9;
   const dy = Math.sqrt(6.75 ** 2 - (cx - sideX) ** 2);
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="absolute inset-0 h-full w-full" aria-hidden>
+    <svg viewBox={`0 0 ${W} ${H}`} className="absolute inset-0 h-full w-full" preserveAspectRatio="xMidYMin meet" aria-hidden>
       <g fill="none" stroke="var(--ink-3)" strokeWidth={0.06}>
         <rect x={0.03} y={0.03} width={W - 0.06} height={H - 0.06} />
         {/* 페인트 4.9 × 5.8, 자유투 원 r1.8 */}
@@ -593,30 +604,37 @@ function ResultCard({ picked, result, colors, official }: { picked: Picked[]; re
           </p>
           <p className="mt-1 text-body font-semibold text-ink">{resultVerdict(result.wins)}</p>
         </div>
-        <p className="tabular shrink-0 text-right text-caption text-ink-3">
-          최다 {result.longestStreak}연승
-          <br />팀 전력 {result.rating.rating.toFixed(1)}
-        </p>
+        <p className="tabular shrink-0 text-right text-caption text-ink-3">팀 전력 {result.rating.rating.toFixed(1)}</p>
       </div>
 
-      {/* 코트 위 다섯 명 */}
-      <div className="relative mt-4 aspect-[15/14] w-full overflow-hidden rounded-card bg-surface-2">
+      {/* 코트 위 다섯 명 — PC 에서도 너무 커지지 않게 폭을 묶는다 */}
+      <div className="relative mx-auto mt-4 aspect-[15/16] w-full max-w-md max-[359px]:aspect-[15/19] sm:aspect-[15/14] overflow-hidden rounded-card bg-surface-2">
         <CourtLines />
         {picked.map((p, i) => {
           const spot = COURT_SPOTS[i];
           return (
             <div
               key={p.c.id}
-              className="absolute flex w-28 -translate-x-1/2 -translate-y-1/2 flex-col items-center text-center"
+              className="absolute flex w-32 -translate-x-1/2 -translate-y-6 flex-col items-center text-center sm:-translate-y-8"
               style={{ left: `${spot.x}%`, top: `${spot.y}%` }}
             >
-              <PlayerAvatar photoUrl={p.c.photoUrl} nameKo={p.c.nameKo} color={p.team.color} size={56} official={official} />
-              <span className="mt-0.5 flex max-w-full flex-col rounded-control bg-surface px-1.5 py-0.5">
-                <span className="truncate text-caption font-bold text-ink">
-                  {p.c.nameKo}
-                  {p === mvp ? " · MVP" : ""}
+              {/* 폰은 코트가 작아 사진·이름표를 줄인다 (윙 이름표가 로우 사진에 겹치지 않게) */}
+              <span className="flex sm:hidden">
+                <PlayerAvatar photoUrl={p.c.photoUrl} nameKo={p.c.nameKo} color={p.team.color} size={48} official={official} />
+              </span>
+              <span className="hidden sm:flex">
+                <PlayerAvatar photoUrl={p.c.photoUrl} nameKo={p.c.nameKo} color={p.team.color} size={64} official={official} />
+              </span>
+              <span className="surface-card mt-1 flex max-w-full flex-col rounded-control px-1.5 py-0.5 sm:px-2 sm:py-1">
+                <span className="flex min-w-0 items-center justify-center gap-1">
+                  <span className="truncate text-sub font-bold text-ink">{p.c.nameKo}</span>
+                  <GradeChip score={p.c.score} color={p.team.color} colors={colors} />
                 </span>
                 <span className="tabular truncate text-caption text-ink-2">
+                  {SLOT_LABELS[GAME_SLOTS[i]]}
+                  {p === mvp ? " · MVP" : ""}
+                </span>
+                <span className="tabular truncate text-caption text-ink-3">
                   {teamShortLabel(p.team.name)} {p.c.span}
                 </span>
               </span>
@@ -624,12 +642,6 @@ function ResultCard({ picked, result, colors, official }: { picked: Picked[]; re
           );
         })}
       </div>
-
-      <ol aria-label={`54경기 결과: ${result.wins}승 ${result.losses}패, 최다 연승 ${result.longestStreak}`} className="mt-4 grid grid-cols-[repeat(18,minmax(0,1fr))] gap-[3px]">
-        {result.games.map((w, i) => (
-          <li key={i} className={`aspect-square rounded-[2px] ${w ? "bg-ink" : "border border-line bg-surface-2"}`} />
-        ))}
-      </ol>
 
       {/* 다섯 명 기록 (그 시대 경기당 평균) + 합계 */}
       <table className="tabular mt-4 w-full table-fixed text-caption">
@@ -684,16 +696,34 @@ function ResultCard({ picked, result, colors, official }: { picked: Picked[]; re
           const weak = a === result.rating.weakest;
           return (
             <li key={a} className="tabular flex items-center gap-2 text-caption">
-              <span className={`w-14 shrink-0 ${weak ? "font-bold text-ink" : "text-ink-2"}`}>{RADAR_AXIS_LABELS[a]}</span>
+              <span className={`flex w-24 shrink-0 items-center gap-1 ${weak ? "font-bold text-ink" : "text-ink-2"}`}>
+                {RADAR_AXIS_LABELS[a]}
+                {weak && <span className="rounded-control border border-line px-1 font-semibold text-ink-2">약점</span>}
+              </span>
               <span className="h-2 flex-1 overflow-hidden rounded-[2px] bg-surface-2">
                 <span className="block h-full" style={{ width: `${v}%`, background: colors.series1 }} />
               </span>
-              <span className="w-14 shrink-0 text-right text-ink-2">{weak ? `약점 ${v}` : v}</span>
+              <span className={`w-8 shrink-0 text-right ${weak ? "font-bold text-ink" : "text-ink-2"}`}>{v}</span>
             </li>
           );
         })}
       </ul>
       {!official && <p className="mt-3 text-caption text-ink-3">KBL - Stats Reference · 비영리 팬 프로젝트</p>}
     </div>
+  );
+}
+
+/** 뽑은 뒤에만 보이는 종합 등급 글자 (고를 때는 등급을 숨긴다) */
+function GradeChip({ score, color, colors }: { score: number; color: TeamColor; colors: ThemeColors }) {
+  const grade = overallGrade(score);
+  const tone = gradeTone(grade, color, colors);
+  return (
+    <span
+      className="inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-control border px-1 text-caption font-black"
+      style={{ background: tone.bg, color: tone.ink, borderColor: tone.border }}
+      aria-label={`종합 등급 ${grade}`}
+    >
+      {grade}
+    </span>
   );
 }
