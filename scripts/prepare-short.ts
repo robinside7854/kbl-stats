@@ -5,7 +5,7 @@
 //
 // 목소리 공급자 (위에서부터 쓸 수 있는 것):
 //   1) Google Cloud TTS — 환경변수 GOOGLE_TTS_API_KEY 가 있으면 (공식 API, 권장). 목소리 SHORTS_TTS_VOICE(기본 ko-KR-Chirp3-HD-Puck)
-//   2) edge-tts (pip install edge-tts) — 키 없이 되는 시제품용. 목소리 SHORTS_EDGE_VOICE(기본 ko-KR-HyunsuMultilingualNeural, 20대 남성 느낌)
+//   2) edge-tts (pip install edge-tts) — 키 없이 되는 시제품용. 목소리 SHORTS_EDGE_VOICE(기본 ko-KR-HyunsuMultilingualNeural, 20대 남성 느낌, 속도 +20%)
 //      Microsoft Edge 읽어주기 기능을 쓰는 비공식 도구라 언제든 막힐 수 있다 → 정식 운영은 1) 로
 //   3) 없음 — 목소리 없이 대본 길이로 장면 시간을 추정 (화면 확인용)
 // 사진·로고는 사이트처럼 KBL 주소에서 받는다. 실패하면 null → 화면은 팀 색 + 이니셜 대체 디자인.
@@ -25,7 +25,7 @@ fs.mkdirSync(path.join(outDir, "audio"), { recursive: true });
 fs.mkdirSync(path.join(outDir, "img"), { recursive: true });
 
 /** 장면 끝에 남기는 여백(초) — 다음 장면으로 넘어가기 전 숨 */
-const SCENE_TAIL = 0.35;
+const SCENE_TAIL = 0.25;
 
 type Provider = "google" | "edge" | "none";
 function pickProvider(): Provider {
@@ -57,7 +57,7 @@ async function ttsGoogle(text: string, file: string) {
 
 function ttsEdge(text: string, file: string) {
   const voice = process.env.SHORTS_EDGE_VOICE ?? "ko-KR-HyunsuMultilingualNeural";
-  execFileSync("edge-tts", ["--voice", voice, "--rate", process.env.SHORTS_EDGE_RATE ?? "+12%", "--text", text, "--write-media", file], {
+  execFileSync("edge-tts", ["--voice", voice, "--rate", process.env.SHORTS_EDGE_RATE ?? "+20%", "--text", text, "--write-media", file], {
     stdio: "ignore",
   });
 }

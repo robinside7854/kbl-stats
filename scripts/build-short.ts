@@ -139,18 +139,18 @@ const scenes = [
   {
     id: "cover",
     kind: "cover" as const,
-    caption: `${seasonLabel} 국내 득점 TOP 5. 다섯 명 모두 점수를 내는 방법이 달랐어요.`,
+    caption: `${seasonLabel} 국내 득점 TOP 5. 점수 내는 방법이 전부 달랐어요.`,
   },
   ...countdown.map((p) => ({ id: `rank-${p.rank}`, kind: "player" as const, playerNo: p.playerNo, caption: p.line.caption })),
   {
     id: "compare",
     kind: "compare" as const,
-    caption: `한눈에 보면 이래요. 3점은 ${threeTop.name}, 페인트는 ${paintTop.name}, 자유투는 ${leader.name}.`,
+    caption: `3점은 ${threeTop.name}, 페인트는 ${paintTop.name}, 자유투는 ${leader.name}.`,
   },
   {
     id: "outro",
     kind: "outro" as const,
-    caption: "여러분 팀 에이스는 어떤 유형인가요? 댓글로 알려주세요.",
+    caption: "여러분 팀 에이스는 어떤 유형? 댓글로 알려주세요.",
   },
 ].map((s) => ({ ...s, speech: toSpeech(s.caption), chunks: captionChunks(s.caption) }));
 

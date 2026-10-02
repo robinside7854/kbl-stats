@@ -84,7 +84,7 @@ function Credits() {
 /** 자막 — 대본 조각을 글자 수 비율로 나눠 보여 준다 */
 function Caption({ scene }: { scene: EpisodeScene }) {
   const frame = useCurrentFrame();
-  const speak = Math.max(1, (scene.seconds - 0.35) * FPS);
+  const speak = Math.max(1, (scene.seconds - 0.25) * FPS);
   const lens = scene.chunks.map((c) => c.replace(/\s+/g, "").length || 1);
   const total = lens.reduce((a, b) => a + b, 0);
   let acc = 0;

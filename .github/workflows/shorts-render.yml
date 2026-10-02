@@ -7,7 +7,7 @@
 #   - shorts-renders 브랜치에 같은 파일 (휴대폰에서 GitHub 앱으로 받기 쉽게)
 # 목소리: 저장소 Secrets 에 GOOGLE_TTS_API_KEY 가 있으면 Google Cloud TTS(공식), 없으면 edge-tts(키 없는 시제품용)
 #
-# 실행 횟수: 3
+# 실행 횟수: 4
 name: 숏폼 렌더
 
 on:

@@ -35,8 +35,9 @@ assert.equal(euroRo("페인트"), "페인트로");
 assert.equal(iGa("허웅"), "허웅이");
 assert.equal(iGa("허훈"), "허훈이");
 assert.equal(iGa("이정현"), "이정현이");
-assert.equal(toSpeech("25-26 국내 득점 TOP 5."), "이오 이육 국내 득점 탑 파이브.");
-for (const ch of captionChunks("그리고 대망의 1위, 이정현. 경기당 18.6점. 비밀은 자유투. 자유투로만 경기당 4.5점, 성공률 87.4%예요.")) {
+assert.equal(toSpeech("25-26 국내 득점 TOP 5."), "지난 시즌 국내 득점 탑 파이브.");
+assert.ok(captionChunks("25-26 국내 득점 TOP 5. 점수").some((c) => c.includes("TOP\u00a05")));
+for (const ch of captionChunks("대망의 1위 이정현, 18.6점. 비밀은 자유투. 자유투로만 경기당 4.5점이에요.")) {
   assert.ok(ch.length <= 16, ch);
 }
 assert.equal(sampleShots([[1, 1, 1], [2, 2, 0], [3, 3, 1], [4, 4, 0]], 2).length, 2);

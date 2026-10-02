@@ -220,25 +220,25 @@ export interface TopScorerScriptInput {
 
 const pctText = (v: number) => `${r1(v)}%`;
 
-/** 선수 한 명 대사 — 20대 해요체, 숫자는 2개 안팎만 */
+/** 선수 한 명 대사 — 20대 해요체, 숫자는 2개 안팎만. 한 장면 약 6초(쇼츠 전체 45~55초)에 맞춰 짧게 */
 export function topScorerLine(p: TopScorerScriptInput): ScriptLine {
-  const head = p.rank === 1 ? `그리고 대망의 1위, ${p.name}. 경기당 ${p.ppg}점.` : `${p.rank}위 ${p.name}, 경기당 ${p.ppg}점.`;
+  const head = p.rank === 1 ? `대망의 1위 ${p.name}, ${p.ppg}점.` : `${p.rank}위 ${p.name}, ${p.ppg}점.`;
   const c = p.callout;
   const s = (k: ScoringSourceKey) => p.sources.find((x) => x.key === k)!;
   let body: string;
   if (c.kind === "balanced") {
     const [a, b] = [...p.sources].sort((x, y) => y.share - x.share);
-    body = `${a.label} ${a.share}%, ${b.label} ${b.share}%. 안팎을 가리지 않는 균형형이에요.`;
+    body = `${a.label} ${a.share}%, ${b.label} ${b.share}%. 안팎 균형형이에요.`;
   } else if (c.kind === "shareTop" && c.source === "three") {
-    body = `득점의 ${s("three").share}%가 3점이에요. 성공률도 ${pctText(p.tpPct)}.`;
+    body = `득점의 ${s("three").share}%가 3점. 성공률 ${pctText(p.tpPct)}.`;
   } else if (c.kind === "shareTop" && c.source === "paint") {
-    body = `득점의 ${s("paint").share}%를 페인트에서 냈어요. 다섯 명 중 제일 많이 안으로 파고들었죠.`;
+    body = `득점의 ${s("paint").share}%가 페인트. 다섯 명 중 최고예요.`;
   } else if (c.kind === "shareTop" && c.source === "ft") {
-    body = `비밀은 자유투. 득점의 ${s("ft").share}%, 성공률은 ${pctText(p.ftPct)}예요.`;
+    body = `비밀은 자유투. 득점의 ${s("ft").share}%예요.`;
   } else if (c.kind === "perGameTop" && c.source === "ft") {
-    body = `비밀은 자유투. 자유투로만 경기당 ${s("ft").perGame}점, 성공률 ${pctText(p.ftPct)}예요.`;
+    body = `비밀은 자유투. 자유투로만 경기당 ${s("ft").perGame}점이에요.`;
   } else if (c.kind === "perGameTop" && c.source === "three") {
-    body = `3점으로만 경기당 ${s("three").perGame}점. 다섯 명 중 가장 많아요.`;
+    body = `3점으로만 경기당 ${s("three").perGame}점, 다섯 명 중 최다.`;
   } else if (c.source) {
     const x = s(c.source);
     body = `${x.label} 비중이 ${x.share}%예요.`;
@@ -251,12 +251,14 @@ export function topScorerLine(p: TopScorerScriptInput): ScriptLine {
 
 /** 숫자를 TTS 가 자연스럽게 읽도록: "TOP 5" → "탑 파이브", "%" 는 그대로 (TTS 가 퍼센트로 읽음) */
 export function toSpeech(text: string): string {
-  return text.replace(/TOP\s*5/g, "탑 파이브").replace(/25-26/g, "이오 이육");
+  return text.replace(/TOP\s*5/g, "탑 파이브").replace(/\b\d{2}-\d{2} /g, "지난 시즌 ");
 }
 
 /** 자막을 한 화면에 들어갈 조각으로 — 문장 부호·쉼표 기준, 한 조각 최대 maxLen 글자 */
 export function captionChunks(text: string, maxLen = 16): string[] {
+  // "TOP 5" 는 한 단어로 (자막이 "TOP / 5." 로 끊기지 않게)
   const parts = text
+    .replace(/TOP 5/g, "TOP\u00a05")
     .split(/(?<=[.,?!])\s+/)
     .map((s) => s.trim())
     .filter(Boolean);
@@ -266,7 +268,7 @@ export function captionChunks(text: string, maxLen = 16): string[] {
       out.push(part);
       continue;
     }
-    const words = part.split(/\s+/);
+    const words = part.split(/ +/); // 일반 공백만 — "TOP\u00a05" 는 한 단어
     let cur = "";
     for (const w of words) {
       if (cur && (cur + " " + w).length > maxLen) {
@@ -279,10 +281,10 @@ export function captionChunks(text: string, maxLen = 16): string[] {
   return out;
 }
 
-/** 대본 길이로 읽는 시간 추정 (초) — TTS 가 없을 때 장면 길이. 한국어 숏폼 내레이션 약 초당 7자 */
+/** 대본 길이로 읽는 시간 추정 (초) — TTS 가 없을 때 장면 길이. 2026-10-02 edge-tts +12% 실측 약 초당 5자 */
 export function estimateSpeechSeconds(text: string): number {
   const chars = text.replace(/\s+/g, "").length;
-  return Math.max(1.5, chars / 7);
+  return Math.max(1.5, chars / 5);
 }
 
 // ─────────────────────────────────────────────
