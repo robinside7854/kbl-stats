@@ -8,7 +8,7 @@ import Link from "next/link";
 import {
   canPick, decodeLineupParam, emptyLineup, encodeLineupParam, foreignCount, GAME_FOREIGN_MAX, GAME_ROUNDS, GAME_SEASON_GAMES,
   GAME_SLOTS, isLineupFull, lineupTotals, openSlotsFor, pickBlockReason, placePick, respinEra, respinTeam, resultVerdict,
-  simulateSeason, SLOT_LABELS, sortCandidates, spin, teamOfCandidate, teamsOf, GAME_SPIN_TEAMS, type GameCandidate, type GamePool, type GameTeam, type Lineup,
+  simulateSeason, SLOT_LABELS, spin, teamOfCandidate, teamsOf, GAME_SPIN_TEAMS, filterByPositionChip, sortCandidatesBy, POSITION_CHIPS, SORT_STATS, type PositionChip, type SortDir, type SortStat, type GameCandidate, type GamePool, type GameTeam, type Lineup,
   type SeasonResult, type Spin,
 } from "@/lib/game";
 import { overallGrade, RADAR_AXES, RADAR_AXIS_LABELS } from "@/lib/metrics";
@@ -17,6 +17,8 @@ import { positionLabel } from "@/lib/roster";
 import { FALLBACK_TEAM_COLOR, gradeTone } from "@/lib/teams";
 import type { TeamColor } from "@/lib/types";
 import { teamShortLabel } from "@/lib/images";
+import ChipRow from "./ChipRow";
+import { IconChevronDown, IconChevronUp } from "./icons";
 import InfoLink from "./InfoLink";
 import PlayerAvatar from "./PlayerAvatar";
 import Skeleton from "./Skeleton";
@@ -65,6 +67,8 @@ export default function GameView() {
   const [eraSkip, setEraSkip] = useState(true);
   const [choosing, setChoosing] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
+  /** 후보 정렬 (다음 슬롯에도 유지) — 포지션 칩은 슬롯마다 "전체"로 돌아간다(CandidateList 안 상태) */
+  const [sort, setSort] = useState<{ key: SortStat; dir: SortDir }>({ key: "ppg", dir: "desc" });
   const [shared, setShared] = useState<Picked[] | null>(null);
   const [copied, setCopied] = useState(false);
   const timer = useRef<number | null>(null);
@@ -307,6 +311,8 @@ export default function GameView() {
           {current && currentTeams.length > 0 && !spinning && (
             <CandidateList
               teams={currentTeams}
+              sort={sort}
+              onSort={setSort}
               lineup={lineup}
               choosing={choosing}
               showAll={showAll}
@@ -402,12 +408,13 @@ function LineupBoard({ lineup, teams, colors }: { lineup: Lineup; teams: (GameTe
 }
 
 /** 기록 다섯 칸 (이름표 + 숫자) */
-function StatStrip({ c, dim = false }: { c: Pick<GameCandidate, "ppg" | "rpg" | "apg" | "spg" | "bpg">; dim?: boolean }) {
+/** active: 지금 정렬 기준 기록 — 이름표를 진하게 해서 어느 기록으로 줄 세웠는지 보이게 */
+function StatStrip({ c, dim = false, active }: { c: Pick<GameCandidate, "ppg" | "rpg" | "apg" | "spg" | "bpg">; dim?: boolean; active?: SortStat }) {
   return (
     <span className="tabular grid grid-cols-5 gap-1 text-center">
       {STAT_COLS.map((s) => (
         <span key={s.key} className="flex flex-col">
-          <span className="text-caption text-ink-3">{s.label}</span>
+          <span className={`text-caption ${s.key === active ? "font-bold text-ink" : "text-ink-3"}`}>{s.label}</span>
           <span className={`text-body font-bold ${dim ? "text-ink-3" : "text-ink"}`}>{c[s.key].toFixed(1)}</span>
         </span>
       ))}
@@ -417,6 +424,8 @@ function StatStrip({ c, dim = false }: { c: Pick<GameCandidate, "ppg" | "rpg" | 
 
 interface ListProps {
   teams: GameTeam[];
+  sort: { key: SortStat; dir: SortDir };
+  onSort: (s: { key: SortStat; dir: SortDir }) => void;
   lineup: Lineup;
   choosing: string | null;
   showAll: boolean;
@@ -426,10 +435,12 @@ interface ListProps {
 }
 
 /** 세 팀 후보를 한 목록으로: 고를 수 있는 선수 먼저(그 시즌 경기당 득점 순), 못 고르는 선수는 흐리게 + 까닭. 등급·점수는 보이지 않는다 */
-function CandidateList({ teams, lineup, choosing, showAll, onShowAll, onChoose, onPlace }: ListProps) {
+function CandidateList({ teams, sort, onSort, lineup, choosing, showAll, onShowAll, onChoose, onPlace }: ListProps) {
+  const [pos, setPos] = useState<PositionChip>("all");
   const teamOf = new Map(teams.flatMap((t) => t.candidates.map((c) => [c, t] as const)));
   const all = teams.flatMap((t) => t.candidates);
-  const sorted = sortCandidates(all);
+  // 포지션 칩 → 기록 칩 정렬 (같은 칩을 다시 누르면 내림/오름 전환)
+  const sorted = sortCandidatesBy(filterByPositionChip(all, pos), sort.key, sort.dir);
   const ordered = [...sorted.filter((c) => canPick(lineup, c)), ...sorted.filter((c) => !canPick(lineup, c))];
   const visible = showAll ? ordered : ordered.slice(0, CANDIDATES_VISIBLE);
   return (
@@ -437,6 +448,46 @@ function CandidateList({ teams, lineup, choosing, showAll, onShowAll, onChoose, 
       <h2 id="cand-title" className="text-h2 font-bold">
         한 명을 고르세요 <span className="text-sub font-medium text-ink-3">{all.length}명 · 그 시즌 경기당 기록</span>
       </h2>
+      <ChipRow
+        label="포지션"
+        className="mt-2"
+        chips={POSITION_CHIPS.map((p) => ({
+          value: p,
+          label: (
+            <>
+              {p === "all" ? "전체" : SLOT_LABELS[p]}
+              <span className="tabular text-sub font-medium opacity-70">{filterByPositionChip(all, p).length}</span>
+            </>
+          ),
+        }))}
+        value={pos}
+        onChange={setPos}
+      />
+      <ChipRow
+        label="정렬 (같은 칩을 다시 누르면 순서가 바뀝니다)"
+        className="mt-1.5"
+        scroll
+        chips={SORT_STATS.map((st) => ({
+          value: st.key,
+          aria: `${st.label} ${st.key === sort.key ? (sort.dir === "desc" ? "높은 순" : "낮은 순") : ""}`,
+          label: (
+            <>
+              {st.label}
+              {st.key === sort.key && (sort.dir === "desc" ? <IconChevronDown size={16} /> : <IconChevronUp size={16} />)}
+            </>
+          ),
+        }))}
+        value={sort.key}
+        onChange={(k) => onSort(k === sort.key ? { key: k, dir: sort.dir === "desc" ? "asc" : "desc" } : { key: k, dir: "desc" })}
+      />
+      {ordered.length === 0 ? (
+        <p className="surface-card mt-2 rounded-container px-4 py-6 text-center text-body text-ink-2">
+          이 포지션 선수가 없습니다.{" "}
+          <button type="button" onClick={() => setPos("all")} className="focus-ring rounded-control font-semibold text-ink underline">
+            전체 보기
+          </button>
+        </p>
+      ) : (
       <ul className="surface-card mt-2 divide-y divide-line rounded-container">
         {visible.map((c) => {
           const reason = pickBlockReason(lineup, c);
@@ -466,7 +517,7 @@ function CandidateList({ teams, lineup, choosing, showAll, onShowAll, onChoose, 
                   </span>
                 </span>
                 <span className="w-full sm:w-64 sm:shrink-0">
-                  <StatStrip c={c} dim={!!reason} />
+                  <StatStrip c={c} dim={!!reason} active={sort.key} />
                 </span>
               </button>
               {choosing === c.id && (
@@ -487,6 +538,7 @@ function CandidateList({ teams, lineup, choosing, showAll, onShowAll, onChoose, 
           );
         })}
       </ul>
+      )}
       {!showAll && ordered.length > CANDIDATES_VISIBLE && (
         <button
           type="button"

@@ -249,6 +249,31 @@ export function sortCandidates(cs: readonly GameCandidate[]): GameCandidate[] {
   return [...cs].sort((a, b) => b.ppg - a.ppg || a.nameKo.localeCompare(b.nameKo, "ko"));
 }
 
+/**
+ * 후보 목록 포지션 칩 (2026-10-02 사용자 요청): 그 칸에 들어갈 수 있는 선수 기준.
+ * 가드 = G·GF, 포워드 = F·GF·FC, 센터 = C·FC (slotGroupsFor 와 같은 규칙 — 겸업 선수는 두 칩에 다 나온다)
+ */
+export type PositionChip = "all" | SlotGroup;
+export const POSITION_CHIPS: readonly PositionChip[] = ["all", "G", "F", "C"];
+export function filterByPositionChip(cs: readonly GameCandidate[], chip: PositionChip): GameCandidate[] {
+  return chip === "all" ? [...cs] : cs.filter((c) => slotGroupsFor(c.position).includes(chip));
+}
+
+/** 후보 목록 정렬 칩: 기록 다섯 개 × 내림/오름차순. 같으면 득점 → 이름 */
+export type SortStat = "ppg" | "rpg" | "apg" | "spg" | "bpg";
+export type SortDir = "desc" | "asc";
+export const SORT_STATS: readonly { key: SortStat; label: string }[] = [
+  { key: "ppg", label: "득점" },
+  { key: "rpg", label: "리바" },
+  { key: "apg", label: "어시" },
+  { key: "spg", label: "스틸" },
+  { key: "bpg", label: "블록" },
+];
+export function sortCandidatesBy(cs: readonly GameCandidate[], key: SortStat, dir: SortDir): GameCandidate[] {
+  const sign = dir === "desc" ? -1 : 1;
+  return [...cs].sort((a, b) => sign * (a[key] - b[key]) || b.ppg - a.ppg || a.nameKo.localeCompare(b.nameKo, "ko"));
+}
+
 /** 시뮬레이션·테스트용: 점수 높은 순 (화면에는 쓰지 않는다) */
 export function sortByScore(cs: readonly GameCandidate[]): GameCandidate[] {
   return [...cs].sort((a, b) => b.score - a.score || b.ppg - a.ppg);
