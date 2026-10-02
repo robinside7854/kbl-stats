@@ -195,7 +195,7 @@ kbl-stats/
 │   ├── records.ts       ← 역대 통산 순위 (순수: RECORD_STATS, sumCareerTotals(시즌 합계 → 선수별), rankCareerTotals(합계/경기당 — 경기당은 통산 200경기 이상, 국적 전체/국내/외국인), formatRecord, 현역 isActiveCareer(마지막 시즌 = 기록 있는 최신 시즌) — lib/data loadCareerTotals)
 │   ├── teams.ts         ← 팀 한글 약칭 teamShortNameKo (연고지 지명 목록 HOME_CITIES — 하드코딩 예외, 이유 주석), 팀 색 배정 assignTeamColors(회색 기본값 팀 → 범주형 팔레트, 팀 순서, 순환 금지)·ensureMarkContrast·comparePairColors(OKLab 거리 < 15면 팔레트 1·2번), 핵심 의존도 teamDependency(상위 3명 득점 비중·표본 충족 수)
 │   ├── playstyle.ts     ← 플레이스타일 탭 (순수: buildStyleRows(표본 충족 선수의 역할 유형·공격 유형·종합 점수), groupStyles(유형별 묶음·유형 안 순위 = 종합 백분위 → PER), STYLE_TOP 10, 주소 쿼리 ?kind=&type=&origin=)
-│   ├── game.ts          ← 54-0 게임 규칙 (순수: 시대 구간 splitEras(7개, 남는 시즌은 최근 구간), 칸 GAME_SLOTS 가드2·포워드2·센터1(GF·FC 는 두 칸), 외국 선수 GAME_FOREIGN_MAX 2, 슬롯 spin(쓴 구간 제외·고를 선수 있는 팀만)·respinTeam·respinEra, 전력 teamRating(종합 점수 평균 75% + 6축 최고값 평균 25%)·winProbability(WIN_CURVE 표 보간, 99↑ 전승)·simulateSeason(라인업 시드 → 같은 라인업 같은 성적), 공유 ?l=번호:시즌,…)
+│   ├── game.ts          ← 54-0 게임 규칙 (순수: 시대 구간 splitEras(7개, 남는 시즌은 최근 구간), 칸 GAME_SLOTS 가드2·포워드2·센터1(GF·FC 는 두 칸), 외국 선수 GAME_FOREIGN_MAX 2, 슬롯 spin(구간 반복 가능·고를 선수 있는 팀만)·respinTeam·respinEra, 전력 teamRating(종합 점수 평균 75% + 6축 최고값 평균 25%)·winProbability(WIN_CURVE 표 보간, 전승은 잘 해도 약 1%)·simulateSeason(라인업 시드 → 같은 라인업 같은 성적), 공유 ?l=번호:시즌,…)
 │   ├── game-pool.ts     ← 54-0 후보 풀 만들기 buildGamePool(시즌 카드 → 구간 × 팀 × 후보, 표본 충족·포지션 있는 선수, 같은 구간·팀은 종합 점수 최고 시즌 하나) — 빌드 스크립트 전용
 │   ├── favorites.ts     ← 즐겨찾기 (순수: parseFavorites·toggleFavorite, FAVORITES_VISIBLE 5 — 저장은 app/components/useFavorites localStorage)
 │   ├── prime.ts         ← 프라임 시즌 (pickPrimeSeasons·primeCandidatesOf)
@@ -268,6 +268,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-02 (54-0 조정): 사용자 지시 ① **시대 구간 중복 허용**(`spin(pool, lineup, rng)`, 시대 다시 돌리기는 지금과 다른 구간, 화면의 구간 칩 줄 삭제) ② **전승 확률 약 1%**(`WIN_CURVE` 위쪽 96→10%·98→7.5%·99→6% 패배, 100 이어야 확정). 2만 판 시뮬레이션: 아무나 중앙 18승 · 매번 최고 점수 49승·전승 0.6% · 다시 돌리기까지 잘 쓰면 50승·전승 1.0%. 검증: typecheck·test·build·slop 0, Playwright 390/1280. main 배포.
 - 2026-10-02 (54-0 게임): 사용자 결정(범위 IN·외국 선수 2명·시대 구간 7개·가드2/포워드2/센터1·오늘의 뽑기 없음)으로 `/game` 구현. 규칙 `lib/game.ts`, 풀 `scripts/build-game.ts` → `public/game/pool.json`(구간 97-00·00-04·04-08·08-12·12-16·16-21·21-26, 팀 10~13개, 후보 2,282명). 점수 = 그 시즌 종합 점수(국적 풀 안 백분위)라 원숫자 합처럼 외국 선수가 휩쓸지 않음. 한 번 쓴 구간은 다시 안 나옴(82-0 연대 규칙). 난이도(1,000판 시뮬레이션): 아무나 뽑기 중앙 18승, 매번 최고 점수 51승·전승 약 14%. 메뉴 "54-0"(모바일 하단 탭 7개). 검증: typecheck·test·build·slop 0, Playwright 320/390/1280 라이트/다크 5라운드 완주·가로 넘침 0·콘솔 에러 0·이미지 저장·공유 링크 같은 성적. main 배포.
 - 2026-10-02 (시즌 어워즈): 마감된 시즌(수상 기록이 있는 시즌) 리더보드 맨 위에 **어워즈**(`SeasonAwardsBoard`, 순서·묶음 `lib/awards buildSeasonAwardsView`): 챔피언·정규리그 1위 카드 → 주요 시상(정규리그 MVP·외국선수 MVP·챔프전 MVP·신인상, 사진 카드, MVP 금색) → 베스트5·수비 5걸(5명 줄) → 정규리그 시상(최우수 수비·식스맨·기량 발전·페어플레이·인기상)·기록 부문(득점상~스틸상, 2023-24~)·올스타전(MVP·3점·덩크)·라운드/월간 MVP 목록, 이름 → 그 시즌 선수 카드. 수상 파서를 개인상 전부로 넓힘(`scripts/awards.ts` 계량 부문·올스타 콘테스트·라운드/월간 MVP·"국내 :"·"1일차:" 꼬리표·한 줄 여러 명, `seasonTeamResults` 정규시즌 1·2위·챔프전 결과) → 시즌 파일 `seasonAwards`(751건 전부 선수 연결), 색인 `awards` 는 프로필 부문만(`PROFILE_AWARD_KEYS`). 감독상만 뺌. 검증: typecheck·test·build·slop 0, Playwright 25-26 390 라이트/1280 다크·97-98 390 가로 넘침 0·콘솔 에러 0. main 배포.
 - 2026-10-02 (나무위키 삭제): 사용자 지시로 선수 머리말 나무위키 버튼·`namuWikiSearchUrl` 삭제. main 배포.

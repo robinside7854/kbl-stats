@@ -41,7 +41,7 @@ assert.equal(canPick(l, c("d1", "F")), true);
 assert.equal(isLineupFull(l), false);
 console.log("game: 칸·외국 선수 한도 통과");
 
-// 슬롯: 쓴 구간은 다시 안 나옴, 고를 선수가 있는 팀만, 다시 돌리기
+// 슬롯: 구간은 반복 가능, 고를 선수가 있는 팀만, 다시 돌리기
 const team = (teamCode: string, cands: GameCandidate[]) => ({ teamCode, name: `팀${teamCode}`, logoUrl: null, color: { primary: "#000", secondary: "#fff" } as never, candidates: cands });
 const tiny: GamePool = {
   eras: [
@@ -49,18 +49,18 @@ const tiny: GamePool = {
     { index: 1, label: "B", seasonCodes: [2], teams: [team("10", [c("c", "F")]), team("30", [c("d", "G")])] },
   ],
 };
-for (let seed = 1; seed < 50; seed++) {
-  const s = spin(tiny, [0], emptyLineup(), seededRng(seed))!;
-  assert.equal(s.era, 1);
-}
-assert.equal(spin(tiny, [0, 1], emptyLineup(), seededRng(1)), null);
+// 구간 두 개 다 나온다 (앞 라운드와 같은 구간도 가능)
+assert.deepEqual(new Set(Array.from({ length: 50 }, (_, i) => spin(tiny, emptyLineup(), seededRng(i + 1))!.era)), new Set([0, 1]));
+// 고를 선수가 없는 구간은 안 나온다: 가드 칸이 차면 가드만 있는 팀(10·30)·외국 센터만 있는 팀은 빠진다
+const gFull = placePick(placePick(placePick(emptyLineup(), 0, c("g1", "G")), 1, c("g2", "G")), 4, c("cc", "C"));
+for (let seed = 1; seed < 50; seed++) assert.deepEqual(spin(tiny, gFull, seededRng(seed)), { era: 1, teamCode: "10" });
 // 외국 선수가 다 찼으면 외국 선수만 있는 팀은 안 나온다
 const full2 = placePick(placePick(emptyLineup(), 2, c("x", "F", true)), 3, c("y", "F", true));
-for (let seed = 1; seed < 50; seed++) assert.notEqual(spin(tiny, [1], full2, seededRng(seed))!.teamCode, "20");
+for (let seed = 1; seed < 50; seed++) assert.notEqual(spin(tiny, full2, seededRng(seed))!.teamCode, "20");
 const s0: Spin = { era: 0, teamCode: "10" };
 assert.deepEqual(respinTeam(tiny, s0, emptyLineup(), seededRng(3)), { era: 0, teamCode: "20" });
-assert.deepEqual(respinEra(tiny, s0, [], emptyLineup(), seededRng(3)), { era: 1, teamCode: "10" }); // 같은 팀이 있으면 팀 유지
-assert.equal(respinEra(tiny, s0, [1], emptyLineup(), seededRng(3)), null);
+assert.deepEqual(respinEra(tiny, s0, emptyLineup(), seededRng(3)), { era: 1, teamCode: "10" }); // 다른 구간, 같은 팀이 있으면 팀 유지
+assert.equal(respinEra({ eras: [tiny.eras[0]] }, s0, emptyLineup(), seededRng(3)), null); // 구간이 하나뿐이면 못 바꿈
 assert.equal(teamOf(tiny, { era: 1, teamCode: "30" })?.candidates[0].id, "d");
 assert.deepEqual(sortCandidates([c("1", "G", false, 70), c("2", "G", false, 90)]).map((x) => x.id), ["2", "1"]);
 console.log("game: 슬롯 돌리기 통과");
@@ -79,14 +79,18 @@ for (let x = 0; x <= 100; x += 0.5) {
   assert.ok(p >= prev && p >= 0 && p <= 1, `단조 ${x}`);
   prev = p;
 }
-assert.equal(winProbability(99), 1);
-assert.ok(winProbability(96) < 1 && winProbability(96) > 0.9);
+assert.equal(winProbability(100), 1);
+assert.ok(winProbability(99) < 0.95 && winProbability(96) >= 0.9);
 // 시즌: 54경기, 같은 라인업 = 같은 성적
 const res = simulateSeason(lineup5);
 assert.equal(res.games.length, GAME_SEASON_GAMES);
 assert.equal(res.wins + res.losses, GAME_SEASON_GAMES);
 assert.deepEqual(simulateSeason(lineup5).games, res.games);
-const perfect = simulateSeason(lineup5.map((p) => ({ ...p, score: 99, axes: [99, 99, 99, 99, 99, 99] })));
+// 최고 점수(99) 다섯 명도 전승이 보장되지는 않는다 (전력 99.25 → 경기당 패배 약 4.5%)
+const allStars = simulateSeason(lineup5.map((p) => ({ ...p, score: 99, axes: [100, 100, 100, 100, 100, 100] })));
+assert.ok(allStars.rating.rating < 100 && allStars.wins >= 45);
+// 전력 100 이면 전승 (곡선 끝점 확인용 가상 라인업)
+const perfect = simulateSeason(lineup5.map((p) => ({ ...p, score: 100, axes: [100, 100, 100, 100, 100, 100] })));
 assert.equal(perfect.wins, 54);
 assert.equal(perfect.longestStreak, 54);
 console.log("game: 전력·시즌 통과");
@@ -112,25 +116,23 @@ if (existsSync(POOL)) {
   function play(best: boolean, seed: number) {
     const rng = seededRng(seed);
     let lu = emptyLineup();
-    const used: number[] = [];
     for (let i = 0; i < 5; i++) {
-      const s = spin(pool, used, lu, rng)!;
+      const s = spin(pool, lu, rng)!;
       const opts = teamOf(pool, s)!.candidates.filter((x) => canPick(lu, x));
       const pick = best ? sortCandidates(opts)[0] : opts[Math.floor(rng() * opts.length)];
       lu = placePick(lu, openSlotsFor(lu, pick)[0], pick);
-      used.push(s.era);
     }
     assert.ok(isLineupFull(lu));
     assert.ok(lu.filter((p) => p!.foreign).length <= GAME_FOREIGN_MAX);
     return simulateSeason(lu as GameCandidate[]).wins;
   }
-  const N = 1000;
+  const N = 5000;
   const rand = Array.from({ length: N }, (_, i) => play(false, i + 1)).sort((a, b) => a - b);
   const best = Array.from({ length: N }, (_, i) => play(true, i + 1)).sort((a, b) => a - b);
   const perfectShare = best.filter((w) => w === 54).length / N;
   console.log(`game: 실제 풀 — 아무나 중앙 ${rand[N / 2]}승, 최고 점수만 중앙 ${best[N / 2]}승 · 전승 ${(perfectShare * 100).toFixed(1)}%`);
   assert.ok(rand[N / 2] >= 10 && rand[N / 2] <= 30, "아무나 뽑으면 20승 안팎");
   assert.ok(best[N / 2] >= 45, "잘 뽑으면 45승 이상");
-  assert.ok(perfectShare > 0.03 && perfectShare < 0.35, "전승은 드물게");
+  assert.ok(perfectShare > 0.001 && perfectShare < 0.02, "전승은 1% 안팎");
 }
 console.log("game: 전부 통과");

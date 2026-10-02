@@ -2,7 +2,7 @@
 // 규칙 (사용자 결정 2026-10-02):
 //   - 슬롯을 돌리면 무작위 "시대 구간 + 팀"이 나오고, 그 팀이 그 구간에 뛴 선수 중 한 명을 골라 주전 다섯 자리에 넣는다.
 //   - 시대 구간은 7개 (선수가 있는 시즌을 오래된 순으로 7 덩어리, 남는 시즌은 최근 구간에 하나씩 — 시즌 코드는 코드표에서 온다).
-//     한 번 쓴 구간은 다시 나오지 않는다 (82-0 의 "연대마다 한 명" 규칙을 7개 중 5개로).
+//     같은 구간이 여러 번 나와도 된다 (2026-10-02 사용자 결정 — 처음엔 82-0 처럼 한 번 쓴 구간을 뺐다).
 //   - 자리는 가드 2 · 포워드 2 · 센터 1. 가드-포워드(GF)는 가드·포워드 칸, 포워드-센터(FC)는 포워드·센터 칸 어디든.
 //   - 외국 선수(외국 + 아시아쿼터)는 최대 2명 (GAME_FOREIGN_MAX).
 //   - 다시 돌리기: 팀 1번, 시대 1번.
@@ -185,13 +185,13 @@ function validTeams(pool: GamePool, era: number, lineup: Lineup): GameTeam[] {
   return pool.eras[era]?.teams.filter((t) => teamHasPick(t, lineup)) ?? [];
 }
 
-function validEras(pool: GamePool, usedEras: readonly number[], lineup: Lineup): number[] {
-  return pool.eras.filter((e) => !usedEras.includes(e.index) && validTeams(pool, e.index, lineup).length > 0).map((e) => e.index);
+function validEras(pool: GamePool, lineup: Lineup, exclude: number | null = null): number[] {
+  return pool.eras.filter((e) => e.index !== exclude && validTeams(pool, e.index, lineup).length > 0).map((e) => e.index);
 }
 
-/** 새 슬롯: 안 쓴 구간 하나(고를 선수가 있는 곳) → 그 구간 팀 하나. 돌릴 곳이 없으면 null */
-export function spin(pool: GamePool, usedEras: readonly number[], lineup: Lineup, rng: Rng): Spin | null {
-  const eras = validEras(pool, usedEras, lineup);
+/** 새 슬롯: 구간 하나(고를 선수가 있는 곳, 앞 라운드와 같아도 됨) → 그 구간 팀 하나. 돌릴 곳이 없으면 null */
+export function spin(pool: GamePool, lineup: Lineup, rng: Rng): Spin | null {
+  const eras = validEras(pool, lineup);
   if (eras.length === 0) return null;
   const era = pickOne(eras, rng);
   return { era, teamCode: pickOne(validTeams(pool, era, lineup), rng).teamCode };
@@ -205,11 +205,11 @@ export function respinTeam(pool: GamePool, current: Spin, lineup: Lineup, rng: R
 }
 
 /**
- * 시대 다시 돌리기: 안 쓴 다른 구간. 같은 팀(팀 코드)이 그 구간에도 있으면 팀은 그대로, 없으면 그 구간의 팀 하나.
+ * 시대 다시 돌리기: 지금과 다른 구간. 같은 팀(팀 코드)이 그 구간에도 있으면 팀은 그대로, 없으면 그 구간의 팀 하나.
  * 바꿀 구간이 없으면 null
  */
-export function respinEra(pool: GamePool, current: Spin, usedEras: readonly number[], lineup: Lineup, rng: Rng): Spin | null {
-  const eras = validEras(pool, [...usedEras, current.era], lineup);
+export function respinEra(pool: GamePool, current: Spin, lineup: Lineup, rng: Rng): Spin | null {
+  const eras = validEras(pool, lineup, current.era);
   if (eras.length === 0) return null;
   const era = pickOne(eras, rng);
   const teams = validTeams(pool, era, lineup);
@@ -257,18 +257,19 @@ export function teamRating(players: readonly GameCandidate[]): TeamRating {
 
 /**
  * 전력 → 한 경기 승리 확률. 패배 확률을 표(WIN_CURVE)의 점 사이 직선으로 읽는다 — 위로 갈수록 1승 더하기가 어려운 곡선
- * (82-0 의 비선형 곡선과 같은 뜻). 전력 99 이상이면 전승 확정.
- * 점은 무작위 라인업 시뮬레이션으로 맞췄다 (tests/game.test.ts): 아무나 뽑으면 20승 안팎, 매번 그 팀 최고 점수를 뽑으면
- * 50승 안팎이지만 전승은 열 판에 한두 번.
+ * (82-0 의 비선형 곡선과 같은 뜻). 전력 100(다섯 명 모두 99점·6축 만점)이어야 전승 확정 — 사실상 오지 않는다.
+ * 2026-10-02 사용자 결정 "전승은 1% 정도로 어렵게": 무작위 라인업 2만 판 시뮬레이션으로 맞췄다 (tests/game.test.ts)
+ *   아무나 뽑기 중앙 약 18승 · 매번 그 팀 최고 점수 약 49승 · 다시 돌리기까지 잘 써도 전승은 약 1%.
  */
 export const WIN_CURVE: readonly (readonly [rating: number, lossRate: number])[] = [
   [30, 0.98],
   [60, 0.67],
   [75, 0.4],
   [90, 0.15],
-  [96, 0.05],
-  [98, 0.015],
-  [99, 0],
+  [96, 0.1],
+  [98, 0.075],
+  [99, 0.06],
+  [100, 0],
 ];
 export function winProbability(rating: number): number {
   const pts = WIN_CURVE;

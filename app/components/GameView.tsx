@@ -40,7 +40,6 @@ export default function GameView() {
   const [loadError, setLoadError] = useState(false);
   const [lineup, setLineup] = useState<Lineup>(emptyLineup);
   const [teams, setTeams] = useState<(GameTeam | null)[]>(() => GAME_SLOTS.map(() => null));
-  const [usedEras, setUsedEras] = useState<number[]>([]);
   const [current, setCurrent] = useState<Spin | null>(null);
   const [rolling, setRolling] = useState<Spin | null>(null);
   const [teamSkip, setTeamSkip] = useState(true);
@@ -110,7 +109,7 @@ export default function GameView() {
   }
 
   function doSpin() {
-    if (pool) animateTo(spin(pool, usedEras, lineup, Math.random));
+    if (pool) animateTo(spin(pool, lineup, Math.random));
   }
 
   function doRespinTeam() {
@@ -123,7 +122,7 @@ export default function GameView() {
 
   function doRespinEra() {
     if (!pool || !current) return;
-    const next = respinEra(pool, current, usedEras, lineup, Math.random);
+    const next = respinEra(pool, current, lineup, Math.random);
     if (!next) return;
     setEraSkip(false);
     animateTo(next);
@@ -134,7 +133,6 @@ export default function GameView() {
     const team = teamOf(pool, current)!;
     setLineup((l) => placePick(l, slot, c));
     setTeams((t) => t.map((x, i) => (i === slot ? team : x)));
-    setUsedEras((u) => [...u, current.era]);
     setCurrent(null);
     setChoosing(null);
   }
@@ -150,7 +148,6 @@ export default function GameView() {
   function restart() {
     setLineup(emptyLineup());
     setTeams(GAME_SLOTS.map(() => null));
-    setUsedEras([]);
     setCurrent(null);
     setRolling(null);
     setTeamSkip(true);
@@ -196,11 +193,10 @@ export default function GameView() {
       ) : (
         <>
           <LineupBoard lineup={lineup} teams={teams} colors={colors} />
-          <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-sub text-ink-2">
+          <div className="mt-2 text-sub text-ink-2">
             <span className="tabular">
               라운드 {Math.min(round + 1, GAME_ROUNDS)}/{GAME_ROUNDS} · 외국 선수 {foreignCount(lineup)}/{GAME_FOREIGN_MAX}
             </span>
-            <EraTrack pool={pool} used={usedEras} current={current?.era ?? null} />
           </div>
 
           <section aria-label="슬롯" className="surface-card mt-4 rounded-container p-4">
@@ -267,30 +263,6 @@ function SkipButton({ label, left, onClick }: { label: string; left: boolean; on
     >
       {label} <span className="tabular text-sub font-medium text-ink-3">{left ? "1번 남음" : "씀"}</span>
     </button>
-  );
-}
-
-/** 7개 시대 구간: 쓴 곳은 채운 칸, 지금 구간은 테두리 */
-function EraTrack({ pool, used, current }: { pool: GamePool; used: number[]; current: number | null }) {
-  return (
-    <ol aria-label="시대 구간" className="grid w-full grid-cols-7 gap-1 sm:w-auto">
-      {pool.eras.map((e) => {
-        const isUsed = used.includes(e.index);
-        const isCurrent = current === e.index;
-        return (
-          <li
-            key={e.index}
-            title={`${e.label}${isUsed ? " (씀)" : ""}`}
-            aria-label={`${e.label} ${isUsed ? "씀" : isCurrent ? "지금" : "남음"}`}
-            className={`tabular flex h-6 items-center justify-center whitespace-nowrap rounded-control px-0.5 text-caption tracking-tight sm:px-1.5 font-semibold ${
-              isUsed ? "bg-ink text-surface" : isCurrent ? "border-[1.5px] border-ink text-ink" : "border border-line text-ink-3"
-            }`}
-          >
-            {e.label}
-          </li>
-        );
-      })}
-    </ol>
   );
 }
 
