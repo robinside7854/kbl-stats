@@ -295,9 +295,34 @@ export function compareLine(names: { threeShare: string; threePerGame: string; p
   return `정리하면 3점은 ${outside}, 안쪽은 ${names.paint}, 자유투는 ${ieyo(names.ft)}.`;
 }
 
-/** 숫자를 TTS 가 자연스럽게 읽도록: "TOP 5" → "탑 파이브", "%" 는 그대로 (TTS 가 퍼센트로 읽음) */
+const SINO_DIGITS = ["", "일", "이", "삼", "사", "오", "육", "칠", "팔", "구"];
+/** 정수를 한자어 수로 (0~9999): 158 → 백오십팔, 10 → 십, 0 → 영 */
+export function sinoNumber(n: number): string {
+  if (n === 0) return "영";
+  const units = ["", "십", "백", "천"];
+  let out = "";
+  const digits = String(Math.floor(n)).split("").map(Number);
+  digits.forEach((d, i) => {
+    const place = digits.length - 1 - i;
+    if (d === 0) return;
+    out += (d === 1 && place > 0 ? "" : SINO_DIGITS[d]) + units[place];
+  });
+  return out;
+}
+
+/**
+ * 읽는 말로 바꾸기 (자막은 그대로, 목소리만). 표준 발음 기준(.claude/skills/super-video-agent/references/readout-ko.md):
+ * 소수점은 [쩜], %는 "퍼센트", 우리 대본의 숫자(위·점·%·분의)는 전부 한자어 수. "TOP 5" → "탑 파이브", "25-26 " → "지난 시즌 ".
+ */
 export function toSpeech(text: string): string {
-  return text.replace(/TOP\s*5/g, "탑 파이브").replace(/\b\d{2}-\d{2} /g, "지난 시즌 ");
+  return text
+    .replace(/TOP\s*5/g, "탑 파이브")
+    .replace(/\b\d{2}-\d{2} /g, "지난 시즌 ")
+    .replace(/(\d+)(?:\.(\d+))?(%)?/g, (_, int: string, dec: string | undefined, pct: string | undefined) => {
+      let w = sinoNumber(Number(int));
+      if (dec) w += "쩜" + dec.split("").map((d) => (d === "0" ? "영" : SINO_DIGITS[Number(d)])).join("");
+      return pct ? `${w} 퍼센트` : w;
+    });
 }
 
 /** 자막을 한 화면에 들어갈 조각으로 — 문장 부호·쉼표 기준, 한 조각 최대 maxLen 글자 */

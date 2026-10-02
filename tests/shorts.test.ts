@@ -36,6 +36,8 @@ assert.equal(iGa("허웅"), "허웅이");
 assert.equal(iGa("허훈"), "허훈이");
 assert.equal(iGa("이정현"), "이정현이");
 assert.equal(toSpeech("25-26 국내 득점 TOP 5."), "지난 시즌 국내 득점 탑 파이브.");
+assert.equal(toSpeech("경기당 4.5점이에요. 성공률도 40%를 넘기고요. 5위는 서명진."), "경기당 사쩜오점이에요. 성공률도 사십 퍼센트를 넘기고요. 오위는 서명진.");
+assert.equal(toSpeech("3점으로 8점 넘게, 3분의 1이 넘어요. 158, 10, 87.4%"), "삼점으로 팔점 넘게, 삼분의 일이 넘어요. 백오십팔, 십, 팔십칠쩜사 퍼센트");
 assert.ok(captionChunks("25-26 국내 득점 TOP 5. 점수").some((c) => c.includes("TOP\u00a05")));
 for (const ch of captionChunks("대망의 1위 이정현, 18.6점. 비밀은 자유투. 자유투로만 경기당 4.5점이에요.")) {
   assert.ok(ch.length <= 16, ch);

@@ -17,7 +17,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
-import { estimateSpeechSeconds, SCENE_JOINER, sceneTimingsFromAlignment, type Alignment } from "../lib/shorts";
+import { estimateSpeechSeconds, SCENE_JOINER, sceneTimingsFromAlignment, toSpeech, type Alignment } from "../lib/shorts";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 const episodePath = process.argv[2];
@@ -141,7 +141,9 @@ if (provider === "elevenlabs") {
   narration = `${slug}/audio/narration.mp3`;
   let timings;
   if (alignment) {
-    timings = sceneTimingsFromAlignment(texts, episode.scenes.map((s: { chunks: string[] }) => s.chunks), alignment, total);
+    // 자막 조각은 읽는 말로 바꿔 대본에서 찾는다 (자막 "4.5점" ↔ 말 "사쩜오점")
+    const spokenChunks = episode.scenes.map((s: { chunks: string[] }) => s.chunks.map(toSpeech));
+    timings = sceneTimingsFromAlignment(texts, spokenChunks, alignment, total);
   } else {
     // 글자 시각이 없으면 글자 수 비율로 나눈다
     const lens = texts.map((t) => t.replace(/\s+/g, "").length);
