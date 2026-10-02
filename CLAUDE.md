@@ -157,7 +157,7 @@ kbl-stats/
 │   ├── config.ts        ← 엔드포인트(선수 마스터 PLAYER_MASTER_PATH 포함), 시즌 목록, 요청 간격
 │   ├── player-master.ts ← 선수 마스터 raw → 프로필(position·positionGroup·nationality·heightCm·weightKg·backNumber·draft) 순수 함수, isForeignPlayer, 프로필 API raw → birthday·country·school(profileExtraFrom)
 │   ├── build-shots.ts   ← 선수별 슛 차트 파일 public/shots/{seasonCode}/{playerNo}.json 생성 (prebuild·predev, lib/shots PlayerShotsFile: 점·구역·리그 합계, git 제외)
-│   ├── build-game.ts    ← 54-0 게임 후보 풀 public/game/pool.json 생성 (prebuild·predev, lib/game-pool buildGamePool, 약 520KB·gzip 83KB, git 제외)
+│   ├── build-game.ts    ← 54-0 게임 후보 풀 public/game/pool.json 생성 (prebuild·predev, lib/game-pool buildGamePool, 시즌 30개 × 팀, 약 1.1MB·gzip 156KB, git 제외)
 │   ├── build-search-index.ts ← 검색용 경량 색인 public/search-index.json 생성 (npm prebuild·predev 로 자동 실행, 생성물은 .gitignore)
 │   └── build-cards.ts   ← 비교 탭용 시즌별 카드 데이터 public/cards/{seasonCode}.json 생성 (prebuild·predev, 형식은 lib/cards.ts v2 — 레이더 구성 요소 열 포함, 시즌당 약 28~55KB, git 제외)
 ├── tests/
@@ -195,8 +195,8 @@ kbl-stats/
 │   ├── similar.ts       ← 비슷한 시즌 (순수: 6축 백분위 벡터 toAxisVector, 유사도 similarityScore, findSimilar(같은 국적 풀·같은 포지션 묶음, 선수당 최고 시즌 하나) — lib/data loadSimilarPlayers 가 전 시즌 풀을 빌드 때 한 번 만든다)
 │   ├── records.ts       ← 역대 통산 순위 (순수: RECORD_STATS, sumCareerTotals(시즌 합계 → 선수별), rankCareerTotals(합계/경기당 — 경기당은 통산 200경기 이상, 국적 전체/국내/외국인), formatRecord, 현역 isActiveCareer(마지막 시즌 = 기록 있는 최신 시즌) — lib/data loadCareerTotals)
 │   ├── teams.ts         ← 팀 한글 약칭 teamShortNameKo (연고지 지명 목록 HOME_CITIES — 하드코딩 예외, 이유 주석), 팀 색 배정 assignTeamColors(회색 기본값 팀 → 범주형 팔레트, 팀 순서, 순환 금지)·ensureMarkContrast·comparePairColors(OKLab 거리 < 15면 팔레트 1·2번), 핵심 의존도 teamDependency(상위 3명 득점 비중·표본 충족 수)
-│   ├── game.ts          ← 54-0 게임 규칙 (순수: 시대 구간 splitEras(7개, 남는 시즌은 최근 구간), 칸 GAME_SLOTS 가드2·포워드2·센터1(GF·FC 는 두 칸), 외국 선수 GAME_FOREIGN_MAX 2, 슬롯 spin(구간 반복 가능·고를 선수 있는 팀만)·respinTeam·respinEra, 전력 teamRating(종합 점수 평균 75% + 6축 최고값 평균 25%)·winProbability(WIN_CURVE 표 보간, 득점 1위만 고르면 전승 약 0.2%)·simulateSeason(라인업 시드 → 같은 라인업 같은 성적), 공유 ?l=번호:시즌,…)
-│   ├── game-pool.ts     ← 54-0 후보 풀 만들기 buildGamePool(시즌 카드 → 구간 × 팀 × 후보, 표본 충족·포지션 있는 선수, 점수·축은 그 구간·팀 최고 시즌, 화면 기록 5개는 그 구간·팀 평균) — 빌드 스크립트 전용
+│   ├── game.ts          ← 54-0 게임 규칙 (순수: 슬롯 = 시즌 하나 + 팀 3개(GAME_SPIN_TEAMS·teamsOf·spinCandidates), 칸 GAME_SLOTS 가드2·포워드2·센터1(GF·FC 는 두 칸), 외국 선수 GAME_FOREIGN_MAX 2, 슬롯 spin(시즌 반복 가능·고를 선수 있는 팀만)·respinTeam(같은 시즌 새 팀 3개)·respinEra(다른 시즌, 팀 유지), 같은 선수는 시즌이 달라도 한 번만, 전력 teamRating(종합 점수 평균 75% + 6축 최고값 평균 25%)·winProbability(WIN_CURVE 표 보간, 득점 1위만 고르면 전승 약 0.2%)·simulateSeason(라인업 시드 → 같은 라인업 같은 성적), 공유 ?l=번호:시즌,…)
+│   ├── game-pool.ts     ← 54-0 후보 풀 만들기 buildGamePool(시즌 카드 → 시즌 × 팀 × 후보, 표본 충족·포지션 있는 선수, 점수·축·기록 모두 그 시즌) — 빌드 스크립트 전용
 │   ├── favorites.ts     ← 즐겨찾기 (순수: parseFavorites·toggleFavorite, FAVORITES_VISIBLE 5 — 저장은 app/components/useFavorites localStorage)
 │   ├── prime.ts         ← 프라임 시즌 (pickPrimeSeasons·primeCandidatesOf)
 │   ├── career-cards.ts  ← 비교 탭 통산 카드 (buildCareerCards, CAREER_CODE 0, CAREER_QUALIFY 100경기·1,000분)
@@ -216,7 +216,7 @@ kbl-stats/
 │   ├── player/[playerNo]/page.tsx  ← 선수 상세 정적 1,329개 (히어로(프로필·국적·나이·국가·출신교) → 시즌 칩·순위 범위·시즌 비교 카드 → 추이 그래프 → 시즌별 기록표 → 커리어 하이)
 │   ├── records/page.tsx ← 역대 기록 (통산 순위: 부문 칩·합계/경기당·국적, RecordsView, 메뉴 "역대 기록")
 │   ├── compare/page.tsx ← 비교 탭 정적 1쪽 (?a=번호:코드&b=번호:코드, 기본은 최신·직전 시즌 PER 1위)
-│   ├── game/page.tsx    ← 54-0 게임 (GameView: 다섯 칸 → 슬롯머신 두 대(시즌·팀) → 후보 고르기(득점순, 등급 숨김) → 코트 위 5명·54경기 결과·기록 표·이미지 저장·링크 복사, /game/pool.json fetch, ?l= 공유 결과, 메뉴 "54-0")
+│   ├── game/page.tsx    ← 54-0 게임 (GameView: 다섯 칸 → 슬롯머신 두 대(시즌 하나·팀 3개) → 세 팀 후보 고르기(득점순, 등급 숨김) → 코트 위 5명·54경기 결과·기록 표·이미지 저장·링크 복사, /game/pool.json fetch, ?l= 공유 결과, 메뉴 "54-0")
 │   ├── glossary/page.tsx ← 용어 탭 (lib/glossary 표, 앵커 /glossary#ts)
 │   ├── season/[seasonCode]/leaders/page.tsx  ← 시즌 순위표 정적 페이지 (1~3위 표지 카드 + 이 시즌 한 경기 최다 카드 줄 + 정렬 표, 포지션·국적 칩, 파울 열)
 │   ├── (플레이스타일·팀 분포 탭은 없앰 → next.config redirects: /season/코드/(teams|playstyle) → 리더보드)
@@ -268,6 +268,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-02 (54-0 한 시즌 + 팀 3개): 시뮬레이션 비교(시대 구간 나누기 9가지·한 시즌 팀 1/2/3개 — 균등 7구간은 08-12·16-21 처럼 리그 흐름이 바뀐 시즌을 가로질러 해석이 갈리고, 한 시즌 팀 1개는 후보 9명이라 너무 어려움) 후 사용자 결정으로 **한 시즌 + 팀 3개**(후보 약 28명). `lib/game-pool` 구간 = 시즌 하나(30개, 기록 = 그 시즌), `Spin.teamCodes`(3개)·`GAME_SPIN_TEAMS`·`teamsOf`·`teamOfCandidate`·`spinCandidates`, 팀 다시 = 같은 시즌 새 팀 3개(지금 팀은 되도록 뺌), 시즌 다시 = 지금 팀이 가장 많이 남는 다른 시즌(없는 자리만 채움), `splitEras`·`GAME_ERA_COUNT` 삭제. 같은 선수는 시즌이 달라도 한 번만(선수 번호, 테스트 추가). 난이도 다시 맞춤: `WIN_CURVE` 96·98·99 = 원래의 0.75배(7.5%·5.625%·4.5%) → 득점 1위만 고르면 전승 0.20%·중앙 46승, 숨은 점수 1위 2.1%, 아무나 17승. 화면: 오른쪽 릴에 팀 3개(로고·이름), 후보 줄에 팀 로고·이름, "시즌 다시", 용어 문구. pool.json 1,081KB(gzip 156KB). 검증: typecheck·test·build·slop 0, Playwright 390/1280 완주·공유 링크·이미지 저장, 시즌 다시 = 왼쪽만(03-04 → 09-10, LG·SK·모비스 유지)·팀 다시 = 오른쪽만. main 배포.
 - 2026-10-02 (도메인): 사용자가 Vercel 주소를 **https://kbl-stats-reference.vercel.app** 으로 바꿈(옛 kbl-stats-mu.vercel.app 은 Vercel 도메인 설정에 남아 있으면 계속 열림). 코드에는 사이트 주소가 하드코딩된 곳이 없음(grep 0) — GA4 는 측정 ID 기준이라 도메인이 바뀌어도 그대로 수집. 나중에 OG 미리보기(metadataBase)를 만들 때는 주소를 site.json 한 곳에 둘 것.
 - 2026-10-02 (GA4 측정 ID): 사용자 제공 ID `G-03YNZDVE0F` 를 코드 기본값으로(운영 배포만 켜짐, 미리보기·개발 꺼짐 — Vercel 환경변수 설정 불필요). Analytics 를 서버 컴포넌트로, 이벤트 함수는 `track.ts` 로 분리. 검증: typecheck·test·build(VERCEL_ENV=production 이면 스크립트·푸터 안내 있음, 없으면 0)·slop 0. main 배포.
 - 2026-10-02 (54-0 결과 화면 정리): 사용자 지시 — ① 코트를 PC 에서 `max-w-md`(448px)로 묶고 사진 64px·이름표(이름 + 종합 등급 칩 · 포지션(칸 이름)·MVP · 팀 시대)를 크게, 폰은 사진 48px ② 자리를 **좌우 대칭**(탑 50% · 윙 20/80% · 로우 24/76%, 값은 사진 가운데) — 폰은 상자를 코트보다 길게(15:16, 360px 미만 15:19, SVG `xMidYMin meet`)해 엔드라인 밖을 이름표 자리로 ③ **뽑은 뒤에만 등급 공개**(`GradeChip` = overallGrade(score)·gradeTone — 위 다섯 칸은 사진 모서리, 코트는 이름 옆) ④ 팀 능력치 "약점"을 축 이름 옆 칩으로(숫자와 분리) ⑤ 54경기 승패 칸·최다 연승 삭제. 검증: typecheck·test·build·slop 0, Playwright 320/360/390/1280 코트 안 사진·이름표 겹침 0·코트 밖 0, 완주·공유 링크·이미지 저장. main 배포.

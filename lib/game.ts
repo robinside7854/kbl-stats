@@ -1,11 +1,12 @@
 // 54-0 게임 (2026-10-02 사용자 요청 — 82-0.com 의 KBL 판, 검토 문서 docs/game-54-0-review-2026-10-02.md) — 순수 함수만.
 // 규칙 (사용자 결정 2026-10-02):
-//   - 슬롯을 돌리면 무작위 "시대 구간 + 팀"이 나오고, 그 팀이 그 구간에 뛴 선수 중 한 명을 골라 주전 다섯 자리에 넣는다.
-//   - 시대 구간은 7개 (선수가 있는 시즌을 오래된 순으로 7 덩어리, 남는 시즌은 최근 구간에 하나씩 — 시즌 코드는 코드표에서 온다).
-//     같은 구간이 여러 번 나와도 된다 (2026-10-02 사용자 결정 — 처음엔 82-0 처럼 한 번 쓴 구간을 뺐다).
+//   - 슬롯을 돌리면 무작위 "시즌 하나 + 그 시즌 팀 3개"가 나오고, 세 팀 선수 중 한 명을 골라 주전 다섯 자리에 넣는다.
+//     (처음엔 "시대 구간 7개 + 팀 1개"였다 — 구간 경계가 리그 흐름이 바뀐 시즌을 가로지르고 여러 시즌 평균이 해석을 흐려서,
+//      2026-10-02 시뮬레이션 비교(팀 1·2·3개) 후 사용자 결정으로 한 시즌 + 팀 3개. 같은 시즌이 여러 번 나와도 된다)
 //   - 자리는 가드 2 · 포워드 2 · 센터 1. 가드-포워드(GF)는 가드·포워드 칸, 포워드-센터(FC)는 포워드·센터 칸 어디든.
 //   - 외국 선수(외국 + 아시아쿼터)는 최대 2명 (GAME_FOREIGN_MAX).
-//   - 다시 돌리기: 팀 1번, 시대 1번.
+//   - 같은 선수(선수 번호)는 시즌이 달라도 한 번만 (canPick).
+//   - 다시 돌리기: 팀 1번(팀 3개를 새로), 시즌 1번(팀은 되도록 그대로).
 //   - 오늘의 뽑기(날짜 고정 시드)는 하지 않는다.
 // 점수: 선수 한 명 = 그 시즌 종합 점수(카드 종합 등급과 같은 값 — 같은 국적 풀 안 백분위 1~99, lib/metrics gradeScore).
 //   시즌 안 백분위라 시대·경기 수 차이가 저절로 맞춰진다. 원숫자 합(득점+리바+…)을 쓰지 않는 이유: KBL 은 그 합의 상위 100시즌 중
@@ -17,7 +18,6 @@ import { RADAR_AXES, type RadarAxis } from "./metrics";
 import type { Position, TeamColor } from "./types";
 
 export const GAME_SEASON_GAMES = 54;
-export const GAME_ERA_COUNT = 7;
 export const GAME_FOREIGN_MAX = 2;
 export const GAME_ROUNDS = 5;
 
@@ -71,25 +71,6 @@ export interface GameEra {
 
 export interface GamePool {
   eras: GameEra[];
-}
-
-/**
- * 시즌을 시대 구간 n개로 (오래된 순 입력). 덩어리 크기는 floor(시즌 수 / n), 남는 시즌은 최근 구간부터 하나씩 더한다.
- * 30개 시즌 → 4·4·4·4·4·5·5.
- */
-export function splitEras<T>(seasons: readonly T[], n = GAME_ERA_COUNT): T[][] {
-  if (seasons.length === 0) return [];
-  const k = Math.min(n, seasons.length);
-  const base = Math.floor(seasons.length / k);
-  const extra = seasons.length - base * k;
-  const out: T[][] = [];
-  let i = 0;
-  for (let e = 0; e < k; e++) {
-    const size = base + (e >= k - extra ? 1 : 0);
-    out.push(seasons.slice(i, i + size));
-    i += size;
-  }
-  return out;
 }
 
 // ─────────────────────────────────────────────
@@ -181,10 +162,14 @@ export function hashSeed(s: string): number {
 
 const pickOne = <T>(xs: readonly T[], rng: Rng): T => xs[Math.min(xs.length - 1, Math.floor(rng() * xs.length))];
 
+/** 한 번 돌린 결과: 시즌 하나(pool.eras 의 순번 — 2026-10-02 부터 구간 = 시즌 하나) + 팀 GAME_SPIN_TEAMS 개 */
 export interface Spin {
   era: number;
-  teamCode: string;
+  teamCodes: string[];
 }
+
+/** 한 번에 보여 주는 팀 수 (2026-10-02 사용자 결정: 시뮬레이션 비교 후 3개 — 후보 약 28명) */
+export const GAME_SPIN_TEAMS = 3;
 
 /** 이 팀에 지금 고를 수 있는 선수가 있는가 */
 export const teamHasPick = (team: GameTeam, lineup: Lineup) => team.candidates.some((c) => canPick(lineup, c));
@@ -197,40 +182,69 @@ function validEras(pool: GamePool, lineup: Lineup, exclude: number | null = null
   return pool.eras.filter((e) => e.index !== exclude && validTeams(pool, e.index, lineup).length > 0).map((e) => e.index);
 }
 
-/** 새 슬롯: 구간 하나(고를 선수가 있는 곳, 앞 라운드와 같아도 됨) → 그 구간 팀 하나. 돌릴 곳이 없으면 null */
+/** 팀 목록에서 n 개를 겹치지 않게 (keep 은 먼저 넣고 나머지를 무작위로 채움). 팀 코드 순서는 keep → 새로 뽑은 순 */
+function drawTeams(teams: readonly GameTeam[], n: number, rng: Rng, keep: readonly string[] = [], exclude: readonly string[] = []): string[] {
+  const out = keep.filter((k) => teams.some((t) => t.teamCode === k)).slice(0, n);
+  let rest = teams.map((t) => t.teamCode).filter((c) => !out.includes(c) && !exclude.includes(c));
+  while (out.length < n && rest.length > 0) {
+    const c = pickOne(rest, rng);
+    out.push(c);
+    rest = rest.filter((x) => x !== c);
+  }
+  return out;
+}
+
+/** 새 슬롯: 시즌 하나(고를 선수가 있는 시즌, 앞 라운드와 같아도 됨) → 그 시즌 팀 3개. 돌릴 곳이 없으면 null */
 export function spin(pool: GamePool, lineup: Lineup, rng: Rng): Spin | null {
   const eras = validEras(pool, lineup);
   if (eras.length === 0) return null;
   const era = pickOne(eras, rng);
-  return { era, teamCode: pickOne(validTeams(pool, era, lineup), rng).teamCode };
-}
-
-/** 팀 다시 돌리기: 같은 구간의 다른 팀. 다른 팀이 없으면 null */
-export function respinTeam(pool: GamePool, current: Spin, lineup: Lineup, rng: Rng): Spin | null {
-  const teams = validTeams(pool, current.era, lineup).filter((t) => t.teamCode !== current.teamCode);
-  if (teams.length === 0) return null;
-  return { era: current.era, teamCode: pickOne(teams, rng).teamCode };
+  return { era, teamCodes: drawTeams(validTeams(pool, era, lineup), GAME_SPIN_TEAMS, rng) };
 }
 
 /**
- * 시대 다시 돌리기: 지금과 다른 구간, 팀은 그대로 (2026-10-02 사용자 요청 "다시 돌리는 것만 돌게").
- * 같은 팀(팀 코드)이 고를 선수와 함께 있는 구간 중에서 뽑는다. 그런 구간이 없을 때만(창단이 늦은 팀 등)
- * 아무 구간의 아무 팀 — 이때는 팀도 바뀐다. 바꿀 구간이 아예 없으면 null
+ * 팀 다시 돌리기: 같은 시즌, 팀 3개를 새로. 지금 나온 팀은 되도록 빼고 뽑고(남는 팀이 모자라면 지금 팀으로 채움),
+ * 결과가 지금과 똑같으면 null
+ */
+export function respinTeam(pool: GamePool, current: Spin, lineup: Lineup, rng: Rng): Spin | null {
+  const teams = validTeams(pool, current.era, lineup);
+  const fresh = drawTeams(teams, GAME_SPIN_TEAMS, rng, [], current.teamCodes);
+  const next = fresh.length >= GAME_SPIN_TEAMS ? fresh : [...fresh, ...drawTeams(teams.filter((t) => !fresh.includes(t.teamCode)), GAME_SPIN_TEAMS - fresh.length, rng)];
+  if (next.length === 0 || (next.length === current.teamCodes.length && next.every((c) => current.teamCodes.includes(c)))) return null;
+  return { era: current.era, teamCodes: next };
+}
+
+/**
+ * 시즌 다시 돌리기: 지금과 다른 시즌, 팀은 되도록 그대로 (2026-10-02 사용자 요청 "다시 돌리는 것만 돌게").
+ * 지금 팀 3개가 (고를 선수와 함께) 가장 많이 남아 있는 시즌들 중에서 뽑고, 그 시즌에 없는 팀만 다른 팀으로 채운다.
+ * 바꿀 시즌이 없으면 null
  */
 export function respinEra(pool: GamePool, current: Spin, lineup: Lineup, rng: Rng): Spin | null {
   const eras = validEras(pool, lineup, current.era);
   if (eras.length === 0) return null;
-  const sameTeamEras = eras.filter((e) => validTeams(pool, e, lineup).some((t) => t.teamCode === current.teamCode));
-  if (sameTeamEras.length > 0) return { era: pickOne(sameTeamEras, rng), teamCode: current.teamCode };
-  const era = pickOne(eras, rng);
-  return { era, teamCode: pickOne(validTeams(pool, era, lineup), rng).teamCode };
+  const overlap = (e: number) => validTeams(pool, e, lineup).filter((t) => current.teamCodes.includes(t.teamCode)).length;
+  const best = Math.max(...eras.map(overlap));
+  const era = pickOne(eras.filter((e) => overlap(e) === best), rng);
+  return { era, teamCodes: drawTeams(validTeams(pool, era, lineup), GAME_SPIN_TEAMS, rng, current.teamCodes) };
 }
 
-export function teamOf(pool: GamePool, s: Spin): GameTeam | null {
-  return pool.eras[s.era]?.teams.find((t) => t.teamCode === s.teamCode) ?? null;
+/** 슬롯의 팀들 (팀 코드 순서대로) */
+export function teamsOf(pool: GamePool, s: Spin): GameTeam[] {
+  const teams = pool.eras[s.era]?.teams ?? [];
+  return s.teamCodes.flatMap((c) => teams.filter((t) => t.teamCode === c));
 }
 
-/** 화면 후보 정렬: 그 구간 경기당 득점 높은 순 → 이름 (등급·점수는 보여 주지 않는다 — 2026-10-02 사용자 요청) */
+/** 이 선수가 슬롯의 어느 팀 소속인가 */
+export function teamOfCandidate(pool: GamePool, s: Spin, c: GameCandidate): GameTeam | null {
+  return teamsOf(pool, s).find((t) => t.candidates.includes(c)) ?? null;
+}
+
+/** 슬롯 팀들의 후보를 한 목록으로 */
+export function spinCandidates(pool: GamePool, s: Spin): GameCandidate[] {
+  return teamsOf(pool, s).flatMap((t) => t.candidates);
+}
+
+/** 화면 후보 정렬: 그 시즌 경기당 득점 높은 순 → 이름 (등급·점수는 보여 주지 않는다 — 2026-10-02 사용자 요청) */
 export function sortCandidates(cs: readonly GameCandidate[]): GameCandidate[] {
   return [...cs].sort((a, b) => b.ppg - a.ppg || a.nameKo.localeCompare(b.nameKo, "ko"));
 }
@@ -279,17 +293,17 @@ export function teamRating(players: readonly GameCandidate[]): TeamRating {
  * 전력 → 한 경기 승리 확률. 패배 확률을 표(WIN_CURVE)의 점 사이 직선으로 읽는다 — 위로 갈수록 1승 더하기가 어려운 곡선
  * (82-0 의 비선형 곡선과 같은 뜻). 전력 100(다섯 명 모두 99점·6축 만점)이어야 전승 확정 — 사실상 오지 않는다.
  * 2026-10-02 사용자 결정 "전승은 1% 정도로 어렵게" → 같은 날 등급을 숨긴 뒤 "득점 1위만 골라도 0.2% 정도"로 조정:
- *   위쪽(전력 96 이상) 패배 확률만 0.68배로 낮췄다 — 아래쪽(아무나 뽑은 라인업)의 성적은 그대로.
- *   시뮬레이션(tests/game.test.ts): 매번 그 팀 득점 1위를 고르면 전승 약 0.2%, 숨은 점수 1위면 약 1.5%.
+ *   위쪽(전력 96 이상) 패배 확률만 원래 표(96 10%·98 7.5%·99 6%)의 0.75배로 낮췄다(한 시즌 + 팀 3개로 바꾼 뒤 다시 맞춘 값). 아래쪽(아무나 뽑은 라인업)의 성적은 그대로.
+ *   시뮬레이션(tests/game.test.ts): 매번 득점 1위를 고르면 전승 약 0.2%, 숨은 점수 1위면 약 2%.
  */
 export const WIN_CURVE: readonly (readonly [rating: number, lossRate: number])[] = [
   [30, 0.98],
   [60, 0.67],
   [75, 0.4],
   [90, 0.15],
-  [96, 0.068],
-  [98, 0.051],
-  [99, 0.0408],
+  [96, 0.075],
+  [98, 0.05625],
+  [99, 0.045],
   [100, 0],
 ];
 export function winProbability(rating: number): number {

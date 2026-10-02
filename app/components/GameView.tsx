@@ -1,14 +1,14 @@
 "use client";
 // 54-0 게임 화면 (규칙·점수는 lib/game.ts — 여기서는 계산하지 않고 부르기만).
-// 순서: 주전 다섯 칸(가드 2·포워드 2·센터 1) → 슬롯머신 두 대(왼쪽 시즌 구간 · 오른쪽 팀, 버튼 하나로 같이 돌고 왼쪽이 먼저 멈춤)
-//   → 그 팀 후보 중 한 명 고르기(그 구간 평균 기록, 득점순 — 등급·점수는 안 보임) → 다섯 번 → 농구 코트 위 5명 + 54경기 결과·기록.
+// 순서: 주전 다섯 칸(가드 2·포워드 2·센터 1) → 슬롯머신 두 대(왼쪽 시즌 하나 · 오른쪽 팀 3개, 버튼 하나로 같이 돌고 왼쪽이 먼저 멈춤)
+//   → 세 팀 후보 중 한 명 고르기(그 시즌 기록, 득점순 — 등급·점수는 안 보임) → 다섯 번 → 농구 코트 위 5명 + 54경기 결과·기록.
 // 결과는 주소 ?l= 로 남겨 링크로 공유, 이미지 저장은 공식 사진 없는 사본(useCardSave).
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   canPick, decodeLineupParam, emptyLineup, encodeLineupParam, foreignCount, GAME_FOREIGN_MAX, GAME_ROUNDS, GAME_SEASON_GAMES,
   GAME_SLOTS, isLineupFull, lineupTotals, openSlotsFor, pickBlockReason, placePick, respinEra, respinTeam, resultVerdict,
-  simulateSeason, SLOT_LABELS, sortCandidates, spin, teamOf, type GameCandidate, type GamePool, type GameTeam, type Lineup,
+  simulateSeason, SLOT_LABELS, sortCandidates, spin, teamOfCandidate, teamsOf, GAME_SPIN_TEAMS, type GameCandidate, type GamePool, type GameTeam, type Lineup,
   type SeasonResult, type Spin,
 } from "@/lib/game";
 import { overallGrade, RADAR_AXES, RADAR_AXIS_LABELS } from "@/lib/metrics";
@@ -25,8 +25,8 @@ import { useCardSave } from "./useCardSave";
 import { trackEvent } from "./track";
 import { useThemeColors, type ThemeColors } from "./useThemeColors";
 
-/** 처음 보여 줄 후보 수 (나머지는 "더 보기") */
-const CANDIDATES_VISIBLE = 8;
+/** 처음 보여 줄 후보 수 (나머지는 "더 보기") — 팀 3개라 후보가 보통 25~30명 */
+const CANDIDATES_VISIBLE = 10;
 /** 릴이 멈추는 시각 (ms) — 왼쪽(시즌)이 먼저, 오른쪽(팀)이 나중. 동작 줄이기 설정이면 바로 멈춘다 */
 const ERA_STOP_MS = 800;
 const TEAM_STOP_MS = 1300;
@@ -55,7 +55,7 @@ export default function GameView() {
   const [teams, setTeams] = useState<(GameTeam | null)[]>(() => GAME_SLOTS.map(() => null));
   /** 정해진 슬롯 (릴이 다 멈춘 뒤) */
   const [current, setCurrent] = useState<Spin | null>(null);
-  /** 릴에 지금 보이는 값 — 왼쪽 시즌 구간, 오른쪽 팀 */
+  /** 릴에 지금 보이는 값 — 왼쪽 시즌, 오른쪽 팀 3개 */
   const [reelEra, setReelEra] = useState<number | null>(null);
   const [reelTeam, setReelTeam] = useState<Spin | null>(null);
   const [eraSpinning, setEraSpinning] = useState(false);
@@ -109,7 +109,7 @@ export default function GameView() {
 
   /**
    * 릴 돌리기. 결과(next)는 이미 정해져 있고 화면은 보여 주기용으로 아무 값이나 번갈아 보이다가 멈춘다.
-   * reels 에서 true 인 릴만 돈다: 처음 돌리기는 둘 다(왼쪽이 먼저 멈춤), 시대 다시는 왼쪽만, 팀 다시는 오른쪽만.
+   * reels 에서 true 인 릴만 돈다: 처음 돌리기는 둘 다(왼쪽이 먼저 멈춤), 시즌 다시는 왼쪽만, 팀 다시는 오른쪽만.
    */
   function animateTo(next: Spin | null, reels: { era: boolean; team: boolean }) {
     if (!pool || !next) return;
@@ -124,7 +124,7 @@ export default function GameView() {
       setCurrent(next);
       return;
     }
-    // 안 도는 릴은 바로 결과 값으로 (팀 다시: 시즌 그대로 / 시대 다시: 같은 팀의 그 시대 로고·이름)
+    // 안 도는 릴은 바로 결과 값으로 (팀 다시: 시즌 그대로 / 시즌 다시: 같은 팀들의 그 시즌 로고·이름)
     if (!reels.era) setReelEra(next.era);
     if (!reels.team) setReelTeam(next);
     setEraSpinning(reels.era);
@@ -152,7 +152,8 @@ export default function GameView() {
           setTeamSpinning(false);
         } else {
           const era = pool.eras[Math.floor(Math.random() * pool.eras.length)];
-          setReelTeam({ era: era.index, teamCode: era.teams[Math.floor(Math.random() * era.teams.length)].teamCode });
+          const shuffled = [...era.teams].sort(() => Math.random() - 0.5).slice(0, GAME_SPIN_TEAMS);
+          setReelTeam({ era: era.index, teamCodes: shuffled.map((t) => t.teamCode) });
         }
       }
       if (eraDone && teamDone) {
@@ -181,13 +182,15 @@ export default function GameView() {
     const next = respinEra(pool, current, lineup, Math.random);
     if (!next) return;
     setEraSkip(false);
-    // 팀은 그대로 두고 왼쪽 릴만 — 같은 팀이 다른 시대에 없어 팀도 바뀌는 드문 경우만 오른쪽도 돈다
-    animateTo(next, { era: true, team: next.teamCode !== current.teamCode });
+    // 팀은 그대로 두고 왼쪽 릴만 — 지금 팀이 그 시즌에 없어 팀이 바뀌는 경우만 오른쪽도 돈다
+    const teamChanged = next.teamCodes.length !== current.teamCodes.length || next.teamCodes.some((c, i) => c !== current.teamCodes[i]);
+    animateTo(next, { era: true, team: teamChanged });
   }
 
   function place(c: GameCandidate, slot: number) {
     if (!pool || !current) return;
-    const team = teamOf(pool, current)!;
+    const team = teamOfCandidate(pool, current, c);
+    if (!team) return;
     setLineup((l) => placePick(l, slot, c));
     setTeams((t) => t.map((x, i) => (i === slot ? team : x)));
     setCurrent(null);
@@ -231,8 +234,8 @@ export default function GameView() {
 
   const round = lineup.filter(Boolean).length;
   const eraLabel = pool && reelEra !== null ? pool.eras[reelEra]?.label ?? null : null;
-  const reelTeamObj = pool && reelTeam ? teamOf(pool, reelTeam) : null;
-  const currentTeam = pool && current ? teamOf(pool, current) : null;
+  const reelTeams = pool && reelTeam ? teamsOf(pool, reelTeam) : [];
+  const currentTeams = pool && current ? teamsOf(pool, current) : [];
 
   return (
     <main className="mx-auto max-w-3xl px-4 pt-5">
@@ -240,7 +243,7 @@ export default function GameView() {
         <h1 className="flex items-center gap-1 text-h1 font-bold">
           54-0 <InfoLink term="game54" className="ml-1" />
         </h1>
-        <p className="mt-0.5 text-sub text-ink-2">시대와 팀을 뽑아 역대 주전 5명을 꾸리고 54전 전승에 도전하세요.</p>
+        <p className="mt-0.5 text-sub text-ink-2">시즌과 팀 3개를 뽑아 역대 주전 5명을 꾸리고 54전 전승에 도전하세요.</p>
       </header>
 
       {loadError ? (
@@ -269,11 +272,15 @@ export default function GameView() {
                   <ReelBlank />
                 )}
               </SlotReel>
-              <SlotReel title="팀" spinning={teamSpinning} tick={tick}>
-                {reelTeamObj ? (
-                  <span className="flex min-w-0 flex-col items-center gap-1.5">
-                    <TeamLogo logoUrl={reelTeamObj.logoUrl} shortName={reelTeamObj.name} color={reelTeamObj.color} size={48} />
-                    <span className="max-w-full truncate text-body font-bold text-ink sm:text-h2">{reelTeamObj.name}</span>
+              <SlotReel title={`팀 ${GAME_SPIN_TEAMS}개`} spinning={teamSpinning} tick={tick}>
+                {reelTeams.length > 0 ? (
+                  <span className="flex w-full min-w-0 flex-col gap-1.5">
+                    {reelTeams.map((t) => (
+                      <span key={t.teamCode} className="flex min-w-0 items-center gap-2">
+                        <TeamLogo logoUrl={t.logoUrl} shortName={t.name} color={t.color} size={28} />
+                        <span className="min-w-0 truncate text-sub font-bold text-ink sm:text-body">{t.name}</span>
+                      </span>
+                    ))}
                   </span>
                 ) : (
                   <ReelBlank />
@@ -291,15 +298,15 @@ export default function GameView() {
             )}
             {(current || spinning) && (
               <div className="mt-3 grid grid-cols-2 gap-2">
-                <SkipButton label="시대 다시" left={eraSkip} disabled={spinning} onClick={doRespinEra} />
+                <SkipButton label="시즌 다시" left={eraSkip} disabled={spinning} onClick={doRespinEra} />
                 <SkipButton label="팀 다시" left={teamSkip} disabled={spinning} onClick={doRespinTeam} />
               </div>
             )}
           </section>
 
-          {current && currentTeam && !spinning && (
+          {current && currentTeams.length > 0 && !spinning && (
             <CandidateList
-              team={currentTeam}
+              teams={currentTeams}
               lineup={lineup}
               choosing={choosing}
               showAll={showAll}
@@ -409,7 +416,7 @@ function StatStrip({ c, dim = false }: { c: Pick<GameCandidate, "ppg" | "rpg" | 
 }
 
 interface ListProps {
-  team: GameTeam;
+  teams: GameTeam[];
   lineup: Lineup;
   choosing: string | null;
   showAll: boolean;
@@ -418,21 +425,24 @@ interface ListProps {
   onPlace: (c: GameCandidate, slot: number) => void;
 }
 
-/** 그 팀·그 구간 후보: 고를 수 있는 선수 먼저(그 구간 경기당 득점 순), 못 고르는 선수는 흐리게 + 까닭. 등급·점수는 보이지 않는다 */
-function CandidateList({ team, lineup, choosing, showAll, onShowAll, onChoose, onPlace }: ListProps) {
-  const sorted = sortCandidates(team.candidates);
+/** 세 팀 후보를 한 목록으로: 고를 수 있는 선수 먼저(그 시즌 경기당 득점 순), 못 고르는 선수는 흐리게 + 까닭. 등급·점수는 보이지 않는다 */
+function CandidateList({ teams, lineup, choosing, showAll, onShowAll, onChoose, onPlace }: ListProps) {
+  const teamOf = new Map(teams.flatMap((t) => t.candidates.map((c) => [c, t] as const)));
+  const all = teams.flatMap((t) => t.candidates);
+  const sorted = sortCandidates(all);
   const ordered = [...sorted.filter((c) => canPick(lineup, c)), ...sorted.filter((c) => !canPick(lineup, c))];
   const visible = showAll ? ordered : ordered.slice(0, CANDIDATES_VISIBLE);
   return (
     <section aria-labelledby="cand-title" className="mt-4">
       <h2 id="cand-title" className="text-h2 font-bold">
-        한 명을 고르세요 <span className="text-sub font-medium text-ink-3">{team.candidates.length}명 · 그 시대 경기당 평균</span>
+        한 명을 고르세요 <span className="text-sub font-medium text-ink-3">{all.length}명 · 그 시즌 경기당 기록</span>
       </h2>
       <ul className="surface-card mt-2 divide-y divide-line rounded-container">
         {visible.map((c) => {
           const reason = pickBlockReason(lineup, c);
           const slots = openSlotsFor(lineup, c);
           const pos = positionLabel(c.position);
+          const team = teamOf.get(c)!;
           return (
             <li key={`${c.id}:${c.seasonCode}`}>
               <button
@@ -449,8 +459,9 @@ function CandidateList({ team, lineup, choosing, showAll, onShowAll, onChoose, o
                       <span className="truncate">{c.nameKo}</span>
                       {c.foreign && <span className="shrink-0 rounded-control border border-line px-1 text-caption font-semibold text-ink-2">외국</span>}
                     </span>
-                    <span className="tabular block truncate text-caption text-ink-2">
-                      {reason ?? `${pos ?? ""} · ${c.span}${c.seasonCount > 1 ? ` · ${c.seasonCount}시즌` : ""}`}
+                    <span className="tabular flex min-w-0 items-center gap-1 text-caption text-ink-2">
+                      <TeamLogo logoUrl={team.logoUrl} shortName={team.name} color={team.color} size={16} />
+                      <span className="truncate">{reason ?? `${team.name} · ${pos ?? ""}`}</span>
                     </span>
                   </span>
                 </span>
@@ -643,9 +654,9 @@ function ResultCard({ picked, result, colors, official }: { picked: Picked[]; re
         })}
       </div>
 
-      {/* 다섯 명 기록 (그 시대 경기당 평균) + 합계 */}
+      {/* 다섯 명 기록 (그 시즌 경기당) + 합계 */}
       <table className="tabular mt-4 w-full table-fixed text-caption">
-        <caption className="mb-1 text-left text-sub font-bold text-ink">경기당 기록 (그 시대 평균)</caption>
+        <caption className="mb-1 text-left text-sub font-bold text-ink">경기당 기록 (그 시즌)</caption>
         <thead>
           <tr className="text-ink-3">
             <th scope="col" className="w-[34%] py-1 text-left font-medium">선수</th>
