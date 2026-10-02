@@ -20,7 +20,7 @@ import { buildSeasonHighCards, type SeasonHighCard } from "./highs";
 import { careerHighAchievements, careerHighTabs, type CareerHighRow, type HighAchievement, type HighsTab } from "./career";
 import { buildPlayerShotsFile, type PlayerShotsFile, type ShotPoint } from "./shots";
 import { isActiveCareer, nextMilestones, sumCareerTotals, type CareerTotal, type Milestone } from "./records";
-import { nationalityOf } from "./roster";
+import { nationalityOf, schoolGroupOf } from "./roster";
 import { findSimilar, toAxisVector, type SimilarEntry, type SimilarVector } from "./similar";
 import { pickPrimeSeasons, primeCandidatesOf, type PrimeCandidate } from "./prime";
 import { buildCardEntry, gradeGroupOf, isQualified } from "./metrics";
@@ -473,6 +473,16 @@ export function loadBadgeKeys(): Record<string, string[]> {
   for (const e of loadPlayersIndex()) {
     const keys = loadPlayerBadges(e.id).map((b) => b.key);
     if (keys.length) out[e.id] = keys;
+  }
+  return out;
+}
+
+/** 선수 탭 "출신교" 필터: 선수 번호 → 출신교 묶음 이름 (lib/roster schoolGroupOf, 학교 정보 없는 선수는 없음) */
+export function loadSchoolGroups(): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const e of loadPlayersIndex()) {
+    const g = schoolGroupOf(e.school, nationalityOf(e) !== "domestic");
+    if (g) out[e.id] = g;
   }
   return out;
 }

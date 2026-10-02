@@ -192,11 +192,11 @@ assert.equal(compareHref({ id: "1", seasonCode: 47 }), "/compare?a=1:47"); // �
 
 // ── 선수 탭 주소 ──
 const pctx = { seasons: [45, 47], latest: 47 };
-assert.deepEqual(parsePlayersQuery("", pctx), { season: 47, position: "all", origin: "all", teamCode: null, badge: null });
-const ps = { season: 45, position: "G" as const, origin: "asia" as const, teamCode: "55", badge: null };
+assert.deepEqual(parsePlayersQuery("", pctx), { season: 47, position: "all", origin: "all", teamCode: null, badge: null, school: null });
+const ps = { season: 45, position: "G" as const, origin: "asia" as const, teamCode: "55", badge: null, school: null };
 assert.equal(playersQueryString(ps, 47), "?season=45&pos=g&origin=asia&team=55");
 assert.deepEqual(parsePlayersQuery(playersQueryString(ps, 47), pctx), ps);
-assert.deepEqual(parsePlayersQuery("?season=13&pos=q&origin=x&team=a", pctx), { season: 47, position: "all", origin: "all", teamCode: null, badge: null });
+assert.deepEqual(parsePlayersQuery("?season=13&pos=q&origin=x&team=a", pctx), { season: 47, position: "all", origin: "all", teamCode: null, badge: null, school: null });
 assert.equal(positionFromParam("c"), "C");
 assert.equal(nationalityFromParam("for"), "foreign");
 
@@ -360,7 +360,7 @@ import { componentValueText, percentileBarGroups, percentileTone } from "../lib/
   assert.deepEqual(ids(filterGridEntries(grid, { position: "all", origin: "all", teamCode: null, badge: "scoringKing" }, of)).sort(), ["101", "104"]);
   assert.deepEqual(ids(filterGridEntries(grid, { position: "C", origin: "all", teamCode: null, badge: "scoringKing" }, of)), ["104"]);
   assert.equal(filterGridEntries(grid, { position: "all", origin: "all", teamCode: null, badge: null }, of).length, grid.length);
-  const ps2 = { season: 45, position: "all" as const, origin: "all" as const, teamCode: null, badge: "scoringKing" };
+  const ps2 = { season: 45, position: "all" as const, origin: "all" as const, teamCode: null, badge: "scoringKing", school: null };
   assert.equal(playersQueryString(ps2, 47), "?season=45&badge=scoringKing");
   assert.equal(parsePlayersQuery("?badge=scoringKing", { seasons: [45, 47], latest: 47 }).badge, "scoringKing");
   assert.equal(parsePlayersQuery("?badge=<x>", { seasons: [45, 47], latest: 47 }).badge, null);
@@ -385,3 +385,23 @@ import { componentValueText, percentileBarGroups, percentileTone } from "../lib/
   assert.equal(percentileTone(75), 0.5);
 }
 console.log("cardview: 칭호 필터·백분위 막대 통과");
+
+// ── 출신교 필터 ──
+import { SCHOOL_ABROAD, schoolGroupOf } from "../lib/roster";
+{
+  assert.equal(schoolGroupOf("중앙 대학교", false), "중앙대");
+  assert.equal(schoolGroupOf("중앙대학교", false), "중앙대");
+  assert.equal(schoolGroupOf("명지대중퇴", false), "명지대");
+  assert.equal(schoolGroupOf("조선대 2군", false), "조선대");
+  assert.equal(schoolGroupOf("Stony brook", false), SCHOOL_ABROAD);
+  assert.equal(schoolGroupOf("미네소타대", true), SCHOOL_ABROAD);
+  assert.equal(schoolGroupOf("", false), null);
+  const sc: Record<string, string> = { "101": "연세대", "102": "고려대", "104": SCHOOL_ABROAD };
+  assert.deepEqual(ids(filterGridEntries(grid, { position: "all", origin: "all", teamCode: null, school: "연세대" }, () => [], (id) => sc[id] ?? null)), ["101"]);
+  const ps3 = { season: 47, position: "all" as const, origin: "all" as const, teamCode: null, badge: null, school: "연세대" };
+  assert.equal(playersQueryString(ps3, 47), "?school=%EC%97%B0%EC%84%B8%EB%8C%80");
+  assert.equal(parsePlayersQuery(playersQueryString(ps3, 47), { seasons: [47], latest: 47 }).school, "연세대");
+  assert.equal(clearGridFilter(ps3, "school").school, null);
+  assert.deepEqual(gridFilterChips(ps3, String), [{ field: "school", label: "연세대" }]);
+}
+console.log("cardview: 출신교 필터 통과");

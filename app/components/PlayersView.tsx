@@ -41,6 +41,7 @@ import {
 } from "@/lib/roster";
 import { BADGE_CHIP, badgeStyle } from "./BadgeRow";
 import { BADGE_DEFS } from "@/lib/badges";
+import { SCHOOL_ABROAD } from "@/lib/roster";
 
 const badgeDef = (key: string) => BADGE_DEFS.find((d) => d.key === key);
 import ChipRow from "./ChipRow";
@@ -67,6 +68,8 @@ interface Props {
   topBadges: Record<string, string>;
   /** 선수 번호 → 칭호 배지 키 전부 ("칭호로 찾기" 필터, 2026-10-01 — 2KRatings 배지 필터 참고) */
   badgeKeys: Record<string, string[]>;
+  /** 선수 번호 → 출신교 묶음 이름 ("출신교" 필터, 2026-10-02) */
+  schools: Record<string, string>;
 }
 
 /** 종합 등급 배지 — 플레이어 카드와 같은 색 규칙(lib/teams gradeTone: S 금색, A·B 팀 색, C 이하 무채색). 글자가 곧 등급 */
@@ -123,10 +126,10 @@ function GridCard({ e, team, seasonCode, colors, badge }: { e: GridEntry; team?:
   );
 }
 
-export default function PlayersView({ seasons, latest, initialFile, topBadges, badgeKeys }: Props) {
+export default function PlayersView({ seasons, latest, initialFile, topBadges, badgeKeys, schools }: Props) {
   const colors = useThemeColors();
   const initialCards = useMemo(() => primeSeasonCards(initialFile), [initialFile]);
-  const [state, setState] = useState<PlayersState>({ season: latest, position: "all", origin: "all", teamCode: null, badge: null });
+  const [state, setState] = useState<PlayersState>({ season: latest, position: "all", origin: "all", teamCode: null, badge: null, school: null });
   const [limit, setLimit] = useState(GRID_PAGE_SIZE);
   const seasonCodes = useMemo(() => seasons.map((s) => s.seasonCode), [seasons]);
 
@@ -156,9 +159,28 @@ export default function PlayersView({ seasons, latest, initialFile, topBadges, b
   }, [all, badgeKeys]);
   const badgeOptions = BADGE_DEFS.filter((d) => badgeCounts.has(d.key));
   const badge = state.badge && badgeCounts.has(state.badge) ? state.badge : null;
+  // 출신교 칩: 이 시즌 선수의 출신교 묶음, 인원 많은 순 (국내 학교 먼저, "해외"는 맨 뒤). 고른 학교가 없으면 전체
+  const schoolCounts = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const e of all) {
+      const g = schools[e.player.id];
+      if (g) m.set(g, (m.get(g) ?? 0) + 1);
+    }
+    return m;
+  }, [all, schools]);
+  const schoolOptions = [...schoolCounts.entries()]
+    .sort((a, b) => Number(a[0] === SCHOOL_ABROAD) - Number(b[0] === SCHOOL_ABROAD) || b[1] - a[1] || a[0].localeCompare(b[0], "ko"))
+    .map(([name, n]) => ({ name, n }));
+  const school = state.school && schoolCounts.has(state.school) ? state.school : null;
   const filtered = useMemo(
-    () => filterGridEntries(all, { position: state.position, origin: state.origin, teamCode, badge }, (id) => badgeKeys[id] ?? []),
-    [all, state.position, state.origin, teamCode, badge, badgeKeys],
+    () =>
+      filterGridEntries(
+        all,
+        { position: state.position, origin: state.origin, teamCode, badge, school },
+        (id) => badgeKeys[id] ?? [],
+        (id) => schools[id] ?? null,
+      ),
+    [all, state.position, state.origin, teamCode, badge, badgeKeys, school, schools],
   );
   const { shown, remaining } = takeFirst(filtered, limit);
   const update = (patch: Partial<PlayersState>) => setState((s) => ({ ...s, ...patch }));
@@ -166,7 +188,7 @@ export default function PlayersView({ seasons, latest, initialFile, topBadges, b
   const headSeason = status === "loading" ? state.season : shownSeason;
   const seasonLabel = seasons.find((s) => s.seasonCode === headSeason)?.seasonLabel ?? String(headSeason);
   const chips = gridFilterChips(
-    { position: state.position, origin: state.origin, teamCode, badge },
+    { position: state.position, origin: state.origin, teamCode, badge, school },
     (c) => teamShortLabel(teamByCode.get(c)?.shortName ?? c),
     (k) => badgeDef(k)?.label ?? k,
   ).map((c) => ({ key: c.field, label: c.label, onClear: () => setState((s) => clearGridFilter(s, c.field)) }));
@@ -183,7 +205,7 @@ export default function PlayersView({ seasons, latest, initialFile, topBadges, b
         <section aria-label="필터" className="mt-4">
           <FilterSheet
             chips={chips}
-            onReset={() => update({ position: "all", origin: "all", teamCode: null, badge: null })}
+            onReset={() => update({ position: "all", origin: "all", teamCode: null, badge: null, school: null })}
             resultText={`${filtered.length}명 보기`}
             trailing={`${filtered.length}명`}
           >
@@ -223,6 +245,19 @@ export default function PlayersView({ seasons, latest, initialFile, topBadges, b
                 onChange={(v) => update({ teamCode: v || null })}
               />
             </FilterGroup>
+            {schoolOptions.length > 0 && (
+              <FilterGroup label="출신교" hint="외국·아시아쿼터 선수와 해외 학교는 '해외'로 묶습니다">
+                <ChipRow
+                  label="출신교"
+                  chips={[
+                    { value: "", label: "전체" },
+                    ...schoolOptions.map((o) => ({ value: o.name, label: `${o.name} ${o.n}`, aria: `${o.name} ${o.n}명` })),
+                  ]}
+                  value={school ?? ""}
+                  onChange={(v) => update({ school: v || null })}
+                />
+              </FilterGroup>
+            )}
             {badgeOptions.length > 0 && (
               <FilterGroup label="칭호" hint="통산 기준 칭호 (예: 득점왕은 한 번이라도 경기당 득점 1위)">
                 <ChipRow
@@ -285,10 +320,10 @@ export default function PlayersView({ seasons, latest, initialFile, topBadges, b
           ) : (
             <div className="surface-card rounded-container px-4 py-8 text-center">
               <p className="text-body font-semibold text-ink">조건에 맞는 선수가 없습니다</p>
-              <p className="mt-1 text-sub text-ink-2">포지션·국적·팀·칭호 중 하나를 풀어 보세요.</p>
+              <p className="mt-1 text-sub text-ink-2">포지션·국적·팀·출신교·칭호 중 하나를 풀어 보세요.</p>
               <button
                 type="button"
-                onClick={() => update({ position: "all", origin: "all", teamCode: null, badge: null })}
+                onClick={() => update({ position: "all", origin: "all", teamCode: null, badge: null, school: null })}
                 className="focus-ring mt-4 h-11 rounded-control border border-line bg-surface px-4 text-body font-semibold text-ink transition-colors duration-200 hover:bg-surface-2"
               >
                 필터 초기화

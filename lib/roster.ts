@@ -107,3 +107,21 @@ export function nationalityFromParam(v: string | null | undefined): NationalityF
 /** 필터 버튼 표기: "all" → "전체", 나머지는 한글 이름 */
 export const positionFilterLabel = (f: PositionFilter) => (f === "all" ? "전체" : POSITION_GROUP_LABELS[f]);
 export const nationalityFilterLabel = (f: NationalityFilter) => (f === "all" ? "전체" : NATIONALITY_LABELS[f]);
+
+// ─────────────────────────────────────────────
+// 출신교 (선수 탭 "출신교" 필터, 2026-10-02 사용자 요청) — 프로필 API univSch 원문은 표기가 제각각이라 묶어서 쓴다
+// ─────────────────────────────────────────────
+
+/** 해외 학교 묶음 이름 (외국·아시아쿼터 선수, 또는 영문 학교명) */
+export const SCHOOL_ABROAD = "해외";
+
+/**
+ * 출신교 원문 → 묶음 이름. 공백 제거, "○○대학교" → "○○대", 뒤에 붙은 "중퇴"·"2군" 제거.
+ * 예: "중앙 대학교"·"중앙대학교" → "중앙대", "명지대중퇴" → "명지대". 외국인이거나 영문이면 SCHOOL_ABROAD. 없으면 null.
+ */
+export function schoolGroupOf(raw: string | null | undefined, foreign: boolean): string | null {
+  const s = (raw ?? "").replace(/\s+/g, "").replace(/(중퇴|2군)$/u, "").replace(/대학교$/u, "대");
+  if (!s) return null;
+  if (foreign || /[A-Za-z]/.test(s)) return SCHOOL_ABROAD;
+  return s;
+}

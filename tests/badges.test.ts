@@ -9,7 +9,6 @@ import {
   DD_MACHINE_MIN,
   HERO_BADGE_LIMIT,
   IRON_MAN_MIN_SEASONS,
-  JOURNEYMAN_MIN_TEAMS,
   LEGEND_MIN_SEASONS,
   ONE_CLUB_MIN_SEASONS,
   playerBadges,
@@ -74,8 +73,6 @@ assert.ok(leg.includes("legend") && !leg.includes("veteran"));
 assert.equal(BADGE_DEFS.find((d) => d.key === "legend")!.label, "롱런"); // 2026-10-01: "레전드"는 실력까지 뜻해 이름만 바꿈(키·앵커 유지)
 
 // 저니맨: 팀 코드 4개 이상
-assert.deepEqual(keys(career(range(JOURNEYMAN_MIN_TEAMS, (i) => row(i + 1, { teamCode: String(i) })))), ["journeyman"]);
-assert.deepEqual(keys(career(range(JOURNEYMAN_MIN_TEAMS - 1, (i) => row(i + 1, { teamCode: String(i) })))), []);
 
 // 부문 1위 횟수 → "득점왕 ×2" (1회는 숫자 없이)
 const kingIdx = idx({
@@ -128,7 +125,6 @@ assert.deepEqual(splitBadges([1, 2]), { shown: [1, 2], hidden: 0 });
 const cond = (k: string) => BADGE_DEFS.find((d) => d.key === k)!.condition;
 assert.ok(cond("oneClub").includes(String(ONE_CLUB_MIN_SEASONS)));
 assert.ok(cond("legend").includes(String(LEGEND_MIN_SEASONS)));
-assert.ok(cond("journeyman").includes(String(JOURNEYMAN_MIN_TEAMS)));
 assert.ok(cond("ddMachine").includes(String(DD_MACHINE_MIN)));
 assert.equal(new Set(BADGE_DEFS.map((d) => d.key)).size, BADGE_DEFS.length);
 
@@ -143,3 +139,6 @@ assert.equal(bi.latestStartYear, 2025);
 assert.equal(bi.seasons[49], undefined);
 
 console.log("badges: 배지 규칙 통과");
+
+// 저니맨 칭호는 2026-10-02 사용자 요청으로 삭제 — 여러 팀을 거쳐도 칭호 없음
+assert.deepEqual(keys(career(range(6, (i) => row(i + 1, { teamCode: String(i) })))), []);

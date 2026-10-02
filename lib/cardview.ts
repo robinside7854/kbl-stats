@@ -211,6 +211,8 @@ export interface GridFilter {
   teamCode: string | null;
   /** 칭호 배지 키 (lib/badges BadgeKey, 2026-10-01 "칭호로 선수 찾기"). 없거나 null 이면 전체 */
   badge?: string | null;
+  /** 출신교 묶음 이름 (lib/roster schoolGroupOf, 2026-10-02). 없거나 null 이면 전체 */
+  school?: string | null;
 }
 
 /** 선수 탭 그리드 첫 화면 카드 수. "더 보기"를 누를 때마다 이만큼 더 (디자인 점검 A3) */
@@ -233,12 +235,13 @@ export function gridFilterChips(
   if (f.origin !== "all") out.push({ field: "origin", label: nationalityFilterLabel(f.origin) });
   if (f.teamCode !== null) out.push({ field: "teamCode", label: teamLabel(f.teamCode) });
   if (f.badge) out.push({ field: "badge", label: badgeLabel(f.badge) });
+  if (f.school) out.push({ field: "school", label: f.school });
   return out;
 }
 
 /** 칩의 ✕: 그 항목만 기본값(전체)으로 */
 export function clearGridFilter<T extends GridFilter>(f: T, field: GridFilterField): T {
-  return { ...f, [field]: field === "teamCode" || field === "badge" ? null : "all" };
+  return { ...f, [field]: field === "teamCode" || field === "badge" || field === "school" ? null : "all" };
 }
 
 /** 포지션·국적(lib/roster)·팀·칭호로 거른다. badgesOf: 선수 번호 → 그 선수의 칭호 배지 키 (통산 기준) */
@@ -246,12 +249,14 @@ export function filterGridEntries(
   list: readonly GridEntry[],
   f: GridFilter,
   badgesOf: (id: string) => readonly string[] = () => [],
+  schoolOf: (id: string) => string | null = () => null,
 ): GridEntry[] {
   const players = filterByNationality(filterByPosition(list.map((e) => e.player), f.position), f.origin);
   const keep = new Set(
     players
       .filter((p) => f.teamCode === null || p.teamCode === f.teamCode)
       .filter((p) => !f.badge || badgesOf(p.id).includes(f.badge))
+      .filter((p) => !f.school || schoolOf(p.id) === f.school)
       .map((p) => p.id),
   );
   return list.filter((e) => keep.has(e.player.id));
@@ -491,12 +496,14 @@ export function parsePlayersQuery(search: string, ctx: { seasons: readonly numbe
   const s = qs.get("season");
   const team = qs.get("team");
   const badge = qs.get("badge");
+  const school = qs.get("school");
   return {
     season: s && DIGITS.test(s) && ctx.seasons.includes(Number(s)) ? Number(s) : ctx.latest,
     position: positionFromParam(qs.get("pos")),
     origin: nationalityFromParam(qs.get("origin")),
     teamCode: team && DIGITS.test(team) ? team : null,
     badge: badge && /^[a-zA-Z0-9]{1,30}$/.test(badge) ? badge : null,
+    school: school && school.length <= 40 ? school : null,
   };
 }
 
@@ -508,6 +515,7 @@ export function playersQueryString(s: PlayersState, latest: number): string {
   if (s.origin !== "all") qs.set("origin", nationalityParam(s.origin));
   if (s.teamCode) qs.set("team", s.teamCode);
   if (s.badge) qs.set("badge", s.badge);
+  if (s.school) qs.set("school", s.school);
   const str = qs.toString();
   return str ? `?${str}` : "";
 }

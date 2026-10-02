@@ -19,8 +19,6 @@ export const ONE_CLUB_MIN_SEASONS = 5;
 export const VETERAN_MIN_SEASONS = 10;
 /** 롱런(키는 legend — 용어 탭 앵커 #badge-legend 를 깨지 않으려고 유지): 뛴 시즌 이 수 이상 (베테랑 대신) */
 export const LEGEND_MIN_SEASONS = 15;
-/** 저니맨: 소속 팀 코드 이 수 이상 */
-export const JOURNEYMAN_MIN_TEAMS = 4;
 /** 철인: 그 시즌 최다 경기를 전부 뛴 시즌이 이 수 이상 */
 export const IRON_MAN_MIN_SEASONS = 3;
 /** 40득점 클럽 / 50득점 클럽: 정규시즌 커리어 하이 득점 */
@@ -47,7 +45,6 @@ export type BadgeKey =
   | "oneClub"
   | "ironMan"
   | "ddMachine"
-  | "journeyman"
   | "rookie";
 
 export interface BadgeDef {
@@ -78,7 +75,6 @@ export const BADGE_DEFS: readonly BadgeDef[] = [
   { key: "oneClub", label: "원클럽맨", condition: `뛴 시즌 ${ONE_CLUB_MIN_SEASONS}개 이상이고 소속 팀 코드가 하나 (이름만 바뀐 구단은 같은 팀)`, short: "한 구단에서만 뛴 선수" },
   { key: "ironMan", label: "철인", condition: `그 시즌 선수 중 최다 경기 수만큼 출전한 시즌이 ${IRON_MAN_MIN_SEASONS}개 이상`, short: "여러 시즌 한 경기도 빠지지 않은 선수" },
   { key: "ddMachine", label: "더블더블 머신", condition: `한 시즌 더블더블 ${DD_MACHINE_MIN}회 이상인 시즌이 있음`, short: "더블더블을 밥 먹듯 한 시즌이 있는 선수" },
-  { key: "journeyman", label: "저니맨", condition: `소속 팀 코드 ${JOURNEYMAN_MIN_TEAMS}개 이상`, short: "여러 구단을 거친 선수" },
   // 2026-10-01 라벨 "신인" → "루키" (키 rookie·앵커 유지)
   { key: "rookie", label: "루키", condition: "뛴 시즌이 최신 시즌 하나뿐이고 드래프트 연도가 그 시즌 (예: 2025 드래프트 → 25-26)", short: "이번 시즌 데뷔한 드래프트 신인" },
 ];
@@ -189,7 +185,6 @@ function badge(key: BadgeKey, count = 1): PlayerBadge {
  * 한 선수의 칭호 배지 (우선순위 = BADGE_DEFS 순서). 조건:
  * - 원클럽맨: 뛴 시즌 ≥ 5 이고 소속 팀 코드가 하나 (팀 코드 기준 — 이름만 바뀐 구단은 같은 팀)
  * - 롱런(키 legend): 뛴 시즌 ≥ 15 / 베테랑: 10 ≤ 뛴 시즌 < 15 (둘 중 하나만)
- * - 저니맨: 소속 팀 코드 ≥ 4
  * - 득점왕·리바운드왕·어시스트왕·스틸왕·블록왕: 그 시즌 기본 표본 기준 경기당 1위(공동 포함) 횟수 ≥ 1, 2회 이상 "×n"
  * - 철인: games === 그 시즌 최다 경기 수 인 시즌 ≥ 3
  * - 50득점 클럽: 정규시즌 커리어 하이 득점 ≥ 50 / 40득점 클럽: ≥ 40 (높은 쪽 하나만)
@@ -224,7 +219,6 @@ export function playerBadges(career: BadgeCareer, index: BadgeIndex): PlayerBadg
   if (played.some((s) => s.doubleDoubles >= DD_MACHINE_MIN)) out.push(badge("ddMachine"));
   // 소속 팀
   if (nSeasons >= ONE_CLUB_MIN_SEASONS && teams === 1) out.push(badge("oneClub"));
-  if (teams >= JOURNEYMAN_MIN_TEAMS) out.push(badge("journeyman"));
   // 철인
   const iron = played.filter((s) => {
     const max = index.seasons[s.seasonCode]?.maxGames ?? 0;

@@ -1,7 +1,7 @@
 // 선수 탭 (/players) — 검색 + 시즌별 선수 그리드. 그리드 카드의 칭호 배지(선수당 1순위 1개)는 빌드 시점 lib/badges 결과. 최신 시즌 카드 파일을 정적 HTML에 넣고, 다른 시즌은 브라우저가 /cards 에서 받는다.
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { listSeasonsWithPlayers, loadBadgeKeys, loadSeasonCardsFile, loadSeasonData, loadTopBadgeLabels } from "@/lib/data";
+import { listSeasonsWithPlayers, loadBadgeKeys, loadSchoolGroups, loadSeasonCardsFile, loadSeasonData, loadTopBadgeLabels } from "@/lib/data";
 import PlayersView from "@/app/components/PlayersView";
 import SourceFooter from "@/app/components/SourceFooter";
 
@@ -17,7 +17,7 @@ export default function PlayersPage() {
   if (!latest || !file) notFound();
   return (
     <>
-      <PlayersView seasons={seasons} latest={latest.seasonCode} initialFile={file} topBadges={loadTopBadgeLabels()} badgeKeys={loadBadgeKeys()} />
+      <PlayersView seasons={seasons} latest={latest.seasonCode} initialFile={file} topBadges={loadTopBadgeLabels()} badgeKeys={loadBadgeKeys()} schools={loadSchoolGroups()} />
       <SourceFooter fetchedAt={loadSeasonData(latest.seasonCode)?.fetchedAt} wide />
     </>
   );
