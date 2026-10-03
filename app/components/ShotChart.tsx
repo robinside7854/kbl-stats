@@ -192,7 +192,7 @@ function ShotChartBody({ file, seasonShort, madeColor, missColor, lineColor, bar
   const hasLeague = league !== null;
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[460px_minmax(0,1fr)] lg:items-start">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[460px_minmax(0,1fr)] lg:items-start">
       <figure className="surface-card rounded-container p-2">
         {hasLeagueRows && (
           <div className="mb-1.5 flex justify-end">
@@ -335,12 +335,12 @@ function ShotChartBody({ file, seasonShort, madeColor, missColor, lineColor, bar
           </caption>
           <thead>
             <tr className="text-left text-caption text-ink-3">
-              <th scope="col" className="py-2 pr-2 font-medium">구역</th>
-              <th scope="col" className="w-full py-2 pr-2 font-medium">시도 비중</th>
-              <th scope="col" className="py-2 pr-2 text-right font-medium">시도</th>
-              <th scope="col" className="py-2 pr-2 text-right font-medium">성공률</th>
+              <th scope="col" className="py-2 pr-1 sm:pr-2 font-medium">구역</th>
+              <th scope="col" className="w-full py-2 pr-1 sm:pr-2 font-medium">시도 비중</th>
+              <th scope="col" className="py-2 pr-1 sm:pr-2 text-right font-medium">시도</th>
+              <th scope="col" className="py-2 pr-1 sm:pr-2 text-right font-medium">성공률</th>
               {hasLeague && (
-                <th scope="col" className="py-2 pr-2 text-right font-medium">리그</th>
+                <th scope="col" className="py-2 pr-1 sm:pr-2 text-right font-medium">리그</th>
               )}
               {hasLeague && (
                 <th scope="col" className="py-2 text-right font-medium">
@@ -353,10 +353,10 @@ function ShotChartBody({ file, seasonShort, madeColor, missColor, lineColor, bar
           <tbody>
             {rows.map((r) => (
               <tr key={r.key} className="h-12">
-                <th scope="row" className="whitespace-nowrap border-t border-line pr-2 text-left font-semibold text-ink">
+                <th scope="row" className="whitespace-nowrap border-t border-line pr-1 sm:pr-2 text-left font-semibold text-ink">
                   {r.label}
                 </th>
-                <td className="border-t border-line pr-2">
+                <td className="border-t border-line pr-1 sm:pr-2">
                   <div className="flex items-center gap-1.5">
                     <span className="relative block h-2 min-w-6 flex-1 overflow-hidden rounded-md bg-surface-2" aria-hidden>
                       <span className="absolute inset-y-0 left-0 block rounded-md" style={{ width: `${r.share * 100}%`, background: barColor }} />
@@ -364,12 +364,12 @@ function ShotChartBody({ file, seasonShort, madeColor, missColor, lineColor, bar
                     <span className="w-9 shrink-0 text-right text-ink-2">{Math.round(r.share * 100)}%</span>
                   </div>
                 </td>
-                <td className="border-t border-line pr-2 text-right text-ink-2">{NF.format(r.attempts)}</td>
-                <td className={`border-t border-line pr-2 text-right ${r.aboveLeague ? "font-bold text-ink" : "text-ink-2"}`}>
+                <td className="border-t border-line pr-1 sm:pr-2 text-right text-ink-2">{NF.format(r.attempts)}</td>
+                <td className={`border-t border-line pr-1 sm:pr-2 text-right ${r.aboveLeague ? "font-bold text-ink" : "text-ink-2"}`}>
                   {pctText(r.pct)}
                   {r.aboveLeague && <span className="sr-only"> (리그 평균보다 높음)</span>}
                 </td>
-                {hasLeague && <td className="border-t border-line pr-2 text-right text-ink-3">{pctText(r.leaguePct)}</td>}
+                {hasLeague && <td className="border-t border-line pr-1 sm:pr-2 text-right text-ink-3">{pctText(r.leaguePct)}</td>}
                 {hasLeague && (
                   <td className="border-t border-line text-right">
                     <span className="inline-flex items-center justify-end gap-1 whitespace-nowrap text-ink-2">

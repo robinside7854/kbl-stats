@@ -43,6 +43,8 @@ export default function PlayerHero({ entry, seasons, today, badges, milestones =
   const teamName = team?.shortName ?? latest?.teamShort ?? "";
   const dark = mixHex(color.primary, "#000000", 0.62);
   const mid = mixHex(color.primary, "#000000", 0.3);
+  // 폰 바닥 줄(칩·프로필) 색 — 띠 아래쪽보다 한 단계 어두운 단색(반투명 겹치기 대신)
+  const floor = mixHex(color.primary, "#000000", 0.72);
   const sum = careerSummary(seasons);
   const span = first && latest ? activeSpanLabel(first.seasonLabel, latest.seasonLabel, seasons.length) : "";
   const stints = teamStints(seasons);
@@ -76,8 +78,11 @@ export default function PlayerHero({ entry, seasons, today, badges, milestones =
         >
           {teamShortLabel(teamName, 5)}
         </span>
-        <div className="relative mx-auto flex min-h-[250px] max-w-5xl items-end px-4 sm:min-h-[300px]">
-          <div className="relative z-10 min-w-0 flex-1 pb-5 pt-5 pr-2">
+        {/* 배치 (2026-10-03 사용자: 폰에서 글이 길어 띠가 사진보다 훨씬 커 보임):
+            폰 = [이름 묶음 | 사진] 한 줄 + 그 아래 칩·프로필을 띠 전체 폭으로(어두운 바닥 줄 위에 사진이 서 있게)
+            640px 이상 = 예전처럼 왼쪽 글 한 열 + 오른쪽 큰 사진(두 줄에 걸침). DOM 은 하나, 격자 자리만 바꾼다 */}
+        <div className="relative mx-auto grid max-w-5xl grid-cols-[minmax(0,1fr)_auto] px-4 sm:min-h-[300px]">
+          <div className="relative z-10 col-start-1 row-start-1 min-w-0 pb-3 pt-5 pr-2 sm:pb-0">
             <div className="flex items-center gap-2">
               <span className="inline-flex rounded-control bg-white p-1 shadow-card">
                 <TeamLogo logoUrl={team?.logoUrl} shortName={teamName} color={color} size={40} />
@@ -100,7 +105,21 @@ export default function PlayerHero({ entry, seasons, today, badges, milestones =
                 <BadgeRow badges={badges} teamPrimary={color.primary} />
               </div>
             )}
-            <div className="mt-3 flex flex-wrap gap-1.5 text-sub font-semibold">
+          </div>
+          <div className="relative col-start-2 row-start-1 -mr-2 self-end sm:row-span-2 sm:mr-4">
+            <span className="sm:hidden">
+              <PlayerAvatar photoUrl={entry.photoUrl} nameKo={entry.nameKo} color={color} variant="portrait" size={200} />
+            </span>
+            <span className="hidden sm:inline">
+              <PlayerAvatar photoUrl={entry.photoUrl} nameKo={entry.nameKo} color={color} variant="portrait" size={280} />
+            </span>
+          </div>
+          {/* 칩·프로필: 폰은 띠 전체 폭의 어두운 바닥 줄, 640px 이상은 글 열 아래 */}
+          <div
+            className="relative z-10 col-span-2 row-start-2 -mx-4 bg-[var(--hero-floor)] px-4 pb-4 pt-3 sm:col-span-1 sm:col-start-1 sm:mx-0 sm:bg-transparent sm:px-0 sm:pb-5 sm:pr-2 sm:pt-0"
+            style={{ "--hero-floor": floor } as React.CSSProperties}
+          >
+            <div className="flex flex-wrap gap-1.5 text-sub font-semibold sm:mt-3">
               <span className="rounded-control px-2 py-0.5" style={{ background: "rgba(255,255,255,0.18)" }}>
                 {NATIONALITY_LABELS[nationalityOf(entry)]}
               </span>
@@ -122,7 +141,7 @@ export default function PlayerHero({ entry, seasons, today, badges, milestones =
                 ))}
             </div>
             {facts.length > 0 && (
-              <dl className="mt-3 flex max-w-md flex-wrap gap-x-3 gap-y-1 text-sub sm:text-body">
+              <dl className="mt-2.5 flex flex-wrap gap-x-3 gap-y-1 text-sub sm:mt-3 sm:max-w-md sm:text-body">
                 {facts.map((f) => (
                   <div key={f.label} className="flex items-baseline gap-1">
                     <dt className="opacity-75">{f.label}</dt>
@@ -131,14 +150,6 @@ export default function PlayerHero({ entry, seasons, today, badges, milestones =
                 ))}
               </dl>
             )}
-          </div>
-          <div className="relative -mr-2 shrink-0 self-end sm:mr-4">
-            <span className="sm:hidden">
-              <PlayerAvatar photoUrl={entry.photoUrl} nameKo={entry.nameKo} color={color} variant="portrait" size={210} />
-            </span>
-            <span className="hidden sm:inline">
-              <PlayerAvatar photoUrl={entry.photoUrl} nameKo={entry.nameKo} color={color} variant="portrait" size={280} />
-            </span>
           </div>
         </div>
       </div>
