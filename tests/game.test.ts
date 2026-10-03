@@ -132,7 +132,7 @@ for (let x = 0; x <= 100; x += 0.5) {
   prev = p;
 }
 assert.equal(winProbability(100), 1);
-assert.ok(winProbability(99) < 0.96 && winProbability(96) >= 0.9);
+assert.ok(winProbability(99) < 0.995 && winProbability(96) >= 0.9); // 99 점이어도 54전 전승은 보장 안 됨(0.988^54 ≈ 52%)
 // 시즌: 54경기, 같은 라인업 = 같은 성적
 const res = simulateSeason(lineup5);
 assert.equal(res.games.length, GAME_SEASON_GAMES);
@@ -195,7 +195,22 @@ if (existsSync(POOL)) {
   );
   assert.ok(rand.median >= 10 && rand.median <= 30, "아무나 뽑으면 20승 안팎");
   assert.ok(ppg.median >= 40, "득점 1위만 골라도 40승 이상");
-  assert.ok(ppg.perfect > 0.001 && ppg.perfect < 0.004, "득점 1위만 고르면 전승 0.2% 안팎");
-  assert.ok(score.perfect > ppg.perfect && score.perfect < 0.04, "숨은 점수까지 알면 더 높지만 3% 미만");
+  assert.ok(ppg.perfect > 0.004 && ppg.perfect < 0.012, "득점 1위만 고르면 전승 0.7% 안팎");
+  assert.ok(score.perfect > ppg.perfect && score.perfect < 0.18, "숨은 점수까지 알면 더 높지만 18% 미만");
+  // S급(종합 점수 95 이상) 5명 라인업: 전승 약 20% (2026-10-03 사용자 결정)
+  const sCands = pool.eras.flatMap((e) => e.teams.flatMap((t) => t.candidates)).filter((x) => x.score >= 95);
+  const srng = seededRng(7);
+  const sLineups: GameCandidate[][] = [];
+  while (sLineups.length < 2000) {
+    let lu = emptyLineup();
+    for (let t = 0; t < 200 && !isLineupFull(lu); t++) {
+      const x = sCands[Math.floor(srng() * sCands.length)];
+      if (canPick(lu, x)) lu = placePick(lu, openSlotsFor(lu, x)[0], x);
+    }
+    if (isLineupFull(lu)) sLineups.push(lu as GameCandidate[]);
+  }
+  const sPerfect = sLineups.reduce((sum, l) => sum + winProbability(teamRating(l).rating) ** GAME_SEASON_GAMES, 0) / sLineups.length;
+  console.log(`game: S급 5명 전승 ${(sPerfect * 100).toFixed(1)}%`);
+  assert.ok(sPerfect > 0.14 && sPerfect < 0.26, "S급 5명이면 전승 20% 안팎");
 }
 console.log("game: 전부 통과");
