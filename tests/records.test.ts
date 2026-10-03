@@ -9,6 +9,8 @@ import {
   seasonBestMinGames,
   sumCareerTotals,
   withRanks,
+  filterRecordList,
+  type RecordListItem,
   type SeasonLineEntry,
 } from "../lib/records";
 
@@ -69,5 +71,14 @@ const totals = sumCareerTotals([
 const ddRank = rankCareerTotals(totals, "doubleDoubles", "perGame", "all");
 assert.deepEqual(ddRank.map((r) => [r.total.id, r.value]), [["q", 30], ["p", 22]]);
 assert.deepEqual(rankCareerTotals(totals, "tripleDoubles", "total", "all").map((r) => r.total.id), ["q", "p"]);
+
+// 필터 뒤 순위 다시 매기기 (서버 순서는 그대로)
+const it = (id: string, num: number, origin: "domestic" | "foreign", active: boolean): RecordListItem => ({ rank: 0, id, num, origin, active, value: String(num), unit: "점", sub: "" });
+const list = [it("f1", 50, "foreign", false), it("d1", 40, "domestic", false), it("d2", 40, "domestic", true), it("d3", 30, "domestic", true)];
+assert.deepEqual(filterRecordList(list, "all", false).map((r) => [r.id, r.rank]), [["f1", 1], ["d1", 2], ["d2", 2], ["d3", 4]]);
+assert.deepEqual(filterRecordList(list, "domestic", false).map((r) => [r.id, r.rank]), [["d1", 1], ["d2", 1], ["d3", 3]]);
+assert.deepEqual(filterRecordList(list, "domestic", true).map((r) => [r.id, r.rank]), [["d2", 1], ["d3", 2]]);
+assert.deepEqual(filterRecordList(list, "foreign", true), []);
+assert.equal(filterRecordList(list, "all", false, 1).length, 1);
 
 console.log("records: 통과");

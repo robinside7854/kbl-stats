@@ -347,8 +347,15 @@ export interface RecordPerson {
 
 /** 화면에 보내는 순위 한 줄 (표기는 서버에서 끝낸다) */
 export interface RecordListItem {
+  /** 전체(필터 없음) 기준 순위 — 화면은 필터 뒤 filterRecordList 로 다시 매긴다 */
   rank: number;
   id: string;
+  /** 순위를 다시 매길 때 쓰는 값 (같은 값 = 같은 순위) */
+  num: number;
+  /** 국내 / 외국인(외국+아시아쿼터) — 선수 마스터 국적 */
+  origin: "domestic" | "foreign";
+  /** 현역 (기록 있는 최신 시즌에 뛴 선수, isActiveCareer 와 같은 뜻) */
+  active: boolean;
   /** 큰 숫자, 예: "52" · "31.4" */
   value: string;
   /** 단위, 예: "점" */
@@ -365,4 +372,13 @@ export interface RecordListsData {
   people: Record<string, RecordPerson>;
   /** 키는 화면마다 다르다: 한 경기 "구분:부문", 한 시즌 "구분:부문:단위", 수상 "부문" */
   lists: Record<string, RecordListItem[]>;
+}
+
+/**
+ * 국적·현역 필터 → 순위 다시 매기기 → 상위 top. items 는 서버가 이미 순위 순서로 줄 세운 목록(필터마다 상위 top 이 다 들어 있다,
+ * lib/data unionForFilters) — 순서는 그대로 두고 순위만 새로 센다.
+ */
+export function filterRecordList(items: readonly RecordListItem[], origin: RecordOrigin, activeOnly: boolean, top = RECORD_LIST_TOP): RecordListItem[] {
+  const kept = items.filter((r) => (origin === "all" || r.origin === origin) && (!activeOnly || r.active));
+  return withRanks(kept, (r) => r.num).filter((r) => r.rank <= top);
 }
