@@ -11,6 +11,7 @@ import { nationalityOf, NATIONALITY_LABELS } from "@/lib/roster";
 import { mixHex, teamShortLabel } from "@/lib/images";
 import PlayerAvatar from "./PlayerAvatar";
 import FavoriteButton from "./FavoriteButton";
+import CompareButton from "./CompareButton";
 import TeamLogo from "./TeamLogo";
 import TeamJersey from "./TeamJersey";
 import { MILESTONE_STEPS, type Milestone } from "@/lib/records";
@@ -90,7 +91,10 @@ export default function PlayerHero({ entry, seasons, today, badges, milestones =
               {entry.nameKo}
             </h1>
             <p className="mt-1 truncate text-sub font-medium opacity-85 sm:text-body">{entry.nameEn}</p>
-            <FavoriteButton playerId={entry.id} nameKo={entry.nameKo} className="mt-2" />
+            <div className="mt-2 flex flex-wrap gap-2">
+              <FavoriteButton playerId={entry.id} nameKo={entry.nameKo} />
+              <CompareButton playerId={entry.id} nameKo={entry.nameKo} seasonCodes={seasons.map((s) => s.seasonCode)} />
+            </div>
             {badges.length > 0 && (
               <div className="mt-2.5">
                 <BadgeRow badges={badges} teamPrimary={color.primary} />

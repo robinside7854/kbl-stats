@@ -1,6 +1,6 @@
 "use client";
 // 모든 화면 상단 내비게이션: 사이트 이름 · 선수 검색 · (시즌 화면에서만) 시즌 선택 · 화면 메뉴.
-// 메뉴 = 홈 / 선수 / 팀 / 리더보드 / 비교 / 역대 기록 / 54-0 (팀 순위·모바일 하단 홈 가운데는 2026-10-03) (2026-09-30 재구성, 역대 기록은 2026-10-01, 54-0 게임은 2026-10-02, 플레이스타일은 2026-10-02 폐지).
+// 메뉴 = 홈 / 선수 / 팀 / 리더보드 / 일정 / 역대 기록 / 54-0 (팀 순위·모바일 하단 홈 가운데는 2026-10-03) (2026-09-30 재구성, 역대 기록은 2026-10-01, 54-0 게임은 2026-10-02, 플레이스타일은 2026-10-02 폐지).
 // "용어"는 메뉴에서 뺐다(피드백 5차, PLAN.md §13) — 설명은 각 화면 ⓘ 팝오버(HelpPopover)에서, /glossary 페이지는 "자세히" 링크로만.
 // 시즌 선택은 시즌이 있는 화면(순위표·팀 분포·선수 탭)에서만 보인다.
 // - 순위표·팀 분포: 시즌을 바꾸면 지금 화면 종류와 주소 쿼리(선택 상태)를 그대로 둔 채 시즌 주소로 이동.
@@ -14,22 +14,22 @@ import { useRouter } from "next/navigation";
 import type { SeasonOption } from "@/lib/types";
 import PlayerSearch from "./PlayerSearch";
 import RandomCardButton from "./RandomCardButton";
-import { IconBall, IconCompare, IconHome, IconLeaders, IconPlayer, IconTeam, IconTrophy } from "./icons";
+import { IconBall, IconCalendar, IconHome, IconLeaders, IconPlayer, IconTeam, IconTrophy } from "./icons";
 import SiteLogo, { SITE_HEADER_NAME } from "./SiteLogo";
 import { trackEvent, trackFilters } from "./track";
 
-export type SiteView = "home" | "players" | "player" | "teams" | "leaders" | "compare" | "glossary" | "records" | "game";
+export type SiteView = "home" | "players" | "player" | "teams" | "leaders" | "schedule" | "compare" | "glossary" | "records" | "game";
 
 type MenuItem = { views: SiteView[]; label: string; short?: string; icon: (p: { size: 24 }) => React.ReactNode; href: (seasonCode: number) => string };
 const HOME: MenuItem = { views: ["home"], label: "홈", icon: IconHome, href: () => "/" };
-/** 홈 왼쪽 / 오른쪽 메뉴 (2026-10-03 사용자: 모바일 하단은 홈을 가운데, 왼쪽 선수·팀·리더보드, 오른쪽 비교·역대 기록·54-0) */
+/** 홈 왼쪽 / 오른쪽 메뉴 (2026-10-03 사용자: 모바일 하단은 홈을 가운데, 왼쪽 선수·팀·리더보드, 오른쪽 일정·역대 기록·54-0 — 비교는 2026-10-03 메뉴에서 빼고 선수 상세 "비교" 버튼으로) */
 const LEFT: MenuItem[] = [
   { views: ["players", "player"], label: "선수", icon: IconPlayer, href: () => "/players" },
   { views: ["teams"], label: "팀", icon: IconTeam, href: (c) => `/season/${c}/teams` },
   { views: ["leaders"], label: "리더보드", icon: IconLeaders, href: (c) => `/season/${c}/leaders` },
 ];
 const RIGHT: MenuItem[] = [
-  { views: ["compare"], label: "비교", icon: IconCompare, href: () => "/compare" },
+  { views: ["schedule"], label: "일정", icon: IconCalendar, href: (c) => `/season/${c}/schedule` },
   { views: ["records"], label: "역대 기록", short: "기록", icon: IconTrophy, href: () => "/records" },
   { views: ["game"], label: "54-0", icon: IconBall, href: () => "/game" },
 ];
@@ -42,6 +42,7 @@ const BOTTOM_MENU: MenuItem[] = [...LEFT, HOME, ...RIGHT];
 const SEASON_ROUTES: Partial<Record<SiteView, (c: number) => string>> = {
   leaders: (c) => `/season/${c}/leaders`,
   teams: (c) => `/season/${c}/teams`,
+  schedule: (c) => `/season/${c}/schedule`,
 };
 
 interface Props {
@@ -127,6 +128,27 @@ export default function SiteNav({ seasons, seasonCode, view, onSeasonChange, wid
         {BOTTOM_MENU.map((m) => {
           const active = m.views.includes(view);
           const Icon = m.icon;
+          // 가운데 홈은 다른 칸보다 크게·위로 띄운 둥근 버튼 (2026-10-03 사용자: 더 누르기 쉽게)
+          if (m === HOME) {
+            return (
+              <Link
+                key={m.label}
+                href={m.href(seasonCode)}
+                onClick={() => trackEvent("nav_click", { menu: m.label, place: "bottom" })}
+                aria-current={active ? "page" : undefined}
+                aria-label={m.label}
+                className="focus-ring-inset group relative flex h-14 flex-col items-center justify-center gap-0.5 text-caption font-bold text-ink"
+              >
+                {/* 아이콘 자리(24px)는 비워 두고 원을 위로 띄운다 — 글자 줄이 다른 칸과 같은 높이 */}
+                <span aria-hidden className="h-6" />
+                {/* deslop-ignore-next-line 19 */}
+                <span className={`absolute -top-6 left-1/2 flex h-14 w-14 -translate-x-1/2 items-center justify-center rounded-full border-4 border-surface shadow-card transition-colors duration-200 ${active ? "bg-ink text-bg" : "bg-series-1 text-white group-hover:bg-ink"}`}>
+                  <Icon size={24} />
+                </span>
+                <span className="whitespace-nowrap leading-none tracking-tight">{m.label}</span>
+              </Link>
+            );
+          }
           return (
             <Link
               key={m.label}

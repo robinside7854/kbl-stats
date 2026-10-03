@@ -5,7 +5,7 @@
 //       --no-highs               → 한 경기 최다·경기별 기록·프로필 건너뜀
 //       --no-shots               → 슛 차트 건너뜀 (fetch:all 도 건너뜀)
 //
-// 슛 차트(서버 C, scripts/shots.ts·collect-shots.ts): 같은 대상 시즌의 경기 목록(오늘까지 달, 1~10회)을 다시 받아
+// 슛 차트(서버 C, scripts/shots.ts·collect-shots.ts): 같은 대상 시즌의 경기 목록(시즌 전체 달, 약 10회 — 일정 화면용, 2026-10-03)을 다시 받아
 // data/raw/games/{시즌}/list.json 에 저장하고, 끝난 정규시즌 경기 중 raw 가 없는 것만 data/raw/shots/{시즌}/{gmkey}.json (보통 하루 0~5회).
 //
 // 한 경기 최다·경기별 기록·프로필 대상(scripts/highs.ts highsTargetSeasons): 현재 시즌 선수만(~200명 × 3회, 1.5초 간격 ≈ 15분).
@@ -180,7 +180,7 @@ async function fetchHighsAndProfiles(targets: number[], nosBySeason: Map<number,
 }
 
 /**
- * 현재 시즌 슛 차트: 경기 목록(오늘까지 달, 1~10회)을 다시 받고 끝난 정규시즌 경기 중 raw 없는 것만 (보통 하루 0~5회).
+ * 현재 시즌 슛 차트: 경기 목록(시즌 전체 달, 약 10회)을 다시 받고 끝난 정규시즌 경기 중 raw 없는 것만 (보통 하루 0~5회).
  * 대상 시즌은 한 경기 최다와 같다. 반환: 실패 요약
  */
 async function fetchShots(targets: number[], today: string): Promise<string[]> {

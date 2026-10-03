@@ -247,3 +247,12 @@ export function IconTeam(p: IconProps) {
     </Svg>
   );
 }
+
+/** 달력 (일정) */
+export function IconCalendar(p: IconProps) {
+  return (
+    <Svg {...p}>
+      <path d="M5 6h14a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1ZM4 10h16M8 4v4M16 4v4" />
+    </Svg>
+  );
+}

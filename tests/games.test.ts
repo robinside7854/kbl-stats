@@ -67,3 +67,23 @@ assert.equal(pctLabel(1), "1.000");
 assert.equal(gamesBehindLabel(0), "-");
 assert.equal(gamesBehindLabel(1.5), "1.5");
 console.log("games: 팀 순위 통과");
+
+{
+  const { groupByDate, monthsOf, pickMonth, sortBoxRows, monthLabel } = await import("../lib/games");
+  const gs = [{ date: "2026-10-04" }, { date: "2026-10-03" }, { date: "2026-10-03" }, { date: "2027-01-02" }];
+  assert.deepEqual(groupByDate(gs).map((d) => `${d.date}:${d.games.length}`), ["2026-10-03:2", "2026-10-04:1", "2027-01-02:1"]);
+  const ms = monthsOf(gs);
+  assert.deepEqual(ms, ["2026-10", "2027-01"]);
+  assert.equal(monthLabel("2027-01"), "1월");
+  assert.equal(pickMonth(ms, "2026-10-20"), "2026-10");
+  assert.equal(pickMonth(ms, "2026-11-20"), "2027-01");  // 경기 없는 달 → 다음 달
+  assert.equal(pickMonth(ms, "2027-05-01"), "2027-01");  // 시즌 뒤 → 마지막 달
+  assert.equal(pickMonth(ms, "2026-09-01"), "2026-10");  // 시즌 앞 → 첫 달
+  assert.equal(pickMonth([], "2026-09-01"), null);
+  const r = (nameKo: string, pts: number, fgm: number, fga: number, tov = 0) => ({ id: nameKo, nameKo, sec: 600, pts, oreb: 0, dreb: 0, reb: 0, ast: 0, stl: 0, blk: 0, tov, pf: 0, fgm, fga, tpm: 0, tpa: 0, ftm: 0, fta: 0 });
+  const rows = [r("가", 10, 4, 8), r("나", 20, 8, 20, 3), r("다", 0, 0, 0, 1)];
+  assert.deepEqual(sortBoxRows(rows, "pts").map((x) => x.nameKo), ["나", "가", "다"]);
+  assert.deepEqual(sortBoxRows(rows, "fgPct").map((x) => x.nameKo), ["가", "나", "다"]); // 시도 0 은 뒤로
+  assert.deepEqual(sortBoxRows(rows, "tov").map((x) => x.nameKo), ["나", "다", "가"]);
+  console.log("games: 일정·박스스코어 정렬 통과");
+}

@@ -72,7 +72,7 @@ interface ShotsOptions {
   /** 오늘 "YYYY-MM-DD" (KST) */
   today: string;
   /**
-   * daily: 목록을 오늘까지 달만 다시 받고(시즌 달 구간이 끝났고 목록이 마감이면 안 받음), 빈 슛 차트는 저장하지 않는다(다음 날 다시 시도).
+   * daily: 목록을 시즌 전체 달 다시 받고(일정 화면용, 시즌 달 구간이 끝났고 목록이 마감이면 안 받음), 빈 슛 차트는 저장하지 않는다(다음 날 다시 시도).
    * backfill: 마감된 목록이 이미 있으면 다시 받지 않고, 빈 슛 차트도 저장한다(옛 시즌에 차트가 없으면 이어받기 때 다시 두드리지 않게).
    */
   mode: "daily" | "backfill";
@@ -89,8 +89,9 @@ export async function collectSeasonShots(opts: ShotsOptions): Promise<ShotsResul
   const reuse = !!list && isListFinal(list, seasonCode, today) && (mode === "backfill" || seasonWindowClosed(label, today));
   if (!reuse) {
     try {
-      result.listRequests = seasonMonthRanges(label, mode === "daily" ? today : undefined).length;
-      list = await fetchGamesList(seasonCode, label, mode === "daily" ? today : undefined);
+      // 매일도 시즌 전체 달(약 10회)을 받는다 — 2026-10-03 사용자: 시즌 전체 경기 일정 화면. 예전엔 오늘까지 달만
+      result.listRequests = seasonMonthRanges(label).length;
+      list = await fetchGamesList(seasonCode, label);
     } catch (e) {
       result.failed.push(`경기 목록: ${(e as Error).message.split("\n")[0]}`);
       console.error(`[${tag}] 경기 목록 실패 — ${list ? "저장된 목록으로 계속" : "중단"}`);

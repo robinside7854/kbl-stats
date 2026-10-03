@@ -2,9 +2,8 @@
 // 개막 전(코드표 최신 시즌이 선수 0명)이면 직전 시즌으로 만들고 안내를 붙인다 — 시즌 코드는 코드표에서 비교(lib/home pickHomeSeason).
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { findPlayerIndexEntry, listAllSeasons, listSeasonsWithPlayers, loadSeasonData, loadSeasonGames, seasonQualify, toCardTeams, toLeaderPlayers } from "@/lib/data";
+import { findPlayerIndexEntry, listAllSeasons, listSeasonsWithPlayers, loadSeasonData, loadSeasonGames, gameTeamInfos, seasonQualify, toCardTeams, toLeaderPlayers } from "@/lib/data";
 import { latestGameDay, nextGameDay } from "@/lib/games";
-import type { GameTeamInfo } from "./components/GameDayBoard";
 import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
 import type { BirthdayPlayer } from "./components/BirthdayStrip";
 import { filterLeaders, topLeaders } from "@/lib/leaders";
@@ -43,11 +42,7 @@ export default function HomePage() {
   const games = loadSeasonGames(shown.seasonCode);
   const gameDay = latestGameDay(games);
   const nextDay = nextGameDay(games, gameDay?.date ?? null);
-  const prevSeason = withPlayers.find((s) => s.seasonCode < shown.seasonCode);
-  const gameTeams: Record<string, GameTeamInfo> = {};
-  for (const t of [...(prevSeason ? toCardTeams(loadSeasonData(prevSeason.seasonCode)!) : []), ...teams]) {
-    gameTeams[t.teamCode] = { shortName: t.shortName, logoUrl: t.logoUrl, color: t.color };
-  }
+  const gameTeams = gameTeamInfos(shown.seasonCode);
 
   return (
     <>

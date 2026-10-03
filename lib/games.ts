@@ -140,3 +140,53 @@ export function computeStandings(games: readonly SeasonGame[]): StandingRow[] {
 export const pctLabel = (p: number) => (p >= 1 ? "1.000" : p.toFixed(3).replace(/^0/, ""));
 /** 게임 차 표기 (0 → "-", 0.5 단위) */
 export const gamesBehindLabel = (gb: number) => (gb === 0 ? "-" : Number.isInteger(gb) ? String(gb) : gb.toFixed(1));
+
+// ─────────────────────────────────────────────
+// 시즌 일정 (2026-10-03 사용자: 날짜별 경기 일정·박스스코어, 메뉴 "일정")
+// ─────────────────────────────────────────────
+
+/** 날짜별로 묶기 (날짜 오름차순, 날짜 안은 원래 순서) */
+export function groupByDate<T extends { date: string }>(games: readonly T[]): { date: string; games: T[] }[] {
+  const map = new Map<string, T[]>();
+  for (const g of [...games].sort((a, b) => a.date.localeCompare(b.date))) {
+    const list = map.get(g.date) ?? [];
+    list.push(g);
+    map.set(g.date, list);
+  }
+  return [...map].map(([date, games]) => ({ date, games }));
+}
+
+/** 경기가 있는 달 "2026-10" 목록 (오름차순) */
+export function monthsOf(games: readonly { date: string }[]): string[] {
+  return [...new Set(games.map((g) => g.date.slice(0, 7)))].sort();
+}
+
+/** "2026-10" → "10월" (해가 바뀌는 시즌이라 1월은 "1월") */
+export const monthLabel = (ym: string) => `${Number(ym.slice(5, 7))}월`;
+
+/**
+ * 처음 펼칠 달: today 가 든 달에 경기가 있으면 그 달, today 가 시즌 뒤면 마지막 달, 앞이면 첫 달.
+ * today 가 달 목록 사이(경기 없는 달)면 그 뒤 첫 달.
+ */
+export function pickMonth(months: readonly string[], today: string): string | null {
+  if (months.length === 0) return null;
+  const ym = today.slice(0, 7);
+  if (months.includes(ym)) return ym;
+  if (ym > months[months.length - 1]) return months[months.length - 1];
+  return months.find((m) => m > ym) ?? months[0];
+}
+
+/** 박스스코어 정렬 열 */
+export type BoxSortKey = "sec" | "pts" | "reb" | "ast" | "stl" | "blk" | "tov" | "fgm" | "fgPct" | "tpm" | "ftm";
+
+/** 야투율 (시도 0 이면 null) */
+export const fgPctOf = (r: { fgm: number; fga: number }) => (r.fga > 0 ? (r.fgm / r.fga) * 100 : null);
+
+/** 박스스코어 줄 내림차순 정렬 (값이 같으면 득점 → 출전 시간 → 이름, 야투율 없는 줄은 뒤로) */
+export function sortBoxRows(rows: readonly GameBoxRow[], key: BoxSortKey): GameBoxRow[] {
+  const val = (r: GameBoxRow): number => {
+    if (key === "fgPct") return fgPctOf(r) ?? -1;
+    return r[key];
+  };
+  return [...rows].sort((a, b) => val(b) - val(a) || b.pts - a.pts || b.sec - a.sec || a.nameKo.localeCompare(b.nameKo, "ko"));
+}

@@ -72,6 +72,21 @@ export function loadSeasonGames(seasonCode: number): SeasonGame[] {
   return games;
 }
 
+/**
+ * 경기 화면용 팀 이름·로고 (팀 코드 → 정보). 그 시즌 팀표가 먼저, 아직 기록이 없는 팀(개막 직후)은 직전 시즌 팀표.
+ * 홈 "오늘의 경기"·일정 화면 공용.
+ */
+export function gameTeamInfos(seasonCode: number): Record<string, { shortName: string; logoUrl: string | null; color: CardTeam["color"] }> {
+  const out: Record<string, { shortName: string; logoUrl: string | null; color: CardTeam["color"] }> = {};
+  const prev = listSeasonsWithPlayers().find((s) => s.seasonCode < seasonCode);
+  const prevSeason = prev ? loadSeasonData(prev.seasonCode) : null;
+  const cur = loadSeasonData(seasonCode);
+  for (const t of [...(prevSeason ? toCardTeams(prevSeason) : []), ...(cur ? toCardTeams(cur) : [])]) {
+    out[t.teamCode] = { shortName: t.shortName, logoUrl: t.logoUrl, color: t.color };
+  }
+  return out;
+}
+
 let latestWithPlayers: number | null | undefined;
 export function isSeasonOngoing(seasonCode: number): boolean {
   if (latestWithPlayers === undefined) latestWithPlayers = listSeasonsWithPlayers()[0]?.seasonCode ?? null;
