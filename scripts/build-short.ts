@@ -10,18 +10,20 @@ import path from "node:path";
 import { toLeaderPlayers } from "../lib/convert";
 import { filterLeaders, topLeaders } from "../lib/leaders";
 import { DEFAULT_QUALIFY } from "../lib/metrics";
-import { courtGeometry, courtPoints, type ShotPoint } from "../lib/shots";
+import { courtGeometry, courtPoints, courtZoneShapes, isThreePx, PX_PER_M, shotZone, type ShotPoint } from "../lib/shots";
 import { OFFENSE_TYPES } from "../lib/glossary";
 import { seasonShortLabel } from "../lib/career";
 import {
+  buildInsight,
   captionChunks,
+  insightLine,
+  insightSummary,
+  insightCasual,
   pickCallouts,
-  compareLine,
   sampleShots,
   scoringBreakdown,
   SCORING_SOURCES,
   toSpeech,
-  topScorerLine,
   type ScoringSource,
 } from "../lib/shorts";
 import type { SeasonData } from "../lib/types";
@@ -84,12 +86,47 @@ const breakdowns: ScoringSource[][] = top.map(({ player }) => {
 });
 const callouts = pickCallouts(breakdowns);
 
+// 다섯 명 중 포지션 묶음(가드·포워드·센터)이 혼자인 선수 — 대사에 "유일한 포워드" 처럼 쓴다
+const GROUP_NAME: Record<string, string> = { G: "가드", F: "포워드", C: "센터" };
+const groups = top.map(({ player }) => rawOf.get(player.id)!.positionGroup ?? null);
+const onlyPositionOf = (i: number) => {
+  const g = groups[i];
+  return g && groups.filter((x) => x === g).length === 1 ? GROUP_NAME[g] ?? null : null;
+};
+
+// 인사이트 비교 집단 = 같은 국내 표본 충족 선수들 (득점 순위와 같은 집단)
+const poolRaw = pool.map((l) => rawOf.get(l.id)!).filter((r) => r.games > 0);
+const insightCtx = {
+  five: top.map(({ player }, i) => {
+    const raw = rawOf.get(player.id)!;
+    const z = raw.shotZones?.zones;
+    const att = z ? Object.values(z).reduce((a, v) => a + v.a, 0) : 0;
+    return {
+      sources: breakdowns[i],
+      callout: callouts[i],
+      positionGroup: groups[i],
+      tpPct: raw.tpPct,
+      mid: z && att > 0 ? { share: Math.round((z.mid.a / att) * 1000) / 10, pct: Math.round((z.mid.m / Math.max(1, z.mid.a)) * 1000) / 10 } : null,
+    };
+  }),
+  leaguePpg: poolRaw.map((r) => r.points / r.games),
+  leagueFta: poolRaw.map((r) => ({ id: r.playerNo, name: r.nameKo, value: r.fta / r.games })),
+};
+
+// 슛 점에 득점 출처 번호를 붙인다 (0 페인트(골밑 포함) · 1 미드 · 2 3점) — 장면이 그 구역 점만 강조
+const SOURCE_INDEX = { rim: 0, paint: 0, mid: 1, corner3: 2, arc3: 2 } as const;
+const tagShot = (pt: ShotPoint): [number, number, number, number] => {
+  const three = isThreePx(Math.abs(pt[0]) * PX_PER_M, Math.abs(pt[1]) * PX_PER_M);
+  return [pt[0], pt[1], pt[2], SOURCE_INDEX[shotZone({ x: pt[0], y: pt[1], three })]];
+};
+
 const players = top.map(({ player, value, rank }, i) => {
   const raw = rawOf.get(player.id)!;
   const team = teamOf.get(player.teamCode);
   const offense = raw.shotZones?.offenseType ?? null;
   const pts = courtPoints(shotsBy[player.id] ?? []);
-  const line = topScorerLine({
+  const insight = buildInsight(i, insightCtx, { id: player.id, ftm: raw.ftm, games: raw.games });
+  const line = insightLine({
     rank,
     name: player.nameKo,
     ppg: Math.round(value * 10) / 10,
@@ -97,7 +134,11 @@ const players = top.map(({ player, value, rank }, i) => {
     callout: callouts[i],
     tpPct: raw.tpPct,
     ftPct: raw.ftPct,
-  });
+    onlyPosition: onlyPositionOf(i),
+    team: team?.shortNameKo ?? player.teamShort,
+    // 영상은 5위 → 1위 순서라 "바로 앞" = 한 순위 아래 선수
+    prevTeam: i + 1 < top.length ? (teamOf.get(top[i + 1].player.teamCode)?.shortNameKo ?? top[i + 1].player.teamShort) : null,
+  }, insight);
   return {
     rank,
     playerNo: player.id,
@@ -122,7 +163,12 @@ const players = top.map(({ player, value, rank }, i) => {
     callout: callouts[i],
     offenseType: offense ? (OFFENSE_TYPES.find((t) => t.key === offense)?.label ?? null) : null,
     // 슛 점: 실패 먼저·성공 나중 (성공이 위에 그려지게), 각 최대 260개
-    shots: { missed: sampleShots(pts.missed, 260), made: sampleShots(pts.made, 260), total: pts.missed.length + pts.made.length },
+    shots: {
+      missed: sampleShots(pts.missed, 260).map(tagShot),
+      made: sampleShots(pts.made, 260).map(tagShot),
+      total: pts.missed.length + pts.made.length,
+    },
+    insight,
     line,
   };
 });
@@ -143,18 +189,14 @@ const scenes = [
   {
     id: "cover",
     kind: "cover" as const,
-    caption: `${seasonLabel} 국내 득점 TOP 5를 보면요, 다섯 명이 점수 내는 방식이 다 달라요.`,
+    caption: `${seasonLabel} 국내 득점 TOP 5, 근데 점수 내는 방식이 다 달라. 5위부터 가 보자.`,
   },
   ...countdown.map((p) => ({ id: `rank-${p.rank}`, kind: "player" as const, playerNo: p.playerNo, caption: p.line.caption })),
+  // 비교 막대 화면 위에서 질문으로 끝낸다 (30~40초 맞추려고 정리 대사·마무리 장면을 합침)
   {
     id: "compare",
     kind: "compare" as const,
-    caption: compareLine({ threeShare: threeTop.name, threePerGame: threePgTop.name, paint: paintTop.name, ft: ftTop.name }),
-  },
-  {
-    id: "outro",
-    kind: "outro" as const,
-    caption: "여러분 팀 에이스는 어느 쪽에 가까워요? 댓글로 알려 주세요.",
+    caption: "자, 올 시즌 득점왕은 누가 될 것 같아? 댓글로 찍어 줘!",
   },
 ].map((s) => ({ ...s, speech: toSpeech(s.caption), chunks: captionChunks(s.caption) }));
 
@@ -167,19 +209,36 @@ const episode = {
   createdAt: new Date().toISOString(),
   seasonCode,
   seasonLabel,
-  title: `${seasonLabel} 국내 득점 TOP 5, 점수 내는 방법은 전부 달랐다 #KBL #농구 #shorts`,
+  title: `국내 득점 TOP 5, 점수 내는 법이 전부 달랐다 | ${seasonLabel} KBL #KBL #농구 #shorts`,
   description: [
-    `${seasonLabel} KBL 정규시즌 국내 선수 경기당 득점 1~5위의 득점 출처(페인트·미드레인지·3점·자유투)를 비교했습니다.`,
+    `${seasonLabel} KBL 국내 득점 TOP 5, 다섯 명 모두 점수 내는 방식이 달랐습니다.`,
     "",
-    ...players.map((p) => `${p.rank}위 ${p.name}(${p.team.name}) ${p.ppg}점 — ${p.callout.headline}`),
+    ...players.map((p) => `${p.rank}위 ${p.name}(${p.team.name}) 경기당 ${p.ppg}점 — ${insightSummary(p.insight, p.callout)}`),
     "",
+    "올 시즌 득점왕은 누가 될까요? 댓글로 예측해 주세요!",
+    "",
+    "· 국내 선수 = 정규시즌 표본 기준(경기·출전 시간)을 채운 국내 선수",
     "· 2점을 페인트/미드레인지로 나눈 비율은 공식 슛 차트 좌표 기준이라 공식 기록과 조금 다를 수 있습니다.",
     "· 기록: KBL 공식 홈페이지 · 사진 © KBL 및 각 구단 · 비영리 팬 채널",
     "· 더 많은 기록: https://kbl-stats-reference.vercel.app",
   ].join("\n"),
-  tags: ["KBL", "농구", "프로농구", ...players.map((p) => p.name), "shorts"],
+  // 캐주얼 버전 (커뮤니티 말투) — 업로드할 때 둘 중 고른다
+  casual: {
+    title: `득점 TOP 5인데 점수 내는 법이 다 다름 (${seasonLabel} KBL) #KBL #농구 #shorts`,
+    description: [
+      `${seasonLabel} 국내 득점 TOP 5, 근데 점수 내는 방식이 전부 다름`,
+      "",
+      ...players.map((p) => `${p.rank}위 ${p.name}(${p.team.name}) ${p.ppg}점: ${insightCasual(p.insight, p.callout)}`),
+      "",
+      "올 시즌 득점왕 누구 찍음? 댓글로 ㄱㄱ",
+      "",
+      "기록: KBL 공식 홈페이지 · 사진 © KBL 및 각 구단 · 비영리 팬 채널",
+      "더 많은 기록: https://kbl-stats-reference.vercel.app",
+    ].join("\n"),
+  },
+  tags: ["KBL", "농구", "프로농구", "득점왕", ...players.map((p) => p.name), ...new Set(players.map((p) => p.team.name)), "shorts"],
   sourceSources: SCORING_SOURCES.map((s) => ({ key: s.key, label: s.label })),
-  court: { viewBox: court.viewBox, lines: court.lines, rim: court.rim },
+  court: { viewBox: court.viewBox, lines: court.lines, rim: court.rim, zones: courtZoneShapes() },
   players,
   scenes,
 };
@@ -187,5 +246,14 @@ const episode = {
 const outDir = path.join(ROOT, "shorts", "episodes", slug);
 fs.mkdirSync(outDir, { recursive: true });
 fs.writeFileSync(path.join(outDir, "episode.json"), JSON.stringify(episode, null, 2) + "\n");
+fs.writeFileSync(path.join(outDir, "upload.txt"), uploadText(episode));
 console.log(`에피소드 저장: shorts/episodes/${slug}/episode.json`);
 for (const s of scenes) console.log(`  [${s.id}] ${s.caption}`);
+
+/** 업로드 글 — 정리형 + 캐주얼 (prepare-short 도 같은 글을 렌더 결과 옆에 둔다) */
+export function uploadText(e: { title: string; description: string; tags: string[]; casual?: { title: string; description: string } }): string {
+  const out = ["===== 정리형 =====", "[제목]", e.title, "", "[설명]", e.description, ""];
+  if (e.casual) out.push("===== 캐주얼 =====", "[제목]", e.casual.title, "", "[설명]", e.casual.description, "");
+  out.push("[태그 — 공통]", e.tags.join(", "), "");
+  return out.join("\n");
+}

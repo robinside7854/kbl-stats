@@ -63,20 +63,25 @@ async function ttsGoogle(text: string, file: string) {
   fs.writeFileSync(file, Buffer.from(json.audioContent, "base64"));
 }
 
+/** 지금 쓰는 ElevenLabs 모델 — 기본 eleven_v3 (2026-10-02: v2 는 "어눌하고 AI 같다"는 피드백, v3 가 호흡·억양이 가장 자연스러운 모델) */
+const elevenModel = () => process.env.ELEVENLABS_MODEL || "eleven_v3";
+const isV3 = () => /v3|v4/.test(elevenModel());
+
 /** ElevenLabs 한 번에 읽기 — 글자별 시각 포함. with-timestamps 가 안 되는 모델이면 일반 읽기 + null */
 async function ttsElevenLabs(text: string, file: string): Promise<Alignment | null> {
   const voice = process.env.ELEVENLABS_VOICE_ID!;
-  const body = JSON.stringify({
-    text,
-    model_id: process.env.ELEVENLABS_MODEL || "eleven_multilingual_v2",
-    voice_settings: {
-      stability: Number(process.env.ELEVENLABS_STABILITY || 0.35),
-      similarity_boost: Number(process.env.ELEVENLABS_SIMILARITY || 0.8),
-      style: Number(process.env.ELEVENLABS_STYLE || 0.3),
-      use_speaker_boost: true,
-      speed: Number(process.env.ELEVENLABS_SPEED || 1.05),
-    },
-  });
+  // v3 의 stability 는 0(Creative)·0.5(Natural)·1(Robust) 셋 중 하나만 받는다. speed·style 은 v2 계열에만
+  const rawStability = Number(process.env.ELEVENLABS_STABILITY || (isV3() ? 0.5 : 0.35));
+  const voiceSettings = isV3()
+    ? { stability: [0, 0.5, 1].reduce((b, v) => (Math.abs(v - rawStability) < Math.abs(b - rawStability) ? v : b), 0.5), similarity_boost: 0.8 }
+    : {
+        stability: rawStability,
+        similarity_boost: Number(process.env.ELEVENLABS_SIMILARITY || 0.8),
+        style: Number(process.env.ELEVENLABS_STYLE || 0.3),
+        use_speaker_boost: true,
+        speed: Number(process.env.ELEVENLABS_SPEED || 1.1),
+      };
+  const body = JSON.stringify({ text, model_id: elevenModel(), voice_settings: voiceSettings });
   const headers = { "xi-api-key": process.env.ELEVENLABS_API_KEY!, "Content-Type": "application/json" };
   const base = `https://api.elevenlabs.io/v1/text-to-speech/${voice}`;
   const res = await fetch(`${base}/with-timestamps?output_format=mp3_44100_128`, { method: "POST", headers, body });
@@ -85,11 +90,24 @@ async function ttsElevenLabs(text: string, file: string): Promise<Alignment | nu
     fs.writeFileSync(file, Buffer.from(json.audio_base64, "base64"));
     return json.alignment;
   }
-  console.log(`  with-timestamps 실패 ${res.status}: ${(await res.text()).slice(0, 200)} → 일반 읽기`);
+  console.log(`  with-timestamps 실패 ${res.status}: ${(await res.text()).slice(0, 300)} → 일반 읽기`);
   const plain = await fetch(`${base}?output_format=mp3_44100_128`, { method: "POST", headers, body });
   if (!plain.ok) throw new Error(`ElevenLabs ${plain.status}: ${(await plain.text()).slice(0, 300)}`);
   fs.writeFileSync(file, Buffer.from(await plain.arrayBuffer()));
   return null;
+}
+
+/** 소리를 빠르게 (음높이는 그대로 — ffmpeg atempo). Remotion 에 들어 있는 ffmpeg 를 쓴다 */
+function speedUp(file: string, tempo: number) {
+  if (Math.abs(tempo - 1) < 0.01) return;
+  const out = file.replace(/\.mp3$/, ".fast.mp3");
+  const args = ["-y", "-loglevel", "error", "-i", file, "-filter:a", `atempo=${tempo}`, out];
+  try {
+    execFileSync("ffmpeg", args);
+  } catch {
+    execFileSync("npx", ["remotion", "ffmpeg", ...args], { cwd: path.join(ROOT, "shorts") });
+  }
+  fs.renameSync(out, file);
 }
 
 function ttsEdge(text: string, file: string) {
@@ -140,24 +158,22 @@ const failures: string[] = [];
 let scenes: Record<string, unknown>[] = [];
 let narration: string | null = null;
 if (provider === "elevenlabs") {
-  // 전체를 한 번에 — 장면 사이 빈 줄
+  // 전체를 한 번에 — 장면 사이 빈 줄. v3 면 첫머리에 말투 태그 하나(들뜬 톤으로 시작)
   const texts: string[] = episode.scenes.map((s: { speech: string }) => s.speech);
+  const fullText = (isV3() ? "[excited] " : "") + texts.join(SCENE_JOINER);
   const file = path.join(outDir, "audio", "narration.mp3");
-  const alignment = await ttsElevenLabs(texts.join(SCENE_JOINER), file);
+  const alignment = await ttsElevenLabs(fullText, file);
+  // 쇼츠는 빠른 말이 낫다 (사용자: 30~40초, 속도감) — 읽힌 뒤 소리 자체를 빠르게
+  const tempo = Number(process.env.SHORTS_TEMPO || 1.18);
+  speedUp(file, tempo);
   const total = durationOf(file);
   narration = `${slug}/audio/narration.mp3`;
-  let timings;
-  if (alignment) {
-    // 자막 조각은 읽는 말로 바꿔 대본에서 찾는다 (자막 "4.5점" ↔ 말 "사쩜오점")
-    const spokenChunks = episode.scenes.map((s: { chunks: string[] }) => s.chunks.map(toSpeech));
-    timings = sceneTimingsFromAlignment(texts, spokenChunks, alignment, total);
-  } else {
-    // 글자 시각이 없으면 글자 수 비율로 나눈다
-    const lens = texts.map((t) => t.replace(/\s+/g, "").length);
-    const sum = lens.reduce((a, b) => a + b, 0);
-    timings = lens.map((l, i) => ({ seconds: Math.round(((total * l) / sum + (i === lens.length - 1 ? 0.8 : 0)) * 100) / 100, chunkStarts: null }));
-  }
+  // 자막 조각은 읽는 말로 바꿔 찾는다 (자막 "4.5점" ↔ 말 "사쩜오점"). 글자 시각이 없으면 글자 수 비율
+  const spokenChunks = episode.scenes.map((s: { chunks: string[] }) => s.chunks.map(toSpeech));
+  const empty: Alignment = { characters: [], character_start_times_seconds: [], character_end_times_seconds: [] };
+  const timings = sceneTimingsFromAlignment(texts, spokenChunks, alignment ?? empty, total, tempo);
   scenes = episode.scenes.map((s: Record<string, unknown>, i: number) => ({ ...s, audio: null, seconds: timings[i].seconds, chunkStarts: timings[i].chunkStarts }));
+  console.log(`  모델 ${elevenModel()} · 빠르기 ×${tempo} · 글자 시각 ${alignment ? "있음" : "없음(추정)"}`);
   for (const s of scenes) console.log(`  ${s.id} ${(s.seconds as number).toFixed(2)}초`);
 } else {
   for (const s of episode.scenes) {
@@ -188,12 +204,20 @@ for (const p of episode.players) {
   players.push({ ...p, photoFile: photo, team: { ...p.team, logoFile: logo } });
 }
 
-const props = { ...episode, players, scenes, narration, voice: provider };
+// 배경음악: Actions 가 shorts-renders 브랜치의 bgm/ 에서 꺼내 shorts/public/bgm/sports.mp3 에 둔다 (ElevenLabs 음악으로 한 번 만든 것)
+const bgmFile = path.join(ROOT, "shorts", "public", "bgm", "sports.mp3");
+const bgm = fs.existsSync(bgmFile) ? "bgm/sports.mp3" : null;
+console.log(`배경음악: ${bgm ?? "없음"}`);
+const props = { ...episode, players, scenes, narration, bgm, voice: provider };
 fs.writeFileSync(path.join(outDir, "props.json"), JSON.stringify(props));
 // 유튜브 올릴 때 붙여 넣을 제목·설명·태그
 fs.writeFileSync(
   path.join(outDir, "upload.txt"),
-  [`[제목]`, episode.title, ``, `[설명]`, episode.description, ``, `[태그]`, episode.tags.join(", "), ``].join("\n"),
+  [
+    `===== 정리형 =====`, `[제목]`, episode.title, ``, `[설명]`, episode.description, ``,
+    ...(episode.casual ? [`===== 캐주얼 =====`, `[제목]`, episode.casual.title, ``, `[설명]`, episode.casual.description, ``] : []),
+    `[태그 — 공통]`, episode.tags.join(", "), ``,
+  ].join("\n"),
 );
 const total = scenes.reduce((a, s) => a + (s.seconds as number), 0);
 console.log(`렌더 입력: shorts/public/${slug}/props.json (약 ${total.toFixed(1)}초)`);

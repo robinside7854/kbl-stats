@@ -27,12 +27,32 @@ export interface EpisodePlayer {
   sources: ScoringSource[];
   callout: { kind: string; source: SourceKey | null; headline: string; note: string };
   offenseType: string | null;
-  shots: { missed: [number, number, number][]; made: [number, number, number][]; total: number };
+  /** [x, y, 성공 1/0, 출처 0 페인트·1 미드·2 3점] — 미터, 바스켓 중심 원점 */
+  shots: { missed: ShotTuple[]; made: ShotTuple[]; total: number };
+  insight: Insight;
+}
+
+export type ShotTuple = [number, number, number, number];
+
+/** lib/shorts Insight 와 같은 모양 (렌더러는 사이트 lib 를 import 하지 않는다) */
+export type Insight =
+  | { layout: "shotmap"; focus: SourceKey; share: number; lowFtShare: number | null; tpPctTop?: number | null; midTop?: { share: number; pct: number } | null }
+  | { layout: "split"; a: ScoringSource; b: ScoringSource }
+  | { layout: "lineup"; positions: (string | null)[]; me: number; only: string; focus: SourceKey; share: number }
+  | { layout: "ladder"; focus: SourceKey; value: number; beatPct: number; beaten: number; total: number; ppgs: number[]; volume?: boolean }
+  | { layout: "counter"; ftm: number; ftPerGame: number; rank: number; ratioToNext: number | null; leaders: { name: string; value: number; me: boolean }[] }
+  | { layout: "classic" };
+
+export interface CourtZone {
+  key: "rim" | "paint" | "mid" | "corner3" | "arc3";
+  paths: string[];
+  evenOdd: boolean;
+  clip?: string;
 }
 
 export interface EpisodeScene {
   id: string;
-  kind: "cover" | "player" | "compare" | "outro";
+  kind: "cover" | "player" | "compare" | "outro" | "milestone" | "question" | "answer";
   playerNo?: string;
   caption: string;
   chunks: string[];
@@ -45,10 +65,12 @@ export interface EpisodeScene {
 export interface EpisodeProps {
   slug: string;
   seasonLabel: string;
-  court: { viewBox: string; lines: string[]; rim: { cx: number; cy: number; r: number } };
+  court: { viewBox: string; lines: string[]; rim: { cx: number; cy: number; r: number }; zones: CourtZone[] };
   players: EpisodePlayer[];
   scenes: EpisodeScene[];
   /** 전체 내레이션 한 파일 (있으면 장면별 audio 대신) */
   narration?: string | null;
+  /** 배경음악 (shorts/public 기준 경로) */
+  bgm?: string | null;
   [key: string]: unknown;
 }

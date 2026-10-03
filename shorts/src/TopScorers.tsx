@@ -16,21 +16,22 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
-import { C, FONT, FPS, SAFE, SOURCE_COLOR } from "./theme";
+import { C, FONT, FPS, SAFE, SOURCE_COLOR, glow, onDark } from "./theme";
 import type { EpisodePlayer, EpisodeProps, EpisodeScene, ScoringSource } from "./types";
+import { INSIGHT_SCENES } from "./InsightScenes";
 
 // ─────────────────────────────────────────────
 // 공통
 // ─────────────────────────────────────────────
 
-const EASE = Easing.bezier(0.2, 0.8, 0.2, 1);
+export const EASE = Easing.bezier(0.2, 0.8, 0.2, 1);
 /** frame 이 start 에서 dur 프레임 동안 0 → 1 */
-const prog = (frame: number, start: number, dur: number) =>
+export const prog = (frame: number, start: number, dur: number) =>
   interpolate(frame, [start, start + dur], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: EASE });
 /** 아래에서 올라오며 나타남 */
-const rise = (p: number, dist = 36): CSSProperties => ({ opacity: p, transform: `translateY(${(1 - p) * dist}px)` });
+export const rise = (p: number, dist = 36): CSSProperties => ({ opacity: p, transform: `translateY(${(1 - p) * dist}px)` });
 
-function useFont() {
+export function useFont() {
   const [handle] = useState(() => delayRender("Pretendard"));
   useEffect(() => {
     const face = new FontFace("Pretendard Variable", `url(${staticFile("fonts/PretendardVariable.woff2")}) format("woff2")`, {
@@ -46,7 +47,7 @@ function useFont() {
   }, [handle]);
 }
 
-const text = (size: number, weight: number, color: string = C.ink, extra: CSSProperties = {}): CSSProperties => ({
+export const text = (size: number, weight: number, color: string = C.ink, extra: CSSProperties = {}): CSSProperties => ({
   fontFamily: FONT,
   fontSize: size,
   fontWeight: weight,
@@ -57,23 +58,23 @@ const text = (size: number, weight: number, color: string = C.ink, extra: CSSPro
   ...extra,
 });
 
-function Masthead({ season, section }: { season: string; section: string }) {
+/** 위 머리 — 보고서식 이중선 대신 주황 꼬리표 하나 + 시즌 */
+export function Masthead({ season, section }: { season: string; section: string }) {
   return (
-    <div style={{ position: "absolute", left: SAFE.left, right: W_PAD, top: SAFE.top }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-        <span style={text(30, 900, C.ink, { letterSpacing: 6 })}>STATS REFERENCE</span>
-        <span style={text(26, 600, C.ink2)}>
-          {season} 시즌 리뷰 · {section}
-        </span>
-      </div>
-      <div style={{ height: 4, background: C.rule, marginTop: 14 }} />
-      <div style={{ height: 1.5, background: C.rule, marginTop: 5 }} />
+    <div style={{ position: "absolute", left: SAFE.left, right: W_PAD, top: SAFE.top, display: "flex", alignItems: "center", gap: 16 }}>
+      <span style={{ background: C.accent, borderRadius: 8, padding: "6px 16px", ...text(28, 900, "#fff") }}>{section}</span>
+      <span style={text(26, 700, C.ink2)}>{season} KBL 국내 득점 TOP 5</span>
     </div>
   );
 }
-const W_PAD = 1080 - SAFE.right;
 
-function Credits() {
+/** 장면 바탕 빛 — 선수 장면은 팀 색, 나머지는 주황 */
+export function Glow({ color = C.accent, x, y }: { color?: string; x?: number; y?: number }) {
+  return <AbsoluteFill style={{ background: glow(onDark(color), x, y) }} />;
+}
+export const W_PAD = 1080 - SAFE.right;
+
+export function Credits() {
   return (
     <div style={{ position: "absolute", left: SAFE.left, right: W_PAD, top: SAFE.bottom - 4, ...text(20, 500, C.ink3) }}>
       기록 KBL 공식 홈페이지 · 사진 © KBL 및 각 구단 · 비영리 팬 채널
@@ -82,7 +83,7 @@ function Credits() {
 }
 
 /** 자막 — 대본 조각을 글자 수 비율로 나눠 보여 준다 */
-function Caption({ scene }: { scene: EpisodeScene }) {
+export function Caption({ scene }: { scene: EpisodeScene }) {
   const frame = useCurrentFrame();
   const speak = Math.max(1, (scene.seconds - 0.25) * FPS);
   const lens = scene.chunks.map((c) => c.replace(/\s+/g, "").length || 1);
@@ -123,7 +124,7 @@ function initials(name: string) {
 }
 
 /** 선수 사진 — 없으면 팀 색 바탕 + 이름 글자 (사이트 대체 디자인과 같은 규칙) */
-function Photo({ p, width, height, style }: { p: EpisodePlayer; width: number; height: number; style?: CSSProperties }) {
+export function Photo({ p, width, height, style }: { p: EpisodePlayer; width: number; height: number; style?: CSSProperties }) {
   return (
     <div style={{ position: "relative", width, height, background: p.team.color, overflow: "hidden", ...style }}>
       {p.photoFile ? (
@@ -147,7 +148,7 @@ function Photo({ p, width, height, style }: { p: EpisodePlayer; width: number; h
   );
 }
 
-function TeamMark({ p, size }: { p: EpisodePlayer; size: number }) {
+export function TeamMark({ p, size }: { p: EpisodePlayer; size: number }) {
   if (!p.team.logoFile) return null;
   return <Img src={staticFile(p.team.logoFile)} style={{ width: size, height: size, objectFit: "contain" }} />;
 }
@@ -223,7 +224,7 @@ function ShotInset({ p, court, width, appear }: { p: EpisodePlayer; court: Episo
   );
 }
 
-function CountUp({ value, p, decimals = 1 }: { value: number; p: number; decimals?: number }) {
+export function CountUp({ value, p, decimals = 1 }: { value: number; p: number; decimals?: number }) {
   return <>{(value * p).toFixed(decimals)}</>;
 }
 
@@ -237,7 +238,8 @@ function CoverScene({ props, scene }: { props: EpisodeProps; scene: EpisodeScene
   const lead = byRank[0];
   return (
     <AbsoluteFill>
-      <Masthead season={props.seasonLabel} section="득점 특집" />
+      <Glow />
+      <Masthead season={props.seasonLabel} section="득점 TOP 5" />
       <div style={{ position: "absolute", left: SAFE.left, top: 250, ...rise(prog(frame, 0, 10)) }}>
         <div style={text(40, 700, C.ink2)}>{props.seasonLabel} 정규시즌 · 국내 선수</div>
         <div style={text(150, 900, C.ink, { marginTop: 10 })}>득점 TOP</div>
@@ -247,7 +249,7 @@ function CoverScene({ props, scene }: { props: EpisodeProps; scene: EpisodeScene
           position: "absolute",
           right: W_PAD,
           top: 210,
-          ...text(470, 900, lead.team.color, { lineHeight: 1 }),
+          ...text(470, 900, onDark(lead.team.color), { lineHeight: 1 }),
           ...rise(prog(frame, 4, 12), 80),
         }}
       >
@@ -292,16 +294,24 @@ function CoverScene({ props, scene }: { props: EpisodeProps; scene: EpisodeScene
 }
 
 function PlayerScene({ props, scene }: { props: EpisodeProps; scene: EpisodeScene }) {
-  const frame = useCurrentFrame();
   const p = props.players.find((x) => x.playerNo === scene.playerNo)!;
+  // 선수마다 특징에 맞는 다른 화면 (lib/shorts buildInsight) — classic 만 아래 공통 틀
+  const Insight = p.insight && p.insight.layout !== "classic" ? INSIGHT_SCENES[p.insight.layout] : null;
+  if (Insight) return <Insight props={props} scene={scene} p={p} />;
+  return <ClassicPlayerScene props={props} scene={scene} p={p} />;
+}
+
+function ClassicPlayerScene({ props, scene, p }: { props: EpisodeProps; scene: EpisodeScene; p: EpisodePlayer }) {
+  const frame = useCurrentFrame();
   const meta = [p.team.name, p.position, `${p.games}경기 · 경기당 ${p.mpg}분`].filter(Boolean).join(" · ");
   const bar = prog(frame, 14, 22);
   const top = [...p.sources].sort((a, b) => b.share - a.share)[0];
   return (
     <AbsoluteFill>
-      <Masthead season={props.seasonLabel} section={`국내 득점 ${p.rank}위`} />
+      <Glow color={p.team.color} />
+      <Masthead season={props.seasonLabel} section={`${p.rank}위`} />
       {/* 순위 숫자 + 이름 */}
-      <div style={{ position: "absolute", left: SAFE.left - 8, top: 196, ...text(330, 900, p.team.color, { lineHeight: 1 }), ...rise(prog(frame, 0, 10), 60) }}>
+      <div style={{ position: "absolute", left: SAFE.left - 8, top: 196, ...text(330, 900, onDark(p.team.color), { lineHeight: 1 }), ...rise(prog(frame, 0, 10), 60) }}>
         {p.rank}
       </div>
       <div style={{ position: "absolute", left: 300, top: 262, right: W_PAD, ...rise(prog(frame, 3, 10)) }}>
@@ -381,10 +391,11 @@ function CompareScene({ props, scene }: { props: EpisodeProps; scene: EpisodeSce
   }
   return (
     <AbsoluteFill>
-      <Masthead season={props.seasonLabel} section="한눈에 비교" />
+      <Glow x={15} y={8} />
+      <Masthead season={props.seasonLabel} section="득점왕 예측" />
       <div style={{ position: "absolute", left: SAFE.left, top: 236, ...rise(prog(frame, 0, 10)) }}>
-        <div style={text(84, 900)}>득점은 어디서 나왔나</div>
-        <div style={text(26, 600, C.ink2, { marginTop: 10 })}>득점 중 비중 · 2점은 슛 위치(공식 슛 차트) 기준으로 나눔</div>
+        <div style={text(96, 900)}>올 시즌 득점왕은?</div>
+        <div style={text(28, 600, C.ink2, { marginTop: 10 })}>지난 시즌 TOP 5 득점 출처 · 2점은 공식 슛 차트 위치로 나눔</div>
         <div style={{ marginTop: 26 }}>
           <Legend />
         </div>
@@ -395,7 +406,7 @@ function CompareScene({ props, scene }: { props: EpisodeProps; scene: EpisodeSce
           <div key={p.playerNo} style={{ position: "absolute", left: SAFE.left, top: 520 + i * 160, width: 960, ...rise(a, 30) }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 10 }}>
               <span style={{ display: "flex", alignItems: "baseline", gap: 14 }}>
-                <span style={text(40, 900, p.team.color)}>{p.rank}</span>
+                <span style={text(40, 900, onDark(p.team.color))}>{p.rank}</span>
                 <span style={text(42, 800)}>{p.name}</span>
                 <span style={text(26, 600, C.ink2)}>{p.team.name}</span>
               </span>
@@ -448,7 +459,8 @@ function OutroScene({ props, scene }: { props: EpisodeProps; scene: EpisodeScene
   const byRank = [...props.players].sort((a, b) => a.rank - b.rank);
   return (
     <AbsoluteFill>
-      <Masthead season={props.seasonLabel} section="득점 특집" />
+      <Glow />
+      <Masthead season={props.seasonLabel} section="득점 TOP 5" />
       <div style={{ position: "absolute", left: SAFE.left, top: 270, right: W_PAD, ...rise(prog(frame, 0, 10)) }}>
         <div style={text(96, 900)}>여러분 팀 에이스는</div>
         <div style={text(96, 900)}>어떤 유형인가요?</div>
@@ -466,7 +478,7 @@ function OutroScene({ props, scene }: { props: EpisodeProps; scene: EpisodeScene
               ...rise(prog(frame, 4 + i * 3, 10), 24),
             }}
           >
-            <span style={{ width: 44, ...text(40, 900, p.team.color) }}>{p.rank}</span>
+            <span style={{ width: 44, ...text(40, 900, onDark(p.team.color)) }}>{p.rank}</span>
             <span style={{ width: 200, ...text(40, 800) }}>{p.name}</span>
             <span style={text(34, 700, C.ink2)}>{p.callout.headline}</span>
           </div>
@@ -487,7 +499,7 @@ function OutroScene({ props, scene }: { props: EpisodeProps; scene: EpisodeScene
 // 전체
 // ─────────────────────────────────────────────
 
-const SCENE: Record<EpisodeScene["kind"], (x: { props: EpisodeProps; scene: EpisodeScene }) => ReactNode> = {
+const SCENE: Record<"cover" | "player" | "compare" | "outro", (x: { props: EpisodeProps; scene: EpisodeScene }) => ReactNode> = {
   cover: CoverScene,
   player: PlayerScene,
   compare: CompareScene,
@@ -496,16 +508,30 @@ const SCENE: Record<EpisodeScene["kind"], (x: { props: EpisodeProps; scene: Epis
 
 export function TopScorers(props: EpisodeProps) {
   useFont();
-  useVideoConfig();
+  const { durationInFrames } = useVideoConfig();
   let from = 0;
   return (
     <AbsoluteFill style={{ background: C.paper, fontFamily: FONT }}>
       {props.narration ? <Audio src={staticFile(props.narration)} /> : null}
+      {props.bgm ? (
+        // 배경음악: 목소리 밑에 작게 깔고(0.14), 처음 0.3초 올라오고 마지막 1.2초 사라진다
+        <Audio
+          src={staticFile(props.bgm)}
+          loop
+          volume={(f) =>
+            0.14 *
+            interpolate(f, [0, 9, durationInFrames - 36, durationInFrames], [0, 1, 1, 0], {
+              extrapolateLeft: "clamp",
+              extrapolateRight: "clamp",
+            })
+          }
+        />
+      ) : null}
       {props.scenes.map((scene) => {
         const dur = Math.round(scene.seconds * FPS);
         const start = from;
         from += dur;
-        const Comp = SCENE[scene.kind];
+        const Comp = SCENE[scene.kind as keyof typeof SCENE];
         return (
           <Sequence key={scene.id} from={start} durationInFrames={dur} name={scene.id}>
             <Comp props={props} scene={scene} />
