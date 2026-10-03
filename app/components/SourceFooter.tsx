@@ -31,6 +31,12 @@ export default function SourceFooter({ fetchedAt, wide = false }: { fetchedAt?: 
       <p>{SOURCE_LINE}</p>
       {officialImagesEnabled() && <p className="mt-1">{IMAGE_CREDIT_LINE}</p>}
       {gaMeasurementId() && <p className="mt-1">{ANALYTICS_LINE}</p>}
+      <p className="mt-1">
+        {/* 개인정보 처리 안내 (2026-10-03 보안 점검) */}
+        <Link href="/privacy" className="focus-ring rounded-control font-semibold text-ink-2 underline underline-offset-2 hover:text-ink">
+          개인정보 처리 안내
+        </Link>
+      </p>
       {fetchedAt && <p className="mt-1">데이터 수집일: {formatFetchedAt(fetchedAt)}</p>}
       <DeveloperContact />
     </footer>

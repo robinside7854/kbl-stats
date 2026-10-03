@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 350
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4 (판 고정, 2026-10-03 보안 점검)
 
       - name: 실행 횟수 확인 (0 이면 건너뜀)
         id: gate
@@ -46,7 +46,7 @@ jobs:
             echo "::notice::실행 횟수가 0 이라 백필하지 않습니다. 숫자를 1 올려 푸시하면 실행됩니다."
           fi
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         if: steps.gate.outputs.run == 'true'
         with:
           node-version: 20

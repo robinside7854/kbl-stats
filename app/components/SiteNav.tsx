@@ -18,7 +18,7 @@ import { IconBall, IconCalendar, IconHome, IconLeaders, IconPlayer, IconTeam, Ic
 import SiteLogo, { SITE_HEADER_NAME } from "./SiteLogo";
 import { trackEvent, trackFilters } from "./track";
 
-export type SiteView = "home" | "players" | "player" | "teams" | "leaders" | "schedule" | "compare" | "glossary" | "records" | "game";
+export type SiteView = "home" | "players" | "player" | "teams" | "leaders" | "schedule" | "compare" | "glossary" | "records" | "game" | "privacy";
 
 type MenuItem = { views: SiteView[]; label: string; short?: string; icon: (p: { size: 24 }) => React.ReactNode; href: (seasonCode: number) => string };
 const HOME: MenuItem = { views: ["home"], label: "홈", icon: IconHome, href: () => "/" };

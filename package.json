@@ -58,11 +58,14 @@
   },
   "dependencies": {
     "html-to-image": "^1.11.13",
-    "next": "^15.5.26",
+    "next": "^15.5.27",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "react-is": "^19.3.0",
     "recharts": "^3.10.1",
     "server-only": "^0.0.1"
+  },
+  "overrides": {
+    "postcss": "$postcss"
   }
 }

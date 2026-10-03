@@ -228,6 +228,7 @@ kbl-stats/
 │   ├── records/page.tsx ← 역대 기록 (통산 순위: 부문 칩·합계/경기당·국적, RecordsView, 메뉴 "역대 기록")
 │   ├── compare/page.tsx ← 비교 탭 정적 1쪽 (?a=번호:코드&b=번호:코드, 기본은 최신·직전 시즌 PER 1위)
 │   ├── game/page.tsx    ← 54-0 게임 (GameView: 다섯 칸 → 슬롯머신 두 대(시즌 하나·팀 3개) → 세 팀 후보 고르기(득점순, 등급 숨김) → 코트 위 5명·54경기 결과·기록 표·이미지 저장·링크 복사, /game/pool.json fetch, ?l= 공유 결과, 메뉴 "54-0")
+│   ├── privacy/page.tsx ← 개인정보 처리 안내 (2026-10-03 보안 점검, 푸터 링크만): 직접 수집 없음·GA4 항목/보관/거부·localStorage·KBL 이미지·문의 — 수집 방식이 바뀌면 같이 고칠 것
 │   ├── glossary/page.tsx ← 용어 탭 (lib/glossary 표, 앵커 /glossary#ts)
 │   ├── season/[seasonCode]/leaders/page.tsx  ← 시즌 순위표 정적 페이지 (1~3위 표지 카드 + 이 시즌 한 경기 최다 카드 줄 + 정렬 표, 포지션·국적 칩, 파울 열)
 │   ├── (플레이스타일·팀 분포 탭은 없앰 → next.config redirects: /season/코드/(teams|playstyle) → 리더보드)
@@ -297,6 +298,13 @@ kbl-stats/
 - 불러오는 중은 같은 모양의 `Skeleton`, 결과 0명은 문구 + "필터 초기화". `prefers-reduced-motion` 이면 전환·펄스를 끈다(globals.css)
 - 점검: `node .claude/skills/kill-ai-slop/scripts/scan.mjs app --skip=15,16,28,30,34` 가 0건이어야 한다. 일부러 남기는 것은 `deslop-ignore-next-line NN`
 
+## 보안 설정 (2026-10-03 보안 점검 — 세션이 바뀌어도 지킨다)
+- **보안 헤더는 `next.config.mjs` 한 곳**(X-Frame-Options·nosniff·Referrer-Policy·Permissions-Policy·HSTS + 운영 빌드만 CSP). **새 외부 출처**(이미지·글꼴·스크립트·fetch)를 쓰면 CSP 목록에 더해야 화면이 막히지 않는다. 검증은 Playwright 로 `securitypolicyviolation` 이벤트 0건(GA 는 `VERCEL_ENV=production` 빌드에서)
+- Next.js 가 품은 postcss 는 package.json `overrides` 로 최신(취약점 0 — `npm audit`). Next 를 올릴 때 `npm audit` 0 확인
+- GitHub Actions `uses:` 는 커밋 SHA 고정(뒤에 `# v4` 주석). 판을 올릴 때는 우리 Actions 실행 로그의 "Download action repository … (SHA:…)" 줄에서 SHA 를 확인
+- 비밀 값(API 키)은 코드·커밋에 넣지 않고 GitHub Secrets 에만. 화면에 `dangerouslySetInnerHTML`·eval 쓰지 않는다
+- 개인정보 처리 안내 `/privacy` — 수집 방식(분석 도구·로그인·DB)을 바꾸면 내용과 시행일을 같이 고친다
+
 ## 하지 말 것 (안티패턴)
 - 화면 컴포넌트에서 fetch로 KBL 서버 호출 (CORS로 실패하고, 원칙 1 위반)
 - raw 파일을 직접 수정하거나 가공 결과로 덮어쓰기
@@ -306,6 +314,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-03 (보안 점검·조치): 커뮤니티(nbamania 등) 공개 전 점검 → 사용자 지시로 4가지 적용. ① 보안 헤더(`next.config.mjs`: X-Frame-Options DENY·nosniff·Referrer-Policy·Permissions-Policy·HSTS·poweredByHeader 끔 + 운영 빌드 CSP — 허용 출처 kbl.or.kr 이미지·jsDelivr 글꼴·GA4) ② Next 15.5.26 → 15.5.27 + postcss overrides(8.5.28) → `npm audit` 0건(전엔 high 1·moderate 1, 빌드 단계 전용) ③ `/privacy` 개인정보 처리 안내 + 푸터 링크 ④ Actions `uses:` 커밋 SHA 고정(checkout·setup-node·upload-artifact, 로그에서 SHA 확인). 점검 결과 그 밖: XSS 위험 코드·비밀 값 커밋·열린 리다이렉트 없음. 검증: typecheck·test·build·slop 0, Playwright 11화면 CSP 위반 0·콘솔 에러 0·카드 이미지 저장, VERCEL_ENV=production 빌드에서 GA 스크립트 CSP 통과. fetch.yml 수정이라 main 푸시 때 수집 1회 즉시 실행됨(오늘 몫 기록은 안 바뀜). main 배포.
 - 2026-10-03 (경기 카드 HOME/AWAY·슈팅 성공률): 사용자 지시 — 경기 카드 원정/홈 표기를 **AWAY/HOME**(홈·일정 공용 `GameCard`), 박스스코어 슈팅 보기에 **3점%·자유투%**(`lib/games tpPctOf·ftPctOf`, 정렬 키 tpPct·ftPct, 시도 0 은 "–"·정렬 맨 뒤). 폰 슈팅 보기는 야투·야투%·3점·3점%·FT·FT% 6칸(득점은 기본 보기). 기본/슈팅 전환 기준을 화면 폭이 아니라 표가 든 상자 폭(container query `@3xl` = 48rem)으로 — PC 두 칸 카드에서도 넘치지 않고, 펼친 카드는 PC 에서 두 칸을 차지해 14열 전부. 검증: test·build·Playwright 360/390/1280 표 폭 ≤ 카드 폭·가로 넘침 0. main 배포.
 - 2026-10-03 (박스스코어 정렬·일정 탭·비교 버튼·홈 버튼): 사용자 5가지. ① 박스스코어 머리글을 누르면 그 열 내림차순(기본 득점, `lib/games sortBoxRows`) ② 열 추가 턴오버·야투(성공/시도)·야투%·자유투 — 폰(640px 미만)은 가로 스크롤 없이 "기본/슈팅" 보기, 그 이상은 한 표(`BoxScore.tsx`, 카드는 `GameCard.tsx` 로 분리) ③ **시즌 일정** `/season/{코드}/schedule`(월 칩·날짜별 경기 카드·오늘 표시·?date=/?month=, 박스스코어는 펼칠 때 `public/games/{시즌}/{날짜}.json` — `scripts/build-games.ts`), 홈 "전체 일정" 링크. 매일 경기 목록을 **시즌 전체 달**로 받게 바꿈(`collect-shots.ts`, 약 10회) — 메뉴 "비교" 자리에 "일정" ④ 비교 탭은 메뉴에서 빼고 **선수 상세 "비교" 버튼**(`CompareButton`: 검색 → /compare?a=이 선수 보던 시즌&b=고른 선수 같은 시즌 또는 마지막 시즌) ⑤ 모바일 하단 가운데 **홈을 띄운 파란 원형 버튼**(현재 화면이면 검정). GA4 `compare_open`, boxscore_open place, filter_change boxscore·schedule. 검증: typecheck·test·build·slop 0, Playwright 360/390/1280(정렬 순서·슈팅 보기·일정 49/47 박스스코어 지연 로드·비교 이동·가로 넘침 0·콘솔 에러 0), 하단 바 라이트/다크. main 배포 + fetch.yml 푸시로 전체 일정 즉시 수집.
 - 2026-10-03 (오늘의 경기·진행 중 시즌 기준·하단 메뉴): 사용자 요청 3가지. ① 홈 맨 위 **"오늘의 경기"**(`GameDayBoard`: 가장 최근 경기일 맞대결 카드 — 점수·홈/원정·수훈 선수, "선수 기록" 펼치면 두 팀 박스스코어(분·득점·리바·어시·스틸·블록·3점, 합계), 아래 다음 경기 대진). 재료는 이미 받던 경기별 기록 + 경기 목록 → `scripts/boxscores.ts` → `data/processed/{시즌}/games.json`(25-26 270경기 전부·26-27 3경기 박스스코어 맞음, 과거 시즌은 경기 결과만). ② **진행 중 시즌(선수 있는 최신 시즌 + 우승팀 없음)은 표본 기준 없음**(`lib/metrics NO_QUALIFY·isOngoingSeason·seasonDefaultQualify·qualifyPresetsFor`, `lib/data isSeasonOngoing·seasonQualify`): 홈 1~3위·리더보드 기본("출전 선수 전원" + 기존 프리셋)·카드 파일 defaults·기록표 리그 1위. 시즌을 가로지르는 프라임·비슷한 시즌·54-0 후보는 계속 기본 기준(1경기 표본이 끼지 않게). ③ **모바일 하단 메뉴** 선수·팀·리더보드 | 홈(가운데) | 비교·기록·54-0, PC 상단은 홈·선수·팀·리더보드·비교·역대 기록·54-0. 새 **팀 순위** `/season/{코드}/teams`(경기 결과로 승-패·승률·승차·홈/원정·최근 5, 우승 칩, 옛 teams→리더보드 redirect 제거 — 24-25 SK 41-13 등 실제와 일치). GA4 `boxscore_open`·`team_select`. 검증: typecheck·test(games 추가)·build·slop 0, Playwright 360/390/1280 가로 넘침 0·콘솔 에러 0·박스스코어 펼침·가짜 gtag. main 배포.
