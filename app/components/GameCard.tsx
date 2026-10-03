@@ -80,7 +80,7 @@ export default function GameCard({ game: g, seasonCode, teams, stars = null, loa
           <TeamLogo logoUrl={s.info.logoUrl} shortName={s.info.shortName} color={s.info.color} size={28} />
           <span className={`min-w-0 flex-1 truncate text-body ${s.won ? "font-bold text-ink" : "font-medium text-ink-2"}`}>
             {s.info.shortName}
-            <span className="ml-1 text-caption font-medium text-ink-3">{s.key === "home" ? "홈" : "원정"}</span>
+            <span className="ml-1.5 text-caption font-semibold tracking-wide text-ink-3">{s.key === "home" ? "HOME" : "AWAY"}</span>
           </span>
           <span className={`text-h2 leading-none ${s.won ? "font-black text-ink" : "font-semibold text-ink-3"}`}>
             {g.ended ? (s.score ?? "–") : ""}

@@ -85,5 +85,8 @@ console.log("games: 팀 순위 통과");
   assert.deepEqual(sortBoxRows(rows, "pts").map((x) => x.nameKo), ["나", "가", "다"]);
   assert.deepEqual(sortBoxRows(rows, "fgPct").map((x) => x.nameKo), ["가", "나", "다"]); // 시도 0 은 뒤로
   assert.deepEqual(sortBoxRows(rows, "tov").map((x) => x.nameKo), ["나", "다", "가"]);
+  const t = [{ ...r("가", 3, 1, 1), tpm: 1, tpa: 3, ftm: 2, fta: 2 }, { ...r("나", 3, 1, 1), tpm: 2, tpa: 4, ftm: 0, fta: 0 }];
+  assert.deepEqual(sortBoxRows(t, "tpPct").map((x) => x.nameKo), ["나", "가"]);
+  assert.deepEqual(sortBoxRows(t, "ftPct").map((x) => x.nameKo), ["가", "나"]); // 시도 0 은 뒤로
   console.log("games: 일정·박스스코어 정렬 통과");
 }

@@ -25,6 +25,15 @@ export default function GameDayBoard({ day, next, seasonCode, teams }: Props) {
   const [today, setToday] = useState<string | null>(null);
   useEffect(() => setToday(kstDateString(new Date())), []);
   const isToday = today === day.date;
+  // 박스스코어를 펼친 카드는 PC 에서 두 칸을 차지해 표 전체(기본 + 슈팅)를 한 번에 보인다
+  const [opened, setOpened] = useState<Set<string>>(new Set());
+  const toggleOpened = (k: string, o: boolean) =>
+    setOpened((prev) => {
+      const next = new Set(prev);
+      if (o) next.add(k);
+      else next.delete(k);
+      return next;
+    });
 
   return (
     <section aria-labelledby="games-title" className="mx-auto mt-6 max-w-5xl px-4">
@@ -42,13 +51,14 @@ export default function GameDayBoard({ day, next, seasonCode, teams }: Props) {
       </div>
       <ul className="mt-3 grid items-start gap-3 md:grid-cols-2">
         {day.games.map((g) => (
-          <li key={g.gmkey}>
+          <li key={g.gmkey} className={opened.has(g.gmkey) ? "md:col-span-2" : undefined}>
             <GameCard
               game={g}
               seasonCode={seasonCode}
               teams={teams}
               stars={g.box ? { away: topPerformer(g.box.away), home: topPerformer(g.box.home) } : null}
               place="home"
+              onOpenChange={(o) => toggleOpened(g.gmkey, o)}
             />
           </li>
         ))}

@@ -177,15 +177,23 @@ export function pickMonth(months: readonly string[], today: string): string | nu
 }
 
 /** 박스스코어 정렬 열 */
-export type BoxSortKey = "sec" | "pts" | "reb" | "ast" | "stl" | "blk" | "tov" | "fgm" | "fgPct" | "tpm" | "ftm";
+export type BoxSortKey = "sec" | "pts" | "reb" | "ast" | "stl" | "blk" | "tov" | "fgm" | "fgPct" | "tpm" | "tpPct" | "ftm" | "ftPct";
 
+/** 성공률 % (시도 0 이면 null) */
+const pctOf = (m: number, a: number) => (a > 0 ? (m / a) * 100 : null);
 /** 야투율 (시도 0 이면 null) */
-export const fgPctOf = (r: { fgm: number; fga: number }) => (r.fga > 0 ? (r.fgm / r.fga) * 100 : null);
+export const fgPctOf = (r: { fgm: number; fga: number }) => pctOf(r.fgm, r.fga);
+/** 3점 성공률 */
+export const tpPctOf = (r: { tpm: number; tpa: number }) => pctOf(r.tpm, r.tpa);
+/** 자유투 성공률 */
+export const ftPctOf = (r: { ftm: number; fta: number }) => pctOf(r.ftm, r.fta);
 
 /** 박스스코어 줄 내림차순 정렬 (값이 같으면 득점 → 출전 시간 → 이름, 야투율 없는 줄은 뒤로) */
 export function sortBoxRows(rows: readonly GameBoxRow[], key: BoxSortKey): GameBoxRow[] {
   const val = (r: GameBoxRow): number => {
     if (key === "fgPct") return fgPctOf(r) ?? -1;
+    if (key === "tpPct") return tpPctOf(r) ?? -1;
+    if (key === "ftPct") return ftPctOf(r) ?? -1;
     return r[key];
   };
   return [...rows].sort((a, b) => val(b) - val(a) || b.pts - a.pts || b.sec - a.sec || a.nameKo.localeCompare(b.nameKo, "ko"));

@@ -46,6 +46,15 @@ export default function ScheduleView({ seasonCode, seasonShort, games, teams, in
   const [month, setMonth] = useState<string | null>(initialMonth);
   const [today, setToday] = useState<string | null>(null);
   const [target, setTarget] = useState<string | null>(null);
+  // 박스스코어를 펼친 카드는 PC 에서 두 칸을 차지 (표 전체가 한 번에 보이게)
+  const [opened, setOpened] = useState<Set<string>>(new Set());
+  const toggleOpened = (k: string, o: boolean) =>
+    setOpened((prev) => {
+      const next = new Set(prev);
+      if (o) next.add(k);
+      else next.delete(k);
+      return next;
+    });
 
   useEffect(() => {
     const t = kstDateString(new Date());
@@ -109,7 +118,7 @@ export default function ScheduleView({ seasonCode, seasonShort, games, teams, in
               </h2>
               <ul className="mt-2 grid items-start gap-3 md:grid-cols-2">
                 {d.games.map((g) => (
-                  <li key={g.gmkey}>
+                  <li key={g.gmkey} className={opened.has(g.gmkey) ? "md:col-span-2" : undefined}>
                     <GameCard
                       game={g}
                       seasonCode={seasonCode}
@@ -117,6 +126,7 @@ export default function ScheduleView({ seasonCode, seasonShort, games, teams, in
                       stars={g.stars}
                       loadBox={g.hasBox ? async () => (await loadDay(seasonCode, g.date))?.[g.gmkey] ?? null : undefined}
                       place="schedule"
+                      onOpenChange={(o) => toggleOpened(g.gmkey, o)}
                     />
                   </li>
                 ))}
