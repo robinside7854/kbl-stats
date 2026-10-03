@@ -594,6 +594,39 @@ function collectPeople(lists: Record<string, RecordListItem[]>): Record<string, 
   return people;
 }
 
+/** 선수 번호 → 국적(국내/외국인)·현역 — 역대 기록 필터용 */
+let filterMetaCache: Map<string, { origin: "domestic" | "foreign"; active: boolean }> | null = null;
+function filterMetaOf(id: string): { origin: "domestic" | "foreign"; active: boolean } {
+  if (!filterMetaCache) {
+    const latest = listSeasonsWithPlayers()[0]?.seasonCode;
+    filterMetaCache = new Map(
+      loadPlayersIndex().map((e) => [
+        e.id,
+        { origin: nationalityOf(e) === "domestic" ? "domestic" : "foreign", active: e.seasons[e.seasons.length - 1]?.seasonCode === latest },
+      ]),
+    );
+  }
+  return filterMetaCache.get(id) ?? { origin: "foreign", active: false };
+}
+
+/**
+ * 필터(국내·외국인 × 전체·현역) 네 가지 각각의 상위 목록을 합친 것 — 전체·현역만 목록도 이 합집합 안에 다 들어 있다.
+ * rank: (재료) → 순위 순서 목록. 반환은 합집합을 전체 순서로 다시 줄 세운 것 (화면이 filterRecordList 로 거른다)
+ */
+function unionForFilters<T extends { id: string }, R extends T>(entries: readonly T[], rank: (pool: T[], top?: number) => R[], keyOf: (t: T) => string): R[] {
+  const keep = new Set<string>();
+  for (const origin of ["domestic", "foreign"] as const) {
+    for (const activeOnly of [false, true]) {
+      const pool = entries.filter((e) => {
+        const m = filterMetaOf(e.id);
+        return m.origin === origin && (!activeOnly || m.active);
+      });
+      for (const r of rank(pool)) keep.add(keyOf(r));
+    }
+  }
+  return rank(entries.filter((e) => keep.has(keyOf(e))), Number.POSITIVE_INFINITY);
+}
+
 /** 한 경기 최다: 구분(정규·플옵·챔프) × 부문 11개, 선수별 통산 최고 기록(색인 careerHighs)으로 순위 */
 export function loadGameHighLists(): RecordListsData {
   const index = loadPlayersIndex();
@@ -605,7 +638,7 @@ export function loadGameHighLists(): RecordListsData {
         const r = e.careerHighs?.[kind]?.[key];
         return r ? [{ id: e.id, value: r.value, date: r.date, rec: r, seasons: e.seasons }] : [];
       });
-      lists[`${kind}:${key}`] = rankGameHighs(entries).map((x) => {
+      lists[`${kind}:${key}`] = unionForFilters(entries, (p, top) => rankGameHighs(p, top), (x) => x.id).map((x) => {
         const code = x.rec.seasonCode;
         const own = code !== null ? x.seasons.find((s) => s.seasonCode === code) : undefined;
         const parts = [
@@ -618,6 +651,8 @@ export function loadGameHighLists(): RecordListsData {
         return {
           rank: x.rank,
           id: x.id,
+          num: x.value,
+          ...filterMetaOf(x.id),
           value: NF0.format(x.value),
           unit: key === "pts" ? "점" : "개",
           sub: parts.filter(Boolean).join(" · "),
@@ -668,9 +703,12 @@ export function loadSeasonBestLists(): RecordListsData {
   for (const { value: kind } of GAME_KINDS) {
     for (const def of SEASON_BEST_STATS) {
       for (const mode of def.perGame ? (["total", "perGame"] as const) : (["total"] as const)) {
-        lists[`${kind}:${def.key}:${mode}`] = rankSeasonBests(byKind[kind], def.key, mode).map((x) => ({
+        const ranked = unionForFilters(byKind[kind], (p, top) => rankSeasonBests(p, def.key, mode, top), (x) => `${x.id}:${x.seasonCode}`);
+        lists[`${kind}:${def.key}:${mode}`] = ranked.map((x) => ({
           rank: x.rank,
           id: x.id,
+          num: x.value,
+          ...filterMetaOf(x.id),
           value: mode === "perGame" ? NF1.format(x.value) : NF0.format(x.value),
           unit: def.unit,
           sub: `${seasonShortOf(x.seasonCode)} · ${teamInfoIn(x.seasonCode, x.teamCode).short} · ${x.games}경기`,
@@ -685,7 +723,8 @@ export function loadSeasonBestLists(): RecordListsData {
 /** 수상·우승 횟수: 우승 + 개인상(lib/career AWARD_LABELS) */
 export const AWARD_RANK_DEFS: readonly { key: string; label: string }[] = [
   { key: "champion", label: "우승" },
-  ...AWARD_LABELS.map((d) => ({ key: d.key as string, label: d.label })),
+  // 신인상은 한 번뿐이고 식스맨상·기량 발전상도 횟수 순위가 의미 없어 뺀다 (2026-10-03 사용자 요청)
+  ...AWARD_LABELS.filter((d) => !["rookie", "sixthMan", "mip"].includes(d.key)).map((d) => ({ key: d.key as string, label: d.label })),
 ];
 
 export function loadAwardLists(): RecordListsData {
@@ -696,9 +735,11 @@ export function loadAwardLists(): RecordListsData {
       id: e.id,
       seasonCodes: def.key === "champion" ? [...(e.championships ?? [])] : (e.awards ?? []).filter((a) => a.key === def.key).map((a) => a.seasonCode),
     }));
-    lists[def.key] = rankAwardCounts(entries).map((x) => ({
+    lists[def.key] = unionForFilters(entries, (p, top) => rankAwardCounts(p, top), (x) => x.id).map((x) => ({
       rank: x.rank,
       id: x.id,
+      num: x.count,
+      ...filterMetaOf(x.id),
       value: String(x.count),
       unit: "회",
       sub: [...new Set(x.seasonCodes)].sort((a, b) => a - b).map(seasonShortOf).join(" · "),

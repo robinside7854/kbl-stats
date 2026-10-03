@@ -283,7 +283,7 @@ kbl-stats/
   | boxscore_open | game_key(gmkey), season_code, place(home/schedule) | 홈 "오늘의 경기"·일정 화면 선수 기록 펼치기 (정렬·보기 전환은 filter_change screen=boxscore sort·view, 일정 달은 screen=schedule month) |
   | compare_open | player_no | 선수 상세 "비교" 버튼 (고른 선수는 search_select mode=compare) |
   | team_select | team_code, season_code | 팀 순위에서 팀 누르기(→ 선수 탭 그 팀) |
-  | filter_change (역대 기록) | screen=records filter=tab · screen=records_game/records_season/records_awards filter=kind·category·mode | 역대 기록 하위 탭·경기 구분·부문·합계/경기당 |
+  | filter_change (역대 기록) | screen=records filter=tab · screen=records_game/records_season/records_awards filter=kind·category·mode·origin·active_only | 역대 기록 하위 탭·경기 구분·부문·합계/경기당·국적·현역만 |
 
 ## 코딩 규칙
 - 파일·변수 이름은 영어, 주석과 커밋 메시지는 한국어
@@ -322,6 +322,7 @@ kbl-stats/
 
 ## 세션 로그
 - 2026-10-03 (54-0 난이도 완화): 피드백 "S급 5명이어도 전승이 어렵다" — 측정해 보니 S급(종합 점수 95+) 5명 라인업 전력 96.5~98, 전승 약 3%·중앙 51승. 사용자 결정 "S급 5명이면 약 20%" → `WIN_CURVE` 96~99 구간만 낮춤(패배 96 5.5%·97 3.5%·98 2.2%·99 1.2%, 90 아래 그대로). 결과: S급 5명 전승 18.9%·52승, 득점 1위만 0.2% → 0.72%·46승, 숨은 점수 1위 2.1% → 11.6%, 아무나 17승 그대로. 테스트에 S급 5명 전승 14~26% 확인 추가. main 배포.
+- 2026-10-03 (역대 기록 필터): 사용자 요청 ① 수상·우승 탭에서 **신인상·식스맨상·기량 발전상 제외**(한 번뿐이라 횟수 순위가 무의미) ② 한 경기 최다·한 시즌 최다·수상 탭에 **국적(전체/국내/외국인)·현역만** 필터 — 서버가 부문마다 국내/외국인 × 전체/현역 네 경우의 상위 50 합집합을 보내고(`lib/data unionForFilters`, 항목에 num·origin·active) 화면이 걸러 순위를 다시 센다(`lib/records filterRecordList`). 예: 국내 한 시즌 경기당 득점 1위 조성원 00-01 25.7점, 국내 현역 플옵 한 시즌 득점 1위 허훈 23-24 261점. 쪽 크기 gzip 한 경기 약 110KB·한 시즌 약 132KB. GA4 filter_change origin·active_only. 검증: test(records)·typecheck·build·slop 0, Playwright 360/1280 가로 넘침 0·가짜 gtag. main 배포.
 - 2026-10-03 (역대 기록 하위 탭·머리말 사진 여백): ① 폰 선수 머리말 사진이 바닥 줄에서 몇 px 떠 보이던 것 — 사진을 감싼 인라인 span 의 글자 기준선 빈칸이 원인 → flex 로(360/390 사진 아래 = 바닥 줄 위 0px). ② 역대 기록을 **누적 / 한 경기 최다 / 한 시즌 최다 / 수상·우승** 탭으로(각자 주소 /records, /records/game, /records/season, /records/awards). 한 경기 최다 = 선수별 통산 최고(색인 careerHighs) 11부문 × 정규·플옵·챔프전, 날짜·상대·당시 팀, 정규는 달력 버튼 → 그날 일정(예: 우지원 70점 04.03.07). 한 시즌 최다 = 득점·리바·어시·스틸·블록·3점·자유투·더블더블·트리플더블, 합계/경기당(정규 = 그 시즌 최다 출전의 60% 이상·진행 중 시즌 제외, 플옵 5경기·챔프 4경기 이상 — 우리 규칙), 경기당 1위 피트 마이클 06-07 35.1점. 수상·우승 = 우승·MVP 등 횟수(양동근 MVP 4회). 누적에 더블더블·트리플더블. **플레이오프·챔프전 시즌 합계는 새로 수집**(서버 A gameCode 03,04 / 04 → postseason.json) — 매일 수집에 포함, 과거는 backfill.yml 실행 횟수 3 으로 한 번. GA4 filter_change(records tab, records_game/season/awards). 검증: typecheck·test(records 추가)·build·slop 0, Playwright 360/390/1280 가로 넘침 0. main 배포.
 - 2026-10-03 (선수 머리말 모바일): 사용자 "폰에서 글 때문에 머리말이 커서 사진 옆 여백이 많다" → `PlayerHero` 를 격자로: 폰은 [로고·이름·버튼·칭호 | 사진 200px] 한 줄 + 칩·프로필을 띠 전체 폭의 어두운 단색 바닥 줄(팀 색 72% 어둡게 `--hero-floor`) 위에, 640px 이상은 예전 배치(글 한 열 + 사진 두 줄 걸침). 변준형 390px 머리말 약 440 → 361px. 덤: 360px 에서 슛 차트 격자·구역표가 10~18px 가로로 넘치던 것(예전부터) 수정 — 격자 `grid-cols-[minmax(0,1fr)]`, 표 오른쪽 여백 폰 pr-1. 검증: typecheck·test·build·slop 0, Playwright 360/390/1280 가로 넘침 0. main 배포.
 - 2026-10-03 (수집 push 거부 수정): 보안 조치 배포로 fetch.yml·backfill.yml 이 함께 실행돼 백필 커밋이 먼저 main 에 들어가자 매일 수집의 `git push` 가 거부(fetch first)됨 — 데이터는 저녁 수집분이 이미 있어 손실 없음. fetch.yml 커밋 단계를 `git pull --rebase -X theirs` 후 push, 3회 재시도로. SHA 고정한 액션은 두 실행 모두 정상 동작 확인. 주의: backfill.yml 은 파일을 고쳐 main 에 푸시하면 전체 재수집이 바로 돈다.
