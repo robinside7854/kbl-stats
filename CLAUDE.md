@@ -103,7 +103,7 @@ KBL 공홈은 화면을 그릴 때 아래 두 서버에서 JSON을 받아온다.
 - 화면: **Next.js (App Router) + Tailwind CSS**, 배포는 **Vercel** — 이전 대시보드(basketball-stats-dashboard.vercel.app)와 같은 환경이라 익숙함
 - 차트: **Recharts** 하나만. 레이더·바·라인·산점도 전부 커버. 차트 라이브러리 두 개 이상 섞지 않는다
 - 데이터 저장: **레포 안의 JSON 파일** (`data/raw/`, `data/processed/`). 지금은 DB 없음 — 커뮤니티 1단계(투표·예측)부터 DB 를 들인다(2026-10-02 사용자 결정, SCOPE.md 로드맵). 기록 데이터는 그 뒤에도 JSON 파일 그대로, DB 는 사용자 참여 데이터만
-- 수집 실행: **GitHub Actions 스케줄** (매일 밤 23:40 KST 1회 — 그날 경기를 그날 밤 반영, 2026-10-03 새벽 04:10 에서 바꿈) → 수집 스크립트 실행 → 변경분 커밋 → Vercel 자동 재배포
+- 수집 실행: **GitHub Actions 스케줄** — 저녁 18:40·20:40·22:10·23:40 KST 에 깨워 `scripts/fetch-gate.ts` 가 서버 C 오늘 경기 목록(1회)을 보고 **그날 경기가 다 끝나고 1시간 지난 첫 시각에 하루 1회** 수집(주말 낮 경기 → 18:40/20:40, 평일 19시 → 22:10, 경기 없는 날·늦은 날 23:40, 기록 `data/last-fetch.json`). `fetch.yml` 을 main 에 푸시하면 즉시 1회 수집(2026-10-03, 새벽 04:10 에서 바꿈) → 수집 스크립트 실행 → 변경분 커밋 → Vercel 자동 재배포
 - 절대 피함: (로드맵 단계 확인 전의) DB·로그인/회원, 실시간 갱신, 서버 상태 유지가 필요한 구조, 브라우저에서 KBL API 직접 호출(CORS 차단됨, 아래 참고)
 - 이유: 규모가 작고 데이터가 하루 한 번만 바뀐다. 파일+정적 사이트가 가장 싸고(무료) 가장 덜 고장난다. 커뮤니티 단계가 시작되면 그 부분만 DB
 - 방문 통계: **GA4 측정 ID `G-03YNZDVE0F`**(사용자 구글 계정, 2026-10-02) — `app/components/Analytics.tsx`(서버 컴포넌트), ID 는 `lib/analytics gaMeasurementId`: **Vercel 운영 배포(VERCEL_ENV=production)에서만** 켜짐, 환경변수 `NEXT_PUBLIC_GA_ID` 가 있으면 우선(`off` 면 끔). 페이지 조회는 GA 자동, 버튼 이벤트는 `app/components/track.ts` `trackEvent`·`trackFilters`. 켜져 있으면 푸터에 쿠키 안내 한 줄. **이벤트 목록과 규칙은 아래 "방문 통계 규칙"**
@@ -142,6 +142,7 @@ kbl-stats/
 ├── scripts/
 │   ├── awards.ts        ← 역대 수상: 공홈 번들 → 표(eval 없는 리터럴 파서 extractAwardsData) → 수상 행 awardRows → 선수 연결 matchAwardPlayer — 순수 함수
 │   ├── champions.ts     ← 시즌 우승팀(경기 목록 챔프전 4승 finalsChampion)·선수 우승 시즌 championSeasonsOf — 순수 함수
+│   ├── fetch-gate.ts    ← 매일 수집 문지기: 오늘 경기 종료 + 1시간 확인·하루 1회(decideFetch·serviceClock 새벽 4시 전은 전날, check/mark) — fetch.yml 이 부름
 │   ├── fetch.ts         ← KBL API 호출 + data/raw 저장 (API 주소는 여기와 config에만) + 현재 시즌 선수 한 경기 최다·경기별 기록·프로필
 │   ├── http.ts          ← getJson(공홈 헤더)·sleep·saveRaw 공용 (fetch·backfill-highs)
 │   ├── gamelogs.ts      ← 경기별 기록 raw → 슛 시도 수(parseGameLog·shotAttemptsFor 같은 날짜+성공 개수 일치·attachShotAttempts) + 백필 대상 gamelogTargets(커리어 하이 득점·3점·자유투 시즌) — 순수 함수
@@ -297,6 +298,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-03 (경기 시간 맞춤 수집): 사용자 "평일·주말 경기 시간이 다르니 규칙 바꾸고 오늘 경기는 바로 수집" → `fetch.yml` 을 저녁 4번(18:40·20:40·22:10·23:40 KST) 깨우고 `scripts/fetch-gate.ts` 가 오늘 경기가 모두 끝나고 1시간 지났을 때 하루 1회만 수집(경기 없는 날·조회 실패·늦게 끝난 날은 23:40, 자정 넘긴 늦은 실행은 전날 몫, 수동 실행은 경기 후일 때만 오늘 몫으로 기록). 세션은 Run workflow 403 → `fetch.yml` main 푸시에 즉시 수집 트리거를 붙여 이 커밋으로 개막일 기록 수집. 테스트 `tests/fetch-gate.test.ts`. main 배포.
 - 2026-10-03 (개막·수집 시각): 2026-27 개막 3경기(KCC 68-103 LG·소노 82-73 가스공사·정관장 88-85 현대모비스)를 Actions 조사(`claude/probe-opening`, 삭제 권한 없음)로 확인 — 19시 반에 서버 A 선수 기록(61명)·서버 B 경기별 기록·서버 C 경기 목록(isEnded 1)·슛 차트·경기 상세(관중·심판·쿼터 점수)·팀 합계 전부 조회됨. 사용자 요청으로 매일 수집을 **04:10 → 23:40 KST**(`fetch.yml` cron `40 14 * * *`)로 옮김 — 하루 1회 유지. main 배포.
 - 2026-10-03 (숏폼 새 포맷 B·C — 개막 D-1): 사용자 "개막 직전 주제, 디자인부터 완전 다른 템플릿 여러 개로 반응 비교" → B 개막전 대기록(`lib/shorts-formats pickMilestones·milestoneLine`, 현역 = `scripts/fetch-active.ts` regSc=Y 명단 → data/raw/players/active.json, 지금 팀 = 마스터(이적 반영), 렌더러 `shorts/src/Milestones.tsx` 검정+노랑 전광판) · C 슛 차트 퀴즈(`pickQuiz`·문제/정답 대사, `shorts/src/Quiz.tsx` 보라 네온 게임쇼, 타이머). 빌더 `scripts/build-short-milestones.ts`·`build-short-quiz.ts`·공용 `short-common.ts`, 작은 수 고유어 `countWords`·`ordinalWords`. 워크플로 `# 에피소드:` 줄(top5·milestones·quiz)로 만들 것만, 에피소드 `composition` 으로 렌더. 결과: B 44.2초(해먼즈 DB 이적·워니·박지훈·안영준·이정현(DB) 3점 1200 역대 2번째 — 현역 명단으로 최진수 빠짐), C 42.1초(마레이·허웅·워니). main 배포.
 - 2026-10-02 (숏폼 9차: 3점형 차별화): 사용자 "허훈 지옥의 이지선다 / 안영준 유일하게 포워드라 인사이드 득점이 눈에 띔 / 서명진·허웅 둘 다 3점 베이스라 차별화" → `buildInsight` 다섯 명에 `tpPct`·`mid`(슛 차트 미드 비중·성공률) 입력: 3점형 shotmap 선수가 3점 성공률·미드 비중 5명 중 1위면 `tpPctTop`·`midTop` → "점퍼 장인"(3점·미드 구역 같이 켜기, 40.6%·20.7%), 다른 3점형이 있는 ladder 는 `volume` → "양으로 승부하는 슈터"(볼륨 슈터 꼬리표). 목소리 빠르기 기본 1.18. 렌더 53.0초(아직 길다 — 사용자 판단 대기). main 배포.

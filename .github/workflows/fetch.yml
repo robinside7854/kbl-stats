@@ -1,4 +1,4 @@
-# 매일 밤 KBL 기록을 수집해 data/ 에 커밋한다 (그날 경기를 그날 밤 반영).
+# 매일 그날 경기가 끝난 뒤 KBL 기록을 수집해 data/ 에 커밋한다 (그날 경기를 그날 저녁·밤 반영).
 # 수동 실행: GitHub → Actions → "KBL 기록 수집" → Run workflow
 # 시즌 기록 뒤에 현재 시즌 선수의 한 경기 최다·경기별 기록·프로필도 받는다(약 200명 × 3회, 1.5초 간격 ≈ 15분,
 # 개막 후 30일 동안은 직전 시즌 선수도(≈ 30분) — scripts/highs.ts highsTargetSeasons). 과거는 backfill-highs.yml·backfill-gamelogs.yml.
@@ -8,11 +8,19 @@ name: KBL 기록 수집
 
 on:
   schedule:
-    # 매일 23:40 KST (= 14:40 UTC). 평일 19시 경기도 21시 전후에 끝나고, 개막일(2026-10-03) 14시 경기는
-    #   그날 19시 반에 KBL 서버 3곳(선수 기록·경기별 기록·슛 차트)에 다 들어와 있었다 → 그날 밤 반영.
-    #   GitHub 스케줄은 수십 분 늦게 돌기도 하지만 자정 넘어도 수집 대상 날짜(todayKst)와 무관하다.
-    #   (2026-10-03 사용자 요청: 다음날 새벽 04:10 → 당일 밤)
-    - cron: "40 14 * * *"
+    # 저녁에 네 번 깨우고, 문지기(scripts/fetch-gate.ts)가 그날 경기가 다 끝났는지 보고 하루 한 번만 수집한다
+    # (2026-10-03 사용자 요청: 주말·공휴일 낮 경기와 평일 저녁 경기 시간이 달라서).
+    #   - 오늘 경기가 모두 끝나고 1시간 지났으면 그 시각에 수집: 주말 낮 경기 → 18:40 또는 20:40, 평일 19시 경기 → 22:10
+    #   - 경기 없는 날·늦게 끝난 날은 23:40 에 수집 (자정을 넘겨 늦게 돌아도 그날 몫)
+    # 깨울 때마다 npm ci + 경기 목록 요청 1회만 하고, 수집은 하루 1회.
+    - cron: "40 9 * * *"   # 18:40 KST
+    - cron: "40 11 * * *"  # 20:40 KST
+    - cron: "10 13 * * *"  # 22:10 KST
+    - cron: "40 14 * * *"  # 23:40 KST
+  # 이 파일을 main 에 푸시하면 바로 한 번 수집한다 (Claude 세션은 Run workflow 버튼 권한이 없어서)
+  push:
+    branches: [main]
+    paths: [".github/workflows/fetch.yml"]
   workflow_dispatch:
     inputs:
       seasons:
@@ -41,7 +49,14 @@ jobs:
 
       - run: npm ci
 
+      - name: 오늘 수집할지 (경기 종료 확인)
+        id: gate
+        env:
+          FORCE: ${{ github.event_name != 'schedule' && '1' || '0' }}
+        run: npx tsx scripts/fetch-gate.ts check
+
       - name: 수집
+        if: steps.gate.outputs.run == 'true'
         run: |
           if [ "${{ github.event.inputs.seasons }}" = "all" ]; then
             npm run fetch:all
@@ -51,12 +66,16 @@ jobs:
             npm run fetch
           fi
 
+      - name: 수집 기록
+        if: steps.gate.outputs.mark == 'true' && success()
+        run: npx tsx scripts/fetch-gate.ts mark
+
       - name: 가공
-        if: always()
+        if: always() && steps.gate.outputs.run == 'true'
         run: npm run process
 
       - name: 커밋
-        if: always()
+        if: always() && steps.gate.outputs.run == 'true'
         run: |
           git config user.name "robinside7854"
           git config user.email "252681033+robinside7854@users.noreply.github.com"
