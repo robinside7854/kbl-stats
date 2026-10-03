@@ -107,10 +107,11 @@ export default function PlayerHero({ entry, seasons, today, badges, milestones =
             )}
           </div>
           <div className="relative col-start-2 row-start-1 -mr-2 self-end sm:row-span-2 sm:mr-4">
-            <span className="sm:hidden">
+            {/* flex 로 감싼다: 인라인이면 글자 기준선 아래 빈칸이 생겨 사진이 바닥 줄에서 떠 보인다 (2026-10-03) */}
+            <span className="flex sm:hidden">
               <PlayerAvatar photoUrl={entry.photoUrl} nameKo={entry.nameKo} color={color} variant="portrait" size={200} />
             </span>
-            <span className="hidden sm:inline">
+            <span className="hidden sm:flex">
               <PlayerAvatar photoUrl={entry.photoUrl} nameKo={entry.nameKo} color={color} variant="portrait" size={280} />
             </span>
           </div>

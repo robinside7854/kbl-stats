@@ -487,3 +487,31 @@ export interface SearchEntry {
   /** 프라임 시즌 코드 (lib/prime — 표본 충족 시즌 2개 이상인 선수만) */
   prime?: number;
 }
+
+/**
+ * 플레이오프·챔프전 시즌 합계 한 줄 (2026-10-03, 역대 기록 "한 시즌 최다"). 서버 A traditional gameCode "03,04"(플레이오프 전체)·"04"(챔프전)
+ * → scripts/process.ts → data/processed/{시즌}/postseason.json. 필드 뜻은 Player 와 같다(합계).
+ */
+export interface PostseasonLine {
+  playerNo: string;
+  nameKo: string;
+  teamCode: string;
+  games: number;
+  minutes: number;
+  points: number;
+  reb: number;
+  ast: number;
+  stl: number;
+  blk: number;
+  tpm: number;
+  ftm: number;
+  doubleDoubles: number;
+  tripleDoubles: number;
+}
+
+/** 시즌 포스트시즌 파일 — raw 가 없는 구분은 null, 그 시즌 경기가 없으면 빈 배열 */
+export interface PostseasonFile {
+  seasonCode: number;
+  playoff: PostseasonLine[] | null;
+  finals: PostseasonLine[] | null;
+}

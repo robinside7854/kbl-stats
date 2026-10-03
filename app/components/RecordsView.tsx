@@ -1,5 +1,5 @@
 "use client";
-// 역대 통산 순위 화면: 부문 칩 · 합계/경기당 · 국적(전체/국내/외국인) · 현역만(?active=1) → 순위 목록 50명씩 "더 보기".
+// 역대 통산 순위 화면(하위 탭 "누적", 머리말·탭은 RecordsHeader): 부문 칩 · 합계/경기당 · 국적(전체/국내/외국인) · 현역만(?active=1) → 순위 목록 50명씩 "더 보기".
 // 순위·표기는 lib/records 순수 함수. 선택 상태는 주소 ?cat=&mode=&origin= 에 남긴다(정적 HTML 은 기본 상태: 통산 득점 합계).
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -18,8 +18,8 @@ import {
 import { seasonRangeLabel } from "@/lib/career";
 import { teamShortLabel } from "@/lib/images";
 import ChipRow from "./ChipRow";
-import InfoLink from "./InfoLink";
 import PlayerAvatar from "./PlayerAvatar";
+import RecordsHeader from "./RecordsHeader";
 import Segmented from "./Segmented";
 import { trackFilters } from "./track";
 
@@ -71,12 +71,7 @@ export default function RecordsView({ totals, spanLabel, latestSeasonCode }: { t
 
   return (
     <main className="mx-auto max-w-5xl px-4 pt-5">
-      <header className="mb-3">
-        <p className="text-sub font-medium text-ink-3">KBL 정규시즌 · {spanLabel}</p>
-        <h1 className="mt-0.5 flex items-center gap-1 text-h1 font-bold">
-          역대 기록 <InfoLink term="records" className="ml-1" />
-        </h1>
-      </header>
+      <RecordsHeader tab="career" scope={`KBL 정규시즌 · ${spanLabel}`} />
 
       <ChipRow label="부문 선택" scroll chips={RECORD_STATS.map((d) => ({ value: d.key, label: d.label }))} value={cat} onChange={(v) => { trackFilters("records", { category: v }); setCat(v); }} />
       <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">

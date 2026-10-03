@@ -27,7 +27,7 @@ import { attachShotAttempts, parseGameLog, type GameLogRow } from "./gamelogs.js
 import { computeSeasonHighLeaders, SHOT_HIGH_KEYS } from "../lib/highs.js";
 import { regularGamesOf } from "./shots.js";
 import { leagueZoneAverages, normalizeShot, toShotPoint, zoneSummary, type NormalizedShot } from "../lib/shots.js";
-import type { AwardKey, SeasonAwards, CareerHighs, HighsSet, Player, PlayerIndexEntry, PlayerProfile, SeasonData, Team, TeamColor } from "../lib/types.js";
+import type { AwardKey, SeasonAwards, CareerHighs, HighsSet, Player, PlayerIndexEntry, PlayerProfile, PostseasonFile, PostseasonLine, SeasonData, Team, TeamColor } from "../lib/types.js";
 
 type Raw = Record<string, any>;
 
@@ -385,6 +385,43 @@ function teamsFromPlayers(players: Player[]): Team[] {
   return [...seen.values()];
 }
 
+/**
+ * 플레이오프·챔프전 시즌 합계 raw(traditional_playoff/finals.json) → data/processed/{시즌}/postseason.json.
+ * 둘 다 raw 가 없으면 파일을 만들지 않는다(옛 파일은 지움 — 재실행해도 같은 결과). 반환: 줄 수 요약
+ */
+async function writePostseason(seasonCode: number): Promise<string | null> {
+  const rawDir = join(DATA_DIR, "raw", String(seasonCode));
+  const read = async (name: string): Promise<PostseasonLine[] | null> => {
+    let raw: Raw;
+    try {
+      raw = JSON.parse(await readFile(join(rawDir, `traditional_${name}.json`), "utf8"));
+    } catch {
+      return null;
+    }
+    if (!Array.isArray(raw?.data)) return null;
+    return (raw.data as Raw[])
+      .map((t) => {
+        const p = toPlayer(t, undefined);
+        return {
+          playerNo: p.playerNo, nameKo: p.nameKo, teamCode: p.teamCode,
+          games: p.games, minutes: p.minutes, points: p.points, reb: p.reb, ast: p.ast, stl: p.stl, blk: p.blk,
+          tpm: p.tpm, ftm: p.ftm, doubleDoubles: p.doubleDoubles, tripleDoubles: p.tripleDoubles,
+        };
+      })
+      .filter((l) => l.games > 0);
+  };
+  const out: PostseasonFile = { seasonCode, playoff: await read("playoff"), finals: await read("finals") };
+  const file = join(DATA_DIR, "processed", String(seasonCode), "postseason.json");
+  if (!out.playoff && !out.finals) {
+    await rm(file, { force: true });
+    return null;
+  }
+  // 한 줄 = 선수 한 명 (git diff 가 읽히게)
+  const list = (l: PostseasonLine[] | null) => (l ? `[\n${l.map((x) => JSON.stringify(x)).join(",\n")}\n]` : "null");
+  await writeFile(file, `{"seasonCode":${seasonCode},\n"playoff":${list(out.playoff)},\n"finals":${list(out.finals)}}\n`, "utf8");
+  return `플옵 ${out.playoff?.length ?? "-"}·챔프 ${out.finals?.length ?? "-"}`;
+}
+
 async function processSeason(seasonCode: number): Promise<SeasonData> {
   const rawDir = join(DATA_DIR, "raw", String(seasonCode));
   const trad = JSON.parse(await readFile(join(rawDir, "traditional_regular.json"), "utf8"));
@@ -462,6 +499,8 @@ async function processSeason(seasonCode: number): Promise<SeasonData> {
   const outDir = join(DATA_DIR, "processed", String(seasonCode));
   await mkdir(outDir, { recursive: true });
   await writeFile(join(outDir, "players.json"), JSON.stringify(out, null, 2), "utf8");
+  const post = await writePostseason(seasonCode);
+  if (post) postseasonSummary.push(`${seasonCode}: ${post}`);
   // 선수별 점 좌표 — 한 줄 = 선수 한 명 (git diff 가 읽히게). 시즌 선수 명단에 있는 선수만. 슛이 없으면 파일을 지운다(재실행해도 같은 결과)
   const shotsFile = join(outDir, "shots.json");
   if (shots && shotPlayers > 0) {
@@ -626,6 +665,8 @@ async function readProfileExtras(): Promise<Map<string, ProfileExtra>> {
   return out;
 }
 
+const postseasonSummary: string[] = [];
+
 async function main() {
   try {
     awardsRaw = JSON.parse(await readFile(join(DATA_DIR, "raw", "awards", "awards.json"), "utf8"));
@@ -654,6 +695,7 @@ async function main() {
   if (gameLogs.size > 0) console.log(`한 경기 최다 슛 시도 수: 붙임 ${shotStats.attached} · 그날 경기 못 찾음 ${shotStats.missing} (시즌별·통산 합계, 중복 포함)`);
   if (shotChartStats.seasons === 0) console.warn("슛 차트 raw 없음(data/raw/shots) → shotZones·shotZoneLeague 는 null, coverage.shots false");
   else console.log(`슛 차트: ${shotChartStats.seasons}개 시즌, 점 ${shotChartStats.points}개${shotChartStats.skipped ? ` (좌표 이상으로 건너뜀 ${shotChartStats.skipped})` : ""}`);
+  console.log(postseasonSummary.length ? `플레이오프·챔프전 합계: ${postseasonSummary.join(" / ")}` : "플레이오프·챔프전 raw 없음 → postseason.json 없음");
   if (unknownHighsKeys.size > 0) console.warn(`한 경기 최다 응답의 모르는 배열(무시함): ${[...unknownHighsKeys].join(", ")}`);
 
   // 팀 한글 약칭 점검표 (teamName1 → shortNameKo, 등장 시즌) — 이상한 값이 없는지 눈으로 확인

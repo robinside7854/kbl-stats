@@ -89,6 +89,11 @@ KBL 공홈은 화면을 그릴 때 아래 두 서버에서 JSON을 받아온다.
 - 가공(`scripts/awards.ts awardRows·matchAwardPlayer`): 쓰는 부문 = 정규리그 MVP(2025-26 "국내선수 MVP")·외국선수상("외국선수 MVP")·챔프전 MVP·올스타전 MVP·베스트5·수비 5걸·신인상·최우수 수비상·식스맨상·기량 발전상 (감독상·인기상·페어플레이·월간/라운드 MVP·계량/기록 부문은 안 씀). 이름 → 선수 번호: 그 시즌 명단 같은 이름(공백 무시) → 동명이인은 팀 → 전체에서 하나뿐인 이름 → 같은 시즌·팀에서 한 글자 차이/성만(KBL 표 오타: 장병국=정병국, 캔디 라렌, 카룰랑안, "나이트"). 2026-10-02 기준 492건 전부 연결. 결과는 색인 `awards: [{key, seasonCode}]`
 - 우승팀은 따로 `data/raw/games/{시즌}/list.json` 챔프전(gameCode 04) 4승 팀(`scripts/champions.ts`) → 시즌 `champion`, 색인 `championships`
 
+### 플레이오프·챔프전 시즌 합계 (2026-10-03 — 역대 기록 "한 시즌 최다")
+- 서버 A traditional 을 `gameCode=03,04`(플레이오프 = 6강~챔프전 전체)·`04`(챔프전)로 한 번씩 더 받아 `data/raw/{시즌}/traditional_playoff.json`·`traditional_finals.json`(`scripts/fetch.ts fetchSeason`, 실패해도 시즌은 계속). 한 경기 최다(mostgame)의 "플레이오프" 배열도 챔프전을 포함한다(챔프전 하이 ≤ 플옵 하이 406명 전원 확인)
+- 가공: `process.ts writePostseason` → `data/processed/{시즌}/postseason.json`(한 줄 = 선수, `PostseasonLine` 합계 필드만). 둘 다 raw 가 없으면 파일 없음
+- 응답 형식은 정규시즌과 같다고 보고 매핑 — 첫 백필 결과로 확인할 것(행 수·경기 수)
+
 ### 서버 A 추가 확인 (2026-09-30)
 - 팀 기록 `GET /api/records/team/general/traditional?seasonCode=&gameCode=01&sortDataSc=WIN_A&sortOrderSc=desc&perCn=0&lastCn=0&partIfList=0&draftNo=0` (화면 열: G W L MIN 승률 PTS 2PM… +/- SAST DFL DD2 TD3). advanced 등 다른 탭 주소는 같은 패턴 추정
 - 라인업 기록 `GET /api/records/lineup/traditional?seasonCode=&gameCode=01&sortDataSc=PLAY_SEC&sortOrderSc=desc&listCn=10&pageNo=1&perCn=0&lastCn=0&partIfList=0&draftNo=0` (5인 조합별 G MIN PTS … +/-). listCn ≤ 255 규칙 동일 추정
@@ -225,7 +230,8 @@ kbl-stats/
 │   ├── player/[playerNo]/page.tsx  ← 선수 상세 정적 1,329개 (히어로(프로필·국적·나이·국가·출신교) → 시즌 칩·순위 범위·시즌 비교 카드 → 추이 그래프 → 시즌별 기록표 → 커리어 하이)
 │   ├── season/[seasonCode]/schedule/page.tsx ← 시즌 경기 일정 (2026-10-03, 메뉴 "일정" — 비교 탭 자리): 월 칩·날짜별 GameCard, 박스스코어는 펼칠 때 public/games/{시즌}/{날짜}.json(build-games.ts) — ScheduleView
 │   ├── season/[seasonCode]/teams/page.tsx ← 팀 순위 (2026-10-03, 메뉴 "팀", StandingsView — 줄을 누르면 /players?season=&team=)
-│   ├── records/page.tsx ← 역대 기록 (통산 순위: 부문 칩·합계/경기당·국적, RecordsView, 메뉴 "역대 기록")
+│   ├── records/page.tsx ← 역대 기록 하위 탭 "누적" (통산 순위: 부문 칩(더블더블·트리플더블 포함)·합계/경기당·국적, RecordsView, 메뉴 "기록"). 머리말·탭은 RecordsHeader
+│   ├── records/game·season·awards/page.tsx ← 하위 탭 한 경기 최다(색인 careerHighs, 정규·플옵·챔프전, 정규는 그날 일정 링크)·한 시즌 최다(합계/경기당, 플옵·챔프전은 postseason.json)·수상·우승 횟수 — 순위 규칙 lib/records(rankGameHighs·rankSeasonBests·seasonBestMinGames·rankAwardCounts), 재료·표기 lib/data(loadGameHighLists·loadSeasonBestLists·loadAwardLists, 부문마다 상위 50), 화면 RecordBoardView·RecordList·RecordTabViews
 │   ├── compare/page.tsx ← 비교 탭 정적 1쪽 (?a=번호:코드&b=번호:코드, 기본은 최신·직전 시즌 PER 1위)
 │   ├── game/page.tsx    ← 54-0 게임 (GameView: 다섯 칸 → 슬롯머신 두 대(시즌 하나·팀 3개) → 세 팀 후보 고르기(득점순, 등급 숨김) → 코트 위 5명·54경기 결과·기록 표·이미지 저장·링크 복사, /game/pool.json fetch, ?l= 공유 결과, 메뉴 "54-0")
 │   ├── privacy/page.tsx ← 개인정보 처리 안내 (2026-10-03 보안 점검, 푸터 링크만): 직접 수집 없음·GA4 항목/보관/거부·localStorage·KBL 이미지·문의 — 수집 방식이 바뀌면 같이 고칠 것
@@ -277,6 +283,7 @@ kbl-stats/
   | boxscore_open | game_key(gmkey), season_code, place(home/schedule) | 홈 "오늘의 경기"·일정 화면 선수 기록 펼치기 (정렬·보기 전환은 filter_change screen=boxscore sort·view, 일정 달은 screen=schedule month) |
   | compare_open | player_no | 선수 상세 "비교" 버튼 (고른 선수는 search_select mode=compare) |
   | team_select | team_code, season_code | 팀 순위에서 팀 누르기(→ 선수 탭 그 팀) |
+  | filter_change (역대 기록) | screen=records filter=tab · screen=records_game/records_season/records_awards filter=kind·category·mode | 역대 기록 하위 탭·경기 구분·부문·합계/경기당 |
 
 ## 코딩 규칙
 - 파일·변수 이름은 영어, 주석과 커밋 메시지는 한국어
@@ -314,6 +321,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-03 (역대 기록 하위 탭·머리말 사진 여백): ① 폰 선수 머리말 사진이 바닥 줄에서 몇 px 떠 보이던 것 — 사진을 감싼 인라인 span 의 글자 기준선 빈칸이 원인 → flex 로(360/390 사진 아래 = 바닥 줄 위 0px). ② 역대 기록을 **누적 / 한 경기 최다 / 한 시즌 최다 / 수상·우승** 탭으로(각자 주소 /records, /records/game, /records/season, /records/awards). 한 경기 최다 = 선수별 통산 최고(색인 careerHighs) 11부문 × 정규·플옵·챔프전, 날짜·상대·당시 팀, 정규는 달력 버튼 → 그날 일정(예: 우지원 70점 04.03.07). 한 시즌 최다 = 득점·리바·어시·스틸·블록·3점·자유투·더블더블·트리플더블, 합계/경기당(정규 = 그 시즌 최다 출전의 60% 이상·진행 중 시즌 제외, 플옵 5경기·챔프 4경기 이상 — 우리 규칙), 경기당 1위 피트 마이클 06-07 35.1점. 수상·우승 = 우승·MVP 등 횟수(양동근 MVP 4회). 누적에 더블더블·트리플더블. **플레이오프·챔프전 시즌 합계는 새로 수집**(서버 A gameCode 03,04 / 04 → postseason.json) — 매일 수집에 포함, 과거는 backfill.yml 실행 횟수 3 으로 한 번. GA4 filter_change(records tab, records_game/season/awards). 검증: typecheck·test(records 추가)·build·slop 0, Playwright 360/390/1280 가로 넘침 0. main 배포.
 - 2026-10-03 (선수 머리말 모바일): 사용자 "폰에서 글 때문에 머리말이 커서 사진 옆 여백이 많다" → `PlayerHero` 를 격자로: 폰은 [로고·이름·버튼·칭호 | 사진 200px] 한 줄 + 칩·프로필을 띠 전체 폭의 어두운 단색 바닥 줄(팀 색 72% 어둡게 `--hero-floor`) 위에, 640px 이상은 예전 배치(글 한 열 + 사진 두 줄 걸침). 변준형 390px 머리말 약 440 → 361px. 덤: 360px 에서 슛 차트 격자·구역표가 10~18px 가로로 넘치던 것(예전부터) 수정 — 격자 `grid-cols-[minmax(0,1fr)]`, 표 오른쪽 여백 폰 pr-1. 검증: typecheck·test·build·slop 0, Playwright 360/390/1280 가로 넘침 0. main 배포.
 - 2026-10-03 (수집 push 거부 수정): 보안 조치 배포로 fetch.yml·backfill.yml 이 함께 실행돼 백필 커밋이 먼저 main 에 들어가자 매일 수집의 `git push` 가 거부(fetch first)됨 — 데이터는 저녁 수집분이 이미 있어 손실 없음. fetch.yml 커밋 단계를 `git pull --rebase -X theirs` 후 push, 3회 재시도로. SHA 고정한 액션은 두 실행 모두 정상 동작 확인. 주의: backfill.yml 은 파일을 고쳐 main 에 푸시하면 전체 재수집이 바로 돈다.
 - 2026-10-03 (보안 점검·조치): 커뮤니티(nbamania 등) 공개 전 점검 → 사용자 지시로 4가지 적용. ① 보안 헤더(`next.config.mjs`: X-Frame-Options DENY·nosniff·Referrer-Policy·Permissions-Policy·HSTS·poweredByHeader 끔 + 운영 빌드 CSP — 허용 출처 kbl.or.kr 이미지·jsDelivr 글꼴·GA4) ② Next 15.5.26 → 15.5.27 + postcss overrides(8.5.28) → `npm audit` 0건(전엔 high 1·moderate 1, 빌드 단계 전용) ③ `/privacy` 개인정보 처리 안내 + 푸터 링크 ④ Actions `uses:` 커밋 SHA 고정(checkout·setup-node·upload-artifact, 로그에서 SHA 확인). 점검 결과 그 밖: XSS 위험 코드·비밀 값 커밋·열린 리다이렉트 없음. 검증: typecheck·test·build·slop 0, Playwright 11화면 CSP 위반 0·콘솔 에러 0·카드 이미지 저장, VERCEL_ENV=production 빌드에서 GA 스크립트 CSP 통과. fetch.yml 수정이라 main 푸시 때 수집 1회 즉시 실행됨(오늘 몫 기록은 안 바뀜). main 배포.

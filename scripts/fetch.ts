@@ -216,6 +216,19 @@ async function fetchSeason(seasonCode: number) {
     await sleep(REQUEST_INTERVAL_MS);
   }
 
+  // 플레이오프(6강~챔프전, "03,04")·챔피언결정전("04") 시즌 합계 (2026-10-03 사용자: 역대 기록 "한 시즌 최다" 플옵·챔프전 별도).
+  // 정규시즌과 같은 주소·형식. 없는 시즌(진행 중·옛 시즌)은 빈 data 로 온다. 실패해도 시즌은 버리지 않는다
+  for (const [name, gameCode] of [["playoff", GAME_CODE.playoff], ["finals", GAME_CODE.finals]] as const) {
+    try {
+      const body = await fetchAllPages("traditional", seasonCode, gameCode);
+      await saveRaw(seasonCode, `traditional_${name}`, body);
+      results.push(`${name} ${body.data!.length}행`);
+    } catch (e) {
+      results.push(`${name} 실패(${(e as Error).message.split("\n")[0]})`);
+    }
+    await sleep(REQUEST_INTERVAL_MS);
+  }
+
   // 팀 코드표는 시즌별로 다를 수 있어 시즌 폴더에 함께 저장
   try {
     const teams = await getJson(

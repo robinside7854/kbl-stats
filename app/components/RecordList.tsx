@@ -1,0 +1,76 @@
+"use client";
+// 역대 기록 순위 목록 한 벌 (한 경기 최다·한 시즌 최다·수상·우승 공용). 줄 = 순위 · 사진 · 이름 · 둘째 줄 · 큰 숫자.
+// 부문을 바꾸면 부모가 key 를 바꿔 처음 20개부터 다시 보인다. 이름 쪽을 누르면 선수 상세, 정규시즌 한 경기 기록은 오른쪽 달력 버튼으로 그날 경기 일정(박스스코어)으로 간다.
+import Link from "next/link";
+import { useState } from "react";
+import type { RecordListItem, RecordPerson } from "@/lib/records";
+import { IconCalendar } from "./icons";
+import PlayerAvatar from "./PlayerAvatar";
+
+const PAGE = 20;
+
+export default function RecordList({ items, people, empty }: { items: RecordListItem[]; people: Record<string, RecordPerson>; empty: string }) {
+  const [limit, setLimit] = useState(PAGE);
+  const shown = items.slice(0, limit);
+  if (items.length === 0) return <p className="surface-card rounded-container px-4 py-8 text-center text-body text-ink-2">{empty}</p>;
+  return (
+    <>
+      <ol className="surface-card tabular divide-y divide-line rounded-container">
+        {shown.map((r, i) => {
+          const p = people[r.id];
+          const name = p?.nameKo ?? r.id;
+          return (
+            <li key={`${r.id}-${i}`} className="flex items-stretch">
+              <Link
+                href={`/player/${r.id}`}
+                className="focus-ring-inset flex min-h-14 min-w-0 flex-1 items-center gap-3 px-3 py-2 transition-colors duration-200 hover:bg-surface-2"
+              >
+                <span className={`w-7 shrink-0 text-center text-body ${r.rank <= 3 ? "font-black text-ink" : "font-semibold text-ink-3"}`}>{r.rank}</span>
+                <PlayerAvatar
+                  photoUrl={p?.photoUrl ?? null}
+                  nameKo={name}
+                  color={{ primary: p?.color ?? "#6b7280", secondary: p?.color ?? "#6b7280", text: "#ffffff" }}
+                  size={r.rank <= 3 ? 40 : 32}
+                />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-body font-semibold leading-tight text-ink">{name}</span>
+                  <span className="block text-sub leading-snug text-ink-3">{r.sub}</span>
+                </span>
+                <span className="shrink-0 text-right">
+                  <span className="block text-lg font-bold leading-tight tracking-tight text-ink">
+                    {r.value}
+                    <span className="ml-0.5 text-caption font-medium text-ink-3">{r.unit}</span>
+                  </span>
+                  {r.note && <span className="block text-caption text-ink-3">{r.note}</span>}
+                </span>
+              </Link>
+              {r.gameHref !== undefined && (
+                <span className="flex w-11 shrink-0 items-center justify-center border-l border-line">
+                  {r.gameHref ? (
+                    <Link
+                      href={r.gameHref}
+                      aria-label={`${name} 기록 경기 일정 보기`}
+                      title="그날 경기 일정"
+                      className="focus-ring flex h-10 w-10 items-center justify-center rounded-control text-ink-3 transition-colors duration-200 hover:bg-surface-2 hover:text-ink"
+                    >
+                      <IconCalendar size={20} />
+                    </Link>
+                  ) : null}
+                </span>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+      {items.length > shown.length && (
+        <button
+          type="button"
+          onClick={() => setLimit((n) => n + PAGE)}
+          className="focus-ring mt-3 h-11 w-full rounded-control border border-line bg-surface text-body font-semibold text-ink transition-colors duration-200 hover:bg-surface-2"
+        >
+          더 보기 (남은 {items.length - shown.length}명)
+        </button>
+      )}
+    </>
+  );
+}

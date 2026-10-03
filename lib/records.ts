@@ -5,7 +5,7 @@
 
 import { perGame } from "./metrics";
 
-export type RecordStatKey = "points" | "reb" | "ast" | "stl" | "blk" | "tpm" | "games" | "minutes" | "wins";
+export type RecordStatKey = "points" | "reb" | "ast" | "stl" | "blk" | "tpm" | "doubleDoubles" | "tripleDoubles" | "games" | "minutes" | "wins";
 export type RecordMode = "total" | "perGame";
 export type RecordOrigin = "all" | "domestic" | "foreign";
 
@@ -26,6 +26,9 @@ export const RECORD_STATS: readonly RecordStatDef[] = [
   { key: "stl", label: "스틸", unit: "개", perGame: true },
   { key: "blk", label: "블록", unit: "개", perGame: true },
   { key: "tpm", label: "3점 성공", unit: "개", perGame: true },
+  // 더블더블·트리플더블 (2026-10-03): KBL 시즌 기록 dd2·td3 를 더한 횟수. 경기당은 의미가 적어 합계만
+  { key: "doubleDoubles", label: "더블더블", unit: "회", perGame: false },
+  { key: "tripleDoubles", label: "트리플더블", unit: "회", perGame: false },
   { key: "games", label: "출전 경기", unit: "경기", perGame: false },
   { key: "minutes", label: "출전 시간", unit: "분", perGame: true },
   // 승리: 뛴 경기에서 팀이 이긴 횟수 (결장 제외). 경기당은 의미가 없어 합계만
@@ -60,6 +63,8 @@ export interface CareerTotal {
   stl: number;
   blk: number;
   tpm: number;
+  doubleDoubles: number;
+  tripleDoubles: number;
   /** 뛴 경기의 팀 승·패 */
   wins: number;
   losses: number;
@@ -70,7 +75,7 @@ export function sumCareerTotals<T extends Omit<CareerTotal, "seasons" | "firstLa
   rows: readonly T[],
 ): CareerTotal[] {
   const by = new Map<string, CareerTotal & { firstCode: number; lastCode: number }>();
-  const add = ["games", "minutes", "points", "reb", "ast", "stl", "blk", "tpm", "wins", "losses"] as const;
+  const add = ["games", "minutes", "points", "reb", "ast", "stl", "blk", "tpm", "doubleDoubles", "tripleDoubles", "wins", "losses"] as const;
   for (const r of rows) {
     const cur = by.get(r.id);
     if (!cur) {
@@ -78,7 +83,8 @@ export function sumCareerTotals<T extends Omit<CareerTotal, "seasons" | "firstLa
         id: r.id, nameKo: r.nameKo, photoUrl: r.photoUrl, origin: r.origin,
         seasons: 1, firstLabel: r.seasonLabel, lastLabel: r.seasonLabel, lastSeasonCode: r.seasonCode, lastTeam: r.teamShort, lastTeamColor: r.teamColor,
         firstCode: r.seasonCode, lastCode: r.seasonCode,
-        games: r.games, minutes: r.minutes, points: r.points, reb: r.reb, ast: r.ast, stl: r.stl, blk: r.blk, tpm: r.tpm, wins: r.wins, losses: r.losses,
+        games: r.games, minutes: r.minutes, points: r.points, reb: r.reb, ast: r.ast, stl: r.stl, blk: r.blk, tpm: r.tpm,
+        doubleDoubles: r.doubleDoubles, tripleDoubles: r.tripleDoubles, wins: r.wins, losses: r.losses,
       });
       continue;
     }
@@ -111,7 +117,7 @@ export function isActiveCareer(t: Pick<CareerTotal, "lastSeasonCode">, latestSea
 
 /** 화면 값: 합계 그대로, 경기당은 통산 합계 ÷ 통산 경기 (경기 수 부문은 항상 합계) */
 export function recordValue(t: CareerTotal, key: RecordStatKey, mode: RecordMode): number {
-  if (mode === "perGame" && key !== "games" && key !== "wins") return perGame(t[key], t.games);
+  if (mode === "perGame" && RECORD_STATS.find((d) => d.key === key)?.perGame) return perGame(t[key], t.games);
   return t[key];
 }
 
@@ -133,7 +139,7 @@ export function rankCareerTotals(
   /** 주면 그 시즌에 뛴 선수(현역, isActiveCareer)만 — 순위도 현역끼리 다시 매긴다 */
   activeSeasonCode?: number,
 ): RecordRow[] {
-  const effMode: RecordMode = key === "games" || key === "wins" ? "total" : mode;
+  const effMode: RecordMode = RECORD_STATS.find((d) => d.key === key)?.perGame ? mode : "total";
   const pool = totals.filter(
     (t) =>
       (origin === "all" || t.origin === origin) &&
@@ -212,4 +218,151 @@ export function nextMilestones(t: CareerTotal, all: readonly CareerTotal[], n = 
   }
   const order = (k: RecordStatKey) => RECORD_STATS.findIndex((d) => d.key === k);
   return out.sort((a, b) => ratio.get(a.key)! - ratio.get(b.key)! || order(a.key) - order(b.key)).slice(0, n);
+}
+
+// ─────────────────────────────────────────────
+// 역대 기록 하위 탭 (2026-10-03 사용자 요청: 누적 / 한 경기 최다 / 한 시즌 최다 / 수상·우승)
+// 화면에는 부문·구분마다 상위 RECORD_LIST_TOP 개만 서버에서 골라 보낸다(lib/data) — 아래는 그 순위 규칙.
+// ─────────────────────────────────────────────
+
+/** 경기 구분: 정규시즌 / 플레이오프(6강~챔프전 전체) / 챔피언결정전 */
+export type GameKind = "regular" | "playoff" | "finals";
+export const GAME_KINDS: readonly { value: GameKind; label: string }[] = [
+  { value: "regular", label: "정규시즌" },
+  { value: "playoff", label: "플레이오프" },
+  { value: "finals", label: "챔프전" },
+];
+
+/** 부문·구분마다 보여 주는 순위 수 */
+export const RECORD_LIST_TOP = 50;
+
+/** 같은 값은 같은 순위 (1, 2, 2, 4). sorted 는 이미 값 큰 순 */
+export function withRanks<T>(sorted: readonly T[], valueOf: (t: T) => number): (T & { rank: number })[] {
+  let rank = 0;
+  return sorted.map((r, i) => {
+    if (i === 0 || valueOf(r) !== valueOf(sorted[i - 1])) rank = i + 1;
+    return { ...r, rank };
+  });
+}
+
+/** 한 경기 최다 한 줄 재료 (선수의 통산 최고 기록 — 선수마다 한 번) */
+export interface GameHighEntry {
+  id: string;
+  value: number;
+  date: string | null;
+}
+
+/**
+ * 한 경기 최다 순위: 값 큰 순 → 같으면 먼저 세운 기록(날짜 없음은 뒤) → 선수 번호. 0 은 뺀다.
+ * 재료가 선수별 통산 최고 기록이라 한 선수는 한 번만 나온다(같은 선수의 두 번째 기록은 없음 — 화면 안내).
+ */
+export function rankGameHighs<T extends GameHighEntry>(entries: readonly T[], top = RECORD_LIST_TOP): (T & { rank: number })[] {
+  const sorted = entries
+    .filter((e) => e.value > 0)
+    .sort(
+      (a, b) =>
+        b.value - a.value ||
+        (a.date && b.date ? a.date.localeCompare(b.date) : a.date ? -1 : b.date ? 1 : 0) ||
+        a.id.localeCompare(b.id),
+    );
+  return withRanks(sorted, (e) => e.value).filter((r) => r.rank <= top);
+}
+
+/** 한 시즌 최다 부문 */
+export type SeasonBestKey = "points" | "reb" | "ast" | "stl" | "blk" | "tpm" | "ftm" | "doubleDoubles" | "tripleDoubles";
+export const SEASON_BEST_STATS: readonly { key: SeasonBestKey; label: string; unit: string; perGame: boolean }[] = [
+  { key: "points", label: "득점", unit: "점", perGame: true },
+  { key: "reb", label: "리바운드", unit: "개", perGame: true },
+  { key: "ast", label: "어시스트", unit: "개", perGame: true },
+  { key: "stl", label: "스틸", unit: "개", perGame: true },
+  { key: "blk", label: "블록", unit: "개", perGame: true },
+  { key: "tpm", label: "3점 성공", unit: "개", perGame: true },
+  { key: "ftm", label: "자유투 성공", unit: "개", perGame: true },
+  { key: "doubleDoubles", label: "더블더블", unit: "회", perGame: false },
+  { key: "tripleDoubles", label: "트리플더블", unit: "회", perGame: false },
+];
+
+/**
+ * 한 시즌 경기당 순위에 드는 최소 경기 (우리 규칙 — KBL 공식 시상 기준 아님):
+ * 정규시즌 = 그 시즌 최다 출전 경기의 60%(올림, 1997 시즌처럼 경기 수가 다른 시즌도 같은 비율),
+ * 플레이오프 = 5경기, 챔프전 = 4경기(시리즈 최소 경기).
+ */
+export const POSTSEASON_MIN_GAMES: Readonly<Record<Exclude<GameKind, "regular">, number>> = { playoff: 5, finals: 4 };
+export const REGULAR_MIN_GAMES_SHARE = 0.6;
+
+export function seasonBestMinGames(kind: GameKind, seasonMaxGames: number): number {
+  return kind === "regular" ? Math.max(1, Math.ceil(seasonMaxGames * REGULAR_MIN_GAMES_SHARE)) : POSTSEASON_MIN_GAMES[kind];
+}
+
+/** 한 시즌 기록 한 줄 (선수 × 시즌 — 한 선수가 여러 번 나올 수 있다) */
+export interface SeasonLineEntry {
+  id: string;
+  seasonCode: number;
+  games: number;
+  /** 경기당 순위 자격 (최소 경기 충족 + 끝난 시즌) — lib/data 가 seasonBestMinGames 로 정한다 */
+  perGameOk: boolean;
+  stats: Record<SeasonBestKey, number>;
+}
+
+/**
+ * 한 시즌 최다 순위: 합계는 값 큰 순, 경기당은 자격 있는 줄만 합계 ÷ 경기.
+ * 같은 값 → 경기 적은 쪽(합계)·많은 쪽(경기당)이 앞 → 이른 시즌 → 선수 번호. 0 은 뺀다.
+ */
+export function rankSeasonBests<T extends SeasonLineEntry>(
+  lines: readonly T[],
+  key: SeasonBestKey,
+  mode: RecordMode,
+  top = RECORD_LIST_TOP,
+): (T & { rank: number; value: number })[] {
+  const per = mode === "perGame" && SEASON_BEST_STATS.find((d) => d.key === key)?.perGame;
+  const rows = lines
+    .filter((l) => l.stats[key] > 0 && (!per || l.perGameOk))
+    .map((l) => ({ ...l, value: per ? perGame(l.stats[key], l.games) : l.stats[key] }))
+    .sort(
+      (a, b) =>
+        b.value - a.value ||
+        (per ? b.games - a.games : a.games - b.games) ||
+        a.seasonCode - b.seasonCode ||
+        a.id.localeCompare(b.id),
+    );
+  return withRanks(rows, (r) => r.value).filter((r) => r.rank <= top);
+}
+
+/** 수상·우승 순위: 받은 시즌 수 큰 순 → 같으면 먼저 받은 선수 → 선수 번호. 0 회는 뺀다 */
+export function rankAwardCounts<T extends { id: string; seasonCodes: readonly number[] }>(entries: readonly T[], top = RECORD_LIST_TOP): (T & { rank: number; count: number })[] {
+  const rows = entries
+    .map((e) => ({ ...e, count: new Set(e.seasonCodes).size }))
+    .filter((e) => e.count > 0)
+    .sort((a, b) => b.count - a.count || Math.min(...a.seasonCodes) - Math.min(...b.seasonCodes) || a.id.localeCompare(b.id));
+  return withRanks(rows, (r) => r.count).filter((r) => r.rank <= top);
+}
+
+/** 화면에 보내는 사람 정보 (목록마다 반복하지 않게 선수 번호로 한 번만) */
+export interface RecordPerson {
+  nameKo: string;
+  photoUrl: string | null;
+  /** 아바타 대체 색 (마지막 팀 주 색) */
+  color: string;
+}
+
+/** 화면에 보내는 순위 한 줄 (표기는 서버에서 끝낸다) */
+export interface RecordListItem {
+  rank: number;
+  id: string;
+  /** 큰 숫자, 예: "52" · "31.4" */
+  value: string;
+  /** 단위, 예: "점" */
+  unit: string;
+  /** 둘째 줄, 예: "05-06 · 모비스 · vs 삼성 · 2006.03.05" */
+  sub: string;
+  /** 숫자 아래 작은 글씨, 예: "8/12 · 66.7%" · "2회" */
+  note?: string | null;
+  /** 그 경기 일정 화면 (정규시즌만) */
+  gameHref?: string | null;
+}
+
+export interface RecordListsData {
+  people: Record<string, RecordPerson>;
+  /** 키는 화면마다 다르다: 한 경기 "구분:부문", 한 시즌 "구분:부문:단위", 수상 "부문" */
+  lists: Record<string, RecordListItem[]>;
 }

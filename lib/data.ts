@@ -15,13 +15,33 @@ import type {
   SeasonOption,
   SeasonGame,
   SeasonGamesFile,
+  PostseasonFile,
+  PostseasonLine,
 } from "./types";
 import { decodeSeasonCards, encodeSeasonCards, type SeasonCards, type SeasonCardsFile } from "./cards";
 import { toCardPlayers as convertCardPlayers, toCardTeams, toLeaderPlayers as convertLeaderPlayers } from "./convert";
-import { buildSeasonHighCards, type SeasonHighCard } from "./highs";
 import { careerHighAchievements, careerHighTabs, type CareerHighRow, type HighAchievement, type HighsTab } from "./career";
 import { buildPlayerShotsFile, type PlayerShotsFile, type ShotPoint } from "./shots";
-import { isActiveCareer, nextMilestones, sumCareerTotals, type CareerTotal, type Milestone } from "./records";
+import {
+  GAME_KINDS,
+  isActiveCareer,
+  nextMilestones,
+  rankAwardCounts,
+  rankGameHighs,
+  rankSeasonBests,
+  SEASON_BEST_STATS,
+  seasonBestMinGames,
+  sumCareerTotals,
+  type CareerTotal,
+  type GameKind,
+  type Milestone,
+  type RecordListItem,
+  type RecordListsData,
+  type RecordPerson,
+  type SeasonBestKey,
+} from "./records";
+import { buildSeasonHighCards, formatHighDate, formatHighShot, formatHighTimes, SEASON_HIGH_LEADER_KEYS, type SeasonHighCard } from "./highs";
+import { AWARD_LABELS, seasonShortLabel } from "./career";
 import { nationalityOf, schoolGroupOf } from "./roster";
 import { findSimilar, toAxisVector, type SimilarEntry, type SimilarVector } from "./similar";
 import { pickPrimeSeasons, primeCandidatesOf, type PrimeCandidate } from "./prime";
@@ -472,6 +492,7 @@ export function loadCareerTotals(): CareerTotal[] {
     const season = loadSeasonData(s.seasonCode);
     if (!season) continue;
     const teams = seasonTeams(season);
+    const dd = new Map(season.players.map((x) => [x.playerNo, x]));
     for (const p of seasonLeaderRows(season).values()) {
       const team = teams.find((t) => t.teamCode === p.teamCode);
       const idx = findPlayerIndexEntry(p.id);
@@ -492,6 +513,8 @@ export function loadCareerTotals(): CareerTotal[] {
         stl: p.stl,
         blk: p.blk,
         tpm: p.tpm,
+        doubleDoubles: dd.get(p.id)?.doubleDoubles ?? 0,
+        tripleDoubles: dd.get(p.id)?.tripleDoubles ?? 0,
         wins: p.wins,
         losses: p.losses,
       });
@@ -528,4 +551,158 @@ export function loadSchoolGroups(): Record<string, string> {
     if (g) out[e.id] = g;
   }
   return out;
+}
+
+// ─────────────────────────────────────────────
+// 역대 기록 하위 탭 (2026-10-03): 한 경기 최다 · 한 시즌 최다 · 수상·우승 — 순위 규칙은 lib/records, 여기는 재료 모으기와 표기
+// ─────────────────────────────────────────────
+
+const NF1 = new Intl.NumberFormat("ko-KR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const NF0 = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 0 });
+
+/** (시즌, 팀 코드) → 한글 약칭·주 색. 그 시즌 팀표에 없으면 코드 그대로 */
+const teamInfoCache = new Map<number, Map<string, { short: string; color: string }>>();
+function teamInfoIn(seasonCode: number, teamCode: string | null): { short: string; color: string } {
+  if (!teamInfoCache.has(seasonCode)) {
+    const season = loadSeasonData(seasonCode);
+    teamInfoCache.set(seasonCode, new Map((season ? toCardTeams(season) : []).map((t) => [t.teamCode, { short: t.shortName, color: t.color.primary }])));
+  }
+  return (teamCode && teamInfoCache.get(seasonCode)!.get(teamCode)) || { short: teamCode ?? "", color: "#6b7280" };
+}
+
+const seasonLabelCache = new Map<number, string>();
+function seasonShortOf(seasonCode: number): string {
+  if (seasonLabelCache.size === 0) for (const s of listAllSeasons()) seasonLabelCache.set(s.seasonCode, seasonShortLabel(s.seasonLabel));
+  return seasonLabelCache.get(seasonCode) ?? String(seasonCode);
+}
+
+/** 선수 색인 → 사람 정보 (마지막 시즌 팀 색) */
+function personOf(e: PlayerIndexEntry): RecordPerson {
+  const last = e.seasons[e.seasons.length - 1];
+  return { nameKo: e.nameKo, photoUrl: e.photoUrl, color: last ? teamInfoIn(last.seasonCode, last.teamCode).color : "#6b7280" };
+}
+
+function collectPeople(lists: Record<string, RecordListItem[]>): Record<string, RecordPerson> {
+  const people: Record<string, RecordPerson> = {};
+  for (const list of Object.values(lists)) {
+    for (const r of list) {
+      if (people[r.id]) continue;
+      const e = findPlayerIndexEntry(r.id);
+      if (e) people[r.id] = personOf(e);
+    }
+  }
+  return people;
+}
+
+/** 한 경기 최다: 구분(정규·플옵·챔프) × 부문 11개, 선수별 통산 최고 기록(색인 careerHighs)으로 순위 */
+export function loadGameHighLists(): RecordListsData {
+  const index = loadPlayersIndex();
+  const scheduled = new Set(listSeasonsWithPlayers().map((s) => s.seasonCode));
+  const lists: Record<string, RecordListItem[]> = {};
+  for (const { value: kind } of GAME_KINDS) {
+    for (const key of SEASON_HIGH_LEADER_KEYS) {
+      const entries = index.flatMap((e) => {
+        const r = e.careerHighs?.[kind]?.[key];
+        return r ? [{ id: e.id, value: r.value, date: r.date, rec: r, seasons: e.seasons }] : [];
+      });
+      lists[`${kind}:${key}`] = rankGameHighs(entries).map((x) => {
+        const code = x.rec.seasonCode;
+        const own = code !== null ? x.seasons.find((s) => s.seasonCode === code) : undefined;
+        const parts = [
+          code !== null ? seasonShortOf(code) : null,
+          own ? teamInfoIn(code!, own.teamCode).short : null,
+          x.rec.opponentTeamCode && code !== null ? `vs ${teamInfoIn(code, x.rec.opponentTeamCode).short}` : null,
+          x.rec.date ? formatHighDate(x.rec.date) : null,
+        ];
+        const times = x.rec.times && x.rec.times > 1 ? formatHighTimes(x.rec.times) : null;
+        return {
+          rank: x.rank,
+          id: x.id,
+          value: NF0.format(x.value),
+          unit: key === "pts" ? "점" : "개",
+          sub: parts.filter(Boolean).join(" · "),
+          note: [formatHighShot(x.rec, key), times].filter(Boolean).join(" · ") || null,
+          gameHref: kind === "regular" && code !== null && x.rec.date && scheduled.has(code) ? `/season/${code}/schedule?date=${x.rec.date}` : null,
+        };
+      });
+    }
+  }
+  return { people: collectPeople(lists), lists };
+}
+
+function readPostseason(seasonCode: number): PostseasonFile | null {
+  const file = path.join(String(seasonCode), "postseason.json");
+  return fs.existsSync(path.join(PROCESSED_DIR, file)) ? readJson<PostseasonFile>(file) : null;
+}
+
+/** 플레이오프·챔프전 시즌 합계 파일이 하나라도 있는가 (없으면 화면이 "수집 중" 안내) */
+export function hasPostseasonData(): boolean {
+  return listSeasonsWithPlayers().some((s) => readPostseason(s.seasonCode) !== null);
+}
+
+/** 한 시즌 최다: 구분 × 부문 × 합계/경기당. 정규시즌은 시즌 파일, 플옵·챔프전은 postseason.json */
+export function loadSeasonBestLists(): RecordListsData {
+  type Line = { id: string; seasonCode: number; teamCode: string; games: number; perGameOk: boolean; stats: Record<SeasonBestKey, number> };
+  const byKind: Record<GameKind, Line[]> = { regular: [], playoff: [], finals: [] };
+  const statsOf = (p: Pick<PostseasonLine, "points" | "reb" | "ast" | "stl" | "blk" | "tpm" | "ftm" | "doubleDoubles" | "tripleDoubles">) => ({
+    points: p.points, reb: p.reb, ast: p.ast, stl: p.stl, blk: p.blk, tpm: p.tpm, ftm: p.ftm, doubleDoubles: p.doubleDoubles, tripleDoubles: p.tripleDoubles,
+  });
+  for (const s of listSeasonsWithPlayers()) {
+    const season = loadSeasonData(s.seasonCode);
+    if (!season) continue;
+    // 진행 중 시즌은 경기당 순위에서 뺀다 (몇 경기 치르지 않은 기록이 역대 1위가 되지 않게). 합계는 넣는다
+    const ongoing = isSeasonOngoing(s.seasonCode);
+    const maxGames = Math.max(0, ...season.players.map((p) => p.games));
+    for (const p of season.players) {
+      if (p.games <= 0) continue;
+      byKind.regular.push({ id: p.playerNo, seasonCode: s.seasonCode, teamCode: p.teamCode, games: p.games, perGameOk: !ongoing && p.games >= seasonBestMinGames("regular", maxGames), stats: statsOf(p) });
+    }
+    const post = readPostseason(s.seasonCode);
+    for (const kind of ["playoff", "finals"] as const) {
+      for (const p of post?.[kind] ?? []) {
+        byKind[kind].push({ id: p.playerNo, seasonCode: s.seasonCode, teamCode: p.teamCode, games: p.games, perGameOk: !ongoing && p.games >= seasonBestMinGames(kind, 0), stats: statsOf(p) });
+      }
+    }
+  }
+  const lists: Record<string, RecordListItem[]> = {};
+  for (const { value: kind } of GAME_KINDS) {
+    for (const def of SEASON_BEST_STATS) {
+      for (const mode of def.perGame ? (["total", "perGame"] as const) : (["total"] as const)) {
+        lists[`${kind}:${def.key}:${mode}`] = rankSeasonBests(byKind[kind], def.key, mode).map((x) => ({
+          rank: x.rank,
+          id: x.id,
+          value: mode === "perGame" ? NF1.format(x.value) : NF0.format(x.value),
+          unit: def.unit,
+          sub: `${seasonShortOf(x.seasonCode)} · ${teamInfoIn(x.seasonCode, x.teamCode).short} · ${x.games}경기`,
+          note: mode === "perGame" ? `합계 ${NF0.format(x.stats[def.key])}` : null,
+        }));
+      }
+    }
+  }
+  return { people: collectPeople(lists), lists };
+}
+
+/** 수상·우승 횟수: 우승 + 개인상(lib/career AWARD_LABELS) */
+export const AWARD_RANK_DEFS: readonly { key: string; label: string }[] = [
+  { key: "champion", label: "우승" },
+  ...AWARD_LABELS.map((d) => ({ key: d.key as string, label: d.label })),
+];
+
+export function loadAwardLists(): RecordListsData {
+  const index = loadPlayersIndex();
+  const lists: Record<string, RecordListItem[]> = {};
+  for (const def of AWARD_RANK_DEFS) {
+    const entries = index.map((e) => ({
+      id: e.id,
+      seasonCodes: def.key === "champion" ? [...(e.championships ?? [])] : (e.awards ?? []).filter((a) => a.key === def.key).map((a) => a.seasonCode),
+    }));
+    lists[def.key] = rankAwardCounts(entries).map((x) => ({
+      rank: x.rank,
+      id: x.id,
+      value: String(x.count),
+      unit: "회",
+      sub: [...new Set(x.seasonCodes)].sort((a, b) => a - b).map(seasonShortOf).join(" · "),
+    }));
+  }
+  return { people: collectPeople(lists), lists };
 }
