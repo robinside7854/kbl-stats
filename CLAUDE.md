@@ -142,6 +142,7 @@ kbl-stats/
 ├── scripts/
 │   ├── awards.ts        ← 역대 수상: 공홈 번들 → 표(eval 없는 리터럴 파서 extractAwardsData) → 수상 행 awardRows → 선수 연결 matchAwardPlayer — 순수 함수
 │   ├── champions.ts     ← 시즌 우승팀(경기 목록 챔프전 4승 finalsChampion)·선수 우승 시즌 championSeasonsOf — 순수 함수
+│   ├── boxscores.ts     ← 시즌 경기 + 박스스코어: 경기 목록 + 경기별 기록(parseBoxLog) → buildSeasonGames(경기 번호·날짜·팀으로 맞춤, 두 팀 득점 합 = 공식 점수일 때만 box) — process 가 data/processed/{시즌}/games.json(한 줄 = 경기) 생성
 │   ├── fetch-gate.ts    ← 매일 수집 문지기: 오늘 경기 종료 + 1시간 확인·하루 1회(decideFetch·serviceClock 새벽 4시 전은 전날, check/mark) — fetch.yml 이 부름
 │   ├── fetch.ts         ← KBL API 호출 + data/raw 저장 (API 주소는 여기와 config에만) + 현재 시즌 선수 한 경기 최다·경기별 기록·프로필
 │   ├── http.ts          ← getJson(공홈 헤더)·sleep·saveRaw 공용 (fetch·backfill-highs)
@@ -206,6 +207,7 @@ kbl-stats/
 │   ├── favorites.ts     ← 즐겨찾기 (순수: parseFavorites·toggleFavorite, FAVORITES_VISIBLE 5 — 저장은 app/components/useFavorites localStorage)
 │   ├── prime.ts         ← 프라임 시즌 (pickPrimeSeasons·primeCandidatesOf)
 │   ├── career-cards.ts  ← 비교 탭 통산 카드 (buildCareerCards, CAREER_CODE 0, CAREER_QUALIFY 100경기·1,000분)
+│   ├── games.ts         ← 시즌 경기 규칙 (latestGameDay·nextGameDay·winnerSide·topPerformer·gameDayLabel, 팀 순위 computeStandings(경기 결과 — 승률 → 승 → 득실차, 상대 전적 미반영)·pctLabel·gamesBehindLabel) — 홈 GameDayBoard·팀 순위 StandingsView
 │   ├── home.ts          ← 홈 규칙 (HOME_CATEGORIES, pickHomeSeason(코드표 최신 시즌이 0명이면 직전 시즌 + 개막 전 안내), 오늘 생일 kstDateString·birthdaysOn(2/29생은 평년 2/28) — 화면은 BirthdayStrip(브라우저에서 한국 날짜로 판정))
 │   ├── roster.ts        ← 포지션·국적 규칙 (POSITION_LABELS, positionGroupOf(첫 글자), nationalityOf(마스터 없으면 isForeign)) + 비교 집단 필터 filterByPosition·filterByNationality + 쿼리 값 positionParam/FromParam·nationalityParam/FromParam (순위표·선수 탭·팀 분포 공용)
 │   ├── badges.ts        ← 칭호 배지 (순수: BADGE_DEFS 조건·우선순위, buildBadgeIndex(시즌별 최다 경기·경기당 1위), playerBadges, splitBadges(히어로 5개 + "+n")) — lib/data 가 빌드 시점에 계산
@@ -220,6 +222,7 @@ kbl-stats/
 │   ├── page.tsx         ← 홈 "이번 시즌 한눈에" (개막 전 안내·득점 1위 표지·부문별 1~3위·화면 버튼(선수·순위표·팀 분포·비교·용어·검색)·시즌 목록, 정적)
 │   ├── players/page.tsx ← 선수 탭 (큰 검색창 + 시즌·포지션·국적·팀 칩 + 선수 그리드, 최신 시즌 정적 HTML, 다른 시즌은 /cards)
 │   ├── player/[playerNo]/page.tsx  ← 선수 상세 정적 1,329개 (히어로(프로필·국적·나이·국가·출신교) → 시즌 칩·순위 범위·시즌 비교 카드 → 추이 그래프 → 시즌별 기록표 → 커리어 하이)
+│   ├── season/[seasonCode]/teams/page.tsx ← 팀 순위 (2026-10-03, 메뉴 "팀", StandingsView — 줄을 누르면 /players?season=&team=)
 │   ├── records/page.tsx ← 역대 기록 (통산 순위: 부문 칩·합계/경기당·국적, RecordsView, 메뉴 "역대 기록")
 │   ├── compare/page.tsx ← 비교 탭 정적 1쪽 (?a=번호:코드&b=번호:코드, 기본은 최신·직전 시즌 PER 1위)
 │   ├── game/page.tsx    ← 54-0 게임 (GameView: 다섯 칸 → 슬롯머신 두 대(시즌 하나·팀 3개) → 세 팀 후보 고르기(득점순, 등급 숨김) → 코트 위 5명·54경기 결과·기록 표·이미지 저장·링크 복사, /game/pool.json fetch, ?l= 공유 결과, 메뉴 "54-0")
@@ -268,6 +271,8 @@ kbl-stats/
   | favorite_add / favorite_remove | player_no | 즐겨찾기 |
   | game_spin / game_complete(wins) / game_share_link | | 54-0 |
   | contact_click | (없음) | 푸터 문의 이메일 누르기 |
+  | boxscore_open | game_key(gmkey), season_code | 홈 "오늘의 경기" 선수 기록 펼치기 |
+  | team_select | team_code, season_code | 팀 순위에서 팀 누르기(→ 선수 탭 그 팀) |
 
 ## 코딩 규칙
 - 파일·변수 이름은 영어, 주석과 커밋 메시지는 한국어
@@ -298,6 +303,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-03 (오늘의 경기·진행 중 시즌 기준·하단 메뉴): 사용자 요청 3가지. ① 홈 맨 위 **"오늘의 경기"**(`GameDayBoard`: 가장 최근 경기일 맞대결 카드 — 점수·홈/원정·수훈 선수, "선수 기록" 펼치면 두 팀 박스스코어(분·득점·리바·어시·스틸·블록·3점, 합계), 아래 다음 경기 대진). 재료는 이미 받던 경기별 기록 + 경기 목록 → `scripts/boxscores.ts` → `data/processed/{시즌}/games.json`(25-26 270경기 전부·26-27 3경기 박스스코어 맞음, 과거 시즌은 경기 결과만). ② **진행 중 시즌(선수 있는 최신 시즌 + 우승팀 없음)은 표본 기준 없음**(`lib/metrics NO_QUALIFY·isOngoingSeason·seasonDefaultQualify·qualifyPresetsFor`, `lib/data isSeasonOngoing·seasonQualify`): 홈 1~3위·리더보드 기본("출전 선수 전원" + 기존 프리셋)·카드 파일 defaults·기록표 리그 1위. 시즌을 가로지르는 프라임·비슷한 시즌·54-0 후보는 계속 기본 기준(1경기 표본이 끼지 않게). ③ **모바일 하단 메뉴** 선수·팀·리더보드 | 홈(가운데) | 비교·기록·54-0, PC 상단은 홈·선수·팀·리더보드·비교·역대 기록·54-0. 새 **팀 순위** `/season/{코드}/teams`(경기 결과로 승-패·승률·승차·홈/원정·최근 5, 우승 칩, 옛 teams→리더보드 redirect 제거 — 24-25 SK 41-13 등 실제와 일치). GA4 `boxscore_open`·`team_select`. 검증: typecheck·test(games 추가)·build·slop 0, Playwright 360/390/1280 가로 넘침 0·콘솔 에러 0·박스스코어 펼침·가짜 gtag. main 배포.
 - 2026-10-03 (경기 시간 맞춤 수집): 사용자 "평일·주말 경기 시간이 다르니 규칙 바꾸고 오늘 경기는 바로 수집" → `fetch.yml` 을 저녁 4번(18:40·20:40·22:10·23:40 KST) 깨우고 `scripts/fetch-gate.ts` 가 오늘 경기가 모두 끝나고 1시간 지났을 때 하루 1회만 수집(경기 없는 날·조회 실패·늦게 끝난 날은 23:40, 자정 넘긴 늦은 실행은 전날 몫, 수동 실행은 경기 후일 때만 오늘 몫으로 기록). 세션은 Run workflow 403 → `fetch.yml` main 푸시에 즉시 수집 트리거를 붙여 이 커밋으로 개막일 기록 수집. 테스트 `tests/fetch-gate.test.ts`. main 배포.
 - 2026-10-03 (개막·수집 시각): 2026-27 개막 3경기(KCC 68-103 LG·소노 82-73 가스공사·정관장 88-85 현대모비스)를 Actions 조사(`claude/probe-opening`, 삭제 권한 없음)로 확인 — 19시 반에 서버 A 선수 기록(61명)·서버 B 경기별 기록·서버 C 경기 목록(isEnded 1)·슛 차트·경기 상세(관중·심판·쿼터 점수)·팀 합계 전부 조회됨. 사용자 요청으로 매일 수집을 **04:10 → 23:40 KST**(`fetch.yml` cron `40 14 * * *`)로 옮김 — 하루 1회 유지. main 배포.
 - 2026-10-03 (숏폼 새 포맷 B·C — 개막 D-1): 사용자 "개막 직전 주제, 디자인부터 완전 다른 템플릿 여러 개로 반응 비교" → B 개막전 대기록(`lib/shorts-formats pickMilestones·milestoneLine`, 현역 = `scripts/fetch-active.ts` regSc=Y 명단 → data/raw/players/active.json, 지금 팀 = 마스터(이적 반영), 렌더러 `shorts/src/Milestones.tsx` 검정+노랑 전광판) · C 슛 차트 퀴즈(`pickQuiz`·문제/정답 대사, `shorts/src/Quiz.tsx` 보라 네온 게임쇼, 타이머). 빌더 `scripts/build-short-milestones.ts`·`build-short-quiz.ts`·공용 `short-common.ts`, 작은 수 고유어 `countWords`·`ordinalWords`. 워크플로 `# 에피소드:` 줄(top5·milestones·quiz)로 만들 것만, 에피소드 `composition` 으로 렌더. 결과: B 44.2초(해먼즈 DB 이적·워니·박지훈·안영준·이정현(DB) 3점 1200 역대 2번째 — 현역 명단으로 최진수 빠짐), C 42.1초(마레이·허웅·워니). main 배포.

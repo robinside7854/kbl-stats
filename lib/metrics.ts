@@ -39,10 +39,27 @@ export const QUALIFY_PRESETS: readonly QualifyRule[] = [
   { minGames: 30, minMinutes: 500 },
   { minGames: 5, minMinutes: 50 },
 ];
-/** 프리셋 긴 표기, 예: "10경기·100분 이상" */
-export const qualifyLabel = (r: QualifyRule) => `${r.minGames}경기·${r.minMinutes}분 이상`;
+/**
+ * 진행 중 시즌의 기본 기준 = 기준 없음(출전 선수 전원). 2026-10-03 사용자: 개막 직후엔 아무도 10경기를 못 채워
+ * 리더보드·홈이 비었다 → 진행 중 시즌은 기준 없이, 마감된 시즌만 기본 기준(DEFAULT_QUALIFY).
+ * 시즌이 쌓이면 출전이 적은 선수가 경기당 순위 위로 올 수 있다 — 그때는 순위표 "표본 기준" 고급 필터로 거른다.
+ */
+export const NO_QUALIFY: QualifyRule = { minGames: 0, minMinutes: 0 };
+const isNoQualify = (r: QualifyRule) => r.minGames <= 0 && r.minMinutes <= 0;
+/** 프리셋 긴 표기, 예: "10경기·100분 이상" (기준 없음 = "출전 선수 전원") */
+export const qualifyLabel = (r: QualifyRule) => (isNoQualify(r) ? "출전 선수 전원" : `${r.minGames}경기·${r.minMinutes}분 이상`);
 /** 모바일 선택 상자용 짧은 표기, 예: "10경기·100분+" */
-export const qualifyShort = (r: QualifyRule) => `${r.minGames}경기·${r.minMinutes}분+`;
+export const qualifyShort = (r: QualifyRule) => (isNoQualify(r) ? "전원" : `${r.minGames}경기·${r.minMinutes}분+`);
+
+/** 진행 중 시즌 = 선수가 있는 가장 최근 시즌이고 아직 우승팀(챔프전 4승)이 없다 */
+export function isOngoingSeason(seasonCode: number, latestWithPlayers: number | null, champion: unknown): boolean {
+  return seasonCode === latestWithPlayers && !champion;
+}
+/** 시즌의 기본 표본 기준: 진행 중이면 기준 없음, 마감이면 DEFAULT_QUALIFY */
+export const seasonDefaultQualify = (ongoing: boolean): QualifyRule => (ongoing ? NO_QUALIFY : DEFAULT_QUALIFY);
+/** 순위표 표본 기준 목록 (첫 번째가 기본값). 진행 중 시즌은 맨 앞에 "출전 선수 전원" */
+export const qualifyPresetsFor = (ongoing: boolean): readonly QualifyRule[] =>
+  ongoing ? [NO_QUALIFY, ...QUALIFY_PRESETS] : QUALIFY_PRESETS;
 
 export function isQualified(p: { games: number; minutes: number }, rule: QualifyRule): boolean {
   return p.games >= rule.minGames && p.minutes >= rule.minMinutes;

@@ -1,5 +1,5 @@
 // 홈 "이번 시즌 한눈에" (PLAN.md §2-4, §3 ⑤, §5-4). 서버 컴포넌트 — 계산은 app/page.tsx 가 lib/ 함수로 끝내고 결과만 받는다.
-// 구성(모바일 우선): 개막 전 안내 → 히어로(부문 1위 표지, 새로고침마다 부문이 바뀜 — HomeHero) → 오늘 생일 → 부문별 1~3위 카드 줄.
+// 구성(모바일 우선): 개막 전 안내 → 오늘의 경기(GameDayBoard, 2026-10-03) → 히어로(부문 1위 표지, 새로고침마다 부문이 바뀜 — HomeHero) → 오늘 생일 → 부문별 1~3위 카드 줄.
 // 바로가기·시즌별 목록은 2026-10-01 사용자 요청으로 뺐다(상단 메뉴·시즌 선택과 겹침).
 import Link from "next/link";
 import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
@@ -16,6 +16,8 @@ import TeamLogo from "./TeamLogo";
 import BirthdayStrip, { type BirthdayPlayer } from "./BirthdayStrip";
 import FavoritesStrip from "./FavoritesStrip";
 import HomeHero, { type HeroItem } from "./HomeHero";
+import GameDayBoard, { type GameTeamInfo } from "./GameDayBoard";
+import type { GameDay } from "@/lib/games";
 
 const GRAY: TeamColor = FALLBACK_TEAM_COLOR;
 
@@ -34,12 +36,16 @@ interface Props {
   qualifyText: string;
   /** 오늘 생일 후보 (현역 = 이 시즌 명단, 생년월일 있는 선수) */
   birthdays: BirthdayPlayer[];
+  /** 끝난 경기가 있는 가장 최근 날짜 (없으면 null — 개막 전·경기 목록 없음) */
+  gameDay?: GameDay | null;
+  nextGameDay?: GameDay | null;
+  gameTeams?: Record<string, GameTeamInfo>;
 }
 
 /** 순위표 부문 링크 (득점은 기본 부문이라 쿼리 없음 — lib/leaders DEFAULT_CATEGORY) */
 const leadersHref = (code: number, key: LeaderStatKey) => `/season/${code}/leaders${key === "points" ? "" : `?cat=${key}`}`;
 
-export default function HomeView({ season, fetchedLabel, upcoming, categories, teams, qualifyText, birthdays }: Props) {
+export default function HomeView({ season, fetchedLabel, upcoming, categories, teams, qualifyText, birthdays, gameDay = null, nextGameDay = null, gameTeams = {} }: Props) {
   const teamByCode = new Map(teams.map((t) => [t.teamCode, t]));
   const code = season.seasonCode;
   const short = seasonShortLabel(season.seasonLabel);
@@ -61,6 +67,8 @@ export default function HomeView({ season, fetchedLabel, upcoming, categories, t
         </p>
         <h1 className="mt-0.5 text-h1 font-black">{short} 시즌 한눈에</h1>
       </div>
+
+      {gameDay && <GameDayBoard day={gameDay} next={nextGameDay} seasonCode={code} teams={gameTeams} />}
 
       {heroItems.length > 0 && <HomeHero items={heroItems} seasonCode={code} />}
 

@@ -21,9 +21,10 @@ const nextConfig = {
         destination: "/season/:seasonCode/leaders",
         permanent: false,
       },
-      // 팀 분포(2026-10-01)·플레이스타일(2026-10-02) 탭은 없앴다 — 옛 주소는 같은 시즌 리더보드로
+      // 플레이스타일(2026-10-02) 탭은 없앴다 — 옛 주소는 같은 시즌 리더보드로.
+      // /season/코드/teams 는 2026-10-03 부터 팀 순위 화면 (예전 팀 분포 주소를 다시 씀)
       {
-        source: "/season/:seasonCode(\\d+)/:old(teams|playstyle)",
+        source: "/season/:seasonCode(\\d+)/:old(playstyle)",
         destination: "/season/:seasonCode/leaders",
         permanent: false,
       },

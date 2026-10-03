@@ -13,7 +13,7 @@
 import { seasonShortLabel } from "@/lib/career";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import type { CardTeam, LeaderPlayer } from "@/lib/types";
-import { attemptsNote, attemptThresholds, QUALIFY_PRESETS, qualifyLabel } from "@/lib/metrics";
+import { attemptsNote, attemptThresholds, qualifyLabel, qualifyPresetsFor } from "@/lib/metrics";
 import {
   attemptName,
   availableCategories,
@@ -88,6 +88,8 @@ interface Props {
   seasonHighs?: SeasonHighCard[];
   /** 마감된 시즌의 어워즈 (서버에서 그린 SeasonAwardsBoard, 없으면 null) — 머리말 바로 아래 */
   awards?: ReactNode;
+  /** 진행 중 시즌이면 기본 표본 기준이 "출전 선수 전원" (lib/metrics qualifyPresetsFor, 2026-10-03) */
+  ongoing?: boolean;
 }
 
 const MODE_OPTIONS: { value: StatMode; label: string }[] = [
@@ -196,7 +198,8 @@ function CoverCard({
   );
 }
 
-export default function LeadersView({ seasonLabel, players, teams, seasonHighs = [], awards = null }: Props) {
+export default function LeadersView({ seasonLabel, players, teams, seasonHighs = [], awards = null, ongoing = false }: Props) {
+  const presets = useMemo(() => qualifyPresetsFor(ongoing), [ongoing]);
   const [state, setState] = useState<LeadersState>(DEFAULT_LEADERS_STATE);
   // 표 정렬 (null 이면 선택한 부문의 "상위" 방향 — 턴오버는 적은 순)
   const [sort, setSort] = useState<{ key: LeaderStatKey; dir: SortDir } | null>(null);
@@ -205,7 +208,7 @@ export default function LeadersView({ seasonLabel, players, teams, seasonHighs =
 
   // 공유 링크로 들어온 상태 반영 (이 시즌에 없는 팀·부문은 기본값)
   useEffect(() => {
-    setState(parseLeadersQuery(window.location.search, { teamCodes }));
+    setState(parseLeadersQuery(window.location.search, { teamCodes, presetCount: presets.length }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -224,7 +227,7 @@ export default function LeadersView({ seasonLabel, players, teams, seasonHighs =
   const category = categories.includes(state.category) ? state.category : DEFAULT_LEADERS_STATE.category;
   const groups = useMemo(() => availableCategoryGroups(categories), [categories]);
   const groupKey = categoryGroupOf(category);
-  const rule = QUALIFY_PRESETS[presetIdx];
+  const rule = presets[presetIdx] ?? presets[0];
   const columns = columnOrder(category);
   const sortKey = sort?.key ?? category;
   const sortDir = sort?.dir ?? defaultSortDir(category);
@@ -283,7 +286,7 @@ export default function LeadersView({ seasonLabel, players, teams, seasonHighs =
   }
 
   const selectedTeam = teamCode ? teamByCode.get(teamCode) : undefined;
-  const chips = leaderFilterChips(state, teamName).map((c) => ({
+  const chips = leaderFilterChips(state, teamName, presets).map((c) => ({
     key: c.field,
     label: c.label,
     onClear: () => setState((s) => clearLeaderFilter(s, c.field)),
@@ -455,7 +458,7 @@ export default function LeadersView({ seasonLabel, players, teams, seasonHighs =
               value={presetIdx}
               onChange={(e) => update({ presetIdx: Number(e.target.value) })}
             >
-              {QUALIFY_PRESETS.map((r, i) => (
+              {presets.map((r, i) => (
                 <option key={i} value={i}>
                   {qualifyLabel(r)}
                 </option>

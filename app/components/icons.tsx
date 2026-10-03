@@ -237,3 +237,13 @@ export function IconBall(p: IconProps) {
     </Svg>
   );
 }
+
+/** 방패 (팀) */
+export function IconTeam(p: IconProps) {
+  return (
+    <Svg {...p}>
+      <path d="M12 3.5 19 6v5.5c0 4.2-2.9 7.6-7 9-4.1-1.4-7-4.8-7-9V6Z" />
+      <path d="M9 11.5h6M12 8.5v6" />
+    </Svg>
+  );
+}

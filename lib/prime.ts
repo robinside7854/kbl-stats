@@ -4,7 +4,7 @@
 //   - 같으면 PER 이 높은 시즌, 그래도 같으면 최근 시즌.
 //   - 표본을 넘긴 시즌이 2개 이상인 선수만 붙인다 (한 시즌뿐이면 "가장 좋았던"이 의미 없다).
 import { seasonGrading } from "./cardview";
-import { isQualified, radarScore } from "./metrics";
+import { DEFAULT_QUALIFY, isQualified, radarScore } from "./metrics";
 import type { SeasonCards } from "./cards";
 
 export interface PrimeCandidate {
@@ -20,7 +20,8 @@ export function primeCandidatesOf(cards: SeasonCards): PrimeCandidate[] {
   const grading = seasonGrading(cards);
   const out: PrimeCandidate[] = [];
   for (const p of cards.players) {
-    if (!isQualified(p, cards.defaults.rule)) continue;
+    // 진행 중 시즌(기준 없음)의 1~2경기 표본이 프라임이 되지 않게 항상 기본 기준
+    if (!isQualified(p, DEFAULT_QUALIFY)) continue;
     const s = radarScore(p, grading).overallAvg;
     if (s === null) continue;
     out.push({ id: p.id, seasonCode: cards.seasonCode, score: s, per: p.per });

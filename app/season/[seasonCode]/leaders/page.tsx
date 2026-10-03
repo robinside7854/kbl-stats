@@ -3,7 +3,7 @@
 import { seasonShortLabel } from "@/lib/career";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { findPlayerIndexEntry, listSeasonsWithPlayers, loadSeasonData, loadSeasonHighCards, toCardTeams, toLeaderPlayers } from "@/lib/data";
+import { findPlayerIndexEntry, listSeasonsWithPlayers, loadSeasonData, loadSeasonHighCards, toCardTeams, toLeaderPlayers, isSeasonOngoing } from "@/lib/data";
 import { buildSeasonAwardsView } from "@/lib/awards";
 import SeasonAwardsBoard from "@/app/components/SeasonAwardsBoard";
 import LeadersView from "@/app/components/LeadersView";
@@ -45,6 +45,7 @@ export default async function LeadersPage({ params }: { params: Params }) {
         players={toLeaderPlayers(season)}
         teams={teams}
         seasonHighs={loadSeasonHighCards(season)}
+        ongoing={isSeasonOngoing(season.seasonCode)}
         awards={awards ? <SeasonAwardsBoard view={awards} seasonShort={seasonShortLabel(season.seasonLabel)} /> : null}
       />
       <SourceFooter fetchedAt={season.fetchedAt} wide />

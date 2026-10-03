@@ -2,11 +2,13 @@
 // 개막 전(코드표 최신 시즌이 선수 0명)이면 직전 시즌으로 만들고 안내를 붙인다 — 시즌 코드는 코드표에서 비교(lib/home pickHomeSeason).
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { findPlayerIndexEntry, listAllSeasons, listSeasonsWithPlayers, loadSeasonData, toCardTeams, toLeaderPlayers } from "@/lib/data";
+import { findPlayerIndexEntry, listAllSeasons, listSeasonsWithPlayers, loadSeasonData, loadSeasonGames, seasonQualify, toCardTeams, toLeaderPlayers } from "@/lib/data";
+import { latestGameDay, nextGameDay } from "@/lib/games";
+import type { GameTeamInfo } from "./components/GameDayBoard";
 import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
 import type { BirthdayPlayer } from "./components/BirthdayStrip";
 import { filterLeaders, topLeaders } from "@/lib/leaders";
-import { DEFAULT_QUALIFY, qualifyLabel } from "@/lib/metrics";
+import { qualifyLabel } from "@/lib/metrics";
 import { HOME_CATEGORIES, pickHomeSeason } from "@/lib/home";
 import HomeView from "./components/HomeView";
 import SiteNav from "./components/SiteNav";
@@ -23,8 +25,9 @@ export default function HomePage() {
   const season = shown ? loadSeasonData(shown.seasonCode) : null;
   if (!shown || !season) notFound();
 
-  // 부문별 1~3위: 경기당, 기본 표본 기준 (순위표 기본 화면과 같은 값)
-  const qualified = filterLeaders(toLeaderPlayers(season), { origin: "all", teamCode: null, rule: DEFAULT_QUALIFY });
+  // 부문별 1~3위: 경기당, 그 시즌 기본 표본 기준 (순위표 기본 화면과 같은 값 — 진행 중 시즌은 출전 선수 전원)
+  const rule = seasonQualify(shown.seasonCode);
+  const qualified = filterLeaders(toLeaderPlayers(season), { origin: "all", teamCode: null, rule });
   const categories = HOME_CATEGORIES.map((key) => ({ key, entries: topLeaders(qualified, key, "perGame", 3) }));
 
   // 오늘 생일 후보: 홈 시즌 명단(= 현역) 중 생년월일이 있는 선수. "오늘" 판정은 브라우저(BirthdayStrip)가 한다
@@ -36,6 +39,16 @@ export default function HomePage() {
     return [{ id: p.id, nameKo: p.nameKo, birthday, photoUrl: p.photoUrl, teamName: team?.shortName ?? p.teamShort, color: team?.color ?? FALLBACK_TEAM_COLOR }];
   });
 
+  // 최근 경기일·다음 경기일 (data/processed/{시즌}/games.json, lib/games). 팀 이름·로고는 이 시즌 팀표, 아직 안 뛴 팀은 직전 시즌 팀표
+  const games = loadSeasonGames(shown.seasonCode);
+  const gameDay = latestGameDay(games);
+  const nextDay = nextGameDay(games, gameDay?.date ?? null);
+  const prevSeason = withPlayers.find((s) => s.seasonCode < shown.seasonCode);
+  const gameTeams: Record<string, GameTeamInfo> = {};
+  for (const t of [...(prevSeason ? toCardTeams(loadSeasonData(prevSeason.seasonCode)!) : []), ...teams]) {
+    gameTeams[t.teamCode] = { shortName: t.shortName, logoUrl: t.logoUrl, color: t.color };
+  }
+
   return (
     <>
       <SiteNav seasons={withPlayers} seasonCode={shown.seasonCode} view="home" wide />
@@ -46,7 +59,10 @@ export default function HomePage() {
         categories={categories}
         teams={teams}
         birthdays={birthdays}
-        qualifyText={qualifyLabel(DEFAULT_QUALIFY)}
+        gameDay={gameDay}
+        nextGameDay={nextDay}
+        gameTeams={gameTeams}
+        qualifyText={qualifyLabel(rule)}
       />
       <SourceFooter fetchedAt={season.fetchedAt} wide />
     </>

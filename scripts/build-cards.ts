@@ -10,6 +10,7 @@ import { decodeSeasonCards, encodeSeasonCards, type SeasonCards } from "../lib/c
 import { buildCareerCards, CAREER_CODE, CAREER_COVERAGE, CAREER_LABEL, CAREER_QUALIFY } from "../lib/career-cards.js";
 import { toCardPlayers, toCardTeams } from "../lib/convert.js";
 import type { PlayerIndexEntry, SeasonData, SeasonOption } from "../lib/types.js";
+import { isOngoingSeason, seasonDefaultQualify } from "../lib/metrics.js";
 
 const ROOT = process.cwd();
 const PROCESSED = join(ROOT, "data", "processed");
@@ -29,16 +30,25 @@ async function main() {
   await rm(OUT, { recursive: true, force: true });
   await mkdir(OUT, { recursive: true });
 
+  // 진행 중 시즌(선수 있는 가장 최근 시즌, 우승팀 없음)은 표본 기준 없음 — lib/data seasonQualify 와 같은 규칙
+  const loaded = new Map<number, SeasonData>();
+  for (const s of seasons) {
+    const season = await readJson<SeasonData | null>(join(PROCESSED, String(s.seasonCode), "players.json"), null);
+    if (season && season.players.length > 0) loaded.set(s.seasonCode, season);
+  }
+  const latest = loaded.size > 0 ? Math.max(...loaded.keys()) : null;
+
   const sizes: string[] = [];
   let maxKb = 0;
   const all: SeasonCards[] = [];
   for (const s of seasons) {
-    const season = await readJson<SeasonData | null>(join(PROCESSED, String(s.seasonCode), "players.json"), null);
-    if (!season || season.players.length === 0) continue;
+    const season = loaded.get(s.seasonCode);
+    if (!season) continue;
     const players = toCardPlayers(season, (no) => photo.get(no) ?? null);
     const file = encodeSeasonCards(
       { seasonCode: season.seasonCode, seasonLabel: season.seasonLabel, coverage: season.coverage, teams: toCardTeams(season) },
       players,
+      seasonDefaultQualify(isOngoingSeason(season.seasonCode, latest, season.champion ?? null)),
     );
     all.push(decodeSeasonCards(file));
     const json = JSON.stringify(file);

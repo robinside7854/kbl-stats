@@ -21,7 +21,8 @@ import { computeTeamShareStats, seasonCoverage, usgFromKbl } from "../lib/metric
 import { playerPhotoUrl, teamLogoUrl } from "./image-urls.js";
 import { teamShortNameKo } from "../lib/teams.js";
 import { buildProfileMap, EMPTY_PROFILE, EMPTY_PROFILE_EXTRA, isForeignPlayer, profileExtraFrom, type ProfileExtra } from "./player-master.js";
-import { hasCareerHighs, parseMostGame, type ParsedMostGame } from "./highs.js";
+import { hasCareerHighs, parseMostGame, todayKst, type ParsedMostGame } from "./highs.js";
+import { buildSeasonGames, parseBoxLog, type BoxLogRow } from "./boxscores.js";
 import { attachShotAttempts, parseGameLog, type GameLogRow } from "./gamelogs.js";
 import { computeSeasonHighLeaders, SHOT_HIGH_KEYS } from "../lib/highs.js";
 import { regularGamesOf } from "./shots.js";
@@ -57,6 +58,41 @@ async function readSeasonChampion(seasonCode: number): Promise<SeasonChampion | 
   } catch {
     return null;
   }
+}
+
+/**
+ * 시즌 경기 + 박스스코어 → data/processed/{시즌}/games.json (scripts/boxscores.ts, 2026-10-03 홈 "오늘의 경기"·팀 순위).
+ * 경기 목록이 없으면 파일을 지운다. 선수 이름은 그 시즌 명단.
+ */
+async function writeSeasonGames(seasonCode: number, players: readonly { playerNo: string; nameKo: string }[]): Promise<string> {
+  const outFile = join(DATA_DIR, "processed", String(seasonCode), "games.json");
+  let list: unknown;
+  try {
+    list = JSON.parse(await readFile(join(DATA_DIR, "raw", "games", String(seasonCode), "list.json"), "utf8"));
+  } catch {
+    await rm(outFile, { force: true });
+    return "";
+  }
+  const logs = new Map<string, BoxLogRow[]>();
+  const dir = join(DATA_DIR, "raw", "gamelogs", String(seasonCode));
+  for (const f of await readdir(dir).catch(() => [] as string[])) {
+    if (!f.endsWith(".json")) continue;
+    try {
+      logs.set(f.replace(/\.json$/, ""), parseBoxLog(JSON.parse(await readFile(join(dir, f), "utf8"))));
+    } catch {
+      /* 깨진 파일은 건너뜀 — 그 경기는 득점 합이 안 맞아 box null */
+    }
+  }
+  const names = new Map(players.map((p) => [p.playerNo, p.nameKo]));
+  const games = buildSeasonGames(list, seasonCode, logs, (id) => names.get(id) ?? null, todayKst());
+  if (games.length === 0) {
+    await rm(outFile, { force: true });
+    return "";
+  }
+  // 한 줄 = 경기 하나 (git diff 가 읽히게)
+  await writeFile(outFile, `{"seasonCode":${seasonCode},"games":[\n${games.map((g) => JSON.stringify(g)).join(",\n")}\n]}\n`, "utf8");
+  const boxed = games.filter((g) => g.box).length;
+  return `, 경기 ${games.length}${boxed ? `(박스스코어 ${boxed})` : ""}`;
 }
 
 async function readSeasonHighs(seasonCode: number): Promise<Map<string, ParsedMostGame>> {
@@ -436,9 +472,10 @@ async function processSeason(seasonCode: number): Promise<SeasonData> {
   } else {
     await rm(shotsFile, { force: true });
   }
+  const gamesNote = await writeSeasonGames(seasonCode, players);
   const cov = Object.entries(out.coverage).filter(([, v]) => v).map(([k]) => k).join(",") || "-";
   const highsNote = (highs.size > 0 ? `, 한 경기 최다 ${highs.size}명` : "") + (shotPlayers > 0 ? `, 슛 차트 ${shotPlayers}명` : "");
-  console.log(`[${out.seasonLabel}] ${players.length}명, 팀 ${teams.length}개, coverage: ${cov}${highsNote} → ${join(outDir, "players.json")}`);
+  console.log(`[${out.seasonLabel}] ${players.length}명, 팀 ${teams.length}개, coverage: ${cov}${highsNote}${gamesNote} → ${join(outDir, "players.json")}`);
   return out;
 }
 

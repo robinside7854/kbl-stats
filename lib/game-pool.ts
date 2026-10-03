@@ -6,7 +6,7 @@
 //   - 아래 합산 코드는 구간이 여러 시즌이던 때(시대 구간 7개)의 것 — 한 시즌이면 평균 = 그 시즌 값, span = 그 시즌 표기
 import { seasonContext } from "./cardview";
 import { seasonShortLabel, seasonRangeLabel } from "./career";
-import { buildCardEntry, gradeScore, isQualified, perGame, RADAR_AXES } from "./metrics";
+import { DEFAULT_QUALIFY, buildCardEntry, gradeScore, isQualified, perGame, RADAR_AXES } from "./metrics";
 import { nationalityOf } from "./roster";
 import { type GameCandidate, type GameEra, type GamePool, type GameTeam } from "./game";
 import type { SeasonCards } from "./cards";
@@ -28,7 +28,8 @@ export function buildGamePool(all: readonly SeasonCards[]): GamePool {
         teams.set(t.teamCode, { teamCode: t.teamCode, name: t.shortName, logoUrl: t.logoUrl, color: t.color, candidates: prev?.candidates ?? [] });
       }
       for (const p of cards.players) {
-        if (!p.position || !isQualified(p, cards.defaults.rule)) continue;
+                // 진행 중 시즌의 1~2경기 표본은 후보에서 뺀다 (항상 기본 기준)
+if (!p.position || !isQualified(p, DEFAULT_QUALIFY)) continue;
         const e = buildCardEntry(p, ctx);
         const score = gradeScore(e.overallPct);
         if (score === null) continue;

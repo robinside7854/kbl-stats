@@ -396,3 +396,18 @@ assert.equal(topShareLabel(null), null);
   assert.equal(awardBonusOf(undefined), null);
   console.log("metrics: 수상 가산점 통과");
 }
+
+// 진행 중 시즌 = 표본 기준 없음 (2026-10-03)
+{
+  const m = await import("../lib/metrics");
+  assert.equal(m.isOngoingSeason(49, 49, null), true);
+  assert.equal(m.isOngoingSeason(49, 49, { teamCode: "60" }), false); // 우승팀이 나오면 마감
+  assert.equal(m.isOngoingSeason(47, 49, null), false);              // 지난 시즌은 마감
+  assert.deepEqual(m.seasonDefaultQualify(true), m.NO_QUALIFY);
+  assert.deepEqual(m.seasonDefaultQualify(false), m.DEFAULT_QUALIFY);
+  assert.equal(m.isQualified({ games: 1, minutes: 2 }, m.NO_QUALIFY), true);
+  assert.equal(m.qualifyLabel(m.NO_QUALIFY), "출전 선수 전원");
+  assert.equal(m.qualifyPresetsFor(true)[0], m.NO_QUALIFY);
+  assert.equal(m.qualifyPresetsFor(true).length, m.QUALIFY_PRESETS.length + 1);
+  console.log("metrics: 진행 중 시즌 기준 통과");
+}

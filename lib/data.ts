@@ -13,6 +13,8 @@ import type {
   PlayerIndexEntry,
   SeasonData,
   SeasonOption,
+  SeasonGame,
+  SeasonGamesFile,
 } from "./types";
 import { decodeSeasonCards, encodeSeasonCards, type SeasonCards, type SeasonCardsFile } from "./cards";
 import { toCardPlayers as convertCardPlayers, toCardTeams, toLeaderPlayers as convertLeaderPlayers } from "./convert";
@@ -23,7 +25,7 @@ import { isActiveCareer, nextMilestones, sumCareerTotals, type CareerTotal, type
 import { nationalityOf, schoolGroupOf } from "./roster";
 import { findSimilar, toAxisVector, type SimilarEntry, type SimilarVector } from "./similar";
 import { pickPrimeSeasons, primeCandidatesOf, type PrimeCandidate } from "./prime";
-import { buildCardEntry, gradeGroupOf, isQualified } from "./metrics";
+import { DEFAULT_QUALIFY, buildCardEntry, gradeGroupOf, isOngoingSeason, isQualified, seasonDefaultQualify } from "./metrics";
 import { seasonContext } from "./cardview";
 import { seasonLeaderMarks, type LeaderStatKey, type StatMode } from "./leaders";
 import { buildBadgeIndex, playerBadges, type BadgeCareer, type BadgeIndex, type BadgeSeasonRow, type PlayerBadge } from "./badges";
@@ -56,6 +58,29 @@ export function listAllSeasons(): SeasonOption[] {
 }
 
 /** 선수가 1명 이상 있는 시즌만, 최신 시즌이 먼저 오도록 정렬 (개막 전 시즌은 숨김) */
+/**
+ * 진행 중 시즌인가 (선수 있는 가장 최근 시즌 + 우승팀 없음, lib/metrics isOngoingSeason).
+ * 진행 중이면 표본 기준을 없앤다(seasonQualify) — 2026-10-03 사용자 요청.
+ */
+/** 시즌 경기 (data/processed/{시즌}/games.json, scripts/boxscores.ts). 파일이 없으면 빈 배열 */
+const gamesCache = new Map<number, SeasonGame[]>();
+export function loadSeasonGames(seasonCode: number): SeasonGame[] {
+  if (gamesCache.has(seasonCode)) return gamesCache.get(seasonCode)!;
+  const file = path.join(String(seasonCode), "games.json");
+  const games = fs.existsSync(path.join(PROCESSED_DIR, file)) ? (readJson<SeasonGamesFile>(file).games ?? []) : [];
+  gamesCache.set(seasonCode, games);
+  return games;
+}
+
+let latestWithPlayers: number | null | undefined;
+export function isSeasonOngoing(seasonCode: number): boolean {
+  if (latestWithPlayers === undefined) latestWithPlayers = listSeasonsWithPlayers()[0]?.seasonCode ?? null;
+  const latest = latestWithPlayers;
+  return isOngoingSeason(seasonCode, latest, loadSeasonData(seasonCode)?.champion ?? null);
+}
+/** 시즌 기본 표본 기준 (진행 중 = 출전 선수 전원, 마감 = DEFAULT_QUALIFY) */
+export const seasonQualify = (seasonCode: number) => seasonDefaultQualify(isSeasonOngoing(seasonCode));
+
 export function listSeasonsWithPlayers(): SeasonOption[] {
   const seasons = readJson<SeasonOption[]>("seasons.json");
   return seasons
@@ -119,10 +144,11 @@ function seasonMarks(season: SeasonData): Record<StatMode, Map<string, LeaderSta
   let m = leaderMarksCache.get(season.seasonCode);
   if (!m) {
     const rows = [...seasonLeaderRows(season).values()];
+    const rule = seasonQualify(season.seasonCode);
     m = {
-      perGame: seasonLeaderMarks(rows, "perGame"),
-      total: seasonLeaderMarks(rows, "total"),
-      per30: seasonLeaderMarks(rows, "per30"),
+      perGame: seasonLeaderMarks(rows, "perGame", rule),
+      total: seasonLeaderMarks(rows, "total", rule),
+      per30: seasonLeaderMarks(rows, "per30", rule),
     };
     leaderMarksCache.set(season.seasonCode, m);
   }
@@ -189,6 +215,7 @@ export function loadSeasonCardsFile(seasonCode: number): SeasonCardsFile | null 
       ? encodeSeasonCards(
           { seasonCode: season.seasonCode, seasonLabel: season.seasonLabel, coverage: season.coverage, teams: seasonTeams(season) },
           toCardPlayers(season),
+          seasonQualify(seasonCode),
         )
       : null;
   cardsFileCache.set(seasonCode, file);
@@ -349,7 +376,8 @@ function loadSimilarPool(): SimilarVector[] {
     if (!cards) continue;
     const ctx = seasonContext(cards, "all");
     for (const p of cards.players) {
-      if (!isQualified(p, cards.defaults.rule)) continue;
+      // 시즌을 가로지르는 비교라 진행 중 시즌도 기본 기준(DEFAULT_QUALIFY) — 1~2경기 표본이 끼지 않게
+      if (!isQualified(p, DEFAULT_QUALIFY)) continue;
       const e = buildCardEntry(p, ctx);
       const axes = toAxisVector(e.radar.axes);
       if (!axes) continue;

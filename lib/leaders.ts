@@ -456,7 +456,7 @@ export const DEFAULT_LEADERS_STATE: LeadersState = {
  */
 export function parseLeadersQuery(
   search: string,
-  ctx: { teamCodes: readonly string[] },
+  ctx: { teamCodes: readonly string[]; presetCount?: number },
 ): LeadersState {
   const qs = new URLSearchParams(search);
   const d = DEFAULT_LEADERS_STATE;
@@ -470,7 +470,7 @@ export function parseLeadersQuery(
     origin: nationalityFromParam(qs.get("origin")),
     position: positionFromParam(qs.get("pos")),
     teamCode: team && ctx.teamCodes.includes(team) ? team : d.teamCode,
-    presetIdx: Number.isInteger(q) && q >= 0 && q < QUALIFY_PRESETS.length ? q : d.presetIdx,
+    presetIdx: Number.isInteger(q) && q >= 0 && q < (ctx.presetCount ?? QUALIFY_PRESETS.length) ? q : d.presetIdx,
   };
 }
 
@@ -541,6 +541,7 @@ export interface FilterChipInfo<F extends string> {
 export function leaderFilterChips(
   s: LeadersState,
   teamLabel: (code: string) => string,
+  presets: readonly QualifyRule[] = QUALIFY_PRESETS,
 ): FilterChipInfo<LeaderFilterField>[] {
   const d = DEFAULT_LEADERS_STATE;
   const out: FilterChipInfo<LeaderFilterField>[] = [];
@@ -548,7 +549,7 @@ export function leaderFilterChips(
   if (s.position !== d.position) out.push({ field: "position", label: positionFilterLabelOf(s.position) });
   if (s.origin !== d.origin) out.push({ field: "origin", label: nationalityFilterLabelOf(s.origin) });
   if (s.teamCode !== null) out.push({ field: "teamCode", label: teamLabel(s.teamCode) });
-  if (s.presetIdx !== d.presetIdx) out.push({ field: "presetIdx", label: qualifyShort(QUALIFY_PRESETS[s.presetIdx]) });
+  if (s.presetIdx !== d.presetIdx) out.push({ field: "presetIdx", label: qualifyShort(presets[s.presetIdx] ?? presets[0]) });
   return out;
 }
 
@@ -616,9 +617,13 @@ export const LEADER_MARK_KEYS: readonly LeaderStatKey[] = [
  * 한 시즌 리그 1위 부문 (선수 id → 1위였던 부문). 순위표 기본값과 같은 규칙: 기본 표본 기준(DEFAULT_QUALIFY),
  * 성공률은 시도 기준, 공동 1위 포함. 모드별로 다르다(합계 1위 ≠ 경기당 1위).
  */
-export function seasonLeaderMarks(players: readonly LeaderPlayer[], mode: StatMode): Map<string, LeaderStatKey[]> {
-  const pool = players.filter((p) => isQualified(p, DEFAULT_QUALIFY));
-  const t = attemptThresholds(players, DEFAULT_QUALIFY);
+export function seasonLeaderMarks(
+  players: readonly LeaderPlayer[],
+  mode: StatMode,
+  rule: QualifyRule = DEFAULT_QUALIFY,
+): Map<string, LeaderStatKey[]> {
+  const pool = players.filter((p) => isQualified(p, rule));
+  const t = attemptThresholds(players, rule);
   const out = new Map<string, LeaderStatKey[]>();
   for (const key of LEADER_MARK_KEYS) {
     for (const [id, r] of rankMap(pool, key, mode, t)) {

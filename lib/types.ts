@@ -207,6 +207,61 @@ export interface SeasonData {
 }
 
 // ─────────────────────────────────────────────
+// 시즌 경기 — data/processed/{seasonCode}/games.json (scripts/boxscores.ts, 2026-10-03)
+// 경기 목록(서버 C) 정규시즌 경기 + 경기별 기록(서버 B)으로 맞춘 선수 박스스코어.
+// 박스스코어는 그 경기 두 팀 선수 득점 합이 공식 점수와 같을 때만 넣는다(과거 시즌은 경기별 기록이 일부뿐이라 null).
+// ─────────────────────────────────────────────
+
+/** 박스스코어 한 줄 (선수 한 명의 그 경기 기록, 우리 이름) */
+export interface GameBoxRow {
+  id: string;           // playerNo
+  nameKo: string;
+  sec: number;          // 출전 초
+  pts: number;
+  oreb: number;
+  dreb: number;
+  reb: number;
+  ast: number;
+  stl: number;
+  blk: number;
+  tov: number;
+  pf: number;
+  fgm: number;          // 전체 야투
+  fga: number;
+  tpm: number;
+  tpa: number;
+  ftm: number;
+  fta: number;
+}
+
+export interface GameSide {
+  teamCode: string;
+  /** 경기 목록의 팀 이름 (예: "부산 KCC") — 화면은 시즌 팀 약칭을 먼저 쓴다 */
+  name: string;
+  score: number | null;
+}
+
+export interface SeasonGame {
+  gmkey: string;
+  /** "2026-10-03" */
+  date: string;
+  /** "14:00" 또는 null */
+  start: string | null;
+  stadium: string | null;
+  ended: boolean;
+  home: GameSide;
+  away: GameSide;
+  /** 두 팀 선수 기록 (출전 시간 긴 순). 득점 합이 공식 점수와 다르거나 기록이 없으면 null */
+  box: { home: GameBoxRow[]; away: GameBoxRow[] } | null;
+}
+
+export interface SeasonGamesFile {
+  seasonCode: number;
+  /** 정규시즌 경기 (날짜·경기 번호 순) */
+  games: SeasonGame[];
+}
+
+// ─────────────────────────────────────────────
 // 선수 색인 — data/processed/players-index.json (검색·선수 페이지의 뼈대)
 // ─────────────────────────────────────────────
 
