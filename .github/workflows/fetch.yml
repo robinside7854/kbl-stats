@@ -1,4 +1,4 @@
-# 매일 새벽 KBL 기록을 수집해 data/ 에 커밋한다.
+# 매일 밤 KBL 기록을 수집해 data/ 에 커밋한다 (그날 경기를 그날 밤 반영).
 # 수동 실행: GitHub → Actions → "KBL 기록 수집" → Run workflow
 # 시즌 기록 뒤에 현재 시즌 선수의 한 경기 최다·경기별 기록·프로필도 받는다(약 200명 × 3회, 1.5초 간격 ≈ 15분,
 # 개막 후 30일 동안은 직전 시즌 선수도(≈ 30분) — scripts/highs.ts highsTargetSeasons). 과거는 backfill-highs.yml·backfill-gamelogs.yml.
@@ -8,8 +8,11 @@ name: KBL 기록 수집
 
 on:
   schedule:
-    # 매일 04:10 KST (= 19:10 UTC 전날). 경기는 늦어도 22시경 끝나므로 다음날 새벽이면 기록이 반영돼 있다.
-    - cron: "10 19 * * *"
+    # 매일 23:40 KST (= 14:40 UTC). 평일 19시 경기도 21시 전후에 끝나고, 개막일(2026-10-03) 14시 경기는
+    #   그날 19시 반에 KBL 서버 3곳(선수 기록·경기별 기록·슛 차트)에 다 들어와 있었다 → 그날 밤 반영.
+    #   GitHub 스케줄은 수십 분 늦게 돌기도 하지만 자정 넘어도 수집 대상 날짜(todayKst)와 무관하다.
+    #   (2026-10-03 사용자 요청: 다음날 새벽 04:10 → 당일 밤)
+    - cron: "40 14 * * *"
   workflow_dispatch:
     inputs:
       seasons:

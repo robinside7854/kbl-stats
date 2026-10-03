@@ -103,7 +103,7 @@ KBL 공홈은 화면을 그릴 때 아래 두 서버에서 JSON을 받아온다.
 - 화면: **Next.js (App Router) + Tailwind CSS**, 배포는 **Vercel** — 이전 대시보드(basketball-stats-dashboard.vercel.app)와 같은 환경이라 익숙함
 - 차트: **Recharts** 하나만. 레이더·바·라인·산점도 전부 커버. 차트 라이브러리 두 개 이상 섞지 않는다
 - 데이터 저장: **레포 안의 JSON 파일** (`data/raw/`, `data/processed/`). 지금은 DB 없음 — 커뮤니티 1단계(투표·예측)부터 DB 를 들인다(2026-10-02 사용자 결정, SCOPE.md 로드맵). 기록 데이터는 그 뒤에도 JSON 파일 그대로, DB 는 사용자 참여 데이터만
-- 수집 실행: **GitHub Actions 스케줄** (매일 새벽 1회) → 수집 스크립트 실행 → 변경분 커밋 → Vercel 자동 재배포
+- 수집 실행: **GitHub Actions 스케줄** (매일 밤 23:40 KST 1회 — 그날 경기를 그날 밤 반영, 2026-10-03 새벽 04:10 에서 바꿈) → 수집 스크립트 실행 → 변경분 커밋 → Vercel 자동 재배포
 - 절대 피함: (로드맵 단계 확인 전의) DB·로그인/회원, 실시간 갱신, 서버 상태 유지가 필요한 구조, 브라우저에서 KBL API 직접 호출(CORS 차단됨, 아래 참고)
 - 이유: 규모가 작고 데이터가 하루 한 번만 바뀐다. 파일+정적 사이트가 가장 싸고(무료) 가장 덜 고장난다. 커뮤니티 단계가 시작되면 그 부분만 DB
 - 방문 통계: **GA4 측정 ID `G-03YNZDVE0F`**(사용자 구글 계정, 2026-10-02) — `app/components/Analytics.tsx`(서버 컴포넌트), ID 는 `lib/analytics gaMeasurementId`: **Vercel 운영 배포(VERCEL_ENV=production)에서만** 켜짐, 환경변수 `NEXT_PUBLIC_GA_ID` 가 있으면 우선(`off` 면 끔). 페이지 조회는 GA 자동, 버튼 이벤트는 `app/components/track.ts` `trackEvent`·`trackFilters`. 켜져 있으면 푸터에 쿠키 안내 한 줄. **이벤트 목록과 규칙은 아래 "방문 통계 규칙"**
@@ -233,7 +233,7 @@ kbl-stats/
 │                           PlayerCard(게임식 플레이어 카드: 팀 색 상단+큰 사진 / 스탯 9개+순위(전체 또는 "가드 중") / 파울·출전 줄 / 레이더+등급, 입력은 SeasonCardView 하나),
 │                           LeadersView(순위표), TeamsView(팀 분포 산점도·팀 요약), HomeView(홈), SourceFooter, useThemeColors,
 │                           PlayerAvatar(circle·portrait)·TeamLogo(공식 이미지+대체 디자인, official={false}면 대체만), useOfficialImage(저장 filter excludeOfficialImages)
-└── .github/workflows/fetch.yml, backfill.yml, backfill-highs.yml, backfill-gamelogs.yml, backfill-shots.yml, shorts-render.yml(숏폼 렌더)  ← 매일 새벽 수집 / 전체 재수집 / 한 경기 최다·프로필 과거 전체 백필 / 커리어 하이 경기별 기록 백필 / 슛 차트 백필(셋 다 실행 횟수 숫자 올려 푸시)
+└── .github/workflows/fetch.yml, backfill.yml, backfill-highs.yml, backfill-gamelogs.yml, backfill-shots.yml, shorts-render.yml(숏폼 렌더)  ← 매일 밤 수집 / 전체 재수집 / 한 경기 최다·프로필 과거 전체 백필 / 커리어 하이 경기별 기록 백필 / 슛 차트 백필(셋 다 실행 횟수 숫자 올려 푸시)
 ```
 
 ## 후속 예정 (사용자가 하기로 한 일 — 지금은 만들지 않는다)
@@ -296,6 +296,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-03 (개막·수집 시각): 2026-27 개막 3경기(KCC 68-103 LG·소노 82-73 가스공사·정관장 88-85 현대모비스)를 Actions 조사(`claude/probe-opening`, 삭제 권한 없음)로 확인 — 19시 반에 서버 A 선수 기록(61명)·서버 B 경기별 기록·서버 C 경기 목록(isEnded 1)·슛 차트·경기 상세(관중·심판·쿼터 점수)·팀 합계 전부 조회됨. 사용자 요청으로 매일 수집을 **04:10 → 23:40 KST**(`fetch.yml` cron `40 14 * * *`)로 옮김 — 하루 1회 유지. main 배포.
 - 2026-10-02 (푸터 개발자 정보): 모든 화면 푸터에 "만든 사람: ksr-admin · 문의 kbl-stats-ref@naver.com"(`DeveloperContact`, 값은 `data/codes/site.json developer`). 이메일은 브라우저에서 이어 붙여 정적 HTML 에는 "[at]" 글자만(빌드 HTML 에 주소 0건 확인), 누르면 메일 앱, GA4 `contact_click`(매개변수 없음). 검증: typecheck·test·build·slop 0, Playwright 390 mailto 링크 확인. main 배포.
 - 2026-10-02 (배포 한도): 운영 배포 누락 원인 = Vercel Hobby 하루 배포 100회 초과(`api-deployments-free-per-day`, 미리보기 포함해서 셈). 사용자 결정으로 `vercel.json` 추가 — main 만 배포, 다른 브랜치는 배포 안 함(`"**": false, "main": true`, 여러 규칙이 맞으면 하나라도 true 면 배포). 한도가 풀린 뒤 첫 main 배포부터 적용, 그때 54-0 후보 표 변경도 같이 반영됨. 배포 규칙에 "main 푸시는 요청 단위로 묶기" 추가.
 - 2026-10-02 (운영 배포 누락): 54-0 후보 표 커밋(fa8ebb12·7fafe102)을 main 에 올렸는데 Vercel 운영(Production) 배포가 생기지 않음 — 브랜치 미리보기만 Ready, 운영은 그 전 7d8b805 에 머묾(그 사이 main 의 숏폼 커밋도 운영 배포 없음). 이 기록 커밋으로 main 배포를 다시 시도. 원인 후보: Vercel Hobby 하루 배포 100회 한도·웹훅 누락. **main 에 올린 뒤에는 Deployments 에 Production 줄이 생겼는지 사용자에게 확인받을 것.**
