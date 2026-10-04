@@ -167,8 +167,9 @@ export function hasCareerHighs(c: CareerHighs): boolean {
  * 직전 시즌을 매일 수집에 남겨 두는 기간(일). 최신 시즌을 처음 수집한 날(개막 직후)부터 이 일수 동안은
  * 직전 시즌 선수의 한 경기 최다도 같이 받는다 — 개막 전후 비시즌 동안 바뀐 통산 기록(플레이오프 등)을 놓치지 않으려고.
  * 그 뒤로는 직전 시즌이 "마감"되어 다시 받지 않는다 (필요하면 백필 워크플로).
+ * 2026-10-04 사용자 결정: 0일 — 새 시즌에 선수가 생기면(개막) 그날부터 직전 시즌 선수는 받지 않는다(매일 수집 약 15분 단축).
  */
-export const PREVIOUS_SEASON_GRACE_DAYS = 30;
+export const PREVIOUS_SEASON_GRACE_DAYS = 0;
 
 /** "YYYY-MM-DD" 두 날짜 사이 일수 (b - a) */
 export function daysBetween(a: string, b: string): number {
