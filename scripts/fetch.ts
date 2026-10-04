@@ -156,47 +156,64 @@ async function dailyTargetSeasons(knownSeasons: number[], fetchedToday: number[]
 }
 
 /**
- * 현재 시즌 선수의 한 경기 최다 + 경기별 기록 + 프로필. 시즌 수집이 끝난 뒤 raw traditional 의 선수 목록으로 돈다.
- * 반환: 실패 요약 (선수별 실패는 개수만 — 목록이 길어지지 않게)
+ * 선수·경기 하나씩 받는 요청에서 몇 건만 실패한 것은 "경고" — 그날 수집을 실패로 치지 않는다(다음 날 다시 받는다).
+ * 연속 실패로 중단(aborted, 서버가 막힘)됐을 때만 "실패" → 수집 단계가 실패로 끝나 그날 몫이 기록되지 않고 다음 깨어남에 다시 돈다.
+ * (2026-10-04: 700여 건 중 503 한 건 때문에 하루 수집 전체가 실패로 기록된 일이 있어서)
  */
-async function fetchHighsAndProfiles(targets: number[], nosBySeason: Map<number, string[]>): Promise<string[]> {
+export interface Issues {
+  failed: string[];
+  warnings: string[];
+}
+function noteIssue(out: Issues, label: string, r: { failed: string[]; aborted?: boolean }, unit: string): void {
+  if (!r.failed.length) return;
+  const msg = `${label}: ${r.failed.length}${unit} 실패${r.aborted ? "(중단)" : ""} — 예: ${r.failed[0]}`;
+  (r.aborted ? out.failed : out.warnings).push(msg);
+}
+
+/**
+ * 현재 시즌 선수의 한 경기 최다 + 경기별 기록 + 프로필. 시즌 수집이 끝난 뒤 raw traditional 의 선수 목록으로 돈다.
+ * 반환: 실패·경고 요약 (선수별 실패는 개수만 — 목록이 길어지지 않게)
+ */
+async function fetchHighsAndProfiles(targets: number[], nosBySeason: Map<number, string[]>): Promise<Issues> {
   console.log(`\n한 경기 최다·경기별 기록·프로필 대상 시즌: ${targets.join(", ") || "없음"}`);
-  const failed: string[] = [];
+  const out: Issues = { failed: [], warnings: [] };
   const profileNos = new Set<string>();
   for (const code of targets) {
     const nos = nosBySeason.get(code) ?? [];
     nos.forEach((no) => profileNos.add(no));
     const r = await collectHighs(code, nos, { skipExisting: false });
-    if (r.failed.length) failed.push(`highs ${code}: ${r.failed.length}명 실패${r.aborted ? "(중단)" : ""} — 예: ${r.failed[0]}`);
+    noteIssue(out, `highs ${code}`, r, "명");
     // 경기별 기록: 시즌 하이 3점·자유투 성공의 시도 수용. 매일 새로 받는다(시즌 중 경기가 늘어난다)
     const g = await collectGameLogs(code, nos, { skipExisting: false });
-    if (g.failed.length) failed.push(`gamelogs ${code}: ${g.failed.length}명 실패${g.aborted ? "(중단)" : ""} — 예: ${g.failed[0]}`);
+    noteIssue(out, `gamelogs ${code}`, g, "명");
   }
   if (profileNos.size > 0) {
     const r = await collectProfiles([...profileNos], { skipExisting: false });
-    if (r.failed.length) failed.push(`profiles: ${r.failed.length}명 실패${r.aborted ? "(중단)" : ""} — 예: ${r.failed[0]}`);
+    noteIssue(out, "profiles", r, "명");
   }
-  return failed;
+  return out;
 }
 
 /**
  * 현재 시즌 슛 차트: 경기 목록(시즌 전체 달, 약 10회)을 다시 받고 끝난 정규시즌 경기 중 raw 없는 것만 (보통 하루 0~5회).
- * 대상 시즌은 한 경기 최다와 같다. 반환: 실패 요약
+ * 대상 시즌은 한 경기 최다와 같다. 반환: 실패·경고 요약 (경기 목록 실패는 collectSeasonShots 가 aborted 로 알린다)
  */
-async function fetchShots(targets: number[], today: string): Promise<string[]> {
+async function fetchShots(targets: number[], today: string): Promise<Issues> {
   const codesFile = await readJsonOr<unknown>(join(DATA_DIR, "codes", "seasons.json"), null);
-  const failed: string[] = [];
+  const out: Issues = { failed: [], warnings: [] };
   console.log(`\n슛 차트 대상 시즌: ${targets.join(", ") || "없음"}`);
   for (const code of targets) {
     const label = seasonLabelOf(code, codesFile, SEASON_CODES_FALLBACK);
     if (!label) {
-      failed.push(`shots ${code}: 시즌 라벨 없음`);
+      out.failed.push(`shots ${code}: 시즌 라벨 없음`);
       continue;
     }
     const r = await collectSeasonShots({ seasonCode: code, label, today, mode: "daily" });
-    if (r.failed.length) failed.push(`shots ${code}: ${r.failed.length}건 실패${r.aborted ? "(중단)" : ""} — 예: ${r.failed[0]}`);
+    // 경기 목록(점수·끝남 여부)을 못 받으면 오늘 경기가 화면에 안 들어간다 → 몇 건이어도 실패로 쳐서 다음 깨어남에 다시
+    const listFailed = r.failed.some((f) => f.startsWith("경기 목록"));
+    noteIssue(out, `shots ${code}`, { ...r, aborted: r.aborted || listFailed }, "건");
   }
-  return failed;
+  return out;
 }
 
 async function fetchSeason(seasonCode: number) {
@@ -270,6 +287,8 @@ async function main() {
   const targets = all ? knownSeasons : explicit.length > 0 ? explicit : DEFAULT_SEASONS;
 
   const failed: string[] = [];
+  // 몇 건만 실패한 선수·경기 요청 — 출력만 하고 종료 코드는 0 (Issues 주석)
+  const warnings: string[] = [];
 
   // 선수 마스터 (포지션·국적·신장·드래프트) — 실패해도 시즌 수집은 계속하고 실패 목록에 남긴다
   try {
@@ -308,14 +327,18 @@ async function main() {
       const daily = await dailyTargetSeasons(knownSeasons, targets);
       if (!skipHighs) {
         try {
-          failed.push(...(await fetchHighsAndProfiles(daily.targets, daily.nosBySeason)));
+          const r = await fetchHighsAndProfiles(daily.targets, daily.nosBySeason);
+          failed.push(...r.failed);
+          warnings.push(...r.warnings);
         } catch (e) {
           failed.push(`highs: ${(e as Error).message}`);
         }
       }
       if (!skipShots) {
         try {
-          failed.push(...(await fetchShots(daily.targets, daily.today)));
+          const r = await fetchShots(daily.targets, daily.today);
+          failed.push(...r.failed);
+          warnings.push(...r.warnings);
         } catch (e) {
           failed.push(`shots: ${(e as Error).message}`);
         }
@@ -327,9 +350,10 @@ async function main() {
 
   await writeFile(
     join(DATA_DIR, "last_fetch.json"),
-    JSON.stringify({ at: new Date().toISOString(), targets, failed }, null, 2),
+    JSON.stringify({ at: new Date().toISOString(), targets, failed, warnings }, null, 2),
   );
 
+  if (warnings.length > 0) console.warn(`\n경고 ${warnings.length}건 (몇 건만 실패 — 다음 수집 때 다시 받음, 오늘 수집은 성공으로 친다):\n- ${warnings.join("\n- ")}`);
   if (failed.length > 0) {
     console.error(`\n실패 ${failed.length}건:\n- ${failed.join("\n- ")}`);
     process.exitCode = 1;
