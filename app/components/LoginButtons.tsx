@@ -1,9 +1,11 @@
 "use client";
 // 구글·네이버 로그인 버튼 (각 회사 버튼 안내에 맞춘 색·로고 — 팀 색·액센트 규칙의 예외).
+// 이 브라우저에서 마지막으로 쓴 회사 버튼에 "최근 사용" 꼬리표(로그아웃해도 남음).
 // GA4: login_start { provider }. 로그인이 끝나면 /me?login=회사 로 돌아와 AccountView 가 login_success 를 보낸다.
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { signIn } from "next-auth/react";
 import { PROVIDER_LABELS, type LoginProvider } from "@/lib/account";
+import { lastLoginProvider } from "./account-client";
 import { trackEvent } from "./track";
 
 function GoogleMark() {
@@ -25,8 +27,21 @@ function NaverMark() {
   );
 }
 
+function RecentTag({ tone }: { tone: "dark" | "light" }) {
+  return (
+    <span
+      // deslop-ignore-next-line 03
+      className={`ml-1 rounded-md px-1.5 py-0.5 text-caption font-bold ${tone === "dark" ? "bg-white text-[#03753A]" : "bg-[#1f1f1f] text-white"}`}
+    >
+      최근 사용
+    </span>
+  );
+}
+
 export default function LoginButtons({ providers }: { providers: LoginProvider[] }) {
   const [busy, setBusy] = useState<LoginProvider | null>(null);
+  const [last, setLast] = useState<LoginProvider | null>(null);
+  useEffect(() => setLast(lastLoginProvider()), []);
   function go(p: LoginProvider) {
     setBusy(p);
     trackEvent("login_start", { provider: p });
@@ -44,6 +59,7 @@ export default function LoginButtons({ providers }: { providers: LoginProvider[]
         >
           <NaverMark />
           {busy === "naver" ? "네이버로 이동 중…" : `${PROVIDER_LABELS.naver}로 로그인`}
+          {last === "naver" && busy === null && <RecentTag tone="dark" />}
         </button>
       )}
       {providers.includes("google") && (
@@ -56,6 +72,7 @@ export default function LoginButtons({ providers }: { providers: LoginProvider[]
         >
           <GoogleMark />
           {busy === "google" ? "구글로 이동 중…" : `${PROVIDER_LABELS.google} 계정으로 로그인`}
+          {last === "google" && busy === null && <RecentTag tone="light" />}
         </button>
       )}
     </div>

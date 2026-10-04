@@ -2,12 +2,14 @@
 // 요청을 아끼려고(Vercel 무료 한도) 로그인한 적이 있는 브라우저에서만 /api/me 를 부른다 — 힌트는 localStorage,
 // 내 정보는 이번 방문(sessionStorage) 동안 10분 기억한다. 로그인하지 않은 방문자는 회원 API 를 한 번도 부르지 않는다.
 import { getCsrfToken } from "next-auth/react";
-import { mergeFavorites, sameList, type MemberView } from "@/lib/account";
+import { mergeFavorites, parseLoginProviders, sameList, type LoginProvider, type MemberView } from "@/lib/account";
 import { readFavorites, replaceFavorites } from "./useFavorites";
 
 const HINT_KEY = "kbl-stats:signed-in:v1";
 const CACHE_KEY = "kbl-stats:me:v1";
 const SYNCED_KEY = "kbl-stats:favorites-synced:v1";
+// 마지막으로 쓴 로그인 회사 — 로그아웃해도 남겨 둬서 로그인 버튼에 "최근 사용"으로 보여 준다(탈퇴하면 지움)
+const LAST_PROVIDER_KEY = "kbl-stats:last-login:v1";
 const CACHE_MS = 10 * 60 * 1000;
 export const ACCOUNT_EVENT = "kbl-account-change";
 
@@ -34,9 +36,15 @@ function clearSession() {
 function remember(member: MemberView) {
   safe(() => {
     window.localStorage.setItem(HINT_KEY, "1");
+    if (member.provider) window.localStorage.setItem(LAST_PROVIDER_KEY, member.provider);
     window.sessionStorage.setItem(CACHE_KEY, JSON.stringify({ at: Date.now(), member }));
   }, undefined);
   window.dispatchEvent(new CustomEvent(ACCOUNT_EVENT));
+}
+
+/** 이 브라우저에서 마지막으로 로그인한 회사 (없으면 null) */
+export function lastLoginProvider(): LoginProvider | null {
+  return safe(() => parseLoginProviders(window.localStorage.getItem(LAST_PROVIDER_KEY))[0] ?? null, null);
 }
 
 export function cachedMember(): MemberView | null {
@@ -139,7 +147,10 @@ export function forgetAccount() {
 export async function deleteAccount(): Promise<boolean> {
   try {
     const r = await send("DELETE", "/api/me");
-    if (r.ok) forgetAccount();
+    if (r.ok) {
+      safe(() => window.localStorage.removeItem(LAST_PROVIDER_KEY), undefined);
+      forgetAccount();
+    }
     return r.ok;
   } catch {
     return false;
