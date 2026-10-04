@@ -1,12 +1,16 @@
 "use client";
-// 내 계정 화면 (/me, 2026-10-04): 로그인 전 = 구글·네이버 버튼, 로그인 뒤 = 닉네임·응원팀 정하기·즐겨찾기 개수·로그아웃·탈퇴.
+// 내 계정 화면 (/me, 2026-10-04): 로그인 전 = 구글·네이버 버튼, 로그인 뒤 = 닉네임·응원팀 정하기·로그인 연결·즐겨찾기 개수·로그아웃·탈퇴(+ 관리자면 관리자 화면).
 // GA4: login_success{provider}(돌아온 직후) · profile_save{team_code} · favorites_sync{count} · logout · account_delete · login_error{reason}
+//      account_link_start{provider} · account_link{provider, result}(돌아온 직후) · account_unlink{provider}
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
-import { enabledLoginProviders, NICKNAME_MAX, NICKNAME_MIN, PROVIDER_LABELS, validateNickname, type LoginProvider, type MemberView } from "@/lib/account";
+import {
+  canUnlink, enabledLoginProviders, linkResultMessage, NICKNAME_MAX, NICKNAME_MIN, parseLoginProviders, PROVIDER_LABELS, validateNickname,
+  type LoginProvider, type MemberView,
+} from "@/lib/account";
 import type { TeamColor } from "@/lib/types";
-import { clearSuggestion, deleteAccount, fetchMe, forgetAccount, saveProfile, syncFavorites } from "./account-client";
+import { clearSuggestion, deleteAccount, fetchMe, forgetAccount, saveProfile, startLink, syncFavorites, unlinkProvider } from "./account-client";
 import LoginButtons from "./LoginButtons";
 import MemberBadge from "./MemberBadge";
 import Skeleton from "./Skeleton";
@@ -40,7 +44,8 @@ export default function AccountView({ teams }: { teams: AccountTeam[] }) {
   useEffect(() => {
     if (providers.length === 0) return;
     const q = new URLSearchParams(window.location.search);
-    const justLoggedIn = q.get("login");
+    const justLinked = parseLoginProviders(q.get("link"))[0] ?? null;
+    const justLoggedIn = q.get("login") ?? justLinked;
     const error = q.get("error");
     if (error) {
       setNotice(loginErrorText(error));
@@ -50,7 +55,11 @@ export default function AccountView({ teams }: { teams: AccountTeam[] }) {
     if (justLoggedIn || error || q.get("deleted")) window.history.replaceState(null, "", "/me");
     void fetchMe(true).then(async (r) => {
       if (r.status === "signed_in") {
-        if (justLoggedIn) trackEvent("login_success", { provider: justLoggedIn.slice(0, 10) });
+        if (r.linkResult) {
+          setNotice(linkResultMessage(r.linkResult, justLinked));
+          trackEvent("account_link", { provider: justLinked ?? "unknown", result: r.linkResult });
+          void clearSuggestion(); // 결과 표시는 한 번만 (로그인 쿠키에서 지움)
+        } else if (justLoggedIn && !justLinked) trackEvent("login_success", { provider: justLoggedIn.slice(0, 10) });
         const count = await syncFavorites(r.member, !!justLoggedIn);
         if (justLoggedIn) trackEvent("favorites_sync", { count });
         const again = await fetchMe();
@@ -208,6 +217,20 @@ function SignedIn({ member, suggested, teams, onChange }: { member: MemberView; 
         )}
       </Card>
 
+      <LinkCard member={member} onChange={onChange} />
+
+      {member.isAdmin && (
+        <Card>
+          <h2 className="text-body font-bold">관리자</h2>
+          <Link
+            href="/admin"
+            className="focus-ring mt-2 inline-flex h-11 items-center rounded-control border border-line bg-surface px-4 text-body font-semibold text-ink transition-colors duration-200 hover:bg-surface-2"
+          >
+            회원 목록 보기
+          </Link>
+        </Card>
+      )}
+
       <Card>
         <h2 className="text-body font-bold">즐겨찾기</h2>
         <p className="mt-1 text-body text-ink-2">
@@ -261,5 +284,100 @@ function SignedIn({ member, suggested, teams, onChange }: { member: MemberView; 
         </div>
       </Card>
     </>
+  );
+}
+
+/** 로그인 연결: 구글·네이버를 한 계정으로. 연결 = 그 회사 로그인을 한 번 거친다, 이미 따로 가입했으면 합친다 */
+function LinkCard({ member, onChange }: { member: MemberView; onChange: (m: MemberView) => void }) {
+  const providers = enabledLoginProviders();
+  const [confirm, setConfirm] = useState<LoginProvider | null>(null);
+  const [busy, setBusy] = useState<LoginProvider | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+  if (providers.length < 2) return null;
+
+  async function link(p: LoginProvider) {
+    setBusy(p);
+    setMessage(null);
+    trackEvent("account_link_start", { provider: p });
+    if (!(await startLink(p))) {
+      setBusy(null);
+      setMessage("연결을 시작하지 못했어요. 잠시 뒤 다시 해 주세요.");
+    }
+  }
+
+  async function unlink(p: LoginProvider) {
+    setBusy(p);
+    setMessage(null);
+    const m = await unlinkProvider(p);
+    setBusy(null);
+    if (!m) return setMessage("연결을 해제하지 못했어요. 잠시 뒤 다시 해 주세요.");
+    trackEvent("account_unlink", { provider: p });
+    onChange(m);
+    setMessage(`${PROVIDER_LABELS[p]} 연결을 해제했어요.`);
+  }
+
+  return (
+    <Card>
+      <h2 className="text-body font-bold">로그인 연결</h2>
+      <p className="mt-1 text-sub text-ink-3">구글·네이버를 연결하면 어느 쪽으로 로그인해도 같은 계정이에요.</p>
+      <ul className="mt-3 divide-y divide-line">
+        {providers.map((p) => {
+          const linked = member.logins.includes(p);
+          const current = member.provider === p;
+          return (
+            <li key={p} className="py-2">
+              <div className="flex min-h-11 items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-body font-semibold text-ink">{PROVIDER_LABELS[p]}</p>
+                  <p className="text-sub text-ink-3">{linked ? (current ? "연결됨 · 지금 이걸로 로그인" : "연결됨") : "연결 안 됨"}</p>
+                </div>
+                {!linked && (
+                  <button
+                    type="button"
+                    onClick={() => setConfirm(confirm === p ? null : p)}
+                    disabled={busy !== null}
+                    aria-expanded={confirm === p}
+                    className="focus-ring h-10 shrink-0 cursor-pointer rounded-control border border-line bg-surface px-3 text-sub font-semibold text-ink transition-colors duration-200 hover:bg-surface-2 disabled:cursor-wait"
+                  >
+                    연결하기
+                  </button>
+                )}
+                {linked && canUnlink(member.logins, member.provider, p) && (
+                  <button
+                    type="button"
+                    onClick={() => unlink(p)}
+                    disabled={busy !== null}
+                    className="focus-ring h-10 shrink-0 cursor-pointer rounded-control px-3 text-sub font-semibold text-ink-3 transition-colors duration-200 hover:text-ink disabled:cursor-wait"
+                  >
+                    {busy === p ? "해제 중…" : "연결 해제"}
+                  </button>
+                )}
+              </div>
+              {confirm === p && !linked && (
+                <div className="mt-2 rounded-card border border-line p-3">
+                  <p className="text-sub text-ink-2">
+                    {PROVIDER_LABELS[p]} 로그인 화면으로 이동해요. 그 {PROVIDER_LABELS[p]} 계정으로 이미 따로 가입했다면 두 계정을 이 계정으로 합쳐요. 즐겨찾기는 합치고, 닉네임·응원팀은 이 계정 것을 남겨요(비어 있으면 그쪽 것).
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => link(p)}
+                    disabled={busy !== null}
+                    className="focus-ring mt-2 h-10 cursor-pointer rounded-control bg-ink px-4 text-sub font-bold text-bg transition-colors duration-200 disabled:cursor-wait"
+                  >
+                    {busy === p ? `${PROVIDER_LABELS[p]}로 이동 중…` : `${PROVIDER_LABELS[p]}로 계속`}
+                  </button>
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+      {member.logins.length > 1 && <p className="mt-2 text-sub text-ink-3">지금 로그인한 수단은 해제할 수 없어요. 다른 수단으로 로그인한 뒤 해제해 주세요.</p>}
+      {message && (
+        <p role="status" className="mt-2 text-sub text-ink">
+          {message}
+        </p>
+      )}
+    </Card>
   );
 }

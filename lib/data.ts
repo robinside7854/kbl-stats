@@ -12,6 +12,7 @@ import type {
   Player,
   PlayerIndexEntry,
   SeasonData,
+  Team,
   SeasonOption,
   SeasonGame,
   SeasonGamesFile,
@@ -746,4 +747,13 @@ export function loadAwardLists(): RecordListsData {
     }));
   }
   return { people: collectPeople(lists), lists };
+}
+
+/** 응원팀 고르기·관리자 화면용 팀 목록 = 선수 기록이 있는 최신 시즌 + 직전 시즌의 팀 (개막 직후 아직 경기를 안 한 팀을 채우려고, 같은 코드는 최신 시즌 값) */
+export function loadAccountTeams(): { teamCode: string; name: string; logoUrl: string | null; color: Team["color"] }[] {
+  const byCode = new Map<string, Team>();
+  for (const s of listSeasonsWithPlayers().slice(0, 2)) for (const t of loadSeasonData(s.seasonCode)?.teams ?? []) if (!byCode.has(t.teamCode)) byCode.set(t.teamCode, t);
+  return [...byCode.values()]
+    .sort((a, b) => a.order - b.order)
+    .map((t) => ({ teamCode: t.teamCode, name: t.shortNameKo, logoUrl: t.logoUrl, color: t.color }));
 }

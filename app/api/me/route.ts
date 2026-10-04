@@ -1,14 +1,15 @@
-// 내 회원 정보: GET 보기(처음이면 만든다) · PATCH 닉네임·응원팀 저장 · DELETE 탈퇴(바로 삭제)
+// 내 회원 정보: GET 보기(처음이면 만든다 — 연결된 로그인 수단·관리자 여부·방금 연결 결과 포함) · PATCH 닉네임·응원팀 저장 · DELETE 탈퇴(바로 삭제)
 import { normalizeTeamCode, validateNickname } from "@/lib/account";
 import { badWriteRequest, json, readJson } from "@/lib/server/api";
-import { currentMemberId, currentSession } from "@/lib/server/auth";
+import { currentLoginId, currentSession } from "@/lib/server/auth";
+import { isAdmin } from "@/lib/server/admin";
 import { getDb } from "@/lib/server/db";
 import { deleteMember, getOrCreateMember, updateProfile } from "@/lib/server/members";
 
 export const dynamic = "force-dynamic";
 
 async function context() {
-  const id = await currentMemberId();
+  const id = await currentLoginId();
   if (!id) return { error: json({ error: "signed_out" }, 401) } as const;
   const db = await getDb();
   if (!db) return { error: json({ error: "unavailable" }, 503) } as const;
@@ -21,8 +22,9 @@ export async function GET() {
   const db = await getDb();
   if (!db) return json({ error: "unavailable" }, 503);
   const member = await getOrCreateMember(db, s.id);
+  if (await isAdmin(db, s.id)) member.isAdmin = true;
   // 닉네임을 아직 안 정했을 때만 네이버 별명을 제안으로 (저장은 사용자가 '저장'을 눌러야)
-  return json({ member, suggestedNickname: member.nickname ? null : s.suggest });
+  return json({ member, suggestedNickname: member.nickname ? null : s.suggest, linkResult: s.linkResult });
 }
 
 export async function PATCH(req: Request) {

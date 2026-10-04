@@ -214,8 +214,8 @@ kbl-stats/
 │   ├── game-pool.ts     ← 54-0 후보 풀 만들기 buildGamePool(시즌 카드 → 시즌 × 팀 × 후보, 표본 충족·포지션 있는 선수, 점수·축·기록 모두 그 시즌) — 빌드 스크립트 전용
 │   ├── shorts.ts        ← 팬 숏폼 규칙 (순수: 득점 출처 4개 scoringBreakdown(공식 2점·3점·자유투 + 2점을 슛 차트 구역 비율로 페인트/미드, 합 = 공식 득점), 선수별 특징 pickCallouts(비중·경기당 1위, MIN_TRAIT_SHARE 20, 균형형 BALANCED_MAX_SHARE 40), 대사 topScorerLine(해요체)·toSpeech·자막 captionChunks·길이 추정·슛 점 솎기)
 │   ├── share.ts         ← 공유 미리보기 (SITE_URL = data/codes/site.json siteUrl, shareMetadata = 제목·설명·og·twitter 한 벌 — 페이지마다 이걸로, ogImagePath, GA 화면 이름 sharePageOf). layout 에 metadataBase
-│   ├── account.ts       ← 회원 규칙 (순수: 로그인 회사 parseLoginProviders·enabledLoginProviders, 회원 번호 memberIdOf("google:…"), 닉네임 validateNickname(2~12자·한글/영문/숫자/_·운영자 사칭 금지), 응원팀 normalizeTeamCode, 즐겨찾기 sanitizeFavorites(상한 300)·mergeFavorites(이 브라우저 순서 먼저))
-│   ├── server/          ← 서버 전용: auth.ts(next-auth 설정·currentMemberId), db.ts(Neon 연결·표 준비), members.ts(SQL — Query 를 받아서, 테스트는 PGlite), api.ts(쓰기 요청 Origin·JSON 검사)
+│   ├── account.ts       ← 회원 규칙 (순수: 로그인 회사 parseLoginProviders·enabledLoginProviders, 로그인 번호 memberIdOf("google:…"), 계정 연결 LinkResult·linkResultMessage·canUnlink, 관리자 parseAdminLoginIds·isAdminLogin, 닉네임 validateNickname(2~12자·한글/영문/숫자/_·운영자 사칭 금지), 응원팀 normalizeTeamCode, 즐겨찾기 sanitizeFavorites(상한 300)·mergeFavorites(이 브라우저 순서 먼저))
+│   ├── server/          ← 서버 전용: auth.ts(next-auth 설정·currentLoginId·로그인 콜백에서 계정 연결), db.ts(Neon 연결·표 준비), members.ts(SQL — 표 members + member_logins(로그인 번호 → 회원), resolveMemberId·linkLogin(합치기)·unlinkLogin·listMembers, 테스트는 PGlite), link.ts(연결 표시 쿠키 — 값은 lib/link-token.ts 서명·5분), admin.ts(ADMIN_LOGIN_IDS), api.ts(쓰기 요청 Origin·JSON 검사)
 │   ├── favorites.ts     ← 즐겨찾기 (순수: parseFavorites·toggleFavorite, FAVORITES_VISIBLE 5 — 저장은 app/components/useFavorites localStorage)
 │   ├── prime.ts         ← 프라임 시즌 (pickPrimeSeasons·primeCandidatesOf)
 │   ├── career-cards.ts  ← 비교 탭 통산 카드 (buildCareerCards, CAREER_CODE 0, CAREER_QUALIFY 100경기·1,000분)
@@ -241,6 +241,7 @@ kbl-stats/
 │   ├── compare/page.tsx ← 비교 탭 정적 1쪽 (?a=번호:코드&b=번호:코드, 기본은 최신·직전 시즌 PER 1위)
 │   ├── game/page.tsx    ← 54-0 게임 (GameView: 다섯 칸 → 슬롯머신 두 대(시즌 하나·팀 3개) → 세 팀 후보 고르기(득점순, 등급 숨김) → 코트 위 5명·54경기 결과·기록 표·이미지 저장·링크 복사, /game/pool.json fetch, ?l= 공유 결과, 메뉴 "54-0")
 │   ├── privacy/page.tsx ← 개인정보 처리 안내 (2026-10-03 보안 점검, 푸터 링크만): 직접 수집 없음·GA4 항목/보관/거부·localStorage·KBL 이미지·문의 — 수집 방식이 바뀌면 같이 고칠 것
+│   ├── admin/page.tsx   ← 관리자 회원 목록 (AdminView: 요약·응원팀별·목록 찾기, /api/admin/members, 관리자 = Vercel ADMIN_LOGIN_IDS 의 로그인 번호가 붙은 회원, 아니면 내 로그인 번호 표시, noindex·메뉴 없음 — 내 계정 화면 "회원 목록 보기")
 │   ├── me/page.tsx      ← 내 계정 (AccountView: 로그인 전 구글·네이버 버튼 / 뒤 닉네임·응원팀·즐겨찾기 수·로그아웃·탈퇴, 헤더 AccountButton 으로 들어옴, noindex) + api/auth/[...nextauth]·api/me(GET·PATCH·DELETE)·api/me/favorites(PUT)
 │   ├── glossary/page.tsx ← 용어 탭 (lib/glossary 표, 앵커 /glossary#ts)
 │   ├── season/[seasonCode]/leaders/page.tsx  ← 시즌 순위표 정적 페이지 (1~3위 표지 카드 + 이 시즌 한 경기 최다 카드 줄 + 정렬 표, 포지션·국적 칩, 파울 열)
@@ -290,6 +291,8 @@ kbl-stats/
   | profile_save | team_code(없으면 none) | 닉네임·응원팀 저장 |
   | favorites_sync | count | 로그인 직후 이 브라우저·계정 즐겨찾기 합치기 |
   | logout / account_delete | | 로그아웃 / 탈퇴 |
+  | account_link_start / account_link / account_unlink | provider / provider, result(linked·merged·conflict·failed) / provider | 로그인 연결 시작 / 돌아온 직후 결과 / 연결 해제 |
+  | admin_view | (없음) | 관리자 회원 목록 열기 |
   | nav_click(menu "로그인"·"내 계정") | | 헤더 계정 버튼 |
   | contact_click | (없음) | 푸터 문의 이메일 누르기 |
   | boxscore_open | game_key(gmkey), season_code, place(home/schedule) | 홈 "오늘의 경기"·일정 화면 선수 기록 펼치기 (정렬·보기 전환은 filter_change screen=boxscore sort·view, 일정 달은 screen=schedule month) |
@@ -334,6 +337,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-04 (계정 연결·관리자 회원 목록): 사용자 결정 — 구글·네이버를 한 회원으로. 표 `member_logins`(로그인 번호 → 회원, 회사마다 하나) 추가, 옛 회원은 표 준비 때 옮겨 적음(회원 번호 = 로그인 번호), 새 회원 번호 `m:무작위`. 연결 = 내 계정 "로그인 연결" → `/api/me/link` 가 서명 쿠키(5분) → 그 회사 로그인 → 로그인 콜백이 `linkLogin`: 처음 보는 로그인은 붙이고, 따로 가입한 계정이면 합침(즐겨찾기 합침·닉네임/응원팀은 지금 계정, 비면 그쪽), 같은 회사가 겹치면 conflict(원래 계정으로 로그인 유지). 해제는 지금 로그인한 수단·마지막 하나 빼고. 관리자 `/admin`(요약·응원팀별·목록 찾기·50명씩): 이메일은 받지 않으므로 Vercel `ADMIN_LOGIN_IDS`(로그인 번호, 쉼표)로 정함 — 관리자가 아니면 /admin 이 내 로그인 번호를 보여 줌, 계정을 연결해 두면 어느 쪽 로그인이든 관리자. 이메일 주소는 코드·커밋에 넣지 않음. GA4 account_link_start·account_link(result)·account_unlink·admin_view. 개인정보 안내에 연결·운영자 열람 항목. 검증: typecheck·test(account: PGlite 로 옮겨 적기·붙이기·합치기·겹침·해제·탈퇴·관리자 목록, 쿠키 서명·만료·위조)·build(로그인 켜짐/꺼짐)·slop 0, Playwright 390/1280(다크) 연결 카드·합침 안내·해제·관리자 목록·검색·권한 없음 화면 가로 넘침 0·이벤트. 실제 구글↔네이버 왕복은 사용자 확인. main 배포.
 - 2026-10-04 (54-0 게임 방법 안내): 사용자 요청 — 시작 전 상단에 **"게임 방법과 점수 계산"** 상자(`GameView GameRules`): 이렇게 해요(3단계 + 다시 돌리기·같은 선수 규칙) · 점수(숨은 종합 점수·팀 전력 식·S급 5명도 다섯 판에 한 번꼴) · 가산점 표(숫자는 lib/game 상수에서 읽음). 처음엔 펼쳐 있고 슬롯을 돌리면 접힘, 버튼으로 다시 열기. GA4 filter_change screen=game filter=rules. 검증: typecheck·test·build·slop 0, Playwright 360/1280 가로 넘침 0·접힘/펼침·가짜 gtag. main 배포.
 - 2026-10-04 (54-0 가산점): 사용자 결정 — ① **동문 케미**: 다섯 명 중 3명 이상 같은 학교(`lib/roster schoolGroupOf`, 해외·정보 없음 제외) +1, 결과에 학교 이름 한마디(`schoolChemistryComment`) ② **프라임 타임**: 그 선수의 프라임 시즌(`lib/prime`)으로 뽑은 선수 2명 이상 +0.5 ③ **우승 DNA**: 그 시즌 정규리그 1위 팀 소속 1명당 +0.25 — 1위는 경기 결과 순위의 맨 위 동률 팀을 공식 1위 이름(seasonAwards.regular.first)으로 가림(`lib/game-pool pickRegularChampions`, 19-20 은 DB·SK 공동, 30개 시즌 확인). 후보에 `school·prime·regularChamp`(`scripts/build-game.ts`), 전력 = base + 가산점(100 상한, `teamRating.bonuses`). 처음 안(+1.5·+1·+0.5)은 S급 5명 전승 19% → 49% 라 가산점을 줄이고 `WIN_CURVE` 96~99 패배를 1.4배로(7.7·4.9·3.1·1.7%) → S급 5명 22%(가산점 있음 23%·없음 9%), 득점 1위만 0.6%, 아무나 17승. 결과 화면 "가산점" 칸(이름·점수·해당 선수), 고르는 중엔 안 보임. GA4 game_complete `bonuses`. 검증: test(가산점·1위 고르기)·typecheck·build·slop 0, Playwright 360/1280 가로 넘침 0·콘솔 에러 0·완주·가짜 gtag. main 배포.
 - 2026-10-04 (로그인 확인·최근 사용): 운영 사이트 로그인을 Actions 조사(`claude/probe-login`, 삭제 권한 없음 — 지워도 됨)로 확인 — 구글·네이버 켜짐, /api/me 401, 두 회사 로그인 화면까지 이동·돌아오는 주소 정상(실제 로그인·DB 저장은 사용자 확인). 로그인 버튼에 이 브라우저에서 마지막으로 쓴 회사 "최근 사용" 꼬리표(localStorage `kbl-stats:last-login:v1`, 로그아웃해도 남고 탈퇴 때 지움), 개인정보 안내 문구. 구글·네이버는 서로 다른 계정(연결 안 함), 로그인 유지 30일. main 배포.

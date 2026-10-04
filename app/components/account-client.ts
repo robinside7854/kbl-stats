@@ -1,8 +1,10 @@
 // 회원 기능 브라우저 쪽 (2026-10-04): 로그인 여부 힌트·내 정보 불러오기·저장·즐겨찾기 맞추기.
 // 요청을 아끼려고(Vercel 무료 한도) 로그인한 적이 있는 브라우저에서만 /api/me 를 부른다 — 힌트는 localStorage,
 // 내 정보는 이번 방문(sessionStorage) 동안 10분 기억한다. 로그인하지 않은 방문자는 회원 API 를 한 번도 부르지 않는다.
-import { getCsrfToken } from "next-auth/react";
-import { mergeFavorites, parseLoginProviders, sameList, type LoginProvider, type MemberView } from "@/lib/account";
+import { getCsrfToken, signIn } from "next-auth/react";
+import {
+  LINK_RESULTS, mergeFavorites, parseLoginProviders, sameList, type AdminMemberRow, type LinkResult, type LoginProvider, type MemberView,
+} from "@/lib/account";
 import { readFavorites, replaceFavorites } from "./useFavorites";
 
 const HINT_KEY = "kbl-stats:signed-in:v1";
@@ -57,7 +59,11 @@ export function cachedMember(): MemberView | null {
 }
 
 /** suggestedNickname: 네이버 별명 (닉네임을 아직 안 정했을 때만, 화면은 칸에 미리 채우기만) */
-export type MeResult = { status: "signed_in"; member: MemberView; suggestedNickname?: string | null } | { status: "signed_out" } | { status: "error" };
+/** linkResult: 방금 계정 연결을 하고 돌아왔으면 그 결과 (화면이 안내한 뒤 clearSuggestion 으로 지운다) */
+export type MeResult =
+  | { status: "signed_in"; member: MemberView; suggestedNickname?: string | null; linkResult?: LinkResult | null }
+  | { status: "signed_out" }
+  | { status: "error" };
 
 /** 내 정보 (fresh 가 아니면 10분 기억한 값) — 로그인 안 돼 있으면 힌트를 지운다 */
 export async function fetchMe(fresh = false): Promise<MeResult> {
@@ -73,15 +79,16 @@ export async function fetchMe(fresh = false): Promise<MeResult> {
       return { status: "signed_out" };
     }
     if (!res.ok) return { status: "error" };
-    const { member, suggestedNickname } = (await res.json()) as { member: MemberView; suggestedNickname?: string | null };
+    const { member, suggestedNickname, linkResult } = (await res.json()) as { member: MemberView; suggestedNickname?: string | null; linkResult?: unknown };
     remember(member);
-    return { status: "signed_in", member, suggestedNickname: suggestedNickname ?? null };
+    const link = LINK_RESULTS.includes(linkResult as LinkResult) ? (linkResult as LinkResult) : null;
+    return { status: "signed_in", member, suggestedNickname: suggestedNickname ?? null, linkResult: link };
   } catch {
     return { status: "error" };
   }
 }
 
-async function send(method: "PATCH" | "PUT" | "DELETE", url: string, body?: unknown) {
+async function send(method: "PATCH" | "PUT" | "DELETE" | "POST", url: string, body?: unknown) {
   const res = await fetch(url, {
     method,
     headers: body === undefined ? undefined : { "Content-Type": "application/json" },
@@ -126,6 +133,51 @@ export async function syncFavorites(member: MemberView, force = false): Promise<
   if (!sameList(merged, member.favorites)) await pushFavorites(merged);
   safe(() => window.sessionStorage.setItem(SYNCED_KEY, "1"), undefined);
   return merged.length;
+}
+
+/** 계정 연결 시작: 서버에 표시를 남기고 그 회사 로그인으로 보낸다 (돌아오면 /me?link=회사) */
+export async function startLink(provider: LoginProvider): Promise<boolean> {
+  try {
+    const r = await send("POST", "/api/me/link", { provider });
+    if (!r.ok) return false;
+    await signIn(provider, { callbackUrl: `/me?link=${provider}` });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** 연결 해제 → 바뀐 회원 정보 (못 하면 null) */
+export async function unlinkProvider(provider: LoginProvider): Promise<MemberView | null> {
+  try {
+    const r = await send("DELETE", `/api/me/link?provider=${provider}`);
+    if (!r.ok) return null;
+    const member = r.data.member as MemberView;
+    remember(member);
+    return member;
+  } catch {
+    return null;
+  }
+}
+
+export type AdminResult =
+  | { status: "ok"; members: AdminMemberRow[] }
+  | { status: "forbidden"; myLoginIds: string[] }
+  | { status: "signed_out" }
+  | { status: "error" };
+
+/** 관리자: 전체 회원 목록 */
+export async function fetchAdminMembers(): Promise<AdminResult> {
+  try {
+    const res = await fetch("/api/admin/members", { cache: "no-store" });
+    const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+    if (res.status === 401) return { status: "signed_out" };
+    if (res.status === 403) return { status: "forbidden", myLoginIds: Array.isArray(data.myLoginIds) ? (data.myLoginIds as string[]) : [] };
+    if (!res.ok) return { status: "error" };
+    return { status: "ok", members: (data.members as AdminMemberRow[]) ?? [] };
+  } catch {
+    return { status: "error" };
+  }
 }
 
 /** 닉네임을 저장했으면 로그인 쿠키에 잠시 둔 네이버 별명 제안을 지운다 (next-auth 세션 update) */
