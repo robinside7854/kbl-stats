@@ -109,7 +109,9 @@ assert.equal(birthdayIso("19941331"), null);
 console.log("highs: 프로필 파싱 통과");
 
 // ── 수집 대상 시즌 (매일) ──
-assert.equal(PREVIOUS_SEASON_GRACE_DAYS, 30);
+assert.equal(PREVIOUS_SEASON_GRACE_DAYS, 0);
+// 기본값(0일): 개막 첫날부터 최신 시즌만
+assert.deepEqual(highsTargetSeasons({ seasons: [{ seasonCode: 47, playerCount: 190 }, { seasonCode: 49, playerCount: 61 }], firstSeen: { "49": "2026-10-03" }, today: "2026-10-03" }), [49]);
 assert.equal(daysBetween("2026-10-01", "2026-10-31"), 30);
 const seasons = (latestCount: number) => [
   { seasonCode: 43, playerCount: 190 },
@@ -120,18 +122,18 @@ const seasons = (latestCount: number) => [
 // 개막 전(최신 49 가 0명): 직전 시즌 47 하나 — 아직 "현재"
 assert.deepEqual(highsTargetSeasons({ seasons: seasons(0), firstSeen: { "47": "2025-10-03" }, today: "2026-09-30" }), [47]);
 // 개막 첫날: 첫 수집일 = 오늘 → 49 + 직전 47
-assert.deepEqual(highsTargetSeasons({ seasons: seasons(150), firstSeen: { "49": "2026-10-03" }, today: "2026-10-03" }), [49, 47]);
+assert.deepEqual(highsTargetSeasons({ seasons: seasons(150), firstSeen: { "49": "2026-10-03" }, today: "2026-10-03", graceDays: 30 }), [49, 47]);
 // 첫 수집일 기록이 없으면 오늘로 본다
-assert.deepEqual(highsTargetSeasons({ seasons: seasons(150), firstSeen: {}, today: "2026-10-03" }), [49, 47]);
+assert.deepEqual(highsTargetSeasons({ seasons: seasons(150), firstSeen: {}, today: "2026-10-03", graceDays: 30 }), [49, 47]);
 // 29일째까지 포함, 30일째부터 직전 시즌 제외 (첫 수집일 포함 30일간)
-assert.deepEqual(highsTargetSeasons({ seasons: seasons(150), firstSeen: { "49": "2026-10-03" }, today: "2026-11-01" }), [49, 47]);
-assert.deepEqual(highsTargetSeasons({ seasons: seasons(150), firstSeen: { "49": "2026-10-03" }, today: "2026-11-02" }), [49]);
+assert.deepEqual(highsTargetSeasons({ seasons: seasons(150), firstSeen: { "49": "2026-10-03" }, today: "2026-11-01", graceDays: 30 }), [49, 47]);
+assert.deepEqual(highsTargetSeasons({ seasons: seasons(150), firstSeen: { "49": "2026-10-03" }, today: "2026-11-02", graceDays: 30 }), [49]);
 // 입력 순서와 무관, 선수 없는 시즌만이면 빈 목록
 assert.deepEqual(highsTargetSeasons({ seasons: [...seasons(0)].reverse(), firstSeen: {}, today: "2026-09-30" }), [47]);
 assert.deepEqual(highsTargetSeasons({ seasons: [{ seasonCode: 49, playerCount: 0 }], firstSeen: {}, today: "2026-09-30" }), []);
 // 직전 시즌이 0명이면 그 전 선수 있는 시즌 (중간 빈 코드 건너뜀)
 assert.deepEqual(
-  highsTargetSeasons({ seasons: [{ seasonCode: 45, playerCount: 190 }, { seasonCode: 47, playerCount: 0 }, { seasonCode: 49, playerCount: 10 }], firstSeen: {}, today: "2026-10-03" }),
+  highsTargetSeasons({ seasons: [{ seasonCode: 45, playerCount: 190 }, { seasonCode: 47, playerCount: 0 }, { seasonCode: 49, playerCount: 10 }], firstSeen: {}, today: "2026-10-03", graceDays: 30 }),
   [49, 45],
 );
 

@@ -10,7 +10,7 @@
 //
 // 한 경기 최다·경기별 기록·프로필 대상(scripts/highs.ts highsTargetSeasons): 현재 시즌 선수만(~200명 × 3회, 1.5초 간격 ≈ 15분).
 // 경기별 기록은 시즌 하이의 3점·자유투 성공에 그 경기 시도 수를 붙이는 데 쓴다 (scripts/gamelogs.ts).
-// 직전 시즌은 최신 시즌 첫 수집일(data/season-first-seen.json)부터 30일 동안만 같이 받고, 마감된 옛 시즌은 다시 받지 않는다.
+// 최신 시즌에 선수가 생기면(개막) 직전 시즌 선수는 받지 않는다(2026-10-04, PREVIOUS_SEASON_GRACE_DAYS 0). 마감된 옛 시즌도 다시 받지 않는다.
 //
 // 원칙(CLAUDE.md): 응답은 가공하지 않고 data/raw/{seasonCode}/ 에 그대로 저장한다.
 // 시즌 수집 전에 선수 마스터(서버 B)를 전부 받아 data/raw/players/players.json 에 저장한다 (실패해도 시즌 수집은 계속).
@@ -137,7 +137,7 @@ async function rawPlayerNos(seasonCode: number): Promise<string[]> {
 
 /**
  * 매일 추가 수집(한 경기 최다·경기별 기록·프로필·슛 차트)의 대상 시즌 — 시즌 첫 수집일 파일도 여기서 갱신한다.
- * 규칙은 scripts/highs.ts highsTargetSeasons (현재 시즌 + 개막 후 30일은 직전 시즌).
+ * 규칙은 scripts/highs.ts highsTargetSeasons (현재 시즌만 — 개막 전에는 직전 시즌이 "현재").
  */
 async function dailyTargetSeasons(knownSeasons: number[], fetchedToday: number[]) {
   const today = todayKst();
