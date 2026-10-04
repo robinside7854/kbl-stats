@@ -15,17 +15,16 @@ jobs:
           echo "== providers"; curl -sS -w "\nHTTP %{http_code}\n" $S/api/auth/providers
           echo "== /api/me (로그인 안 함)"; curl -sS -w "\nHTTP %{http_code}\n" $S/api/me
           echo "== 홈 HTML 로그인 버튼"; curl -sS $S/ | grep -o 'href="/me"[^>]*>[^<]*' | head -3 || true
-          echo "== /me HTML 로그인 문구"; curl -sS $S/me | grep -oE '(네이버|구글)[^<"]{0,20}로그인[^<"]{0,10}|로그인을 준비 중[^<]{0,40}' | sort -u | head
+          echo "== /me HTML 로그인 문구"; curl -sS $S/me | grep -c "로그인" ; curl -sS $S/me | grep -oE '(네이버|구글)[^<"]{0,20}로그인[^<"]{0,10}|로그인을 준비 중[^<]{0,40}' | sort -u | head
           for p in naver google; do
             echo "== signin $p"
             rm -f jar
             CSRF=$(curl -sS -c jar $S/api/auth/csrf | python3 -c 'import sys,json;print(json.load(sys.stdin)["csrfToken"])')
-            LOC=$(curl -sS -b jar -c jar -o /dev/null -w "%{http_code} %{redirect_url}" -X POST \
+            BODY=$(curl -sS -b jar -c jar -X POST \
               -H "Content-Type: application/x-www-form-urlencoded" \
               --data-urlencode "csrfToken=$CSRF" --data-urlencode "callbackUrl=$S/me?login=$p" --data-urlencode "json=true" \
               $S/api/auth/signin/$p)
-            echo "$LOC" | sed -E 's/(client_id=)[^&]{6}/\1******/'
-            URL=${LOC#* }
+            URL=$(echo "$BODY" | python3 -c 'import sys,json;print(json.load(sys.stdin).get("url",""))')
             if [ -n "$URL" ]; then
               python3 - "$URL" <<'PY'
           import sys, urllib.parse as u
