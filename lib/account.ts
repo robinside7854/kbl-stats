@@ -1,6 +1,6 @@
 // 회원(구글·네이버 로그인) 규칙 — 순수 함수만 (2026-10-04 사용자 결정: 커뮤니티 2단계 시작).
 // 범위: 닉네임·응원팀 배지 + 즐겨찾기 계정 저장. 개인정보는 최소 — 로그인 회사가 주는 고유 번호만 쓰고
-// 이메일·실명·프로필 사진은 받지도 저장하지도 않는다. 닉네임은 본인이 직접 입력.
+// 이메일·실명·프로필 사진은 받지도 저장하지도 않는다. 닉네임은 본인이 직접 입력(네이버는 별명을 칸에 미리 채워 주기만 — 2026-10-04, lib/server/auth suggest).
 // 서버 저장(Neon)은 lib/server/members.ts, 로그인 설정은 lib/server/auth.ts, 브라우저 쪽은 app/components/account-client.ts.
 
 export const LOGIN_PROVIDERS = ["google", "naver"] as const;
