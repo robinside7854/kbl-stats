@@ -6,7 +6,7 @@ import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { enabledLoginProviders, NICKNAME_MAX, NICKNAME_MIN, PROVIDER_LABELS, validateNickname, type LoginProvider, type MemberView } from "@/lib/account";
 import type { TeamColor } from "@/lib/types";
-import { deleteAccount, fetchMe, forgetAccount, saveProfile, syncFavorites } from "./account-client";
+import { clearSuggestion, deleteAccount, fetchMe, forgetAccount, saveProfile, syncFavorites } from "./account-client";
 import LoginButtons from "./LoginButtons";
 import MemberBadge from "./MemberBadge";
 import Skeleton from "./Skeleton";
@@ -20,7 +20,7 @@ export interface AccountTeam {
   color: TeamColor;
 }
 
-type State = { kind: "loading" } | { kind: "signed_out" } | { kind: "error" } | { kind: "signed_in"; member: MemberView };
+type State = { kind: "loading" } | { kind: "signed_out" } | { kind: "error" } | { kind: "signed_in"; member: MemberView; suggested: string | null };
 
 /** next-auth 가 /me?error=… 로 돌려보낸 이유 → 안내 문구 */
 function loginErrorText(code: string): string {
@@ -54,7 +54,7 @@ export default function AccountView({ teams }: { teams: AccountTeam[] }) {
         const count = await syncFavorites(r.member, !!justLoggedIn);
         if (justLoggedIn) trackEvent("favorites_sync", { count });
         const again = await fetchMe();
-        setState({ kind: "signed_in", member: again.status === "signed_in" ? again.member : r.member });
+        setState({ kind: "signed_in", member: again.status === "signed_in" ? again.member : r.member, suggested: r.suggestedNickname ?? null });
       } else setState({ kind: r.status });
     });
     // providers 는 빌드 때 정해진 값이라 한 번만
@@ -81,7 +81,7 @@ export default function AccountView({ teams }: { teams: AccountTeam[] }) {
       )}
       {state.kind === "signed_out" && <SignedOut providers={providers} />}
       {state.kind === "signed_in" && (
-        <SignedIn member={state.member} teams={teams} onChange={(member) => setState({ kind: "signed_in", member })} />
+        <SignedIn member={state.member} suggested={state.suggested} teams={teams} onChange={(member) => setState({ kind: "signed_in", member, suggested: null })} />
       )}
     </div>
   );
@@ -99,7 +99,7 @@ function SignedOut({ providers }: { providers: LoginProvider[] }) {
         <LoginButtons providers={providers} />
       </div>
       <p className="mt-3 text-sub text-ink-3">
-        로그인 회사가 주는 고유 번호만 저장하고 이메일·이름·사진은 받지 않아요.{" "}
+        로그인 회사가 주는 고유 번호만 저장하고 이메일·이름·사진은 받지 않아요.{providers.includes("naver") ? " 네이버 별명은 처음 닉네임 칸에 미리 채우는 데만 써요." : ""}{" "}
         <Link href="/privacy" className="focus-ring rounded-md underline underline-offset-2">
           개인정보 처리 안내
         </Link>
@@ -108,8 +108,10 @@ function SignedOut({ providers }: { providers: LoginProvider[] }) {
   );
 }
 
-function SignedIn({ member, teams, onChange }: { member: MemberView; teams: AccountTeam[]; onChange: (m: MemberView) => void }) {
-  const [nickname, setNickname] = useState(member.nickname ?? "");
+function SignedIn({ member, suggested, teams, onChange }: { member: MemberView; suggested: string | null; teams: AccountTeam[]; onChange: (m: MemberView) => void }) {
+  // 닉네임을 아직 안 정했으면 네이버 별명을 칸에 미리 채운다 (저장을 눌러야 저장)
+  const fromNaver = !member.nickname && !!suggested;
+  const [nickname, setNickname] = useState(member.nickname ?? suggested ?? "");
   const [teamCode, setTeamCode] = useState<string | null>(member.teamCode);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
@@ -126,6 +128,7 @@ function SignedIn({ member, teams, onChange }: { member: MemberView; teams: Acco
     setSaving(false);
     if (!r.ok) return setMessage({ ok: false, text: r.message });
     trackEvent("profile_save", { team_code: teamCode ?? "none" });
+    if (fromNaver) void clearSuggestion();
     onChange(r.member);
     setMessage({ ok: true, text: "저장했어요." });
   }
@@ -165,7 +168,7 @@ function SignedIn({ member, teams, onChange }: { member: MemberView; teams: Acco
           aria-describedby="nickname-help"
         />
         <p id="nickname-help" className="mt-1 min-h-5 text-sub text-ink-3">
-          {nickname !== "" && !check.ok ? check.error : ""}
+          {nickname !== "" && !check.ok ? check.error : fromNaver && nickname === suggested ? "네이버 별명을 미리 넣어 두었어요. 바꿔서 저장해도 돼요." : ""}
         </p>
 
         <p className="mt-3 text-sub font-semibold text-ink-2">응원팀</p>

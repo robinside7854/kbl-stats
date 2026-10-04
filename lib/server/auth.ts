@@ -1,6 +1,8 @@
 // 로그인 설정 (next-auth v4, 2026-10-04) — 구글·네이버. 세션은 암호화된 쿠키(JWT)라 로그인 자체에는 DB 가 필요 없다.
 // 개인정보 최소: 구글은 scope "openid"(고유 번호만), 네이버는 앱 설정에서 고른 항목이 와도 고유 번호(id)만 쓴다.
 // 쿠키·세션에도 이름·이메일·사진을 넣지 않고 회원 번호("google:…", "naver:…")만 남긴다.
+// 예외 하나(2026-10-04 사용자 결정, 네이버 검수 "제공 정보 활용처"): 네이버 별명은 처음 닉네임 칸에 미리 채울 제안으로만 쓴다 —
+// 암호화된 로그인 쿠키에 suggest 로 잠시 두고, 닉네임을 저장하면 지운다(clearSuggestion → update). DB 에는 사용자가 직접 저장한 닉네임만.
 // 켜는 조건(빌드 때 next.config.mjs 가 판정): 운영 배포 + NEXTAUTH_SECRET + DATABASE_URL + 그 회사 키 → NEXT_PUBLIC_LOGIN_PROVIDERS.
 import "server-only";
 import type { NextAuthOptions } from "next-auth";
@@ -34,7 +36,8 @@ function providers(): NextAuthOptions["providers"] {
       NaverProvider({
         clientId: process.env.NAVER_CLIENT_ID ?? "",
         clientSecret: process.env.NAVER_CLIENT_SECRET ?? "",
-        profile: (p: { response: { id: string } }) => idOnly(p.response.id),
+        // 별명은 닉네임 제안으로만 (name 자리에 잠깐 실어 jwt 에서 suggest 로 옮긴다)
+        profile: (p: { response: { id: string; nickname?: string } }) => ({ ...idOnly(p.response.id), name: p.response.nickname ?? null }),
       }),
     );
   }
@@ -47,11 +50,16 @@ export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt", maxAge: 60 * 60 * 24 * 30 }, // 30일
   pages: { signIn: "/me", error: "/me" },
   callbacks: {
-    async jwt({ token, account }) {
+    async jwt({ token, account, user, trigger }) {
       if (account) {
         const mid = memberIdOf(account.provider, account.providerAccountId);
         if (mid) token.mid = mid;
+        const nick = typeof user?.name === "string" ? suggestionFrom(user.name) : null;
+        if (account.provider === "naver" && nick) token.suggest = nick;
+        else delete token.suggest;
       }
+      // 닉네임을 저장했으면 제안을 지운다 (브라우저가 /api/auth/session 에 update 를 보냄)
+      if (trigger === "update") delete token.suggest;
       // 이름·이메일·사진은 쿠키에 남기지 않는다
       delete token.name;
       delete token.email;
@@ -59,7 +67,10 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
-      return { expires: session.expires, user: { id: typeof token.mid === "string" ? token.mid : null } } as unknown as typeof session;
+      return {
+        expires: session.expires,
+        user: { id: typeof token.mid === "string" ? token.mid : null, suggest: typeof token.suggest === "string" ? token.suggest : null },
+      } as unknown as typeof session;
     },
     // 로그인 뒤에는 우리 사이트 안 주소로만 돌아온다
     async redirect({ url, baseUrl }) {
@@ -69,6 +80,21 @@ export const authOptions: NextAuthOptions = {
     },
   },
 };
+
+/** 네이버 별명 → 닉네임 제안 (앞뒤 공백만 지우고 20자까지 — 규칙에 안 맞으면 화면이 안내한다) */
+function suggestionFrom(name: string): string | null {
+  const v = name.normalize("NFC").trim().slice(0, 20);
+  return v || null;
+}
+
+/** 지금 요청의 회원 번호·닉네임 제안 (로그인 안 했으면 null) */
+export async function currentSession(): Promise<{ id: string; suggest: string | null } | null> {
+  if (enabledLoginProviders().length === 0) return null;
+  const s = await getServerSession(authOptions);
+  const u = s?.user as { id?: unknown; suggest?: unknown } | undefined;
+  if (typeof u?.id !== "string") return null;
+  return { id: u.id, suggest: typeof u.suggest === "string" ? u.suggest : null };
+}
 
 /** 지금 요청의 회원 번호 (로그인 안 했으면 null) */
 export async function currentMemberId(): Promise<string | null> {
