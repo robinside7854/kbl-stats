@@ -6,7 +6,7 @@
 // GA4: filter_change screen=schedule filter=month, boxscore_open place=schedule.
 import { useEffect, useMemo, useState } from "react";
 import type { GameBoxRow, SeasonGame } from "@/lib/types";
-import { gameDayLabel, groupByDate, monthLabel, monthsOf, pickMonth, type SeasonProgress } from "@/lib/games";
+import { gameDayLabel, groupByDate, monthLabel, monthsOf, pickMonth, type SeasonProgress, type Standout } from "@/lib/games";
 import { kstDateString } from "@/lib/home";
 import ChipRow from "./ChipRow";
 import GameCard, { type GameTeamInfo } from "./GameCard";
@@ -16,7 +16,7 @@ import { trackFilters } from "./track";
 export interface ScheduleGame extends SeasonGame {
   /** 박스스코어 파일이 있는 경기 */
   hasBox: boolean;
-  stars: { away: GameBoxRow | null; home: GameBoxRow | null } | null;
+  stars: { away: Standout[]; home: Standout[] } | null;
 }
 
 interface Props {

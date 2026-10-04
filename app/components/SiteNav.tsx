@@ -26,7 +26,7 @@ type MenuItem = { views: SiteView[]; label: string; short?: string; icon: (p: { 
 const HOME: MenuItem = { views: ["home"], label: "홈", icon: IconHome, href: () => "/" };
 /** 홈 왼쪽 / 오른쪽 메뉴 (2026-10-03 사용자: 모바일 하단은 홈을 가운데, 왼쪽 선수·팀·리더보드, 오른쪽 일정·역대 기록·54-0 — 비교는 2026-10-03 메뉴에서 빼고 선수 상세 "비교" 버튼으로) */
 const LEFT: MenuItem[] = [
-  { views: ["players", "player"], label: "선수", icon: IconPlayer, href: () => "/players" },
+  { views: ["players", "player", "compare"], label: "선수", icon: IconPlayer, href: () => "/players" },
   { views: ["teams", "team"], label: "팀", icon: IconTeam, href: () => "/teams" },
   { views: ["leaders"], label: "리더보드", icon: IconLeaders, href: (c) => `/season/${c}/leaders` },
 ];
@@ -83,7 +83,7 @@ export default function SiteNav({ seasons, seasonCode, view, onSeasonChange, wid
           <div className="order-2 flex shrink-0 items-center gap-2 sm:order-4">
             <RandomCardButton />
             <ShareButton />
-            <AccountButton />
+            <AccountButton active={view === "me"} />
           </div>
           {!hideSearch && <PlayerSearch className="order-4 w-full sm:order-2 sm:w-auto sm:max-w-xs sm:flex-1" />}
           {showSeason && (
@@ -162,11 +162,15 @@ export default function SiteNav({ seasons, seasonCode, view, onSeasonChange, wid
               onClick={() => trackEvent("nav_click", { menu: m.label, place: "bottom" })}
               aria-current={active ? "page" : undefined}
               aria-label={m.label}
-              className={`focus-ring-inset flex h-14 flex-col items-center justify-center gap-0.5 text-caption transition-colors duration-200 ${
-                active ? "font-bold text-ink" : "font-medium text-ink-3 hover:text-ink"
+              className={`focus-ring-inset relative flex h-14 flex-col items-center justify-center gap-0.5 text-caption transition-colors duration-200 ${
+                active ? "font-bold text-series-1" : "font-medium text-ink-3 hover:text-ink"
               }`}
             >
-              <Icon size={24} />
+              {/* 지금 있는 화면 (2026-10-05 사용자: 어느 탭인지 또렷하게) — 위쪽 파란 막대 + 아이콘 뒤 옅은 파란 바탕 + 파란 글자 */}
+              {active && <span aria-hidden className="absolute inset-x-3 top-0 h-[3px] rounded-b-sm bg-series-1" />}
+              <span className={`flex h-7 w-11 items-center justify-center rounded-control ${active ? "bg-series-1/15" : ""}`}>
+                <Icon size={24} />
+              </span>
               <span className="whitespace-nowrap leading-none tracking-tight">{m.short ?? m.label}</span>
             </Link>
           );

@@ -9,7 +9,7 @@ import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { GameBoxRow, SeasonGame, TeamColor } from "@/lib/types";
-import { gameDayLabel, performerLine, winnerSide } from "@/lib/games";
+import { gameDayLabel, STANDOUT_LABELS, standoutLine, winnerSide, type Standout } from "@/lib/games";
 import { teamShortLabel } from "@/lib/images";
 import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
 import BoxScore from "./BoxScore";
@@ -30,8 +30,8 @@ interface Props {
   game: SeasonGame;
   seasonCode: number;
   teams: Record<string, GameTeamInfo>;
-  /** 팀별 최다 득점 선수 (박스스코어를 안 들고 있는 일정 화면은 서버가 미리 골라 준다) */
-  stars?: { away: GameBoxRow | null; home: GameBoxRow | null } | null;
+  /** 팀별 주요 선수 최대 2명 (lib/games teamStandouts — 일정 화면은 박스스코어 대신 서버가 미리 골라 준다) */
+  stars?: { away: Standout[]; home: Standout[] } | null;
   /** 박스스코어를 누를 때 받아 오는 함수 (game.box 가 없을 때) */
   loadBox?: () => Promise<Box | null>;
   place: "home" | "schedule";
@@ -54,7 +54,7 @@ export default function GameCard({ game: g, seasonCode, teams, stars = null, loa
     score: g[k].score,
     won: win === k,
   }));
-  const starOf = (k: "away" | "home") => stars?.[k] ?? null;
+  const starsOf = (k: "away" | "home") => stars?.[k] ?? [];
   const matchTitle = `${sides[0].info.shortName} ${g.away.score ?? "–"} : ${g.home.score ?? "–"} ${sides[1].info.shortName}`;
   const matchSub = [gameDayLabel(g.date), g.stadium].filter(Boolean).join(" · ");
 
@@ -92,20 +92,27 @@ export default function GameCard({ game: g, seasonCode, teams, stars = null, loa
       <p className="mt-1 text-caption text-ink-3">
         {[g.ended ? "종료" : g.start ? `${g.start} 시작` : "예정", g.stadium].filter(Boolean).join(" · ")}
       </p>
-      {(starOf("away") || starOf("home")) && (
-        <ul className="mt-2 space-y-0.5 border-t border-line pt-2 text-sub">
+      {(starsOf("away").length > 0 || starsOf("home").length > 0) && (
+        <ul className="mt-2 space-y-1.5 border-t border-line pt-2 text-sub">
           {sides.map((s) => {
-            const star = starOf(s.key);
-            return star ? (
-              <li key={s.key} className="flex min-w-0 items-baseline gap-1.5">
-                <span className="w-16 shrink-0 truncate text-caption text-ink-3">{teamShortLabel(s.info.shortName)}</span>
-                <Link
-                  href={`/player/${star.id}?season=${seasonCode}`}
-                  className="focus-ring min-w-0 truncate rounded-md font-semibold text-ink underline-offset-2 hover:underline"
-                >
-                  {star.nameKo}
-                </Link>
-                <span className="shrink-0 text-ink-2">{performerLine(star)}</span>
+            const list = starsOf(s.key);
+            return list.length > 0 ? (
+              <li key={s.key} className="flex min-w-0 gap-1.5">
+                <span className="w-14 shrink-0 truncate pt-0.5 text-caption text-ink-3">{teamShortLabel(s.info.shortName)}</span>
+                <ul className="min-w-0 flex-1 space-y-0.5">
+                  {list.map((st) => (
+                    <li key={st.row.id} className="flex min-w-0 items-baseline gap-1.5">
+                      <span className="w-8 shrink-0 rounded-sm bg-surface-2 text-center text-caption font-semibold text-ink-2">{STANDOUT_LABELS[st.kind]}</span>
+                      <Link
+                        href={`/player/${st.row.id}?season=${seasonCode}`}
+                        className="focus-ring min-w-0 truncate rounded-md font-semibold text-ink underline-offset-2 hover:underline"
+                      >
+                        {st.row.nameKo}
+                      </Link>
+                      <span className="shrink-0 text-ink-2">{standoutLine(st)}</span>
+                    </li>
+                  ))}
+                </ul>
               </li>
             ) : null;
           })}

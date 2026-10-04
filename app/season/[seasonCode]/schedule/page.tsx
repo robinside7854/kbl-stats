@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { shareMetadata } from "@/lib/share";
 import { notFound } from "next/navigation";
 import { gameTeamInfos, listSeasonsWithPlayers, loadSeasonData, loadSeasonGames } from "@/lib/data";
-import { latestGameDay, monthsOf, seasonProgress, topPerformer } from "@/lib/games";
+import { latestGameDay, monthsOf, seasonProgress, teamStandouts } from "@/lib/games";
 import { seasonShortLabel } from "@/lib/career";
 import SiteNav from "@/app/components/SiteNav";
 import SourceFooter from "@/app/components/SourceFooter";
@@ -39,7 +39,7 @@ export default async function SchedulePage({ params }: { params: Params }) {
     ...g,
     box: null,
     hasBox: !!g.box,
-    stars: g.box ? { away: topPerformer(g.box.away), home: topPerformer(g.box.home) } : null,
+    stars: g.box ? { away: teamStandouts(g.box.away), home: teamStandouts(g.box.home) } : null,
   }));
   // 정적 HTML 의 처음 달: 가장 최근 경기일의 달 (브라우저가 오늘 날짜로 다시 고른다)
   const latest = latestGameDay(all);

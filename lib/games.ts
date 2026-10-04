@@ -69,6 +69,68 @@ export function performerLine(r: GameBoxRow): string {
   return parts.join(" ");
 }
 
+/** 경기 카드 "주요 선수" 구분 (2026-10-05 사용자: 팀별 2명 — 득점 1위 + 어시·3점·수비·리바 중 돋보인 선수) */
+export type StandoutKind = "points" | "ast" | "tpm" | "def" | "reb";
+export const STANDOUT_LABELS: Record<StandoutKind, string> = { points: "득점", ast: "어시", tpm: "3점", def: "수비", reb: "리바" };
+
+export interface Standout {
+  kind: StandoutKind;
+  row: GameBoxRow;
+}
+
+/**
+ * 두 번째 선수를 고르는 기준 (우리 규칙, 2026-10-05): 득점 1위를 뺀 선수 중 부문 1위의 기록 ÷ 문턱이 가장 큰 부문.
+ * 문턱 = 한 경기에서 "눈에 띈다"고 볼 만한 값 — 어시 5·3점 성공 3·스틸+블록 3·리바 8. 1 이상인 부문이 없으면 득점 2위.
+ * 같으면 이 순서(어시 → 3점 → 수비 → 리바).
+ */
+export const STANDOUT_THRESHOLDS: Record<Exclude<StandoutKind, "points">, { value: (r: GameBoxRow) => number; min: number }> = {
+  ast: { value: (r) => r.ast, min: 5 },
+  tpm: { value: (r) => r.tpm, min: 3 },
+  def: { value: (r) => r.stl + r.blk, min: 3 },
+  reb: { value: (r) => r.reb, min: 8 },
+};
+
+/** 팀 박스스코어 → 주요 선수 최대 2명 (득점 1위 + 다른 부문에서 돋보인 1명) */
+export function teamStandouts(rows: readonly GameBoxRow[] | undefined): Standout[] {
+  const top = topPerformer(rows);
+  if (!rows || !top) return [];
+  const rest = rows.filter((r) => r.id !== top.id);
+  const out: Standout[] = [{ kind: "points", row: top }];
+  let best: Standout | null = null;
+  let bestRatio = 1;
+  for (const [kind, t] of Object.entries(STANDOUT_THRESHOLDS) as [Exclude<StandoutKind, "points">, (typeof STANDOUT_THRESHOLDS)["ast"]][]) {
+    // 그 부문 1위 (같으면 득점 → 출전 시간)
+    const leader = [...rest].sort((a, b) => t.value(b) - t.value(a) || b.pts - a.pts || b.sec - a.sec)[0];
+    if (!leader) continue;
+    const ratio = t.value(leader) / t.min;
+    if (ratio >= bestRatio && (best === null || ratio > bestRatio)) {
+      best = { kind, row: leader };
+      bestRatio = ratio;
+    }
+  }
+  const second = best ?? (topPerformer(rest) ? { kind: "points" as const, row: topPerformer(rest)! } : null);
+  if (second) out.push(second);
+  return out;
+}
+
+/** 주요 선수 한 줄: 그 부문 기록을 앞에 ("8어시 · 9득점", "3점 4개 · 14득점", "스틸 3·블록 1 · 5득점") */
+export function standoutLine({ kind, row: r }: Standout): string {
+  switch (kind) {
+    case "points":
+      return performerLine(r);
+    case "ast":
+      return `${r.ast}어시 · ${r.pts}득점`;
+    case "tpm":
+      return `3점 ${r.tpm}개 · ${r.pts}득점`;
+    case "reb":
+      return `${r.reb}리바 · ${r.pts}득점`;
+    case "def": {
+      const parts = [r.stl ? `스틸 ${r.stl}` : "", r.blk ? `블록 ${r.blk}` : ""].filter(Boolean).join("·");
+      return `${parts} · ${r.pts}득점`;
+    }
+  }
+}
+
 /** 출전 초 → "32:05" */
 export function minutesLabel(sec: number): string {
   const s = Math.max(0, Math.round(sec));

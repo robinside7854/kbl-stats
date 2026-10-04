@@ -4,7 +4,7 @@
 // 날짜가 브라우저의 한국 날짜와 같으면 "오늘의 경기", 아니면 "최근 경기". 데이터·계산은 lib/games (서버에서 고른 경기만 받는다).
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { gameDayLabel, topPerformer, type GameDay } from "@/lib/games";
+import { gameDayLabel, teamStandouts, type GameDay } from "@/lib/games";
 import { kstDateString } from "@/lib/home";
 import { teamShortLabel } from "@/lib/images";
 import GameCard, { teamInfoOf, type GameTeamInfo } from "./GameCard";
@@ -47,7 +47,7 @@ export default function GameDayBoard({ day, next, seasonCode, teams }: Props) {
               game={g}
               seasonCode={seasonCode}
               teams={teams}
-              stars={g.box ? { away: topPerformer(g.box.away), home: topPerformer(g.box.home) } : null}
+              stars={g.box ? { away: teamStandouts(g.box.away), home: teamStandouts(g.box.home) } : null}
               place="home"
             />
           </li>

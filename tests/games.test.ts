@@ -1,7 +1,8 @@
 // scripts/boxscores.ts·lib/games.ts 검증: 경기 목록 + 경기별 기록 → 박스스코어(득점 합 확인)·최근/다음 경기일·팀 순위 (npm run test:games)
 import assert from "node:assert/strict";
+import type { GameBoxRow } from "../lib/types";
 import { buildSeasonGames, parseBoxLog } from "../scripts/boxscores";
-import { seasonProgress, seasonTitle } from "../lib/games";
+import { seasonProgress, seasonTitle, standoutLine, teamStandouts } from "../lib/games";
 import { computeStandings, gameDayLabel, gamesBehindLabel, latestGameDay, minutesLabel, nextGameDay, pctLabel, topPerformer } from "../lib/games";
 
 const item = (n: number, date: string, h: string, a: string, sh: number | null, sa: number | null, ended = 1, gameCode = "01") => ({
@@ -96,6 +97,22 @@ console.log("games: 팀 순위 통과");
     assert.deepEqual(seasonProgress([...Array(5)].map(() => mk(true)).concat([...Array(265)].map(() => mk(false)))), { ended: 5, total: 270, pct: 1.9 });
     assert.equal(seasonProgress([mk(true), mk(true)])!.pct, 100);
     assert.equal(seasonTitle("2026-2027"), "KBL 2026-2027 시즌");
+  }
+  // 팀별 주요 선수 2명 (2026-10-05)
+  {
+    const p = (id: string, o: Partial<GameBoxRow>) => ({ id, nameKo: id, sec: 1000, pts: 0, oreb: 0, dreb: 0, reb: 0, ast: 0, stl: 0, blk: 0, tov: 0, pf: 0, fgm: 0, fga: 0, tpm: 0, tpa: 0, ftm: 0, fta: 0, ...o }) as GameBoxRow;
+    const rows = [p("A", { pts: 26, reb: 6, ast: 9 }), p("B", { pts: 14, tpm: 4 }), p("C", { pts: 9, ast: 8 }), p("D", { pts: 4, reb: 7 })];
+    // 득점 1위 A, 그 밖에서 어시 8/5=1.6 > 3점 4/3=1.33 → C(어시)
+    assert.deepEqual(teamStandouts(rows).map((x) => [x.kind, x.row.id]), [["points", "A"], ["ast", "C"]]);
+    assert.equal(standoutLine(teamStandouts(rows)[1]), "8어시 · 9득점");
+    // 문턱을 넘는 부문이 없으면 득점 2위
+    const quiet = [p("A", { pts: 20 }), p("B", { pts: 12, ast: 3 }), p("C", { pts: 6, reb: 5 })];
+    assert.deepEqual(teamStandouts(quiet).map((x) => [x.kind, x.row.id]), [["points", "A"], ["points", "B"]]);
+    // 수비: 스틸+블록
+    const def = [p("A", { pts: 20 }), p("B", { pts: 5, stl: 3, blk: 1 })];
+    assert.equal(standoutLine(teamStandouts(def)[1]), "스틸 3·블록 1 · 5득점");
+    assert.deepEqual(teamStandouts([]), []);
+    assert.equal(teamStandouts([p("A", { pts: 3 })]).length, 1);
   }
   console.log("games: 일정·박스스코어 정렬 통과");
 }

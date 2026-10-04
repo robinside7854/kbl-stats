@@ -14,7 +14,8 @@ import { setUserProperties, trackEvent } from "./track";
 
 const COLORS = (teamColors as unknown as { byTeamCode: Record<string, TeamColor | undefined> }).byTeamCode;
 
-export default function AccountButton() {
+/** active: 지금 /me·/admin 화면 — 하단 탭처럼 파란색으로 표시 (2026-10-05 사용자) */
+export default function AccountButton({ active = false }: { active?: boolean }) {
   const enabled = enabledLoginProviders().length > 0;
   const [member, setMember] = useState<MemberView | null>(null);
 
@@ -47,7 +48,12 @@ export default function AccountButton() {
       href="/me"
       onClick={() => trackEvent("nav_click", { menu: member ? "내 계정" : "로그인", place: "top" })}
       aria-label={member ? `내 계정: ${label}` : "로그인"}
-      className="focus-ring inline-flex h-10 min-w-10 max-w-[10rem] shrink-0 items-center justify-center gap-1.5 rounded-control border border-line bg-surface px-2.5 text-sub font-semibold text-ink-2 transition-colors duration-200 hover:bg-surface-2 hover:text-ink"
+      aria-current={active ? "page" : undefined}
+      className={`focus-ring inline-flex h-10 min-w-10 max-w-[10rem] shrink-0 items-center justify-center gap-1.5 rounded-control border px-2.5 text-sub font-semibold transition-colors duration-200 ${
+        active
+          ? "border-series-1 bg-series-1/15 text-series-1"
+          : "border-line bg-surface text-ink-2 hover:bg-surface-2 hover:text-ink"
+      }`}
     >
       {member ? (
         <>
