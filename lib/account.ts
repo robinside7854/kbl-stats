@@ -60,6 +60,20 @@ export function validateNickname(raw: unknown): NicknameCheck {
   return { ok: true, value };
 }
 
+/** 응원팀은 여러 팀 (2026-10-04 사용자 요청). 고른 순서대로, 첫 팀 색이 닉네임 배지에 붙는다 */
+export const MAX_TEAMS = 10;
+
+/** 응원팀 목록: 팀 코드(숫자 1~3자리)만, 중복 제거, 상한까지. 배열이 아니면 undefined(잘못된 값) */
+export function normalizeTeamCodes(raw: unknown): string[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const out: string[] = [];
+  for (const v of raw) {
+    if (typeof v !== "string" || !/^\d{1,3}$/.test(v)) return undefined;
+    if (!out.includes(v)) out.push(v);
+  }
+  return out.slice(0, MAX_TEAMS);
+}
+
 /** 응원팀 = 팀 코드(숫자 1~3자리) 또는 없음 */
 export function normalizeTeamCode(raw: unknown): string | null | undefined {
   if (raw === null || raw === "") return null;
@@ -134,13 +148,47 @@ export function isAdminLogin(loginIds: readonly string[], admins: ReadonlySet<st
   return loginIds.some((id) => admins.has(id));
 }
 
+// ── 좋아요 (2026-10-04 사용자 요청: 선수·팀 좋아요 수를 모아 인기 순위로) ──────────
+export type LikeKind = "player" | "team";
+export const LIKE_KINDS: readonly LikeKind[] = ["player", "team"];
+/** 회원 한 명이 누를 수 있는 좋아요 상한 (종류 합) */
+export const MAX_LIKES = 500;
+
+/** 좋아요 대상 번호 검사: 선수 번호(숫자 1~10자리)·팀 코드(숫자 1~3자리) */
+export function validLikeTarget(kind: unknown, target: unknown): kind is LikeKind {
+  if (typeof target !== "string") return false;
+  if (kind === "player") return /^\d{1,10}$/.test(target);
+  if (kind === "team") return /^\d{1,3}$/.test(target);
+  return false;
+}
+
+export interface MyLikes {
+  players: string[];
+  teams: string[];
+}
+
+/** 좋아요 수 (공개, /api/likes) */
+export interface LikeCounts {
+  players: Record<string, number>;
+  teams: Record<string, number>;
+}
+
+/** 서버 수(잠시 캐시된 값) + 내가 방금 바꾼 것 → 화면에 보일 수 (0 아래로는 안 간다) */
+export function adjustedCount(serverCount: number, likedOnServer: boolean, likedNow: boolean): number {
+  return Math.max(0, serverCount + (likedNow === likedOnServer ? 0 : likedNow ? 1 : -1));
+}
+
 // ── 화면에 보내는 회원 정보 ─────────────────────────────
 export interface MemberView {
   /** 지금 로그인한 수단 */
   provider: LoginProvider | null;
   nickname: string | null;
+  /** 대표 응원팀 = teamCodes 첫 팀 (닉네임 배지 색) */
   teamCode: string | null;
+  /** 응원팀 전부 (고른 순서) */
+  teamCodes: string[];
   favorites: string[];
+  likes: MyLikes;
   /** 이 회원에 연결된 로그인 수단 (회사 순서) */
   logins: LoginProvider[];
   isAdmin?: boolean;
@@ -151,8 +199,9 @@ export interface AdminMemberRow {
   /** 회원 번호 끝 6자리 (문의 대응용 짧은 표시) */
   shortId: string;
   nickname: string | null;
-  teamCode: string | null;
+  teamCodes: string[];
   favoriteCount: number;
+  likeCount: number;
   logins: LoginProvider[];
   createdAt: string;
   updatedAt: string;

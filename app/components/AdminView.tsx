@@ -76,7 +76,7 @@ function MemberList({ members, teams }: { members: AdminMemberRow[]; teams: Acco
 
   const stats = useMemo(() => {
     const byTeam = new Map<string, number>();
-    for (const m of members) if (m.teamCode) byTeam.set(m.teamCode, (byTeam.get(m.teamCode) ?? 0) + 1);
+    for (const m of members) for (const c of m.teamCodes) byTeam.set(c, (byTeam.get(c) ?? 0) + 1);
     return {
       total: members.length,
       named: members.filter((m) => m.nickname).length,
@@ -115,7 +115,7 @@ function MemberList({ members, teams }: { members: AdminMemberRow[]; teams: Acco
 
       {stats.byTeam.length > 0 && (
         <Card>
-          <h2 className="text-body font-bold">응원팀</h2>
+          <h2 className="text-body font-bold">응원팀 (여러 팀 응원은 팀마다 셈)</h2>
           <ul className="mt-2 flex flex-wrap gap-2">
             {stats.byTeam.map(([code, n]) => {
               const t = teamOf.get(code);
@@ -151,21 +151,22 @@ function MemberList({ members, teams }: { members: AdminMemberRow[]; teams: Acco
           <p className="px-4 pb-4 text-body text-ink-2">맞는 회원이 없어요.</p>
         ) : (
           <>
-            <div className="hidden grid-cols-[minmax(0,2fr)_minmax(0,1.2fr)_minmax(0,1.2fr)_4rem_6rem_6rem] gap-3 border-b border-line px-4 py-2 text-caption font-semibold text-ink-3 md:grid">
+            <div className="hidden grid-cols-[minmax(0,2fr)_minmax(0,1.2fr)_minmax(0,1.2fr)_7rem_6rem_6rem] gap-3 border-b border-line px-4 py-2 text-caption font-semibold text-ink-3 md:grid">
               <span>닉네임</span>
               <span>응원팀</span>
               <span>로그인</span>
-              <span className="text-right">즐겨찾기</span>
+              <span className="text-right">즐겨찾기·좋아요</span>
               <span className="text-right">가입</span>
               <span className="text-right">최근 수정</span>
             </div>
             <ul className="divide-y divide-line">
               {filtered.slice(0, shown).map((m) => {
-                const t = m.teamCode ? teamOf.get(m.teamCode) : undefined;
+                const t = m.teamCodes[0] ? teamOf.get(m.teamCodes[0]) : undefined;
+                const teamNames = m.teamCodes.map((c) => teamOf.get(c)?.name ?? `팀 ${c}`).join(" · ");
                 return (
                   <li
                     key={m.shortId + m.createdAt}
-                    className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1 px-4 py-3 text-sub md:grid-cols-[minmax(0,2fr)_minmax(0,1.2fr)_minmax(0,1.2fr)_4rem_6rem_6rem] md:items-center"
+                    className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1 px-4 py-3 text-sub md:grid-cols-[minmax(0,2fr)_minmax(0,1.2fr)_minmax(0,1.2fr)_7rem_6rem_6rem] md:items-center"
                   >
                     <div className="min-w-0 text-body md:order-1">
                       {m.nickname ? <MemberBadge nickname={m.nickname} teamColor={t?.color} /> : <span className="text-ink-3">닉네임 없음</span>}
@@ -175,11 +176,12 @@ function MemberList({ members, teams }: { members: AdminMemberRow[]; teams: Acco
                       <span className="md:hidden">가입 </span>
                       {kstDate(m.createdAt)}
                     </span>
-                    <span className="truncate text-ink-2 md:order-2">{t ? t.name : m.teamCode ? `팀 ${m.teamCode}` : "응원팀 없음"}</span>
+                    <span className="truncate text-ink-2 md:order-2">{teamNames || "응원팀 없음"}</span>
                     <span className="text-right text-ink-2 md:order-3 md:text-left">{m.logins.map((p) => PROVIDER_LABELS[p]).join(" · ") || "없음"}</span>
                     <span className="text-ink-2 tabular md:order-4 md:text-right">
                       <span className="md:hidden">즐겨찾기 </span>
                       {m.favoriteCount}
+                      <span className="text-ink-3"> · 좋아요 {m.likeCount}</span>
                     </span>
                     <span className="text-right text-ink-3 tabular md:order-6">
                       <span className="md:hidden">수정 </span>

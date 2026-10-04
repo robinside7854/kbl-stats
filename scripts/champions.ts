@@ -81,3 +81,48 @@ export function championSeasonsOf(
     .map((s) => s.seasonCode)
     .sort((a, b) => a - b);
 }
+
+/** 플레이오프(6강·4강) 경기 구분 코드 — 챔프전은 FINALS_GAME_CODE */
+export const PLAYOFF_GAME_CODE = "03";
+
+/** 팀 하나의 플레이오프 출전 기록 (2026-10-04 팀 페이지): 03 에서 만난 상대 수, 챔프전 진출 여부 */
+export interface PlayoffEntry {
+  teamCode: string;
+  /** 6강·4강에서 맞붙은 서로 다른 상대 수 (1 = 한 시리즈, 2 = 두 시리즈) */
+  series: number;
+  finals: boolean;
+}
+
+/**
+ * 경기 목록 → 그 시즌 플레이오프에 나간 팀들. 몇 강에서 떨어졌는지는 정규시즌 순위(1·2위는 6강을 건너뜀)와 함께
+ * 화면 규칙(lib/franchise playoffStage)이 정한다. 점수 없는 경기도 대진은 정해진 것이라 센다.
+ */
+export function playoffEntries(list: unknown, seasonCode: number): PlayoffEntry[] {
+  const arr = unwrap(list);
+  if (!Array.isArray(arr)) return [];
+  const opponents = new Map<string, Set<string>>();
+  const finals = new Set<string>();
+  const touch = (code: string) => {
+    if (!opponents.has(code)) opponents.set(code, new Set());
+    return opponents.get(code)!;
+  };
+  for (const g of arr as Raw[]) {
+    if (!g || typeof g !== "object" || Number(g.seasonCode) !== seasonCode) continue;
+    const code = String(g.gameCode ?? "").trim().padStart(2, "0");
+    const h = String(g.tcodeH ?? "").trim();
+    const a = String(g.tcodeA ?? "").trim();
+    if (!h || !a) continue;
+    if (code === PLAYOFF_GAME_CODE) {
+      touch(h).add(a);
+      touch(a).add(h);
+    } else if (code === FINALS_GAME_CODE) {
+      touch(h);
+      touch(a);
+      finals.add(h);
+      finals.add(a);
+    }
+  }
+  return [...opponents.entries()]
+    .map(([teamCode, opp]) => ({ teamCode, series: opp.size, finals: finals.has(teamCode) }))
+    .sort((x, y) => x.teamCode.localeCompare(y.teamCode));
+}

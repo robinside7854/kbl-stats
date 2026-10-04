@@ -2,12 +2,12 @@
 import assert from "node:assert/strict";
 import { PGlite } from "@electric-sql/pglite";
 import {
-  MAX_FAVORITES, canUnlink, isAdminLogin, linkResultMessage, memberIdOf, mergeFavorites, normalizeTeamCode, parseAdminLoginIds, parseLoginProviders,
+  MAX_FAVORITES, MAX_TEAMS, adjustedCount, canUnlink, normalizeTeamCodes, validLikeTarget, isAdminLogin, linkResultMessage, memberIdOf, mergeFavorites, normalizeTeamCode, parseAdminLoginIds, parseLoginProviders,
   providerOfMemberId, sameList, sanitizeFavorites, validateNickname,
 } from "../lib/account";
 import { decodeLinkIntent, encodeLinkIntent } from "../lib/link-token";
 import {
-  deleteMember, ensureSchema, getOrCreateMember, linkLogin, listMembers, loginIdsOfLogin, resolveMemberId, setFavorites, unlinkLogin, updateProfile,
+  deleteMember, ensureSchema, getOrCreateMember, likeCounts, linkLogin, setLike, listMembers, loginIdsOfLogin, resolveMemberId, setFavorites, unlinkLogin, updateProfile,
   SCHEMA_SQL, type Query,
 } from "../lib/server/members";
 
@@ -46,6 +46,22 @@ assert.equal(normalizeTeamCode(""), null);
 assert.equal(normalizeTeamCode("x1"), undefined);
 assert.equal(normalizeTeamCode(55), undefined);
 
+assert.deepEqual(normalizeTeamCodes(["55", "60", "55"]), ["55", "60"]);
+assert.deepEqual(normalizeTeamCodes([]), []);
+assert.equal(normalizeTeamCodes(["55", "x"]), undefined);
+assert.equal(normalizeTeamCodes("55"), undefined);
+assert.equal(normalizeTeamCodes(Array.from({ length: 20 }, (_, i) => String(i)))!.length, MAX_TEAMS);
+// 좋아요 대상·수
+assert.ok(validLikeTarget("player", "291248"));
+assert.ok(validLikeTarget("team", "55"));
+assert.ok(!validLikeTarget("team", "5555"));
+assert.ok(!validLikeTarget("coach", "1"));
+assert.ok(!validLikeTarget("player", 1));
+assert.equal(adjustedCount(10, false, true), 11);
+assert.equal(adjustedCount(10, true, false), 9);
+assert.equal(adjustedCount(0, true, false), 0);
+assert.equal(adjustedCount(4, true, true), 4);
+
 // ── 즐겨찾기 ──
 assert.deepEqual(sanitizeFavorites(["1", "1", "x", 3, "22"]), ["1", "22"]);
 assert.equal(sanitizeFavorites(Array.from({ length: 400 }, (_, i) => String(i + 1))).length, MAX_FAVORITES);
@@ -63,7 +79,9 @@ await ensureSchema(q); // 두 번 불러도 괜찮다
 
 const a = "google:111";
 const b = "naver:222";
-assert.deepEqual(await getOrCreateMember(q, a), { provider: "google", nickname: null, teamCode: null, favorites: [], logins: ["google"] });
+assert.deepEqual(await getOrCreateMember(q, a), {
+  provider: "google", nickname: null, teamCode: null, teamCodes: [], favorites: [], likes: { players: [], teams: [] }, logins: ["google"],
+});
 await getOrCreateMember(q, a); // 같은 회원 다시 — 중복 행 없음
 assert.equal((await q("SELECT count(*)::int AS n FROM members")).at(0)?.n, 1);
 
@@ -80,7 +98,23 @@ assert.deepEqual(r, { ok: false, error: "nickname_taken" });
 assert.ok((await updateProfile(q, a, { nickname: "SKfan" })).ok);
 // 응원팀만 해제 (닉네임 그대로)
 r = await updateProfile(q, a, { teamCode: null });
-assert.ok(r.ok && r.member.teamCode === null && r.member.nickname === "SKfan");
+assert.ok(r.ok && r.member.teamCode === null && r.member.nickname === "SKfan" && r.member.teamCodes.length === 0);
+// 여러 팀: 고른 순서, 대표 = 첫 팀
+r = await updateProfile(q, a, { teamCodes: ["60", "55"] });
+assert.ok(r.ok && r.member.teamCode === "60" && sameList(r.member.teamCodes, ["60", "55"]));
+r = await updateProfile(q, a, { teamCodes: [] });
+assert.ok(r.ok && r.member.teamCode === null);
+
+// 좋아요: 켜기·끄기·수 모으기
+assert.ok((await setLike(q, a, "player", "291248", true)).ok);
+assert.ok((await setLike(q, a, "player", "291248", true)).ok); // 두 번 눌러도 한 번
+assert.ok((await setLike(q, a, "team", "55", true)).ok);
+const lb = await setLike(q, b, "player", "291248", true);
+assert.ok(lb.ok && sameList(lb.likes.players, ["291248"]));
+assert.deepEqual(await likeCounts(q), { players: { "291248": 2 }, teams: { "55": 1 } });
+await setLike(q, b, "player", "291248", false);
+assert.deepEqual((await likeCounts(q)).players, { "291248": 1 });
+assert.deepEqual((await getOrCreateMember(q, a)).likes, { players: ["291248"], teams: ["55"] });
 
 assert.deepEqual(await setFavorites(q, b, ["5", "5", "abc", "7"]), ["5", "7"]);
 assert.deepEqual((await getOrCreateMember(q, b)).favorites, ["5", "7"]);
@@ -124,11 +158,12 @@ console.log("account: 계정 연결·관리자 규칙 통과");
   const q2: Query = async (text, params) => (await db2.query(text, params ?? [])).rows as Record<string, unknown>[];
   // 연결 기능 이전 회원 (회원 번호 = 로그인 번호, member_logins 없음) → 표 준비 때 옮겨 적는다
   await q2(SCHEMA_SQL[0]);
-  await q2(`INSERT INTO members (id, provider, nickname, favorites) VALUES ('naver:old', 'naver', '옛회원', '{"1","2"}')`);
+  await q2(`INSERT INTO members (id, provider, nickname, team_code, favorites) VALUES ('naver:old', 'naver', '옛회원', '35', '{"1","2"}')`);
   await ensureSchema(q2);
   await ensureSchema(q2);
   assert.equal(await resolveMemberId(q2, "naver:old"), "naver:old");
   assert.deepEqual((await getOrCreateMember(q2, "naver:old")).logins, ["naver"]);
+  assert.deepEqual((await getOrCreateMember(q2, "naver:old")).teamCodes, ["35"]); // 옛 대표 팀 옮겨 적음
 
   // 처음 보는 구글 로그인을 붙이기
   assert.deepEqual(await linkLogin(q2, "naver:old", "google:g1"), { ok: true, merged: false });
@@ -142,8 +177,11 @@ console.log("account: 계정 연결·관리자 규칙 통과");
   // 이미 따로 가입한 두 계정 합치기: 즐겨찾기 합침, 닉네임은 지금 회원 것(없으면 그쪽), 응원팀도 비면 그쪽
   await updateProfile(q2, "naver:n2", { teamCode: "55" });
   await setFavorites(q2, "naver:n2", ["9", "1"]);
+  await setLike(q2, "naver:n2", "team", "55", true);
   await updateProfile(q2, "google:g2", { nickname: "구글쪽" });
   await setFavorites(q2, "google:g2", ["1", "7"]);
+  await setLike(q2, "google:g2", "team", "55", true);
+  await setLike(q2, "google:g2", "player", "7", true);
   const n2member = await resolveMemberId(q2, "naver:n2");
   assert.deepEqual(await linkLogin(q2, "naver:n2", "google:g2"), { ok: true, merged: true });
   const merged = await getOrCreateMember(q2, "google:g2");
@@ -152,6 +190,8 @@ console.log("account: 계정 연결·관리자 규칙 통과");
   assert.equal(merged.nickname, "구글쪽");
   assert.equal(merged.teamCode, "55");
   assert.deepEqual(merged.logins, ["google", "naver"]);
+  assert.deepEqual(merged.likes, { players: ["7"], teams: ["55"] }); // 좋아요도 합침(같은 팀은 한 번)
+  assert.deepEqual(await likeCounts(q2), { players: { "7": 1 }, teams: { "55": 1 } });
   assert.equal((await q2("SELECT count(*)::int AS n FROM members")).at(0)?.n, 2);
 
   // 같은 회사가 겹치면 합치지 않는다 (구글이 이미 붙은 회원에 다른 구글)
@@ -181,7 +221,7 @@ console.log("account: 계정 연결·관리자 규칙 통과");
   const list = await listMembers(q2);
   assert.equal(list.length, (await q2("SELECT count(*)::int AS n FROM members")).at(0)?.n);
   const row = list.find((m) => m.nickname === "구글쪽");
-  assert.ok(row && row.favoriteCount === 3 && sameList(row.logins, ["google"]) && row.shortId.length === 6);
+  assert.ok(row && row.likeCount === 2 && row.favoriteCount === 3 && sameList(row.logins, ["google"]) && row.shortId.length === 6);
   assert.ok(list.every((m, i) => i === 0 || list[i - 1].createdAt >= m.createdAt));
   await db2.close();
   console.log("account: 계정 연결 SQL(옛 회원 옮기기·붙이기·합치기·겹침·해제·탈퇴·관리자 목록) 통과");

@@ -2,7 +2,7 @@
   "seasonCode": 17,
   "seasonLabel": "2010-2011",
   "gameType": "regular",
-  "fetchedAt": "2026-10-03T15:35:31.153Z",
+  "fetchedAt": "2026-10-04T10:05:16.397Z",
   "coverage": {
     "advanced": true,
     "plusMinus": true,
@@ -36831,6 +36831,38 @@
     "wins": 4,
     "losses": 2
   },
+  "playoffs": [
+    {
+      "teamCode": "06",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "16",
+      "series": 2,
+      "finals": true
+    },
+    {
+      "teamCode": "35",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "50",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "60",
+      "series": 2,
+      "finals": true
+    },
+    {
+      "teamCode": "65",
+      "series": 1,
+      "finals": false
+    }
+  ],
   "seasonAwards": {
     "awards": [
       {

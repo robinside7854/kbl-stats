@@ -16,7 +16,7 @@
     "test:champions": "tsx tests/champions.test.ts",
     "test:reference": "tsx tests/reference.test.ts",
     "test:leaders": "tsx tests/leaders.test.ts",
-    "test": "npm run test:metrics && npm run test:leaders && npm run test:card && npm run test:player && npm run test:teams && npm run test:roster && npm run test:cardview && npm run test:highs && npm run test:badges && npm run test:gamelogs && npm run test:shots && npm run test:shotzones && npm run test:reference && npm run test:champions && npm run test:game && npm run test:shorts && npm run test:gate && npm run test:games && npm run test:records && npm run test:share && npm run test:account",
+    "test": "npm run test:metrics && npm run test:leaders && npm run test:card && npm run test:player && npm run test:teams && npm run test:roster && npm run test:cardview && npm run test:highs && npm run test:badges && npm run test:gamelogs && npm run test:shots && npm run test:shotzones && npm run test:reference && npm run test:champions && npm run test:game && npm run test:shorts && npm run test:gate && npm run test:games && npm run test:records && npm run test:share && npm run test:account && npm run test:franchise",
     "test:card": "tsx tests/card.test.ts",
     "prebuild": "tsx scripts/build-search-index.ts && tsx scripts/build-cards.ts && tsx scripts/build-shots.ts && tsx scripts/build-game.ts && tsx scripts/build-games.ts && tsx scripts/build-og.tsx",
     "predev": "tsx scripts/build-search-index.ts && tsx scripts/build-cards.ts && tsx scripts/build-shots.ts && tsx scripts/build-game.ts && tsx scripts/build-games.ts",
@@ -45,7 +45,8 @@
     "short:prepare": "tsx scripts/prepare-short.ts",
     "build:game": "tsx scripts/build-game.ts",
     "build:og": "tsx scripts/build-og.tsx",
-    "test:account": "tsx tests/account.test.ts"
+    "test:account": "tsx tests/account.test.ts",
+    "test:franchise": "tsx tests/franchise.test.ts"
   },
   "engines": {
     "node": ">=20"

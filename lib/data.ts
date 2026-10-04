@@ -48,6 +48,13 @@ import { findSimilar, toAxisVector, type SimilarEntry, type SimilarVector } from
 import { pickPrimeSeasons, primeCandidatesOf, type PrimeCandidate } from "./prime";
 import { DEFAULT_QUALIFY, buildCardEntry, gradeGroupOf, isOngoingSeason, isQualified, seasonDefaultQualify } from "./metrics";
 import { seasonContext } from "./cardview";
+import { computeStandings } from "./games";
+import { pickRegularChampions } from "./game-pool";
+import teamLineage from "@/data/codes/team-lineage.json";
+import {
+  buildTenures, franchiseLeaders, franchiseTotals, lineageChain, longestTenures, nameSpans, pickLegends, playoffStage, TEAM_LEADER_STATS,
+  type PlayerTenure, type RosterRow, type SeasonPlayerLine, type TeamAwardLine, type TeamBrand, type TeamIndexEntry, type TeamPageData, type TeamSeasonRow,
+} from "./franchise";
 import { seasonLeaderMarks, type LeaderStatKey, type StatMode } from "./leaders";
 import { buildBadgeIndex, playerBadges, type BadgeCareer, type BadgeIndex, type BadgeSeasonRow, type PlayerBadge } from "./badges";
 
@@ -756,4 +763,176 @@ export function loadAccountTeams(): { teamCode: string; name: string; logoUrl: s
   return [...byCode.values()]
     .sort((a, b) => a.order - b.order)
     .map((t) => ({ teamCode: t.teamCode, name: t.shortNameKo, logoUrl: t.logoUrl, color: t.color }));
+}
+
+// ─────────────────────────────────────────────
+// 팀 페이지 (/teams, /team/[팀코드], 2026-10-04) — 규칙은 lib/franchise
+// ─────────────────────────────────────────────
+
+let franchiseCache: Map<string, TeamPageData> | null = null;
+
+/** 모든 팀 코드의 팀 페이지 재료 (빌드 때 한 번) */
+export function loadFranchises(): Map<string, TeamPageData> {
+  if (franchiseCache) return franchiseCache;
+  const seasons = [...listSeasonsWithPlayers()].sort((a, b) => a.seasonCode - b.seasonCode);
+  const recent = new Set(seasons.slice(-2).map((s) => s.seasonCode));
+  const photo = new Map(loadPlayersIndex().map((e) => [e.id, e.photoUrl ?? null]));
+  type Acc = {
+    brand: TeamBrand;
+    rows: TeamSeasonRow[];
+    names: { seasonCode: number; name: string }[];
+    rosters: Record<string, RosterRow[]>;
+    lines: SeasonPlayerLine[];
+    awards: TeamAwardLine[];
+    awardRefs: { playerNo: string; key: string; seasonCode: number }[];
+    active: boolean;
+  };
+  const acc = new Map<string, Acc>();
+  const awardLabel = new Map<string, string>(AWARD_LABELS.map((a) => [a.key, a.label]));
+  for (const s of seasons) {
+    const data = loadSeasonData(s.seasonCode);
+    if (!data) continue;
+    const ongoing = isSeasonOngoing(s.seasonCode);
+    const standings = computeStandings(loadSeasonGames(s.seasonCode));
+    const top = standings.filter((r) => r.pct === standings[0]?.pct && r.wins === standings[0]?.wins);
+    const namesOf = (code: string) => data.teams.filter((t) => t.teamCode === code).flatMap((t) => [t.shortNameKo, t.name, t.shortName]);
+    const firsts = new Set(
+      ongoing ? [] : pickRegularChampions(top.map((r) => ({ teamCode: r.teamCode, names: namesOf(r.teamCode) })), data.seasonAwards?.regular?.first ?? null),
+    );
+    const label = seasonShortLabel(data.seasonLabel);
+    // 승패가 같은 맨 위 팀들은 공식 1위(firsts)를 앞에 두고 순위를 다시 매긴다 (경기 결과로는 상대 전적 동률 규칙을 모른다)
+    // 공동 1위(19-20 DB·SK)는 둘 다 1위, 공식 1위가 아닌 동률 팀은 그다음 순위
+    const others = top.map((r) => r.teamCode).filter((c) => !firsts.has(c));
+    const rankOf = (code: string, fallback: number | null) =>
+      firsts.size === 0 ? fallback : firsts.has(code) ? 1 : others.includes(code) ? firsts.size + others.indexOf(code) + 1 : fallback;
+    for (const t of data.teams) {
+      const players = data.players.filter((p) => p.teamCode === t.teamCode && p.games > 0);
+      const st = standings.find((r) => r.teamCode === t.teamCode);
+      if (players.length === 0 && !st) continue;
+      let a = acc.get(t.teamCode);
+      const brand: TeamBrand = { teamCode: t.teamCode, name: t.name, shortName: t.shortNameKo, logoUrl: t.logoUrl, color: t.color };
+      if (!a) {
+        a = { brand, rows: [], names: [], rosters: {}, lines: [], awards: [], awardRefs: [], active: false };
+        acc.set(t.teamCode, a);
+      }
+      a.brand = brand; // 가장 최근 시즌 이름·로고
+      if (recent.has(s.seasonCode)) a.active = true;
+      a.names.push({ seasonCode: s.seasonCode, name: t.name });
+      const per = (v: number, g: number) => (g > 0 ? Math.round((v / g) * 10) / 10 : 0);
+      const roster: RosterRow[] = players
+        .map((p) => ({
+          id: p.playerNo,
+          name: p.nameKo,
+          pos: p.position ?? null,
+          foreign: p.isForeign,
+          gp: p.games,
+          mpg: per(p.minutes, p.games),
+          ppg: per(p.points, p.games),
+          rpg: per(p.reb, p.games),
+          apg: per(p.ast, p.games),
+          photoUrl: photo.get(p.playerNo) ?? null,
+        }))
+        .sort((x, y) => y.ppg - x.ppg || y.gp - x.gp);
+      a.rosters[String(s.seasonCode)] = roster;
+      for (const p of players) {
+        a.lines.push({
+          id: p.playerNo, name: p.nameKo, photoUrl: photo.get(p.playerNo) ?? null, seasonCode: s.seasonCode,
+          games: p.games, pts: p.points, reb: p.reb, ast: p.ast, stl: p.stl, blk: p.blk, tpm: p.tpm,
+        });
+      }
+      const qualified = roster.filter((r) => r.gp >= Math.max(5, Math.round((st ? st.wins + st.losses : 0) * 0.3)));
+      const scorer = (qualified.length > 0 ? qualified : roster)[0];
+      const isChampion = data.champion?.teamCode === t.teamCode;
+      const entry = data.playoffs?.find((e) => e.teamCode === t.teamCode);
+      a.rows.push({
+        seasonCode: s.seasonCode,
+        label,
+        name: t.name,
+        shortName: t.shortNameKo,
+        logoUrl: t.logoUrl,
+        wins: st?.wins ?? 0,
+        losses: st?.losses ?? 0,
+        pct: st && st.wins + st.losses > 0 ? st.pct : null,
+        rank: rankOf(t.teamCode, st?.rank ?? null),
+        teamCount: data.teams.length,
+        regularFirst: firsts.has(t.teamCode),
+        stage: ongoing ? null : playoffStage(entry, isChampion, rankOf(t.teamCode, st?.rank ?? null)),
+        ongoing,
+        topScorer: scorer ? { id: scorer.id, name: scorer.name, ppg: scorer.ppg } : null,
+      });
+      for (const aw of data.seasonAwards?.awards ?? []) {
+        if (!awardLabel.has(aw.key)) continue;
+        for (const w of aw.winners) {
+          if (w.teamCode !== t.teamCode || !w.playerNo) continue;
+          a.awardRefs.push({ playerNo: w.playerNo, key: aw.key, seasonCode: s.seasonCode });
+          a.awards.push({ seasonCode: s.seasonCode, label, key: aw.key, awardLabel: awardLabel.get(aw.key)!, playerNo: w.playerNo, name: w.name });
+        }
+      }
+    }
+  }
+  const lineageMap = (teamLineage as { successor: Record<string, string> }).successor;
+  const labelOf = new Map(seasons.map((s) => [s.seasonCode, seasonShortLabel(s.seasonLabel)]));
+  const spanOf = (codes: readonly number[]) => {
+    if (codes.length === 0) return "";
+    const from = labelOf.get(codes[0]) ?? "";
+    const to = labelOf.get(codes[codes.length - 1]) ?? "";
+    return from === to ? from : `${from} ~ ${to}`;
+  };
+  franchiseCache = new Map();
+  for (const [code, a] of acc) {
+    const rows = [...a.rows].sort((x, y) => y.seasonCode - x.seasonCode);
+    const codes = rows.map((r) => r.seasonCode).sort((x, y) => x - y);
+    const tenures = buildTenures(a.lines, a.awardRefs);
+    const withSpan = (t: PlayerTenure) => ({ ...t, span: spanOf(t.seasonCodes) });
+    const legends = pickLegends(tenures).map(withSpan);
+    franchiseCache.set(code, {
+      brand: a.brand,
+      active: a.active,
+      spanLabel: a.active ? `${labelOf.get(codes[0]) ?? ""} ~` : spanOf(codes),
+      names: nameSpans(a.names).reverse().map((n) => ({ name: n.name, span: spanOf([n.from, n.to]) })),
+      rows,
+      totals: franchiseTotals(rows),
+      rosters: a.rosters,
+      legends,
+      longest: legends.length > 0 ? [] : longestTenures(tenures).map(withSpan),
+      leaders: TEAM_LEADER_STATS.map((s) => ({ key: s.key, label: s.label, list: franchiseLeaders(tenures, s.key) })),
+      awards: [...a.awards].sort((x, y) => y.seasonCode - x.seasonCode),
+      lineage: [],
+    });
+  }
+  for (const [code, page] of franchiseCache) {
+    const chain = lineageChain(code, lineageMap).filter((c) => franchiseCache!.has(c));
+    page.lineage = chain.length > 1
+      ? chain.map((c) => {
+          const p = franchiseCache!.get(c)!;
+          return { ...p.brand, active: p.active, span: p.spanLabel };
+        })
+      : [];
+  }
+  return franchiseCache;
+}
+
+/** 팀 목록 (/teams): 지금 팀(최신 시즌 순서) + 추억의 팀(첫 시즌 순) */
+export function loadTeamIndex(): TeamIndexEntry[] {
+  const all = loadFranchises();
+  const latest = listSeasonsWithPlayers()[0]?.seasonCode;
+  const prev = listSeasonsWithPlayers()[1]?.seasonCode;
+  const orderOf = new Map<string, number>();
+  for (const code of [prev, latest]) for (const t of (code ? loadSeasonData(code)?.teams : null) ?? []) orderOf.set(t.teamCode, t.order);
+  const lineageMap = (teamLineage as { successor: Record<string, string> }).successor;
+  return [...all.values()].map((p) => {
+    const chain = lineageChain(p.brand.teamCode, lineageMap);
+    const last = chain[chain.length - 1];
+    const successor = !p.active && last !== p.brand.teamCode ? all.get(last) : undefined;
+    return {
+      brand: p.brand,
+      active: p.active,
+      spanLabel: p.spanLabel,
+      seasons: p.totals.seasons,
+      championships: p.totals.championships,
+      regularFirsts: p.totals.regularFirsts,
+      order: p.active ? (orderOf.get(p.brand.teamCode) ?? 99) : (p.rows[p.rows.length - 1]?.seasonCode ?? 0),
+      successorName: successor?.brand.name ?? null,
+    };
+  }).sort((a, b) => Number(b.active) - Number(a.active) || a.order - b.order);
 }

@@ -2,7 +2,7 @@
   "seasonCode": 4,
   "seasonLabel": "1999-2000",
   "gameType": "regular",
-  "fetchedAt": "2026-10-03T15:35:28.833Z",
+  "fetchedAt": "2026-10-04T10:05:12.533Z",
   "coverage": {
     "advanced": true,
     "plusMinus": true,
@@ -25578,6 +25578,38 @@
     "wins": 4,
     "losses": 2
   },
+  "playoffs": [
+    {
+      "teamCode": "10",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "15",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "35",
+      "series": 2,
+      "finals": false
+    },
+    {
+      "teamCode": "40",
+      "series": 2,
+      "finals": false
+    },
+    {
+      "teamCode": "45",
+      "series": 1,
+      "finals": true
+    },
+    {
+      "teamCode": "55",
+      "series": 1,
+      "finals": true
+    }
+  ],
   "seasonAwards": {
     "awards": [
       {

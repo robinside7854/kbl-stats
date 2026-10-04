@@ -2,7 +2,7 @@
   "seasonCode": 12,
   "seasonLabel": "2007-2008",
   "gameType": "regular",
-  "fetchedAt": "2026-10-03T15:35:30.444Z",
+  "fetchedAt": "2026-10-04T10:05:15.122Z",
   "coverage": {
     "advanced": true,
     "plusMinus": true,
@@ -34719,6 +34719,38 @@
     "wins": 4,
     "losses": 1
   },
+  "playoffs": [
+    {
+      "teamCode": "16",
+      "series": 1,
+      "finals": true
+    },
+    {
+      "teamCode": "35",
+      "series": 2,
+      "finals": true
+    },
+    {
+      "teamCode": "50",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "55",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "60",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "70",
+      "series": 2,
+      "finals": false
+    }
+  ],
   "seasonAwards": {
     "awards": [
       {

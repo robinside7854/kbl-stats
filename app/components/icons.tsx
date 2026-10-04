@@ -265,3 +265,12 @@ export function IconCalendar(p: IconProps) {
     </Svg>
   );
 }
+
+/** 하트 (좋아요) */
+export function IconHeart({ filled = false, ...p }: IconProps & { filled?: boolean }) {
+  return (
+    <Svg {...p} fill={filled ? "currentColor" : "none"}>
+      <path d="M12 20s-7.5-4.4-7.5-10.2A4.3 4.3 0 0 1 12 7.2a4.3 4.3 0 0 1 7.5 2.6C19.5 15.6 12 20 12 20Z" />
+    </Svg>
+  );
+}

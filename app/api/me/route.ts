@@ -1,5 +1,5 @@
 // 내 회원 정보: GET 보기(처음이면 만든다 — 연결된 로그인 수단·관리자 여부·방금 연결 결과 포함) · PATCH 닉네임·응원팀 저장 · DELETE 탈퇴(바로 삭제)
-import { normalizeTeamCode, validateNickname } from "@/lib/account";
+import { normalizeTeamCode, normalizeTeamCodes, validateNickname } from "@/lib/account";
 import { badWriteRequest, json, readJson } from "@/lib/server/api";
 import { currentLoginId, currentSession } from "@/lib/server/auth";
 import { isAdmin } from "@/lib/server/admin";
@@ -32,15 +32,19 @@ export async function PATCH(req: Request) {
   if (bad) return bad;
   const c = await context();
   if ("error" in c) return c.error;
-  const body = (await readJson(req)) as { nickname?: unknown; teamCode?: unknown } | null;
+  const body = (await readJson(req)) as { nickname?: unknown; teamCode?: unknown; teamCodes?: unknown } | null;
   if (!body) return json({ error: "bad_request" }, 400);
-  const patch: { nickname?: string | null; teamCode?: string | null } = {};
+  const patch: { nickname?: string | null; teamCode?: string | null; teamCodes?: string[] } = {};
   if (body.nickname !== undefined) {
     const n = validateNickname(body.nickname);
     if (!n.ok) return json({ error: "nickname_invalid", message: n.error }, 400);
     patch.nickname = n.value;
   }
-  if (body.teamCode !== undefined) {
+  if (body.teamCodes !== undefined) {
+    const t = normalizeTeamCodes(body.teamCodes);
+    if (t === undefined) return json({ error: "bad_request" }, 400);
+    patch.teamCodes = t;
+  } else if (body.teamCode !== undefined) {
     const t = normalizeTeamCode(body.teamCode);
     if (t === undefined) return json({ error: "bad_request" }, 400);
     patch.teamCode = t;

@@ -2,7 +2,7 @@
   "seasonCode": 10,
   "seasonLabel": "2005-2006",
   "gameType": "regular",
-  "fetchedAt": "2026-10-03T15:35:29.933Z",
+  "fetchedAt": "2026-10-04T10:05:14.327Z",
   "coverage": {
     "advanced": true,
     "plusMinus": true,
@@ -28630,6 +28630,38 @@
     "wins": 4,
     "losses": 0
   },
+  "playoffs": [
+    {
+      "teamCode": "06",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "10",
+      "series": 1,
+      "finals": true
+    },
+    {
+      "teamCode": "16",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "30",
+      "series": 2,
+      "finals": false
+    },
+    {
+      "teamCode": "35",
+      "series": 1,
+      "finals": true
+    },
+    {
+      "teamCode": "60",
+      "series": 2,
+      "finals": false
+    }
+  ],
   "seasonAwards": {
     "awards": [
       {

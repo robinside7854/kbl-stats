@@ -2,7 +2,7 @@
   "seasonCode": 9,
   "seasonLabel": "2004-2005",
   "gameType": "regular",
-  "fetchedAt": "2026-10-03T15:35:29.748Z",
+  "fetchedAt": "2026-10-04T10:05:14.011Z",
   "coverage": {
     "advanced": true,
     "plusMinus": true,
@@ -28248,6 +28248,38 @@
     "wins": 4,
     "losses": 2
   },
+  "playoffs": [
+    {
+      "teamCode": "06",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "15",
+      "series": 1,
+      "finals": true
+    },
+    {
+      "teamCode": "30",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "35",
+      "series": 2,
+      "finals": false
+    },
+    {
+      "teamCode": "40",
+      "series": 2,
+      "finals": false
+    },
+    {
+      "teamCode": "60",
+      "series": 1,
+      "finals": true
+    }
+  ],
   "seasonAwards": {
     "awards": [
       {

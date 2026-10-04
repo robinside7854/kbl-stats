@@ -202,6 +202,8 @@ export interface SeasonData {
   shotZoneLeague?: ZoneCounts | null;
   /** 그 시즌 우승팀 (챔프전 4승, scripts/champions.ts). 경기 목록이 없거나 4승 팀이 없으면 null — 옛 파일엔 필드가 없다 */
   champion?: { teamCode: string; teamName: string; wins: number; losses: number } | null;
+  /** 플레이오프 출전 팀 (scripts/champions.ts playoffEntries, 2026-10-04) — 옛 파일엔 필드가 없다 */
+  playoffs?: { teamCode: string; series: number; finals: boolean }[];
   /** 그 시즌 어워즈 (수상 raw 에 그 시즌이 있을 때만, 없으면 null — 시즌이 안 끝났거나 옛 파일) */
   seasonAwards?: SeasonAwards | null;
 }

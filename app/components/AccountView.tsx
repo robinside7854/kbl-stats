@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
 import {
-  canUnlink, enabledLoginProviders, linkResultMessage, NICKNAME_MAX, NICKNAME_MIN, parseLoginProviders, PROVIDER_LABELS, validateNickname,
+  canUnlink, enabledLoginProviders, linkResultMessage, MAX_TEAMS, NICKNAME_MAX, NICKNAME_MIN, parseLoginProviders, PROVIDER_LABELS, validateNickname,
   type LoginProvider, type MemberView,
 } from "@/lib/account";
 import type { TeamColor } from "@/lib/types";
@@ -121,22 +121,23 @@ function SignedIn({ member, suggested, teams, onChange }: { member: MemberView; 
   // 닉네임을 아직 안 정했으면 네이버 별명을 칸에 미리 채운다 (저장을 눌러야 저장)
   const fromNaver = !member.nickname && !!suggested;
   const [nickname, setNickname] = useState(member.nickname ?? suggested ?? "");
-  const [teamCode, setTeamCode] = useState<string | null>(member.teamCode);
+  const [teamCodes, setTeamCodes] = useState<string[]>(member.teamCodes);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const team = useMemo(() => teams.find((t) => t.teamCode === teamCode) ?? null, [teams, teamCode]);
+  const first = useMemo(() => teams.find((t) => t.teamCode === teamCodes[0]) ?? null, [teams, teamCodes]);
   const check = validateNickname(nickname);
-  const changed = nickname.trim() !== (member.nickname ?? "") || teamCode !== member.teamCode;
+  const changed = nickname.trim() !== (member.nickname ?? "") || teamCodes.join(",") !== member.teamCodes.join(",");
+  const toggleTeam = (code: string) => setTeamCodes((cur) => (cur.includes(code) ? cur.filter((c) => c !== code) : [...cur, code].slice(0, MAX_TEAMS)));
 
   async function save() {
     if (!check.ok) return setMessage({ ok: false, text: check.error });
     setSaving(true);
     setMessage(null);
-    const r = await saveProfile({ nickname: check.value, teamCode });
+    const r = await saveProfile({ nickname: check.value, teamCodes });
     setSaving(false);
     if (!r.ok) return setMessage({ ok: false, text: r.message });
-    trackEvent("profile_save", { team_code: teamCode ?? "none" });
+    trackEvent("profile_save", { team_code: teamCodes[0] ?? "none", team_count: teamCodes.length });
     if (fromNaver) void clearSuggestion();
     onChange(r.member);
     setMessage({ ok: true, text: "저장했어요." });
@@ -180,27 +181,43 @@ function SignedIn({ member, suggested, teams, onChange }: { member: MemberView; 
           {nickname !== "" && !check.ok ? check.error : fromNaver && nickname === suggested ? "네이버 별명을 미리 넣어 두었어요. 바꿔서 저장해도 돼요." : ""}
         </p>
 
-        <p className="mt-3 text-sub font-semibold text-ink-2">응원팀</p>
+        <p className="mt-3 text-sub font-semibold text-ink-2">
+          응원팀 <span className="font-normal text-ink-3">(여러 팀 고를 수 있어요)</span>
+        </p>
         <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
+          <button
+            type="button"
+            aria-pressed={teamCodes.length === 0}
+            onClick={() => setTeamCodes([])}
+            className={`focus-ring flex h-11 min-w-0 cursor-pointer items-center gap-2 rounded-control border px-3 text-sub font-semibold transition-colors duration-200 ${
+              teamCodes.length === 0 ? "border-ink bg-surface-2 text-ink" : "border-line bg-surface text-ink-2 hover:bg-surface-2"
+            }`}
+          >
+            응원팀 없음
+          </button>
           {teams.map((t) => {
-            const on = t.teamCode === teamCode;
+            const at = teamCodes.indexOf(t.teamCode);
+            const on = at >= 0;
             return (
               <button
                 key={t.teamCode}
                 type="button"
                 aria-pressed={on}
-                onClick={() => setTeamCode(on ? null : t.teamCode)}
+                onClick={() => toggleTeam(t.teamCode)}
                 className={`focus-ring flex h-11 min-w-0 cursor-pointer items-center gap-2 rounded-control border px-2 text-sub font-semibold transition-colors duration-200 ${
                   on ? "border-ink bg-surface-2 text-ink" : "border-line bg-surface text-ink-2 hover:bg-surface-2"
                 }`}
               >
                 <TeamLogo logoUrl={t.logoUrl} shortName={t.name} color={t.color} size={24} />
-                <span className="truncate">{t.name}</span>
+                <span className="min-w-0 flex-1 truncate text-left">{t.name}</span>
+                {on && <span className="shrink-0 text-caption text-ink-3 tabular">{at + 1}</span>}
               </button>
             );
           })}
         </div>
-        <p className="mt-2 text-sub text-ink-3">{team ? `${team.name} 팬으로 표시돼요. 한 번 더 누르면 해제.` : "응원팀 없이도 쓸 수 있어요."}</p>
+        <p className="mt-2 text-sub text-ink-3">
+          {first ? `첫 번째로 고른 ${first.name} 색이 닉네임 옆에 붙어요. 다시 누르면 해제.` : "응원팀 없이도 쓸 수 있어요."}
+        </p>
 
         <button
           type="button"

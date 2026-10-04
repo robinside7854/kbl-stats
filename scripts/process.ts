@@ -13,7 +13,7 @@
 // raw 파일은 절대 수정하지 않는다. 이 스크립트는 몇 번 다시 돌려도 같은 결과가 나와야 한다.
 
 import { awardRows, matchAwardPlayer, PROFILE_AWARD_KEYS, seasonTeamResults, type AwardRow } from "./awards";
-import { championSeasonsOf, finalsChampion, type SeasonChampion } from "./champions";
+import { championSeasonsOf, finalsChampion, playoffEntries, type PlayoffEntry, type SeasonChampion } from "./champions";
 import { readdir, readFile, mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { DATA_DIR, SEASON_CODES_FALLBACK } from "./config.js";
@@ -57,6 +57,16 @@ async function readSeasonChampion(seasonCode: number): Promise<SeasonChampion | 
     return finalsChampion(list, seasonCode);
   } catch {
     return null;
+  }
+}
+
+/** 시즌 플레이오프 출전 팀 (경기 목록 03·04, scripts/champions.ts playoffEntries). 목록이 없으면 빈 배열 */
+async function readSeasonPlayoffs(seasonCode: number): Promise<PlayoffEntry[]> {
+  try {
+    const list = JSON.parse(await readFile(join(DATA_DIR, "raw", "games", String(seasonCode), "list.json"), "utf8"));
+    return playoffEntries(list, seasonCode);
+  } catch {
+    return [];
   }
 }
 
@@ -494,6 +504,8 @@ async function processSeason(seasonCode: number): Promise<SeasonData> {
     shotZoneLeague: shots ? leagueZoneAverages(players.map((p) => p.shotZones)) : null,
     // 우승팀 (챔프전 4승, scripts/champions.ts) — 경기 목록이 없거나 시즌 진행 중·취소면 null
     champion: await readSeasonChampion(seasonCode),
+    // 플레이오프 출전 팀 (6강·4강 상대 수·챔프전 진출) — 팀 페이지 시즌별 성적 (lib/franchise playoffStage)
+    playoffs: await readSeasonPlayoffs(seasonCode),
   };
 
   const outDir = join(DATA_DIR, "processed", String(seasonCode));

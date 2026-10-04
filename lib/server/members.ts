@@ -6,8 +6,8 @@
 // 로그인 쿠키에는 로그인 번호만 있다 → 함수들은 로그인 번호를 받아 회원을 찾는다(resolveMemberId).
 // 연결 기능 이전 회원은 회원 번호 = 로그인 번호였다(표 준비 때 member_logins 에 옮겨 적음). 새 회원 번호는 "m:무작위".
 import {
-  LOGIN_PROVIDERS, MAX_FAVORITES, mergeFavorites, providerOfMemberId, sanitizeFavorites,
-  type AdminMemberRow, type LoginProvider, type MemberView,
+  LOGIN_PROVIDERS, MAX_FAVORITES, MAX_LIKES, MAX_TEAMS, mergeFavorites, normalizeTeamCodes, providerOfMemberId, sanitizeFavorites,
+  type AdminMemberRow, type LikeCounts, type LikeKind, type LoginProvider, type MemberView, type MyLikes,
 } from "../account";
 
 /** SQL 문장 + 값($1, $2 …) → 행 목록 */
@@ -33,6 +33,17 @@ export const SCHEMA_SQL = [
     linked_at timestamptz NOT NULL DEFAULT now()
   )`,
   `CREATE INDEX IF NOT EXISTS member_logins_member ON member_logins (member_id)`,
+  // 응원팀 여러 팀 (옛 회원은 대표 팀 하나를 옮겨 적음)
+  `ALTER TABLE members ADD COLUMN IF NOT EXISTS team_codes text[] NOT NULL DEFAULT '{}'`,
+  `UPDATE members SET team_codes = ARRAY[team_code] WHERE team_code IS NOT NULL AND cardinality(team_codes) = 0`,
+  `CREATE TABLE IF NOT EXISTS member_likes (
+    member_id text NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+    kind text NOT NULL,
+    target text NOT NULL,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    PRIMARY KEY (member_id, kind, target)
+  )`,
+  `CREATE INDEX IF NOT EXISTS member_likes_target ON member_likes (kind, target)`,
   // 연결 기능 이전 회원(로그인 수단이 하나도 안 적힌 회원): 회원 번호가 곧 로그인 번호
   `INSERT INTO member_logins (login_id, member_id, provider)
     SELECT m.id, m.id, m.provider FROM members m
@@ -87,14 +98,29 @@ export async function loginIdsOfLogin(q: Query, loginId: string): Promise<string
   return memberId ? (await loginsOf(q, memberId)).map((l) => l.loginId) : [loginId];
 }
 
+function teamsOf(v: unknown): string[] {
+  return normalizeTeamCodes(Array.isArray(v) ? v : []) ?? [];
+}
+
+async function likesOf(q: Query, memberId: string): Promise<MyLikes> {
+  const rows = await q(`SELECT kind, target FROM member_likes WHERE member_id = $1 ORDER BY created_at`, [memberId]);
+  return {
+    players: rows.filter((r) => r.kind === "player").map((r) => String(r.target)),
+    teams: rows.filter((r) => r.kind === "team").map((r) => String(r.target)),
+  };
+}
+
 async function viewOf(q: Query, memberId: string, loginId: string): Promise<MemberView> {
-  const rows = await q(`SELECT nickname, team_code, favorites FROM members WHERE id = $1`, [memberId]);
+  const rows = await q(`SELECT nickname, team_codes, favorites FROM members WHERE id = $1`, [memberId]);
   const row = rows[0];
+  const teamCodes = teamsOf(row?.team_codes);
   return {
     provider: providerOfMemberId(loginId),
     nickname: (row?.nickname as string | null) ?? null,
-    teamCode: (row?.team_code as string | null) ?? null,
+    teamCode: teamCodes[0] ?? null,
+    teamCodes,
     favorites: sanitizeFavorites(row?.favorites ?? []),
+    likes: await likesOf(q, memberId),
     logins: asProviders((await loginsOf(q, memberId)).map((l) => l.provider)),
   };
 }
@@ -106,8 +132,12 @@ export async function getOrCreateMember(q: Query, loginId: string): Promise<Memb
 
 export type ProfileResult = { ok: true; member: MemberView } | { ok: false; error: "nickname_taken" };
 
-/** 닉네임·응원팀 저장 (값 검사는 부르는 쪽 — lib/account validateNickname·normalizeTeamCode) */
-export async function updateProfile(q: Query, loginId: string, patch: { nickname?: string | null; teamCode?: string | null }): Promise<ProfileResult> {
+/** 닉네임·응원팀 저장 (값 검사는 부르는 쪽 — lib/account validateNickname·normalizeTeamCodes). teamCode 하나만 오면 그 팀 하나로 */
+export async function updateProfile(
+  q: Query,
+  loginId: string,
+  patch: { nickname?: string | null; teamCode?: string | null; teamCodes?: string[] },
+): Promise<ProfileResult> {
   const id = await resolveMemberId(q, loginId);
   if (patch.nickname) {
     const taken = await q(`SELECT 1 FROM members WHERE lower(nickname) = lower($1) AND id <> $2`, [patch.nickname, id]);
@@ -115,7 +145,8 @@ export async function updateProfile(q: Query, loginId: string, patch: { nickname
   }
   try {
     if (patch.nickname !== undefined) await q(`UPDATE members SET nickname = $2, updated_at = now() WHERE id = $1`, [id, patch.nickname]);
-    if (patch.teamCode !== undefined) await q(`UPDATE members SET team_code = $2, updated_at = now() WHERE id = $1`, [id, patch.teamCode]);
+    const teams = patch.teamCodes !== undefined ? patch.teamCodes.slice(0, MAX_TEAMS) : patch.teamCode !== undefined ? (patch.teamCode ? [patch.teamCode] : []) : null;
+    if (teams) await q(`UPDATE members SET team_codes = $2::text[], team_code = $3, updated_at = now() WHERE id = $1`, [id, teams, teams[0] ?? null]);
   } catch (e) {
     // 거의 동시에 같은 닉네임을 저장한 경우 (유일 인덱스)
     if (String((e as { code?: string })?.code) === "23505") return { ok: false, error: "nickname_taken" };
@@ -163,13 +194,19 @@ export async function linkLogin(q: Query, currentLoginId: string, newLoginId: st
   const theirs = await loginsOf(q, owner);
   if (theirs.some((t) => mine.some((m) => m.provider === t.provider))) return { ok: false, error: "conflict" };
 
-  const [a] = await q(`SELECT nickname, team_code, favorites FROM members WHERE id = $1`, [me]);
-  const [b] = await q(`SELECT nickname, team_code, favorites FROM members WHERE id = $1`, [owner]);
+  const [a] = await q(`SELECT nickname, team_codes, favorites FROM members WHERE id = $1`, [me]);
+  const [b] = await q(`SELECT nickname, team_codes, favorites FROM members WHERE id = $1`, [owner]);
   const favorites = mergeFavorites(sanitizeFavorites(a?.favorites ?? []), sanitizeFavorites(b?.favorites ?? []));
-  // 순서: 즐겨찾기·응원팀 → 로그인 수단 옮기기 → 그 회원 지우기 → 닉네임(유일 인덱스라 그 회원을 지운 뒤에)
-  await q(`UPDATE members SET favorites = $2::text[], team_code = COALESCE(team_code, $3), updated_at = now() WHERE id = $1`, [
-    me, favorites, (b?.team_code as string | null) ?? null,
+  const myTeams = teamsOf(a?.team_codes);
+  const teams = myTeams.length > 0 ? myTeams : teamsOf(b?.team_codes);
+  // 순서: 즐겨찾기·응원팀·좋아요 → 로그인 수단 옮기기 → 그 회원 지우기 → 닉네임(유일 인덱스라 그 회원을 지운 뒤에)
+  await q(`UPDATE members SET favorites = $2::text[], team_codes = $3::text[], team_code = $4, updated_at = now() WHERE id = $1`, [
+    me, favorites, teams, teams[0] ?? null,
   ]);
+  // 좋아요는 합친다 (같은 대상은 한 번)
+  await q(`INSERT INTO member_likes (member_id, kind, target, created_at)
+    SELECT $1, kind, target, created_at FROM member_likes WHERE member_id = $2
+    ON CONFLICT (member_id, kind, target) DO NOTHING`, [me, owner]);
   await q(`UPDATE member_logins SET member_id = $1, linked_at = now() WHERE member_id = $2`, [me, owner]);
   await q(`DELETE FROM members WHERE id = $1`, [owner]);
   if (!a?.nickname && b?.nickname) await q(`UPDATE members SET nickname = $2 WHERE id = $1 AND nickname IS NULL`, [me, b.nickname]);
@@ -192,17 +229,47 @@ export async function unlinkLogin(q: Query, currentLoginId: string, provider: Lo
 
 /** 관리자 화면: 전체 회원 (새로 가입한 순) */
 export async function listMembers(q: Query): Promise<AdminMemberRow[]> {
-  const rows = await q(`SELECT m.id, m.nickname, m.team_code, cardinality(m.favorites) AS fav,
+  const rows = await q(`SELECT m.id, m.nickname, m.team_codes, cardinality(m.favorites) AS fav,
+      (SELECT count(*) FROM member_likes k WHERE k.member_id = m.id) AS likes,
       m.created_at, m.updated_at, array_remove(array_agg(l.provider), NULL) AS logins
     FROM members m LEFT JOIN member_logins l ON l.member_id = m.id
     GROUP BY m.id ORDER BY m.created_at DESC`);
   return rows.map((r) => ({
     shortId: String(r.id).replace(/[^A-Za-z0-9]/g, "").slice(-6),
     nickname: (r.nickname as string | null) ?? null,
-    teamCode: (r.team_code as string | null) ?? null,
+    teamCodes: teamsOf(r.team_codes),
     favoriteCount: Number(r.fav ?? 0),
+    likeCount: Number(r.likes ?? 0),
     logins: asProviders(r.logins),
     createdAt: new Date(r.created_at as string).toISOString(),
     updatedAt: new Date(r.updated_at as string).toISOString(),
   }));
+}
+
+export type LikeOutcome = { ok: true; likes: MyLikes } | { ok: false; error: "limit" };
+
+/** 좋아요 켜기·끄기 (대상 검사는 부르는 쪽 — lib/account validLikeTarget) */
+export async function setLike(q: Query, loginId: string, kind: LikeKind, target: string, liked: boolean): Promise<LikeOutcome> {
+  const id = await resolveMemberId(q, loginId);
+  if (liked) {
+    const [c] = await q(`SELECT count(*)::int AS n FROM member_likes WHERE member_id = $1`, [id]);
+    const exists = await q(`SELECT 1 FROM member_likes WHERE member_id = $1 AND kind = $2 AND target = $3`, [id, kind, target]);
+    if (exists.length === 0 && Number(c?.n ?? 0) >= MAX_LIKES) return { ok: false, error: "limit" };
+    await q(`INSERT INTO member_likes (member_id, kind, target) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING`, [id, kind, target]);
+  } else {
+    await q(`DELETE FROM member_likes WHERE member_id = $1 AND kind = $2 AND target = $3`, [id, kind, target]);
+  }
+  return { ok: true, likes: await likesOf(q, id) };
+}
+
+/** 좋아요 수 전부 (공개 — 선수·팀별 회원 수) */
+export async function likeCounts(q: Query): Promise<LikeCounts> {
+  const rows = await q(`SELECT kind, target, count(*)::int AS n FROM member_likes GROUP BY kind, target`);
+  const out: LikeCounts = { players: {}, teams: {} };
+  for (const r of rows) {
+    const n = Number(r.n ?? 0);
+    if (r.kind === "player") out.players[String(r.target)] = n;
+    else if (r.kind === "team") out.teams[String(r.target)] = n;
+  }
+  return out;
 }

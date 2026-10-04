@@ -2,7 +2,7 @@
   "seasonCode": 15,
   "seasonLabel": "2009-2010",
   "gameType": "regular",
-  "fetchedAt": "2026-10-03T15:35:30.917Z",
+  "fetchedAt": "2026-10-04T10:05:15.971Z",
   "coverage": {
     "advanced": true,
     "plusMinus": true,
@@ -35499,6 +35499,38 @@
     "wins": 4,
     "losses": 2
   },
+  "playoffs": [
+    {
+      "teamCode": "06",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "10",
+      "series": 1,
+      "finals": true
+    },
+    {
+      "teamCode": "16",
+      "series": 2,
+      "finals": false
+    },
+    {
+      "teamCode": "35",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "50",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "60",
+      "series": 2,
+      "finals": true
+    }
+  ],
   "seasonAwards": {
     "awards": [
       {

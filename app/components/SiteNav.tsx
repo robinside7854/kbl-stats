@@ -20,14 +20,14 @@ import { IconBall, IconCalendar, IconHome, IconLeaders, IconPlayer, IconTeam, Ic
 import SiteLogo, { SITE_HEADER_NAME } from "./SiteLogo";
 import { trackEvent, trackFilters } from "./track";
 
-export type SiteView = "home" | "players" | "player" | "teams" | "leaders" | "schedule" | "compare" | "glossary" | "records" | "game" | "privacy" | "me";
+export type SiteView = "home" | "players" | "player" | "teams" | "team" | "leaders" | "schedule" | "compare" | "glossary" | "records" | "game" | "privacy" | "me";
 
 type MenuItem = { views: SiteView[]; label: string; short?: string; icon: (p: { size: 24 }) => React.ReactNode; href: (seasonCode: number) => string };
 const HOME: MenuItem = { views: ["home"], label: "홈", icon: IconHome, href: () => "/" };
 /** 홈 왼쪽 / 오른쪽 메뉴 (2026-10-03 사용자: 모바일 하단은 홈을 가운데, 왼쪽 선수·팀·리더보드, 오른쪽 일정·역대 기록·54-0 — 비교는 2026-10-03 메뉴에서 빼고 선수 상세 "비교" 버튼으로) */
 const LEFT: MenuItem[] = [
   { views: ["players", "player"], label: "선수", icon: IconPlayer, href: () => "/players" },
-  { views: ["teams"], label: "팀", icon: IconTeam, href: (c) => `/season/${c}/teams` },
+  { views: ["teams", "team"], label: "팀", icon: IconTeam, href: () => "/teams" },
   { views: ["leaders"], label: "리더보드", icon: IconLeaders, href: (c) => `/season/${c}/leaders` },
 ];
 const RIGHT: MenuItem[] = [

@@ -1,6 +1,6 @@
 "use client";
 // 팀 화면 "팀 순위" (2026-10-03 사용자 요청: 모바일 하단 메뉴에 "팀"). 경기 결과(경기 목록 점수)로 센 순위 — lib/games computeStandings.
-// 줄을 누르면 선수 탭의 그 시즌·그 팀 선수 목록(/players?season=&team=). GA4: team_select {team_code, season_code}.
+// 줄을 누르면 그 팀 페이지의 그 시즌 로스터(/team/코드?season=, 2026-10-04). GA4: team_select {team_code, season_code}.
 // 폰 360px: 순위·팀·승-패·승률·승차 + 최근 5경기(점), PC 는 홈/원정·득실도.
 import Link from "next/link";
 import type { TeamColor } from "@/lib/types";
@@ -33,7 +33,7 @@ export default function StandingsView({ seasonCode, seasonShort, rows, teams, ch
     <main className="mx-auto max-w-3xl px-4 pb-6 pt-5">
       <h1 className="text-h1 font-black">{seasonShort} 팀 순위</h1>
       <p className="mt-0.5 text-sub text-ink-3">
-        정규시즌 경기 결과로 센 순위{ongoing ? " · 진행 중" : ""} · 팀을 누르면 그 팀 선수
+        정규시즌 경기 결과로 센 순위{ongoing ? " · 진행 중" : ""} · 팀을 누르면 그 팀 페이지
       </p>
       {rows.length === 0 ? (
         <p className="surface-card mt-4 rounded-container p-4 text-sub text-ink-3">이 시즌 경기 결과가 없습니다</p>
@@ -67,7 +67,7 @@ export default function StandingsView({ seasonCode, seasonShort, rows, teams, ch
                 const t = teams[r.teamCode];
                 const name = t?.shortName ?? r.name;
                 // 선수 탭 쿼리 (lib/cardview parsePlayersQuery: season·team)
-                const href = `/players?season=${seasonCode}&team=${r.teamCode}`;
+                const href = `/team/${r.teamCode}?season=${seasonCode}`;
                 return (
                   <tr key={r.teamCode} className="border-b border-line last:border-b-0">
                     <td className="font-bold text-ink">{r.rank}</td>

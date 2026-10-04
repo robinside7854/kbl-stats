@@ -2,7 +2,7 @@
   "seasonCode": 43,
   "seasonLabel": "2023-2024",
   "gameType": "regular",
-  "fetchedAt": "2026-10-03T15:35:34.597Z",
+  "fetchedAt": "2026-10-04T10:05:22.181Z",
   "coverage": {
     "advanced": true,
     "plusMinus": true,
@@ -44137,6 +44137,38 @@
     "wins": 4,
     "losses": 1
   },
+  "playoffs": [
+    {
+      "teamCode": "06",
+      "series": 2,
+      "finals": true
+    },
+    {
+      "teamCode": "10",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "16",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "50",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "55",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "60",
+      "series": 2,
+      "finals": true
+    }
+  ],
   "seasonAwards": {
     "awards": [
       {

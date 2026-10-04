@@ -2,7 +2,7 @@
   "seasonCode": 2,
   "seasonLabel": "1997-1998",
   "gameType": "regular",
-  "fetchedAt": "2026-10-03T15:35:28.451Z",
+  "fetchedAt": "2026-10-04T10:05:11.954Z",
   "coverage": {
     "advanced": true,
     "plusMinus": true,
@@ -25456,6 +25456,38 @@
     "wins": 4,
     "losses": 3
   },
+  "playoffs": [
+    {
+      "teamCode": "10",
+      "series": 2,
+      "finals": true
+    },
+    {
+      "teamCode": "15",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "25",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "30",
+      "series": 2,
+      "finals": false
+    },
+    {
+      "teamCode": "45",
+      "series": 1,
+      "finals": true
+    },
+    {
+      "teamCode": "50",
+      "series": 1,
+      "finals": false
+    }
+  ],
   "seasonAwards": {
     "awards": [
       {

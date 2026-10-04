@@ -2,7 +2,7 @@
   "seasonCode": 37,
   "seasonLabel": "2020-2021",
   "gameType": "regular",
-  "fetchedAt": "2026-10-03T15:35:33.693Z",
+  "fetchedAt": "2026-10-04T10:05:20.691Z",
   "coverage": {
     "advanced": true,
     "plusMinus": true,
@@ -42287,6 +42287,38 @@
     "wins": 4,
     "losses": 0
   },
+  "playoffs": [
+    {
+      "teamCode": "06",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "10",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "30",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "60",
+      "series": 1,
+      "finals": true
+    },
+    {
+      "teamCode": "65",
+      "series": 2,
+      "finals": false
+    },
+    {
+      "teamCode": "70",
+      "series": 2,
+      "finals": true
+    }
+  ],
   "seasonAwards": {
     "awards": [
       {

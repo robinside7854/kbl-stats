@@ -2,7 +2,7 @@
   "seasonCode": 8,
   "seasonLabel": "2003-2004",
   "gameType": "regular",
-  "fetchedAt": "2026-10-03T15:35:29.572Z",
+  "fetchedAt": "2026-10-04T10:05:13.708Z",
   "coverage": {
     "advanced": true,
     "plusMinus": true,
@@ -27280,6 +27280,38 @@
     "wins": 4,
     "losses": 3
   },
+  "playoffs": [
+    {
+      "teamCode": "15",
+      "series": 1,
+      "finals": true
+    },
+    {
+      "teamCode": "30",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "35",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "50",
+      "series": 2,
+      "finals": false
+    },
+    {
+      "teamCode": "60",
+      "series": 1,
+      "finals": true
+    },
+    {
+      "teamCode": "65",
+      "series": 2,
+      "finals": false
+    }
+  ],
   "seasonAwards": {
     "awards": [
       {

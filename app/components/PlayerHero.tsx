@@ -12,8 +12,10 @@ import { mixHex, teamShortLabel } from "@/lib/images";
 import PlayerAvatar from "./PlayerAvatar";
 import FavoriteButton from "./FavoriteButton";
 import CompareButton from "./CompareButton";
+import LikeButton from "./LikeButton";
 import TeamLogo from "./TeamLogo";
 import TeamJersey from "./TeamJersey";
+import Link from "next/link";
 import { MILESTONE_STEPS, type Milestone } from "@/lib/records";
 import { IconTrophy } from "./icons";
 import BadgeRow, { type BadgeItem } from "./BadgeRow";
@@ -97,6 +99,7 @@ export default function PlayerHero({ entry, seasons, today, badges, milestones =
             </h1>
             <p className="mt-1 truncate text-sub font-medium opacity-85 sm:text-body">{entry.nameEn}</p>
             <div className="mt-2 flex flex-wrap gap-2">
+              <LikeButton kind="player" target={entry.id} label={entry.nameKo} compact />
               <FavoriteButton playerId={entry.id} nameKo={entry.nameKo} />
               <CompareButton playerId={entry.id} nameKo={entry.nameKo} seasonCodes={seasons.map((s) => s.seasonCode)} />
             </div>
@@ -239,11 +242,17 @@ export default function PlayerHero({ entry, seasons, today, badges, milestones =
               const t = s?.team ?? undefined;
               const name = t?.shortName ?? s?.teamShort ?? st.teamCode;
               return (
-                <li key={`${st.teamCode}-${i}`} className="flex w-[4.75rem] shrink-0 flex-col items-center text-center">
-                  <TeamJersey color={t?.color ?? FALLBACK} logoUrl={t?.logoUrl} shortName={name} width={56} />
-                  <span className="mt-1 w-full truncate text-caption font-semibold text-ink">{teamShortLabel(name)}</span>
-                  <span className="tabular text-caption text-ink-3">{seasonRangeLabel(st.fromLabel, st.toLabel)}</span>
-                  <span className="tabular text-caption text-ink-3">{st.seasons}시즌</span>
+                <li key={`${st.teamCode}-${i}`} className="w-[4.75rem] shrink-0">
+                  {/* 누르면 그 팀 페이지의 마지막 시즌 로스터 (2026-10-04) */}
+                  <Link
+                    href={`/team/${st.teamCode}${s ? `?season=${s.seasonCode}` : ""}`}
+                    className="focus-ring flex flex-col items-center rounded-card pb-1 text-center transition-colors duration-200 hover:bg-surface-2"
+                  >
+                    <TeamJersey color={t?.color ?? FALLBACK} logoUrl={t?.logoUrl} shortName={name} width={56} />
+                    <span className="mt-1 w-full truncate text-caption font-semibold text-ink">{teamShortLabel(name)}</span>
+                    <span className="tabular text-caption text-ink-3">{seasonRangeLabel(st.fromLabel, st.toLabel)}</span>
+                    <span className="tabular text-caption text-ink-3">{st.seasons}시즌</span>
+                  </Link>
                 </li>
               );
             })}

@@ -2,7 +2,7 @@
   "seasonCode": 23,
   "seasonLabel": "2013-2014",
   "gameType": "regular",
-  "fetchedAt": "2026-10-03T15:35:31.848Z",
+  "fetchedAt": "2026-10-04T10:05:17.685Z",
   "coverage": {
     "advanced": true,
     "plusMinus": true,
@@ -36649,6 +36649,38 @@
     "wins": 4,
     "losses": 2
   },
+  "playoffs": [
+    {
+      "teamCode": "06",
+      "series": 2,
+      "finals": false
+    },
+    {
+      "teamCode": "10",
+      "series": 1,
+      "finals": true
+    },
+    {
+      "teamCode": "30",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "50",
+      "series": 1,
+      "finals": true
+    },
+    {
+      "teamCode": "55",
+      "series": 2,
+      "finals": false
+    },
+    {
+      "teamCode": "65",
+      "series": 1,
+      "finals": false
+    }
+  ],
   "seasonAwards": {
     "awards": [
       {

@@ -2,7 +2,7 @@
   "seasonCode": 33,
   "seasonLabel": "2018-2019",
   "gameType": "regular",
-  "fetchedAt": "2026-10-03T15:35:33.156Z",
+  "fetchedAt": "2026-10-04T10:05:19.761Z",
   "coverage": {
     "advanced": true,
     "plusMinus": true,
@@ -42277,6 +42277,38 @@
     "wins": 4,
     "losses": 1
   },
+  "playoffs": [
+    {
+      "teamCode": "06",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "10",
+      "series": 1,
+      "finals": true
+    },
+    {
+      "teamCode": "30",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "50",
+      "series": 2,
+      "finals": false
+    },
+    {
+      "teamCode": "60",
+      "series": 2,
+      "finals": false
+    },
+    {
+      "teamCode": "65",
+      "series": 1,
+      "finals": true
+    }
+  ],
   "seasonAwards": {
     "awards": [
       {

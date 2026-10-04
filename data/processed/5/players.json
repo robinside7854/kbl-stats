@@ -2,7 +2,7 @@
   "seasonCode": 5,
   "seasonLabel": "2000-2001",
   "gameType": "regular",
-  "fetchedAt": "2026-10-03T15:35:29.000Z",
+  "fetchedAt": "2026-10-04T10:05:12.781Z",
   "coverage": {
     "advanced": true,
     "plusMinus": true,
@@ -26136,6 +26136,38 @@
     "wins": 4,
     "losses": 1
   },
+  "playoffs": [
+    {
+      "teamCode": "35",
+      "series": 1,
+      "finals": true
+    },
+    {
+      "teamCode": "37",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "40",
+      "series": 2,
+      "finals": false
+    },
+    {
+      "teamCode": "45",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "50",
+      "series": 1,
+      "finals": true
+    },
+    {
+      "teamCode": "55",
+      "series": 2,
+      "finals": false
+    }
+  ],
   "seasonAwards": {
     "awards": [
       {

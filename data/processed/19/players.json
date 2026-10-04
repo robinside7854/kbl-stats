@@ -2,7 +2,7 @@
   "seasonCode": 19,
   "seasonLabel": "2011-2012",
   "gameType": "regular",
-  "fetchedAt": "2026-10-03T15:35:31.381Z",
+  "fetchedAt": "2026-10-04T10:05:16.841Z",
   "coverage": {
     "advanced": true,
     "plusMinus": true,
@@ -33943,6 +33943,38 @@
     "wins": 4,
     "losses": 2
   },
+  "playoffs": [
+    {
+      "teamCode": "06",
+      "series": 2,
+      "finals": false
+    },
+    {
+      "teamCode": "10",
+      "series": 2,
+      "finals": false
+    },
+    {
+      "teamCode": "16",
+      "series": 1,
+      "finals": true
+    },
+    {
+      "teamCode": "60",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "65",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "70",
+      "series": 1,
+      "finals": true
+    }
+  ],
   "seasonAwards": {
     "awards": [
       {

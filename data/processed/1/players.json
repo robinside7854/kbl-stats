@@ -2,7 +2,7 @@
   "seasonCode": 1,
   "seasonLabel": "1997",
   "gameType": "regular",
-  "fetchedAt": "2026-10-03T15:35:28.286Z",
+  "fetchedAt": "2026-10-04T10:05:11.696Z",
   "coverage": {
     "advanced": true,
     "plusMinus": false,
@@ -18498,6 +18498,38 @@
     "wins": 4,
     "losses": 1
   },
+  "playoffs": [
+    {
+      "teamCode": "10",
+      "series": 1,
+      "finals": true
+    },
+    {
+      "teamCode": "15",
+      "series": 2,
+      "finals": true
+    },
+    {
+      "teamCode": "20",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "25",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "30",
+      "series": 2,
+      "finals": false
+    },
+    {
+      "teamCode": "40",
+      "series": 1,
+      "finals": false
+    }
+  ],
   "seasonAwards": {
     "awards": [
       {

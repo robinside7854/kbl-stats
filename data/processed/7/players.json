@@ -2,7 +2,7 @@
   "seasonCode": 7,
   "seasonLabel": "2002-2003",
   "gameType": "regular",
-  "fetchedAt": "2026-10-03T15:35:29.380Z",
+  "fetchedAt": "2026-10-04T10:05:13.373Z",
   "coverage": {
     "advanced": true,
     "plusMinus": true,
@@ -27088,6 +27088,38 @@
     "wins": 4,
     "losses": 2
   },
+  "playoffs": [
+    {
+      "teamCode": "05",
+      "series": 2,
+      "finals": false
+    },
+    {
+      "teamCode": "10",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "15",
+      "series": 2,
+      "finals": true
+    },
+    {
+      "teamCode": "30",
+      "series": 1,
+      "finals": true
+    },
+    {
+      "teamCode": "35",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "50",
+      "series": 1,
+      "finals": false
+    }
+  ],
   "seasonAwards": {
     "awards": [
       {

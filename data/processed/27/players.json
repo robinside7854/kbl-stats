@@ -2,7 +2,7 @@
   "seasonCode": 27,
   "seasonLabel": "2015-2016",
   "gameType": "regular",
-  "fetchedAt": "2026-10-03T15:35:32.339Z",
+  "fetchedAt": "2026-10-04T10:05:18.490Z",
   "coverage": {
     "advanced": true,
     "plusMinus": true,
@@ -40133,6 +40133,38 @@
     "wins": 4,
     "losses": 2
   },
+  "playoffs": [
+    {
+      "teamCode": "10",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "16",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "30",
+      "series": 2,
+      "finals": true
+    },
+    {
+      "teamCode": "35",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "60",
+      "series": 1,
+      "finals": true
+    },
+    {
+      "teamCode": "70",
+      "series": 2,
+      "finals": false
+    }
+  ],
   "seasonAwards": {
     "awards": [
       {

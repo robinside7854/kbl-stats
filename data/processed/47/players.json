@@ -2,7 +2,7 @@
   "seasonCode": 47,
   "seasonLabel": "2025-2026",
   "gameType": "regular",
-  "fetchedAt": "2026-10-03T15:35:35.240Z",
+  "fetchedAt": "2026-10-04T10:05:23.033Z",
   "coverage": {
     "advanced": true,
     "plusMinus": true,
@@ -43079,6 +43079,38 @@
     "wins": 4,
     "losses": 1
   },
+  "playoffs": [
+    {
+      "teamCode": "16",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "50",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "55",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "60",
+      "series": 2,
+      "finals": true
+    },
+    {
+      "teamCode": "66",
+      "series": 2,
+      "finals": true
+    },
+    {
+      "teamCode": "70",
+      "series": 1,
+      "finals": false
+    }
+  ],
   "seasonAwards": {
     "awards": [
       {

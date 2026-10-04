@@ -2,7 +2,7 @@
   "seasonCode": 29,
   "seasonLabel": "2016-2017",
   "gameType": "regular",
-  "fetchedAt": "2026-10-03T15:35:32.583Z",
+  "fetchedAt": "2026-10-04T10:05:18.895Z",
   "coverage": {
     "advanced": true,
     "plusMinus": true,
@@ -39841,6 +39841,38 @@
     "wins": 4,
     "losses": 2
   },
+  "playoffs": [
+    {
+      "teamCode": "10",
+      "series": 2,
+      "finals": false
+    },
+    {
+      "teamCode": "16",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "30",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "35",
+      "series": 2,
+      "finals": true
+    },
+    {
+      "teamCode": "65",
+      "series": 1,
+      "finals": false
+    },
+    {
+      "teamCode": "70",
+      "series": 1,
+      "finals": true
+    }
+  ],
   "seasonAwards": {
     "awards": [
       {

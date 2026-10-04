@@ -215,7 +215,8 @@ kbl-stats/
 │   ├── shorts.ts        ← 팬 숏폼 규칙 (순수: 득점 출처 4개 scoringBreakdown(공식 2점·3점·자유투 + 2점을 슛 차트 구역 비율로 페인트/미드, 합 = 공식 득점), 선수별 특징 pickCallouts(비중·경기당 1위, MIN_TRAIT_SHARE 20, 균형형 BALANCED_MAX_SHARE 40), 대사 topScorerLine(해요체)·toSpeech·자막 captionChunks·길이 추정·슛 점 솎기)
 │   ├── share.ts         ← 공유 미리보기 (SITE_URL = data/codes/site.json siteUrl, shareMetadata = 제목·설명·og·twitter 한 벌 — 페이지마다 이걸로, ogImagePath, GA 화면 이름 sharePageOf). layout 에 metadataBase
 │   ├── account.ts       ← 회원 규칙 (순수: 로그인 회사 parseLoginProviders·enabledLoginProviders, 로그인 번호 memberIdOf("google:…"), 계정 연결 LinkResult·linkResultMessage·canUnlink, 관리자 parseAdminLoginIds·isAdminLogin, 닉네임 validateNickname(2~12자·한글/영문/숫자/_·운영자 사칭 금지), 응원팀 normalizeTeamCode, 즐겨찾기 sanitizeFavorites(상한 300)·mergeFavorites(이 브라우저 순서 먼저))
-│   ├── server/          ← 서버 전용: auth.ts(next-auth 설정·currentLoginId·로그인 콜백에서 계정 연결), db.ts(Neon 연결·표 준비), members.ts(SQL — 표 members + member_logins(로그인 번호 → 회원), resolveMemberId·linkLogin(합치기)·unlinkLogin·listMembers, 테스트는 PGlite), link.ts(연결 표시 쿠키 — 값은 lib/link-token.ts 서명·5분), admin.ts(ADMIN_LOGIN_IDS), api.ts(쓰기 요청 Origin·JSON 검사)
+│   ├── server/          ← 서버 전용: auth.ts(next-auth 설정·currentLoginId·로그인 콜백에서 계정 연결), db.ts(Neon 연결·표 준비), members.ts(SQL — 표 members(응원팀 여러 팀 team_codes) + member_logins(로그인 번호 → 회원) + member_likes(좋아요), resolveMemberId·linkLogin(합치기)·unlinkLogin·setLike·likeCounts·listMembers, 테스트는 PGlite), link.ts(연결 표시 쿠키 — 값은 lib/link-token.ts 서명·5분), admin.ts(ADMIN_LOGIN_IDS), api.ts(쓰기 요청 Origin·JSON 검사)
+│   ├── franchise.ts     ← 팀 페이지 규칙 (순수: 플레이오프 단계 playoffStage(우승·준우승·4강·6강, 정규 1·2위는 4강부터), 통산 franchiseTotals(통합 우승 = 정규 1위 + 우승), 레전드 isLegend·pickLegends(이 팀 7시즌+ 또는 3시즌+ & 이 팀 소속 MVP·외국선수 MVP·챔프전 MVP), 팀 통산 기록 buildTenures·franchiseLeaders, 이름 구간 nameSpans, 계보 lineageChain(data/codes/team-lineage.json — 매각으로 코드가 바뀐 구단 잇기, 손으로 관리)) — 재료는 lib/data loadFranchises·loadTeamIndex
 │   ├── favorites.ts     ← 즐겨찾기 (순수: parseFavorites·toggleFavorite, FAVORITES_VISIBLE 5 — 저장은 app/components/useFavorites localStorage)
 │   ├── prime.ts         ← 프라임 시즌 (pickPrimeSeasons·primeCandidatesOf)
 │   ├── career-cards.ts  ← 비교 탭 통산 카드 (buildCareerCards, CAREER_CODE 0, CAREER_QUALIFY 100경기·1,000분)
@@ -241,6 +242,7 @@ kbl-stats/
 │   ├── compare/page.tsx ← 비교 탭 정적 1쪽 (?a=번호:코드&b=번호:코드, 기본은 최신·직전 시즌 PER 1위)
 │   ├── game/page.tsx    ← 54-0 게임 (GameView: 다섯 칸 → 슬롯머신 두 대(시즌 하나·팀 3개) → 세 팀 후보 고르기(득점순, 등급 숨김) → 코트 위 5명·54경기 결과·기록 표·이미지 저장·링크 복사, /game/pool.json fetch, ?l= 공유 결과, 메뉴 "54-0")
 │   ├── privacy/page.tsx ← 개인정보 처리 안내 (2026-10-03 보안 점검, 푸터 링크만): 직접 수집 없음·GA4 항목/보관/거부·localStorage·KBL 이미지·문의 — 수집 방식이 바뀌면 같이 고칠 것
+│   ├── teams/page.tsx   ← 모든 팀 (메뉴 "팀", TeamsIndexView: 지금 팀(이번 시즌 승패·우승·좋아요) + 추억의 팀(매각·해체, 이어진 팀)) · team/[teamCode]/page.tsx 팀 페이지 정적 20쪽(TeamView: 통산·시즌별 로스터 ?season=·시즌별 성적·레전드·팀 통산 기록·수상·계보·좋아요) · likes/page.tsx 좋아요 순위(LikesView, /api/likes)
 │   ├── admin/page.tsx   ← 관리자 회원 목록 (AdminView: 요약·응원팀별·목록 찾기, /api/admin/members, 관리자 = Vercel ADMIN_LOGIN_IDS 의 로그인 번호가 붙은 회원, 아니면 내 로그인 번호 표시, noindex·메뉴 없음 — 내 계정 화면 "회원 목록 보기")
 │   ├── me/page.tsx      ← 내 계정 (AccountView: 로그인 전 구글·네이버 버튼 / 뒤 닉네임·응원팀·즐겨찾기 수·로그아웃·탈퇴, 헤더 AccountButton 으로 들어옴, noindex) + api/auth/[...nextauth]·api/me(GET·PATCH·DELETE)·api/me/favorites(PUT)
 │   ├── glossary/page.tsx ← 용어 탭 (lib/glossary 표, 앵커 /glossary#ts)
@@ -288,16 +290,18 @@ kbl-stats/
   | favorite_add / favorite_remove | player_no | 즐겨찾기 |
   | game_spin / game_complete(wins, bonuses: school·prime·champion 쉼표 또는 none) / game_share_link | | 54-0 |
   | login_start / login_success / login_error | provider / provider / reason | 로그인 버튼 / 돌아온 직후(/me?login=) / 실패해 돌아옴(/me?error=) |
-  | profile_save | team_code(없으면 none) | 닉네임·응원팀 저장 |
+  | profile_save | team_code(대표 팀, 없으면 none), team_count | 닉네임·응원팀(여러 팀) 저장 |
   | favorites_sync | count | 로그인 직후 이 브라우저·계정 즐겨찾기 합치기 |
   | logout / account_delete | | 로그아웃 / 탈퇴 |
   | account_link_start / account_link / account_unlink | provider / provider, result(linked·merged·conflict·failed) / provider | 로그인 연결 시작 / 돌아온 직후 결과 / 연결 해제 |
   | admin_view | (없음) | 관리자 회원 목록 열기 |
+  | like_add / like_remove | kind(player/team), player_no 또는 team_code | 선수 상세·팀 페이지 좋아요 |
+  | filter_change (팀·좋아요) | screen=team filter=season·leader · screen=likes filter=tab | 팀 페이지 로스터 시즌·팀 통산 기록 부문 / 좋아요 순위 선수·팀 |
   | nav_click(menu "로그인"·"내 계정") | | 헤더 계정 버튼 |
   | contact_click | (없음) | 푸터 문의 이메일 누르기 |
   | boxscore_open | game_key(gmkey), season_code, place(home/schedule) | 홈 "오늘의 경기"·일정 화면 선수 기록 펼치기 (정렬·보기 전환은 filter_change screen=boxscore sort·view, 일정 달은 screen=schedule month) |
   | compare_open | player_no | 선수 상세 "비교" 버튼 (고른 선수는 search_select mode=compare) |
-  | team_select | team_code, season_code | 팀 순위에서 팀 누르기(→ 선수 탭 그 팀) |
+  | team_select | team_code, season_code 또는 place(teams) | 팀 순위·모든 팀에서 팀 누르기(→ 팀 페이지) |
   | share_click | method(native/copy), page | 헤더 공유 버튼 (폰은 기기 공유 창, PC 는 주소 복사) |
   | filter_change (역대 기록) | screen=records filter=tab · screen=records_game/records_season/records_awards filter=kind·category·mode·origin·active_only | 역대 기록 하위 탭·경기 구분·부문·합계/경기당·국적·현역만 |
 
@@ -337,6 +341,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-04 (응원팀 여러 팀·좋아요·팀 페이지): 사용자 요청 ① 응원팀 **여러 팀**(고른 순서, 첫 팀 = 배지 색) + "응원팀 없음" 칩 — `members.team_codes` 배열(옛 team_code 옮겨 적음) ② **선수·팀 좋아요**(로그인 회원, 표 `member_likes`, `/api/me/likes` PUT, 공개 수 `/api/likes` — Vercel 1분 캐시·브라우저 1분 기억) — 선수 머리말·팀 페이지 하트, **좋아요 순위** `/likes`(선수 50·팀), 계정 합칠 때 좋아요도 합침 ③ **팀 페이지** `/team/{코드}` 20개(지금 10 + 추억의 팀 10: 기아·SBS·나래·나산·대우·현대·골드뱅크/코리아텐더·신세기/SK빅스·동양/오리온·캐롯): 통산 승패·우승·준우승·정규 1위·통합 우승·PO 진출, 시즌별 로스터(?season=), 시즌별 성적(순위·PO 결과·득점 1위), 레전드(7시즌+ 또는 3시즌+ & MVP — 사용자 확인 대기, 레전드 없는 팀은 오래 뛴 5명), 팀 통산 기록 7부문, 수상, 구단 계보(`data/codes/team-lineage.json`) · 모든 팀 `/teams`(메뉴 "팀" 이 여기로) · 팀 순위 줄·선수 상세 유니폼 → 팀 페이지. 플레이오프 결과는 새로 `process` 가 시즌 파일 `playoffs`(경기 목록 03·04 대진, `scripts/champions.ts playoffEntries`) — 전 시즌 processed 재생성(다른 필드 diff 없음). 동률 1위는 공식 1위 이름으로 가림(13-14 LG 1위·모비스 2위, 19-20 DB·SK 공동). 검증: typecheck·test(franchise 추가, account 여러 팀·좋아요)·build·slop 0, Playwright 360/1280(다크) /teams·/team/10·/team/40·/likes·선수 상세·/me 가로 넘침 0·콘솔 에러 0·이벤트. 관리자 화면은 사용자 로그인으로 확인 필요. main 배포.
 - 2026-10-04 (계정 연결·관리자 회원 목록): 사용자 결정 — 구글·네이버를 한 회원으로. 표 `member_logins`(로그인 번호 → 회원, 회사마다 하나) 추가, 옛 회원은 표 준비 때 옮겨 적음(회원 번호 = 로그인 번호), 새 회원 번호 `m:무작위`. 연결 = 내 계정 "로그인 연결" → `/api/me/link` 가 서명 쿠키(5분) → 그 회사 로그인 → 로그인 콜백이 `linkLogin`: 처음 보는 로그인은 붙이고, 따로 가입한 계정이면 합침(즐겨찾기 합침·닉네임/응원팀은 지금 계정, 비면 그쪽), 같은 회사가 겹치면 conflict(원래 계정으로 로그인 유지). 해제는 지금 로그인한 수단·마지막 하나 빼고. 관리자 `/admin`(요약·응원팀별·목록 찾기·50명씩): 이메일은 받지 않으므로 Vercel `ADMIN_LOGIN_IDS`(로그인 번호, 쉼표)로 정함 — 관리자가 아니면 /admin 이 내 로그인 번호를 보여 줌, 계정을 연결해 두면 어느 쪽 로그인이든 관리자. 이메일 주소는 코드·커밋에 넣지 않음. GA4 account_link_start·account_link(result)·account_unlink·admin_view. 개인정보 안내에 연결·운영자 열람 항목. 검증: typecheck·test(account: PGlite 로 옮겨 적기·붙이기·합치기·겹침·해제·탈퇴·관리자 목록, 쿠키 서명·만료·위조)·build(로그인 켜짐/꺼짐)·slop 0, Playwright 390/1280(다크) 연결 카드·합침 안내·해제·관리자 목록·검색·권한 없음 화면 가로 넘침 0·이벤트. 실제 구글↔네이버 왕복은 사용자 확인. main 배포.
 - 2026-10-04 (54-0 게임 방법 안내): 사용자 요청 — 시작 전 상단에 **"게임 방법과 점수 계산"** 상자(`GameView GameRules`): 이렇게 해요(3단계 + 다시 돌리기·같은 선수 규칙) · 점수(숨은 종합 점수·팀 전력 식·S급 5명도 다섯 판에 한 번꼴) · 가산점 표(숫자는 lib/game 상수에서 읽음). 처음엔 펼쳐 있고 슬롯을 돌리면 접힘, 버튼으로 다시 열기. GA4 filter_change screen=game filter=rules. 검증: typecheck·test·build·slop 0, Playwright 360/1280 가로 넘침 0·접힘/펼침·가짜 gtag. main 배포.
 - 2026-10-04 (54-0 가산점): 사용자 결정 — ① **동문 케미**: 다섯 명 중 3명 이상 같은 학교(`lib/roster schoolGroupOf`, 해외·정보 없음 제외) +1, 결과에 학교 이름 한마디(`schoolChemistryComment`) ② **프라임 타임**: 그 선수의 프라임 시즌(`lib/prime`)으로 뽑은 선수 2명 이상 +0.5 ③ **우승 DNA**: 그 시즌 정규리그 1위 팀 소속 1명당 +0.25 — 1위는 경기 결과 순위의 맨 위 동률 팀을 공식 1위 이름(seasonAwards.regular.first)으로 가림(`lib/game-pool pickRegularChampions`, 19-20 은 DB·SK 공동, 30개 시즌 확인). 후보에 `school·prime·regularChamp`(`scripts/build-game.ts`), 전력 = base + 가산점(100 상한, `teamRating.bonuses`). 처음 안(+1.5·+1·+0.5)은 S급 5명 전승 19% → 49% 라 가산점을 줄이고 `WIN_CURVE` 96~99 패배를 1.4배로(7.7·4.9·3.1·1.7%) → S급 5명 22%(가산점 있음 23%·없음 9%), 득점 1위만 0.6%, 아무나 17승. 결과 화면 "가산점" 칸(이름·점수·해당 선수), 고르는 중엔 안 보임. GA4 game_complete `bonuses`. 검증: test(가산점·1위 고르기)·typecheck·build·slop 0, Playwright 360/1280 가로 넘침 0·콘솔 에러 0·완주·가짜 gtag. main 배포.
