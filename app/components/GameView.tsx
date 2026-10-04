@@ -71,8 +71,8 @@ export default function GameView() {
   const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({ key: "ppg", dir: "desc" });
   const [shared, setShared] = useState<Picked[] | null>(null);
   const [copied, setCopied] = useState(false);
-  /** 게임 방법 상자 — 누르기 전에는 "아직 안 돌렸으면 펼침" */
-  const [rulesOpen, setRulesOpen] = useState<boolean | null>(null);
+  /** 게임 방법 상자 — 처음엔 접어 두고 "게임 방법 보기" 버튼만 (2026-10-04 사용자 요청) */
+  const [rulesOpen, setRulesOpen] = useState(false);
   const timer = useRef<number | null>(null);
 
   useEffect(() => {
@@ -266,7 +266,7 @@ export default function GameView() {
       ) : (
         <>
           <GameRules
-            open={rulesOpen ?? (round === 0 && reelEra === null)}
+            open={rulesOpen}
             onToggle={(next) => {
               setRulesOpen(next);
               trackFilters("game", { rules: next ? "open" : "close" });
@@ -819,7 +819,7 @@ function ResultCard({ picked, result, colors, official }: { picked: Picked[]; re
 }
 
 /** 뽑은 뒤에만 보이는 종합 등급 글자 (고를 때는 등급을 숨긴다) */
-/** 게임 방법·점수 계산·가산점 안내 — 시작 전에는 펼쳐 두고, 시작하면 접힌 버튼 한 줄 */
+/** 게임 방법·점수 계산·가산점 안내 — 접힌 버튼 한 줄, 누르면 펼침 */
 function GameRules({ open, onToggle }: { open: boolean; onToggle: (next: boolean) => void }) {
   const fmt = (v: number) => `+${v}`;
   return (
@@ -831,7 +831,7 @@ function GameRules({ open, onToggle }: { open: boolean; onToggle: (next: boolean
         onClick={() => onToggle(!open)}
         className="focus-ring-inset flex h-12 w-full cursor-pointer items-center justify-between rounded-container px-4 text-left text-body font-bold text-ink transition-colors duration-200 hover:bg-surface-2"
       >
-        게임 방법과 점수 계산
+        {open ? "게임 방법 닫기" : "게임 방법 보기"}
         {open ? <IconChevronUp size={20} /> : <IconChevronDown size={20} />}
       </button>
       {open && (
