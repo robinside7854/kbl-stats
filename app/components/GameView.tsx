@@ -8,7 +8,7 @@ import Link from "next/link";
 import {
   canPick, decodeLineupParam, emptyLineup, encodeLineupParam, foreignCount, GAME_FOREIGN_MAX, GAME_ROUNDS, GAME_SEASON_GAMES,
   GAME_SLOTS, isLineupFull, lineupTotals, openSlotsFor, pickBlockReason, placePick, respinEra, respinTeam, resultVerdict,
-  simulateSeason, SLOT_LABELS, spin, teamOfCandidate, teamsOf, GAME_SPIN_TEAMS, filterByPositionChip, sortCandidatesBy, POSITION_CHIPS, SORT_COLUMNS, nextSort, schoolChemistryComment, type LineupBonus, type PositionChip, type SortDir, type SortKey, type SortStat, type GameCandidate, type GamePool, type GameTeam, type Lineup,
+  simulateSeason, SLOT_LABELS, spin, teamOfCandidate, teamsOf, GAME_SPIN_TEAMS, filterByPositionChip, sortCandidatesBy, POSITION_CHIPS, SORT_COLUMNS, nextSort, schoolChemistryComment, CHEM_SCHOOL_MIN, CHEM_SCHOOL_BONUS, CHEM_PRIME_MIN, CHEM_PRIME_BONUS, CHEM_CHAMP_PER, type LineupBonus, type PositionChip, type SortDir, type SortKey, type SortStat, type GameCandidate, type GamePool, type GameTeam, type Lineup,
   type SeasonResult, type Spin,
 } from "@/lib/game";
 import { overallGrade, RADAR_AXES, RADAR_AXIS_LABELS } from "@/lib/metrics";
@@ -71,6 +71,8 @@ export default function GameView() {
   const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({ key: "ppg", dir: "desc" });
   const [shared, setShared] = useState<Picked[] | null>(null);
   const [copied, setCopied] = useState(false);
+  /** 게임 방법 상자 — 누르기 전에는 "아직 안 돌렸으면 펼침" */
+  const [rulesOpen, setRulesOpen] = useState<boolean | null>(null);
   const timer = useRef<number | null>(null);
 
   useEffect(() => {
@@ -263,6 +265,13 @@ export default function GameView() {
         <ResultView picked={picked} result={result} colors={colors} shared={!!shared} copied={copied} onCopy={copyLink} onRestart={restart} />
       ) : (
         <>
+          <GameRules
+            open={rulesOpen ?? (round === 0 && reelEra === null)}
+            onToggle={(next) => {
+              setRulesOpen(next);
+              trackFilters("game", { rules: next ? "open" : "close" });
+            }}
+          />
           <LineupBoard lineup={lineup} teams={teams} />
           <p className="tabular mt-2 text-sub text-ink-2">
             라운드 {Math.min(round + 1, GAME_ROUNDS)}/{GAME_ROUNDS} · 외국 선수 {foreignCount(lineup)}/{GAME_FOREIGN_MAX}
@@ -810,6 +819,66 @@ function ResultCard({ picked, result, colors, official }: { picked: Picked[]; re
 }
 
 /** 뽑은 뒤에만 보이는 종합 등급 글자 (고를 때는 등급을 숨긴다) */
+/** 게임 방법·점수 계산·가산점 안내 — 시작 전에는 펼쳐 두고, 시작하면 접힌 버튼 한 줄 */
+function GameRules({ open, onToggle }: { open: boolean; onToggle: (next: boolean) => void }) {
+  const fmt = (v: number) => `+${v}`;
+  return (
+    <section aria-label="게임 방법" className="surface-card mb-4 rounded-container">
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls="game-rules"
+        onClick={() => onToggle(!open)}
+        className="focus-ring-inset flex h-12 w-full cursor-pointer items-center justify-between rounded-container px-4 text-left text-body font-bold text-ink transition-colors duration-200 hover:bg-surface-2"
+      >
+        게임 방법과 점수 계산
+        {open ? <IconChevronUp size={20} /> : <IconChevronDown size={20} />}
+      </button>
+      {open && (
+        <div id="game-rules" className="space-y-4 border-t border-line px-4 pt-3 pb-4 text-sub text-ink-2">
+          <div>
+            <h2 className="text-sub font-bold text-ink">이렇게 해요</h2>
+            <ol className="mt-1 list-decimal space-y-1 pl-5">
+              <li>슬롯을 돌리면 시즌 하나와 그 시즌 팀 3개가 나와요.</li>
+              <li>세 팀 선수 중 한 명을 골라 빈 칸에 넣어요. 칸은 가드 2·포워드 2·센터 1, 외국 선수는 2명까지예요.</li>
+              <li>다섯 번 하면 주전 5명 완성. 54경기를 치른 성적이 바로 나와요.</li>
+            </ol>
+            <p className="mt-1.5 text-caption text-ink-3">
+              시즌 다시·팀 다시는 한 번씩 쓸 수 있어요. 같은 선수는 시즌이 달라도 한 번만 뽑을 수 있어요.
+            </p>
+          </div>
+          <div>
+            <h2 className="text-sub font-bold text-ink">점수는 이렇게 매겨요</h2>
+            <ul className="mt-1 list-disc space-y-1 pl-5">
+              <li>선수마다 그 시즌 종합 점수(1~99)가 숨어 있어요. 같은 시즌 선수끼리 비교한 점수라 옛 선수도 공평해요. 등급은 결과에서 공개돼요.</li>
+              <li>
+                <span className="font-semibold text-ink">팀 전력</span> = 다섯 명 점수 평균 75% + 6가지 능력(공격·수비·리바운드·슈팅·리딩·효율)마다 가장 잘하는 선수 점수 25% + 가산점
+              </li>
+              <li>전력이 높을수록 한 경기를 이길 확률이 올라가요. 54경기를 다 이기면 54-0! S급 5명을 모아도 다섯 판에 한 번꼴이에요.</li>
+            </ul>
+          </div>
+          <div>
+            <h2 className="text-sub font-bold text-ink">가산점</h2>
+            <dl className="mt-1 divide-y divide-line rounded-card border border-line">
+              {[
+                { name: "동문 케미", rule: `같은 학교 출신이 ${CHEM_SCHOOL_MIN}명 이상`, pts: fmt(CHEM_SCHOOL_BONUS) },
+                { name: "프라임 타임", rule: `선수 커리어 최고 시즌(프라임)으로 뽑은 선수가 ${CHEM_PRIME_MIN}명 이상`, pts: fmt(CHEM_PRIME_BONUS) },
+                { name: "우승 DNA", rule: "그 시즌 정규리그 1위 팀 선수 1명마다", pts: fmt(CHEM_CHAMP_PER) },
+              ].map((b) => (
+                <div key={b.name} className="flex items-baseline gap-3 px-3 py-2">
+                  <dt className="w-20 shrink-0 font-bold text-ink">{b.name}</dt>
+                  <dd className="min-w-0 flex-1">{b.rule}</dd>
+                  <dd className="tabular shrink-0 font-bold text-ink">{b.pts}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
 /** 가산점 (동문 케미·프라임 타임·우승 DNA) — 없으면 노릴 수 있는 것을 한 줄로 */
 function BonusList({ bonuses, picked }: { bonuses: LineupBonus[]; picked: Picked[] }) {
   const nameOf = new Map(picked.map((p) => [p.c.id, p.c.nameKo]));
