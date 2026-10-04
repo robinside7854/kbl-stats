@@ -1,11 +1,14 @@
 // 개인정보 처리 안내 (/privacy, 2026-10-03 보안 점검 — 커뮤니티 공개 전). 푸터 링크로만 들어온다(메뉴 없음).
-// 이 사이트는 회원·입력 양식이 없어 직접 모으는 개인정보가 없다. 적는 것: GA4 방문 통계(쿠키), 이 브라우저 저장(즐겨찾기),
+// 2026-10-04 구글·네이버 로그인 추가: 로그인이 켜진 빌드(enabledLoginProviders)면 회원 정보 항목을 보인다.
+// 로그인이 꺼져 있으면 회원·입력 양식이 없어 직접 모으는 개인정보가 없다. 적는 것: GA4 방문 통계(쿠키), 이 브라우저 저장(즐겨찾기),
 // 외부 이미지(KBL 서버에서 바로 불러옴), 거부 방법, 문의처. GA4 는 page_view 로 충분해 따로 이벤트를 두지 않는다.
 // 내용이 바뀌면(새 분석 도구·로그인·DB 등) 이 페이지와 시행일을 같이 고친다.
 import type { Metadata } from "next";
 import { shareMetadata } from "@/lib/share";
 import { listSeasonsWithPlayers } from "@/lib/data";
 import { gaMeasurementId } from "@/lib/analytics";
+import { enabledLoginProviders, PROVIDER_LABELS } from "@/lib/account";
+import site from "@/data/codes/site.json";
 import { IconExternal } from "@/app/components/icons";
 import DeveloperContact from "@/app/components/DeveloperContact";
 import SiteNav from "@/app/components/SiteNav";
@@ -18,7 +21,7 @@ export const metadata: Metadata = shareMetadata({
 });
 
 /** 시행일 — 내용을 바꾸면 같이 고친다 */
-const EFFECTIVE_DATE = "2026년 10월 3일";
+const EFFECTIVE_DATE = "2026년 10월 4일";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -46,6 +49,8 @@ function ExtLink({ href, children }: { href: string; children: React.ReactNode }
 export default function PrivacyPage() {
   const seasons = listSeasonsWithPlayers();
   const ga = !!gaMeasurementId();
+  const login = enabledLoginProviders();
+  const loginNames = login.map((p) => PROVIDER_LABELS[p]).join("·");
   return (
     <>
       <SiteNav seasons={seasons} seasonCode={seasons[0]?.seasonCode ?? 0} view="privacy" />
@@ -53,11 +58,26 @@ export default function PrivacyPage() {
         <h1 className="text-h1 font-black">개인정보 처리 안내</h1>
         <p className="mt-1 text-sub text-ink-3">시행일 {EFFECTIVE_DATE}</p>
 
-        <Section title="직접 모으는 정보">
-          <p>
-            이 사이트에는 회원가입·로그인·글쓰기가 없어서 이름, 이메일, 전화번호 같은 개인정보를 직접 모으지 않습니다.
-          </p>
-        </Section>
+        {login.length === 0 ? (
+          <Section title="직접 모으는 정보">
+            <p>이 사이트에는 회원가입·로그인·글쓰기가 없어서 이름, 이메일, 전화번호 같은 개인정보를 직접 모으지 않습니다.</p>
+          </Section>
+        ) : (
+          <Section title="로그인한 회원의 정보">
+            <p>{loginNames} 로그인은 원하는 분만 씁니다. 로그인하지 않아도 사이트의 모든 기록을 볼 수 있습니다.</p>
+            <ul className="list-disc space-y-1 pl-5">
+              <li>모으는 정보: 로그인한 회사({loginNames}), 그 회사가 주는 회원 고유 번호, 직접 정한 닉네임·응원팀, 계정에 저장한 즐겨찾기 선수 목록</li>
+              <li>모으지 않는 정보: 이메일, 이름, 전화번호, 프로필 사진 — 로그인 회사에서 받지도 저장하지도 않습니다</li>
+              <li>쓰는 곳: 로그인 상태 유지, 닉네임·응원팀 배지 표시, 여러 기기에서 즐겨찾기 맞추기</li>
+              <li>보관: 탈퇴할 때까지. 내 계정 화면에서 탈퇴하면 위 정보를 바로 지우고 따로 보관하지 않습니다</li>
+              <li>로그인 쿠키: 로그인을 유지하려고 암호화된 쿠키를 씁니다(최대 30일). 이 쿠키에도 회원 고유 번호만 들어 있습니다</li>
+              <li>
+                맡기는 곳(국외 이전): 회원 정보는 {site.memberDb.company}의 데이터베이스 서버({site.memberDb.region})에, 사이트는 {site.memberDb.hosting}의 서버에서 처리됩니다.
+                로그인하는 때에 인터넷으로 옮겨지며, 탈퇴하면 함께 지워집니다
+              </li>
+            </ul>
+          </Section>
+        )}
 
         <Section title="방문 통계 (Google Analytics)">
           <p>
@@ -79,7 +99,7 @@ export default function PrivacyPage() {
 
         <Section title="이 브라우저에만 저장하는 것">
           <p>
-            즐겨찾기한 선수와 홈 화면 표지 순서는 이 기기의 브라우저 저장소(localStorage)에만 남고, 어디에도 보내지 않습니다. 브라우저의 사이트 데이터를 지우면 함께 지워집니다.
+            즐겨찾기한 선수와 홈 화면 표지 순서는 이 기기의 브라우저 저장소(localStorage)에 남습니다. 로그인하지 않으면 어디에도 보내지 않고, 로그인하면 즐겨찾기만 계정에도 저장합니다. 브라우저의 사이트 데이터를 지우면 이 기기의 기록은 함께 지워집니다.
           </p>
         </Section>
 

@@ -109,6 +109,7 @@ KBL 공홈은 화면을 그릴 때 아래 두 서버에서 JSON을 받아온다.
 - 차트: **Recharts** 하나만. 레이더·바·라인·산점도 전부 커버. 차트 라이브러리 두 개 이상 섞지 않는다
 - 데이터 저장: **레포 안의 JSON 파일** (`data/raw/`, `data/processed/`). 지금은 DB 없음 — 커뮤니티 1단계(투표·예측)부터 DB 를 들인다(2026-10-02 사용자 결정, SCOPE.md 로드맵). 기록 데이터는 그 뒤에도 JSON 파일 그대로, DB 는 사용자 참여 데이터만
 - 수집 실행: **GitHub Actions 스케줄** — 저녁 18:40·20:40·22:10·23:40 KST 에 깨워 `scripts/fetch-gate.ts` 가 서버 C 오늘 경기 목록(1회)을 보고 **그날 경기가 다 끝나고 1시간 지난 첫 시각에 하루 1회** 수집(주말 낮 경기 → 18:40/20:40, 평일 19시 → 22:10, 경기 없는 날·늦은 날 23:40, 기록 `data/last-fetch.json`). `fetch.yml` 을 main 에 푸시하면 즉시 1회 수집(2026-10-03, 새벽 04:10 에서 바꿈) → 수집 스크립트 실행 → 변경분 커밋 → Vercel 자동 재배포
+- **로그인(2026-10-04)**: 구글·네이버, **next-auth v4**(JWT 쿠키 세션 — `lib/server/auth.ts`, `/api/auth/*`) + **Neon Postgres**(`lib/server/db.ts`, Vercel 연동이 넣는 `DATABASE_URL`, 표 `members` 하나: 회원 번호·로그인 회사·닉네임·응원팀·즐겨찾기 배열 — `lib/server/members.ts`, 첫 요청 때 표 자동 생성). 개인정보 최소: 구글 scope `openid`, 이메일·이름·사진은 받지도 쿠키에 넣지도 않는다. 켜는 조건은 빌드 때 `next.config.mjs loginProviders()`(운영 배포 + `NEXTAUTH_SECRET` + `DATABASE_URL` + 회사별 `GOOGLE_/NAVER_CLIENT_ID·SECRET`) → `NEXT_PUBLIC_LOGIN_PROVIDERS`, 없으면 로그인 버튼·화면이 숨는다. 페이지는 계속 정적 — 로그인 상태는 브라우저가 `/api/me` 로 확인하되 로그인한 적 있는 브라우저만 부른다(`account-client` 힌트, Vercel 요청 한도 아끼기)
 - 절대 피함: (로드맵 단계 확인 전의) DB·로그인/회원, 실시간 갱신, 서버 상태 유지가 필요한 구조, 브라우저에서 KBL API 직접 호출(CORS 차단됨, 아래 참고)
 - 이유: 규모가 작고 데이터가 하루 한 번만 바뀐다. 파일+정적 사이트가 가장 싸고(무료) 가장 덜 고장난다. 커뮤니티 단계가 시작되면 그 부분만 DB
 - 방문 통계: **GA4 측정 ID `G-03YNZDVE0F`**(사용자 구글 계정, 2026-10-02) — `app/components/Analytics.tsx`(서버 컴포넌트), ID 는 `lib/analytics gaMeasurementId`: **Vercel 운영 배포(VERCEL_ENV=production)에서만** 켜짐, 환경변수 `NEXT_PUBLIC_GA_ID` 가 있으면 우선(`off` 면 끔). 페이지 조회는 GA 자동, 버튼 이벤트는 `app/components/track.ts` `trackEvent`·`trackFilters`. 켜져 있으면 푸터에 쿠키 안내 한 줄. **이벤트 목록과 규칙은 아래 "방문 통계 규칙"**
@@ -186,6 +187,7 @@ kbl-stats/
 │   ├── shots.test.ts    ← 슛 차트 월 구간·경기 목록 거르기·끝남 판정·형식 검사·이어받기 (npm run test:shots)
 │   ├── gamelogs.test.ts ← 경기별 기록 파싱·날짜 매칭·시도 수 붙이기·백필 대상 선정 (npm run test:gamelogs)
 │   ├── game.test.ts     ← 54-0 구간·칸·외국 선수 한도·슬롯·전력·시즌·공유 주소 + 실제 풀 난이도 (npm run test:game)
+│   ├── account.test.ts  ← 회원 규칙 + 회원 표 SQL 을 PGlite(메모리 Postgres)로 실행 (npm run test:account)
 │   └── highs.test.ts    ← 한 경기 최다 응답 파싱·프로필·매일 수집 대상 시즌(30일 경계)·백필 이어받기·시즌 하이 1위(동률·RATE 제외)·만 나이·커리어 하이 행 (npm run test:highs, 전부: npm test)
 ├── public/search-index.json ← 빌드 전 생성되는 검색 색인 (id·이름·최근 팀·첫/마지막 시즌·뛴 시즌 코드 seasons·photoUrl·팀 색·positionGroup·positionLabel, 약 370KB). git 제외
 ├── public/shots/{seasonCode}/{playerNo}.json ← 빌드 전 생성되는 선수·시즌 슛 파일 (선수 상세 시즌 전환 때 받음, 최대 약 16KB). git 제외
@@ -212,6 +214,8 @@ kbl-stats/
 │   ├── game-pool.ts     ← 54-0 후보 풀 만들기 buildGamePool(시즌 카드 → 시즌 × 팀 × 후보, 표본 충족·포지션 있는 선수, 점수·축·기록 모두 그 시즌) — 빌드 스크립트 전용
 │   ├── shorts.ts        ← 팬 숏폼 규칙 (순수: 득점 출처 4개 scoringBreakdown(공식 2점·3점·자유투 + 2점을 슛 차트 구역 비율로 페인트/미드, 합 = 공식 득점), 선수별 특징 pickCallouts(비중·경기당 1위, MIN_TRAIT_SHARE 20, 균형형 BALANCED_MAX_SHARE 40), 대사 topScorerLine(해요체)·toSpeech·자막 captionChunks·길이 추정·슛 점 솎기)
 │   ├── share.ts         ← 공유 미리보기 (SITE_URL = data/codes/site.json siteUrl, shareMetadata = 제목·설명·og·twitter 한 벌 — 페이지마다 이걸로, ogImagePath, GA 화면 이름 sharePageOf). layout 에 metadataBase
+│   ├── account.ts       ← 회원 규칙 (순수: 로그인 회사 parseLoginProviders·enabledLoginProviders, 회원 번호 memberIdOf("google:…"), 닉네임 validateNickname(2~12자·한글/영문/숫자/_·운영자 사칭 금지), 응원팀 normalizeTeamCode, 즐겨찾기 sanitizeFavorites(상한 300)·mergeFavorites(이 브라우저 순서 먼저))
+│   ├── server/          ← 서버 전용: auth.ts(next-auth 설정·currentMemberId), db.ts(Neon 연결·표 준비), members.ts(SQL — Query 를 받아서, 테스트는 PGlite), api.ts(쓰기 요청 Origin·JSON 검사)
 │   ├── favorites.ts     ← 즐겨찾기 (순수: parseFavorites·toggleFavorite, FAVORITES_VISIBLE 5 — 저장은 app/components/useFavorites localStorage)
 │   ├── prime.ts         ← 프라임 시즌 (pickPrimeSeasons·primeCandidatesOf)
 │   ├── career-cards.ts  ← 비교 탭 통산 카드 (buildCareerCards, CAREER_CODE 0, CAREER_QUALIFY 100경기·1,000분)
@@ -237,6 +241,7 @@ kbl-stats/
 │   ├── compare/page.tsx ← 비교 탭 정적 1쪽 (?a=번호:코드&b=번호:코드, 기본은 최신·직전 시즌 PER 1위)
 │   ├── game/page.tsx    ← 54-0 게임 (GameView: 다섯 칸 → 슬롯머신 두 대(시즌 하나·팀 3개) → 세 팀 후보 고르기(득점순, 등급 숨김) → 코트 위 5명·54경기 결과·기록 표·이미지 저장·링크 복사, /game/pool.json fetch, ?l= 공유 결과, 메뉴 "54-0")
 │   ├── privacy/page.tsx ← 개인정보 처리 안내 (2026-10-03 보안 점검, 푸터 링크만): 직접 수집 없음·GA4 항목/보관/거부·localStorage·KBL 이미지·문의 — 수집 방식이 바뀌면 같이 고칠 것
+│   ├── me/page.tsx      ← 내 계정 (AccountView: 로그인 전 구글·네이버 버튼 / 뒤 닉네임·응원팀·즐겨찾기 수·로그아웃·탈퇴, 헤더 AccountButton 으로 들어옴, noindex) + api/auth/[...nextauth]·api/me(GET·PATCH·DELETE)·api/me/favorites(PUT)
 │   ├── glossary/page.tsx ← 용어 탭 (lib/glossary 표, 앵커 /glossary#ts)
 │   ├── season/[seasonCode]/leaders/page.tsx  ← 시즌 순위표 정적 페이지 (1~3위 표지 카드 + 이 시즌 한 경기 최다 카드 줄 + 정렬 표, 포지션·국적 칩, 파울 열)
 │   ├── (플레이스타일·팀 분포 탭은 없앰 → next.config redirects: /season/코드/(teams|playstyle) → 리더보드)
@@ -253,7 +258,7 @@ kbl-stats/
 ```
 
 ## 후속 예정 (사용자가 하기로 한 일 — 지금은 만들지 않는다)
-- **구글 로그인 연동 + 내 설정** (2026-10-01 사용자: "추후엔 로그인 연동 작업을 구축할 것"). 지금 즐겨찾기는 로그인 없이 이 브라우저에만 저장(`lib/favorites`·`useFavorites`, localStorage 키 `kbl-stats:favorites:v1`). 로그인을 붙이면 이 목록을 계정으로 옮기고, 공개 즐겨찾기 수도 그때. 필요한 것: Auth.js(Google) + 저장소(DB) + 개인정보 처리방침·탈퇴(삭제) — 지금의 "DB·로그인 없음" 원칙과 SCOPE OUT(회원) 을 바꾸는 결정이라 시작 전에 사용자와 범위 확인
+- ~~구글 로그인 연동 + 내 설정~~ → 2026-10-04 구현(구글·네이버, 닉네임·응원팀·즐겨찾기 계정 저장). 남은 것: 공개 즐겨찾기 수, 선수·경기 페이지 댓글(로드맵 2단계 나머지 — 시작 전 사용자 확인, 신고·숨김·운영자 화면 필요)
 
 ## 배포 규칙 (2026-10-01 사용자 지시 — 세션이 바뀌어도 지킨다)
 - **작업이 끝나면 항상 main 브랜치에 배포한다.** Vercel 은 main 만 배포하므로 작업 브랜치에 푸시만 하고 끝내면 사용자는 옛 화면을 본다.
@@ -281,6 +286,11 @@ kbl-stats/
   | image_save | file_name | 카드·54-0 이미지 저장 |
   | favorite_add / favorite_remove | player_no | 즐겨찾기 |
   | game_spin / game_complete(wins) / game_share_link | | 54-0 |
+  | login_start / login_success / login_error | provider / provider / reason | 로그인 버튼 / 돌아온 직후(/me?login=) / 실패해 돌아옴(/me?error=) |
+  | profile_save | team_code(없으면 none) | 닉네임·응원팀 저장 |
+  | favorites_sync | count | 로그인 직후 이 브라우저·계정 즐겨찾기 합치기 |
+  | logout / account_delete | | 로그아웃 / 탈퇴 |
+  | nav_click(menu "로그인"·"내 계정") | | 헤더 계정 버튼 |
   | contact_click | (없음) | 푸터 문의 이메일 누르기 |
   | boxscore_open | game_key(gmkey), season_code, place(home/schedule) | 홈 "오늘의 경기"·일정 화면 선수 기록 펼치기 (정렬·보기 전환은 filter_change screen=boxscore sort·view, 일정 달은 screen=schedule month) |
   | compare_open | player_no | 선수 상세 "비교" 버튼 (고른 선수는 search_select mode=compare) |
@@ -324,6 +334,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-04 (구글·네이버 로그인): 사용자 결정 — 커뮤니티 2단계 재시작, 범위 = 닉네임·응원팀 배지 + 즐겨찾기 계정 저장, 저장소 Neon, 개인정보 최소(고유 번호만). next-auth v4(구글 scope openid, 네이버는 id 만 사용, JWT 쿠키에 회원 번호만) + Neon(`members` 표 하나, 첫 요청 때 자동 생성) + `/api/me`(GET·PATCH·DELETE)·`/api/me/favorites`(PUT, 다른 사이트 Origin 403). 화면: 헤더 `AccountButton`(로그인 / 팀 색 점 + 닉네임), `/me` `AccountView`, 즐겨찾기는 바꿀 때마다 계정에도 저장·로그인 직후 합치기. 로그인한 적 없는 브라우저는 회원 API 를 부르지 않는다(요청 한도). 켜는 조건은 빌드 때(`next.config loginProviders`) — 사용자가 Vercel 에 Neon 연결 + NEXTAUTH_SECRET + 구글·네이버 키를 넣고 재배포해야 켜진다(그 전엔 버튼이 안 보임). 개인정보 처리 안내에 회원 항목·국외 이전(site.json memberDb). GA4: login_start/success/error·profile_save·favorites_sync·logout·account_delete. 검증: typecheck·test(account: PGlite 로 SQL 실행)·build(꺼짐/가짜 키로 켜짐)·slop 0, 네이버 로그인 이동 302(client_id·redirect_uri 확인), /api/me 401·다른 Origin 403, Playwright 320/390/1280(다크) /me 로그인 전·후(가짜 /api/me) 가로 넘침 0·콘솔 에러 0·이벤트 3종. 실제 구글·네이버 왕복은 이 환경에서 못 해 봄(키·네트워크).
 - 2026-10-04 (홈 공유 썸네일 다시): 사용자 "KBL 로고 사용·중복 텍스트 지양·검은 배경 대신 밝은 색 또는 리그 색" → 사이트 기본 이미지(`public/og/site.png`, 옛 이름 default.png — 캐시한 앱이 새로 받게 이름 변경)를 종이색 바탕 + KBL 리그 로고 + "Stats Reference" + 한 줄 설명 + 리그 남색 띠(화면 이름·주소 한 번)로. 리그 색 = 로고 SVG 의 남색 #011B6A·주황 #EB6100(조사 브랜치 `claude/probe-kbl-logo` Actions 로 확인, 지워도 됨). 로고는 빌드 때 site.json `leagueLogoUrl` 을 한 번 받아 `.next/cache/og/league-logo.svg` 에 두고 재사용, 못 받으면 "KBL" 글자 배지(둘 다 그림 확인). 다른 공유 이미지(선수·리더보드·역대 기록·54-0)는 그대로. main 배포.
 - 2026-10-04 (공유 미리보기·아이콘·공유 버튼): 사용자 "카카오톡·외부 공유용 기능과 썸네일" (SCOPE 로드맵 0단계). ① 모든 페이지 Open Graph·X 카드 메타(`lib/share shareMetadata`, layout `metadataBase` = site.json `siteUrl`, canonical) ② 공유 이미지 1200×630 `scripts/build-og.tsx`(prebuild): 사이트 기본·역대 기록(통산 득점 서장훈·한 경기 우지원 70점·최다 우승 양동근)·54-0·시즌 리더보드 30장(경기당 득점 TOP 3)·선수 1,335장(팀 색 바탕·이름·팀·포지션·기간·우승/MVP 칩·통산 경기·경기당 득점/리바/어시). 글꼴은 레포에 Pretendard Bold/Regular OTF(OFL, `assets/fonts`, 약 3MB). 선수 사진은 넣지 않음(빌드마다 KBL 1,300회 요청 방지). 첫 빌드 +3분, 이후 해시 캐시 ③ 파비콘 `app/icon.svg`·홈 화면 아이콘 `app/apple-icon.png`(막대 세 개) ④ 헤더 공유 버튼(`ShareButton`: 폰 navigator.share → 카카오톡 등, PC 주소 복사 + "링크를 복사했습니다"), 400px 미만은 랜덤 카드를 아이콘만. GA4 `share_click`(method·page — 맞춤 정의 등록 필요). 카카오톡은 미리보기를 캐시하므로 바뀐 썸네일은 카카오 개발자 "공유 디버거"에서 초기화. 검증: typecheck·test(share 추가)·build·slop 0, HTML og 메타·이미지 200, Playwright 360/390/1280 가로 넘침 0·공유/복사·가짜 gtag. main 배포.
 - 2026-10-03 (54-0 난이도 완화): 피드백 "S급 5명이어도 전승이 어렵다" — 측정해 보니 S급(종합 점수 95+) 5명 라인업 전력 96.5~98, 전승 약 3%·중앙 51승. 사용자 결정 "S급 5명이면 약 20%" → `WIN_CURVE` 96~99 구간만 낮춤(패배 96 5.5%·97 3.5%·98 2.2%·99 1.2%, 90 아래 그대로). 결과: S급 5명 전승 18.9%·52승, 득점 1위만 0.2% → 0.72%·46승, 숨은 점수 1위 2.1% → 11.6%, 아무나 17승 그대로. 테스트에 S급 5명 전승 14~26% 확인 추가. main 배포.

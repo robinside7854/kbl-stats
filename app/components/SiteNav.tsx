@@ -13,13 +13,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { SeasonOption } from "@/lib/types";
 import PlayerSearch from "./PlayerSearch";
+import AccountButton from "./AccountButton";
 import RandomCardButton from "./RandomCardButton";
 import ShareButton from "./ShareButton";
 import { IconBall, IconCalendar, IconHome, IconLeaders, IconPlayer, IconTeam, IconTrophy } from "./icons";
 import SiteLogo, { SITE_HEADER_NAME } from "./SiteLogo";
 import { trackEvent, trackFilters } from "./track";
 
-export type SiteView = "home" | "players" | "player" | "teams" | "leaders" | "schedule" | "compare" | "glossary" | "records" | "game" | "privacy";
+export type SiteView = "home" | "players" | "player" | "teams" | "leaders" | "schedule" | "compare" | "glossary" | "records" | "game" | "privacy" | "me";
 
 type MenuItem = { views: SiteView[]; label: string; short?: string; icon: (p: { size: 24 }) => React.ReactNode; href: (seasonCode: number) => string };
 const HOME: MenuItem = { views: ["home"], label: "홈", icon: IconHome, href: () => "/" };
@@ -82,6 +83,7 @@ export default function SiteNav({ seasons, seasonCode, view, onSeasonChange, wid
           <div className="order-2 flex shrink-0 items-center gap-2 sm:order-4">
             <RandomCardButton />
             <ShareButton />
+            <AccountButton />
           </div>
           {!hideSearch && <PlayerSearch className="order-4 w-full sm:order-2 sm:w-auto sm:max-w-xs sm:flex-1" />}
           {showSeason && (

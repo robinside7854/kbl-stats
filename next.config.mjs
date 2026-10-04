@@ -29,8 +29,22 @@ const SECURITY_HEADERS = [
   ...(process.env.NODE_ENV === "production" ? [{ key: "Content-Security-Policy", value: CSP }] : []),
 ];
 
+// 로그인(구글·네이버, 2026-10-04) 켜기 판정 — 빌드 때 한 번. 화면은 NEXT_PUBLIC_LOGIN_PROVIDERS 만 본다(lib/account enabledLoginProviders).
+// 운영 배포(또는 로컬 시험용 LOGIN_FORCE_ENABLE=1) + 비밀값(NEXTAUTH_SECRET) + DB(DATABASE_URL, Vercel Neon 연동) + 그 회사 키가 모두 있어야 켜진다.
+// 하나라도 없으면 빈 값 → 로그인 버튼·화면이 숨는다(미리보기 배포·설정 전 상태가 깨지지 않게).
+function loginProviders() {
+  const env = process.env;
+  const on = env.VERCEL_ENV === "production" || env.LOGIN_FORCE_ENABLE === "1";
+  if (!on || !(env.NEXTAUTH_SECRET || env.AUTH_SECRET) || !(env.DATABASE_URL || env.POSTGRES_URL)) return "";
+  const list = [];
+  if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) list.push("google");
+  if (env.NAVER_CLIENT_ID && env.NAVER_CLIENT_SECRET) list.push("naver");
+  return list.join(",");
+}
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  env: { NEXT_PUBLIC_LOGIN_PROVIDERS: loginProviders() },
   reactStrictMode: true,
   // 응답에 "X-Powered-By: Next.js" 를 붙이지 않는다 (쓰는 기술을 굳이 알리지 않게)
   poweredByHeader: false,
