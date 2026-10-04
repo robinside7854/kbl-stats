@@ -1,11 +1,19 @@
 import type { Metadata, Viewport } from "next";
+import { SITE_NAME, SITE_URL, shareMetadata } from "@/lib/share";
 import Analytics from "./components/Analytics";
 import { FONT_CDN_ORIGIN, PRETENDARD_CSS_URL } from "./components/webFont";
 import "./globals.css";
 
+// 공유 미리보기 기본값 (lib/share): metadataBase 가 og:image·og:url 을 절대 주소로 만든다(카카오톡은 절대 주소만 읽음).
+// 페이지마다 shareMetadata 로 제목·설명·이미지를 덮어쓴다.
 export const metadata: Metadata = {
-  title: "KBL - Stats Reference",
-  description: "KBL 정규시즌 선수 기록을 플레이어 카드·리더보드·비교로 보는 비영리 팬 프로젝트.",
+  metadataBase: new URL(SITE_URL),
+  ...shareMetadata({
+    title: "KBL - Stats Reference",
+    description: "KBL 정규시즌 선수 기록을 플레이어 카드·리더보드·역대 기록으로 보는 비영리 팬 프로젝트.",
+    path: "/",
+  }),
+  applicationName: SITE_NAME,
 };
 
 export const viewport: Viewport = {

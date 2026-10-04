@@ -4,6 +4,7 @@
 // 그 아래 "선수 유형 라벨"(lib/glossary PLAYER_TYPES, 앵커 #type-{키})·"슛 구역"(lib/shots SHOT_ZONES, #zone-{키})·"주 공격 유형"(OFFENSE_TYPES, #offense-{키})·"칭호 배지"(lib/badges BADGE_DEFS, 앵커 #badge-{키}) 규칙 표.
 // 모바일(768px 미만)은 표의 한 줄을 카드처럼 세로로 쌓는다 (같은 표 마크업, CSS만 다름 — 가로 스크롤 없음).
 import type { Metadata } from "next";
+import { shareMetadata } from "@/lib/share";
 import { listSeasonsWithPlayers, loadSeasonData } from "@/lib/data";
 import { GLOSSARY, GLOSSARY_ANCHORS, GLOSSARY_GROUPS, OFFENSE_MIN_ATTEMPTS, OFFENSE_TYPES, PLAYER_TYPES } from "@/lib/glossary";
 import { SHOT_ZONES } from "@/lib/shots";
@@ -12,10 +13,11 @@ import { IconExternal } from "@/app/components/icons";
 import SiteNav from "@/app/components/SiteNav";
 import SourceFooter from "@/app/components/SourceFooter";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = shareMetadata({
   title: "용어 풀이 · KBL - Stats Reference",
   description: "PER·TS%·USG% 같은 지표와 등급·라벨이 무슨 뜻인지 짧게 풀었습니다. 비영리 팬 프로젝트.",
-};
+  path: "/glossary",
+});
 
 /** 출처 링크 글자: 주소의 사이트 이름 */
 function sourceName(url: string): string {

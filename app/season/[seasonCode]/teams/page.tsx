@@ -1,6 +1,7 @@
 // 팀 순위 정적 페이지 (2026-10-03 사용자 요청: 모바일 하단 메뉴 "팀"). 시즌마다 경기 목록 결과로 센 순위 — lib/games computeStandings.
 // 경기 목록(games.json)이 있는 시즌만 내용이 있고, 없으면 빈 안내.
 import type { Metadata } from "next";
+import { shareMetadata } from "@/lib/share";
 import { notFound } from "next/navigation";
 import { isSeasonOngoing, listSeasonsWithPlayers, loadSeasonData, loadSeasonGames, toCardTeams } from "@/lib/data";
 import { computeStandings } from "@/lib/games";
@@ -20,10 +21,11 @@ type Params = Promise<{ seasonCode: string }>;
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { seasonCode } = await params;
   const season = loadSeasonData(Number(seasonCode));
-  return {
+  return shareMetadata({
     title: season ? `${seasonShortLabel(season.seasonLabel)} 팀 순위 · KBL` : "KBL 팀 순위",
     description: "KBL 정규시즌 팀 순위: 승·패·승률·승차·홈/원정·최근 5경기. 비영리 팬 프로젝트.",
-  };
+    path: `/season/${seasonCode}/teams`,
+  });
 }
 
 export default async function TeamsPage({ params }: { params: Params }) {

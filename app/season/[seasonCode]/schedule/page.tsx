@@ -1,6 +1,7 @@
 // 시즌 경기 일정 정적 페이지 (2026-10-03 사용자 요청, 메뉴 "일정"). 경기 목록(games.json)의 정규시즌 경기 전부를 날짜별로.
 // 박스스코어는 HTML 에 넣지 않고(시즌 약 1MB) 수훈 선수만 — 펼칠 때 /games/{시즌}/{날짜}.json 을 받는다(ScheduleView).
 import type { Metadata } from "next";
+import { shareMetadata } from "@/lib/share";
 import { notFound } from "next/navigation";
 import { gameTeamInfos, listSeasonsWithPlayers, loadSeasonData, loadSeasonGames } from "@/lib/data";
 import { latestGameDay, monthsOf, topPerformer } from "@/lib/games";
@@ -20,10 +21,11 @@ type Params = Promise<{ seasonCode: string }>;
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { seasonCode } = await params;
   const season = loadSeasonData(Number(seasonCode));
-  return {
+  return shareMetadata({
     title: season ? `${seasonShortLabel(season.seasonLabel)} 경기 일정 · KBL` : "KBL 경기 일정",
     description: "KBL 정규시즌 날짜별 경기 일정·결과와 경기별 선수 기록(박스스코어). 비영리 팬 프로젝트.",
-  };
+    path: `/season/${seasonCode}/schedule`,
+  });
 }
 
 export default async function SchedulePage({ params }: { params: Params }) {

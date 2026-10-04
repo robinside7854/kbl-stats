@@ -1,5 +1,5 @@
 {
-  "_comment": "사이트 이름·리그 로고 — 손으로 관리하는 파일(data/codes 예외). 로고 주소는 KBL 공홈 상단 로고(2026-10-01 Actions 러너로 확인: 200 image/svg+xml). 화면(app/)은 이 값만 읽고 KBL 주소를 직접 쓰지 않는다(원칙 1). 로고가 안 뜨거나 NEXT_PUBLIC_OFFICIAL_IMAGES=off 면 글자 \"KBL\" 대체. headerName 은 상단 로고 옆 글자(로고가 이미 KBL 이라 영문 KBL 은 뺌, 2026-10-01). 브라우저 탭 제목은 name. developer 는 푸터 '만든 사람' 줄(2026-10-02 사용자 지정) — 이메일은 user·domain 으로 나눠 두고 화면에서 이어 붙인다(정적 HTML 에 주소를 통째로 두지 않아 스팸 수집을 줄인다).",
+  "_comment": "사이트 이름·리그 로고 — 손으로 관리하는 파일(data/codes 예외). 로고 주소는 KBL 공홈 상단 로고(2026-10-01 Actions 러너로 확인: 200 image/svg+xml). 화면(app/)은 이 값만 읽고 KBL 주소를 직접 쓰지 않는다(원칙 1). 로고가 안 뜨거나 NEXT_PUBLIC_OFFICIAL_IMAGES=off 면 글자 \"KBL\" 대체. headerName 은 상단 로고 옆 글자(로고가 이미 KBL 이라 영문 KBL 은 뺌, 2026-10-01). 브라우저 탭 제목은 name. developer 는 푸터 '만든 사람' 줄(2026-10-02 사용자 지정) — 이메일은 user·domain 으로 나눠 두고 화면에서 이어 붙인다(정적 HTML 에 주소를 통째로 두지 않아 스팸 수집을 줄인다). siteUrl 은 공유 미리보기(카카오톡·OG) 절대 주소의 기준(2026-10-04) — 도메인을 바꾸면 여기만 고친다.",
   "name": "KBL - Stats Reference",
   "headerName": "Stats Reference",
   "leagueLogoUrl": "https://kbl.or.kr/assets/img/logo/logo-kbl.svg",
@@ -7,5 +7,7 @@
     "name": "ksr-admin",
     "emailUser": "kbl-stats-ref",
     "emailDomain": "naver.com"
-  }
+  },
+  "siteUrl": "https://kbl-stats-reference.vercel.app",
+  "tagline": "KBL 기록을 카드·리더보드·역대 기록으로 보는 팬 사이트"
 }

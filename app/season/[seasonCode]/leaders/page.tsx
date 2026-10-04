@@ -2,6 +2,7 @@
 // 마감된 시즌은 맨 위에 그 시즌 어워즈(SeasonAwardsBoard). "이 시즌 한 경기 최다" 카드도 여기서 만들어 넘긴다 (lib/data loadSeasonHighCards — 데이터 없으면 빈 배열 → 숨김).
 import { seasonShortLabel } from "@/lib/career";
 import type { Metadata } from "next";
+import { ogImagePath, shareMetadata } from "@/lib/share";
 import { notFound } from "next/navigation";
 import { findPlayerIndexEntry, listSeasonsWithPlayers, loadSeasonData, loadSeasonHighCards, toCardTeams, toLeaderPlayers, isSeasonOngoing } from "@/lib/data";
 import { buildSeasonAwardsView } from "@/lib/awards";
@@ -22,10 +23,12 @@ type Params = Promise<{ seasonCode: string }>;
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { seasonCode } = await params;
   const season = loadSeasonData(Number(seasonCode));
-  return {
+  return shareMetadata({
     title: season ? `${seasonShortLabel(season.seasonLabel)} 시즌 리더보드 · KBL` : "KBL 시즌 리더보드",
     description: "KBL 정규시즌 부문별 1~3위와 전체 순위. 경기당/합계, 포지션·국적(국내/외국/아시아쿼터), 팀별로 나눠 봅니다. 비영리 팬 프로젝트.",
-  };
+    path: `/season/${seasonCode}/leaders`,
+    image: ogImagePath.leaders(Number(seasonCode)),
+  });
 }
 
 export default async function LeadersPage({ params }: { params: Params }) {

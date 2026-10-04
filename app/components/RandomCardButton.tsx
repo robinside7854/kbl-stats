@@ -28,10 +28,11 @@ export default function RandomCardButton({ className = "" }: { className?: strin
       onClick={draw}
       disabled={busy}
       aria-label="랜덤 카드 뽑기: 무작위 선수의 카드로 이동"
-      className={`focus-ring inline-flex h-10 shrink-0 cursor-pointer items-center gap-1.5 rounded-control border border-line bg-surface px-3 text-sub font-semibold text-ink-2 transition-colors duration-200 hover:bg-surface-2 hover:text-ink disabled:cursor-wait ${className}`}
+      className={`focus-ring inline-flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-control border border-line bg-surface text-sub min-[400px]:w-auto min-[400px]:px-3 font-semibold text-ink-2 transition-colors duration-200 hover:bg-surface-2 hover:text-ink disabled:cursor-wait ${className}`}
     >
       <IconDice size={16} />
-      랜덤 카드
+      {/* 400px 미만 폰은 공유 버튼과 한 줄에 들어가게 아이콘만 (읽기 이름은 aria-label) */}
+      <span className="hidden min-[400px]:inline">랜덤 카드</span>
     </button>
   );
 }

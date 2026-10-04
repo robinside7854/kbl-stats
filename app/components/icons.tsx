@@ -114,6 +114,15 @@ export function IconExternal(p: IconProps) {
   );
 }
 
+/** 공유 (화살표가 위로 나가는 상자) */
+export function IconShare(p: IconProps) {
+  return (
+    <Svg {...p}>
+      <path d="M12 15V4M8 8l4-4 4 4M6 12v6a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-6" />
+    </Svg>
+  );
+}
+
 /** 정보 (용어 설명 링크) */
 export function IconInfo(p: IconProps) {
   return (

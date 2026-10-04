@@ -3,6 +3,7 @@
 // 외부 이미지(KBL 서버에서 바로 불러옴), 거부 방법, 문의처. GA4 는 page_view 로 충분해 따로 이벤트를 두지 않는다.
 // 내용이 바뀌면(새 분석 도구·로그인·DB 등) 이 페이지와 시행일을 같이 고친다.
 import type { Metadata } from "next";
+import { shareMetadata } from "@/lib/share";
 import { listSeasonsWithPlayers } from "@/lib/data";
 import { gaMeasurementId } from "@/lib/analytics";
 import { IconExternal } from "@/app/components/icons";
@@ -10,10 +11,11 @@ import DeveloperContact from "@/app/components/DeveloperContact";
 import SiteNav from "@/app/components/SiteNav";
 import SourceFooter from "@/app/components/SourceFooter";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = shareMetadata({
   title: "개인정보 처리 안내 · KBL - Stats Reference",
   description: "이 사이트가 모으는 정보(방문 통계)와 거부하는 방법. 비영리 팬 프로젝트.",
-};
+  path: "/privacy",
+});
 
 /** 시행일 — 내용을 바꾸면 같이 고친다 */
 const EFFECTIVE_DATE = "2026년 10월 3일";

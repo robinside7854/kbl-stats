@@ -1,16 +1,18 @@
 // 역대 기록 · 수상·우승 (/records/awards, 2026-10-03): 우승·MVP·베스트5 등 받은 횟수 순위.
 // 재료는 선수 색인 awards(KBL 역대수상현황)·championships(챔프전 4승 팀) → lib/data loadAwardLists.
 import type { Metadata } from "next";
+import { ogImagePath, shareMetadata } from "@/lib/share";
 import { AWARD_RANK_DEFS, listSeasonsWithPlayers, loadAwardLists, loadSeasonData } from "@/lib/data";
 import RecordsHeader from "@/app/components/RecordsHeader";
 import { AwardRecordsView } from "@/app/components/RecordTabViews";
 import SiteNav from "@/app/components/SiteNav";
 import SourceFooter from "@/app/components/SourceFooter";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = shareMetadata({
   title: "역대 수상·우승 · KBL - Stats Reference",
   description: "KBL 최다 우승·정규리그 MVP·챔프전 MVP·베스트5 등 선수별 수상 횟수 순위. 비영리 팬 프로젝트.",
-};
+  path: "/records/awards", image: ogImagePath.records(),
+});
 
 export default function RecordsAwardsPage() {
   const seasons = listSeasonsWithPlayers();

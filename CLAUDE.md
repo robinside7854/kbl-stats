@@ -169,6 +169,7 @@ kbl-stats/
 │   ├── build-short-milestones.ts · build-short-quiz.ts · short-common.ts · fetch-active.ts ← 숏폼 포맷 B(개막전 대기록)·C(슛 차트 퀴즈) 빌더, 현역 명단(regSc=Y)
 │   ├── build-short.ts   ← 팬 숏폼 에피소드 JSON (지난 시즌 국내 득점 TOP 5 득점 유형, 규칙 lib/shorts) → shorts/episodes/{slug}/episode.json (커밋)
 │   ├── prepare-short.ts ← 숏폼 렌더 준비: AI 목소리(ELEVENLABS_API_KEY+VOICE_ID 면 ElevenLabs 한 번에 읽기·글자 시각, 아니면 GOOGLE_TTS_API_KEY → Google, 그다음 edge-tts, 다 없으면 추정 길이)·사진·로고 받기·글꼴 복사 → shorts/public/{slug}/props.json·upload.txt (git 제외)
+│   ├── build-og.tsx     ← 공유 미리보기 이미지 public/og/*.png (prebuild, 1200×630, next/og + assets/fonts/Pretendard OFL): default·records·game·leaders/{시즌}·player/{번호} 약 1,370장·51MB. 사진·로고 없이 팀 색·이름·기록만(외부 요청 없음). 내용 해시로 .next/cache/og 재사용(첫 빌드 약 3분, 이후 바뀐 것만). git 제외
 │   ├── build-games.ts   ← 날짜별 박스스코어 파일 public/games/{시즌}/{날짜}.json (prebuild·predev, 일정 화면이 펼칠 때 받음, git 제외)
 │   └── build-cards.ts   ← 비교 탭용 시즌별 카드 데이터 public/cards/{seasonCode}.json 생성 (prebuild·predev, 형식은 lib/cards.ts v2 — 레이더 구성 요소 열 포함, 시즌당 약 28~55KB, git 제외)
 ├── shorts/              ← 팬 숏폼 영상 렌더러 (Remotion, 자체 package.json — 사이트 빌드와 따로 설치). src/TopScorers.tsx(매거진 톤 1080×1920: 표지 → 5위…1위 → 비교·득점왕 질문)·InsightScenes.tsx(선수별 장면 5종), theme.ts(종이·잉크, 득점 출처 4색 = 사이트 --cat-1~4), episodes/{slug}/episode.json(커밋), public·out(git 제외). 렌더는 Actions shorts-render.yml(실행 횟수 올려 푸시 → Artifacts + shorts-renders 브랜치)
@@ -210,6 +211,7 @@ kbl-stats/
 │   ├── game.ts          ← 54-0 게임 규칙 (순수: 슬롯 = 시즌 하나 + 팀 3개(GAME_SPIN_TEAMS·teamsOf·spinCandidates), 칸 GAME_SLOTS 가드2·포워드2·센터1(GF·FC 는 두 칸), 외국 선수 GAME_FOREIGN_MAX 2, 슬롯 spin(시즌 반복 가능·고를 선수 있는 팀만)·respinTeam(같은 시즌 새 팀 3개)·respinEra(다른 시즌, 팀 유지), 같은 선수는 시즌이 달라도 한 번만, 전력 teamRating(종합 점수 평균 75% + 6축 최고값 평균 25%)·winProbability(WIN_CURVE 표 보간, 득점 1위만 고르면 전승 약 0.7%·S급 5명 약 20%)·simulateSeason(라인업 시드 → 같은 라인업 같은 성적), 공유 ?l=번호:시즌,…)
 │   ├── game-pool.ts     ← 54-0 후보 풀 만들기 buildGamePool(시즌 카드 → 시즌 × 팀 × 후보, 표본 충족·포지션 있는 선수, 점수·축·기록 모두 그 시즌) — 빌드 스크립트 전용
 │   ├── shorts.ts        ← 팬 숏폼 규칙 (순수: 득점 출처 4개 scoringBreakdown(공식 2점·3점·자유투 + 2점을 슛 차트 구역 비율로 페인트/미드, 합 = 공식 득점), 선수별 특징 pickCallouts(비중·경기당 1위, MIN_TRAIT_SHARE 20, 균형형 BALANCED_MAX_SHARE 40), 대사 topScorerLine(해요체)·toSpeech·자막 captionChunks·길이 추정·슛 점 솎기)
+│   ├── share.ts         ← 공유 미리보기 (SITE_URL = data/codes/site.json siteUrl, shareMetadata = 제목·설명·og·twitter 한 벌 — 페이지마다 이걸로, ogImagePath, GA 화면 이름 sharePageOf). layout 에 metadataBase
 │   ├── favorites.ts     ← 즐겨찾기 (순수: parseFavorites·toggleFavorite, FAVORITES_VISIBLE 5 — 저장은 app/components/useFavorites localStorage)
 │   ├── prime.ts         ← 프라임 시즌 (pickPrimeSeasons·primeCandidatesOf)
 │   ├── career-cards.ts  ← 비교 탭 통산 카드 (buildCareerCards, CAREER_CODE 0, CAREER_QUALIFY 100경기·1,000분)
@@ -283,6 +285,7 @@ kbl-stats/
   | boxscore_open | game_key(gmkey), season_code, place(home/schedule) | 홈 "오늘의 경기"·일정 화면 선수 기록 펼치기 (정렬·보기 전환은 filter_change screen=boxscore sort·view, 일정 달은 screen=schedule month) |
   | compare_open | player_no | 선수 상세 "비교" 버튼 (고른 선수는 search_select mode=compare) |
   | team_select | team_code, season_code | 팀 순위에서 팀 누르기(→ 선수 탭 그 팀) |
+  | share_click | method(native/copy), page | 헤더 공유 버튼 (폰은 기기 공유 창, PC 는 주소 복사) |
   | filter_change (역대 기록) | screen=records filter=tab · screen=records_game/records_season/records_awards filter=kind·category·mode·origin·active_only | 역대 기록 하위 탭·경기 구분·부문·합계/경기당·국적·현역만 |
 
 ## 코딩 규칙
@@ -321,6 +324,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-04 (공유 미리보기·아이콘·공유 버튼): 사용자 "카카오톡·외부 공유용 기능과 썸네일" (SCOPE 로드맵 0단계). ① 모든 페이지 Open Graph·X 카드 메타(`lib/share shareMetadata`, layout `metadataBase` = site.json `siteUrl`, canonical) ② 공유 이미지 1200×630 `scripts/build-og.tsx`(prebuild): 사이트 기본·역대 기록(통산 득점 서장훈·한 경기 우지원 70점·최다 우승 양동근)·54-0·시즌 리더보드 30장(경기당 득점 TOP 3)·선수 1,335장(팀 색 바탕·이름·팀·포지션·기간·우승/MVP 칩·통산 경기·경기당 득점/리바/어시). 글꼴은 레포에 Pretendard Bold/Regular OTF(OFL, `assets/fonts`, 약 3MB). 선수 사진은 넣지 않음(빌드마다 KBL 1,300회 요청 방지). 첫 빌드 +3분, 이후 해시 캐시 ③ 파비콘 `app/icon.svg`·홈 화면 아이콘 `app/apple-icon.png`(막대 세 개) ④ 헤더 공유 버튼(`ShareButton`: 폰 navigator.share → 카카오톡 등, PC 주소 복사 + "링크를 복사했습니다"), 400px 미만은 랜덤 카드를 아이콘만. GA4 `share_click`(method·page — 맞춤 정의 등록 필요). 카카오톡은 미리보기를 캐시하므로 바뀐 썸네일은 카카오 개발자 "공유 디버거"에서 초기화. 검증: typecheck·test(share 추가)·build·slop 0, HTML og 메타·이미지 200, Playwright 360/390/1280 가로 넘침 0·공유/복사·가짜 gtag. main 배포.
 - 2026-10-03 (54-0 난이도 완화): 피드백 "S급 5명이어도 전승이 어렵다" — 측정해 보니 S급(종합 점수 95+) 5명 라인업 전력 96.5~98, 전승 약 3%·중앙 51승. 사용자 결정 "S급 5명이면 약 20%" → `WIN_CURVE` 96~99 구간만 낮춤(패배 96 5.5%·97 3.5%·98 2.2%·99 1.2%, 90 아래 그대로). 결과: S급 5명 전승 18.9%·52승, 득점 1위만 0.2% → 0.72%·46승, 숨은 점수 1위 2.1% → 11.6%, 아무나 17승 그대로. 테스트에 S급 5명 전승 14~26% 확인 추가. main 배포.
 - 2026-10-03 (역대 기록 필터): 사용자 요청 ① 수상·우승 탭에서 **신인상·식스맨상·기량 발전상 제외**(한 번뿐이라 횟수 순위가 무의미) ② 한 경기 최다·한 시즌 최다·수상 탭에 **국적(전체/국내/외국인)·현역만** 필터 — 서버가 부문마다 국내/외국인 × 전체/현역 네 경우의 상위 50 합집합을 보내고(`lib/data unionForFilters`, 항목에 num·origin·active) 화면이 걸러 순위를 다시 센다(`lib/records filterRecordList`). 예: 국내 한 시즌 경기당 득점 1위 조성원 00-01 25.7점, 국내 현역 플옵 한 시즌 득점 1위 허훈 23-24 261점. 쪽 크기 gzip 한 경기 약 110KB·한 시즌 약 132KB. GA4 filter_change origin·active_only. 검증: test(records)·typecheck·build·slop 0, Playwright 360/1280 가로 넘침 0·가짜 gtag. main 배포.
 - 2026-10-03 (역대 기록 하위 탭·머리말 사진 여백): ① 폰 선수 머리말 사진이 바닥 줄에서 몇 px 떠 보이던 것 — 사진을 감싼 인라인 span 의 글자 기준선 빈칸이 원인 → flex 로(360/390 사진 아래 = 바닥 줄 위 0px). ② 역대 기록을 **누적 / 한 경기 최다 / 한 시즌 최다 / 수상·우승** 탭으로(각자 주소 /records, /records/game, /records/season, /records/awards). 한 경기 최다 = 선수별 통산 최고(색인 careerHighs) 11부문 × 정규·플옵·챔프전, 날짜·상대·당시 팀, 정규는 달력 버튼 → 그날 일정(예: 우지원 70점 04.03.07). 한 시즌 최다 = 득점·리바·어시·스틸·블록·3점·자유투·더블더블·트리플더블, 합계/경기당(정규 = 그 시즌 최다 출전의 60% 이상·진행 중 시즌 제외, 플옵 5경기·챔프 4경기 이상 — 우리 규칙), 경기당 1위 피트 마이클 06-07 35.1점. 수상·우승 = 우승·MVP 등 횟수(양동근 MVP 4회). 누적에 더블더블·트리플더블. **플레이오프·챔프전 시즌 합계는 새로 수집**(서버 A gameCode 03,04 / 04 → postseason.json) — 매일 수집에 포함, 과거는 backfill.yml 실행 횟수 3 으로 한 번. GA4 filter_change(records tab, records_game/season/awards). 검증: typecheck·test(records 추가)·build·slop 0, Playwright 360/390/1280 가로 넘침 0. main 배포.

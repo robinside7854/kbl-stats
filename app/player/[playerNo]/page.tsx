@@ -5,6 +5,7 @@
 // 데이터는 lib/data.ts 가 빌드 시점에 읽어 필요한 필드만 클라이언트 컴포넌트로 넘긴다.
 // 카드: 가장 최근 시즌·전체 범위는 여기서 계산해 정적 HTML에 넣고(lib/cardview), 다른 시즌·범위는 브라우저가 /cards/{코드}.json 으로.
 import type { Metadata } from "next";
+import { ogImagePath, shareMetadata } from "@/lib/share";
 import { notFound } from "next/navigation";
 import {
   listSeasonsWithPlayers,
@@ -20,6 +21,7 @@ import {
   loadPrimeSeason,
   loadSimilarPlayers,
   loadMilestones,
+  loadCareerTotals,
 } from "@/lib/data";
 import { activeSpanLabel, seoulDateIso } from "@/lib/career";
 import { buildSeasonCardView } from "@/lib/cardview";
@@ -49,10 +51,17 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const { entry, seasons } = career;
   const latest = seasons[seasons.length - 1];
   const span = activeSpanLabel(seasons[0].seasonLabel, latest.seasonLabel, seasons.length);
-  return {
+  // 공유 카드 설명 첫 줄은 통산 한 줄 (카카오톡은 설명 앞부분만 보여 준다)
+  const total = loadCareerTotals().find((t) => t.id === playerNo);
+  const pg = (v: number) => (total && total.games > 0 ? (v / total.games).toFixed(1) : "–");
+  const line = total ? `통산 ${total.games.toLocaleString("ko-KR")}경기 · 경기당 ${pg(total.points)}점 ${pg(total.reb)}리바 ${pg(total.ast)}어시` : "";
+  return shareMetadata({
     title: `${entry.nameKo} · KBL 선수 기록`,
-    description: `${entry.nameKo}(${entry.nameEn}) KBL 정규시즌 기록, ${span}, 최근 소속 ${latest.team?.shortName ?? latest.teamShort}. 시즌별 플레이어 카드·시즌 비교, 기록표와 추이 그래프. 비영리 팬 프로젝트.`,
-  };
+    description: `${latest.team?.shortName ?? latest.teamShort} · ${span}${line ? ` · ${line}` : ""}. 시즌별 플레이어 카드·기록표·슛 차트. 비영리 팬 프로젝트.`,
+    path: `/player/${playerNo}`,
+    image: ogImagePath.player(playerNo),
+    imageAlt: `${entry.nameKo}(${entry.nameEn}) 통산 기록 카드`,
+  });
 }
 
 export default async function PlayerPage({ params }: { params: Params }) {

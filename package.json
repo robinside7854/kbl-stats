@@ -16,9 +16,9 @@
     "test:champions": "tsx tests/champions.test.ts",
     "test:reference": "tsx tests/reference.test.ts",
     "test:leaders": "tsx tests/leaders.test.ts",
-    "test": "npm run test:metrics && npm run test:leaders && npm run test:card && npm run test:player && npm run test:teams && npm run test:roster && npm run test:cardview && npm run test:highs && npm run test:badges && npm run test:gamelogs && npm run test:shots && npm run test:shotzones && npm run test:reference && npm run test:champions && npm run test:game && npm run test:shorts && npm run test:gate && npm run test:games && npm run test:records",
+    "test": "npm run test:metrics && npm run test:leaders && npm run test:card && npm run test:player && npm run test:teams && npm run test:roster && npm run test:cardview && npm run test:highs && npm run test:badges && npm run test:gamelogs && npm run test:shots && npm run test:shotzones && npm run test:reference && npm run test:champions && npm run test:game && npm run test:shorts && npm run test:gate && npm run test:games && npm run test:records && npm run test:share",
     "test:card": "tsx tests/card.test.ts",
-    "prebuild": "tsx scripts/build-search-index.ts && tsx scripts/build-cards.ts && tsx scripts/build-shots.ts && tsx scripts/build-game.ts && tsx scripts/build-games.ts",
+    "prebuild": "tsx scripts/build-search-index.ts && tsx scripts/build-cards.ts && tsx scripts/build-shots.ts && tsx scripts/build-game.ts && tsx scripts/build-games.ts && tsx scripts/build-og.tsx",
     "predev": "tsx scripts/build-search-index.ts && tsx scripts/build-cards.ts && tsx scripts/build-shots.ts && tsx scripts/build-game.ts && tsx scripts/build-games.ts",
     "build:shots": "tsx scripts/build-shots.ts",
     "build:search": "tsx scripts/build-search-index.ts",
@@ -40,9 +40,11 @@
     "test:gate": "tsx tests/fetch-gate.test.ts",
     "test:games": "tsx tests/games.test.ts",
     "test:records": "tsx tests/records.test.ts",
+    "test:share": "tsx tests/share.test.ts",
     "short:build": "tsx scripts/build-short.ts",
     "short:prepare": "tsx scripts/prepare-short.ts",
-    "build:game": "tsx scripts/build-game.ts"
+    "build:game": "tsx scripts/build-game.ts",
+    "build:og": "tsx scripts/build-og.tsx"
   },
   "engines": {
     "node": ">=20"

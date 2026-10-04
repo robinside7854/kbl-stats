@@ -1,6 +1,7 @@
 // 홈 "이번 시즌 한눈에" (PLAN.md §2-4, §3 ⑤). 빌드 시점에 lib/ 함수로 전부 계산해 결과만 HomeView 에 넘긴다.
 // 개막 전(코드표 최신 시즌이 선수 0명)이면 직전 시즌으로 만들고 안내를 붙인다 — 시즌 코드는 코드표에서 비교(lib/home pickHomeSeason).
 import type { Metadata } from "next";
+import { shareMetadata } from "@/lib/share";
 import { notFound } from "next/navigation";
 import { findPlayerIndexEntry, listAllSeasons, listSeasonsWithPlayers, loadSeasonData, loadSeasonGames, gameTeamInfos, seasonQualify, toCardTeams, toLeaderPlayers } from "@/lib/data";
 import { latestGameDay, nextGameDay } from "@/lib/games";
@@ -13,10 +14,11 @@ import HomeView from "./components/HomeView";
 import SiteNav from "./components/SiteNav";
 import SourceFooter, { formatFetchedAt } from "./components/SourceFooter";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = shareMetadata({
   title: "KBL - Stats Reference · 이번 시즌 한눈에",
-  description: "KBL 정규시즌 부문별 1~3위, 플레이어 카드, 리더보드, 팀별 선수 분포, 1997년부터 모든 선수 기록. 비영리 팬 프로젝트.",
-};
+  description: "오늘의 경기·부문별 1~3위·선수 카드·리더보드·역대 기록까지, 1997년부터 모든 KBL 선수 기록을 한눈에. 비영리 팬 프로젝트.",
+  path: "/",
+});
 
 export default function HomePage() {
   const withPlayers = listSeasonsWithPlayers();
