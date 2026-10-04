@@ -25,6 +25,8 @@ import Skeleton from "./Skeleton";
 import TeamLogo from "./TeamLogo";
 import { useCardSave } from "./useCardSave";
 import { trackEvent, trackFilters } from "./track";
+import { enabledLoginProviders } from "@/lib/account";
+import { hasSignedInHint, saveGameRecord, type GameSaveResult } from "./account-client";
 import { useThemeColors, type ThemeColors } from "./useThemeColors";
 
 /** 처음 보여 줄 후보 수 (나머지는 "더 보기") — 팀 3개라 후보가 보통 25~30명 */
@@ -71,6 +73,8 @@ export default function GameView() {
   const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({ key: "ppg", dir: "desc" });
   const [shared, setShared] = useState<Picked[] | null>(null);
   const [copied, setCopied] = useState(false);
+  /** 내 기록 저장 (로그인한 사람만, 2026-10-04) — off: 로그인 기능이 꺼진 빌드·공유 결과 */
+  const [recordStatus, setRecordStatus] = useState<GameSaveResult | "saving" | "off">("off");
   /** 게임 방법 상자 — 처음엔 접어 두고 "게임 방법 보기" 버튼만 (2026-10-04 사용자 요청) */
   const [rulesOpen, setRulesOpen] = useState(false);
   const timer = useRef<number | null>(null);
@@ -103,9 +107,34 @@ export default function GameView() {
 
   // 직접 완성한 판만 센다(공유 링크로 본 결과는 빼고)
   useEffect(() => {
-    if (result && !shared) {
-      trackEvent("game_complete", { wins: result.wins, bonuses: result.rating.bonuses.map((b) => b.key).join(",") || "none" });
+    if (!result || shared || !picked) {
+      setRecordStatus("off");
+      return;
     }
+    trackEvent("game_complete", { wins: result.wins, bonuses: result.rating.bonuses.map((b) => b.key).join(",") || "none" });
+    // 로그인한 사람은 내 기록에 저장 (같은 라인업은 서버에서 한 줄로)
+    if (enabledLoginProviders().length === 0) return;
+    if (!hasSignedInHint()) {
+      setRecordStatus("signed_out");
+      return;
+    }
+    let alive = true;
+    setRecordStatus("saving");
+    saveGameRecord({
+      lineup: encodeLineupParam(picked.map((p) => p.c)),
+      wins: result.wins,
+      rating: result.rating.rating,
+      bonuses: result.rating.bonuses.map((b) => b.key),
+      names: picked.map((p) => `${p.c.nameKo} ${p.c.season}`),
+    }).then((r) => {
+      trackEvent("game_record_save", { result: r });
+      if (alive) setRecordStatus(r);
+    });
+    return () => {
+      alive = false;
+    };
+    // picked 는 result 와 함께 바뀐다
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result, shared]);
 
   // 결과가 나오면 주소에 라인업을 남긴다 (링크 공유)
@@ -262,7 +291,7 @@ export default function GameView() {
           <Skeleton className="h-40 rounded-container" />
         </div>
       ) : picked && result ? (
-        <ResultView picked={picked} result={result} colors={colors} shared={!!shared} copied={copied} onCopy={copyLink} onRestart={restart} />
+        <ResultView picked={picked} result={result} colors={colors} shared={!!shared} copied={copied} recordStatus={recordStatus} onCopy={copyLink} onRestart={restart} />
       ) : (
         <>
           <GameRules
@@ -593,11 +622,40 @@ interface ResultProps {
   colors: ThemeColors;
   shared: boolean;
   copied: boolean;
+  recordStatus: GameSaveResult | "saving" | "off";
   onCopy: () => void;
   onRestart: () => void;
 }
 
-function ResultView({ picked, result, colors, shared, copied, onCopy, onRestart }: ResultProps) {
+/** 결과 아래 한 줄: 내 기록에 저장됐는지 / 로그인하면 저장된다는 안내 */
+function RecordNotice({ status }: { status: ResultProps["recordStatus"] }) {
+  if (status === "off") return null;
+  const link = "focus-ring rounded-control font-semibold text-ink underline underline-offset-2";
+  return (
+    <p role="status" className="mt-2 text-sub text-ink-2">
+      {status === "saving" && "내 기록에 저장 중…"}
+      {status === "saved" && (
+        <>
+          내 기록에 저장했어요.{" "}
+          <Link href="/me#game-history" className={link}>
+            내 기록 보기
+          </Link>
+        </>
+      )}
+      {status === "signed_out" && (
+        <>
+          로그인하면 54-0 기록이 내 계정에 쌓여요.{" "}
+          <Link href="/me" className={link}>
+            로그인
+          </Link>
+        </>
+      )}
+      {status === "failed" && "기록을 저장하지 못했어요. 링크 복사로 결과를 남겨 둘 수 있어요."}
+    </p>
+  );
+}
+
+function ResultView({ picked, result, colors, shared, copied, recordStatus, onCopy, onRestart }: ResultProps) {
   const { exportRef, saving, saveError, save } = useCardSave(colors.surface);
   return (
     <section aria-label="시즌 결과">
@@ -626,6 +684,7 @@ function ResultView({ picked, result, colors, shared, copied, onCopy, onRestart 
           {copied ? "복사됨" : "링크 복사"}
         </button>
       </div>
+      <RecordNotice status={recordStatus} />
       {saveError && <p className="mt-2 text-sub text-ink-2">{saveError}</p>}
       {saving && (
         <div aria-hidden className="pointer-events-none fixed top-0" style={{ left: -10000 }}>

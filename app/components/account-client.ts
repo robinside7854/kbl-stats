@@ -4,7 +4,7 @@
 import { getCsrfToken, signIn } from "next-auth/react";
 import {
   LINK_RESULTS, mergeFavorites, parseLoginProviders, sameList,
-  type AdminMemberRow, type LikeCounts, type LikeKind, type LinkResult, type LoginProvider, type MemberView,
+  type AdminMemberRow, type GameHistory, type GameRecordInput, type LikeCounts, type LikeKind, type LinkResult, type LoginProvider, type MemberView,
 } from "@/lib/account";
 import { readFavorites, replaceFavorites } from "./useFavorites";
 
@@ -233,6 +233,44 @@ export async function clearSuggestion(): Promise<void> {
     await fetch("/api/auth/session", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ csrfToken, data: { clearSuggest: true } }) });
   } catch {
     // 못 지워도 쿠키 만료(최대 30일)·로그아웃 때 사라진다
+  }
+}
+
+export type GameSaveResult = "saved" | "signed_out" | "failed";
+
+/** 54-0 결과를 내 기록에 저장 (로그인한 적 있는 브라우저에서만 부른다 — 아니면 signed_out) */
+export async function saveGameRecord(rec: GameRecordInput): Promise<GameSaveResult> {
+  if (!hasSignedInHint()) return "signed_out";
+  try {
+    const r = await send("POST", "/api/me/games", rec);
+    if (r.status === 401) {
+      clearSession();
+      window.dispatchEvent(new CustomEvent(ACCOUNT_EVENT));
+      return "signed_out";
+    }
+    return r.ok ? "saved" : "failed";
+  } catch {
+    return "failed";
+  }
+}
+
+/** 54-0 내 기록 (못 받으면 null) */
+export async function fetchGameHistory(): Promise<GameHistory | null> {
+  try {
+    const res = await fetch("/api/me/games", { cache: "no-store" });
+    return res.ok ? ((await res.json()) as GameHistory) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** 54-0 기록 한 줄 지우기 → 바뀐 기록 (못 하면 null) */
+export async function removeGameRecord(lineup: string): Promise<GameHistory | null> {
+  try {
+    const r = await send("DELETE", `/api/me/games?lineup=${encodeURIComponent(lineup)}`);
+    return r.ok ? (r.data as unknown as GameHistory) : null;
+  } catch {
+    return null;
   }
 }
 

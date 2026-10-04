@@ -6,6 +6,7 @@
 // 로그인 쿠키에는 로그인 번호만 있다 → 함수들은 로그인 번호를 받아 회원을 찾는다(resolveMemberId).
 // 연결 기능 이전 회원은 회원 번호 = 로그인 번호였다(표 준비 때 member_logins 에 옮겨 적음). 새 회원 번호는 "m:무작위".
 import {
+  GAME_BONUS_KEYS, GAME_HISTORY_LIMIT, MAX_GAME_RECORDS, type GameHistory, type GameRecord, type GameRecordInput,
   LOGIN_PROVIDERS, MAX_FAVORITES, MAX_LIKES, MAX_TEAMS, mergeFavorites, normalizeTeamCodes, providerOfMemberId, sanitizeFavorites,
   type AdminMemberRow, type LikeCounts, type LikeKind, type LoginProvider, type MemberView, type MyLikes,
 } from "../account";
@@ -44,6 +45,18 @@ export const SCHEMA_SQL = [
     PRIMARY KEY (member_id, kind, target)
   )`,
   `CREATE INDEX IF NOT EXISTS member_likes_target ON member_likes (kind, target)`,
+  // 54-0 내 기록 (2026-10-04) — 라인업 하나에 한 줄(같은 라인업 = 같은 성적), 회원마다 최근 MAX_GAME_RECORDS 개
+  `CREATE TABLE IF NOT EXISTS member_games (
+    member_id text NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+    lineup text NOT NULL,
+    wins int NOT NULL,
+    rating real NOT NULL,
+    bonuses text[] NOT NULL DEFAULT '{}',
+    names text[] NOT NULL DEFAULT '{}',
+    played_at timestamptz NOT NULL DEFAULT now(),
+    PRIMARY KEY (member_id, lineup)
+  )`,
+  `CREATE INDEX IF NOT EXISTS member_games_recent ON member_games (member_id, played_at DESC)`,
   // 연결 기능 이전 회원(로그인 수단이 하나도 안 적힌 회원): 회원 번호가 곧 로그인 번호
   `INSERT INTO member_logins (login_id, member_id, provider)
     SELECT m.id, m.id, m.provider FROM members m
@@ -207,6 +220,10 @@ export async function linkLogin(q: Query, currentLoginId: string, newLoginId: st
   await q(`INSERT INTO member_likes (member_id, kind, target, created_at)
     SELECT $1, kind, target, created_at FROM member_likes WHERE member_id = $2
     ON CONFLICT (member_id, kind, target) DO NOTHING`, [me, owner]);
+  // 54-0 기록도 합친다 (같은 라인업은 지금 회원 것)
+  await q(`INSERT INTO member_games (member_id, lineup, wins, rating, bonuses, names, played_at)
+    SELECT $1, lineup, wins, rating, bonuses, names, played_at FROM member_games WHERE member_id = $2
+    ON CONFLICT (member_id, lineup) DO NOTHING`, [me, owner]);
   await q(`UPDATE member_logins SET member_id = $1, linked_at = now() WHERE member_id = $2`, [me, owner]);
   await q(`DELETE FROM members WHERE id = $1`, [owner]);
   if (!a?.nickname && b?.nickname) await q(`UPDATE members SET nickname = $2 WHERE id = $1 AND nickname IS NULL`, [me, b.nickname]);
@@ -272,4 +289,55 @@ export async function likeCounts(q: Query): Promise<LikeCounts> {
     else if (r.kind === "team") out.teams[String(r.target)] = n;
   }
   return out;
+}
+
+// ── 54-0 내 기록 ──
+
+/** 기록 저장 (같은 라인업이면 시각·값만 새로) — 오래된 것부터 MAX_GAME_RECORDS 넘는 만큼 지운다 */
+export async function saveGameRecord(q: Query, loginId: string, rec: GameRecordInput): Promise<void> {
+  const id = await resolveMemberId(q, loginId);
+  await q(
+    `INSERT INTO member_games (member_id, lineup, wins, rating, bonuses, names) VALUES ($1, $2, $3, $4, $5::text[], $6::text[])
+     ON CONFLICT (member_id, lineup) DO UPDATE SET wins = EXCLUDED.wins, rating = EXCLUDED.rating, bonuses = EXCLUDED.bonuses,
+       names = EXCLUDED.names, played_at = now()`,
+    [id, rec.lineup, rec.wins, rec.rating, rec.bonuses, rec.names],
+  );
+  await q(
+    `DELETE FROM member_games WHERE member_id = $1 AND lineup IN (
+      SELECT lineup FROM member_games WHERE member_id = $1 ORDER BY played_at DESC, lineup OFFSET $2)`,
+    [id, MAX_GAME_RECORDS],
+  );
+}
+
+/** 내 기록: 최근 GAME_HISTORY_LIMIT 판 + 판 수·최고 승수·전승 횟수 */
+export async function gameHistory(q: Query, loginId: string): Promise<GameHistory> {
+  const id = await resolveMemberId(q, loginId);
+  const rows = await q(
+    `SELECT lineup, wins, rating, bonuses, names, played_at FROM member_games WHERE member_id = $1 ORDER BY played_at DESC, lineup LIMIT $2`,
+    [id, GAME_HISTORY_LIMIT],
+  );
+  const [sum] = await q(
+    `SELECT count(*)::int AS plays, max(wins) AS best, count(*) FILTER (WHERE wins = 54)::int AS perfect FROM member_games WHERE member_id = $1`,
+    [id],
+  );
+  const records: GameRecord[] = rows.map((r) => ({
+    lineup: String(r.lineup),
+    wins: Number(r.wins),
+    rating: Math.round(Number(r.rating) * 10) / 10,
+    bonuses: GAME_BONUS_KEYS.filter((k) => (Array.isArray(r.bonuses) ? r.bonuses : []).includes(k)),
+    names: Array.isArray(r.names) ? r.names.map(String) : [],
+    playedAt: new Date(r.played_at as string).toISOString(),
+  }));
+  return {
+    records,
+    plays: Number(sum?.plays ?? 0),
+    best: sum?.best === null || sum?.best === undefined ? null : Number(sum.best),
+    perfect: Number(sum?.perfect ?? 0),
+  };
+}
+
+/** 기록 한 줄 지우기 */
+export async function deleteGameRecord(q: Query, loginId: string, lineup: string): Promise<void> {
+  const id = await resolveMemberId(q, loginId);
+  await q(`DELETE FROM member_games WHERE member_id = $1 AND lineup = $2`, [id, lineup]);
 }

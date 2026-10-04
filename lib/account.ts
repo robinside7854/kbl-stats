@@ -206,3 +206,59 @@ export interface AdminMemberRow {
   createdAt: string;
   updatedAt: string;
 }
+
+// ── 54-0 내 기록 (2026-10-04 사용자 요청: 로그인한 사람은 54-0 결과를 내 계정에 보관) ─────────
+// 같은 라인업은 늘 같은 성적(lib/game simulateSeason 시드)이라 라인업 하나에 한 줄 — 다시 하면 시각만 새로.
+export const MAX_GAME_RECORDS = 200;
+export const GAME_HISTORY_LIMIT = 50;
+export const GAME_BONUS_KEYS = ["school", "prime", "champion"] as const;
+export type GameBonusKey = (typeof GAME_BONUS_KEYS)[number];
+
+export interface GameRecordInput {
+  /** 공유 주소 ?l= 값 "선수번호:시즌코드,…" 다섯 개 (칸 순서) */
+  lineup: string;
+  wins: number;
+  /** 팀 전력 (가산점 포함) */
+  rating: number;
+  bonuses: GameBonusKey[];
+  /** 화면 표시용 "이상민 97-98" 다섯 개 — 선수 이름·시즌(공개 기록)만 */
+  names: string[];
+}
+export interface GameRecord extends GameRecordInput {
+  /** ISO 시각 (마지막으로 이 라인업을 완성한 때) */
+  playedAt: string;
+}
+export interface GameHistory {
+  /** 최근 GAME_HISTORY_LIMIT 판 (새것 먼저) */
+  records: GameRecord[];
+  /** 저장된 라인업 수 */
+  plays: number;
+  best: number | null;
+  perfect: number;
+}
+
+const LINEUP_RE = /^\d{1,10}:\d{1,3}(,\d{1,10}:\d{1,3}){4}$/;
+
+export function validLineupParam(v: unknown): v is string {
+  return typeof v === "string" && LINEUP_RE.test(v);
+}
+
+/** 브라우저가 보낸 기록 검사 → 정리된 값 (틀리면 null) */
+export function validGameRecord(raw: unknown): GameRecordInput | null {
+  if (!raw || typeof raw !== "object") return null;
+  const r = raw as Record<string, unknown>;
+  if (!validLineupParam(r.lineup)) return null;
+  if (typeof r.wins !== "number" || !Number.isInteger(r.wins) || r.wins < 0 || r.wins > 54) return null;
+  if (typeof r.rating !== "number" || !Number.isFinite(r.rating) || r.rating < 0 || r.rating > 100) return null;
+  if (!Array.isArray(r.bonuses) || !Array.isArray(r.names) || r.names.length !== 5) return null;
+  const bonuses = GAME_BONUS_KEYS.filter((k) => (r.bonuses as unknown[]).includes(k));
+  const names: string[] = [];
+  for (const n of r.names) {
+    if (typeof n !== "string") return null;
+    // eslint-disable-next-line no-control-regex
+    const clean = n.replace(/[\u0000-\u001f<>]/g, "").trim().slice(0, 30);
+    if (!clean) return null;
+    names.push(clean);
+  }
+  return { lineup: r.lineup, wins: r.wins, rating: Math.round(r.rating * 10) / 10, bonuses, names };
+}

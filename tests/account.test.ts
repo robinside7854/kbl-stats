@@ -226,3 +226,61 @@ console.log("account: 계정 연결·관리자 규칙 통과");
   await db2.close();
   console.log("account: 계정 연결 SQL(옛 회원 옮기기·붙이기·합치기·겹침·해제·탈퇴·관리자 목록) 통과");
 }
+
+// ── 54-0 내 기록 (규칙 + SQL) ──
+{
+  const { validGameRecord, validLineupParam, MAX_GAME_RECORDS } = await import("../lib/account");
+  const { saveGameRecord, gameHistory, deleteGameRecord } = await import("../lib/server/members");
+  const names = ["이상민 97-98", "김태술 07-08", "최준용 21-22", "안영준 24-25", "서장훈 99-00"];
+  const base = { lineup: "245026:2,290108:12,290993:39,291084:45,255032:4", wins: 52, rating: 98.73, bonuses: ["prime", "school", "x"], names };
+  assert.deepEqual(validGameRecord(base), { ...base, rating: 98.7, bonuses: ["school", "prime"] });
+  assert.equal(validGameRecord({ ...base, lineup: "1:2,3:4" }), null); // 다섯 명 아님
+  assert.equal(validGameRecord({ ...base, lineup: "1:2,3:4,5:6,7:8,9:x" }), null);
+  assert.equal(validGameRecord({ ...base, wins: 55 }), null);
+  assert.equal(validGameRecord({ ...base, wins: 3.5 }), null);
+  assert.equal(validGameRecord({ ...base, rating: 120 }), null);
+  assert.equal(validGameRecord({ ...base, names: names.slice(0, 4) }), null);
+  assert.equal(validGameRecord({ ...base, names: [...names.slice(0, 4), "  "] }), null);
+  assert.equal(validGameRecord({ ...base, names: [...names.slice(0, 4), "<b>x</b>"] })?.names[4], "bx/b");
+  assert.equal(validLineupParam("1:2,3:4,5:6,7:8,9:10"), true);
+  assert.equal(validLineupParam("1:2,3:4,5:6,7:8,9:10;drop"), false);
+
+  const db3 = new PGlite();
+  const q3: Query = async (text, params) => (await db3.query(text, params ?? [])).rows as Record<string, unknown>[];
+  await ensureSchema(q3);
+  const rec = validGameRecord(base)!;
+  await saveGameRecord(q3, "google:a", rec);
+  await saveGameRecord(q3, "google:a", { ...rec, wins: 50 }); // 같은 라인업 → 한 줄
+  await saveGameRecord(q3, "google:a", { ...rec, lineup: "1:2,3:4,5:6,7:8,9:10", wins: 54 });
+  let h = await gameHistory(q3, "google:a");
+  assert.equal(h.plays, 2);
+  assert.equal(h.best, 54);
+  assert.equal(h.perfect, 1);
+  assert.equal(h.records[0].lineup, "1:2,3:4,5:6,7:8,9:10"); // 새것 먼저
+  assert.equal(h.records[1].wins, 50);
+  assert.deepEqual(h.records[1].bonuses, ["school", "prime"]);
+  assert.deepEqual(h.records[1].names, names);
+  // 빈 기록
+  assert.deepEqual(await gameHistory(q3, "naver:empty"), { records: [], plays: 0, best: null, perfect: 0 });
+  // 지우기
+  await deleteGameRecord(q3, "google:a", "1:2,3:4,5:6,7:8,9:10");
+  h = await gameHistory(q3, "google:a");
+  assert.equal(h.plays, 1);
+  assert.equal(h.perfect, 0);
+  // 상한: 오래된 것부터 지운다
+  for (let i = 0; i < MAX_GAME_RECORDS + 3; i++) await saveGameRecord(q3, "naver:many", { ...rec, lineup: `1:2,3:4,5:6,7:8,${i}:10` });
+  assert.equal((await gameHistory(q3, "naver:many")).plays, MAX_GAME_RECORDS);
+  assert.equal((await q3("SELECT count(*)::int AS n FROM member_games WHERE lineup = '1:2,3:4,5:6,7:8,0:10'")).at(0)?.n, 0);
+  // 계정을 합치면 기록도 합친다 (같은 라인업은 지금 회원 것)
+  await saveGameRecord(q3, "naver:b", { ...rec, wins: 30 });
+  await saveGameRecord(q3, "naver:b", { ...rec, lineup: "11:2,3:4,5:6,7:8,9:10", wins: 40 });
+  assert.deepEqual(await linkLogin(q3, "google:a", "naver:b"), { ok: true, merged: true });
+  h = await gameHistory(q3, "google:a");
+  assert.equal(h.plays, 2);
+  assert.equal(h.records.find((r) => r.lineup === base.lineup)?.wins, 50);
+  // 탈퇴하면 기록도 지운다
+  await deleteMember(q3, "google:a");
+  assert.equal((await q3("SELECT count(*)::int AS n FROM member_games WHERE lineup = $1", ["11:2,3:4,5:6,7:8,9:10"])).at(0)?.n, 0);
+  await db3.close();
+  console.log("account: 54-0 내 기록(검사·저장·같은 라인업 한 줄·요약·지우기·상한·합치기·탈퇴) 통과");
+}
