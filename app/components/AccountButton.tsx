@@ -10,7 +10,7 @@ import teamColors from "@/data/codes/team-colors.json";
 import { ACCOUNT_EVENT, cachedMember, fetchMe, hasSignedInHint, syncFavorites } from "./account-client";
 import { IconPlayer } from "./icons";
 import MemberBadge from "./MemberBadge";
-import { trackEvent } from "./track";
+import { setUserProperties, trackEvent } from "./track";
 
 const COLORS = (teamColors as unknown as { byTeamCode: Record<string, TeamColor | undefined> }).byTeamCode;
 
@@ -32,6 +32,12 @@ export default function AccountButton() {
     window.addEventListener(ACCOUNT_EVENT, refresh);
     return () => window.removeEventListener(ACCOUNT_EVENT, refresh);
   }, [enabled]);
+
+  // GA4 사용자 속성: 로그인 여부·대표 응원팀 (화면마다 헤더가 있어 여기서 한 번)
+  useEffect(() => {
+    if (!enabled) return;
+    setUserProperties({ signed_in: member ? "yes" : "no", support_team: member?.teamCode ?? "none" });
+  }, [enabled, member]);
 
   if (!enabled) return null;
   const color = member?.teamCode ? COLORS[member.teamCode] ?? null : null;

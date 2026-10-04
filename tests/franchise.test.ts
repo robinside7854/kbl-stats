@@ -31,17 +31,15 @@ assert.equal(pctText(1), "1.000");
 assert.equal(pctText(null), "–");
 
 // ── 레전드 ──
-assert.ok(isLegend(7, 0));
-assert.ok(!isLegend(6, 0));
-assert.ok(isLegend(3, 1));
-assert.ok(!isLegend(2, 2));
+assert.ok(isLegend(10));
+assert.ok(!isLegend(9));
 const line = (id: string, seasonCode: number, pts = 100, games = 50): SeasonPlayerLine => ({
   id, name: `선수${id}`, photoUrl: null, seasonCode, games, pts, reb: 10, ast: 5, stl: 1, blk: 1, tpm: 2,
 });
 const lines: SeasonPlayerLine[] = [
-  ...[1, 2, 3, 4, 5, 6, 7].map((s) => line("a", s)), // 7시즌 → 레전드
-  ...[1, 2, 3].map((s) => line("b", s, 500)), // 3시즌 + MVP → 레전드
-  ...[1, 2, 3, 4].map((s) => line("c", s, 900)), // 4시즌, 상 없음 → 아님
+  ...[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((s) => line("a", s, 10)), // 10시즌 → 레전드
+  ...[1, 2, 3].map((s) => line("b", s, 500)), // 3시즌 + MVP → 아님 (상은 카드에만)
+  ...[1, 2, 3, 4].map((s) => line("c", s, 900)), // 4시즌 → 아님
   line("d", 1, 0, 0), // 0경기 → 제외
 ];
 const tenures = buildTenures(lines, [
@@ -49,7 +47,8 @@ const tenures = buildTenures(lines, [
   { playerNo: "c", key: "rookie", seasonCode: 1 }, // 큰 상 아님
 ]);
 assert.equal(tenures.length, 3);
-assert.deepEqual(pickLegends(tenures).map((t) => t.id), ["a", "b"]);
+assert.deepEqual(pickLegends(tenures).map((t) => t.id), ["a"]);
+assert.equal(tenures.find((t) => t.id === "b")!.majorAwards.length, 1);
 assert.deepEqual(longestTenures(tenures, 2).map((t) => t.id), ["a", "c"]);
 assert.deepEqual(franchiseLeaders(tenures, "pts", 2).map((l) => [l.id, l.value]), [["c", 3600], ["b", 1500]]);
 assert.equal(majorAwardSummary([{ key: "finalsMvp" }, { key: "mvp" }, { key: "mvp" }]), "MVP 2회 · 챔프전 MVP 1회");

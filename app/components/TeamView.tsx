@@ -271,7 +271,7 @@ export default function TeamView({ data }: { data: TeamPageData }) {
 
         <Card title={data.legends.length > 0 ? `레전드 ${data.legends.length}명` : "가장 오래 뛴 선수"}>
           <p className="mt-1 text-sub text-ink-3">
-            {data.legends.length > 0 ? `기준: ${LEGEND_RULE_TEXT}.` : "이 팀은 레전드 기준(7시즌 이상 등)을 넘은 선수가 없어 오래 뛴 순으로 보여 줘요."}
+            {data.legends.length > 0 ? `기준: ${LEGEND_RULE_TEXT}.` : "이 팀은 레전드 기준(10시즌 이상)을 넘은 선수가 없어 오래 뛴 순으로 보여 줘요."}
           </p>
           <ul className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {(data.legends.length > 0 ? data.legends : data.longest).map((l) => (

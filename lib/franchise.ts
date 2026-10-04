@@ -33,17 +33,17 @@ export function playoffStage(
   return "quarter";
 }
 
-// ── 레전드 (2026-10-04 제안: 이 팀에서 7시즌 이상, 또는 3시즌 이상 + 이 팀 소속으로 MVP·외국선수 MVP·챔프전 MVP) ──
-export const LEGEND_MIN_SEASONS = 7;
-export const LEGEND_AWARD_MIN_SEASONS = 3;
+// ── 레전드 (2026-10-04 사용자 결정: 이 팀에서 10시즌 이상 뛴 선수만) ──
+export const LEGEND_MIN_SEASONS = 10;
+/** 레전드 카드에 함께 보여 주는 큰 상 (이 팀 소속으로 받은 것) */
 export const LEGEND_AWARD_KEYS = ["mvp", "foreignMvp", "finalsMvp"] as const;
 
-export function isLegend(seasons: number, majorAwards: number): boolean {
-  return seasons >= LEGEND_MIN_SEASONS || (seasons >= LEGEND_AWARD_MIN_SEASONS && majorAwards > 0);
+export function isLegend(seasons: number): boolean {
+  return seasons >= LEGEND_MIN_SEASONS;
 }
 
 /** 레전드 기준 안내 한 줄 */
-export const LEGEND_RULE_TEXT = `이 팀에서 ${LEGEND_MIN_SEASONS}시즌 이상 뛰었거나, ${LEGEND_AWARD_MIN_SEASONS}시즌 이상 뛰며 이 팀 소속으로 정규리그·외국선수·챔프전 MVP를 받은 선수`;
+export const LEGEND_RULE_TEXT = `이 팀에서 ${LEGEND_MIN_SEASONS}시즌 이상 뛴 선수`;
 
 // ── 시즌 한 줄 ─────────────────────────────────────────
 export interface TeamSeasonRow {
@@ -187,7 +187,7 @@ export function buildTenures(lines: readonly SeasonPlayerLine[], awards: readonl
 /** 레전드: 기준을 넘은 선수, 시즌 수 → 경기 수 → 득점 순 */
 export function pickLegends(tenures: readonly PlayerTenure[]): PlayerTenure[] {
   return tenures
-    .filter((t) => isLegend(t.seasonCodes.length, t.majorAwards.length))
+    .filter((t) => isLegend(t.seasonCodes.length))
     .sort((a, b) => b.seasonCodes.length - a.seasonCodes.length || b.games - a.games || b.pts - a.pts);
 }
 
