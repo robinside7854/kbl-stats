@@ -1,0 +1,17 @@
+# 조사용 (2026-10-04): 공유 썸네일에 쓸 KBL 리그 로고 SVG 내용을 로그로 확인. 조사 뒤 이 브랜치는 지워도 된다.
+name: probe kbl logo
+on:
+  push:
+    branches: [claude/probe-kbl-logo]
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: logo
+        run: |
+          for u in https://kbl.or.kr/assets/img/logo/logo-kbl.svg https://kbl.or.kr/assets/img/ico/logo/ic-kbl.svg; do
+            echo "=== $u"
+            curl -sS -A "Mozilla/5.0" -D - -o /tmp/l.svg "$u" | head -5
+            echo "--- base64"
+            base64 -w0 /tmp/l.svg; echo
+          done
