@@ -1,4 +1,4 @@
-# 조사용 (2026-10-04): TVING SPORTS 유튜브 채널의 KBL 하이라이트 — 키 없는 RSS·재생목록·임베드 허용 확인. 조사 뒤 이 브랜치는 지워도 된다.
+# 조사용 (2026-10-04): TVING SPORTS 유튜브 RSS 응답을 그대로 로그(base64)로 — 10/3~10/4 하이라이트를 raw 로 넣기 위해. 조사 뒤 이 브랜치는 지워도 된다.
 name: probe youtube
 on:
   push:
@@ -7,45 +7,9 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - name: probe
+      - name: rss
         run: |
-          UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124 Safari/537.36"
-          H=(-sS -A "$UA" -H "Accept-Language: ko-KR,ko;q=0.9" -b "CONSENT=YES+1")
-          curl "${H[@]}" https://www.youtube.com/@tvingsports -o ch.html
-          CID=$(grep -o '"externalId":"UC[^"]*"' ch.html | head -1 | cut -d'"' -f4)
-          [ -z "$CID" ] && CID=$(grep -o 'channel/UC[A-Za-z0-9_-]\{22\}' ch.html | head -1 | cut -d/ -f2)
-          echo "CHANNEL_ID=$CID"
-          echo "=== channel RSS"
-          curl "${H[@]}" "https://www.youtube.com/feeds/videos.xml?channel_id=$CID" -o rss.xml
-          python3 - <<'PY'
-          import re
-          x=open('rss.xml',encoding='utf-8').read()
-          for vid,t,p in re.findall(r'<yt:videoId>(.*?)</yt:videoId>.*?<title>(.*?)</title>.*?<published>(.*?)</published>',x,re.S): print(vid,p,t)
-          PY
-          echo "=== playlists"
-          curl "${H[@]}" "https://www.youtube.com/@tvingsports/playlists" -o pl.html
-          python3 - <<'PY'
-          import re,json
-          h=open('pl.html',encoding='utf-8').read()
-          seen=set()
-          for m in re.finditer(r'"(?:playlistId|contentId)":"(PL[A-Za-z0-9_-]+)"',h):
-              pid=m.group(1)
-              if pid in seen: continue
-              seen.add(pid)
-              seg=h[m.start():m.start()+3000]
-              t=re.search(r'"(?:simpleText|content)":"([^"]{3,120})"',seg)
-              print(pid, t.group(1) if t else '?')
-          PY
-          echo "=== embed check for KBL videos in RSS"
-          for v in $(python3 -c "
-          import re;x=open('rss.xml',encoding='utf-8').read()
-          print(' '.join(v for v,t in re.findall(r'<yt:videoId>(.*?)</yt:videoId>.*?<title>(.*?)</title>',x,re.S) if '프로농구' in t))"); do
-            code=$(curl -s -o /dev/null -w '%{http_code}' "https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=$v&format=json")
-            emb=$(curl "${H[@]}" "https://www.youtube.com/embed/$v" | grep -o '"playableInEmbed":[a-z]*\|"status":"[A-Z_]*"' | sort | uniq -c | tr '\n' ' ')
-            echo "$v oembed=$code $emb"
-          done
-          echo "=== KBL official channels"
-          for h in @KBL @kbltv @KBLofficial; do
-            c=$(curl "${H[@]}" "https://www.youtube.com/$h" | grep -o '"externalId":"UC[^"]*"' | head -1)
-            echo "$h $c"
-          done
+          curl -sS -A "kbl-stats fan project (non-commercial; github.com/robinside7854/kbl-stats)" "https://www.youtube.com/feeds/videos.xml?channel_id=UC8JtQf77wqhVpOQ8Cze8JjA" -o rss.xml
+          date -u +%Y%m%dT%H%M
+          grep -o '<title>[^<]*</title>' rss.xml
+          echo "BEGIN_B64"; gzip -9c rss.xml | base64 -w0; echo; echo "END_B64"
