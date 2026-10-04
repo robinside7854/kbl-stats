@@ -1,4 +1,4 @@
-// 홈 "이번 시즌 한눈에" (PLAN.md §2-4, §3 ⑤, §5-4). 서버 컴포넌트 — 계산은 app/page.tsx 가 lib/ 함수로 끝내고 결과만 받는다.
+// 홈 "KBL 2026-2027 시즌" (옛 제목 "이번 시즌 한눈에") (PLAN.md §2-4, §3 ⑤, §5-4). 서버 컴포넌트 — 계산은 app/page.tsx 가 lib/ 함수로 끝내고 결과만 받는다.
 // 구성(모바일 우선): 개막 전 안내 → 오늘의 경기(GameDayBoard, 2026-10-03) → 히어로(부문 1위 표지, 새로고침마다 부문이 바뀜 — HomeHero) → 오늘 생일 → 부문별 1~3위 카드 줄.
 // 바로가기·시즌별 목록은 2026-10-01 사용자 요청으로 뺐다(상단 메뉴·시즌 선택과 겹침).
 import Link from "next/link";
@@ -17,7 +17,8 @@ import BirthdayStrip, { type BirthdayPlayer } from "./BirthdayStrip";
 import FavoritesStrip from "./FavoritesStrip";
 import HomeHero, { type HeroItem } from "./HomeHero";
 import GameDayBoard, { type GameTeamInfo } from "./GameDayBoard";
-import type { GameDay } from "@/lib/games";
+import { seasonTitle, type GameDay, type SeasonProgress } from "@/lib/games";
+import SeasonProgressBar from "./SeasonProgressBar";
 
 const GRAY: TeamColor = FALLBACK_TEAM_COLOR;
 
@@ -40,12 +41,14 @@ interface Props {
   gameDay?: GameDay | null;
   nextGameDay?: GameDay | null;
   gameTeams?: Record<string, GameTeamInfo>;
+  /** 정규시즌 진행률 (진행 중 시즌만, 아니면 null) */
+  progress?: SeasonProgress | null;
 }
 
 /** 순위표 부문 링크 (득점은 기본 부문이라 쿼리 없음 — lib/leaders DEFAULT_CATEGORY) */
 const leadersHref = (code: number, key: LeaderStatKey) => `/season/${code}/leaders${key === "points" ? "" : `?cat=${key}`}`;
 
-export default function HomeView({ season, fetchedLabel, upcoming, categories, teams, qualifyText, birthdays, gameDay = null, nextGameDay = null, gameTeams = {} }: Props) {
+export default function HomeView({ season, fetchedLabel, upcoming, categories, teams, qualifyText, birthdays, gameDay = null, nextGameDay = null, gameTeams = {}, progress = null }: Props) {
   const teamByCode = new Map(teams.map((t) => [t.teamCode, t]));
   const code = season.seasonCode;
   const short = seasonShortLabel(season.seasonLabel);
@@ -63,9 +66,10 @@ export default function HomeView({ season, fetchedLabel, upcoming, categories, t
 
       <div className="mx-auto max-w-5xl px-4 pt-5">
         <p className="text-sub font-medium text-ink-3">
-          KBL 정규시즌 · 기록 갱신 {fetchedLabel}
+          기록 갱신 {fetchedLabel}
         </p>
-        <h1 className="mt-0.5 text-h1 font-black">{short} 시즌 한눈에</h1>
+        <h1 className="mt-0.5 text-h1 font-black">{seasonTitle(season.seasonLabel)}</h1>
+        {progress && <SeasonProgressBar progress={progress} className="mt-3 max-w-md" />}
       </div>
 
       {gameDay && <GameDayBoard day={gameDay} next={nextGameDay} seasonCode={code} teams={gameTeams} />}

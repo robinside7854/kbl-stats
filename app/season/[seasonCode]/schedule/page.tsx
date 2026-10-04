@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { shareMetadata } from "@/lib/share";
 import { notFound } from "next/navigation";
 import { gameTeamInfos, listSeasonsWithPlayers, loadSeasonData, loadSeasonGames } from "@/lib/data";
-import { latestGameDay, monthsOf, topPerformer } from "@/lib/games";
+import { latestGameDay, monthsOf, seasonProgress, topPerformer } from "@/lib/games";
 import { seasonShortLabel } from "@/lib/career";
 import SiteNav from "@/app/components/SiteNav";
 import SourceFooter from "@/app/components/SourceFooter";
@@ -53,6 +53,7 @@ export default async function SchedulePage({ params }: { params: Params }) {
         seasonCode={code}
         seasonShort={seasonShortLabel(season.seasonLabel)}
         games={games}
+        progress={seasonProgress(all)}
         teams={gameTeamInfos(code)}
         initialMonth={initialMonth}
       />

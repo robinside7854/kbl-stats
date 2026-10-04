@@ -232,7 +232,7 @@ kbl-stats/
 │   └── types.ts         ← Player, SeasonData(coverage·teams), Team(shortNameKo·logoUrl·color), TeamColor, PlayerIndexEntry(photoUrl), CardPlayer, CardTeam, LeaderPlayer(순위표용 최소 필드), CareerSeason·PlayerCareer(선수 페이지), SearchEntry(검색 색인) 등 타입 정의
 ├── app/                 ← Next.js 화면 (App Router)
 │   ├── layout.tsx, globals.css (색 토큰: 라이트/다크, 범주형 --cat-1…8, 포커스 링 유틸 focus-ring·focus-ring-inset)
-│   ├── page.tsx         ← 홈 "이번 시즌 한눈에" (개막 전 안내·득점 1위 표지·부문별 1~3위·화면 버튼(선수·순위표·팀 분포·비교·용어·검색)·시즌 목록, 정적)
+│   ├── page.tsx         ← 홈 "KBL 2026-2027 시즌"(진행률 막대) (개막 전 안내·득점 1위 표지·부문별 1~3위·화면 버튼(선수·순위표·팀 분포·비교·용어·검색)·시즌 목록, 정적)
 │   ├── players/page.tsx ← 선수 탭 (큰 검색창 + 시즌·포지션·국적·팀 칩 + 선수 그리드, 최신 시즌 정적 HTML, 다른 시즌은 /cards)
 │   ├── player/[playerNo]/page.tsx  ← 선수 상세 정적 1,329개 (히어로(프로필·국적·나이·국가·출신교) → 시즌 칩·순위 범위·시즌 비교 카드 → 추이 그래프 → 시즌별 기록표 → 커리어 하이)
 │   ├── season/[seasonCode]/schedule/page.tsx ← 시즌 경기 일정 (2026-10-03, 메뉴 "일정" — 비교 탭 자리): 월 칩·날짜별 GameCard, 박스스코어는 펼칠 때 public/games/{시즌}/{날짜}.json(build-games.ts) — ScheduleView
@@ -344,6 +344,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-04 (시즌 진행률·홈 제목·박스스코어 팝업): 사용자 요청 ① 정규시즌 **진행률 막대**(`lib/games seasonProgress` 끝난 경기 ÷ games.json 전체 일정, `SeasonProgressBar`) — 홈 제목 아래(진행 중 시즌만, 개막 전 직전 시즌을 보일 땐 숨김)·일정 화면(종료 시즌은 "정규시즌 종료 100%"). 지금 5/270경기 1.9% ② 홈 제목 "26-27 시즌 한눈에" → **"KBL 2026-2027 시즌"**(`seasonTitle`, 홈 시즌을 따라 새 시즌 개막 때 자동), 부제 "KBL 정규시즌 ·" 중복 삭제 ③ 경기 카드 "선수 기록" 펼치기 → **"박스스코어 보기" 팝업**(`GameCard BoxScoreDialog`: 폰 아래 시트 90%·PC 가운데 창 max-w-4xl 이라 14열 한 표, 바깥·ESC·닫기, 스크롤 잠금·포커스 복귀, 제목 "소노 86 : 95 DB"·날짜·경기장) — 펼친 카드 두 칸 차지 로직 삭제. GA4 는 그대로 boxscore_open. ④ 유튜브 하이라이트는 제안만(SCOPE 보류표, 사용자 결정 대기). 검증: typecheck·test(games)·build·slop 0, Playwright 360/1280 홈·일정 팝업 열기/ESC/바깥 닫기·가로 넘침 0·이벤트. main 배포.
 - 2026-10-04 (수집 경고·지난 시즌 제외): ① 사용자 결정 — 새 시즌 개막하면 지난 시즌 선수 기록(한 경기 최다·경기별·프로필)은 매일 받지 않음(`PREVIOUS_SEASON_GRACE_DAYS` 30 → 0). ② 10/4 수집이 옛 선수 1명 503 하나로 "실패" 처리돼 수집 기록(last-fetch)이 안 남던 것 → 선수·경기 몇 건 실패는 **경고**(last_fetch.json `warnings`, 종료 코드 0), 연속 실패로 중단·시즌 라벨 없음·경기 목록 실패만 실패. 오늘 경기(소노 86-95 DB·삼성 81-76 KT) 박스스코어 반영 확인. main 배포.
 - 2026-10-04 (54-0 내 기록): 사용자 요청 — 로그인한 사람은 54-0 결과를 계정에 보관. 표 `member_games`(회원·라인업 ?l= 값·승수·전력·가산점·표시용 "이름 시즌" 5개·시각, 라인업이 같으면 한 줄 — 같은 라인업 = 같은 성적, 회원마다 최근 200개, 계정 합칠 때 합침·탈퇴 때 삭제), `/api/me/games`(GET 최근 50·판 수·최고·전승 / POST 저장 — `lib/account validGameRecord` 검사 / DELETE ?lineup=). 결과 화면: 로그인한 브라우저면 자동 저장 + "내 기록에 저장했어요 · 내 기록 보기", 로그인 안 했으면 "로그인하면 기록이 쌓여요 · 로그인"(회원 API 호출 없음), 공유 결과는 저장 안 함. 내 계정 화면 "54-0 내 기록" 카드(`GameHistoryCard`: 라인업 수·최고 성적·전승 횟수 + 최근 5개·더 보기, 줄 → /game?l= 다시 보기, × 지우기). 개인정보 안내·탈퇴 문구에 54-0 기록 추가. GA4 game_record_save(result)·game_record_delete(wins) — 맞춤 정의 `result` 등록 필요(wins 는 있음). 검증: typecheck·test(account: PGlite 로 저장·한 줄·요약·지우기·상한·합치기·탈퇴)·build(로그인 켜짐/꺼짐)·slop 0, Playwright: 로그인 안 함 안내·API 0회 / 로그인(가짜 /api/me) 저장 요청 본문·이벤트 / 내 계정 360·1280(다크) 카드·지우기·가로 넘침 0. 실제 DB 저장은 사용자 확인. main 배포.
 - 2026-10-04 (직전 시즌 수집 중단): 사용자 결정 — 새 시즌이 개막하면 지난 시즌 선수 기록(한 경기 최다·경기별 기록·프로필, 슛 차트 대상 시즌도 같은 규칙)은 받지 않는다. `scripts/highs.ts PREVIOUS_SEASON_GRACE_DAYS` 30 → 0(매일 수집 약 15분·Actions 약 450분/월 절약). 시즌 합계(선수 기록표 5회 요청)는 `DEFAULT_SEASONS` 그대로. 테스트는 30일 규칙 자체도 graceDays 30 으로 계속 확인. fetch.yml 은 건드리지 않음(푸시 때 수집이 또 돌지 않게).

@@ -30,6 +30,25 @@ export function nextGameDay(games: readonly SeasonGame[], after: string | null):
   return date ? { date, games: games.filter((g) => g.date === date && !g.ended) } : null;
 }
 
+export interface SeasonProgress {
+  ended: number;
+  total: number;
+  /** 0~100, 소수 한 자리 */
+  pct: number;
+}
+
+/** 정규시즌 진행률 (2026-10-04 사용자 요청) — games.json 은 정규시즌 일정 전체(예정 경기 포함)라 끝난 경기 ÷ 전체 경기. 일정이 없으면 null */
+export function seasonProgress(games: readonly SeasonGame[]): SeasonProgress | null {
+  if (games.length === 0) return null;
+  const ended = games.filter((g) => g.ended).length;
+  return { ended, total: games.length, pct: Math.round((ended / games.length) * 1000) / 10 };
+}
+
+/** "2025-2026" → "KBL 2025-2026 시즌" (홈 제목 — 새 시즌이 개막하면 홈 시즌이 바뀌어 자동으로 따라간다) */
+export function seasonTitle(seasonLabel: string): string {
+  return `KBL ${seasonLabel} 시즌`;
+}
+
 /** 이긴 쪽 ("home" | "away"), 점수가 없거나 같으면 null */
 export function winnerSide(g: SeasonGame): "home" | "away" | null {
   if (!g.ended || g.home.score === null || g.away.score === null || g.home.score === g.away.score) return null;

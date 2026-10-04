@@ -1,6 +1,6 @@
 "use client";
 // 홈 "오늘의 경기" (2026-10-03 사용자 요청: 오늘 경기 기록·맞대결·선수 기록).
-// 끝난 경기가 있는 가장 최근 날짜의 경기 카드(GameCard: 점수·팀·수훈 선수 → "선수 기록" 박스스코어) + 다음 경기 대진 + 전체 일정 링크.
+// 끝난 경기가 있는 가장 최근 날짜의 경기 카드(GameCard: 점수·팀·수훈 선수 → "박스스코어 보기" 팝업) + 다음 경기 대진 + 전체 일정 링크.
 // 날짜가 브라우저의 한국 날짜와 같으면 "오늘의 경기", 아니면 "최근 경기". 데이터·계산은 lib/games (서버에서 고른 경기만 받는다).
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -25,15 +25,6 @@ export default function GameDayBoard({ day, next, seasonCode, teams }: Props) {
   const [today, setToday] = useState<string | null>(null);
   useEffect(() => setToday(kstDateString(new Date())), []);
   const isToday = today === day.date;
-  // 박스스코어를 펼친 카드는 PC 에서 두 칸을 차지해 표 전체(기본 + 슈팅)를 한 번에 보인다
-  const [opened, setOpened] = useState<Set<string>>(new Set());
-  const toggleOpened = (k: string, o: boolean) =>
-    setOpened((prev) => {
-      const next = new Set(prev);
-      if (o) next.add(k);
-      else next.delete(k);
-      return next;
-    });
 
   return (
     <section aria-labelledby="games-title" className="mx-auto mt-6 max-w-5xl px-4">
@@ -51,14 +42,13 @@ export default function GameDayBoard({ day, next, seasonCode, teams }: Props) {
       </div>
       <ul className="mt-3 grid items-start gap-3 md:grid-cols-2">
         {day.games.map((g) => (
-          <li key={g.gmkey} className={opened.has(g.gmkey) ? "md:col-span-2" : undefined}>
+          <li key={g.gmkey}>
             <GameCard
               game={g}
               seasonCode={seasonCode}
               teams={teams}
               stars={g.box ? { away: topPerformer(g.box.away), home: topPerformer(g.box.home) } : null}
               place="home"
-              onOpenChange={(o) => toggleOpened(g.gmkey, o)}
             />
           </li>
         ))}

@@ -1,15 +1,16 @@
 "use client";
 // 시즌 경기 일정 (2026-10-03 사용자: 날짜별 경기 일정·박스스코어, 메뉴 "일정" — 비교 탭 자리).
-// 월 칩 → 그 달 날짜별 경기 카드(GameCard). 끝난 경기는 점수·수훈 선수, "선수 기록"을 누르면 그 날짜 박스스코어 파일
-// /games/{시즌}/{날짜}.json(scripts/build-games.ts, 우리 정적 파일)을 받아 펼친다.
+// 월 칩 → 그 달 날짜별 경기 카드(GameCard). 끝난 경기는 점수·수훈 선수, "박스스코어 보기"를 누르면 그 날짜 박스스코어 파일
+// /games/{시즌}/{날짜}.json(scripts/build-games.ts, 우리 정적 파일)을 받아 팝업으로 보인다.
 // 처음 달 = 주소 ?date= 또는 ?month=, 없으면 오늘(한국 날짜)이 든 달(lib/games pickMonth). 오늘·그 날짜로 스크롤.
 // GA4: filter_change screen=schedule filter=month, boxscore_open place=schedule.
 import { useEffect, useMemo, useState } from "react";
 import type { GameBoxRow, SeasonGame } from "@/lib/types";
-import { gameDayLabel, groupByDate, monthLabel, monthsOf, pickMonth } from "@/lib/games";
+import { gameDayLabel, groupByDate, monthLabel, monthsOf, pickMonth, type SeasonProgress } from "@/lib/games";
 import { kstDateString } from "@/lib/home";
 import ChipRow from "./ChipRow";
 import GameCard, { type GameTeamInfo } from "./GameCard";
+import SeasonProgressBar from "./SeasonProgressBar";
 import { trackFilters } from "./track";
 
 export interface ScheduleGame extends SeasonGame {
@@ -25,6 +26,8 @@ interface Props {
   teams: Record<string, GameTeamInfo>;
   /** 서버가 고른 처음 달 (정적 HTML) — 브라우저가 오늘 날짜로 다시 고른다 */
   initialMonth: string | null;
+  /** 정규시즌 진행률 (lib/games seasonProgress) */
+  progress: SeasonProgress | null;
 }
 
 type Box = NonNullable<SeasonGame["box"]>;
@@ -41,20 +44,11 @@ function loadDay(seasonCode: number, date: string) {
   return p;
 }
 
-export default function ScheduleView({ seasonCode, seasonShort, games, teams, initialMonth }: Props) {
+export default function ScheduleView({ seasonCode, seasonShort, games, teams, initialMonth, progress }: Props) {
   const months = useMemo(() => monthsOf(games), [games]);
   const [month, setMonth] = useState<string | null>(initialMonth);
   const [today, setToday] = useState<string | null>(null);
   const [target, setTarget] = useState<string | null>(null);
-  // 박스스코어를 펼친 카드는 PC 에서 두 칸을 차지 (표 전체가 한 번에 보이게)
-  const [opened, setOpened] = useState<Set<string>>(new Set());
-  const toggleOpened = (k: string, o: boolean) =>
-    setOpened((prev) => {
-      const next = new Set(prev);
-      if (o) next.add(k);
-      else next.delete(k);
-      return next;
-    });
 
   useEffect(() => {
     const t = kstDateString(new Date());
@@ -94,7 +88,8 @@ export default function ScheduleView({ seasonCode, seasonShort, games, teams, in
   return (
     <main className="mx-auto max-w-5xl px-4 pb-6 pt-5">
       <h1 className="text-h1 font-black">{seasonShort} 경기 일정</h1>
-      <p className="mt-0.5 text-sub text-ink-3">정규시즌 · 끝난 경기는 "선수 기록"으로 박스스코어</p>
+      <p className="mt-0.5 text-sub text-ink-3">정규시즌 · 끝난 경기는 "박스스코어 보기"</p>
+      {progress && <SeasonProgressBar progress={progress} className="mt-3 max-w-md" />}
       {months.length === 0 ? (
         <p className="surface-card mt-4 rounded-container p-4 text-sub text-ink-3">이 시즌 경기 일정이 없습니다</p>
       ) : (
@@ -118,7 +113,7 @@ export default function ScheduleView({ seasonCode, seasonShort, games, teams, in
               </h2>
               <ul className="mt-2 grid items-start gap-3 md:grid-cols-2">
                 {d.games.map((g) => (
-                  <li key={g.gmkey} className={opened.has(g.gmkey) ? "md:col-span-2" : undefined}>
+                  <li key={g.gmkey}>
                     <GameCard
                       game={g}
                       seasonCode={seasonCode}
@@ -126,7 +121,6 @@ export default function ScheduleView({ seasonCode, seasonShort, games, teams, in
                       stars={g.stars}
                       loadBox={g.hasBox ? async () => (await loadDay(seasonCode, g.date))?.[g.gmkey] ?? null : undefined}
                       place="schedule"
-                      onOpenChange={(o) => toggleOpened(g.gmkey, o)}
                     />
                   </li>
                 ))}

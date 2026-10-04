@@ -1,6 +1,7 @@
 // scripts/boxscores.ts·lib/games.ts 검증: 경기 목록 + 경기별 기록 → 박스스코어(득점 합 확인)·최근/다음 경기일·팀 순위 (npm run test:games)
 import assert from "node:assert/strict";
 import { buildSeasonGames, parseBoxLog } from "../scripts/boxscores";
+import { seasonProgress, seasonTitle } from "../lib/games";
 import { computeStandings, gameDayLabel, gamesBehindLabel, latestGameDay, minutesLabel, nextGameDay, pctLabel, topPerformer } from "../lib/games";
 
 const item = (n: number, date: string, h: string, a: string, sh: number | null, sa: number | null, ended = 1, gameCode = "01") => ({
@@ -88,5 +89,13 @@ console.log("games: 팀 순위 통과");
   const t = [{ ...r("가", 3, 1, 1), tpm: 1, tpa: 3, ftm: 2, fta: 2 }, { ...r("나", 3, 1, 1), tpm: 2, tpa: 4, ftm: 0, fta: 0 }];
   assert.deepEqual(sortBoxRows(t, "tpPct").map((x) => x.nameKo), ["나", "가"]);
   assert.deepEqual(sortBoxRows(t, "ftPct").map((x) => x.nameKo), ["가", "나"]); // 시도 0 은 뒤로
+  // 시즌 진행률·홈 제목 (2026-10-04)
+  {
+    const mk = (ended: boolean) => ({ ended }) as unknown as Parameters<typeof seasonProgress>[0][number];
+    assert.equal(seasonProgress([]), null);
+    assert.deepEqual(seasonProgress([...Array(5)].map(() => mk(true)).concat([...Array(265)].map(() => mk(false)))), { ended: 5, total: 270, pct: 1.9 });
+    assert.equal(seasonProgress([mk(true), mk(true)])!.pct, 100);
+    assert.equal(seasonTitle("2026-2027"), "KBL 2026-2027 시즌");
+  }
   console.log("games: 일정·박스스코어 정렬 통과");
 }

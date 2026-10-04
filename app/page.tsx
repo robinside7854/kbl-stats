@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { shareMetadata } from "@/lib/share";
 import { notFound } from "next/navigation";
 import { findPlayerIndexEntry, listAllSeasons, listSeasonsWithPlayers, loadSeasonData, loadSeasonGames, gameTeamInfos, seasonQualify, toCardTeams, toLeaderPlayers } from "@/lib/data";
-import { latestGameDay, nextGameDay } from "@/lib/games";
+import { latestGameDay, nextGameDay, seasonProgress } from "@/lib/games";
 import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
 import type { BirthdayPlayer } from "./components/BirthdayStrip";
 import { filterLeaders, topLeaders } from "@/lib/leaders";
@@ -15,7 +15,7 @@ import SiteNav from "./components/SiteNav";
 import SourceFooter, { formatFetchedAt } from "./components/SourceFooter";
 
 export const metadata: Metadata = shareMetadata({
-  title: "KBL - Stats Reference · 이번 시즌 한눈에",
+  title: "KBL - Stats Reference · 이번 시즌",
   description: "오늘의 경기·부문별 1~3위·선수 카드·리더보드·역대 기록까지, 1997년부터 모든 KBL 선수 기록을 한눈에. 비영리 팬 프로젝트.",
   path: "/",
 });
@@ -45,6 +45,8 @@ export default function HomePage() {
   const gameDay = latestGameDay(games);
   const nextDay = nextGameDay(games, gameDay?.date ?? null);
   const gameTeams = gameTeamInfos(shown.seasonCode);
+  // 진행률은 진행 중인 시즌만 (개막 전이라 직전 시즌을 보여 줄 때는 안 보임)
+  const seasonProgressNow = upcoming ? null : seasonProgress(games);
 
   return (
     <>
@@ -57,6 +59,7 @@ export default function HomePage() {
         teams={teams}
         birthdays={birthdays}
         gameDay={gameDay}
+        progress={seasonProgressNow}
         nextGameDay={nextDay}
         gameTeams={gameTeams}
         qualifyText={qualifyLabel(rule)}
