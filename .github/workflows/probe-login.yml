@@ -1,0 +1,41 @@
+# 조사용(2026-10-04): 운영 사이트 로그인 설정 확인 — 이 브랜치 푸시 때만 돈다. 확인 뒤 브랜치째 지워도 된다.
+name: probe-login
+on:
+  push:
+    branches: [claude/probe-login]
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 로그인 확인
+        run: |
+          S=https://kbl-stats-reference.vercel.app
+          echo "== providers"; curl -sS -w "\nHTTP %{http_code}\n" $S/api/auth/providers
+          echo "== /api/me (로그인 안 함)"; curl -sS -w "\nHTTP %{http_code}\n" $S/api/me
+          echo "== 홈 HTML 로그인 버튼"; curl -sS $S/ | grep -o 'href="/me"[^>]*>[^<]*' | head -3 || true
+          echo "== /me HTML 로그인 문구"; curl -sS $S/me | grep -oE '(네이버|구글)[^<"]{0,20}로그인[^<"]{0,10}|로그인을 준비 중[^<]{0,40}' | sort -u | head
+          for p in naver google; do
+            echo "== signin $p"
+            rm -f jar
+            CSRF=$(curl -sS -c jar $S/api/auth/csrf | python3 -c 'import sys,json;print(json.load(sys.stdin)["csrfToken"])')
+            LOC=$(curl -sS -b jar -c jar -o /dev/null -w "%{http_code} %{redirect_url}" -X POST \
+              -H "Content-Type: application/x-www-form-urlencoded" \
+              --data-urlencode "csrfToken=$CSRF" --data-urlencode "callbackUrl=$S/me?login=$p" --data-urlencode "json=true" \
+              $S/api/auth/signin/$p)
+            echo "$LOC" | sed -E 's/(client_id=)[^&]{6}/\1******/'
+            URL=${LOC#* }
+            if [ -n "$URL" ]; then
+              python3 - "$URL" <<'PY'
+          import sys, urllib.parse as u
+          q = u.parse_qs(u.urlparse(sys.argv[1]).query)
+          print("  host:", u.urlparse(sys.argv[1]).netloc)
+          print("  redirect_uri:", q.get("redirect_uri"))
+          print("  scope:", q.get("scope"))
+          PY
+              echo "  -- 로그인 회사 첫 화면"
+              curl -sSL -A "Mozilla/5.0" -o page.html -w "  HTTP %{http_code} 최종 %{url_effective}\n" "$URL" | sed -E 's/(client_id=)[^&]{6}/\1******/'
+              grep -oiE 'redirect_uri_mismatch|invalid_client|invalid_request|deleted_client|등록되지 않은[^<]{0,40}|Callback URL[^<]{0,60}|잘못된 요청[^<]{0,40}|error[^<"]{0,60}' page.html | sort -u | head -8 || true
+            fi
+          done
