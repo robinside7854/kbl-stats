@@ -274,3 +274,12 @@ export function IconHeart({ filled = false, ...p }: IconProps & { filled?: boole
     </Svg>
   );
 }
+
+/** 재생 (하이라이트 영상) */
+export function IconPlay(p: IconProps) {
+  return (
+    <Svg {...p}>
+      <path d="M8 5.5v13l10.5-6.5z" fill="currentColor" />
+    </Svg>
+  );
+}

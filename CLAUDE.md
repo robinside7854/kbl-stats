@@ -89,6 +89,12 @@ KBL 공홈은 화면을 그릴 때 아래 두 서버에서 JSON을 받아온다.
 - 가공(`scripts/awards.ts awardRows·matchAwardPlayer`): 쓰는 부문 = 정규리그 MVP(2025-26 "국내선수 MVP")·외국선수상("외국선수 MVP")·챔프전 MVP·올스타전 MVP·베스트5·수비 5걸·신인상·최우수 수비상·식스맨상·기량 발전상 (감독상·인기상·페어플레이·월간/라운드 MVP·계량/기록 부문은 안 씀). 이름 → 선수 번호: 그 시즌 명단 같은 이름(공백 무시) → 동명이인은 팀 → 전체에서 하나뿐인 이름 → 같은 시즌·팀에서 한 글자 차이/성만(KBL 표 오타: 장병국=정병국, 캔디 라렌, 카룰랑안, "나이트"). 2026-10-02 기준 492건 전부 연결. 결과는 색인 `awards: [{key, seasonCode}]`
 - 우승팀은 따로 `data/raw/games/{시즌}/list.json` 챔프전(gameCode 04) 4승 팀(`scripts/champions.ts`) → 시즌 `champion`, 색인 `championships`
 
+### 경기 하이라이트 영상 — 유튜브 TVING SPORTS (2026-10-04 Actions 러너 확인)
+- KBL 중계사 TVING SPORTS 채널(`UC8JtQf77wqhVpOQ8Cze8JjA`) RSS `https://www.youtube.com/feeds/videos.xml?channel_id=…` — **키 없음, 최근 15개만**(야구·쇼츠가 섞임). oEmbed 200 → 임베드 허용
+- 제목 형식: `[DB vs 소노] 10/4 경기 I 2026-27 KCC 프로농구 I 하이라이트 I TVING` — **앞이 홈 팀**. 올라오는 시각은 경기 끝나고 2~4시간 뒤(10/4 16시 경기 → 22시)라 보통 **다음 날 수집**에 들어간다
+- 수집: `npm run fetch` 가 RSS 1회 → 새 경기 하이라이트가 있을 때만 `data/raw/highlights/tving/{UTC시각}.xml`(응답 그대로). 실패는 경고(`fetch:all` 은 건너뜀). 15개 창을 넘기기 전에 매일 쌓는 게 핵심 — 하루라도 수집이 빠지고 영상이 15개 넘게 올라오면 그 사이 하이라이트는 놓친다(그때는 Data API 키로 채우는 방법이 있음)
+- 가공: `scripts/highlights.ts`(parseFeed·parseHighlightTitle·matchHighlights — 날짜 + 두 팀 이름 끝맞춤, 홈·원정 뒤바뀐 제목도) → games.json 경기에 `highlight`(영상 번호). 화면 `GameCard` "하이라이트" 버튼 → 팝업 youtube-nocookie 영상(CSP frame-src)
+
 ### 플레이오프·챔프전 시즌 합계 (2026-10-03 — 역대 기록 "한 시즌 최다")
 - 서버 A traditional 을 `gameCode=03,04`(플레이오프 = 6강~챔프전 전체)·`04`(챔프전)로 한 번씩 더 받아 `data/raw/{시즌}/traditional_playoff.json`·`traditional_finals.json`(`scripts/fetch.ts fetchSeason`, 실패해도 시즌은 계속). 한 경기 최다(mostgame)의 "플레이오프" 배열도 챔프전을 포함한다(챔프전 하이 ≤ 플옵 하이 406명 전원 확인)
 - 가공: `process.ts writePostseason` → `data/processed/{시즌}/postseason.json`(한 줄 = 선수, `PostseasonLine` 합계 필드만). 둘 다 raw 가 없으면 파일 없음
@@ -157,6 +163,7 @@ kbl-stats/
 │   ├── collect-shots.ts ← 시즌 하나의 경기 목록(월별) + 슛 차트 수집 루프 (daily/backfill 모드, 연속 실패 중단)
 │   ├── backfill-shots.ts ← 슛 차트 백필 (--count / --list-seasons / --season N) — backfill-shots.yml 이 부름
 │   ├── backfill-gamelogs.ts ← 경기별 기록 백필 (--count / --list-seasons / --season N, 이어받기) — backfill-gamelogs.yml 이 부름
+│   ├── highlights.ts    ← 경기 하이라이트: 유튜브 RSS → 영상 목록 parseFeed·제목 해석 parseHighlightTitle·경기 맞추기 matchHighlights·쌓은 raw 읽기 readSavedFeeds — 순수(읽기 제외)
 │   ├── highs.ts         ← 한 경기 최다 raw → 우리 키(parseMostGame, recordTxt 15개 매핑) + 매일 수집 대상 시즌 highsTargetSeasons(직전 시즌 30일)·첫 수집일·백필 이어받기 pendingPlayers — 순수 함수
 │   ├── collect-extras.ts ← 선수별 mostgame·경기별 기록·profile 수집 루프 (저장 전 형식 검사, 연속 실패 중단)
 │   ├── backfill-highs.ts ← 과거 전체 백필 (--list-seasons / --season N, 이미 raw 있는 조합 건너뜀) — backfill-highs.yml 이 시즌마다 부름
@@ -302,6 +309,7 @@ kbl-stats/
   | filter_change (팀·좋아요) | screen=team filter=season·leader · screen=likes filter=tab | 팀 페이지 로스터 시즌·팀 통산 기록 부문 / 좋아요 순위 선수·팀 |
   | nav_click(menu "로그인"·"내 계정") | | 헤더 계정 버튼 |
   | contact_click | (없음) | 푸터 문의 이메일 누르기 |
+  | highlight_open | game_key(gmkey), season_code, place(home/schedule) | 경기 카드 "하이라이트" (유튜브 영상 팝업) |
   | boxscore_open | game_key(gmkey), season_code, place(home/schedule) | 홈 "오늘의 경기"·일정 화면 선수 기록 펼치기 (정렬·보기 전환은 filter_change screen=boxscore sort·view, 일정 달은 screen=schedule month) |
   | compare_open | player_no | 선수 상세 "비교" 버튼 (고른 선수는 search_select mode=compare) |
   | team_select | team_code, season_code 또는 place(teams) | 팀 순위·모든 팀에서 팀 누르기(→ 팀 페이지) |
@@ -344,6 +352,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-04 (경기 하이라이트 영상): 사용자 "TVING SPORTS 제목 형식이 정해져 있다" → Actions 조사(`claude/probe-youtube`, 지워도 됨): 채널 RSS 키 없이 됨(최근 15개, 야구·쇼츠 섞임)·oEmbed 200(임베드 허용)·제목 "[홈 vs 원정] M/D 경기 I 2026-27 KCC 프로농구 I 하이라이트". 매일 수집이 RSS 를 쌓고(`data/raw/highlights/tving`, 새 하이라이트 있을 때만) process 가 games.json `highlight` → 경기 카드 "하이라이트" 버튼 → 박스스코어와 같은 팝업에 youtube-nocookie 영상 + "유튜브에서 보기". CSP frame-src·개인정보 안내 추가, SCOPE 보류 → IN. GA4 `highlight_open`(새 매개변수 없음). 검증: typecheck·test(highlights 추가)·build·slop 0, 임시 RSS(10/3~4 4경기 전부 연결)로 Playwright 360/1280 팝업·영상 틀·이벤트·CSP 위반 0 확인 후 임시 파일 삭제. 첫 실제 영상은 다음 매일 수집 뒤. main 배포.
 - 2026-10-04 (시즌 진행률·홈 제목·박스스코어 팝업): 사용자 요청 ① 정규시즌 **진행률 막대**(`lib/games seasonProgress` 끝난 경기 ÷ games.json 전체 일정, `SeasonProgressBar`) — 홈 제목 아래(진행 중 시즌만, 개막 전 직전 시즌을 보일 땐 숨김)·일정 화면(종료 시즌은 "정규시즌 종료 100%"). 지금 5/270경기 1.9% ② 홈 제목 "26-27 시즌 한눈에" → **"KBL 2026-2027 시즌"**(`seasonTitle`, 홈 시즌을 따라 새 시즌 개막 때 자동), 부제 "KBL 정규시즌 ·" 중복 삭제 ③ 경기 카드 "선수 기록" 펼치기 → **"박스스코어 보기" 팝업**(`GameCard BoxScoreDialog`: 폰 아래 시트 90%·PC 가운데 창 max-w-4xl 이라 14열 한 표, 바깥·ESC·닫기, 스크롤 잠금·포커스 복귀, 제목 "소노 86 : 95 DB"·날짜·경기장) — 펼친 카드 두 칸 차지 로직 삭제. GA4 는 그대로 boxscore_open. ④ 유튜브 하이라이트는 제안만(SCOPE 보류표, 사용자 결정 대기). 검증: typecheck·test(games)·build·slop 0, Playwright 360/1280 홈·일정 팝업 열기/ESC/바깥 닫기·가로 넘침 0·이벤트. main 배포.
 - 2026-10-04 (수집 경고·지난 시즌 제외): ① 사용자 결정 — 새 시즌 개막하면 지난 시즌 선수 기록(한 경기 최다·경기별·프로필)은 매일 받지 않음(`PREVIOUS_SEASON_GRACE_DAYS` 30 → 0). ② 10/4 수집이 옛 선수 1명 503 하나로 "실패" 처리돼 수집 기록(last-fetch)이 안 남던 것 → 선수·경기 몇 건 실패는 **경고**(last_fetch.json `warnings`, 종료 코드 0), 연속 실패로 중단·시즌 라벨 없음·경기 목록 실패만 실패. 오늘 경기(소노 86-95 DB·삼성 81-76 KT) 박스스코어 반영 확인. main 배포.
 - 2026-10-04 (54-0 내 기록): 사용자 요청 — 로그인한 사람은 54-0 결과를 계정에 보관. 표 `member_games`(회원·라인업 ?l= 값·승수·전력·가산점·표시용 "이름 시즌" 5개·시각, 라인업이 같으면 한 줄 — 같은 라인업 = 같은 성적, 회원마다 최근 200개, 계정 합칠 때 합침·탈퇴 때 삭제), `/api/me/games`(GET 최근 50·판 수·최고·전승 / POST 저장 — `lib/account validGameRecord` 검사 / DELETE ?lineup=). 결과 화면: 로그인한 브라우저면 자동 저장 + "내 기록에 저장했어요 · 내 기록 보기", 로그인 안 했으면 "로그인하면 기록이 쌓여요 · 로그인"(회원 API 호출 없음), 공유 결과는 저장 안 함. 내 계정 화면 "54-0 내 기록" 카드(`GameHistoryCard`: 라인업 수·최고 성적·전승 횟수 + 최근 5개·더 보기, 줄 → /game?l= 다시 보기, × 지우기). 개인정보 안내·탈퇴 문구에 54-0 기록 추가. GA4 game_record_save(result)·game_record_delete(wins) — 맞춤 정의 `result` 등록 필요(wins 는 있음). 검증: typecheck·test(account: PGlite 로 저장·한 줄·요약·지우기·상한·합치기·탈퇴)·build(로그인 켜짐/꺼짐)·slop 0, Playwright: 로그인 안 함 안내·API 0회 / 로그인(가짜 /api/me) 저장 요청 본문·이벤트 / 내 계정 360·1280(다크) 카드·지우기·가로 넘침 0. 실제 DB 저장은 사용자 확인. main 배포.

@@ -117,6 +117,12 @@ export default function PrivacyPage() {
           </p>
         </Section>
 
+        <Section title="경기 하이라이트 영상">
+          <p>
+            경기 카드의 &ldquo;하이라이트&rdquo;를 누르면 유튜브(Google)의 개인정보 보호 강화 모드(youtube-nocookie.com)로 영상을 불러옵니다. 누르기 전에는 유튜브에 접속하지 않으며, 재생하면 유튜브 쪽에 일반적인 접속 기록이 남을 수 있습니다(Google 개인정보처리방침 적용).
+          </p>
+        </Section>
+
         <Section title="문의">
           <p>개인정보·사진 삭제 요청이나 문의는 아래 이메일로 보내 주세요.</p>
           <DeveloperContact />

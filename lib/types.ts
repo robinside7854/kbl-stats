@@ -255,6 +255,8 @@ export interface SeasonGame {
   away: GameSide;
   /** 두 팀 선수 기록 (출전 시간 긴 순). 득점 합이 공식 점수와 다르거나 기록이 없으면 null */
   box: { home: GameBoxRow[]; away: GameBoxRow[] } | null;
+  /** 하이라이트 영상 (유튜브 영상 번호, TVING SPORTS 채널 — scripts/highlights.ts). 없으면 필드 없음 */
+  highlight?: string;
 }
 
 export interface SeasonGamesFile {

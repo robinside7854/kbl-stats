@@ -62,6 +62,12 @@ export const playerProfileUrl = (playerNo: string) => `${CODES_API}${PLAYER_PROF
  * 선수별 요청(한 경기 최다·프로필)이 연속으로 이만큼 실패하면 그 시즌은 멈춘다
  * — 서버가 막혔거나 응답 형식이 바뀐 것이라 계속 두드리지 않는다.
  */
+// 경기 하이라이트 (2026-10-04): TVING SPORTS 유튜브 채널(KBL 중계사) RSS — 키 없음, 최근 영상 15개. 규칙은 scripts/highlights.ts
+export const HIGHLIGHT_CHANNEL_ID = "UC8JtQf77wqhVpOQ8Cze8JjA";
+export const HIGHLIGHT_FEED_URL = `https://www.youtube.com/feeds/videos.xml?channel_id=${HIGHLIGHT_CHANNEL_ID}`;
+/** raw 폴더 data/raw/highlights/{이름}/ */
+export const HIGHLIGHT_SOURCE = "tving";
+
 export const MAX_CONSECUTIVE_FAILURES = 10;
 
 /** 경기 구분 코드 — 1차 범위는 정규시즌만 */

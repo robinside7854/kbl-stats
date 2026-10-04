@@ -16,13 +16,14 @@ import { awardRows, matchAwardPlayer, PROFILE_AWARD_KEYS, seasonTeamResults, typ
 import { championSeasonsOf, finalsChampion, playoffEntries, type PlayoffEntry, type SeasonChampion } from "./champions";
 import { readdir, readFile, mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { DATA_DIR, SEASON_CODES_FALLBACK } from "./config.js";
+import { DATA_DIR, HIGHLIGHT_SOURCE, SEASON_CODES_FALLBACK } from "./config.js";
 import { computeTeamShareStats, seasonCoverage, usgFromKbl } from "../lib/metrics.js";
 import { playerPhotoUrl, teamLogoUrl } from "./image-urls.js";
 import { teamShortNameKo } from "../lib/teams.js";
 import { buildProfileMap, EMPTY_PROFILE, EMPTY_PROFILE_EXTRA, isForeignPlayer, profileExtraFrom, type ProfileExtra } from "./player-master.js";
 import { hasCareerHighs, parseMostGame, todayKst, type ParsedMostGame } from "./highs.js";
 import { buildSeasonGames, parseBoxLog, type BoxLogRow } from "./boxscores.js";
+import { matchHighlights, readSavedFeeds, type FeedEntry } from "./highlights.js";
 import { attachShotAttempts, parseGameLog, type GameLogRow } from "./gamelogs.js";
 import { computeSeasonHighLeaders, SHOT_HIGH_KEYS } from "../lib/highs.js";
 import { regularGamesOf } from "./shots.js";
@@ -74,6 +75,7 @@ async function readSeasonPlayoffs(seasonCode: number): Promise<PlayoffEntry[]> {
  * 시즌 경기 + 박스스코어 → data/processed/{시즌}/games.json (scripts/boxscores.ts, 2026-10-03 홈 "오늘의 경기"·팀 순위).
  * 경기 목록이 없으면 파일을 지운다. 선수 이름은 그 시즌 명단.
  */
+let highlightEntries: FeedEntry[] | undefined;
 async function writeSeasonGames(seasonCode: number, players: readonly { playerNo: string; nameKo: string }[]): Promise<string> {
   const outFile = join(DATA_DIR, "processed", String(seasonCode), "games.json");
   let list: unknown;
@@ -95,6 +97,13 @@ async function writeSeasonGames(seasonCode: number, players: readonly { playerNo
   }
   const names = new Map(players.map((p) => [p.playerNo, p.nameKo]));
   const games = buildSeasonGames(list, seasonCode, logs, (id) => names.get(id) ?? null, todayKst());
+  // 하이라이트 영상 (쌓아 둔 유튜브 RSS — 2026-10-04)
+  highlightEntries ??= await readSavedFeeds(join(DATA_DIR, "raw", "highlights", HIGHLIGHT_SOURCE));
+  const clips = matchHighlights(games, highlightEntries);
+  for (const g of games) {
+    const v = clips.get(g.gmkey);
+    if (v) g.highlight = v;
+  }
   if (games.length === 0) {
     await rm(outFile, { force: true });
     return "";
@@ -102,7 +111,7 @@ async function writeSeasonGames(seasonCode: number, players: readonly { playerNo
   // 한 줄 = 경기 하나 (git diff 가 읽히게)
   await writeFile(outFile, `{"seasonCode":${seasonCode},"games":[\n${games.map((g) => JSON.stringify(g)).join(",\n")}\n]}\n`, "utf8");
   const boxed = games.filter((g) => g.box).length;
-  return `, 경기 ${games.length}${boxed ? `(박스스코어 ${boxed})` : ""}`;
+  return `, 경기 ${games.length}${boxed ? `(박스스코어 ${boxed}${clips.size ? `·하이라이트 ${clips.size}` : ""})` : ""}`;
 }
 
 async function readSeasonHighs(seasonCode: number): Promise<Map<string, ParsedMostGame>> {

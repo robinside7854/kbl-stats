@@ -3,6 +3,7 @@
 //   - KBL 공식 사진·로고 kbl.or.kr (img, scripts/image-urls.ts·data/codes/site.json)
 //   - Pretendard 글꼴 CSS·파일 cdn.jsdelivr.net (style·font, 카드 저장 때 fetch — app/components/webFont.ts)
 //   - GA4 googletagmanager·google-analytics (Google 권장 CSP, app/components/Analytics.tsx)
+//   - 경기 하이라이트 영상 틀 youtube-nocookie.com (frame, 2026-10-04 app/components/GameCard.tsx — 팝업을 열 때만)
 // Next.js 정적 HTML 은 인라인 스크립트(하이드레이션 데이터)를 쓰므로 script 'unsafe-inline' 이 필요하다(정적 사이트라 nonce 불가).
 // 개발 서버(npm run dev)는 eval 을 써서 CSP 를 운영 빌드에만 건다. 새 외부 출처를 쓰면 여기에 더해야 화면이 막히지 않는다.
 const CSP = [
@@ -12,6 +13,7 @@ const CSP = [
   "font-src 'self' data: https://cdn.jsdelivr.net",
   "img-src 'self' data: blob: https://kbl.or.kr https://*.google-analytics.com https://*.googletagmanager.com",
   "connect-src 'self' https://cdn.jsdelivr.net https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com",
+  "frame-src https://www.youtube-nocookie.com",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",

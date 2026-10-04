@@ -2,7 +2,9 @@
 // 경기 카드 한 장 (홈 "오늘의 경기"·일정 화면 공용, 2026-10-03): 원정·홈 팀과 점수(이긴 쪽 굵게), 경기장·시간, 수훈 선수,
 // "박스스코어 보기"를 누르면 팝업(2026-10-04 사용자 결정 — 카드 안에 펼치던 것을 바꿈: 폰은 아래에서 올라오는 시트, PC 는 가운데 창이라
 // 14열 표가 카드 폭에 눌리지 않는다). 박스스코어는 카드에 들어 있거나(홈) 누를 때 받아 온다(일정 — /games/{시즌}/{날짜}.json).
-// GA4: boxscore_open {game_key, season_code, place}.
+// 하이라이트 영상(2026-10-04, game.highlight = TVING SPORTS 유튜브 영상 번호)이 있으면 "하이라이트" 버튼 → 같은 팝업에 youtube-nocookie 영상.
+// 영상 틀은 팝업을 열 때만 만든다(평소 화면은 유튜브에 요청하지 않음).
+// GA4: boxscore_open {game_key, season_code, place}, highlight_open {game_key, season_code, place}.
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -11,7 +13,7 @@ import { gameDayLabel, performerLine, winnerSide } from "@/lib/games";
 import { teamShortLabel } from "@/lib/images";
 import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
 import BoxScore from "./BoxScore";
-import { IconClose } from "./icons";
+import { IconClose, IconExternal, IconPlay } from "./icons";
 import Skeleton from "./Skeleton";
 import TeamLogo from "./TeamLogo";
 import { trackEvent } from "./track";
@@ -40,6 +42,7 @@ export const teamInfoOf = (teams: Record<string, GameTeamInfo>, code: string, fa
 
 export default function GameCard({ game: g, seasonCode, teams, stars = null, loadBox, place }: Props) {
   const [open, setOpen] = useState(false);
+  const [video, setVideo] = useState(false);
   const [box, setBox] = useState<Box | null>(g.box);
   const [loading, setLoading] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -52,6 +55,8 @@ export default function GameCard({ game: g, seasonCode, teams, stars = null, loa
     won: win === k,
   }));
   const starOf = (k: "away" | "home") => stars?.[k] ?? null;
+  const matchTitle = `${sides[0].info.shortName} ${g.away.score ?? "–"} : ${g.home.score ?? "–"} ${sides[1].info.shortName}`;
+  const matchSub = [gameDayLabel(g.date), g.stadium].filter(Boolean).join(" · ");
 
   async function openBox() {
     setOpen(true);
@@ -106,20 +111,62 @@ export default function GameCard({ game: g, seasonCode, teams, stars = null, loa
           })}
         </ul>
       )}
-      {g.ended && hasBox && (
+      {g.ended && (hasBox || g.highlight) && (
         <>
-          <button
-            type="button"
-            aria-haspopup="dialog"
-            onClick={openBox}
-            className="focus-ring mt-2 flex h-10 w-full items-center justify-center gap-1 rounded-control border border-line text-sub font-semibold text-ink-2 transition-colors duration-200 hover:bg-surface-2"
-          >
-            박스스코어 보기
-          </button>
+          <div className={`mt-2 grid gap-2 ${hasBox && g.highlight ? "grid-cols-2" : "grid-cols-1"}`}>
+            {hasBox && (
+              <button
+                type="button"
+                aria-haspopup="dialog"
+                onClick={openBox}
+                className="focus-ring flex h-10 w-full items-center justify-center gap-1 rounded-control border border-line text-sub font-semibold text-ink-2 transition-colors duration-200 hover:bg-surface-2"
+              >
+                박스스코어 보기
+              </button>
+            )}
+            {g.highlight && (
+              <button
+                type="button"
+                aria-haspopup="dialog"
+                onClick={() => {
+                  setVideo(true);
+                  trackEvent("highlight_open", { game_key: g.gmkey, season_code: seasonCode, place });
+                }}
+                className="focus-ring flex h-10 w-full items-center justify-center gap-1 rounded-control border border-line text-sub font-semibold text-ink-2 transition-colors duration-200 hover:bg-surface-2"
+              >
+                <IconPlay size={16} /> 하이라이트
+              </button>
+            )}
+          </div>
+          {video && g.highlight && (
+            <BoxScoreDialog title={matchTitle} sub={`하이라이트 · ${gameDayLabel(g.date)}`} onClose={() => setVideo(false)}>
+              <div className="aspect-video w-full overflow-hidden rounded-card bg-black">
+                <iframe
+                  src={`https://www.youtube-nocookie.com/embed/${encodeURIComponent(g.highlight)}?autoplay=1&rel=0&playsinline=1`}
+                  title={`${matchTitle} 하이라이트`}
+                  allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+                  allowFullScreen
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  className="h-full w-full"
+                />
+              </div>
+              <p className="mt-2 flex flex-wrap items-center justify-between gap-2 text-caption text-ink-3">
+                <span>영상 © TVING SPORTS · KBL</span>
+                <a
+                  href={`https://www.youtube.com/watch?v=${encodeURIComponent(g.highlight)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="focus-ring inline-flex h-10 items-center gap-1 rounded-control px-1 text-sub font-semibold text-ink-2 transition-colors duration-200 hover:text-ink"
+                >
+                  유튜브에서 보기 <IconExternal size={16} />
+                </a>
+              </p>
+            </BoxScoreDialog>
+          )}
           {open && (
             <BoxScoreDialog
-              title={`${sides[0].info.shortName} ${g.away.score ?? "–"} : ${g.home.score ?? "–"} ${sides[1].info.shortName}`}
-              sub={[gameDayLabel(g.date), g.stadium].filter(Boolean).join(" · ")}
+              title={matchTitle}
+              sub={matchSub}
               onClose={() => setOpen(false)}
             >
               {box ? (
@@ -140,7 +187,7 @@ export default function GameCard({ game: g, seasonCode, teams, stars = null, loa
   );
 }
 
-/** 박스스코어 팝업: 폰 = 아래 시트(화면 높이 90%), PC(768px 이상) = 가운데 창. 바깥·ESC·닫기로 닫힘, 열린 동안 뒤 화면 스크롤 잠금, 닫으면 누른 버튼으로 포커스 복귀 */
+/** 박스스코어·하이라이트 팝업: 폰 = 아래 시트(화면 높이 90%), PC(768px 이상) = 가운데 창. 바깥·ESC·닫기로 닫힘, 열린 동안 뒤 화면 스크롤 잠금, 닫으면 누른 버튼으로 포커스 복귀 */
 function BoxScoreDialog({ title, sub, onClose, children }: { title: string; sub: string; onClose: () => void; children: React.ReactNode }) {
   const titleId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);

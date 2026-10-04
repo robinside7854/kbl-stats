@@ -21,6 +21,7 @@ import {
   STATS_API, CODES_API, GAME_CODE, SEASON_CODES_FALLBACK,
   DEFAULT_SEASONS, REQUEST_INTERVAL_MS, PAGE_SIZE, DATA_DIR,
   PLAYER_MASTER_PATH, PLAYER_MASTER_REG_SC, PLAYER_MASTER_MAX_PAGES, AWARDS_PAGE_URL, SITE_ORIGIN,
+  HIGHLIGHT_FEED_URL, HIGHLIGHT_SOURCE,
 } from "./config.js";
 import { getJson, getText, saveRaw, sleep } from "./http.js";
 import { bundleScriptSrc, extractAwardsData } from "./awards.js";
@@ -28,6 +29,7 @@ import { collectGameLogs, collectHighs, collectProfiles } from "./collect-extras
 import { collectSeasonShots } from "./collect-shots.js";
 import { highsTargetSeasons, playerNosFromTraditional, todayKst, updateFirstSeen } from "./highs.js";
 import { seasonLabelOf } from "./shots.js";
+import { hasNewHighlight, parseFeed, readSavedFeeds } from "./highlights.js";
 
 async function saveCodes(name: string, body: unknown) {
   const dir = join(DATA_DIR, "codes");
@@ -276,6 +278,29 @@ async function fetchAwards(): Promise<void> {
   console.log(`[역대 수상] 섹션 ${data.length}개 → ${file}`);
 }
 
+/**
+ * 경기 하이라이트 RSS (TVING SPORTS 유튜브, 2026-10-04) → data/raw/highlights/tving/{시각}.xml (응답 그대로).
+ * RSS 는 최근 15개뿐이라 매일 쌓는다. 새 경기 하이라이트가 없으면 저장하지 않는다(같은 파일이 쌓이지 않게).
+ * KBL 서버가 아니라 유튜브라 실패해도 경고만.
+ */
+async function fetchHighlights(): Promise<void> {
+  const res = await fetch(HIGHLIGHT_FEED_URL, { headers: { "User-Agent": "kbl-stats fan project (non-commercial; github.com/robinside7854/kbl-stats)" } });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const xml = await res.text();
+  const entries = parseFeed(xml);
+  if (entries.length === 0) throw new Error("RSS 형식이 다름 (영상 0개)");
+  const dir = join(DATA_DIR, "raw", "highlights", HIGHLIGHT_SOURCE);
+  const known = new Set((await readSavedFeeds(dir)).map((e) => e.videoId));
+  if (!hasNewHighlight(entries, known)) {
+    console.log(`[하이라이트] 새 경기 영상 없음 (RSS ${entries.length}개)`);
+    return;
+  }
+  await mkdir(dir, { recursive: true });
+  const stamp = new Date().toISOString().replace(/[-:]/g, "").slice(0, 13); // 20261004T1426
+  await writeFile(join(dir, `${stamp}.xml`), xml, "utf8");
+  console.log(`[하이라이트] 새 영상 있음 → ${dir}/${stamp}.xml`);
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const all = args.includes("--all");
@@ -308,6 +333,15 @@ async function main() {
     console.error(`[역대 수상] 실패: ${(e as Error).message}`);
   }
   await sleep(REQUEST_INTERVAL_MS);
+
+  // 경기 하이라이트 영상 (유튜브 RSS 1회) — 실패해도 경고만
+  if (!all) {
+    try {
+      await fetchHighlights();
+    } catch (e) {
+      warnings.push(`highlights(하이라이트 RSS): ${(e as Error).message}`);
+    }
+  }
 
   console.log(`수집 대상 시즌 코드: ${targets.join(", ")}`);
 
