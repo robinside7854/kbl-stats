@@ -8,7 +8,7 @@ import Link from "next/link";
 import {
   canPick, decodeLineupParam, emptyLineup, encodeLineupParam, foreignCount, GAME_FOREIGN_MAX, GAME_ROUNDS, GAME_SEASON_GAMES,
   GAME_SLOTS, isLineupFull, lineupTotals, openSlotsFor, pickBlockReason, placePick, respinEra, respinTeam, resultVerdict,
-  simulateSeason, SLOT_LABELS, spin, teamOfCandidate, teamsOf, GAME_SPIN_TEAMS, filterByPositionChip, sortCandidatesBy, POSITION_CHIPS, SORT_COLUMNS, nextSort, type PositionChip, type SortDir, type SortKey, type SortStat, type GameCandidate, type GamePool, type GameTeam, type Lineup,
+  simulateSeason, SLOT_LABELS, spin, teamOfCandidate, teamsOf, GAME_SPIN_TEAMS, filterByPositionChip, sortCandidatesBy, POSITION_CHIPS, SORT_COLUMNS, nextSort, schoolChemistryComment, type LineupBonus, type PositionChip, type SortDir, type SortKey, type SortStat, type GameCandidate, type GamePool, type GameTeam, type Lineup,
   type SeasonResult, type Spin,
 } from "@/lib/game";
 import { overallGrade, RADAR_AXES, RADAR_AXIS_LABELS } from "@/lib/metrics";
@@ -101,7 +101,9 @@ export default function GameView() {
 
   // 직접 완성한 판만 센다(공유 링크로 본 결과는 빼고)
   useEffect(() => {
-    if (result && !shared) trackEvent("game_complete", { wins: result.wins });
+    if (result && !shared) {
+      trackEvent("game_complete", { wins: result.wins, bonuses: result.rating.bonuses.map((b) => b.key).join(",") || "none" });
+    }
   }, [result, shared]);
 
   // 결과가 나오면 주소에 라인업을 남긴다 (링크 공유)
@@ -691,7 +693,12 @@ function ResultCard({ picked, result, colors, official }: { picked: Picked[]; re
           </p>
           <p className="mt-1 text-body font-semibold text-ink">{resultVerdict(result.wins)}</p>
         </div>
-        <p className="tabular shrink-0 text-right text-caption text-ink-3">팀 전력 {result.rating.rating.toFixed(1)}</p>
+        <p className="tabular shrink-0 text-right text-caption text-ink-3">
+          팀 전력 {result.rating.rating.toFixed(1)}
+          {result.rating.bonuses.length > 0 && (
+            <span className="block">가산 +{(result.rating.rating - result.rating.base).toFixed(1)}</span>
+          )}
+        </p>
       </div>
 
       {/* 코트 위 다섯 명 — PC 에서도 너무 커지지 않게 폭을 묶는다 */}
@@ -776,6 +783,8 @@ function ResultCard({ picked, result, colors, official }: { picked: Picked[]; re
         </tfoot>
       </table>
 
+      <BonusList bonuses={result.rating.bonuses} picked={picked} />
+
       <h3 className="mt-4 text-sub font-bold text-ink">팀 능력치</h3>
       <ul className="mt-1.5 space-y-1.5">
         {RADAR_AXES.map((a) => {
@@ -801,6 +810,33 @@ function ResultCard({ picked, result, colors, official }: { picked: Picked[]; re
 }
 
 /** 뽑은 뒤에만 보이는 종합 등급 글자 (고를 때는 등급을 숨긴다) */
+/** 가산점 (동문 케미·프라임 타임·우승 DNA) — 없으면 노릴 수 있는 것을 한 줄로 */
+function BonusList({ bonuses, picked }: { bonuses: LineupBonus[]; picked: Picked[] }) {
+  const nameOf = new Map(picked.map((p) => [p.c.id, p.c.nameKo]));
+  return (
+    <>
+      <h3 className="mt-4 text-sub font-bold text-ink">가산점</h3>
+      {bonuses.length === 0 ? (
+        <p className="mt-1 text-caption text-ink-3">없음 · 같은 학교 3명, 프라임 시즌 2명, 정규리그 1위 팀 선수에게 붙어요</p>
+      ) : (
+        <ul className="mt-1.5 divide-y divide-line rounded-card border border-line">
+          {bonuses.map((b) => (
+            <li key={b.key} className="px-3 py-2">
+              <p className="flex items-baseline gap-2 text-sub">
+                <span className="font-bold text-ink">{b.label}</span>
+                <span className="min-w-0 flex-1 truncate text-ink-2">{b.detail}</span>
+                <span className="tabular shrink-0 font-bold text-ink">+{b.points.toFixed(b.points % 1 === 0 ? 0 : 2).replace(/0$/, "")}</span>
+              </p>
+              <p className="mt-0.5 text-caption text-ink-3">{b.playerIds.map((id) => nameOf.get(id) ?? id).join(" · ")}</p>
+              {b.key === "school" && <p className="mt-1 text-caption font-semibold text-ink">{schoolChemistryComment(b)}</p>}
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
+  );
+}
+
 function GradeChip({ score, color, colors }: { score: number; color: TeamColor; colors: ThemeColors }) {
   const grade = overallGrade(score);
   const tone = gradeTone(grade, color, colors);

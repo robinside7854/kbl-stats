@@ -48,6 +48,12 @@ export interface GameCandidate {
   bpg: number;
   /** 3점 성공률 0~100 (그 시즌 3점 시도가 없으면 null) */
   tpPct: number | null;
+  /** 출신교 묶음(lib/roster schoolGroupOf, "해외"·정보 없음은 null) — 동문 케미 */
+  school?: string | null;
+  /** 이 시즌이 그 선수의 프라임 시즌(lib/prime)인가 */
+  prime?: boolean;
+  /** 이 시즌 그 팀이 정규리그 1위였나 — 우승 DNA */
+  regularChamp?: boolean;
   /** 평균을 낸 시즌 구간 "97-00" (한 시즌이면 "98-99") */
   span: string;
   seasonCount: number;
@@ -333,6 +339,71 @@ export function lineupTotals(players: readonly GameCandidate[]) {
 
 export const PLAYER_WEIGHT = 0.75;
 
+/**
+ * 라인업 가산점 (2026-10-04 사용자 결정 — KBL 다운 요소). 전력(rating)에 그대로 더한다(100 상한).
+ *   - 동문 케미: 다섯 명 중 3명 이상이 같은 학교 출신(해외·정보 없음 제외) → +CHEM_SCHOOL_BONUS, 결과에 따로 한마디
+ *   - 프라임 타임: 그 선수의 프라임 시즌(lib/prime)으로 뽑은 선수가 2명 이상 → +CHEM_PRIME_BONUS
+ *   - 우승 DNA: 그 시즌 정규리그 1위 팀 소속으로 뽑은 선수 1명마다 +CHEM_CHAMP_PER (공동 1위는 둘 다)
+ * 처음 안(+1.5·+1·명당 +0.5)은 S급 5명 전승을 19% → 49% 로 올려 버려서, 가산점을 줄이고(+1·+0.5·명당 +0.25)
+ * 승리 곡선 위쪽을 조였다(WIN_CURVE 참고) — 전체 난이도는 그대로, 가산점이 있는 라인업만 유리하게.
+ * 시뮬레이션: S급 5명 전승 약 22%(가산점 있는 라인업 23% · 없는 라인업 9%), S급 5명 중 가산점이 하나라도 붙는 비율 약 90%.
+ */
+export const CHEM_SCHOOL_MIN = 3;
+export const CHEM_SCHOOL_BONUS = 1;
+export const CHEM_PRIME_MIN = 2;
+export const CHEM_PRIME_BONUS = 0.5;
+export const CHEM_CHAMP_PER = 0.25;
+
+export type BonusKey = "school" | "prime" | "champion";
+export interface LineupBonus {
+  key: BonusKey;
+  /** "동문 케미" */
+  label: string;
+  /** "연세대 3명" */
+  detail: string;
+  /** 해당 선수 번호 */
+  playerIds: string[];
+  points: number;
+}
+
+export function lineupBonuses(players: readonly GameCandidate[]): LineupBonus[] {
+  const out: LineupBonus[] = [];
+  const bySchool = new Map<string, GameCandidate[]>();
+  for (const p of players) if (p.school) bySchool.set(p.school, [...(bySchool.get(p.school) ?? []), p]);
+  // 3명 이상인 학교는 다섯 명 중 하나뿐(3 + 3 > 5)
+  for (const [school, ps] of bySchool) {
+    if (ps.length >= CHEM_SCHOOL_MIN) {
+      out.push({ key: "school", label: "동문 케미", detail: `${school} ${ps.length}명`, playerIds: ps.map((p) => p.id), points: CHEM_SCHOOL_BONUS });
+    }
+  }
+  const primes = players.filter((p) => p.prime);
+  if (primes.length >= CHEM_PRIME_MIN) {
+    out.push({ key: "prime", label: "프라임 타임", detail: `프라임 시즌 ${primes.length}명`, playerIds: primes.map((p) => p.id), points: CHEM_PRIME_BONUS });
+  }
+  const champs = players.filter((p) => p.regularChamp);
+  if (champs.length > 0) {
+    out.push({
+      key: "champion",
+      label: "우승 DNA",
+      detail: `정규리그 1위 팀 ${champs.length}명`,
+      playerIds: champs.map((p) => p.id),
+      points: Math.round(CHEM_CHAMP_PER * champs.length * 100) / 100,
+    });
+  }
+  return out;
+}
+
+/** 동문 케미 한마디 (결과 화면) — 학교 이름이 들어간 짧은 문장 */
+export function schoolChemistryComment(bonus: LineupBonus): string {
+  const school = bonus.detail.replace(/ \d+명$/u, "");
+  const n = bonus.playerIds.length;
+  return n >= 5
+    ? `다섯 명 모두 ${school} 출신. 코트가 그대로 ${school} 동문회예요.`
+    : n === 4
+      ? `${school} 출신이 넷. 눈빛만 봐도 패스가 통하는 사이예요.`
+      : `${school} 출신 셋이 한 코트에. 대학 때 맞춘 호흡이 그대로 나와요.`;
+}
+
 export interface TeamRating {
   /** 다섯 명 종합 점수 평균 */
   avgScore: number;
@@ -340,7 +411,11 @@ export interface TeamRating {
   axes: Record<RadarAxis, number>;
   /** axes 평균 */
   balance: number;
-  /** 팀 전력 0~99 */
+  /** 가산점 전 전력 */
+  base: number;
+  /** 가산점 (동문 케미·프라임 타임·우승 DNA) */
+  bonuses: LineupBonus[];
+  /** 팀 전력 0~100 = base + 가산점 합 */
   rating: number;
   /** 가장 낮은 축 */
   weakest: RadarAxis;
@@ -354,7 +429,10 @@ export function teamRating(players: readonly GameCandidate[]): TeamRating {
   const balance = vals.reduce((s, v) => s + v, 0) / vals.length;
   const avgScore = players.length ? players.reduce((s, p) => s + p.score, 0) / players.length : 0;
   const weakest = RADAR_AXES.reduce((w, a) => (axes[a] < axes[w] ? a : w), RADAR_AXES[0]);
-  return { avgScore, axes, balance, rating: PLAYER_WEIGHT * avgScore + (1 - PLAYER_WEIGHT) * balance, weakest };
+  const base = PLAYER_WEIGHT * avgScore + (1 - PLAYER_WEIGHT) * balance;
+  const bonuses = lineupBonuses(players);
+  const rating = Math.min(100, base + bonuses.reduce((sum, b) => sum + b.points, 0));
+  return { avgScore, axes, balance, base, bonuses, rating, weakest };
 }
 
 /**
@@ -365,16 +443,18 @@ export function teamRating(players: readonly GameCandidate[]): TeamRating {
  * 2026-10-03 피드백 "S급 5명이어도 전승이 어렵다"(그때 S급 5명 전승 약 3%) → 사용자 결정 "S급 5명이면 약 20%":
  *   S급 5명 라인업의 전력이 96.5~98 이라 96~99 구간만 낮춤(96 5.5%·97 3.5%·98 2.2%·99 1.2%). 90 아래는 그대로.
  *   시뮬레이션(tests/game.test.ts): S급 5명 전승 약 19%·중앙 52승, 매번 득점 1위 약 0.7%·46승, 숨은 점수 1위 약 12%, 아무나 17승.
+ * 2026-10-04 가산점(동문 케미·프라임 타임·우승 DNA, lineupBonuses)을 넣으며 96~99 패배 확률을 1.4배로(7.7%·4.9%·3.1%·1.7%) —
+ *   가산점 포함 S급 5명 전승 약 22%, 득점 1위만 약 0.6%, 숨은 점수 1위 약 14%, 아무나 17승.
  */
 export const WIN_CURVE: readonly (readonly [rating: number, lossRate: number])[] = [
   [30, 0.98],
   [60, 0.67],
   [75, 0.4],
   [90, 0.15],
-  [96, 0.055],
-  [97, 0.035],
-  [98, 0.022],
-  [99, 0.012],
+  [96, 0.077],
+  [97, 0.049],
+  [98, 0.031],
+  [99, 0.017],
   [100, 0],
 ];
 export function winProbability(rating: number): number {

@@ -6,8 +6,11 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { decodeSeasonCards, encodeSeasonCards, type SeasonCards } from "../lib/cards.js";
 import { toCardPlayers, toCardTeams } from "../lib/convert.js";
-import { buildGamePool } from "../lib/game-pool.js";
-import type { PlayerIndexEntry, SeasonData, SeasonOption } from "../lib/types.js";
+import { buildGamePool, pickRegularChampions } from "../lib/game-pool.js";
+import { computeStandings } from "../lib/games.js";
+import { pickPrimeSeasons, primeCandidatesOf } from "../lib/prime.js";
+import { schoolGroupOf, SCHOOL_ABROAD } from "../lib/roster.js";
+import type { PlayerIndexEntry, SeasonData, SeasonGame, SeasonOption } from "../lib/types.js";
 
 const ROOT = process.cwd();
 const PROCESSED = join(ROOT, "data", "processed");
@@ -23,16 +26,35 @@ async function main() {
   const index = await readJson<PlayerIndexEntry[]>(join(PROCESSED, "players-index.json"), []);
   const photo = new Map(index.map((e) => [e.id, e.photoUrl]));
   const all: SeasonCards[] = [];
+  const regularChampions = new Map<number, Set<string>>();
   for (const s of seasons) {
     const season = await readJson<SeasonData | null>(join(PROCESSED, String(s.seasonCode), "players.json"), null);
     if (!season || season.players.length === 0) continue;
+    // 정규리그 1위 (우승 DNA): 경기 결과 순위 맨 위 동률 팀 → 공식 1위 이름으로 가린다
+    const games = await readJson<{ games: SeasonGame[] } | null>(join(PROCESSED, String(s.seasonCode), "games.json"), null);
+    const rows = computeStandings(games?.games ?? []);
+    const top = rows.filter((r) => r.pct === rows[0]?.pct && r.wins === rows[0]?.wins);
+    const names = (code: string) => season.teams.filter((t) => t.teamCode === code).flatMap((t) => [t.shortNameKo, t.name, t.shortName]);
+    const first = pickRegularChampions(
+      top.map((r) => ({ teamCode: r.teamCode, names: names(r.teamCode) })),
+      season.seasonAwards?.regular?.first ?? null,
+    );
+    if (first.length > 0) regularChampions.set(season.seasonCode, new Set(first));
     const file = encodeSeasonCards(
       { seasonCode: season.seasonCode, seasonLabel: season.seasonLabel, coverage: season.coverage, teams: toCardTeams(season) },
       toCardPlayers(season, (no) => photo.get(no) ?? null),
     );
     all.push(decodeSeasonCards(file));
   }
-  const pool = buildGamePool(all);
+  // 출신교 (동문 케미): 해외·정보 없음은 빼고, 프라임 시즌
+  const schools = new Map<string, string>();
+  for (const e of index) {
+    const g = schoolGroupOf(e.school, e.isForeign);
+    if (g && g !== SCHOOL_ABROAD) schools.set(e.id, g);
+  }
+  const primes = pickPrimeSeasons(all.flatMap(primeCandidatesOf));
+  const pool = buildGamePool(all, { schools, primes, regularChampions });
+  console.log(`정규리그 1위: ${[...regularChampions].map(([k, v]) => `${k}:${[...v].join("·")}`).join(" ")}`);
   await mkdir(OUT, { recursive: true });
   const json = JSON.stringify(pool);
   await writeFile(join(OUT, "pool.json"), json, "utf8");

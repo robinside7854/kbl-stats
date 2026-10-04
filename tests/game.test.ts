@@ -4,7 +4,7 @@ import { existsSync, readFileSync } from "node:fs";
 import {
   canPick, decodeLineupParam, emptyLineup, encodeLineupParam, GAME_FOREIGN_MAX, GAME_SEASON_GAMES, isLineupFull, openSlotsFor,
   pickBlockReason, placePick, sortByScore, filterByPositionChip, sortCandidatesBy, nextSort, lineupTotals, respinEra, respinTeam, seededRng, simulateSeason, sortCandidates, spin, spinCandidates, teamsOf, teamOfCandidate, GAME_SPIN_TEAMS, teamRating,
-  winProbability, type GameCandidate, type GamePool, type Lineup, type Spin,
+  winProbability, lineupBonuses, schoolChemistryComment, CHEM_SCHOOL_BONUS, CHEM_PRIME_BONUS, CHEM_CHAMP_PER, type GameCandidate, type GamePool, type Lineup, type Spin,
 } from "../lib/game";
 import type { Position } from "../lib/types";
 
@@ -117,6 +117,28 @@ assert.deepEqual(nextSort({ key: "name", dir: "asc" }, "tpPct"), { key: "tpPct",
 assert.deepEqual(lineupTotals([c("1", "G"), c("2", "G")]), { ppg: 20, rpg: 10, apg: 6, spg: 2, bpg: 1 });
 console.log("game: 슬롯 돌리기 통과");
 
+// 가산점: 동문 케미(같은 학교 3명+)·프라임 타임(프라임 시즌 2명+)·우승 DNA(정규리그 1위 팀 1명당)
+{
+  const p = (id: string, extra: Partial<GameCandidate>) => ({ ...c(id, "G"), ...extra });
+  const two = [p("a", { school: "연세대" }), p("b", { school: "연세대" }), p("c", { school: "고려대" }), p("d", {}), p("e", {})];
+  assert.deepEqual(lineupBonuses(two), []); // 2명은 아님
+  const three = [p("a", { school: "연세대", prime: true }), p("b", { school: "연세대" }), p("c", { school: "연세대", regularChamp: true }), p("d", { prime: true, regularChamp: true }), p("e", {})];
+  const bs = lineupBonuses(three);
+  assert.deepEqual(bs.map((b) => [b.key, b.points, b.detail]), [
+    ["school", CHEM_SCHOOL_BONUS, "연세대 3명"],
+    ["prime", CHEM_PRIME_BONUS, "프라임 시즌 2명"],
+    ["champion", CHEM_CHAMP_PER * 2, "정규리그 1위 팀 2명"],
+  ]);
+  assert.ok(schoolChemistryComment(bs[0]).includes("연세대"));
+  assert.ok(lineupBonuses([p("a", { prime: true })]).length === 0); // 프라임 1명은 아님
+  // 전력 = 가산점 전 + 가산점, 100 상한
+  const r3 = teamRating(three);
+  assert.ok(Math.abs(r3.rating - (r3.base + CHEM_SCHOOL_BONUS + CHEM_PRIME_BONUS + CHEM_CHAMP_PER * 2)) < 1e-9);
+  const top = [1, 2, 3, 4, 5].map((i) => p(String(i), { score: 99, axes: [100, 100, 100, 100, 100, 100], school: "중앙대", prime: true }));
+  assert.equal(teamRating(top).rating, 100);
+  console.log("game: 가산점 통과");
+}
+
 // 전력: 평균 75% + 축 최고값 평균 25%, 약점 축
 const lineup5 = [c("1", "G", false, 80, [90, 10, 10, 90, 90, 90]), c("2", "G", false, 80, [10, 10, 10, 10, 10, 10]), c("3", "F", false, 80, [10, 10, 10, 10, 10, 10]), c("4", "F", false, 80, [10, 10, 10, 10, 10, 10]), c("5", "C", false, 80, [10, 10, 10, 10, 10, 10])];
 const r = teamRating(lineup5);
@@ -212,5 +234,15 @@ if (existsSync(POOL)) {
   const sPerfect = sLineups.reduce((sum, l) => sum + winProbability(teamRating(l).rating) ** GAME_SEASON_GAMES, 0) / sLineups.length;
   console.log(`game: S급 5명 전승 ${(sPerfect * 100).toFixed(1)}%`);
   assert.ok(sPerfect > 0.14 && sPerfect < 0.26, "S급 5명이면 전승 20% 안팎");
+}
+
+// 정규리그 1위 고르기 (우승 DNA 재료): 동률이면 공식 1위 이름으로, 공동 1위는 둘 다
+{
+  const { pickRegularChampions } = await import("../lib/game-pool");
+  assert.deepEqual(pickRegularChampions([{ teamCode: "45", names: ["현대"] }], "현대"), ["45"]);
+  assert.deepEqual(pickRegularChampions([{ teamCode: "10", names: ["현대모비스", "울산 모비스"] }, { teamCode: "06", names: ["KT", "부산 KT"] }], "모비스"), ["10"]);
+  assert.deepEqual(pickRegularChampions([{ teamCode: "55", names: ["SK", "서울 SK"] }, { teamCode: "16", names: ["DB", "원주 DB"] }], "공동1위\n원주DB 서울SK"), ["55", "16"]);
+  assert.deepEqual(pickRegularChampions([{ teamCode: "50", names: ["LG"] }], null), []); // 진행 중 시즌
+  console.log("game: 정규리그 1위 통과");
 }
 console.log("game: 전부 통과");

@@ -13,8 +13,35 @@ import type { SeasonCards } from "./cards";
 
 const r1 = (v: number) => Math.round(v * 10) / 10;
 
+/** 가산점 재료 (scripts/build-game.ts 가 processed 에서 모은다). 없으면 가산점 없음 */
+export interface GamePoolExtras {
+  /** 선수 번호 → 출신교 묶음 (해외·정보 없음은 넣지 않는다) */
+  schools?: ReadonlyMap<string, string>;
+  /** 선수 번호 → 프라임 시즌 코드 (lib/prime pickPrimeSeasons) */
+  primes?: ReadonlyMap<string, number>;
+  /** 시즌 코드 → 정규리그 1위 팀 코드들 (공동 1위면 둘) */
+  regularChampions?: ReadonlyMap<number, ReadonlySet<string>>;
+}
+
+/**
+ * 정규리그 1위 팀: 경기 결과 순위(lib/games computeStandings)에서 승률·승이 같은 맨 위 팀들 중
+ * 공식 1위 이름(수상 표 seasonAwards.regular.first, 예: "모비스" · "공동1위\n원주DB 서울SK")에 들어간 팀.
+ * 동률인데 공식 이름이 없거나 아무 팀도 안 맞으면 동률 팀 전부(공동 1위로 본다). 공식 이름이 없는 시즌(진행 중)은 빈 배열.
+ */
+export function pickRegularChampions(
+  top: readonly { teamCode: string; names: readonly string[] }[],
+  officialFirst: string | null | undefined,
+): string[] {
+  if (!officialFirst || top.length === 0) return [];
+  if (top.length === 1) return [top[0].teamCode];
+  const norm = (v: string) => v.replace(/\s+/g, "");
+  const official = norm(officialFirst);
+  const hit = top.filter((t) => t.names.some((n) => n && (official.includes(norm(n)) || norm(n).includes(official))));
+  return (hit.length > 0 ? hit : top).map((t) => t.teamCode);
+}
+
 /** 시즌 카드들(순서 무관) → 게임 풀 */
-export function buildGamePool(all: readonly SeasonCards[]): GamePool {
+export function buildGamePool(all: readonly SeasonCards[], extras: GamePoolExtras = {}): GamePool {
   const seasons = [...all].filter((c) => c.players.length > 0).sort((a, b) => a.seasonCode - b.seasonCode);
   const eras: GameEra[] = seasons.map((c) => [c]).map((chunk, index) => {
     const teams = new Map<string, GameTeam>();
@@ -51,6 +78,9 @@ if (!p.position || !isQualified(p, DEFAULT_QUALIFY)) continue;
           tpPct: p.tpa > 0 ? r1((p.tpm / p.tpa) * 100) : null,
           span: seasonShortLabel(cards.seasonLabel),
           seasonCount: 1,
+          school: extras.schools?.get(p.id) ?? null,
+          prime: extras.primes?.get(p.id) === cards.seasonCode,
+          regularChamp: extras.regularChampions?.get(cards.seasonCode)?.has(p.teamCode) ?? false,
         };
         const key = `${p.teamCode}|${p.id}`;
         const t = totals.get(key) ?? { games: 0, pts: 0, reb: 0, ast: 0, stl: 0, blk: 0, tpm: 0, tpa: 0, labels: [] };
