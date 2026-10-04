@@ -14,7 +14,7 @@ export const OG_HEIGHT = 630;
 
 /** 공유 이미지 경로 (public/og 아래, scripts/build-og.tsx 와 같은 규칙) */
 export const ogImagePath = {
-  default: () => "/og/default.png",
+  default: () => "/og/site.png", // 2026-10-04 밝은 디자인으로 바꾸며 이름 변경(옛 그림을 캐시한 앱이 새로 받게)
   records: () => "/og/records.png",
   game: () => "/og/game.png",
   player: (playerNo: string) => `/og/player/${encodeURIComponent(playerNo)}.png`,
