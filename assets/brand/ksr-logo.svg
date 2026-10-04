@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="140" height="140" viewBox="0 0 140 140">
+  <!-- KSR (KBL Stats Reference) 로고 — 네이버 로그인 검수·앱 아이콘용 (2026-10-04). 리그 남색 바탕 + 주황 농구공 + KSR -->
+  <rect width="140" height="140" fill="#011B6A"/>
+  <!-- 농구공 -->
+  <g transform="translate(70 50)">
+    <circle r="25" fill="#EB6100"/>
+    <g fill="none" stroke="#011B6A" stroke-width="2.6" stroke-linecap="round">
+      <circle r="25"/>
+      <line x1="0" y1="-25" x2="0" y2="25"/>
+      <line x1="-25" y1="0" x2="25" y2="0"/>
+      <path d="M -17.7 -17.7 C -8 -9 -8 9 -17.7 17.7"/>
+      <path d="M 17.7 -17.7 C 8 -9 8 9 17.7 17.7"/>
+    </g>
+  </g>
+  <!-- KSR -->
+  <text x="70" y="115" text-anchor="middle" font-family="Pretendard" font-weight="700" font-size="34" letter-spacing="2" fill="#FFFFFF">KSR</text>
+</svg>
