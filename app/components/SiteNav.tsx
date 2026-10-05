@@ -16,11 +16,12 @@ import PlayerSearch from "./PlayerSearch";
 import AccountButton from "./AccountButton";
 import RandomCardButton from "./RandomCardButton";
 import ShareButton from "./ShareButton";
+import UpdateBanner from "./UpdateBanner";
 import { IconBall, IconCalendar, IconHome, IconLeaders, IconPlayer, IconTeam, IconTrophy } from "./icons";
 import SiteLogo, { SITE_HEADER_NAME } from "./SiteLogo";
 import { trackEvent, trackFilters } from "./track";
 
-export type SiteView = "home" | "players" | "player" | "teams" | "team" | "leaders" | "schedule" | "compare" | "glossary" | "records" | "game" | "privacy" | "me";
+export type SiteView = "home" | "players" | "player" | "teams" | "team" | "leaders" | "schedule" | "compare" | "glossary" | "records" | "game" | "privacy" | "me" | "updates";
 
 type MenuItem = { views: SiteView[]; label: string; short?: string; icon: (p: { size: 24 }) => React.ReactNode; href: (seasonCode: number) => string };
 const HOME: MenuItem = { views: ["home"], label: "홈", icon: IconHome, href: () => "/" };
@@ -174,6 +175,8 @@ export default function SiteNav({ seasons, seasonCode, view, onSeasonChange, wid
           );
         })}
       </nav>
+      {/* 업데이트 소식 맨 위 글 띠배너 (2026-10-05) */}
+      <UpdateBanner />
     </header>
   );
 }

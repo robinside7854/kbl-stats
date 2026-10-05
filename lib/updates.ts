@@ -1,0 +1,175 @@
+// 업데이트 소식 게시판 (/updates, 2026-10-05 사용자 요청): 글은 이 파일에 직접 적는다(DB 없음 — 정적 페이지).
+// 규칙(CLAUDE.md "업데이트 소식 규칙"): 기능을 바꾸면 같은 커밋에 글 하나를 맨 위에 더한다. 맨 위 글이 헤더 아래 띠배너에 뜬다.
+// 말투: 짧게, 해요체, 캐주얼. 설명 늘어놓지 말고 "뭐가 생겼는지·어디서 보는지"만. 긴 대시(—)·느낌표 남발 금지(tests/updates.test.ts).
+// 본문은 글자 블록만(문단·소제목·목록·순서 목록) — 화면은 글자로만 그린다(HTML 넣지 않음).
+
+export type UpdateKind = "update" | "guide";
+
+/** 목록 한 줄: 글자만, 또는 사이트 안 주소로 가는 링크 */
+export type UpdateItem = string | { text: string; href: string };
+
+export type UpdateBlock =
+  | { kind: "p"; text: string }
+  | { kind: "h"; text: string }
+  | { kind: "list"; items: UpdateItem[] }
+  | { kind: "steps"; items: UpdateItem[] };
+
+export interface UpdatePost {
+  /** 주소 /updates/{slug} — 영어 소문자·숫자·하이픈 */
+  slug: string;
+  /** 올린 날 YYYY-MM-DD (한국 날짜) */
+  date: string;
+  kind: UpdateKind;
+  title: string;
+  /** 목록·띠배너에 쓰는 한 줄 (20자 이하 — 폰 띠배너에 안 잘리게) */
+  summary: string;
+  blocks: UpdateBlock[];
+}
+
+export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데이트", guide: "가이드" };
+
+/** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
+export const UPDATE_POSTS: UpdatePost[] = [
+  {
+    slug: "2026-10-05-so-far",
+    date: "2026-10-05",
+    kind: "update",
+    title: "지금까지 만든 것들 한 번에 정리",
+    summary: "지금까지 만든 기능 총정리",
+    blocks: [
+      { kind: "p", text: "KBL 기록을 표 말고 좀 재밌게 보고 싶어서 시작했어요. 지금까지 들어간 것들 쭉 적어 볼게요." },
+      { kind: "h", text: "선수" },
+      {
+        kind: "list",
+        items: [
+          { text: "게임 카드처럼 생긴 플레이어 카드. 등급(S~F)이랑 6각 레이더", href: "/players" },
+          "시즌별 기록, 추이 그래프, 커리어 하이, 수상 경력",
+          "슛 차트: 어디서 많이 쏘고 어디서 잘 넣는지 (06-07 시즌부터)",
+          "비슷한 시즌을 보낸 선수, 프라임 시즌",
+          "선수 페이지 '비교' 버튼으로 두 명 나란히",
+        ],
+      },
+      { kind: "h", text: "시즌" },
+      {
+        kind: "list",
+        items: [
+          { text: "일정이랑 박스스코어, 경기 하이라이트 영상", href: "/" },
+          "리더보드: 부문별 1~3위, 전체 순위, CSV 받기",
+          "팀 순위, 시즌이 얼마나 지났는지 진행률",
+          "끝난 시즌은 MVP·베스트5 같은 어워즈까지",
+        ],
+      },
+      { kind: "h", text: "팀" },
+      {
+        kind: "list",
+        items: [
+          { text: "팀 페이지: 통산 성적, 시즌별 로스터, 레전드, 구단 계보", href: "/teams" },
+          "기아·나래·동양처럼 지금은 없는 팀도 '추억의 팀'으로",
+        ],
+      },
+      { kind: "h", text: "역대 기록" },
+      { kind: "list", items: [{ text: "누적, 한 경기 최다, 한 시즌 최다, 수상·우승 횟수", href: "/records" }] },
+      { kind: "h", text: "놀거리" },
+      {
+        kind: "list",
+        items: [
+          { text: "54-0: 슬롯 돌려서 다섯 명 뽑고 54전 전승 도전", href: "/game" },
+          "위쪽 주사위 버튼은 랜덤 카드, 홈에는 오늘 생일인 선수",
+        ],
+      },
+      { kind: "h", text: "계정" },
+      {
+        kind: "list",
+        items: [
+          "구글·네이버 로그인하면 닉네임, 응원팀, 즐겨찾기, 좋아요, 54-0 기록이 저장돼요",
+          { text: "자세한 건 로그인 가이드에서", href: "/updates/2026-10-05-login-guide" },
+        ],
+      },
+      { kind: "h", text: "그 밖에" },
+      {
+        kind: "list",
+        items: [
+          "폰에 앱처럼 설치돼요. 브라우저 메뉴에서 '앱 설치'나 '홈 화면에 추가'",
+          "기록은 매일 저녁, 그날 경기 끝나고 한 시간쯤 뒤에 바뀌어요",
+        ],
+      },
+      { kind: "p", text: "앞으로 뭐 바뀌면 여기 계속 올릴게요." },
+    ],
+  },
+  {
+    slug: "2026-10-05-login-guide",
+    date: "2026-10-05",
+    kind: "guide",
+    title: "구글·네이버 로그인 가이드",
+    summary: "구글·네이버 로그인 이렇게 해요",
+    blocks: [
+      { kind: "p", text: "로그인 안 해도 다 볼 수 있어요. 로그인하면 이런 게 계정에 남아요." },
+      {
+        kind: "list",
+        items: [
+          "닉네임이랑 응원팀 배지",
+          "즐겨찾기한 선수 (폰이든 PC든 같이 보여요)",
+          "선수·팀 좋아요",
+          "54-0 결과 기록",
+        ],
+      },
+      { kind: "h", text: "로그인하는 법" },
+      {
+        kind: "steps",
+        items: [
+          "오른쪽 위 '로그인' 누르기",
+          "구글이나 네이버 고르기",
+          "동의하고 돌아오면 끝. 처음 한 번은 닉네임이랑 응원팀 정하기",
+        ],
+      },
+      { kind: "h", text: "구글, 네이버 둘 다 쓰고 싶으면" },
+      {
+        kind: "p",
+        text: "내 계정 화면의 '로그인 연결'에서 다른 쪽도 붙여 두세요. 어느 쪽으로 들어와도 같은 계정이에요. 따로 만든 계정이 있었으면 하나로 합쳐져요.",
+      },
+      { kind: "h", text: "받는 정보" },
+      {
+        kind: "p",
+        text: "로그인 회사가 주는 고유 번호만 받아요. 이메일, 이름, 사진은 안 받아요. 네이버 별명은 처음 닉네임 칸을 채우는 데만 쓰고 따로 저장하지 않아요.",
+      },
+      { kind: "list", items: [{ text: "개인정보 처리 안내", href: "/privacy" }] },
+      { kind: "h", text: "그만 쓰고 싶으면" },
+      { kind: "p", text: "내 계정 화면 맨 아래 '탈퇴하기'. 계정 정보는 바로 지워지고 되돌릴 수 없어요." },
+      { kind: "list", items: [{ text: "내 계정", href: "/me" }] },
+    ],
+  },
+];
+
+/** 새 글 먼저 (날짜 내림차순, 같은 날짜는 파일 순서 그대로) */
+export function sortedPosts(posts: UpdatePost[] = UPDATE_POSTS): UpdatePost[] {
+  return posts
+    .map((p, i) => ({ p, i }))
+    .sort((a, b) => (a.p.date === b.p.date ? a.i - b.i : a.p.date < b.p.date ? 1 : -1))
+    .map((x) => x.p);
+}
+
+export function latestPost(posts: UpdatePost[] = UPDATE_POSTS): UpdatePost | null {
+  return sortedPosts(posts)[0] ?? null;
+}
+
+export function postBySlug(slug: string, posts: UpdatePost[] = UPDATE_POSTS): UpdatePost | null {
+  return posts.find((p) => p.slug === slug) ?? null;
+}
+
+/** 띠배너를 보일지: 맨 위 글이 있고, 이 브라우저가 그 글을 닫지 않았으면 (더 새 글이 올라오면 다시 보인다) */
+export function shouldShowBanner(latestSlug: string | null, dismissedSlug: string | null): boolean {
+  return !!latestSlug && latestSlug !== dismissedSlug;
+}
+
+/** "2026-10-05" → "2026.10.05" */
+export function formatPostDate(date: string): string {
+  return date.replaceAll("-", ".");
+}
+
+/** 목록 한 줄의 글자·링크 */
+export function itemText(item: UpdateItem): string {
+  return typeof item === "string" ? item : item.text;
+}
+export function itemHref(item: UpdateItem): string | null {
+  return typeof item === "string" ? null : item.href;
+}

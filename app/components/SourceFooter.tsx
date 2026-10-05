@@ -28,6 +28,13 @@ export default function SourceFooter({ fetchedAt, wide = false }: { fetchedAt?: 
       >
         용어 풀이
       </Link>
+      {/* 업데이트 소식 (2026-10-05) */}
+      <Link
+        href="/updates"
+        className="focus-ring mb-4 ml-2 inline-flex h-10 items-center rounded-control border border-line bg-surface px-3 text-sub font-semibold text-ink-2 transition-colors duration-200 hover:bg-surface-2 hover:text-ink"
+      >
+        업데이트 소식
+      </Link>
       <p>{SOURCE_LINE}</p>
       {officialImagesEnabled() && <p className="mt-1">{IMAGE_CREDIT_LINE}</p>}
       {gaMeasurementId() && <p className="mt-1">{ANALYTICS_LINE}</p>}

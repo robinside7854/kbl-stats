@@ -225,6 +225,7 @@ kbl-stats/
 │   ├── account.ts       ← 회원 규칙 (순수: 로그인 회사 parseLoginProviders·enabledLoginProviders, 로그인 번호 memberIdOf("google:…"), 계정 연결 LinkResult·linkResultMessage·canUnlink, 관리자 parseAdminLoginIds·isAdminLogin, 닉네임 validateNickname(2~12자·한글/영문/숫자/_·운영자 사칭 금지), 응원팀 normalizeTeamCode, 즐겨찾기 sanitizeFavorites(상한 300)·mergeFavorites(이 브라우저 순서 먼저))
 │   ├── server/          ← 서버 전용: auth.ts(next-auth 설정·currentLoginId·로그인 콜백에서 계정 연결), db.ts(Neon 연결·표 준비), members.ts(SQL — 표 members(응원팀 여러 팀 team_codes) + member_logins(로그인 번호 → 회원) + member_likes(좋아요) + member_games(54-0 내 기록, 라인업 하나에 한 줄·최근 200개, saveGameRecord·gameHistory·deleteGameRecord), resolveMemberId·linkLogin(합치기)·unlinkLogin·setLike·likeCounts·listMembers, 테스트는 PGlite), link.ts(연결 표시 쿠키 — 값은 lib/link-token.ts 서명·5분), admin.ts(ADMIN_LOGIN_IDS), api.ts(쓰기 요청 Origin·JSON 검사)
 │   ├── franchise.ts     ← 팀 페이지 규칙 (순수: 플레이오프 단계 playoffStage(우승·준우승·4강·6강, 정규 1·2위는 4강부터), 통산 franchiseTotals(통합 우승 = 정규 1위 + 우승), 레전드 isLegend·pickLegends(이 팀 10시즌 이상 — 2026-10-04 사용자 결정), 팀 통산 기록 buildTenures·franchiseLeaders, 이름 구간 nameSpans, 계보 lineageChain(data/codes/team-lineage.json — 매각으로 코드가 바뀐 구단 잇기, 손으로 관리)) — 재료는 lib/data loadFranchises·loadTeamIndex
+│   ├── updates.ts       ← 업데이트 소식 글 (UPDATE_POSTS 새 글 맨 위·sortedPosts·latestPost·shouldShowBanner(닫은 글이면 숨김) — 글 쓰는 규칙은 "업데이트 소식 규칙")
 │   ├── favorites.ts     ← 즐겨찾기 (순수: parseFavorites·toggleFavorite, FAVORITES_VISIBLE 5 — 저장은 app/components/useFavorites localStorage)
 │   ├── prime.ts         ← 프라임 시즌 (pickPrimeSeasons·primeCandidatesOf)
 │   ├── career-cards.ts  ← 비교 탭 통산 카드 (buildCareerCards, CAREER_CODE 0, CAREER_QUALIFY 100경기·1,000분)
@@ -249,6 +250,7 @@ kbl-stats/
 │   ├── records/game·season·awards/page.tsx ← 하위 탭 한 경기 최다(색인 careerHighs, 정규·플옵·챔프전, 정규는 그날 일정 링크)·한 시즌 최다(합계/경기당, 플옵·챔프전은 postseason.json)·수상·우승 횟수 — 순위 규칙 lib/records(rankGameHighs·rankSeasonBests·seasonBestMinGames·rankAwardCounts), 재료·표기 lib/data(loadGameHighLists·loadSeasonBestLists·loadAwardLists, 부문마다 상위 50), 화면 RecordBoardView·RecordList·RecordTabViews
 │   ├── compare/page.tsx ← 비교 탭 정적 1쪽 (?a=번호:코드&b=번호:코드, 기본은 최신·직전 시즌 PER 1위)
 │   ├── game/page.tsx    ← 54-0 게임 (GameView: 다섯 칸 → 슬롯머신 두 대(시즌 하나·팀 3개) → 세 팀 후보 고르기(득점순, 등급 숨김) → 코트 위 5명·54경기 결과·기록 표·이미지 저장·링크 복사, /game/pool.json fetch, ?l= 공유 결과, 메뉴 "54-0")
+│   ├── updates/page.tsx · updates/[slug]/page.tsx ← 업데이트 소식 게시판 (2026-10-05, 글은 lib/updates.ts UPDATE_POSTS, 본문 UpdatePostBody, 띠배너 UpdateBanner — SiteNav 헤더 맨 아래, 푸터 링크)
 │   ├── privacy/page.tsx ← 개인정보 처리 안내 (2026-10-03 보안 점검, 푸터 링크만): 직접 수집 없음·GA4 항목/보관/거부·localStorage·KBL 이미지·문의 — 수집 방식이 바뀌면 같이 고칠 것
 │   ├── teams/page.tsx   ← 모든 팀 (메뉴 "팀", TeamsIndexView: 지금 팀(이번 시즌 승패·우승·좋아요) + 추억의 팀(매각·해체, 이어진 팀)) · team/[teamCode]/page.tsx 팀 페이지 정적 20쪽(TeamView: 통산·시즌별 로스터 ?season=·시즌별 성적·레전드·팀 통산 기록·수상·계보·좋아요) · likes/page.tsx 좋아요 순위(LikesView, /api/likes)
 │   ├── admin/page.tsx   ← 관리자 회원 목록 (AdminView: 요약·응원팀별·목록 찾기, /api/admin/members, 관리자 = Vercel ADMIN_LOGIN_IDS 의 로그인 번호가 붙은 회원, 아니면 내 로그인 번호 표시, noindex·메뉴 없음 — 내 계정 화면 "회원 목록 보기")
@@ -311,12 +313,18 @@ kbl-stats/
   | nav_click(menu "로그인"·"내 계정") | | 헤더 계정 버튼 |
   | contact_click | (없음) | 푸터 문의 이메일 누르기 |
   | app_install | (없음) | 앱 설치 완료 (브라우저 "앱 설치"·"홈 화면에 추가", `AppInstallTracker`) — 설치한 앱으로 연 방문은 사용자 속성 `display_mode`(standalone/browser) |
+  | update_banner_click / update_banner_dismiss | post_slug | 헤더 아래 업데이트 띠배너 누르기 / 닫기 (게시판 열람은 page_view) |
   | highlight_open | game_key(gmkey), season_code, place(home/schedule) | 경기 카드 "하이라이트" (유튜브 영상 팝업) |
   | boxscore_open | game_key(gmkey), season_code, place(home/schedule) | 홈 "오늘의 경기"·일정 화면 선수 기록 펼치기 (정렬·보기 전환은 filter_change screen=boxscore sort·view, 일정 달은 screen=schedule month) |
   | compare_open | player_no | 선수 상세 "비교" 버튼 (고른 선수는 search_select mode=compare) |
   | team_select | team_code, season_code 또는 place(teams) | 팀 순위·모든 팀에서 팀 누르기(→ 팀 페이지) |
   | share_click | method(native/copy), page | 헤더 공유 버튼 (폰은 기기 공유 창, PC 는 주소 복사) |
   | filter_change (역대 기록) | screen=records filter=tab · screen=records_game/records_season/records_awards filter=kind·category·mode·origin·active_only | 역대 기록 하위 탭·경기 구분·부문·합계/경기당·국적·현역만 |
+
+## 업데이트 소식 규칙 (2026-10-05 사용자 지시 — 세션이 바뀌어도 지킨다)
+- **화면에 보이는 기능을 새로 만들거나 바꾸면 같은 커밋에 업데이트 소식 글을 하나 쓴다.** `lib/updates.ts UPDATE_POSTS` **맨 위에** 더한다(slug `YYYY-MM-DD-영어`, date 한국 날짜, kind update/guide, title, summary 20자 이하 — 폰 띠배너 한 줄, blocks). 맨 위 글이 모든 화면 헤더 아래 띠배너(`UpdateBanner`)에 자동으로 뜬다(닫으면 그 브라우저는 다음 새 글까지 숨김)
+- 말투: 짧게, 해요체, 캐주얼, AI 티 안 나게 — "뭐가 생겼는지·어디서 보는지"만. 긴 대시·느낌표·과장("획기적", "다양한") 금지, 설명 늘어놓지 않기. 고친 버그·데이터 수집·내부 정리처럼 팬이 볼 게 없는 일은 쓰지 않는다. 같은 날 작은 수정 여러 개는 글 하나로
+- 링크는 사이트 안 주소만(`{ text, href }`) — `tests/updates.test.ts` 가 순서·말투·링크를 확인
 
 ## 코딩 규칙
 - 파일·변수 이름은 영어, 주석과 커밋 메시지는 한국어
@@ -325,6 +333,7 @@ kbl-stats/
 - 화면은 모바일 우선 (팬은 대부분 폰으로 본다)
 - 새 화면·차트를 만들기 전에 `SCOPE.md`의 IN 목록에 있는지 확인. 없으면 만들지 말고 사용자에게 묻는다
 - 새 메뉴·기능은 GA4 이벤트를 먼저 정하고 같은 커밋에 넣는다 (위 "방문 통계 규칙")
+- 화면에 보이는 기능 변경은 업데이트 소식 글을 같은 커밋에 (위 "업데이트 소식 규칙")
 - 새 지표를 추가할 때 계산식·출처 주석 필수
 
 ### 디자인 토큰 (2026-09-30 디자인 점검 B·C, 토큰은 `app/globals.css`)
@@ -354,6 +363,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-05 (업데이트 소식 게시판): 사용자 요청 — `/updates` 목록·`/updates/{slug}` 글(정적, 글은 `lib/updates.ts`), 첫 글 2개 "지금까지 만든 것들 한 번에 정리"(기능 전체 요약, 캐주얼)·"구글·네이버 로그인 가이드". 모든 화면 헤더 아래 **띠배너**(`UpdateBanner`: 맨 위 글 summary → 그 글, 닫으면 localStorage `kbl-stats:update-banner:v1` 에 글 번호 — 더 새 글이면 다시 보임), 푸터 "업데이트 소식" 버튼. 앞으로 기능 바꿀 때마다 글을 쓰는 규칙을 "업데이트 소식 규칙"에. GA4 update_banner_click·update_banner_dismiss(post_slug — 맞춤 정의 등록 필요). SCOPE IN. main 배포.
 - 2026-10-05 (앱 설치·하단 홈 버튼): 사용자 ① **앱처럼 설치**(PWA) — `app/manifest.ts`(/manifest.webmanifest: 이름 KBL - Stats Reference·짧은 이름 "KBL 스탯"·standalone·세로·밝은 바탕), 아이콘 `public/icons` 192·512 + maskable(`scripts/build-app-icons.ts`, 그림 = app/icon.svg), 아이폰 `appleWebApp`(홈 화면에 추가 → 주소창 없이). 오프라인 저장(서비스 워커)·사이트 안 설치 버튼은 안 만듦(브라우저 메뉴 "앱 설치"). GA4 `app_install`·사용자 속성 `display_mode`(`AppInstallTracker`, 맞춤 정의 등록 필요). ② 삼성 인터넷이 화면 아래 가운데에 띄우는 "위로 가기" 버튼(브라우저 기능, 사이트가 끌 수 없음)이 위로 띄운 홈 버튼을 가림 → 사용자 결정: 홈 버튼을 **다른 칸과 같은 줄로 내리고 "홈" 글자 삭제, 둥근 모양 유지**(44px). 설치한 앱(standalone)으로 열면 브라우저 버튼 자체가 없다. 검증: typecheck·test·build·slop 0, 크롬 설치 가능 판정(CDP getInstallabilityErrors) 오류 0·manifest 오류 0·아이콘 200·CSP 위반 0, 360 하단 바 스크린샷. main 배포.
 - 2026-10-05 (경기 카드 주요 선수 2명·지금 탭 표시): 사용자 요청 ① 경기 카드(홈·일정) 팀별 주요 선수 1명 → **2명**(`lib/games teamStandouts`): 득점 1위 + 나머지 중 부문 1위 기록 ÷ 문턱(어시 5·3점 성공 3·스틸+블록 3·리바 8, 우리 규칙)이 가장 큰 선수(1 넘는 부문이 없으면 득점 2위), 줄 앞 꼬리표 득점/어시/3점/수비/리바·그 부문 기록 먼저(`standoutLine` "8어시 · 9득점"). 25-26 둘째 선수 분포 어시 223·리바 136·수비 82·3점 75·득점 24. ② 모바일 하단 탭 **지금 화면 = 파란색**(글자·아이콘 뒤 옅은 파란 바탕·위쪽 3px 막대, 비교 화면은 "선수" 탭), 헤더 계정 버튼도 /me·/admin 에서 파란 테두리·바탕(`AccountButton active`). 검증: typecheck·test(games 주요 선수)·build·slop 0, Playwright 360/390(다크)/1280 일정 가로 넘침 0·탭 7개 aria-current·로그인 켠 개발 서버로 계정 버튼 확인. main 배포.
 - 2026-10-04 (10/3~10/4 하이라이트 연결): 사용자 "10/3~10/4 는 지금 연동, 내일부터 자동 테스트" → 세션 환경은 유튜브 차단이라 조사 워크플로(`claude/probe-youtube`)로 RSS 원문을 gzip+base64 로 받아 그대로 복원(gzip 검사 통과, 21,021바이트·15개) → `data/raw/highlights/tving/20261004T1445.xml`. process 결과 games.json 4경기(S49G01N1~4)에 `highlight` — 다른 파일은 시각만 바뀌어 되돌림. 10/4 삼성-KT(N5) 하이라이트는 그때 RSS 에 아직 없음(다음 수집에서). main 배포.
