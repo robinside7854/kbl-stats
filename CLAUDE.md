@@ -322,6 +322,7 @@ kbl-stats/
   | compare_open | player_no | 선수 상세 "비교" 버튼 (고른 선수는 search_select mode=compare) |
   | team_select | team_code, season_code 또는 place(teams) | 팀 순위·모든 팀에서 팀 누르기(→ 팀 페이지) |
   | share_click | method(native/copy), page | 헤더 공유 버튼 (폰은 기기 공유 창, PC 는 주소 복사) |
+  | filter_change (선수 기록표) | screen=player filter=career_kind value=regular/playoff | 선수 상세 시즌별 기록 정규시즌·플레이오프 전환 |
   | filter_change (역대 기록) | screen=records filter=tab · screen=records_game/records_season/records_awards filter=kind·category·mode·origin·active_only | 역대 기록 하위 탭·경기 구분·부문·합계/경기당·국적·현역만 |
 
 ## 업데이트 소식 규칙 (2026-10-05 사용자 지시 — 세션이 바뀌어도 지킨다)
@@ -368,6 +369,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-06 (선수 기록표 통산·플레이오프): 사용자 요청 ① 시즌별 기록 맨 아래 **통산** 줄(`lib/career careerTotalRow`: 누적 합, 성공률·TS% 는 합계로 다시, PER·USG% 는 출전 시간 가중 — 우리 근사, 시즌 2개 이상일 때만) ② **정규시즌/플레이오프** 전환(플레이오프 시즌이 있는 선수만, 6강~챔프전 합계 = postseason.json playoff, PER·USG% 는 KBL 값 없어 "–", `playoffLeaderRow`). postseason.json 에 wins·losses·tov·fouls·fgm·fga·tpa·fta 추가(process 재생성, 다른 파일은 시각만 바뀌어 되돌림). 폰 접힌 줄: 경기 수를 시즌 아래로, 400px 미만은 팀 로고만. GA4 filter_change player career_kind(새 매개변수 없음). 업데이트 소식 글. ③ 첫·마지막 득점, ④ 은퇴 판정은 조사만(사용자 결정 대기). main 배포.
 - 2026-10-05 (수집 바깥 알람): 설치한 앱 뒤로 가기 버튼은 사용자 결정으로 취소(되돌림 커밋, 배포 안 함). GitHub 예약 실행이 10-04 12번 중 1번·10-05 0번만 돌아 10-05 경기(14:00·16:30) 반영이 안 됨 → fetch.yml 푸시로 즉시 수집. 사용자 결정: 바깥 알람(cron-job.org → GitHub workflow_dispatch mode=auto, 18:10~23:40 KST 30분마다, 세분화 토큰 Actions 쓰기만) — `docs/external-cron.md`. fetch.yml: 입력 `mode`(auto 면 문지기), 푸시도 문지기를 거치고 `[수집]` 커밋만 바로 수집. 예약은 예비로 둠.
 - 2026-10-05 (팀 팬 수·54-0 주간 순위): 사용자 결정(커뮤니티 제안 4·5번). ① **팀 팬 수** = 응원팀으로 고른 회원 수(여러 팀이면 팀마다) — `/api/likes` 응답에 `fans`(같은 1분 캐시, 요청 추가 없음), 팀 페이지 머리말 **"응원하기 · 팬 N명"**(`FanButton`: 누르면 내 응원팀에 더하기·빼기, 지금 팀만, 아이콘 확성기 `IconMegaphone`), 모든 팀 카드 "팬 N", 좋아요 순위 "팀 팬 수" 탭. ② **54-0 주간 순위** `/game/ranking`(`GameRankingView`, API `/api/game/ranking?week=this|last` 공개 1분 캐시): 한국 시간 월 0시~일, 회원마다 그 주 가장 좋은 판 하나(승 → 전력 → 먼저 달성), 닉네임 정한 회원만, 상위 50. **저장할 때 서버가 라인업으로 성적을 다시 계산**(`lib/game recheckLineup`, 풀은 우리 /game/pool.json 을 서버가 1시간 기억 — `lib/server/game-pool`)해 그 값으로 저장하고 `member_games.verified` true — 순위는 verified 만(그 전 기록·풀을 못 받은 저장은 순위 밖). 링크: 54-0 머리말 "이번 주 순위 보기"·저장 안내·내 계정 54-0 카드. 개인정보 안내(공개 항목) 시행일 10-05. 업데이트 소식 글. GA4 fan_add·fan_remove(team_code — 이미 등록), filter_change game_ranking week·likes tab fans(새 매개변수 없음). 한계: 남이 공유한 좋은 라인업 주소를 그대로 저장 요청하면 막지 못함(같은 승수면 먼저 달성한 쪽이 위).
 - 2026-10-05 (업데이트 글 관리자 삭제): 사용자 요청 — 관리자(ADMIN_LOGIN_IDS)는 업데이트 소식 목록 줄마다·글 위에 "삭제" 버튼(확인 창), 지운 글은 방문자에게 목록·띠배너에서 사라지고 글 주소는 "삭제된 글이에요". 관리자는 흐리게 "삭제됨" + "되돌리기". 저장은 DB 표 `hidden_updates`(글 번호만), API `/api/updates/hidden`. 지운 글 목록은 로그인 켜진 빌드에서만, 띠배너 맨 위 글을 이미 닫은 브라우저는 부르지 않음·이번 방문 5분 기억. 관리자 전용이라 업데이트 소식 글은 안 씀. GA4 update_post_delete·update_post_restore(post_slug). 검증: typecheck·test(account PGlite 삭제·되돌리기, updates bannerPost)·build(로그인 켜짐)·slop 0, Playwright 360/1280 가짜 /api/me·API 로 삭제 → 목록·띠배너·글 화면, 방문자 화면, 가로 넘침 0. main 배포.

@@ -174,19 +174,23 @@ export default function CareerTable({ seasons, playoffSeasons = [] }: { seasons:
         }
         summary={(s) => (
           <>
-            <span className={`tabular w-[4.25rem] shrink-0 whitespace-nowrap text-body text-ink ${isTotal(s) ? "font-black" : "font-bold"}`}>
-              {isTotal(s) ? "통산" : seasonShortLabel(s.seasonLabel)}
+            {/* 경기 수는 시즌 아래 — 좁은 폰에서 팀 칸이 잘리지 않게 (2026-10-06) */}
+            <span className="w-[4.25rem] shrink-0">
+              <span className={`tabular block whitespace-nowrap text-body text-ink ${isTotal(s) ? "font-black" : "font-bold"}`}>
+                {isTotal(s) ? "통산" : seasonShortLabel(s.seasonLabel)}
+              </span>
+              <span className="tabular block whitespace-nowrap text-sub text-ink-3">{s.games}경기</span>
             </span>
             <span className="min-w-0 flex-1">
               {isTotal(s) ? (
-                <span className="block text-body text-ink-2">{teamOf(s)}</span>
+                <span className="block whitespace-nowrap text-body text-ink-2">{teamOf(s)}</span>
               ) : (
                 <span className="flex min-w-0 items-center gap-1.5 text-body text-ink-2">
                   <TeamLogo logoUrl={s.team?.logoUrl} shortName={teamOf(s)} color={s.team?.color} size={20} />
-                  <span className="truncate">{teamShortLabel(teamOf(s))}</span>
+                  {/* 400px 미만 폰은 로고만 (이름이 한 글자로 잘려서) */}
+                  <span className="hidden truncate min-[400px]:inline">{teamShortLabel(teamOf(s))}</span>
                 </span>
               )}
-              <span className="tabular block text-sub text-ink-3">{s.games}경기</span>
             </span>
             {SUMMARY_KEYS.map((k) => (
               <span key={k} className="w-11 shrink-0 text-right">
