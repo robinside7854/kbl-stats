@@ -1,6 +1,6 @@
 // 업데이트 소식 글 목록·띠배너 규칙 (lib/updates.ts) — npm run test:updates
 import assert from "node:assert/strict";
-import { itemHref, itemText, latestPost, postBySlug, shouldShowBanner, sortedPosts, UPDATE_POSTS, type UpdatePost } from "../lib/updates";
+import { bannerPost, itemHref, itemText, latestPost, postBySlug, shouldShowBanner, sortedPosts, UPDATE_POSTS, type UpdatePost } from "../lib/updates";
 
 // 글 번호: 겹치지 않고 주소에 쓸 수 있는 모양, 날짜 형식
 const slugs = UPDATE_POSTS.map((p) => p.slug);
@@ -52,5 +52,11 @@ assert.equal(shouldShowBanner("a", null), true);
 assert.equal(shouldShowBanner("a", "a"), false);
 assert.equal(shouldShowBanner("b", "a"), true);
 assert.equal(shouldShowBanner(null, null), false);
+
+// 관리자가 지운 글은 띠배너에서 건너뛴다
+assert.equal(bannerPost([], null, sample)?.slug, "a");
+assert.equal(bannerPost(["a"], null, sample)?.slug, "b");
+assert.equal(bannerPost(["a"], "b", sample), null);
+assert.equal(bannerPost(["a", "b", "c"], null, sample), null);
 
 console.log("updates 테스트 통과");

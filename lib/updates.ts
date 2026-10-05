@@ -198,6 +198,12 @@ export function shouldShowBanner(latestSlug: string | null, dismissedSlug: strin
   return !!latestSlug && latestSlug !== dismissedSlug;
 }
 
+/** 띠배너에 띄울 글: 관리자가 지운 글을 빼고 맨 위 글, 이 브라우저가 그 글을 닫았으면 null */
+export function bannerPost(hidden: readonly string[], dismissedSlug: string | null, posts: UpdatePost[] = UPDATE_POSTS): UpdatePost | null {
+  const top = sortedPosts(posts).find((p) => !hidden.includes(p.slug)) ?? null;
+  return top && shouldShowBanner(top.slug, dismissedSlug) ? top : null;
+}
+
 /** "2026-10-05" → "2026.10.05" */
 export function formatPostDate(date: string): string {
   return date.replaceAll("-", ".");

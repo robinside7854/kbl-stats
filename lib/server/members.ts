@@ -57,6 +57,11 @@ export const SCHEMA_SQL = [
     PRIMARY KEY (member_id, lineup)
   )`,
   `CREATE INDEX IF NOT EXISTS member_games_recent ON member_games (member_id, played_at DESC)`,
+  // 업데이트 소식 삭제 (2026-10-05) — 글은 코드(lib/updates)에 있으니 관리자가 지운 글 번호만 적어 두고 화면이 숨긴다
+  `CREATE TABLE IF NOT EXISTS hidden_updates (
+    slug text PRIMARY KEY,
+    hidden_at timestamptz NOT NULL DEFAULT now()
+  )`,
   // 연결 기능 이전 회원(로그인 수단이 하나도 안 적힌 회원): 회원 번호가 곧 로그인 번호
   `INSERT INTO member_logins (login_id, member_id, provider)
     SELECT m.id, m.id, m.provider FROM members m
@@ -340,4 +345,19 @@ export async function gameHistory(q: Query, loginId: string): Promise<GameHistor
 export async function deleteGameRecord(q: Query, loginId: string, lineup: string): Promise<void> {
   const id = await resolveMemberId(q, loginId);
   await q(`DELETE FROM member_games WHERE member_id = $1 AND lineup = $2`, [id, lineup]);
+}
+
+// ── 업데이트 소식 삭제 (관리자) ──
+
+/** 관리자가 지운 업데이트 글 번호 (공개) */
+export async function hiddenUpdates(q: Query): Promise<string[]> {
+  const rows = await q(`SELECT slug FROM hidden_updates ORDER BY slug`);
+  return rows.map((r) => String(r.slug));
+}
+
+/** 글 지우기(hidden true)·되돌리기(false) — 글 번호 검사는 부르는 쪽 */
+export async function setUpdateHidden(q: Query, slug: string, hidden: boolean): Promise<string[]> {
+  if (hidden) await q(`INSERT INTO hidden_updates (slug) VALUES ($1) ON CONFLICT DO NOTHING`, [slug]);
+  else await q(`DELETE FROM hidden_updates WHERE slug = $1`, [slug]);
+  return hiddenUpdates(q);
 }

@@ -9,6 +9,7 @@ import { IconChevronLeft } from "@/app/components/icons";
 import SiteNav from "@/app/components/SiteNav";
 import SourceFooter from "@/app/components/SourceFooter";
 import UpdatePostBody from "@/app/components/UpdatePostBody";
+import { UpdatePostGuard } from "@/app/components/UpdateAdmin";
 
 export const dynamicParams = false;
 
@@ -37,16 +38,18 @@ export default async function UpdatePostPage({ params }: { params: Promise<{ slu
           <IconChevronLeft size={16} />
           목록
         </Link>
-        <article className="mt-4">
-          <p className="flex items-center gap-2 text-caption text-ink-3">
-            <span className="font-semibold">{UPDATE_KIND_LABELS[post.kind]}</span>
-            <span className="tabular">{formatPostDate(post.date)}</span>
-          </p>
-          <h1 className="mt-1 text-h1 font-black">{post.title}</h1>
-          <div className="surface-card mt-4 rounded-container px-4 py-4">
-            <UpdatePostBody blocks={post.blocks} />
-          </div>
-        </article>
+        <UpdatePostGuard slug={post.slug}>
+          <article className="mt-4">
+            <p className="flex items-center gap-2 text-caption text-ink-3">
+              <span className="font-semibold">{UPDATE_KIND_LABELS[post.kind]}</span>
+              <span className="tabular">{formatPostDate(post.date)}</span>
+            </p>
+            <h1 className="mt-1 text-h1 font-black">{post.title}</h1>
+            <div className="surface-card mt-4 rounded-container px-4 py-4">
+              <UpdatePostBody blocks={post.blocks} />
+            </div>
+          </article>
+        </UpdatePostGuard>
         {/* 글 끝에서도 목록으로 (2026-10-05 사용자: 위 글자 링크는 누르는 곳인지 애매) */}
         <Link
           href="/updates"

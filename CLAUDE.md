@@ -314,6 +314,7 @@ kbl-stats/
   | contact_click | (없음) | 푸터 문의 이메일 누르기 |
   | app_install | (없음) | 앱 설치 완료 (브라우저 "앱 설치"·"홈 화면에 추가", `AppInstallTracker`) — 설치한 앱으로 연 방문은 사용자 속성 `display_mode`(standalone/browser) |
   | update_banner_click / update_banner_dismiss | post_slug | 헤더 아래 업데이트 띠배너 누르기 / 닫기 (게시판 열람은 page_view) |
+  | update_post_delete / update_post_restore | post_slug | 관리자가 업데이트 글 삭제 / 되돌리기 |
   | highlight_open | game_key(gmkey), season_code, place(home/schedule) | 경기 카드 "하이라이트" (유튜브 영상 팝업) |
   | boxscore_open | game_key(gmkey), season_code, place(home/schedule) | 홈 "오늘의 경기"·일정 화면 선수 기록 펼치기 (정렬·보기 전환은 filter_change screen=boxscore sort·view, 일정 달은 screen=schedule month) |
   | compare_open | player_no | 선수 상세 "비교" 버튼 (고른 선수는 search_select mode=compare) |
@@ -325,6 +326,7 @@ kbl-stats/
 - **화면에 보이는 기능을 새로 만들거나 바꾸면 같은 커밋에 업데이트 소식 글을 하나 쓴다.** `lib/updates.ts UPDATE_POSTS` **맨 위에** 더한다(slug `YYYY-MM-DD-영어`, date 한국 날짜, kind update/guide, title, summary 20자 이하 — 폰 띠배너 한 줄, blocks). 맨 위 글이 모든 화면 헤더 아래 띠배너(`UpdateBanner`)에 자동으로 뜬다(닫으면 그 브라우저는 다음 새 글까지 숨김)
 - 말투: 짧게, 해요체, 캐주얼, AI 티 안 나게 — "뭐가 생겼는지·어디서 보는지"만. 긴 대시·느낌표·과장("획기적", "다양한") 금지, 설명 늘어놓지 않기. 고친 버그·데이터 수집·내부 정리처럼 팬이 볼 게 없는 일은 쓰지 않는다. 같은 날 작은 수정 여러 개는 글 하나로
 - 링크는 사이트 안 주소만(`{ text, href }`) — `tests/updates.test.ts` 가 순서·말투·링크를 확인
+- **관리자 삭제(2026-10-05)**: 관리자는 목록·글 화면의 "삭제"로 글을 숨긴다(DB 표 `hidden_updates` 에 글 번호만, `/api/updates/hidden` GET 공개 1분 캐시·POST 관리자만, 화면 `UpdateAdmin`·`useHiddenUpdates`). 글은 코드에 남고 관리자에게만 흐리게 + "되돌리기". 띠배너는 지운 글을 건너뛰고 그다음 글(`lib/updates bannerPost`). 완전히 없애려면 `UPDATE_POSTS` 에서 지운다
 
 ## 코딩 규칙
 - 파일·변수 이름은 영어, 주석과 커밋 메시지는 한국어
@@ -364,6 +366,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-05 (업데이트 글 관리자 삭제): 사용자 요청 — 관리자(ADMIN_LOGIN_IDS)는 업데이트 소식 목록 줄마다·글 위에 "삭제" 버튼(확인 창), 지운 글은 방문자에게 목록·띠배너에서 사라지고 글 주소는 "삭제된 글이에요". 관리자는 흐리게 "삭제됨" + "되돌리기". 저장은 DB 표 `hidden_updates`(글 번호만), API `/api/updates/hidden`. 지운 글 목록은 로그인 켜진 빌드에서만, 띠배너 맨 위 글을 이미 닫은 브라우저는 부르지 않음·이번 방문 5분 기억. 관리자 전용이라 업데이트 소식 글은 안 씀. GA4 update_post_delete·update_post_restore(post_slug). 검증: typecheck·test(account PGlite 삭제·되돌리기, updates bannerPost)·build(로그인 켜짐)·slop 0, Playwright 360/1280 가짜 /api/me·API 로 삭제 → 목록·띠배너·글 화면, 방문자 화면, 가로 넘침 0. main 배포.
 - 2026-10-05 (54-0 아시아쿼터): 사용자 결정 — 아시아쿼터는 외국인 슬롯(2명)에 세지 않는다. 후보 `foreign` = 외국 선수만, 아시아쿼터는 `asia: true`(`lib/game-pool`), 후보 줄 아래 "아시아쿼터" 표시, 게임 방법·용어 문구 고침. 풀 기준 아시아쿼터 38·외국 742 후보. 난이도 그대로(S급 5명 전승 21.2%·득점 1위만 0.59%). 검증: typecheck·test(아시아쿼터는 외국 2명이 차도 뽑힘)·build·slop 0. main 배포.
 - 2026-10-05 (경기 카드 좌우 점수판): 사용자 "팀과 점수가 멀고 승자가 잘 안 보인다" → `GameCard` 스코어보드를 좌우로: **홈 팀 늘 왼쪽**(로고 36·이름·HOME) | 가운데 "88 : 85"(이긴 쪽 검정·진 쪽 회색, 아래 종료/시작 시각) | 원정 오른쪽, 이긴 팀 이름 아래 "승" 칩. 경기장은 가운데 한 줄. 수훈 선수·박스스코어 팝업(첫 탭)·팝업 제목·홈 "다음 경기" 줄도 홈 먼저. 업데이트 소식 글. main 배포.
 - 2026-10-05 (아시아쿼터 국내 풀·바로 가기 링크): 사용자 결정 ① 등급·비슷한 시즌 비교에서 **아시아쿼터는 국내 풀**(`lib/metrics gradeGroupOf` → `domesticAsia` "국내 선수(아시아쿼터 포함)", 외국 선수는 `foreign` 따로, `isDomesticPool` — 비슷한 시즌 풀). 54-0 외국 선수 2명 제한·역대 기록 국적 필터는 그대로(아시아쿼터 = 외국인). ② 누르는 곳인지 애매한 바로 가기 글자를 `link-shortcut`(파란 글자·밑줄·꺾쇠)로 통일: 선수 상세 "[프라임] ○○ 시즌 보기"·"비교 탭에서…"·기록표 "선수 카드 보기", 리더보드 "선수 페이지", 홈 "전체 일정", ⓘ "자세히", 비교 "다른 시즌과 비교하기", 하이라이트 "유튜브에서 보기", 54-0 "내 기록 보기/로그인", 업데이트 글 "보기", 생일 줄 "선수 카드". 디자인 토큰 규칙에 추가. 업데이트 소식 글 "아시아쿼터는 이제 국내 선수랑 비교해요". main 배포.

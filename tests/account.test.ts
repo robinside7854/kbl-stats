@@ -7,7 +7,7 @@ import {
 } from "../lib/account";
 import { decodeLinkIntent, encodeLinkIntent } from "../lib/link-token";
 import {
-  deleteMember, ensureSchema, getOrCreateMember, likeCounts, linkLogin, setLike, listMembers, loginIdsOfLogin, resolveMemberId, setFavorites, unlinkLogin, updateProfile,
+  deleteMember, ensureSchema, getOrCreateMember, hiddenUpdates, likeCounts, setUpdateHidden, linkLogin, setLike, listMembers, loginIdsOfLogin, resolveMemberId, setFavorites, unlinkLogin, updateProfile,
   SCHEMA_SQL, type Query,
 } from "../lib/server/members";
 
@@ -126,6 +126,12 @@ await deleteMember(q, a);
 assert.equal((await q("SELECT count(*)::int AS n FROM members WHERE id = $1", [a])).at(0)?.n, 0);
 assert.ok((await updateProfile(q, b, { nickname: "SKfan" })).ok);
 await assert.rejects(getOrCreateMember(q, "evil:1"));
+// 업데이트 글 삭제·되돌리기 (같은 글 두 번 지워도 한 줄)
+assert.deepEqual(await hiddenUpdates(q), []);
+await setUpdateHidden(q, "2026-10-05-b", true);
+assert.deepEqual(await setUpdateHidden(q, "2026-10-05-a", true), ["2026-10-05-a", "2026-10-05-b"]);
+assert.deepEqual(await setUpdateHidden(q, "2026-10-05-a", true), ["2026-10-05-a", "2026-10-05-b"]);
+assert.deepEqual(await setUpdateHidden(q, "2026-10-05-b", false), ["2026-10-05-a"]);
 await db.close();
 console.log("account: 회원 표(만들기·닉네임 중복·응원팀·즐겨찾기·탈퇴) 통과");
 
