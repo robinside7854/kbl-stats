@@ -315,6 +315,7 @@ kbl-stats/
   | app_install | (없음) | 앱 설치 완료 (브라우저 "앱 설치"·"홈 화면에 추가", `AppInstallTracker`) — 설치한 앱으로 연 방문은 사용자 속성 `display_mode`(standalone/browser) |
   | update_banner_click / update_banner_dismiss | post_slug | 헤더 아래 업데이트 띠배너 누르기 / 닫기 (게시판 열람은 page_view) |
   | update_post_delete / update_post_restore | post_slug | 관리자가 업데이트 글 삭제 / 되돌리기 |
+  | app_back | (없음) | 설치한 앱(standalone) 헤더 뒤로 가기 버튼 (`AppBackButton`) |
   | highlight_open | game_key(gmkey), season_code, place(home/schedule) | 경기 카드 "하이라이트" (유튜브 영상 팝업) |
   | boxscore_open | game_key(gmkey), season_code, place(home/schedule) | 홈 "오늘의 경기"·일정 화면 선수 기록 펼치기 (정렬·보기 전환은 filter_change screen=boxscore sort·view, 일정 달은 screen=schedule month) |
   | compare_open | player_no | 선수 상세 "비교" 버튼 (고른 선수는 search_select mode=compare) |
@@ -366,6 +367,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-05 (설치한 앱 뒤로 가기): 사용자 "PC 에 설치한 앱은 뒤로 가기 버튼이 없어 불편" → 헤더 로고 왼쪽 ‹ 버튼(`AppBackButton`): 설치한 앱(display-mode standalone·window-controls-overlay, iOS navigator.standalone)으로 열었을 때만, 홈에서는 숨김, 이동 기록이 있으면 이전 화면·앱을 막 연 화면이면 홈. 브라우저로 볼 때는 안 보임. GA4 app_back(매개변수 없음). 업데이트 소식 글. main 배포.
 - 2026-10-05 (업데이트 글 관리자 삭제): 사용자 요청 — 관리자(ADMIN_LOGIN_IDS)는 업데이트 소식 목록 줄마다·글 위에 "삭제" 버튼(확인 창), 지운 글은 방문자에게 목록·띠배너에서 사라지고 글 주소는 "삭제된 글이에요". 관리자는 흐리게 "삭제됨" + "되돌리기". 저장은 DB 표 `hidden_updates`(글 번호만), API `/api/updates/hidden`. 지운 글 목록은 로그인 켜진 빌드에서만, 띠배너 맨 위 글을 이미 닫은 브라우저는 부르지 않음·이번 방문 5분 기억. 관리자 전용이라 업데이트 소식 글은 안 씀. GA4 update_post_delete·update_post_restore(post_slug). 검증: typecheck·test(account PGlite 삭제·되돌리기, updates bannerPost)·build(로그인 켜짐)·slop 0, Playwright 360/1280 가짜 /api/me·API 로 삭제 → 목록·띠배너·글 화면, 방문자 화면, 가로 넘침 0. main 배포.
 - 2026-10-05 (54-0 아시아쿼터): 사용자 결정 — 아시아쿼터는 외국인 슬롯(2명)에 세지 않는다. 후보 `foreign` = 외국 선수만, 아시아쿼터는 `asia: true`(`lib/game-pool`), 후보 줄 아래 "아시아쿼터" 표시, 게임 방법·용어 문구 고침. 풀 기준 아시아쿼터 38·외국 742 후보. 난이도 그대로(S급 5명 전승 21.2%·득점 1위만 0.59%). 검증: typecheck·test(아시아쿼터는 외국 2명이 차도 뽑힘)·build·slop 0. main 배포.
 - 2026-10-05 (경기 카드 좌우 점수판): 사용자 "팀과 점수가 멀고 승자가 잘 안 보인다" → `GameCard` 스코어보드를 좌우로: **홈 팀 늘 왼쪽**(로고 36·이름·HOME) | 가운데 "88 : 85"(이긴 쪽 검정·진 쪽 회색, 아래 종료/시작 시각) | 원정 오른쪽, 이긴 팀 이름 아래 "승" 칩. 경기장은 가운데 한 줄. 수훈 선수·박스스코어 팝업(첫 탭)·팝업 제목·홈 "다음 경기" 줄도 홈 먼저. 업데이트 소식 글. main 배포.

@@ -3,11 +3,11 @@
 // 화면에는 아무것도 그리지 않는다 (설치 버튼은 브라우저 메뉴의 "앱 설치"·"홈 화면에 추가"를 쓴다).
 import { useEffect } from "react";
 import { setUserProperties, trackEvent } from "./track";
+import { isStandaloneApp } from "./AppBackButton";
 
 export default function AppInstallTracker() {
   useEffect(() => {
-    const standalone =
-      window.matchMedia?.("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone === true;
+    const standalone = isStandaloneApp();
     setUserProperties({ display_mode: standalone ? "standalone" : "browser" });
     const onInstalled = () => trackEvent("app_install", {});
     window.addEventListener("appinstalled", onInstalled);
