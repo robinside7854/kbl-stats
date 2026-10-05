@@ -309,6 +309,8 @@ kbl-stats/
   | game_record_save | result(saved/signed_out/failed) | 54-0 결과를 내 기록에 저장 (로그인한 브라우저만) |
   | game_record_delete | wins | 내 계정 화면에서 54-0 기록 한 줄 지우기 |
   | like_add / like_remove | kind(player/team), player_no 또는 team_code | 선수 상세·팀 페이지 좋아요 |
+  | fan_add / fan_remove | team_code | 팀 페이지 "응원하기"(내 응원팀에 더하기·빼기, 지금 팀만) |
+  | filter_change (팬·주간 순위) | screen=likes filter=tab value=fans · screen=game_ranking filter=week(this/last) | 좋아요 순위 "팀 팬 수" 보기 / 54-0 주간 순위 이번 주·지난주 |
   | filter_change (팀·좋아요) | screen=team filter=season·leader · screen=likes filter=tab | 팀 페이지 로스터 시즌·팀 통산 기록 부문 / 좋아요 순위 선수·팀 |
   | nav_click(menu "로그인"·"내 계정") | | 헤더 계정 버튼 |
   | contact_click | (없음) | 푸터 문의 이메일 누르기 |
@@ -366,6 +368,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-05 (팀 팬 수·54-0 주간 순위): 사용자 결정(커뮤니티 제안 4·5번). ① **팀 팬 수** = 응원팀으로 고른 회원 수(여러 팀이면 팀마다) — `/api/likes` 응답에 `fans`(같은 1분 캐시, 요청 추가 없음), 팀 페이지 머리말 **"응원하기 · 팬 N명"**(`FanButton`: 누르면 내 응원팀에 더하기·빼기, 지금 팀만, 아이콘 확성기 `IconMegaphone`), 모든 팀 카드 "팬 N", 좋아요 순위 "팀 팬 수" 탭. ② **54-0 주간 순위** `/game/ranking`(`GameRankingView`, API `/api/game/ranking?week=this|last` 공개 1분 캐시): 한국 시간 월 0시~일, 회원마다 그 주 가장 좋은 판 하나(승 → 전력 → 먼저 달성), 닉네임 정한 회원만, 상위 50. **저장할 때 서버가 라인업으로 성적을 다시 계산**(`lib/game recheckLineup`, 풀은 우리 /game/pool.json 을 서버가 1시간 기억 — `lib/server/game-pool`)해 그 값으로 저장하고 `member_games.verified` true — 순위는 verified 만(그 전 기록·풀을 못 받은 저장은 순위 밖). 링크: 54-0 머리말 "이번 주 순위 보기"·저장 안내·내 계정 54-0 카드. 개인정보 안내(공개 항목) 시행일 10-05. 업데이트 소식 글. GA4 fan_add·fan_remove(team_code — 이미 등록), filter_change game_ranking week·likes tab fans(새 매개변수 없음). 한계: 남이 공유한 좋은 라인업 주소를 그대로 저장 요청하면 막지 못함(같은 승수면 먼저 달성한 쪽이 위).
 - 2026-10-05 (업데이트 글 관리자 삭제): 사용자 요청 — 관리자(ADMIN_LOGIN_IDS)는 업데이트 소식 목록 줄마다·글 위에 "삭제" 버튼(확인 창), 지운 글은 방문자에게 목록·띠배너에서 사라지고 글 주소는 "삭제된 글이에요". 관리자는 흐리게 "삭제됨" + "되돌리기". 저장은 DB 표 `hidden_updates`(글 번호만), API `/api/updates/hidden`. 지운 글 목록은 로그인 켜진 빌드에서만, 띠배너 맨 위 글을 이미 닫은 브라우저는 부르지 않음·이번 방문 5분 기억. 관리자 전용이라 업데이트 소식 글은 안 씀. GA4 update_post_delete·update_post_restore(post_slug). 검증: typecheck·test(account PGlite 삭제·되돌리기, updates bannerPost)·build(로그인 켜짐)·slop 0, Playwright 360/1280 가짜 /api/me·API 로 삭제 → 목록·띠배너·글 화면, 방문자 화면, 가로 넘침 0. main 배포.
 - 2026-10-05 (54-0 아시아쿼터): 사용자 결정 — 아시아쿼터는 외국인 슬롯(2명)에 세지 않는다. 후보 `foreign` = 외국 선수만, 아시아쿼터는 `asia: true`(`lib/game-pool`), 후보 줄 아래 "아시아쿼터" 표시, 게임 방법·용어 문구 고침. 풀 기준 아시아쿼터 38·외국 742 후보. 난이도 그대로(S급 5명 전승 21.2%·득점 1위만 0.59%). 검증: typecheck·test(아시아쿼터는 외국 2명이 차도 뽑힘)·build·slop 0. main 배포.
 - 2026-10-05 (경기 카드 좌우 점수판): 사용자 "팀과 점수가 멀고 승자가 잘 안 보인다" → `GameCard` 스코어보드를 좌우로: **홈 팀 늘 왼쪽**(로고 36·이름·HOME) | 가운데 "88 : 85"(이긴 쪽 검정·진 쪽 회색, 아래 종료/시작 시각) | 원정 오른쪽, 이긴 팀 이름 아래 "승" 칩. 경기장은 가운데 한 줄. 수훈 선수·박스스코어 팝업(첫 탭)·팝업 제목·홈 "다음 경기" 줄도 홈 먼저. 업데이트 소식 글. main 배포.

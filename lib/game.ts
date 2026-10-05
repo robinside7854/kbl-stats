@@ -532,3 +532,16 @@ export function decodeLineupParam(pool: GamePool, value: string | null): GameCan
   if (out.filter((p) => p.foreign).length > GAME_FOREIGN_MAX) return null;
   return out;
 }
+
+/** 서버 확인용 (2026-10-05 주간 순위): ?l= 라인업 → 이 풀로 다시 계산한 성적. 풀 규칙에 안 맞으면 null */
+export function recheckLineup(pool: GamePool, lineup: string): { wins: number; rating: number; bonuses: BonusKey[]; names: string[] } | null {
+  const players = decodeLineupParam(pool, lineup);
+  if (!players) return null;
+  const r = simulateSeason(players);
+  return {
+    wins: r.wins,
+    rating: Math.round(r.rating.rating * 10) / 10,
+    bonuses: r.rating.bonuses.map((b) => b.key),
+    names: players.map((p) => `${p.nameKo} ${p.season}`),
+  };
+}

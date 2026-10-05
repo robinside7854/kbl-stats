@@ -18,7 +18,7 @@ import { FALLBACK_TEAM_COLOR, gradeTone } from "@/lib/teams";
 import type { TeamColor } from "@/lib/types";
 import { teamShortLabel } from "@/lib/images";
 import ChipRow from "./ChipRow";
-import { IconChevronDown, IconChevronUp } from "./icons";
+import { IconChevronDown, IconChevronRight, IconChevronUp } from "./icons";
 import InfoLink from "./InfoLink";
 import PlayerAvatar from "./PlayerAvatar";
 import Skeleton from "./Skeleton";
@@ -281,6 +281,12 @@ export default function GameView() {
           54-0 <InfoLink term="game54" className="ml-1" />
         </h1>
         <p className="mt-0.5 text-sub text-ink-2">시즌과 팀 3개를 뽑아 역대 주전 5명을 꾸리고 54전 전승에 도전하세요.</p>
+        {enabledLoginProviders().length > 0 && (
+          <Link href="/game/ranking" className="focus-ring link-shortcut">
+            이번 주 순위 보기
+            <IconChevronRight size={16} />
+          </Link>
+        )}
       </header>
 
       {loadError ? (
@@ -639,12 +645,15 @@ function RecordNotice({ status }: { status: ResultProps["recordStatus"] }) {
           내 기록에 저장했어요.{" "}
           <Link href="/me#game-history" className={link}>
             내 기록 보기
+          </Link>{" "}
+          <Link href="/game/ranking" className={link}>
+            주간 순위
           </Link>
         </>
       )}
       {status === "signed_out" && (
         <>
-          로그인하면 54-0 기록이 내 계정에 쌓여요.{" "}
+          로그인하면 54-0 기록이 쌓이고 주간 순위에도 올라요.{" "}
           <Link href="/me" className={link}>
             로그인
           </Link>

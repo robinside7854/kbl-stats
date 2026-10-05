@@ -8,7 +8,7 @@
 import {
   GAME_BONUS_KEYS, GAME_HISTORY_LIMIT, MAX_GAME_RECORDS, type GameHistory, type GameRecord, type GameRecordInput,
   LOGIN_PROVIDERS, MAX_FAVORITES, MAX_LIKES, MAX_TEAMS, mergeFavorites, normalizeTeamCodes, providerOfMemberId, sanitizeFavorites,
-  type AdminMemberRow, type LikeCounts, type LikeKind, type LoginProvider, type MemberView, type MyLikes,
+  type AdminMemberRow, type GameRanking, type GameRankRow, type LikeCounts, type RankingWeek, GAME_RANKING_LIMIT, kstWeekStart, type LikeKind, type LoginProvider, type MemberView, type MyLikes,
 } from "../account";
 
 /** SQL 문장 + 값($1, $2 …) → 행 목록 */
@@ -57,6 +57,9 @@ export const SCHEMA_SQL = [
     PRIMARY KEY (member_id, lineup)
   )`,
   `CREATE INDEX IF NOT EXISTS member_games_recent ON member_games (member_id, played_at DESC)`,
+  // 54-0 주간 순위 (2026-10-05) — 서버가 라인업으로 다시 계산해 맞춘 기록만 순위에 (그 전 기록은 false)
+  `ALTER TABLE member_games ADD COLUMN IF NOT EXISTS verified boolean NOT NULL DEFAULT false`,
+  `CREATE INDEX IF NOT EXISTS member_games_week ON member_games (played_at) WHERE verified`,
   // 업데이트 소식 삭제 (2026-10-05) — 글은 코드(lib/updates)에 있으니 관리자가 지운 글 번호만 적어 두고 화면이 숨긴다
   `CREATE TABLE IF NOT EXISTS hidden_updates (
     slug text PRIMARY KEY,
@@ -226,8 +229,8 @@ export async function linkLogin(q: Query, currentLoginId: string, newLoginId: st
     SELECT $1, kind, target, created_at FROM member_likes WHERE member_id = $2
     ON CONFLICT (member_id, kind, target) DO NOTHING`, [me, owner]);
   // 54-0 기록도 합친다 (같은 라인업은 지금 회원 것)
-  await q(`INSERT INTO member_games (member_id, lineup, wins, rating, bonuses, names, played_at)
-    SELECT $1, lineup, wins, rating, bonuses, names, played_at FROM member_games WHERE member_id = $2
+  await q(`INSERT INTO member_games (member_id, lineup, wins, rating, bonuses, names, played_at, verified)
+    SELECT $1, lineup, wins, rating, bonuses, names, played_at, verified FROM member_games WHERE member_id = $2
     ON CONFLICT (member_id, lineup) DO NOTHING`, [me, owner]);
   await q(`UPDATE member_logins SET member_id = $1, linked_at = now() WHERE member_id = $2`, [me, owner]);
   await q(`DELETE FROM members WHERE id = $1`, [owner]);
@@ -287,12 +290,15 @@ export async function setLike(q: Query, loginId: string, kind: LikeKind, target:
 /** 좋아요 수 전부 (공개 — 선수·팀별 회원 수) */
 export async function likeCounts(q: Query): Promise<LikeCounts> {
   const rows = await q(`SELECT kind, target, count(*)::int AS n FROM member_likes GROUP BY kind, target`);
-  const out: LikeCounts = { players: {}, teams: {} };
+  const out: LikeCounts = { players: {}, teams: {}, fans: {} };
   for (const r of rows) {
     const n = Number(r.n ?? 0);
     if (r.kind === "player") out.players[String(r.target)] = n;
     else if (r.kind === "team") out.teams[String(r.target)] = n;
   }
+  // 팀 팬 수: 응원팀으로 고른 회원 (여러 팀이면 팀마다)
+  const fans = await q(`SELECT code, count(DISTINCT id)::int AS n FROM members, unnest(team_codes) AS code GROUP BY code`);
+  for (const r of fans) out.fans[String(r.code)] = Number(r.n ?? 0);
   return out;
 }
 
@@ -302,10 +308,10 @@ export async function likeCounts(q: Query): Promise<LikeCounts> {
 export async function saveGameRecord(q: Query, loginId: string, rec: GameRecordInput): Promise<void> {
   const id = await resolveMemberId(q, loginId);
   await q(
-    `INSERT INTO member_games (member_id, lineup, wins, rating, bonuses, names) VALUES ($1, $2, $3, $4, $5::text[], $6::text[])
+    `INSERT INTO member_games (member_id, lineup, wins, rating, bonuses, names, verified) VALUES ($1, $2, $3, $4, $5::text[], $6::text[], $7)
      ON CONFLICT (member_id, lineup) DO UPDATE SET wins = EXCLUDED.wins, rating = EXCLUDED.rating, bonuses = EXCLUDED.bonuses,
-       names = EXCLUDED.names, played_at = now()`,
-    [id, rec.lineup, rec.wins, rec.rating, rec.bonuses, rec.names],
+       names = EXCLUDED.names, verified = EXCLUDED.verified, played_at = now()`,
+    [id, rec.lineup, rec.wins, rec.rating, rec.bonuses, rec.names, rec.verified === true],
   );
   await q(
     `DELETE FROM member_games WHERE member_id = $1 AND lineup IN (
@@ -345,6 +351,42 @@ export async function gameHistory(q: Query, loginId: string): Promise<GameHistor
 export async function deleteGameRecord(q: Query, loginId: string, lineup: string): Promise<void> {
   const id = await resolveMemberId(q, loginId);
   await q(`DELETE FROM member_games WHERE member_id = $1 AND lineup = $2`, [id, lineup]);
+}
+
+// ── 54-0 주간 순위 (2026-10-05) ──
+
+/** 그 주(한국 시간 월~일) 회원마다 가장 좋은 판 하나 → 순위. 닉네임을 정한 회원·서버가 맞춘 기록만 */
+export async function weeklyGameRanking(q: Query, week: RankingWeek, now = new Date()): Promise<GameRanking> {
+  const from = kstWeekStart(now, week === "last" ? -1 : 0);
+  const to = kstWeekStart(now, week === "last" ? 0 : 1);
+  const rows = await q(
+    `WITH week_games AS (
+       SELECT g.* FROM member_games g JOIN members m ON m.id = g.member_id
+       WHERE g.verified AND g.played_at >= $1 AND g.played_at < $2 AND m.nickname IS NOT NULL
+     ), best AS (
+       SELECT DISTINCT ON (member_id) member_id, lineup, wins, rating, names, played_at
+       FROM week_games ORDER BY member_id, wins DESC, rating DESC, played_at ASC
+     )
+     SELECT b.*, m.nickname, m.team_codes[1] AS team_code,
+       (SELECT count(*)::int FROM week_games w WHERE w.member_id = b.member_id) AS plays,
+       count(*) OVER ()::int AS total
+     FROM best b JOIN members m ON m.id = b.member_id
+     ORDER BY b.wins DESC, b.rating DESC, b.played_at ASC
+     LIMIT $3`,
+    [from.toISOString(), to.toISOString(), GAME_RANKING_LIMIT],
+  );
+  const list: GameRankRow[] = rows.map((r, i) => ({
+    rank: i + 1,
+    nickname: String(r.nickname),
+    teamCode: r.team_code === null || r.team_code === undefined ? null : String(r.team_code),
+    wins: Number(r.wins),
+    rating: Math.round(Number(r.rating) * 10) / 10,
+    names: Array.isArray(r.names) ? r.names.map(String) : [],
+    lineup: String(r.lineup),
+    plays: Number(r.plays ?? 1),
+    playedAt: new Date(r.played_at as string).toISOString(),
+  }));
+  return { week, from: from.toISOString(), to: to.toISOString(), rows: list, members: Number(rows[0]?.total ?? 0) };
 }
 
 // ── 업데이트 소식 삭제 (관리자) ──

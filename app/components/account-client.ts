@@ -4,7 +4,7 @@
 import { getCsrfToken, signIn } from "next-auth/react";
 import {
   LINK_RESULTS, mergeFavorites, parseLoginProviders, sameList,
-  type AdminMemberRow, type GameHistory, type GameRecordInput, type LikeCounts, type LikeKind, type LinkResult, type LoginProvider, type MemberView,
+  type AdminMemberRow, type GameHistory, type GameRanking, type RankingWeek, type GameRecordInput, type LikeCounts, type LikeKind, type LinkResult, type LoginProvider, type MemberView,
 } from "@/lib/account";
 import { readFavorites, replaceFavorites } from "./useFavorites";
 
@@ -155,7 +155,7 @@ export async function saveLike(kind: LikeKind, target: string, liked: boolean): 
   }
 }
 
-const COUNTS_KEY = "kbl-stats:like-counts:v1";
+const COUNTS_KEY = "kbl-stats:like-counts:v2";
 const COUNTS_MS = 60 * 1000;
 let countsPromise: Promise<LikeCounts> | null = null;
 
@@ -170,8 +170,8 @@ export function fetchLikeCounts(): Promise<LikeCounts> {
   if (cached) return Promise.resolve(cached);
   if (!countsPromise) {
     countsPromise = fetch("/api/likes")
-      .then((r) => (r.ok ? (r.json() as Promise<LikeCounts>) : { players: {}, teams: {} }))
-      .catch(() => ({ players: {}, teams: {} }))
+      .then((r) => (r.ok ? (r.json() as Promise<LikeCounts>) : { players: {}, teams: {}, fans: {} }))
+      .catch(() => ({ players: {}, teams: {}, fans: {} }))
       .then((counts) => {
         safe(() => window.sessionStorage.setItem(COUNTS_KEY, JSON.stringify({ at: Date.now(), counts })), undefined);
         countsPromise = null;
@@ -259,6 +259,16 @@ export async function fetchGameHistory(): Promise<GameHistory | null> {
   try {
     const res = await fetch("/api/me/games", { cache: "no-store" });
     return res.ok ? ((await res.json()) as GameHistory) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** 54-0 주간 순위 (공개, 로그인과 무관 — 못 받으면 null) */
+export async function fetchGameRanking(week: RankingWeek): Promise<GameRanking | null> {
+  try {
+    const res = await fetch(`/api/game/ranking?week=${week}`);
+    return res.ok ? ((await res.json()) as GameRanking) : null;
   } catch {
     return null;
   }

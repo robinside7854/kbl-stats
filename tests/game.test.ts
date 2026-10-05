@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import {
-  canPick, decodeLineupParam, emptyLineup, encodeLineupParam, GAME_FOREIGN_MAX, GAME_SEASON_GAMES, isLineupFull, openSlotsFor,
+  canPick, decodeLineupParam, recheckLineup, emptyLineup, encodeLineupParam, GAME_FOREIGN_MAX, GAME_SEASON_GAMES, isLineupFull, openSlotsFor,
   pickBlockReason, placePick, sortByScore, filterByPositionChip, sortCandidatesBy, nextSort, lineupTotals, respinEra, respinTeam, seededRng, simulateSeason, sortCandidates, spin, spinCandidates, teamsOf, teamOfCandidate, GAME_SPIN_TEAMS, teamRating,
   winProbability, lineupBonuses, schoolChemistryComment, CHEM_SCHOOL_BONUS, CHEM_PRIME_BONUS, CHEM_CHAMP_PER, type GameCandidate, type GamePool, type Lineup, type Spin,
 } from "../lib/game";
@@ -183,7 +183,16 @@ assert.equal(decodeLineupParam(pool2, "2:47,1:47,3:47,5:47,4:47"), null);   // �
 assert.equal(decodeLineupParam(pool2, "1:47,2:47,3:47"), null);
 assert.equal(decodeLineupParam(pool2, "1:47,1:47,3:47,4:47,5:47"), null);
 assert.equal(decodeLineupParam(pool2, null), null);
-console.log("game: 공유 주소 통과");
+// 서버 확인 (주간 순위): 같은 라인업 → 화면과 같은 성적, 풀에 없는 라인업 → null
+{
+  const re = recheckLineup(pool2, param)!;
+  const sim = simulateSeason(lineup5);
+  assert.equal(re.wins, sim.wins);
+  assert.equal(re.rating, Math.round(sim.rating.rating * 10) / 10);
+  assert.equal(re.names.length, 5);
+  assert.equal(recheckLineup(pool2, "9:47,2:47,3:47,4:47,5:47"), null);
+}
+console.log("game: 공유 주소·서버 확인 통과");
 
 // 실제 풀이 있으면 (빌드 후) 난이도 확인: 아무나 뽑기 / 매번 그 팀 득점 1위(화면에서 보이는 정보) / 숨은 점수 1위
 // 전승 확률은 굴린 결과를 세지 않고 라인업마다 (경기 승리 확률)^54 를 평균 낸다 — 표본이 적어도 흔들리지 않게
