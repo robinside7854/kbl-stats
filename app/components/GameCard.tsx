@@ -163,7 +163,7 @@ export default function GameCard({ game: g, seasonCode, teams, stars = null, loa
                   href={`https://www.youtube.com/watch?v=${encodeURIComponent(g.highlight)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="focus-ring inline-flex h-10 items-center gap-1 rounded-control px-1 text-sub font-semibold text-ink-2 transition-colors duration-200 hover:text-ink"
+                  className="focus-ring link-shortcut gap-1 px-1 text-sub"
                 >
                   유튜브에서 보기 <IconExternal size={16} />
                 </a>

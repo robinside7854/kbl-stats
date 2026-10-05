@@ -54,7 +54,7 @@ import type { CardPlayer, CardTeam, SeasonCoverage } from "./types";
 /**
  * 순위 비교 집단: 리그 전체 / 같은 포지션(가드·포워드·센터 묶음, lib/roster positionGroupOf).
  * 포지션을 모르는 선수(선수 마스터에 없음)는 "position" 을 골라도 전체로 계산하고 view.scope 는 "all" 이 된다.
- * 등급(레이더 6축·종합)은 범위와 관계없이 항상 같은 국적 집단(국내/외국/아시아쿼터) 안에서 매긴다 (lib/metrics buildGradingContext).
+ * 등급(레이더 6축·종합)은 범위와 관계없이 항상 같은 국적 집단(국내+아시아쿼터 / 외국) 안에서 매긴다 (lib/metrics buildGradingContext).
  */
 export type CardScope = "all" | "position";
 
@@ -69,7 +69,7 @@ export interface SeasonCardView {
   ruleLabel: string;
   /** 순위 집단 중 표본 기준 충족 선수 수 */
   qualifiedCount: number;
-  /** 등급 기준 표기, 예: "국내 선수 109명 중" / "외국인 선수(아시아쿼터 포함) 31명 중" */
+  /** 등급 기준 표기, 예: "국내 선수 109명 중" / "국내 선수(아시아쿼터 포함) 120명 중" */
   gradeLabel: string;
   /** 이 시즌 기록이 없어 레이더에서 빠진 구성 요소, 예: ["USG%", "경기당 디플렉션"] */
   missingComponents: string[];

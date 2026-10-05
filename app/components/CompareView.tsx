@@ -24,7 +24,7 @@ import { seasonChip } from "./PrimeTag";
 import { CAREER_CODE, CAREER_LABEL } from "@/lib/career-cards";
 import CompareHeadToHead from "./CompareHeadToHead";
 import CompareTable from "./CompareTable";
-import { IconChevronDown, IconChevronUp } from "./icons";
+import { IconChevronDown, IconChevronRight, IconChevronUp } from "./icons";
 import PlayerSearch from "./PlayerSearch";
 import { useCardView } from "./useSeasonCards";
 import { loadSearchIndex } from "./useSearchIndex";
@@ -150,9 +150,10 @@ export default function CompareView({ seasons, initialA, initialB }: Props) {
             <button
               type="button"
               onClick={() => set({ ...other, season: other.seasons.find((c) => c !== other.season) ?? other.season })}
-              className="focus-ring mt-1 inline-flex h-10 items-center rounded-control text-sub font-semibold text-ink-2 underline underline-offset-4 transition-colors duration-200 hover:text-ink"
+              className="focus-ring link-shortcut mt-1 text-sub"
             >
               {other.nameKo}의 다른 시즌과 비교하기
+              <IconChevronRight size={16} />
             </button>
           )}
         </div>

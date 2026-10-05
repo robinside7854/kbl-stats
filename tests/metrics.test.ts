@@ -199,18 +199,20 @@ assert.equal(shouldMergeAsia([...dom, ...forn, ...asia(8)], DEFAULT_QUALIFY), tr
 assert.equal(shouldMergeAsia([...dom, ...forn, ...asia(20)], DEFAULT_QUALIFY), true);
 assert.equal(shouldMergeAsia([...dom, ...forn], DEFAULT_QUALIFY), false); // 아시아쿼터 0명
 assert.equal(shouldMergeAsia([...dom, rp({ games: 1, nationality: "asia" })], DEFAULT_QUALIFY), true); // 표본 미달이어도 있으면 합산
-assert.equal(gradeGroupOf({ nationality: "asia", isForeign: true }, true), "foreignAsia");
-assert.equal(gradeGroupOf({ nationality: "foreign", isForeign: true }, true), "foreignAsia");
+assert.equal(gradeGroupOf({ nationality: "asia", isForeign: true }, true), "domesticAsia"); // 2026-10-05 아시아쿼터는 국내 풀
+assert.equal(gradeGroupOf({ nationality: "foreign", isForeign: true }, true), "foreign");
+assert.equal(gradeGroupOf({ nationality: "domestic", isForeign: false }, true), "domesticAsia");
 assert.equal(gradeGroupOf({ nationality: "asia", isForeign: true }, false), "asia");
 assert.equal(gradeGroupOf({ nationality: null, isForeign: true }, false), "foreign"); // 마스터 없음 → isForeign
-assert.equal(gradeGroupOf({ nationality: null, isForeign: false }, true), "domestic");
+assert.equal(gradeGroupOf({ nationality: null, isForeign: false }, false), "domestic");
 const gm = buildGradingContext([...dom, ...forn, ...asia(3)], DEFAULT_QUALIFY, full);
-assert.equal(gm.groups.foreignAsia?.count, 6);
+assert.equal(gm.groups.foreign?.count, 3);
+assert.equal(gm.groups.domesticAsia?.count, dom.filter((p) => isQualified(p, DEFAULT_QUALIFY)).length + 3);
 assert.equal(gm.groups.asia, undefined);
 const gs = buildGradingContext([...dom, ...forn, ...asia(8)], DEFAULT_QUALIFY, full);
 assert.equal(gs.groups.asia, undefined);           // 아시아쿼터 따로 집단을 만들지 않는다
-assert.equal(gs.groups.foreign, undefined);
-assert.equal(gs.groups.foreignAsia?.count, 11);    // 외국 3 + 아시아쿼터 8
+assert.equal(gs.groups.domestic, undefined);      // 국내는 아시아쿼터와 한 집단
+assert.equal(gs.groups.foreign?.count, 3);         // 외국 3명만
 
 // 종합 원점수 = 6축 평균 (null 제외)
 assert.equal(overallScore({ offense: 90, defense: 80, rebound: 70, shooting: 60, playmaking: 50, efficiency: 70 }), 70);

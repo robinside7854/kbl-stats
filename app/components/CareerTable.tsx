@@ -174,7 +174,7 @@ export default function CareerTable({ seasons }: { seasons: CareerSeason[] }) {
           <button
             type="button"
             onClick={() => showSeasonCard(s.seasonCode)}
-            className="focus-ring inline-flex h-10 cursor-pointer items-center gap-1 rounded-control px-1 text-body font-semibold text-ink underline-offset-4 hover:underline"
+            className="focus-ring link-shortcut px-1 text-body"
           >
             {seasonShortLabel(s.seasonLabel)} 선수 카드 보기 <IconChevronRight size={16} />
           </button>

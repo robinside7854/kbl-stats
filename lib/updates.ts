@@ -31,6 +31,18 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-10-05-asia-quota",
+    date: "2026-10-05",
+    kind: "update",
+    title: "아시아쿼터는 이제 국내 선수랑 비교해요",
+    summary: "아시아쿼터 등급 기준이 바뀌었어요",
+    blocks: [
+      { kind: "p", text: "등급이랑 비슷한 시즌을 매길 때 아시아쿼터 선수를 외국 선수 말고 국내 선수랑 같이 봐요. 역할이나 기록이 국내 선수 쪽에 더 가까워서요." },
+      { kind: "p", text: "그래서 아시아쿼터 선수, 그리고 국내 선수 몇몇은 등급이 조금 달라졌을 수 있어요. 카드에는 '국내 선수(아시아쿼터 포함)'라고 나와요." },
+      { kind: "p", text: "그리고 '프라임 시즌 보기' 같은 바로 가기 글자를 파란색으로 바꿨어요. 누르는 곳인지 바로 보이게요." },
+    ],
+  },
+  {
     slug: "2026-10-05-app-icon",
     date: "2026-10-05",
     kind: "update",

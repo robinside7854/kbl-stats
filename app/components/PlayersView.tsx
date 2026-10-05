@@ -345,7 +345,7 @@ export default function PlayersView({ seasons, latest, initialFile, topBadges, b
             </button>
           )}
           <p className="mt-3 text-sub leading-relaxed text-ink-3">
-            종합 등급은 그 시즌 {cards ? qualifyLabel(cards.defaults.rule) : "표본 기준"} 선수 중 같은 국적 집단(국내·외국·아시아쿼터) 안에서
+            종합 등급은 그 시즌 {cards ? qualifyLabel(cards.defaults.rule) : "표본 기준"} 선수 중 같은 국적 집단(국내·아시아쿼터 / 외국) 안에서
             레이더 6축(공격·수비·리바운드·슈팅·리딩·효율)을 포지션별 가중치로 종합한 위치입니다 <InfoLink term="radarAxes" />. 기준에 못 미친 선수는 맨 뒤에 둡니다.
           </p>
         </section>

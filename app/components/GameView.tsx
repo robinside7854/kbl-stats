@@ -630,7 +630,7 @@ interface ResultProps {
 /** 결과 아래 한 줄: 내 기록에 저장됐는지 / 로그인하면 저장된다는 안내 */
 function RecordNotice({ status }: { status: ResultProps["recordStatus"] }) {
   if (status === "off") return null;
-  const link = "focus-ring rounded-control font-semibold text-ink underline underline-offset-2";
+  const link = "focus-ring link-shortcut";
   return (
     <p role="status" className="mt-2 text-sub text-ink-2">
       {status === "saving" && "내 기록에 저장 중…"}

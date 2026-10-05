@@ -65,7 +65,7 @@ export default function BirthdayStrip({ players, seasonCode }: { players: Birthd
                   {teamShortLabel(p.teamName)} · 만 {age}세 생일
                 </span>
               </span>
-              <span className="flex shrink-0 items-center gap-0.5 text-sub font-semibold text-ink-2">
+              <span className="flex shrink-0 items-center gap-0.5 text-sub font-semibold text-series-1">
                 선수 카드 <IconChevronRight size={16} />
               </span>
             </Link>

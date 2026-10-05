@@ -46,7 +46,7 @@ import { AWARD_LABELS, seasonShortLabel } from "./career";
 import { nationalityOf, schoolGroupOf } from "./roster";
 import { findSimilar, toAxisVector, type SimilarEntry, type SimilarVector } from "./similar";
 import { pickPrimeSeasons, primeCandidatesOf, type PrimeCandidate } from "./prime";
-import { DEFAULT_QUALIFY, buildCardEntry, gradeGroupOf, isOngoingSeason, isQualified, seasonDefaultQualify } from "./metrics";
+import { DEFAULT_QUALIFY, buildCardEntry, gradeGroupOf, isDomesticPool, isOngoingSeason, isQualified, seasonDefaultQualify } from "./metrics";
 import { seasonContext } from "./cardview";
 import { computeStandings } from "./games";
 import { pickRegularChampions } from "./game-pool";
@@ -427,7 +427,7 @@ function loadSimilarPool(): SimilarVector[] {
       out.push({
         id: p.id,
         seasonCode: s.seasonCode,
-        pool: gradeGroupOf(p, ctx.grading.mergeAsia) === "domestic" ? "domestic" : "foreign",
+        pool: isDomesticPool(gradeGroupOf(p, ctx.grading.mergeAsia)) ? "domestic" : "foreign",
         pos: p.positionGroup,
         axes,
         overall: e.overallPct,

@@ -624,7 +624,7 @@ export default function LeadersView({ seasonLabel, players, teams, seasonHighs =
             detailFooter={(p) => (
               <Link
                 href={`/player/${p.id}`}
-                className="focus-ring inline-flex h-10 items-center gap-1 rounded-control px-1 text-body font-semibold text-ink underline-offset-4 hover:underline"
+                className="focus-ring link-shortcut px-1 text-body"
               >
                 {p.nameKo} 선수 페이지 <IconChevronRight size={16} />
               </Link>

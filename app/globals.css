@@ -240,6 +240,27 @@ body {
 }
 
 /* 키보드 포커스 링 — 버튼·행·칩 공통 (디자인 점검 C2). 마우스 클릭에는 보이지 않는다 */
+/* 바로 가기 글자 링크 (2026-10-05 사용자: "누르는 곳인지 티가 안 난다") — 파란 글자 + 밑줄 + 끝에 꺾쇠 아이콘(JSX).
+   목록 줄·카드처럼 통째로 누르는 것 말고, 문장처럼 보이는 "~ 보기 / 자세히 / 전체 일정" 같은 이동 링크에 쓴다 */
+@utility link-shortcut {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.125rem;
+  min-height: 2.5rem;
+  border-radius: var(--radius-control, 8px);
+  font-weight: 600;
+  color: var(--series-1);
+  text-decoration-line: underline;
+  text-decoration-color: color-mix(in oklab, var(--series-1) 40%, transparent);
+  text-underline-offset: 4px;
+  cursor: pointer;
+  transition-property: color, text-decoration-color;
+  transition-duration: 200ms;
+  &:hover {
+    text-decoration-color: currentColor;
+  }
+}
+
 @utility focus-ring {
   &:focus-visible {
     outline: 2px solid var(--focus);

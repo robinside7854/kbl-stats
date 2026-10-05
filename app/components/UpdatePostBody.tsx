@@ -12,7 +12,7 @@ function Item({ item }: { item: UpdateItem }) {
       {itemText(item)}{" "}
       <Link
         href={href}
-        className="focus-ring ml-0.5 inline-flex items-center rounded-control text-sub font-semibold whitespace-nowrap text-series-1 underline underline-offset-2"
+        className="focus-ring link-shortcut ml-0.5 whitespace-nowrap text-sub"
       >
         보기
         <IconChevronRight size={16} />

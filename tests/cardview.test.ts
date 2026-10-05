@@ -87,13 +87,15 @@ assert.equal(rankHeading(null), "시즌 순위");
 assert.equal(rankHeading("가드"), "가드 중 순위");
 assert.equal(rankPhrase(3, 34, "가드"), "가드 중 3위, 34명 중");
 assert.equal(rankPhrase(3, 142, null), "시즌 3위, 142명 중");
-// 등급 기준: 순위 범위와 관계없이 같은 국적 집단 (국내 101·102·103·106·107 = 5명, 108 은 표본 미달)
-assert.equal(all.gradeLabel, "국내 선수 5명 중");
-assert.equal(pos.gradeLabel, "국내 선수 5명 중");
+// 등급 기준: 순위 범위와 관계없이 같은 국적 집단 (국내 101·102·103·106·107 + 아시아쿼터 1명 = 6명, 108 은 표본 미달)
+assert.equal(all.gradeLabel, "국내 선수(아시아쿼터 포함) 6명 중");
+assert.equal(pos.gradeLabel, "국내 선수(아시아쿼터 포함) 6명 중");
 assert.deepEqual(pos.entry.grades, all.entry.grades); // 범위를 바꿔도 등급은 같다
-// 외국 1명 + 아시아쿼터 1명 → 외국인 풀(두 풀 고정)
-assert.equal(buildSeasonCardView(cards, "105")!.gradeLabel, "외국인 선수(아시아쿼터 포함) 2명 중");
-assert.equal(buildSeasonCardView(cards, "104")!.entry.gradeGroup.key, "foreignAsia");
+// 2026-10-05: 아시아쿼터는 국내 풀, 외국 선수는 외국 풀(두 풀 고정)
+const asiaId = ["104", "105"].find((id) => buildSeasonCardView(cards, id)!.entry.gradeGroup.key === "domesticAsia")!;
+const foreignId = asiaId === "104" ? "105" : "104";
+assert.equal(buildSeasonCardView(cards, asiaId)!.gradeLabel, "국내 선수(아시아쿼터 포함) 6명 중");
+assert.equal(buildSeasonCardView(cards, foreignId)!.gradeLabel, "외국 선수 1명 중");
 assert.deepEqual(all.missingComponents, []); // 전 항목 커버리지
 assert.deepEqual(all.coverage, coverage);
 // 파울·출전시간 줄 (경기당)

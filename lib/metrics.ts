@@ -458,23 +458,23 @@ export function activeRadarComponents(
 // (2025-26 실측: 국내 표본 충족 109명 중 최고 등급 B). → 등급(백분위)은 같은 국적 집단 안에서 매긴다.
 // 순위("n위/총원")는 지금처럼 리그 전체(또는 같은 포지션)다 — 등급과 순위는 다른 질문에 답한다.
 // 국적은 lib/roster nationalityOf 와 같은 규칙: 선수 마스터 값, 없으면 isForeign(이름 추정)으로 국내/외국 2집단.
-// 집단은 국내 / 외국인(외국+아시아쿼터) 둘뿐이다(2026-10-01 사용자 결정 — 아시아쿼터도 외국인 풀).
+// 집단은 국내(+아시아쿼터) / 외국 둘뿐이다(2026-10-05 사용자 결정 — 아시아쿼터는 국내 선수와 비교. 전엔 외국인 풀).
 
 /**
- * (2026-10-01 피드백 8차) 등급 집단은 **국내 / 외국인(외국+아시아쿼터) 두 풀**로 고정한다 — 사용자 결정:
- * 국내 선수와 용병을 한 풀에서 비교하는 것은 무리이고, 아시아쿼터는 외국인 풀에 넣는다.
+ * (2026-10-01 피드백 8차) 등급 집단은 **두 풀**로 고정한다 — 사용자 결정: 국내 선수와 용병을 한 풀에서 비교하는 것은 무리.
+ * 아시아쿼터는 2026-10-05 사용자 결정으로 **국내 풀**에 넣는다(외국 선수보다 국내 선수와 역할·기록이 비슷하다). 전엔 외국인 풀.
  * 전엔 아시아쿼터가 표본 충족 8명(MIN_GRADE_GROUP) 이상이면 따로 집단을 만들었다 — 상수는 참고용으로 남긴다.
  */
 export const MIN_GRADE_GROUP = 8;
 
-export type GradeGroupKey = "domestic" | "foreign" | "asia" | "foreignAsia";
+export type GradeGroupKey = "domestic" | "foreign" | "asia" | "domesticAsia";
 
 /** 등급 기준 표기에 쓰는 집단 이름 */
 export const GRADE_GROUP_LABELS: Record<GradeGroupKey, string> = {
   domestic: "국내 선수",
   foreign: "외국 선수",
   asia: "아시아쿼터 선수",
-  foreignAsia: "외국인 선수(아시아쿼터 포함)",
+  domesticAsia: "국내 선수(아시아쿼터 포함)",
 };
 
 export interface GradeInput extends RadarInput {
@@ -491,16 +491,21 @@ function nationalityKey(p: { nationality: Nationality | null; isForeign: boolean
   return p.nationality ?? (p.isForeign ? "foreign" : "domestic");
 }
 
-/** 등급 집단: mergeAsia 면 아시아쿼터·외국을 한 집단으로 */
+/** 등급 집단: mergeAsia 면 아시아쿼터·국내를 한 집단으로 (외국 선수는 늘 "foreign") */
 export function gradeGroupOf(p: { nationality: Nationality | null; isForeign: boolean }, mergeAsia: boolean): GradeGroupKey {
   const n = nationalityKey(p);
-  if (n === "domestic") return "domestic";
-  return mergeAsia ? "foreignAsia" : n;
+  if (n === "foreign") return "foreign";
+  return mergeAsia ? "domesticAsia" : n;
+}
+
+/** 국내 쪽 풀인가 (국내·아시아쿼터·국내+아시아쿼터) — 비슷한 시즌 등 "국내 / 외국" 두 갈래로 나눌 때 */
+export function isDomesticPool(key: GradeGroupKey): boolean {
+  return key !== "foreign";
 }
 
 /**
- * 아시아쿼터를 외국과 합칠지: 그 시즌에 아시아쿼터 선수가 한 명이라도 있으면 **항상** 합친다(두 풀 고정, 2026-10-01).
- * 아시아쿼터가 아예 없는 시즌(도입 전, 선수 마스터 없는 시즌)은 합칠 대상이 없어 외국 선수는 그냥 "외국 선수" 집단.
+ * 아시아쿼터를 국내와 합칠지: 그 시즌에 아시아쿼터 선수가 한 명이라도 있으면 **항상** 합친다(두 풀 고정).
+ * 아시아쿼터가 아예 없는 시즌(도입 전, 선수 마스터 없는 시즌)은 합칠 대상이 없어 국내 선수는 그냥 "국내 선수" 집단.
  */
 export function shouldMergeAsia(players: readonly GradeInput[], _rule: QualifyRule): boolean {
   return players.some((p) => nationalityKey(p) === "asia");

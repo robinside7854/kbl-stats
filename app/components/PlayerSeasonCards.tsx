@@ -146,9 +146,10 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
                   trackFilters("player", { season: primeSeason, via: "prime" });
                   setState((s) => ({ ...s, season: primeSeason }));
                 }}
-                className="focus-ring inline-flex h-10 cursor-pointer items-center gap-1.5 rounded-control px-1 text-sub font-semibold text-ink-2 transition-colors duration-200 hover:text-ink"
+                className="focus-ring link-shortcut gap-1.5 px-1 text-sub"
               >
-                <PrimeTag /> {labelOf(primeSeason)} 보기
+                <PrimeTag /> {labelOf(primeSeason)} 시즌 보기
+                <IconChevronRight size={16} />
               </button>
             )}
           </div>
@@ -169,7 +170,7 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
           />
           <Link
             href={compareHref({ id: playerId, seasonCode: season })}
-            className="focus-ring inline-flex h-10 items-center gap-0.5 rounded-control text-body font-semibold text-ink-2 underline underline-offset-4 transition-colors duration-200 hover:text-ink"
+            className="focus-ring link-shortcut text-body"
           >
             비교 탭에서 다른 선수·시즌과 비교
             <IconChevronRight size={16} />

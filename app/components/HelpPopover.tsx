@@ -11,7 +11,7 @@ import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { helpContent, type GlossaryKey, type HelpContent } from "@/lib/glossary";
-import { IconClose, IconInfo } from "./icons";
+import { IconChevronRight, IconClose, IconInfo } from "./icons";
 import { useMedia } from "./useMedia";
 import { trackEvent } from "./track";
 
@@ -192,9 +192,10 @@ export default function HelpPopover({ term, content, compact = false, className 
             </div>
             <Link
               href={c.href}
-              className="focus-ring mt-2 inline-flex h-10 items-center rounded-control text-sub font-semibold text-ink-2 underline underline-offset-4 transition-colors duration-200 hover:text-ink"
+              className="focus-ring link-shortcut mt-2 text-sub"
             >
               자세히
+              <IconChevronRight size={16} />
             </Link>
           </div>,
           document.body,

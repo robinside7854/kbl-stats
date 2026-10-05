@@ -35,7 +35,7 @@ export default function GameDayBoard({ day, next, seasonCode, teams }: Props) {
         </h2>
         <Link
           href={`/season/${seasonCode}/schedule?date=${day.date}`}
-          className="focus-ring inline-flex h-10 shrink-0 items-center gap-0.5 rounded-control px-1 text-sub font-semibold text-ink-2 transition-colors duration-200 hover:text-ink"
+          className="focus-ring link-shortcut shrink-0 px-1 text-sub"
         >
           전체 일정 <IconChevronRight size={16} />
         </Link>
