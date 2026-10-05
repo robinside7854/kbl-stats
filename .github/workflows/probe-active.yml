@@ -3,6 +3,8 @@ name: probe active
 on:
   push:
     branches: [claude/probe-active]
+permissions:
+  contents: write
 jobs:
   probe:
     runs-on: ubuntu-latest
@@ -15,6 +17,7 @@ jobs:
       - run: npm ci
       - name: 응답 헤더
         run: |
+          exec > >(tee -a probe-result.txt) 2>&1
           for q in "regSc=Y&pageNo=1&listCn=200" "regSc=N&pageNo=1&listCn=200"; do
             echo "== $q"
             curl -sS -D - -o /dev/null -A "kbl-stats fan project (non-commercial; github.com/robinside7854/kbl-stats)" \
@@ -25,6 +28,7 @@ jobs:
         run: npx tsx scripts/fetch-active.ts
       - name: 비교
         run: |
+          exec > >(tee -a probe-result.txt) 2>&1
           node -e '
           const fs=require("fs");
           const act=JSON.parse(fs.readFileSync("data/raw/players/active.json","utf8")).flatMap(p=>(typeof p==="string"?JSON.parse(p):p).playerList||[]);
@@ -44,3 +48,10 @@ jobs:
           console.log("24-25 이전이 마지막인데 등록(상무·복귀 등):", old.map(p=>name(p)+":"+last(p)).join(" "));
           const byTeam={};for(const p of act){byTeam[p.teamCode]=(byTeam[p.teamCode]||0)+1}console.log("팀별", JSON.stringify(byTeam));
           '
+      - name: 결과 저장
+        if: always()
+        run: |
+          git config user.name "robinside7854"
+          git config user.email "252681033+robinside7854@users.noreply.github.com"
+          git add -f probe-result.txt data/raw/players/active.json || true
+          git commit -m "조사 결과: 현역 등록 명단 $(date -u +%Y-%m-%dT%H:%MZ) [skip ci]" && git push || echo "변경 없음"
