@@ -63,11 +63,12 @@ export default function GameDayBoard({ day, next, seasonCode, teams }: Props) {
               return (
                 <li key={g.gmkey} className="tabular flex min-h-10 items-center gap-2 py-1.5 text-sub">
                   <span className="w-12 shrink-0 text-ink-3">{g.start ?? ""}</span>
-                  <TeamLogo logoUrl={away.logoUrl} shortName={away.shortName} color={away.color} size={20} />
-                  <span className="min-w-0 truncate font-semibold text-ink">{teamShortLabel(away.shortName)}</span>
-                  <span className="text-ink-3">vs</span>
+                  {/* 홈 팀이 늘 왼쪽 (2026-10-05, 경기 카드와 같은 순서) */}
                   <TeamLogo logoUrl={home.logoUrl} shortName={home.shortName} color={home.color} size={20} />
                   <span className="min-w-0 truncate font-semibold text-ink">{teamShortLabel(home.shortName)}</span>
+                  <span className="text-ink-3">vs</span>
+                  <TeamLogo logoUrl={away.logoUrl} shortName={away.shortName} color={away.color} size={20} />
+                  <span className="min-w-0 truncate font-semibold text-ink">{teamShortLabel(away.shortName)}</span>
                   {g.stadium && <span className="ml-auto hidden shrink-0 text-caption text-ink-3 sm:inline">{g.stadium}</span>}
                 </li>
               );

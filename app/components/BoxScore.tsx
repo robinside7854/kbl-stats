@@ -76,7 +76,7 @@ export interface BoxSide {
 }
 
 export default function BoxScore({ sides, seasonCode }: { sides: BoxSide[]; seasonCode: number }) {
-  const [side, setSide] = useState<"away" | "home">("away");
+  const [side, setSide] = useState<"away" | "home">(sides[0]?.key ?? "home");
   const [view, setView] = useState<View>("basic");
   const [sort, setSort] = useState<BoxSortKey>("pts");
   const cur = sides.find((s) => s.key === side) ?? sides[0];
@@ -87,7 +87,7 @@ export default function BoxScore({ sides, seasonCode }: { sides: BoxSide[]; seas
   return (
     <div className="@container mt-2">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <Segmented label="팀 고르기" options={sides.map((s) => ({ value: s.key, label: s.name }))} value={cur?.key ?? "away"} onChange={setSide} />
+        <Segmented label="팀 고르기" options={sides.map((s) => ({ value: s.key, label: s.name }))} value={cur?.key ?? "home"} onChange={setSide} />
         <div className="@3xl:hidden">
           <Segmented
             label="기록 보기"
