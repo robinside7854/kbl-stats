@@ -1,0 +1,46 @@
+# 조사용 (2026-10-06): 서버 B 현역 등록 명단(regSc=Y)이 언제 바뀌는지 — 응답 헤더(Last-Modified·ETag)와 지금 명단을 우리 기록과 비교. 조사 뒤 이 브랜치는 지워도 된다.
+name: probe active
+on:
+  push:
+    branches: [claude/probe-active]
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: 응답 헤더
+        run: |
+          for q in "regSc=Y&pageNo=1&listCn=200" "regSc=N&pageNo=1&listCn=200"; do
+            echo "== $q"
+            curl -sS -D - -o /dev/null -A "kbl-stats fan project (non-commercial; github.com/robinside7854/kbl-stats)" \
+              -H "Referer: https://kbl.or.kr/" -H "Origin: https://kbl.or.kr" -H "Accept: application/json" \
+              "https://kbl-api.sports2i.com/api/v1/players?$q"
+          done
+      - name: 현역 명단 받기
+        run: npx tsx scripts/fetch-active.ts
+      - name: 비교
+        run: |
+          node -e '
+          const fs=require("fs");
+          const act=JSON.parse(fs.readFileSync("data/raw/players/active.json","utf8")).flatMap(p=>(typeof p==="string"?JSON.parse(p):p).playerList||[]);
+          console.log("현역 등록", act.length, "필드", Object.keys(act[0]||{}).join(","));
+          const ids=new Set(act.map(p=>String(p.playerNo)));
+          const idx=JSON.parse(fs.readFileSync("data/processed/players-index.json","utf8"));
+          const arr=Array.isArray(idx)?idx:(idx.players||Object.values(idx));
+          const last=p=>Math.max(...(p.seasons||[]).map(s=>s.seasonCode));
+          const name=p=>p.nameKo+"("+p.id+")";
+          const played49=arr.filter(p=>last(p)===49), played47=arr.filter(p=>last(p)===47);
+          console.log("26-27 뛴 선수", played49.length, "그중 미등록", played49.filter(p=>!ids.has(String(p.id))).map(name).join(" "));
+          console.log("25-26 까지만 뛴 선수", played47.length, "그중 등록", played47.filter(p=>ids.has(String(p.id))).length);
+          console.log("25-26 까지만 뛰고 미등록:", played47.filter(p=>!ids.has(String(p.id))).map(name).join(" "));
+          const known=new Set(arr.map(p=>String(p.id)));
+          console.log("등록인데 기록 없음(신인·새 외국 선수 등):", act.filter(p=>!known.has(String(p.playerNo))).map(p=>p.kname+"("+p.playerNo+","+p.teamCode+","+p.playerFlagCode2+")").join(" "));
+          const old=arr.filter(p=>last(p)<=45&&ids.has(String(p.id)));
+          console.log("24-25 이전이 마지막인데 등록(상무·복귀 등):", old.map(p=>name(p)+":"+last(p)).join(" "));
+          const byTeam={};for(const p of act){byTeam[p.teamCode]=(byTeam[p.teamCode]||0)+1}console.log("팀별", JSON.stringify(byTeam));
+          '
