@@ -31,17 +31,6 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
-    slug: "2026-10-05-app-back",
-    date: "2026-10-05",
-    kind: "update",
-    title: "설치한 앱에 뒤로 가기 버튼 생겼어요",
-    summary: "앱에 뒤로 가기 버튼 생겼어요",
-    blocks: [
-      { kind: "p", text: "PC나 폰에 앱으로 설치해서 열면 주소창이 없어서 뒤로 가기가 불편했죠. 이제 위쪽 로고 왼쪽에 뒤로 가기 버튼이 보여요." },
-      { kind: "p", text: "브라우저로 볼 때는 원래대로 브라우저 버튼을 쓰면 돼요. PC 앱에서는 Alt + 왼쪽 화살표도 돼요." },
-    ],
-  },
-  {
     slug: "2026-10-05-scoreboard",
     date: "2026-10-05",
     kind: "update",

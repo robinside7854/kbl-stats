@@ -14,7 +14,6 @@ import { useRouter } from "next/navigation";
 import type { SeasonOption } from "@/lib/types";
 import PlayerSearch from "./PlayerSearch";
 import AccountButton from "./AccountButton";
-import AppBackButton from "./AppBackButton";
 import RandomCardButton from "./RandomCardButton";
 import ShareButton from "./ShareButton";
 import UpdateBanner from "./UpdateBanner";
@@ -76,15 +75,11 @@ export default function SiteNav({ seasons, seasonCode, view, onSeasonChange, wid
     <header className="border-b border-line bg-surface">
       <div className={`mx-auto ${wide ? "max-w-5xl" : "max-w-3xl"} px-4`}>
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 pt-3">
-          {/* 설치한 앱으로 열었을 때만 로고 왼쪽에 뒤로 가기 (AppBackButton) */}
-          <div className="order-1 flex min-w-0 items-center gap-2">
-            <AppBackButton />
-            <Link href="/" className="focus-ring inline-flex h-10 shrink-0 items-center gap-2 rounded-control text-body font-bold tracking-tight text-ink">
-              <SiteLogo />
-              <span className="sr-only">KBL </span>
-              {SITE_HEADER_NAME}
-            </Link>
-          </div>
+          <Link href="/" className="focus-ring order-1 inline-flex h-10 shrink-0 items-center gap-2 rounded-control text-body font-bold tracking-tight text-ink">
+            <SiteLogo />
+            <span className="sr-only">KBL </span>
+            {SITE_HEADER_NAME}
+          </Link>
           {/* 랜덤 카드·공유: 모바일은 첫 줄 오른쪽, PC 는 맨 끝 */}
           <div className="order-2 flex shrink-0 items-center gap-2 sm:order-4">
             <RandomCardButton />
