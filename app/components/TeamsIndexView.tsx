@@ -1,10 +1,10 @@
 "use client";
-// 모든 팀 화면 (/teams, 2026-10-04): 지금 팀 카드(이번 시즌 승패·순위·우승 횟수·좋아요 수) + 추억의 팀 카드(활동 기간·이어진 팀).
+// 모든 팀 화면 (/teams, 2026-10-04): 지금 팀 카드(이번 시즌 승패·순위·우승 횟수·팬 수·좋아요 수) + 추억의 팀 카드(활동 기간·이어진 팀).
 // 좋아요 수는 /api/likes (로그인이 켜진 빌드만). GA4: 카드 누르기 team_select {team_code, place:"teams"}
 import Link from "next/link";
 import type { TeamIndexEntry } from "@/lib/franchise";
 import TeamLogo from "./TeamLogo";
-import { IconHeart, IconTrophy } from "./icons";
+import { IconHeart, IconMegaphone, IconTrophy } from "./icons";
 import { trackEvent } from "./track";
 import { useLikeCounts } from "./useLikes";
 
@@ -21,6 +21,7 @@ export default function TeamsIndexView({ teams, seasonCode, seasonShort, records
   const card = (t: TeamIndexEntry) => {
     const rec = records[t.brand.teamCode];
     const likes = counts?.teams[t.brand.teamCode];
+    const fans = counts?.fans?.[t.brand.teamCode];
     return (
       <li key={t.brand.teamCode}>
         <Link
@@ -48,6 +49,12 @@ export default function TeamsIndexView({ teams, seasonCode, seasonShort, records
                 </span>
               )}
               {t.regularFirsts > 0 && <span>정규 1위 {t.regularFirsts}</span>}
+              {fans !== undefined && fans > 0 && (
+                <span className="inline-flex items-center gap-1">
+                  <IconMegaphone size={16} filled />
+                  팬 {fans}
+                </span>
+              )}
               {likes !== undefined && likes > 0 && (
                 <span className="inline-flex items-center gap-1">
                   <IconHeart size={16} filled />

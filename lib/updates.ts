@@ -31,6 +31,25 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-10-05-fans-weekly-ranking",
+    date: "2026-10-05",
+    kind: "update",
+    title: "팀 응원하기랑 54-0 주간 순위 생겼어요",
+    summary: "54-0 주간 순위 생겼어요",
+    blocks: [
+      { kind: "p", text: "팀 페이지에 '응원하기' 버튼이 생겼어요. 누르면 바로 내 응원팀이 되고, 그 팀 팬이 몇 명인지도 같이 보여요." },
+      { kind: "p", text: "54-0은 이제 주마다 순위를 매겨요. 월요일 0시에 새로 시작하고, 회원마다 그 주 가장 좋은 판 하나만 올라가요. 로그인하고 닉네임을 정해 두면 자동으로 들어가요." },
+      {
+        kind: "list",
+        items: [
+          { text: "54-0 주간 순위 보기", href: "/game/ranking" },
+          { text: "팀 팬 수 순위 보기", href: "/likes" },
+          { text: "내 응원팀 고르러 가기", href: "/teams" },
+        ],
+      },
+    ],
+  },
+  {
     slug: "2026-10-05-scoreboard",
     date: "2026-10-05",
     kind: "update",

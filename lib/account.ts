@@ -171,6 +171,8 @@ export interface MyLikes {
 export interface LikeCounts {
   players: Record<string, number>;
   teams: Record<string, number>;
+  /** 팀 팬 수 (2026-10-05): 응원팀으로 고른 회원 수 — 여러 팀을 고르면 팀마다 센다 */
+  fans: Record<string, number>;
 }
 
 /** 서버 수(잠시 캐시된 값) + 내가 방금 바꾼 것 → 화면에 보일 수 (0 아래로는 안 간다) */
@@ -215,6 +217,8 @@ export const GAME_BONUS_KEYS = ["school", "prime", "champion"] as const;
 export type GameBonusKey = (typeof GAME_BONUS_KEYS)[number];
 
 export interface GameRecordInput {
+  /** 서버가 라인업으로 다시 계산해 맞춘 기록인가 (주간 순위에는 이것만, 2026-10-05) */
+  verified?: boolean;
   /** 공유 주소 ?l= 값 "선수번호:시즌코드,…" 다섯 개 (칸 순서) */
   lineup: string;
   wins: number;
@@ -261,4 +265,54 @@ export function validGameRecord(raw: unknown): GameRecordInput | null {
     names.push(clean);
   }
   return { lineup: r.lineup, wins: r.wins, rating: Math.round(r.rating * 10) / 10, bonuses, names };
+}
+
+// ── 54-0 주간 순위 (2026-10-05) ─────────────────────────
+// 한 주 = 한국 시간 월요일 0시 ~ 다음 월요일 0시. 회원마다 그 주 가장 좋은 판 하나(승 → 전력 → 먼저 달성 순),
+// 닉네임을 정한 회원만, 서버가 라인업으로 다시 계산해 맞춘 기록(verified)만 올린다.
+export const GAME_RANKING_LIMIT = 50;
+export type RankingWeek = "this" | "last";
+const KST_MS = 9 * 3600_000;
+const WEEK_MS = 7 * 24 * 3600_000;
+
+/** 한국 시간 월요일 0시의 실제 시각 (offset 0 = 이번 주, -1 = 지난주) */
+export function kstWeekStart(now: Date, offset = 0): Date {
+  const k = new Date(now.getTime() + KST_MS);
+  const sinceMonday = (k.getUTCDay() + 6) % 7;
+  return new Date(Date.UTC(k.getUTCFullYear(), k.getUTCMonth(), k.getUTCDate() - sinceMonday) - KST_MS + offset * WEEK_MS);
+}
+
+/** 주 범위 표기 "10.5(월) ~ 10.11(일)" */
+export function weekRangeLabel(start: Date): string {
+  const f = (t: number) => {
+    const d = new Date(t + KST_MS);
+    return `${d.getUTCMonth() + 1}.${d.getUTCDate()}`;
+  };
+  return `${f(start.getTime())}(월) ~ ${f(start.getTime() + WEEK_MS - 1)}(일)`;
+}
+
+export const parseRankingWeek = (v: string | null | undefined): RankingWeek => (v === "last" ? "last" : "this");
+
+export interface GameRankRow {
+  rank: number;
+  nickname: string;
+  /** 대표 응원팀 (배지 색) */
+  teamCode: string | null;
+  wins: number;
+  rating: number;
+  names: string[];
+  lineup: string;
+  /** 그 주에 완성한 라인업 수 */
+  plays: number;
+  playedAt: string;
+}
+
+export interface GameRanking {
+  week: RankingWeek;
+  /** ISO — 주 시작(포함)·끝(제외) */
+  from: string;
+  to: string;
+  rows: GameRankRow[];
+  /** 순위에 오른 회원 수 (위 rows 는 상위 GAME_RANKING_LIMIT 명) */
+  members: number;
 }

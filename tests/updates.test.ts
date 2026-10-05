@@ -28,7 +28,7 @@ for (const t of texts) {
 }
 
 // 사이트 안 링크는 있는 화면으로
-const ROUTES = ["/", "/players", "/teams", "/records", "/game", "/privacy", "/me", "/updates"];
+const ROUTES = ["/", "/players", "/teams", "/records", "/game", "/game/ranking", "/likes", "/privacy", "/me", "/updates"];
 for (const p of UPDATE_POSTS)
   for (const b of p.blocks) {
     if (b.kind !== "list" && b.kind !== "steps") continue;

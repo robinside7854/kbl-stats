@@ -111,7 +111,13 @@ assert.ok((await setLike(q, a, "player", "291248", true)).ok); // 두 번 눌러
 assert.ok((await setLike(q, a, "team", "55", true)).ok);
 const lb = await setLike(q, b, "player", "291248", true);
 assert.ok(lb.ok && sameList(lb.likes.players, ["291248"]));
-assert.deepEqual(await likeCounts(q), { players: { "291248": 2 }, teams: { "55": 1 } });
+assert.deepEqual(await likeCounts(q), { players: { "291248": 2 }, teams: { "55": 1 }, fans: {} });
+// 팀 팬 수: 응원팀으로 고른 회원 (여러 팀이면 팀마다)
+await updateProfile(q, a, { teamCodes: ["55", "60"] });
+await updateProfile(q, b, { teamCodes: ["55"] });
+assert.deepEqual((await likeCounts(q)).fans, { "55": 2, "60": 1 });
+await updateProfile(q, b, { teamCodes: [] });
+await updateProfile(q, a, { teamCodes: [] });
 await setLike(q, b, "player", "291248", false);
 assert.deepEqual((await likeCounts(q)).players, { "291248": 1 });
 assert.deepEqual((await getOrCreateMember(q, a)).likes, { players: ["291248"], teams: ["55"] });
@@ -197,7 +203,8 @@ console.log("account: 계정 연결·관리자 규칙 통과");
   assert.equal(merged.teamCode, "55");
   assert.deepEqual(merged.logins, ["google", "naver"]);
   assert.deepEqual(merged.likes, { players: ["7"], teams: ["55"] }); // 좋아요도 합침(같은 팀은 한 번)
-  assert.deepEqual(await likeCounts(q2), { players: { "7": 1 }, teams: { "55": 1 } });
+  assert.deepEqual((await likeCounts(q2)).teams, { "55": 1 });
+  assert.deepEqual((await likeCounts(q2)).players, { "7": 1 });
   assert.equal((await q2("SELECT count(*)::int AS n FROM members")).at(0)?.n, 2);
 
   // 같은 회사가 겹치면 합치지 않는다 (구글이 이미 붙은 회원에 다른 구글)
@@ -287,6 +294,35 @@ console.log("account: 계정 연결·관리자 규칙 통과");
   // 탈퇴하면 기록도 지운다
   await deleteMember(q3, "google:a");
   assert.equal((await q3("SELECT count(*)::int AS n FROM member_games WHERE lineup = $1", ["11:2,3:4,5:6,7:8,9:10"])).at(0)?.n, 0);
+  // ── 54-0 주간 순위 (한국 시간 월~일, 닉네임 회원·서버가 맞춘 기록만, 회원마다 가장 좋은 판) ──
+  const { kstWeekStart, weekRangeLabel, parseRankingWeek } = await import("../lib/account");
+  const { weeklyGameRanking } = await import("../lib/server/members");
+  // 2026-10-05(월) 08:59 KST = 10-04 23:59 UTC → 이번 주 시작은 10-05 00:00 KST = 10-04 15:00 UTC
+  assert.equal(kstWeekStart(new Date("2026-10-04T23:59:00Z")).toISOString(), "2026-10-04T15:00:00.000Z");
+  // 일요일 밤 23:59 KST 는 아직 지난주
+  assert.equal(kstWeekStart(new Date("2026-10-04T14:59:00Z")).toISOString(), "2026-09-27T15:00:00.000Z");
+  assert.equal(kstWeekStart(new Date("2026-10-07T03:00:00Z"), -1).toISOString(), "2026-09-27T15:00:00.000Z");
+  assert.equal(weekRangeLabel(new Date("2026-10-04T15:00:00Z")), "10.5(월) ~ 10.11(일)");
+  assert.equal(parseRankingWeek("last"), "last");
+  assert.equal(parseRankingWeek("x"), "this");
+
+  await updateProfile(q3, "google:r1", { nickname: "일번", teamCodes: ["55"] });
+  await updateProfile(q3, "google:r2", { nickname: "이번" });
+  await saveGameRecord(q3, "google:r1", { ...rec, lineup: "1:1,2:2,3:3,4:4,5:5", wins: 40, rating: 90, verified: true });
+  await saveGameRecord(q3, "google:r1", { ...rec, lineup: "1:1,2:2,3:3,4:4,6:6", wins: 45, rating: 91, verified: true });
+  await saveGameRecord(q3, "google:r1", { ...rec, lineup: "1:1,2:2,3:3,4:4,7:7", wins: 54, rating: 99, verified: false }); // 맞추지 못한 기록은 순위 밖
+  await saveGameRecord(q3, "google:r2", { ...rec, lineup: "1:1,2:2,3:3,4:4,8:8", wins: 45, rating: 95, verified: true });
+  await saveGameRecord(q3, "google:nonick", { ...rec, lineup: "1:1,2:2,3:3,4:4,9:9", wins: 54, rating: 99, verified: true }); // 닉네임 없음
+  let rk = await weeklyGameRanking(q3, "this");
+  assert.deepEqual(rk.rows.map((r) => [r.rank, r.nickname, r.wins, r.plays]), [[1, "이번", 45, 1], [2, "일번", 45, 2]]); // 같은 45승이면 전력 높은 쪽, 판 수도 맞춘 기록만
+  assert.equal(rk.rows[1].teamCode, "55");
+  assert.equal(rk.members, 2);
+  assert.equal((await weeklyGameRanking(q3, "last")).rows.length, 0);
+  // 지난주 기록은 지난주 순위로
+  await q3("UPDATE member_games SET played_at = played_at - interval '7 days' WHERE lineup = '1:1,2:2,3:3,4:4,8:8'");
+  rk = await weeklyGameRanking(q3, "this");
+  assert.deepEqual(rk.rows.map((r) => r.nickname), ["일번"]);
+  assert.deepEqual((await weeklyGameRanking(q3, "last")).rows.map((r) => r.nickname), ["이번"]);
   await db3.close();
-  console.log("account: 54-0 내 기록(검사·저장·같은 라인업 한 줄·요약·지우기·상한·합치기·탈퇴) 통과");
+  console.log("account: 54-0 내 기록(검사·저장·같은 라인업 한 줄·요약·지우기·상한·합치기·탈퇴)·주간 순위 통과");
 }

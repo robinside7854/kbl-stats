@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { GAME_HISTORY_LIMIT, type GameHistory, type GameRecord } from "@/lib/account";
 import { fetchGameHistory, removeGameRecord } from "./account-client";
-import { IconClose } from "./icons";
+import { IconChevronRight, IconClose } from "./icons";
 import Skeleton from "./Skeleton";
 import { trackEvent } from "./track";
 
@@ -41,9 +41,15 @@ export default function GameHistoryCard() {
 
   return (
     <section id="game-history" aria-labelledby="game-history-title" className="surface-card rounded-container p-4">
-      <h2 id="game-history-title" className="text-body font-bold">
-        54-0 내 기록
-      </h2>
+      <div className="flex items-center justify-between gap-2">
+        <h2 id="game-history-title" className="text-body font-bold">
+          54-0 내 기록
+        </h2>
+        <Link href="/game/ranking" className="focus-ring link-shortcut text-sub">
+          주간 순위
+          <IconChevronRight size={16} />
+        </Link>
+      </div>
       {history === null ? (
         <div className="mt-2 space-y-2" aria-busy="true" aria-label="불러오는 중">
           <Skeleton className="h-12 rounded-card" />

@@ -284,6 +284,16 @@ export function IconHeart({ filled = false, ...p }: IconProps & { filled?: boole
   );
 }
 
+/** 확성기 (응원·팀 팬). filled 면 몸통을 채운다 */
+export function IconMegaphone({ filled = false, ...p }: IconProps & { filled?: boolean }) {
+  return (
+    <Svg {...p}>
+      <path d="M4 10v4h3l8 4.5v-13L7 10Z" fill={filled ? "currentColor" : "none"} />
+      <path d="M18.5 9.5a3.5 3.5 0 0 1 0 5M8 14l1 5h2.5" />
+    </Svg>
+  );
+}
+
 /** 재생 (하이라이트 영상) */
 export function IconPlay(p: IconProps) {
   return (
