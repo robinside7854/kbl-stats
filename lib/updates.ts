@@ -31,6 +31,20 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-10-05-app-icon",
+    date: "2026-10-05",
+    kind: "update",
+    title: "앱 아이콘 바꿨어요",
+    summary: "앱 아이콘이 바뀌었어요",
+    blocks: [
+      { kind: "p", text: "KBL 글자, 농구공, 기록 막대를 한 아이콘에 넣었어요. 색은 리그 남색이랑 주황." },
+      {
+        kind: "p",
+        text: "이미 설치했다면 폰에 따라 바로 안 바뀔 수 있어요. 그럴 땐 홈 화면 아이콘 지우고 브라우저 메뉴에서 '앱 설치'나 '홈 화면에 추가'를 한 번 더 해 주세요.",
+      },
+    ],
+  },
+  {
     slug: "2026-10-05-so-far",
     date: "2026-10-05",
     kind: "update",
