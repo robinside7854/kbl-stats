@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { splashStartupImages } from "@/lib/splash";
 import { SITE_NAME, SITE_URL, shareMetadata } from "@/lib/share";
 import Analytics from "./components/Analytics";
 import AppInstallTracker from "./components/AppInstallTracker";
@@ -16,7 +17,8 @@ export const metadata: Metadata = {
   }),
   applicationName: SITE_NAME,
   // 아이폰 "홈 화면에 추가" 를 앱처럼(주소창 없이) 열기 (2026-10-05 앱 설치 — 안드로이드는 app/manifest.ts)
-  appleWebApp: { capable: true, title: "KBL 스탯", statusBarStyle: "default" },
+  // 시작 화면 그림은 화면 크기마다 하나 (lib/splash, 그림은 scripts/build-splash.tsx — 2026-10-06 시안 A)
+  appleWebApp: { capable: true, title: "KBL 스탯", statusBarStyle: "default", startupImage: splashStartupImages() },
 };
 
 export const viewport: Viewport = {

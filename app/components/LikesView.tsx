@@ -1,5 +1,5 @@
 "use client";
-// 좋아요 순위 화면 (/likes, 2026-10-04): 선수 / 팀 / 팀 팬 수(2026-10-05) 보기. 수 = 좋아요를 누른 회원 수·응원팀으로 고른 회원 수(/api/likes, 1분 캐시).
+// 좋아요 순위 화면 (/likes, 2026-10-04): 선수 / 팀 팬 수(2026-10-05) 보기. 팀 좋아요는 2026-10-06 사용자 결정으로 없앰(팬 수와 겹침). 수 = 좋아요를 누른 회원 수·응원팀으로 고른 회원 수(/api/likes, 1분 캐시).
 // 선수 이름·사진은 검색 색인(/search-index.json). GA4: filter_change screen=likes filter=tab
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -19,7 +19,7 @@ const TOP = 50;
 
 export default function LikesView({ teams }: { teams: (TeamBrand & { active: boolean })[] }) {
   const counts = useLikeCounts();
-  const [tab, setTab] = useState<"player" | "team" | "fans">("player");
+  const [tab, setTab] = useState<"player" | "fans">("player");
   const [index, setIndex] = useState<Map<string, SearchEntry> | null>(null);
   useEffect(() => {
     void loadSearchIndex()
@@ -38,7 +38,7 @@ export default function LikesView({ teams }: { teams: (TeamBrand & { active: boo
   const teamRows = useMemo(
     () =>
       teams
-        .map((t) => ({ t, n: (tab === "fans" ? counts?.fans?.[t.teamCode] : counts?.teams[t.teamCode]) ?? 0 }))
+        .map((t) => ({ t, n: counts?.fans?.[t.teamCode] ?? 0 }))
         .filter((r) => r.t.active || r.n > 0)
         .sort((a, b) => b.n - a.n || Number(b.t.active) - Number(a.t.active)),
     [teams, counts, tab],
@@ -57,13 +57,12 @@ export default function LikesView({ teams }: { teams: (TeamBrand & { active: boo
     <main className="mx-auto max-w-3xl px-4 pb-6 pt-5">
       <h1 className="text-h1 font-black">좋아요 순위</h1>
       <p className="mt-0.5 text-sub text-ink-3">
-        {tab === "fans" ? "팀 팬 수는 그 팀을 응원팀으로 고른 회원 수예요." : "로그인한 팬이 선수·팀 페이지에서 누른 좋아요 수예요."} 1분마다 새로 세요.
+        {tab === "fans" ? "팀 팬 수는 그 팀을 응원팀으로 고른 회원 수예요." : "로그인한 팬이 선수 페이지에서 누른 좋아요 수예요."} 1분마다 새로 세요.
       </p>
       <ChipRow
         label="보기"
         chips={[
           { value: "player", label: "선수" },
-          { value: "team", label: "팀" },
           { value: "fans", label: "팀 팬 수" },
         ]}
         value={tab}
@@ -114,7 +113,7 @@ export default function LikesView({ teams }: { teams: (TeamBrand & { active: boo
                     {!t.active && <span className="ml-1.5 text-caption font-normal text-ink-3">추억의 팀</span>}
                   </span>
                   <span className="inline-flex items-center gap-1 text-body font-bold tabular text-ink">
-                    {tab === "fans" ? <IconMegaphone size={16} filled={n > 0} /> : <IconHeart size={16} filled={n > 0} />}
+                    <IconMegaphone size={16} filled={n > 0} />
                     {n}
                   </span>
                 </Link>

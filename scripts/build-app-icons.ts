@@ -5,26 +5,7 @@
 // 실행: npx tsx scripts/build-app-icons.ts
 import { mkdir, writeFile } from "node:fs/promises";
 import sharp from "sharp";
-
-const NAVY = "#011B6A";
-const ORANGE = "#EB6100";
-
-/** 64×64 그림 (바탕 없이) */
-const ART = [
-  // KBL — 글자 높이 14, 획 3.6
-  `<g fill="none" stroke="#ffffff" stroke-width="3.6" stroke-linejoin="miter" transform="translate(14.5 8)">`,
-  `<path d="M1.8 0V14M10.6 0L3 7L10.6 14"/>`,
-  `<path d="M14.6 0V14M14.6 1.8H19.6A2.6 2.6 0 0 1 19.6 7H14.6M19.6 7H20.2A2.7 2.7 0 0 1 20.2 12.2H14.6"/>`,
-  `<path d="M27.2 0V12.2H35"/>`,
-  `</g>`,
-  // 농구공
-  `<circle cx="22" cy="42" r="12.5" fill="${ORANGE}"/>`,
-  `<g fill="none" stroke="${NAVY}" stroke-width="1.6"><path d="M22 29.5V54.5M9.5 42H34.5"/><path d="M13.2 33.2A15 15 0 0 1 13.2 50.8M30.8 33.2A15 15 0 0 0 30.8 50.8"/></g>`,
-  // 막대 세 개 (스탯)
-  `<rect x="39" y="45" width="5" height="9.5" rx="1" fill="#ffffff" fill-opacity="0.55"/>`,
-  `<rect x="46" y="39" width="5" height="15.5" rx="1" fill="#ffffff" fill-opacity="0.8"/>`,
-  `<rect x="53" y="32" width="5" height="22.5" rx="1" fill="${ORANGE}"/>`,
-].join("");
+import { APP_ART as ART, NAVY } from "./app-art.js";
 
 const svg = (bg: string, inner: string) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">${bg}${inner}</svg>`;
 const ROUNDED = svg(`<rect width="64" height="64" rx="14" fill="${NAVY}"/>`, ART);

@@ -1,14 +1,13 @@
 "use client";
 // 팀 페이지 본문 (/team/[팀코드], 2026-10-04): 머리말(로고·이름 이력·좋아요·계보) → 통산 성적 → 시즌 고르기 + 그 시즌 로스터
 // → 시즌별 성적 표 → 레전드 → 팀 통산 기록 → 수상. 재료는 lib/data loadFranchises (규칙 lib/franchise).
-// 주소 ?season=코드 로 그 시즌 로스터를 연다. GA4: filter_change screen=team filter=season·leader, like_add/remove(LikeButton), fan_add/remove(FanButton — 지금 팀만)
+// 주소 ?season=코드 로 그 시즌 로스터를 연다. GA4: filter_change screen=team filter=season·leader, fan_add/remove(FanButton — 지금 팀만)
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { mixHex } from "@/lib/images";
 import { LEGEND_RULE_TEXT, majorAwardSummary, PLAYOFF_STAGE_LABELS, pctText, type PlayoffStage, type TeamLeaderKey, type TeamPageData } from "@/lib/franchise";
 import ChipRow from "./ChipRow";
 import FanButton from "./FanButton";
-import LikeButton from "./LikeButton";
 import PlayerAvatar from "./PlayerAvatar";
 import TeamLogo from "./TeamLogo";
 import { IconArrowRight, IconTrophy } from "./icons";
@@ -105,7 +104,6 @@ export default function TeamView({ data }: { data: TeamPageData }) {
             )}
             <div className="mt-3 flex flex-wrap gap-2">
               {data.active && <FanButton teamCode={brand.teamCode} label={brand.name} />}
-              <LikeButton kind="team" target={brand.teamCode} label={brand.name} />
               {champSeasons.length > 0 && (
                 <span className="inline-flex h-10 items-center gap-1.5 rounded-control px-3 text-sub font-bold" style={{ background: "var(--grade-s)", color: "var(--grade-s-ink)" }}>
                   <IconTrophy size={16} />

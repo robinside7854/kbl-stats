@@ -319,7 +319,7 @@ kbl-stats/
   | like_add / like_remove | kind(player/team), player_no 또는 team_code | 선수 상세·팀 페이지 좋아요 |
   | fan_add / fan_remove | team_code | 팀 페이지 "응원하기"(내 응원팀에 더하기·빼기, 지금 팀만) |
   | filter_change (팬·주간 순위) | screen=likes filter=tab value=fans · screen=game_ranking filter=week(this/last) | 좋아요 순위 "팀 팬 수" 보기 / 54-0 주간 순위 이번 주·지난주 |
-  | filter_change (팀·좋아요) | screen=team filter=season·leader · screen=likes filter=tab | 팀 페이지 로스터 시즌·팀 통산 기록 부문 / 좋아요 순위 선수·팀 |
+  | filter_change (팀·좋아요) | screen=team filter=season·leader · screen=likes filter=tab(player/fans) · screen=teams filter=tab(now/past) | 팀 페이지 로스터 시즌·팀 통산 기록 부문 / 좋아요 순위 선수·팀 팬 수 / 모든 팀 지금 팀·추억의 팀 |
   | nav_click(menu "로그인"·"내 계정") | | 헤더 계정 버튼 |
   | contact_click | (없음) | 푸터 문의 이메일 누르기 |
   | filter_change (일정 범위) | screen=schedule filter=scope value=mine/all | 일정 화면 내 응원팀만 / 전체 일정 (로그인 + 응원팀 있는 회원만 보임) |
@@ -379,6 +379,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-06 (시작 화면·팀 화면 개편): ① 사용자 결정 시작 화면 시안 A(리그 남색) — 안드로이드는 manifest `background_color` #011B6A, 아이폰·아이패드는 화면 크기별 그림 15장 `public/splash/*.png`(`scripts/build-splash.tsx` 한 번 돌려 커밋, 목록 `lib/splash.ts`, layout `appleWebApp.startupImage`). 아이콘 그림은 `scripts/app-art.ts` 로 빼서 아이콘·시작 화면이 같이 씀. ② `/teams` 개편: 하위 탭 지금 팀/추억의 팀(`?tab=past`), 지금 팀은 이번 시즌 순위 순 카드(순위 칩·승패), 폰 2열·md 5열, 우승은 트로피+숫자·팬 수만, "좋아요 순위"는 머리말 링크, "자세한 순위표" 링크. **팀 좋아요 삭제**(팀 페이지 하트·좋아요 순위 "팀" 탭 — 서버 표·API 는 그대로). GA4 filter_change teams tab. 업데이트 소식 글. main 배포.
 - 2026-10-06 (일정 내 응원팀만): 사용자 요청 — 일정 화면(`ScheduleView`)에 "내 응원팀 / 전체 일정"(로그인 + 그 시즌 응원팀 경기가 있는 회원만, 기본 내 응원팀, 고른 것은 localStorage `kbl-stats:schedule-scope:v1`), 응원팀 없는 회원은 "응원팀 고르기" 안내, 로그인 안 한 방문자는 "로그인하고 응원팀을 고르면 우리 팀 경기만" 안내 카드(로그인 꺼진 빌드는 없음). 규칙 `lib/games gamesOfTeams·initialScheduleScope`. GA4 filter_change schedule scope, 새 이벤트 `login_prompt_click`(place — 이미 등록된 매개변수). 업데이트 소식 글. main 배포.
 - 2026-10-05 (Vercel 저장공간 초과 대응): Usage 가 Deployment Storage 10.58/10GB(kbl-stats 9.94GB)·Fluid CPU 4h26m/4h(농구 대시보드 89%). 원인 = 저장소 안 `data/raw` 207MB 가 배포마다 소스 스냅샷으로 쌓임 + 9/30 백필이 시즌마다 main 푸시(배포 38개) + 무료 플랜엔 자동 삭제 없음. 조치 ① 사용자 `vercel remove --safe` 39개 삭제 ② `.vercelignore`(raw·docs·tests·shorts) ③ 백필 3종을 `data-backfill` 브랜치 중간 저장 → main 1회 ④ `scripts/vercel-cleanup.ts` 매일 수집 끝 + `vercel-cleanup.yml`, VERCEL_TOKEN Secret. 안 한 것: 결과물 다이어트(`.next/server` 340MB). 화면 변경 없음 → 업데이트 소식 글 없음. main 배포.
 - 2026-10-06 (현역·미등록·은퇴): 사용자 결정 — 현역 등록 명단(regSc=Y)은 갱신 주기가 없어(조사 브랜치 `claude/probe-active`, 지워도 됨) **주 1회 확인·바뀔 때만 저장**(`scripts/active-roster.ts`, `data/active-roster-log.json`). 첫 명단은 조사 때 받은 187명을 그대로 넣음. 상태 3단계 `lib/roster rosterStatusOf`(현역 / 미등록 = 명단에 없고 최근 3시즌 안에 뜀 / 은퇴·KBL 떠남 = 최근 3시즌 기록 없음) → 색인 `rosterStatus`(현역 180·미등록 104·은퇴 567·떠남 485). 선수 머리말에 상태 칩(누르면 기준 팝오버, 용어 풀이 `#roster-status`), 역대 기록 "현역만"·현역 배지·이정표는 `isActiveCareer` 가 명단 기준으로(명단 없으면 예전 규칙). "현역만" 옆 ⓘ. GA4 는 help_open topic=rosterStatus(새 이벤트 없음). 업데이트 소식 글. main 배포.

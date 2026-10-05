@@ -31,6 +31,19 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-10-06-teams-tab",
+    date: "2026-10-06",
+    kind: "update",
+    title: "팀 화면을 순위 카드로 바꿨어요",
+    summary: "팀 화면, 순위 카드로",
+    blocks: [
+      { kind: "p", text: "팀 화면이 이번 시즌 순위대로 두 줄 카드로 나와요. 카드마다 순위, 승패, 우승 횟수, 팬 수가 보여요." },
+      { kind: "p", text: "지금 팀이랑 추억의 팀은 위 버튼으로 바꿔 봐요. 팀 좋아요는 팬 수랑 겹쳐서 뺐어요." },
+      { kind: "p", text: "설치한 앱을 켤 때 나오는 시작 화면도 리그 남색으로 바꿨어요." },
+      { kind: "list", items: [{ text: "팀 화면 보기", href: "/teams" }] },
+    ],
+  },
+  {
     slug: "2026-10-06-schedule-my-team",
     date: "2026-10-06",
     kind: "update",

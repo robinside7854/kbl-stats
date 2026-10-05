@@ -15,7 +15,8 @@ export default function manifest(): MetadataRoute.Manifest {
     display: "standalone",
     orientation: "portrait",
     lang: "ko",
-    background_color: "#f4f4f1",
+    // 안드로이드 시작 화면 배경 = 리그 남색 (2026-10-06 사용자: 시안 A — 아이콘 바탕과 같아 그림만 떠 보이게, 다크 모드에서도 눈부시지 않게)
+    background_color: "#011B6A",
     theme_color: "#f4f4f1",
     icons: [
       { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
