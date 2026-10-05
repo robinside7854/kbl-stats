@@ -35,7 +35,10 @@ export interface GameCandidate {
   /** "25-26" */
   season: string;
   position: Position;
+  /** 외국 선수(외국인 슬롯 GAME_FOREIGN_MAX 를 씀). 아시아쿼터는 false — 2026-10-05 사용자 결정 */
   foreign: boolean;
+  /** 아시아쿼터 — 외국인 슬롯에 세지 않는다 (옛 풀에는 없음) */
+  asia?: boolean;
   photoUrl: string | null;
   /** 종합 점수 1~99 */
   score: number;

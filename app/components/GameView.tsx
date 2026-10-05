@@ -563,8 +563,8 @@ function CandidateList({ teams, sort, onSort, lineup, choosing, showAll, onShowA
                       </span>
                       <span className="min-w-0">
                         <span className={`block truncate text-sub font-bold sm:text-body ${reason ? "text-ink-3" : "text-ink"}`}>{c.nameKo}</span>
-                        {(reason || c.foreign) && (
-                          <span className="block truncate text-caption text-ink-3">{reason ?? "외국 선수"}</span>
+                        {(reason || c.foreign || c.asia) && (
+                          <span className="block truncate text-caption text-ink-3">{reason ?? (c.foreign ? "외국 선수" : "아시아쿼터")}</span>
                         )}
                       </span>
                     </span>
@@ -899,7 +899,7 @@ function GameRules({ open, onToggle }: { open: boolean; onToggle: (next: boolean
             <h2 className="text-sub font-bold text-ink">이렇게 해요</h2>
             <ol className="mt-1 list-decimal space-y-1 pl-5">
               <li>슬롯을 돌리면 시즌 하나와 그 시즌 팀 3개가 나와요.</li>
-              <li>세 팀 선수 중 한 명을 골라 빈 칸에 넣어요. 칸은 가드 2·포워드 2·센터 1, 외국 선수는 2명까지예요.</li>
+              <li>세 팀 선수 중 한 명을 골라 빈 칸에 넣어요. 칸은 가드 2·포워드 2·센터 1, 외국 선수는 2명까지예요(아시아쿼터는 세지 않아요).</li>
               <li>다섯 번 하면 주전 5명 완성. 54경기를 치른 성적이 바로 나와요.</li>
             </ol>
             <p className="mt-1.5 text-caption text-ink-3">

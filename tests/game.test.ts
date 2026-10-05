@@ -31,6 +31,9 @@ assert.equal(GAME_FOREIGN_MAX, 2);
 assert.equal(canPick(l, c("f3", "F", true)), false);
 assert.equal(pickBlockReason(l, c("f3", "F", true)), "외국 선수 2명 다 참");
 assert.equal(canPick(l, c("d1", "F")), true);
+// 아시아쿼터는 외국인 슬롯에 세지 않는다
+assert.equal(canPick(l, { ...c("a1", "F"), asia: true }), true);
+assert.equal(pickBlockReason(l, { ...c("a1", "F"), asia: true }), null);
 assert.equal(isLineupFull(l), false);
 console.log("game: 칸·외국 선수 한도 통과");
 
