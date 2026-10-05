@@ -178,6 +178,7 @@ kbl-stats/
 │   ├── build-short.ts   ← 팬 숏폼 에피소드 JSON (지난 시즌 국내 득점 TOP 5 득점 유형, 규칙 lib/shorts) → shorts/episodes/{slug}/episode.json (커밋)
 │   ├── prepare-short.ts ← 숏폼 렌더 준비: AI 목소리(ELEVENLABS_API_KEY+VOICE_ID 면 ElevenLabs 한 번에 읽기·글자 시각, 아니면 GOOGLE_TTS_API_KEY → Google, 그다음 edge-tts, 다 없으면 추정 길이)·사진·로고 받기·글꼴 복사 → shorts/public/{slug}/props.json·upload.txt (git 제외)
 │   ├── build-og.tsx     ← 공유 미리보기 이미지 public/og/*.png (prebuild, 1200×630, next/og + assets/fonts/Pretendard OFL): site(밝은 바탕 + KBL 리그 로고 — 빌드 때 1회 받아 캐시, 실패 시 글자 배지)·records·game·leaders/{시즌}·player/{번호} 약 1,370장·51MB. 사진·로고 없이 팀 색·이름·기록만(외부 요청 없음). 내용 해시로 .next/cache/og 재사용(첫 빌드 약 3분, 이후 바뀐 것만). git 제외
+│   ├── build-app-icons.ts ← 앱 설치 아이콘 public/icons/icon·maskable 192·512 PNG (그림 = app/icon.svg, 한 번 돌려 커밋 — prebuild 아님). 설치 설정은 app/manifest.ts
 │   ├── build-games.ts   ← 날짜별 박스스코어 파일 public/games/{시즌}/{날짜}.json (prebuild·predev, 일정 화면이 펼칠 때 받음, git 제외)
 │   └── build-cards.ts   ← 비교 탭용 시즌별 카드 데이터 public/cards/{seasonCode}.json 생성 (prebuild·predev, 형식은 lib/cards.ts v2 — 레이더 구성 요소 열 포함, 시즌당 약 28~55KB, git 제외)
 ├── shorts/              ← 팬 숏폼 영상 렌더러 (Remotion, 자체 package.json — 사이트 빌드와 따로 설치). src/TopScorers.tsx(매거진 톤 1080×1920: 표지 → 5위…1위 → 비교·득점왕 질문)·InsightScenes.tsx(선수별 장면 5종), theme.ts(종이·잉크, 득점 출처 4색 = 사이트 --cat-1~4), episodes/{slug}/episode.json(커밋), public·out(git 제외). 렌더는 Actions shorts-render.yml(실행 횟수 올려 푸시 → Artifacts + shorts-renders 브랜치)
@@ -282,7 +283,7 @@ kbl-stats/
 - 매개변수는 개인을 알아볼 수 없는 값만(선수 번호·시즌·화면·부문 이름). 이메일·이름 입력값·검색어 원문은 보내지 않는다
 - 새 매개변수를 만들면 사용자에게 "GA → 관리 → 맞춤 정의"에 등록할 이름을 알려 준다(등록 전 데이터는 보고서에서 안 보임)
 - 검증: 브라우저에서 `window.gtag` 를 가짜 함수로 바꿔 놓고 눌러 보아 이벤트가 나가는지 확인(Playwright `addInitScript`)
-- 사용자 속성(2026-10-04, `track.ts setUserProperties`, 헤더 `AccountButton` 이 화면마다 설정): `signed_in`(yes/no)·`support_team`(대표 응원팀 코드 또는 none) — GA 맞춤 정의에 "사용자" 범위로 등록
+- 사용자 속성(2026-10-04, `track.ts setUserProperties`, 헤더 `AccountButton` 이 화면마다 설정): `signed_in`(yes/no)·`support_team`(대표 응원팀 코드 또는 none) · 2026-10-05 `display_mode`(standalone = 설치한 앱으로 열음 / browser, `AppInstallTracker`) — GA 맞춤 정의에 "사용자" 범위로 등록
 - 지금 이벤트 (화면 이름 screen: leaders·players·records·player·trend·shot_chart·compare·home 등)
   | 이벤트 | 매개변수 | 언제 |
   |---|---|---|
@@ -309,6 +310,7 @@ kbl-stats/
   | filter_change (팀·좋아요) | screen=team filter=season·leader · screen=likes filter=tab | 팀 페이지 로스터 시즌·팀 통산 기록 부문 / 좋아요 순위 선수·팀 |
   | nav_click(menu "로그인"·"내 계정") | | 헤더 계정 버튼 |
   | contact_click | (없음) | 푸터 문의 이메일 누르기 |
+  | app_install | (없음) | 앱 설치 완료 (브라우저 "앱 설치"·"홈 화면에 추가", `AppInstallTracker`) — 설치한 앱으로 연 방문은 사용자 속성 `display_mode`(standalone/browser) |
   | highlight_open | game_key(gmkey), season_code, place(home/schedule) | 경기 카드 "하이라이트" (유튜브 영상 팝업) |
   | boxscore_open | game_key(gmkey), season_code, place(home/schedule) | 홈 "오늘의 경기"·일정 화면 선수 기록 펼치기 (정렬·보기 전환은 filter_change screen=boxscore sort·view, 일정 달은 screen=schedule month) |
   | compare_open | player_no | 선수 상세 "비교" 버튼 (고른 선수는 search_select mode=compare) |
@@ -352,6 +354,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-05 (앱 설치·하단 홈 버튼): 사용자 ① **앱처럼 설치**(PWA) — `app/manifest.ts`(/manifest.webmanifest: 이름 KBL - Stats Reference·짧은 이름 "KBL 스탯"·standalone·세로·밝은 바탕), 아이콘 `public/icons` 192·512 + maskable(`scripts/build-app-icons.ts`, 그림 = app/icon.svg), 아이폰 `appleWebApp`(홈 화면에 추가 → 주소창 없이). 오프라인 저장(서비스 워커)·사이트 안 설치 버튼은 안 만듦(브라우저 메뉴 "앱 설치"). GA4 `app_install`·사용자 속성 `display_mode`(`AppInstallTracker`, 맞춤 정의 등록 필요). ② 삼성 인터넷이 화면 아래 가운데에 띄우는 "위로 가기" 버튼(브라우저 기능, 사이트가 끌 수 없음)이 위로 띄운 홈 버튼을 가림 → 사용자 결정: 홈 버튼을 **다른 칸과 같은 줄로 내리고 "홈" 글자 삭제, 둥근 모양 유지**(44px). 설치한 앱(standalone)으로 열면 브라우저 버튼 자체가 없다. 검증: typecheck·test·build·slop 0, 크롬 설치 가능 판정(CDP getInstallabilityErrors) 오류 0·manifest 오류 0·아이콘 200·CSP 위반 0, 360 하단 바 스크린샷. main 배포.
 - 2026-10-05 (경기 카드 주요 선수 2명·지금 탭 표시): 사용자 요청 ① 경기 카드(홈·일정) 팀별 주요 선수 1명 → **2명**(`lib/games teamStandouts`): 득점 1위 + 나머지 중 부문 1위 기록 ÷ 문턱(어시 5·3점 성공 3·스틸+블록 3·리바 8, 우리 규칙)이 가장 큰 선수(1 넘는 부문이 없으면 득점 2위), 줄 앞 꼬리표 득점/어시/3점/수비/리바·그 부문 기록 먼저(`standoutLine` "8어시 · 9득점"). 25-26 둘째 선수 분포 어시 223·리바 136·수비 82·3점 75·득점 24. ② 모바일 하단 탭 **지금 화면 = 파란색**(글자·아이콘 뒤 옅은 파란 바탕·위쪽 3px 막대, 비교 화면은 "선수" 탭), 헤더 계정 버튼도 /me·/admin 에서 파란 테두리·바탕(`AccountButton active`). 검증: typecheck·test(games 주요 선수)·build·slop 0, Playwright 360/390(다크)/1280 일정 가로 넘침 0·탭 7개 aria-current·로그인 켠 개발 서버로 계정 버튼 확인. main 배포.
 - 2026-10-04 (10/3~10/4 하이라이트 연결): 사용자 "10/3~10/4 는 지금 연동, 내일부터 자동 테스트" → 세션 환경은 유튜브 차단이라 조사 워크플로(`claude/probe-youtube`)로 RSS 원문을 gzip+base64 로 받아 그대로 복원(gzip 검사 통과, 21,021바이트·15개) → `data/raw/highlights/tving/20261004T1445.xml`. process 결과 games.json 4경기(S49G01N1~4)에 `highlight` — 다른 파일은 시각만 바뀌어 되돌림. 10/4 삼성-KT(N5) 하이라이트는 그때 RSS 에 아직 없음(다음 수집에서). main 배포.
 - 2026-10-04 (경기 하이라이트 영상): 사용자 "TVING SPORTS 제목 형식이 정해져 있다" → Actions 조사(`claude/probe-youtube`, 지워도 됨): 채널 RSS 키 없이 됨(최근 15개, 야구·쇼츠 섞임)·oEmbed 200(임베드 허용)·제목 "[홈 vs 원정] M/D 경기 I 2026-27 KCC 프로농구 I 하이라이트". 매일 수집이 RSS 를 쌓고(`data/raw/highlights/tving`, 새 하이라이트 있을 때만) process 가 games.json `highlight` → 경기 카드 "하이라이트" 버튼 → 박스스코어와 같은 팝업에 youtube-nocookie 영상 + "유튜브에서 보기". CSP frame-src·개인정보 안내 추가, SCOPE 보류 → IN. GA4 `highlight_open`(새 매개변수 없음). 검증: typecheck·test(highlights 추가)·build·slop 0, 임시 RSS(10/3~4 4경기 전부 연결)로 Playwright 360/1280 팝업·영상 틀·이벤트·CSP 위반 0 확인 후 임시 파일 삭제. 첫 실제 영상은 다음 매일 수집 뒤. main 배포.
