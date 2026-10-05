@@ -4,7 +4,7 @@
 import { perGame } from "./metrics";
 import { formatHighDate, formatHighShot, formatHighTimes, formatHighValue, HERO_HIGH_KEYS, highDef } from "./highs";
 import { CLUB_40, CLUB_50 } from "./badges";
-import type { CareerHighs, HighKey, HighRecord, HighsSet, SeasonHighLeader, SeasonHighLeaderKey, AwardKey, PlayerAward } from "./types";
+import type { CareerHighs, HighKey, HighRecord, HighsSet, SeasonHighLeader, SeasonHighLeaderKey, AwardKey, PlayerAward, LeaderPlayer, PostseasonLine } from "./types";
 
 // ─────────────────────────────────────────────
 // 시즌 표기
@@ -448,4 +448,82 @@ export function awardLines(
 export function awardChipText(l: AwardLine): string {
   const short = l.key === "mvp" ? "MVP" : l.label;
   return `${short} ${l.count}회`;
+}
+
+// ─────────────────────────────────────────────
+// 시즌별 기록표: 통산 줄·플레이오프 줄 (2026-10-05 사용자 요청)
+// ─────────────────────────────────────────────
+
+const pctOf = (made: number, att: number) => (att > 0 ? (made / att) * 100 : NaN);
+/** TS% = 득점 ÷ (2 × (야투 시도 + 0.44 × 자유투 시도)) — Basketball-Reference 표준식, KBL 값과 일치(CLAUDE.md 서버 A) */
+export function tsPctOf(points: number, fga: number, fta: number): number {
+  const d = 2 * (fga + 0.44 * fta);
+  return d > 0 ? (points / d) * 100 : NaN;
+}
+
+/** 출전 시간 가중 평균 (값이 있는 시즌만, 하나도 없으면 null) */
+function minutesWeighted(rows: readonly LeaderPlayer[], pick: (r: LeaderPlayer) => number | null | undefined): number | null {
+  let sum = 0, w = 0;
+  for (const r of rows) {
+    const v = pick(r);
+    if (v === null || v === undefined || !Number.isFinite(v) || r.minutes <= 0) continue;
+    sum += v * r.minutes;
+    w += r.minutes;
+  }
+  return w > 0 ? sum / w : null;
+}
+
+/**
+ * 여러 시즌 → 통산 한 줄. 누적 기록은 더하고, 성공률·TS% 는 더한 성공/시도로 다시 계산,
+ * PER·USG% 는 출전 시간 가중 평균(우리 근사 — KBL 통산 공식 값이 아님). 시즌이 없으면 null.
+ */
+export function careerTotalRow(rows: readonly LeaderPlayer[]): LeaderPlayer | null {
+  if (rows.length === 0) return null;
+  const sum = (k: keyof LeaderPlayer) => rows.reduce((a, r) => a + ((r[k] as number) || 0), 0);
+  const last = rows[rows.length - 1];
+  const t = {
+    games: sum("games"), wins: sum("wins"), losses: sum("losses"), minutes: sum("minutes"),
+    points: sum("points"), reb: sum("reb"), ast: sum("ast"), stl: sum("stl"), blk: sum("blk"), tov: sum("tov"), fouls: sum("fouls"),
+    fgm: sum("fgm"), fga: sum("fga"), tpm: sum("tpm"), tpa: sum("tpa"), ftm: sum("ftm"), fta: sum("fta"),
+  };
+  return {
+    ...last,
+    teamCode: "",
+    teamShort: "",
+    ...t,
+    fgPct: pctOf(t.fgm, t.fga),
+    tpPct: pctOf(t.tpm, t.tpa),
+    ftPct: pctOf(t.ftm, t.fta),
+    tsPct: tsPctOf(t.points, t.fga, t.fta),
+    usgPct: minutesWeighted(rows, (r) => r.usgPct),
+    per: minutesWeighted(rows, (r) => r.per) ?? NaN,
+    deflections: null,
+    screenAst: null,
+    zones: null,
+  };
+}
+
+/** 플레이오프 시즌 합계(postseason.json 한 줄) → 기록표 한 줄. base 는 그 선수 정규시즌 줄(이름·포지션 등). PER·USG% 는 없음 */
+export function playoffLeaderRow(line: PostseasonLine, base: LeaderPlayer): LeaderPlayer {
+  const fgm = line.fgm ?? NaN, fga = line.fga ?? NaN, tpa = line.tpa ?? NaN, fta = line.fta ?? NaN;
+  return {
+    ...base,
+    teamCode: line.teamCode,
+    games: line.games,
+    wins: line.wins ?? 0,
+    losses: line.losses ?? 0,
+    minutes: line.minutes,
+    points: line.points, reb: line.reb, ast: line.ast, stl: line.stl, blk: line.blk,
+    tov: line.tov ?? NaN, fouls: line.fouls ?? NaN,
+    fgm, fga, tpm: line.tpm, tpa, ftm: line.ftm, fta,
+    fgPct: pctOf(fgm, fga),
+    tpPct: pctOf(line.tpm, tpa),
+    ftPct: pctOf(line.ftm, fta),
+    tsPct: tsPctOf(line.points, fga, fta),
+    usgPct: null,
+    per: NaN,
+    deflections: null,
+    screenAst: null,
+    zones: null,
+  };
 }

@@ -1,6 +1,6 @@
 // 선수 페이지·검색 검증 (lib/metrics careerSummary·buildCardEntry, lib/career, lib/search). 실행: npm run test:player
 import assert from "node:assert/strict";
-import { awardChipText, awardLines, profileFacts } from "../lib/career";
+import { awardChipText, awardLines, careerTotalRow, playoffLeaderRow, profileFacts, tsPctOf } from "../lib/career";
 import {
   buildCardContext,
   buildCardEntry,
@@ -21,7 +21,7 @@ import {
   trendValue,
 } from "../lib/career";
 import { buildSearchIndex, matchScore, normalizeName, searchPlayers, searchSpanLabel } from "../lib/search";
-import type { PlayerIndexEntry, SearchEntry } from "../lib/types";
+import type { LeaderPlayer, PlayerIndexEntry, SearchEntry } from "../lib/types";
 
 // ── 통산: 합계 ÷ 합계 경기 (시즌 평균의 평균이 아님) ──
 const z = { stl: 0, blk: 0, fgm: 0, fga: 0, tpm: 0, tpa: 0 };
@@ -246,4 +246,37 @@ console.log("player: 프로필 표기 통과");
   assert.deepEqual(awardLines(undefined, undefined, ss), []);
   assert.equal(awardLines([{ key: "rookie", seasonCode: 3 }], [], ss, new Map([[3, "1998-1999"]]))[0].seasons, "98-99");
   console.log("player: 수상 경력 통과");
+}
+
+// 시즌별 기록표 통산 줄·플레이오프 줄 (2026-10-05)
+{
+  const row = (o: Partial<LeaderPlayer>): LeaderPlayer => ({
+    id: "1", nameKo: "가", nameEn: "A", teamCode: "10", teamShort: "모비스", isForeign: false, position: "G", positionGroup: "G",
+    nationality: "domestic", photoUrl: null, games: 0, wins: 0, losses: 0, minutes: 0, points: 0, reb: 0, ast: 0, stl: 0, blk: 0,
+    tov: 0, fouls: 0, fgm: 0, fga: 0, tpm: 0, tpa: 0, ftm: 0, fta: 0, fgPct: 0, tpPct: 0, ftPct: 0, tsPct: 0, usgPct: null, per: 0, ...o,
+  });
+  const a = row({ games: 10, minutes: 100, points: 100, fgm: 40, fga: 80, tpm: 5, tpa: 20, ftm: 15, fta: 20, per: 10, usgPct: 20 });
+  const b = row({ games: 30, minutes: 300, points: 300, fgm: 110, fga: 200, tpm: 15, tpa: 30, ftm: 65, fta: 80, per: 20, usgPct: null });
+  const t = careerTotalRow([a, b])!;
+  assert.equal(t.games, 40);
+  assert.equal(t.points, 400);
+  assert.equal(t.fgPct, (150 / 280) * 100); // 합계로 다시 계산 (시즌 성공률 평균 아님)
+  assert.equal(t.tpPct, 40);
+  assert.equal(t.per, 17.5); // 출전 시간 가중 (100·10 + 300·20) / 400
+  assert.equal(t.usgPct, 20); // 값 있는 시즌만
+  assert.equal(t.tsPct, tsPctOf(400, 280, 100));
+  assert.equal(careerTotalRow([]), null);
+  const po = playoffLeaderRow(
+    { playerNo: "1", nameKo: "가", teamCode: "60", games: 5, minutes: 150, points: 80, reb: 20, ast: 10, stl: 3, blk: 1, tpm: 6, ftm: 10,
+      doubleDoubles: 0, tripleDoubles: 0, wins: 4, losses: 1, tov: 7, fouls: 9, fgm: 32, fga: 64, tpa: 15, fta: 12 },
+    a,
+  );
+  assert.equal(po.teamCode, "60");
+  assert.equal(po.fgPct, 50);
+  assert.ok(Number.isNaN(po.per));
+  assert.equal(po.usgPct, null);
+  // 옛 파일(새 필드 없음)이면 성공률은 "–"
+  const old = playoffLeaderRow({ playerNo: "1", nameKo: "가", teamCode: "60", games: 5, minutes: 150, points: 80, reb: 20, ast: 10, stl: 3, blk: 1, tpm: 6, ftm: 10, doubleDoubles: 0, tripleDoubles: 0 }, a);
+  assert.ok(Number.isNaN(old.fgPct));
+  console.log("player: 통산 줄·플레이오프 줄 통과");
 }

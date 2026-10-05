@@ -425,6 +425,8 @@ async function writePostseason(seasonCode: number): Promise<string | null> {
           playerNo: p.playerNo, nameKo: p.nameKo, teamCode: p.teamCode,
           games: p.games, minutes: p.minutes, points: p.points, reb: p.reb, ast: p.ast, stl: p.stl, blk: p.blk,
           tpm: p.tpm, ftm: p.ftm, doubleDoubles: p.doubleDoubles, tripleDoubles: p.tripleDoubles,
+          // 선수 상세 시즌별 기록 "플레이오프" 보기용 (2026-10-05)
+          wins: p.wins, losses: p.losses, tov: p.tov, fouls: p.fouls, fgm: p.fgm, fga: p.fga, tpa: p.tpa, fta: p.fta,
         };
       })
       .filter((l) => l.games > 0);

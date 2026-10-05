@@ -469,6 +469,8 @@ export interface PlayerCareer {
   entry: PlayerIndexEntry;
   /** 시즌 오름차순 (오래된 시즌이 먼저) */
   seasons: CareerSeason[];
+  /** 플레이오프(6강~챔프전) 시즌별 합계 — postseason.json, 시즌 오름차순. PER·USG% 는 없다(NaN·null) */
+  playoffSeasons: CareerSeason[];
 }
 
 // ─────────────────────────────────────────────
@@ -511,6 +513,14 @@ export interface PostseasonLine {
   ftm: number;
   doubleDoubles: number;
   tripleDoubles: number;
+  /** 이하 2026-10-05 추가 (선수 상세 시즌별 기록 "플레이오프" 보기) — 그 전에 만든 파일에는 없다 */
+  wins?: number;
+  losses?: number;
+  tov?: number;
+  fouls?: number;
+  fgm?: number; fga?: number;
+  tpa?: number;
+  fta?: number;
 }
 
 /** 시즌 포스트시즌 파일 — raw 가 없는 구분은 null, 그 시즌 경기가 없으면 빈 배열 */

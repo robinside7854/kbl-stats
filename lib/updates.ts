@@ -31,6 +31,18 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-10-06-career-table",
+    date: "2026-10-06",
+    kind: "update",
+    title: "선수 기록표에 통산이랑 플레이오프 생겼어요",
+    summary: "기록표에 통산·플레이오프 추가",
+    blocks: [
+      { kind: "p", text: "선수 페이지 시즌별 기록 맨 아래에 통산 줄이 붙어요. 경기당, 30분당, 합계 다 돼요." },
+      { kind: "p", text: "플레이오프에 나간 적 있는 선수는 위에 정규시즌·플레이오프 버튼이 생겨요. 플레이오프는 6강부터 챔프전까지 합친 기록이에요." },
+      { kind: "list", items: [{ text: "선수 찾아보기", href: "/players" }] },
+    ],
+  },
+  {
     slug: "2026-10-05-fans-weekly-ranking",
     date: "2026-10-05",
     kind: "update",

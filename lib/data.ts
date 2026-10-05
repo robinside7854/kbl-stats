@@ -21,7 +21,7 @@ import type {
 } from "./types";
 import { decodeSeasonCards, encodeSeasonCards, type SeasonCards, type SeasonCardsFile } from "./cards";
 import { toCardPlayers as convertCardPlayers, toCardTeams, toLeaderPlayers as convertLeaderPlayers } from "./convert";
-import { careerHighAchievements, careerHighTabs, type CareerHighRow, type HighAchievement, type HighsTab } from "./career";
+import { careerHighAchievements, careerHighTabs, playoffLeaderRow, type CareerHighRow, type HighAchievement, type HighsTab } from "./career";
 import { buildPlayerShotsFile, type PlayerShotsFile, type ShotPoint } from "./shots";
 import {
   GAME_KINDS,
@@ -236,7 +236,21 @@ export function loadPlayerCareer(playerNo: string): PlayerCareer | null {
       })(),
     });
   }
-  return { entry, seasons };
+  // 플레이오프(6강~챔프전) 시즌 합계 — 그 시즌 postseason.json 에 이 선수가 있을 때만
+  const playoffSeasons: CareerSeason[] = [];
+  for (const base of seasons) {
+    const line = readPostseason(base.seasonCode)?.playoff?.find((l) => l.playerNo === playerNo);
+    if (!line || line.games <= 0) continue;
+    const season = loadSeasonData(base.seasonCode);
+    playoffSeasons.push({
+      ...playoffLeaderRow(line, base),
+      seasonCode: base.seasonCode,
+      seasonLabel: base.seasonLabel,
+      team: (season && seasonTeams(season).find((t) => t.teamCode === line.teamCode)) ?? base.team,
+      leaderMarks: {},
+    });
+  }
+  return { entry, seasons, playoffSeasons };
 }
 
 // ─────────────────────────────────────────────

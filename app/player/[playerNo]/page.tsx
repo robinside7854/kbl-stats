@@ -106,7 +106,7 @@ export default async function PlayerPage({ params }: { params: Params }) {
           )}
         </div>
         <div className="mx-auto mt-8 max-w-5xl px-4">
-          <CareerTable seasons={seasons} />
+          <CareerTable seasons={seasons} playoffSeasons={career.playoffSeasons} />
         </div>
         {achievements.length > 0 && (
           <div className="mx-auto mt-8 max-w-5xl px-4">
