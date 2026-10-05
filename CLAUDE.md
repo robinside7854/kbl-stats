@@ -280,6 +280,11 @@ kbl-stats/
 - **작업이 끝나면 항상 main 브랜치에 배포한다.** Vercel 은 main 만 배포하므로 작업 브랜치에 푸시만 하고 끝내면 사용자는 옛 화면을 본다.
 - 순서: 작업 브랜치 커밋·푸시 → 검증(typecheck·test·build) 통과 → `git fetch origin main && git checkout main && git merge --ff-only <작업 브랜치>` (ff 가 안 되면 main 을 작업 브랜치에 먼저 merge 해 해결) → `git push origin main` → 작업 브랜치로 돌아온다. PR 승인을 기다리지 않는다.
 - 데이터 커밋(Actions)이 main 에 먼저 들어와 있을 수 있으니 merge 전에 반드시 fetch 한다.
+- **Vercel 무료 플랜 저장공간(Deployment Storage) 10GB** — 배포마다 소스 스냅샷(+결과물)이 남고 자동 삭제가 없다. 2026-09-30 백필이 시즌마다 main 에 푸시해 배포 38개 × 약 260MB = 9.9GB 로 한도를 넘겼다(2026-10-05 발견, 사용자가 `npx vercel remove kbl-stats --safe` 로 비움). 지키는 장치 셋:
+  - `.vercelignore` 가 `data/raw/`(207MB)·`docs/`·`tests/`·`shorts/` 를 배포에서 뺀다 — 빌드는 `data/processed` 만 읽는다. **`scripts/`·`assets/fonts/`·`data/processed/`·`data/codes/` 는 넣지 말 것.** 빌드가 새 폴더를 읽게 되면 여기도 확인
+  - 백필 워크플로(highs·gamelogs·shots)는 시즌마다 **`data-backfill` 브랜치**에 중간 저장하고 맨 끝 "main 에 반영" 단계에서 main 에 **한 번** 푸시(배포 1회). 끊기면 다음 실행이 그 브랜치를 이어받는다(`fetch-depth: 0` 필요). 새 백필 워크플로를 만들면 같은 틀로
+  - `scripts/vercel-cleanup.ts` 가 **운영 + 진행 중 + 완료 최근 5개**만 남기고 지운다 — 매일 수집(fetch.yml) 끝에 돌고, `vercel-cleanup.yml`(수동·월요일)은 예비. 토큰 = Secrets `VERCEL_TOKEN`(사용자 등록 2026-10-05, 만료되면 Vercel 계정 설정 → Tokens 에서 재발급). 규칙은 `tests/vercel-cleanup.test.ts`
+  - 배포 1건 실측(2026-10-05): 소스 258MB(raw 빼면 ~50MB) + `.next/server` 340MB(미리 그린 페이지 1,473장, 장당 230KB) + `public/og` 51MB. 결과물 다이어트(선수 페이지에 두 번 박히는 기록 데이터 줄이기)는 아직 안 했다 — 저장공간이 다시 문제 되면 거기부터
 - **Vercel 무료 플랜은 24시간에 배포 100회까지**(넘으면 `api-deployments-free-per-day`, 2026-10-02 실제로 걸림). 그래서 `vercel.json git.deploymentEnabled` 로 **main 만 배포**하고 작업 브랜치(`claude/…` 등)는 미리보기 배포를 하지 않는다. main 푸시는 작은 수정마다 하지 말고 한 요청 단위로 묶는다
 
 ## 방문 통계 규칙 (2026-10-02 사용자 지시 — 세션이 바뀌어도 지킨다)
@@ -372,6 +377,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-05 (Vercel 저장공간 초과 대응): Usage 가 Deployment Storage 10.58/10GB(kbl-stats 9.94GB)·Fluid CPU 4h26m/4h(농구 대시보드 89%). 원인 = 저장소 안 `data/raw` 207MB 가 배포마다 소스 스냅샷으로 쌓임 + 9/30 백필이 시즌마다 main 푸시(배포 38개) + 무료 플랜엔 자동 삭제 없음. 조치 ① 사용자 `vercel remove --safe` 39개 삭제 ② `.vercelignore`(raw·docs·tests·shorts) ③ 백필 3종을 `data-backfill` 브랜치 중간 저장 → main 1회 ④ `scripts/vercel-cleanup.ts` 매일 수집 끝 + `vercel-cleanup.yml`, VERCEL_TOKEN Secret. 안 한 것: 결과물 다이어트(`.next/server` 340MB). 화면 변경 없음 → 업데이트 소식 글 없음. main 배포.
 - 2026-10-06 (현역·미등록·은퇴): 사용자 결정 — 현역 등록 명단(regSc=Y)은 갱신 주기가 없어(조사 브랜치 `claude/probe-active`, 지워도 됨) **주 1회 확인·바뀔 때만 저장**(`scripts/active-roster.ts`, `data/active-roster-log.json`). 첫 명단은 조사 때 받은 187명을 그대로 넣음. 상태 3단계 `lib/roster rosterStatusOf`(현역 / 미등록 = 명단에 없고 최근 3시즌 안에 뜀 / 은퇴·KBL 떠남 = 최근 3시즌 기록 없음) → 색인 `rosterStatus`(현역 180·미등록 104·은퇴 567·떠남 485). 선수 머리말에 상태 칩(누르면 기준 팝오버, 용어 풀이 `#roster-status`), 역대 기록 "현역만"·현역 배지·이정표는 `isActiveCareer` 가 명단 기준으로(명단 없으면 예전 규칙). "현역만" 옆 ⓘ. GA4 는 help_open topic=rosterStatus(새 이벤트 없음). 업데이트 소식 글. main 배포.
 - 2026-10-06 (선수 기록표 통산·플레이오프): 사용자 요청 ① 시즌별 기록 맨 아래 **통산** 줄(`lib/career careerTotalRow`: 누적 합, 성공률·TS% 는 합계로 다시, PER·USG% 는 출전 시간 가중 — 우리 근사, 시즌 2개 이상일 때만) ② **정규시즌/플레이오프** 전환(플레이오프 시즌이 있는 선수만, 6강~챔프전 합계 = postseason.json playoff, PER·USG% 는 KBL 값 없어 "–", `playoffLeaderRow`). postseason.json 에 wins·losses·tov·fouls·fgm·fga·tpa·fta 추가(process 재생성, 다른 파일은 시각만 바뀌어 되돌림). 폰 접힌 줄: 경기 수를 시즌 아래로, 400px 미만은 팀 로고만. GA4 filter_change player career_kind(새 매개변수 없음). 업데이트 소식 글. ③ 첫·마지막 득점, ④ 은퇴 판정은 조사만(사용자 결정 대기). main 배포.
 - 2026-10-05 (수집 바깥 알람): 설치한 앱 뒤로 가기 버튼은 사용자 결정으로 취소(되돌림 커밋, 배포 안 함). GitHub 예약 실행이 10-04 12번 중 1번·10-05 0번만 돌아 10-05 경기(14:00·16:30) 반영이 안 됨 → fetch.yml 푸시로 즉시 수집. 사용자 결정: 바깥 알람(cron-job.org → GitHub workflow_dispatch mode=auto, 18:10~23:40 KST 30분마다, 세분화 토큰 Actions 쓰기만) — `docs/external-cron.md`. fetch.yml: 입력 `mode`(auto 면 문지기), 푸시도 문지기를 거치고 `[수집]` 커밋만 바로 수집. 예약은 예비로 둠.

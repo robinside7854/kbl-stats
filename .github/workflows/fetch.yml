@@ -100,3 +100,12 @@ jobs:
             done
             exit 1
           fi
+
+      # Vercel 옛 배포 정리 — 무료 플랜엔 자동 삭제가 없어 배포가 하루 1개씩 쌓인다(2026-10-05 저장공간 10GB 초과). 최근 5개 + 현재 운영만 남긴다.
+      # 토큰은 저장소 Secrets 의 VERCEL_TOKEN(없으면 건너뜀). 실패해도 수집 결과에는 영향 없음.
+      - name: Vercel 옛 배포 정리 (저장공간)
+        if: always() && steps.gate.outputs.run == 'true'
+        continue-on-error: true
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: npx tsx scripts/vercel-cleanup.ts
