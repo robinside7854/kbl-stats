@@ -1,0 +1,35 @@
+== regSc=Y&pageNo=1&listCn=200
+HTTP/1.1 200 OK
+Transfer-Encoding: chunked
+Content-Type: application/json; charset=utf-8
+Server: Microsoft-IIS/10.0
+Access-Control-Allow-Origin: *
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+Referrer-Policy: same-origin
+Permissions-Policy: geolocation=(self), microphone=()
+Date: Mon, 05 Oct 2026 16:14:46 GMT
+
+== regSc=N&pageNo=1&listCn=200
+HTTP/1.1 200 OK
+Transfer-Encoding: chunked
+Content-Type: application/json; charset=utf-8
+Server: Microsoft-IIS/10.0
+Access-Control-Allow-Origin: *
+X-XSS-Protection: 1; mode=block
+X-Frame-Options: SAMEORIGIN
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+Referrer-Policy: same-origin
+Permissions-Policy: geolocation=(self), microphone=()
+Date: Mon, 05 Oct 2026 16:14:47 GMT
+
+현역 등록 187 필드 playerNo,kname,ename,teamCode,backNum,pos,pWeight,pHeight,playerFlagCode2,yearNo,monthNo,roundNo,rankNo,rowNo
+26-27 뛴 선수 105 그중 미등록 
+25-26 까지만 뛴 선수 105 그중 등록 61
+25-26 까지만 뛰고 미등록: 강재민(291761) 고찬혁(291601) 김건우(291646) 김영현(290741) 김태훈(291759) 김한솔(291209) 나성호(291655) 네이던 나이트(291788) 닉 퍼킨스(291795) 대릴 먼로(291144) 데릭 윌리엄스(291791) 드완 에르난데스(291580) 마이클 에릭(291670) 망콕 마티앙(291783) 문가온(291603) 박성재(291766) 박승재(291660) 박인웅(291588) 박지훈(290503) 베니 보트라이트(291871) 브라이스 워싱턴(291793) 송교창(290897) 신승민(291479) 신주영(291668) 앤드류 니콜슨(291430) 에릭 로메로(291790) 에삼 무스타파(291786) 윌리엄 나바로(291792) 이기디우스 모츠카비추스(291877) 이승우(291485) 이원석(291478) 제일린 존슨(291789) 조나단 윌리엄스(291878) 조엘 카굴랑안(291777) 존 이그부누(291341) 존킴웰 피게로아(291876) 차바위(290488) 최승빈(291662) 최준용(290993) 최진수(290417) 최창진(290585) 카이린 갤러웨이(291879) 함지훈(290100) 홍경기(290435)
+등록인데 기록 없음(신인·새 외국 선수 등): 권순우(291755,64,0) 김수환(291498,55,0) 송재환(291852,16,0) 안세준(291854,35,0) 우상현(291864,64,0) 조혁재(291768,60,0) 지용현(291868,50,0)
+24-25 이전이 마지막인데 등록(상무·복귀 등): 김종호(291486):45 김진영(291277):43 문시윤(291489):45 선상혁(291497):45 안정욱(291606):43 양준우(291376):43 염유성(291599):43 이광진(291349):41 이준희(291386):43 임현택(291383):41 전성환(291266):45 조재우(291605):43 조준희(291653):45 조환희(291765):45
+팀별 {"10":18,"16":20,"35":19,"50":19,"55":20,"60":17,"64":19,"66":19,"70":18,"06":18}
