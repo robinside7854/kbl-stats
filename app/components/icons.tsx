@@ -56,6 +56,15 @@ export function IconChevronDown(p: IconProps) {
   );
 }
 
+/** 왼쪽 꺾쇠 (뒤로·목록) */
+export function IconChevronLeft(p: IconProps) {
+  return (
+    <Svg {...p}>
+      <path d="m15 6-6 6 6 6" />
+    </Svg>
+  );
+}
+
 /** 오른쪽 꺾쇠 (이동 링크) */
 export function IconChevronRight(p: IconProps) {
   return (

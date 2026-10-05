@@ -250,7 +250,7 @@ kbl-stats/
 │   ├── records/game·season·awards/page.tsx ← 하위 탭 한 경기 최다(색인 careerHighs, 정규·플옵·챔프전, 정규는 그날 일정 링크)·한 시즌 최다(합계/경기당, 플옵·챔프전은 postseason.json)·수상·우승 횟수 — 순위 규칙 lib/records(rankGameHighs·rankSeasonBests·seasonBestMinGames·rankAwardCounts), 재료·표기 lib/data(loadGameHighLists·loadSeasonBestLists·loadAwardLists, 부문마다 상위 50), 화면 RecordBoardView·RecordList·RecordTabViews
 │   ├── compare/page.tsx ← 비교 탭 정적 1쪽 (?a=번호:코드&b=번호:코드, 기본은 최신·직전 시즌 PER 1위)
 │   ├── game/page.tsx    ← 54-0 게임 (GameView: 다섯 칸 → 슬롯머신 두 대(시즌 하나·팀 3개) → 세 팀 후보 고르기(득점순, 등급 숨김) → 코트 위 5명·54경기 결과·기록 표·이미지 저장·링크 복사, /game/pool.json fetch, ?l= 공유 결과, 메뉴 "54-0")
-│   ├── updates/page.tsx · updates/[slug]/page.tsx ← 업데이트 소식 게시판 (2026-10-05, 글은 lib/updates.ts UPDATE_POSTS, 본문 UpdatePostBody, 띠배너 UpdateBanner — SiteNav 헤더 맨 아래, 푸터 링크)
+│   ├── updates/page.tsx · updates/[slug]/page.tsx ← 업데이트 소식 게시판 (2026-10-05, 글 위·아래 "목록" 버튼, 글은 lib/updates.ts UPDATE_POSTS, 본문 UpdatePostBody, 띠배너 UpdateBanner — SiteNav 헤더 맨 아래, 푸터 링크)
 │   ├── privacy/page.tsx ← 개인정보 처리 안내 (2026-10-03 보안 점검, 푸터 링크만): 직접 수집 없음·GA4 항목/보관/거부·localStorage·KBL 이미지·문의 — 수집 방식이 바뀌면 같이 고칠 것
 │   ├── teams/page.tsx   ← 모든 팀 (메뉴 "팀", TeamsIndexView: 지금 팀(이번 시즌 승패·우승·좋아요) + 추억의 팀(매각·해체, 이어진 팀)) · team/[teamCode]/page.tsx 팀 페이지 정적 20쪽(TeamView: 통산·시즌별 로스터 ?season=·시즌별 성적·레전드·팀 통산 기록·수상·계보·좋아요) · likes/page.tsx 좋아요 순위(LikesView, /api/likes)
 │   ├── admin/page.tsx   ← 관리자 회원 목록 (AdminView: 요약·응원팀별·목록 찾기, /api/admin/members, 관리자 = Vercel ADMIN_LOGIN_IDS 의 로그인 번호가 붙은 회원, 아니면 내 로그인 번호 표시, noindex·메뉴 없음 — 내 계정 화면 "회원 목록 보기")
@@ -363,6 +363,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-05 (업데이트 글 목록 버튼): 사용자 "글 위 '업데이트 소식' 글자는 누르는 곳인지 애매" → 글 위에 테두리 있는 "‹ 목록" 버튼, 글 아래에 꽉 찬 "‹ 목록으로" 버튼(`IconChevronLeft` 추가). 작은 화면 손질이라 업데이트 소식 글은 안 씀. main 배포.
 - 2026-10-05 (앱 아이콘 교체): 사용자 "통계 앱 같다 → KBL + 농구 + 스탯 셋 다" → 리그 남색 바탕 + 흰 KBL 글자(선으로 그림, 기기 글꼴 무관) + 주황 농구공 + 막대 세 개. `scripts/build-app-icons.ts` 가 그림 한 벌로 app/icon.svg(파비콘)·app/apple-icon.png(180, 바탕 끝까지)·public/icons(192·512·maskable 78%)를 써 넣음. 업데이트 소식 글 "앱 아이콘 바꿨어요"(이미 설치한 폰은 다시 설치해야 바뀔 수 있음). main 배포.
 - 2026-10-05 (업데이트 소식 게시판): 사용자 요청 — `/updates` 목록·`/updates/{slug}` 글(정적, 글은 `lib/updates.ts`), 첫 글 2개 "지금까지 만든 것들 한 번에 정리"(기능 전체 요약, 캐주얼)·"구글·네이버 로그인 가이드". 모든 화면 헤더 아래 **띠배너**(`UpdateBanner`: 맨 위 글 summary → 그 글, 닫으면 localStorage `kbl-stats:update-banner:v1` 에 글 번호 — 더 새 글이면 다시 보임), 푸터 "업데이트 소식" 버튼. 앞으로 기능 바꿀 때마다 글을 쓰는 규칙을 "업데이트 소식 규칙"에. GA4 update_banner_click·update_banner_dismiss(post_slug — 맞춤 정의 등록 필요). SCOPE IN. main 배포.
 - 2026-10-05 (앱 설치·하단 홈 버튼): 사용자 ① **앱처럼 설치**(PWA) — `app/manifest.ts`(/manifest.webmanifest: 이름 KBL - Stats Reference·짧은 이름 "KBL 스탯"·standalone·세로·밝은 바탕), 아이콘 `public/icons` 192·512 + maskable(`scripts/build-app-icons.ts`, 그림 = app/icon.svg), 아이폰 `appleWebApp`(홈 화면에 추가 → 주소창 없이). 오프라인 저장(서비스 워커)·사이트 안 설치 버튼은 안 만듦(브라우저 메뉴 "앱 설치"). GA4 `app_install`·사용자 속성 `display_mode`(`AppInstallTracker`, 맞춤 정의 등록 필요). ② 삼성 인터넷이 화면 아래 가운데에 띄우는 "위로 가기" 버튼(브라우저 기능, 사이트가 끌 수 없음)이 위로 띄운 홈 버튼을 가림 → 사용자 결정: 홈 버튼을 **다른 칸과 같은 줄로 내리고 "홈" 글자 삭제, 둥근 모양 유지**(44px). 설치한 앱(standalone)으로 열면 브라우저 버튼 자체가 없다. 검증: typecheck·test·build·slop 0, 크롬 설치 가능 판정(CDP getInstallabilityErrors) 오류 0·manifest 오류 0·아이콘 200·CSP 위반 0, 360 하단 바 스크린샷. main 배포.
