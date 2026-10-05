@@ -317,6 +317,8 @@ kbl-stats/
   | filter_change (팀·좋아요) | screen=team filter=season·leader · screen=likes filter=tab | 팀 페이지 로스터 시즌·팀 통산 기록 부문 / 좋아요 순위 선수·팀 |
   | nav_click(menu "로그인"·"내 계정") | | 헤더 계정 버튼 |
   | contact_click | (없음) | 푸터 문의 이메일 누르기 |
+  | filter_change (일정 범위) | screen=schedule filter=scope value=mine/all | 일정 화면 내 응원팀만 / 전체 일정 (로그인 + 응원팀 있는 회원만 보임) |
+  | login_prompt_click | place(schedule) | 로그인 안 한 방문자에게 보이는 "로그인하면 ~" 안내의 로그인 링크 |
   | app_install | (없음) | 앱 설치 완료 (브라우저 "앱 설치"·"홈 화면에 추가", `AppInstallTracker`) — 설치한 앱으로 연 방문은 사용자 속성 `display_mode`(standalone/browser) |
   | update_banner_click / update_banner_dismiss | post_slug | 헤더 아래 업데이트 띠배너 누르기 / 닫기 (게시판 열람은 page_view) |
   | update_post_delete / update_post_restore | post_slug | 관리자가 업데이트 글 삭제 / 되돌리기 |
@@ -372,6 +374,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-06 (일정 내 응원팀만): 사용자 요청 — 일정 화면(`ScheduleView`)에 "내 응원팀 / 전체 일정"(로그인 + 그 시즌 응원팀 경기가 있는 회원만, 기본 내 응원팀, 고른 것은 localStorage `kbl-stats:schedule-scope:v1`), 응원팀 없는 회원은 "응원팀 고르기" 안내, 로그인 안 한 방문자는 "로그인하고 응원팀을 고르면 우리 팀 경기만" 안내 카드(로그인 꺼진 빌드는 없음). 규칙 `lib/games gamesOfTeams·initialScheduleScope`. GA4 filter_change schedule scope, 새 이벤트 `login_prompt_click`(place — 이미 등록된 매개변수). 업데이트 소식 글. main 배포.
 - 2026-10-06 (현역·미등록·은퇴): 사용자 결정 — 현역 등록 명단(regSc=Y)은 갱신 주기가 없어(조사 브랜치 `claude/probe-active`, 지워도 됨) **주 1회 확인·바뀔 때만 저장**(`scripts/active-roster.ts`, `data/active-roster-log.json`). 첫 명단은 조사 때 받은 187명을 그대로 넣음. 상태 3단계 `lib/roster rosterStatusOf`(현역 / 미등록 = 명단에 없고 최근 3시즌 안에 뜀 / 은퇴·KBL 떠남 = 최근 3시즌 기록 없음) → 색인 `rosterStatus`(현역 180·미등록 104·은퇴 567·떠남 485). 선수 머리말에 상태 칩(누르면 기준 팝오버, 용어 풀이 `#roster-status`), 역대 기록 "현역만"·현역 배지·이정표는 `isActiveCareer` 가 명단 기준으로(명단 없으면 예전 규칙). "현역만" 옆 ⓘ. GA4 는 help_open topic=rosterStatus(새 이벤트 없음). 업데이트 소식 글. main 배포.
 - 2026-10-06 (선수 기록표 통산·플레이오프): 사용자 요청 ① 시즌별 기록 맨 아래 **통산** 줄(`lib/career careerTotalRow`: 누적 합, 성공률·TS% 는 합계로 다시, PER·USG% 는 출전 시간 가중 — 우리 근사, 시즌 2개 이상일 때만) ② **정규시즌/플레이오프** 전환(플레이오프 시즌이 있는 선수만, 6강~챔프전 합계 = postseason.json playoff, PER·USG% 는 KBL 값 없어 "–", `playoffLeaderRow`). postseason.json 에 wins·losses·tov·fouls·fgm·fga·tpa·fta 추가(process 재생성, 다른 파일은 시각만 바뀌어 되돌림). 폰 접힌 줄: 경기 수를 시즌 아래로, 400px 미만은 팀 로고만. GA4 filter_change player career_kind(새 매개변수 없음). 업데이트 소식 글. ③ 첫·마지막 득점, ④ 은퇴 판정은 조사만(사용자 결정 대기). main 배포.
 - 2026-10-05 (수집 바깥 알람): 설치한 앱 뒤로 가기 버튼은 사용자 결정으로 취소(되돌림 커밋, 배포 안 함). GitHub 예약 실행이 10-04 12번 중 1번·10-05 0번만 돌아 10-05 경기(14:00·16:30) 반영이 안 됨 → fetch.yml 푸시로 즉시 수집. 사용자 결정: 바깥 알람(cron-job.org → GitHub workflow_dispatch mode=auto, 18:10~23:40 KST 30분마다, 세분화 토큰 Actions 쓰기만) — `docs/external-cron.md`. fetch.yml: 입력 `mode`(auto 면 문지기), 푸시도 문지기를 거치고 `[수집]` 커밋만 바로 수집. 예약은 예비로 둠.

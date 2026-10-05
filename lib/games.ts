@@ -279,3 +279,28 @@ export function sortBoxRows(rows: readonly GameBoxRow[], key: BoxSortKey): GameB
   };
   return [...rows].sort((a, b) => val(b) - val(a) || b.pts - a.pts || b.sec - a.sec || a.nameKo.localeCompare(b.nameKo, "ko"));
 }
+
+// ─────────────────────────────────────────────
+// 일정 화면 "내 응원팀만" (2026-10-06)
+// ─────────────────────────────────────────────
+
+/** 일정 보기 범위: 내 응원팀 경기만 / 전체 */
+export type ScheduleScope = "mine" | "all";
+
+/** 응원팀(팀 코드 여러 개) 중 하나라도 뛰는 경기만 (순서 그대로) */
+export function gamesOfTeams<T extends { home: { teamCode: string }; away: { teamCode: string } }>(
+  games: readonly T[],
+  teamCodes: readonly string[],
+): T[] {
+  const set = new Set(teamCodes);
+  return games.filter((g) => set.has(g.home.teamCode) || set.has(g.away.teamCode));
+}
+
+/**
+ * 처음 보기 범위: 응원팀 경기가 이 시즌에 없으면 전체, 아니면 이 브라우저에서 마지막으로 고른 것(없으면 내 응원팀).
+ * saved 는 localStorage 값 그대로(모르는 값은 무시).
+ */
+export function initialScheduleScope(saved: string | null | undefined, hasTeamGames: boolean): ScheduleScope {
+  if (!hasTeamGames) return "all";
+  return saved === "all" ? "all" : "mine";
+}

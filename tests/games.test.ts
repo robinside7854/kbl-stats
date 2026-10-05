@@ -116,3 +116,18 @@ console.log("games: 팀 순위 통과");
   }
   console.log("games: 일정·박스스코어 정렬 통과");
 }
+
+// ── 일정 내 응원팀만 (2026-10-06) ──
+{
+  const { gamesOfTeams, initialScheduleScope } = await import("../lib/games");
+  const g = (h: string, a: string) => ({ home: { teamCode: h }, away: { teamCode: a } });
+  const list = [g("16", "55"), g("60", "50"), g("10", "16"), g("66", "70")];
+  assert.equal(gamesOfTeams(list, ["16"]).length, 2, "홈·원정 모두");
+  assert.equal(gamesOfTeams(list, ["16", "70"]).length, 3, "응원팀 여러 개");
+  assert.equal(gamesOfTeams(list, []).length, 0);
+  assert.equal(initialScheduleScope(null, true), "mine", "처음엔 내 응원팀");
+  assert.equal(initialScheduleScope("all", true), "all", "전체를 골랐으면 기억");
+  assert.equal(initialScheduleScope("mine", false), "all", "이 시즌 응원팀 경기가 없으면 전체");
+  assert.equal(initialScheduleScope("엉뚱", true), "mine");
+  console.log("games: 내 응원팀 일정 통과");
+}

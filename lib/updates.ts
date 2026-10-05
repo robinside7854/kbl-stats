@@ -31,6 +31,18 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-10-06-schedule-my-team",
+    date: "2026-10-06",
+    kind: "update",
+    title: "일정에서 내 응원팀 경기만 볼 수 있어요",
+    summary: "일정, 내 응원팀만 보기",
+    blocks: [
+      { kind: "p", text: "로그인하고 응원팀을 골라 두면 일정 화면이 우리 팀 경기만 보여 줘요. 응원팀이 여러 팀이면 다 같이 나와요." },
+      { kind: "p", text: "다른 경기도 보고 싶으면 위에서 '전체 일정'을 누르면 돼요. 고른 건 다음에 와도 그대로예요." },
+      { kind: "list", items: [{ text: "로그인하고 응원팀 고르기", href: "/me" }, { text: "팀 둘러보기", href: "/teams" }] },
+    ],
+  },
+  {
     slug: "2026-10-06-roster-status",
     date: "2026-10-06",
     kind: "update",
