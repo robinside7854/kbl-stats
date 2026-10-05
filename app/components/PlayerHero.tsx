@@ -7,7 +7,7 @@ import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
 import type { CareerSeason, PlayerIndexEntry, TeamColor } from "@/lib/types";
 import { careerSummary } from "@/lib/metrics";
 import { activeSpanLabel, awardChipText, awardLines, personalFacts, profileFacts, seasonRangeLabel, seasonShortLabel, teamStints } from "@/lib/career";
-import { nationalityOf, NATIONALITY_LABELS } from "@/lib/roster";
+import { nationalityOf, NATIONALITY_LABELS, ROSTER_STATUS_LABELS } from "@/lib/roster";
 import { mixHex, teamShortLabel } from "@/lib/images";
 import PlayerAvatar from "./PlayerAvatar";
 import FavoriteButton from "./FavoriteButton";
@@ -17,7 +17,8 @@ import TeamLogo from "./TeamLogo";
 import TeamJersey from "./TeamJersey";
 import Link from "next/link";
 import { MILESTONE_STEPS, type Milestone } from "@/lib/records";
-import { IconTrophy } from "./icons";
+import { IconInfo, IconTrophy } from "./icons";
+import HelpPopover from "./HelpPopover";
 import BadgeRow, { type BadgeItem } from "./BadgeRow";
 
 const FALLBACK: TeamColor = FALLBACK_TEAM_COLOR;
@@ -130,6 +131,22 @@ export default function PlayerHero({ entry, seasons, today, badges, milestones =
               <span className="rounded-control px-2 py-0.5" style={{ background: "rgba(0,0,0,0.25)" }}>
                 {span}
               </span>
+              {entry.rosterStatus && (
+                // 현역·미등록·은퇴 (KBL 등록 명단 기준, lib/roster rosterStatusOf) — 누르면 기준 설명. 누르는 영역은 위아래로 늘려 40px
+                <HelpPopover
+                  term="rosterStatus"
+                  ariaLabel={`${ROSTER_STATUS_LABELS[entry.rosterStatus]} — 판정 기준 보기`}
+                  className="group -my-2 inline-flex h-10 items-center rounded-control"
+                >
+                  <span
+                    className="inline-flex items-center gap-1 rounded-control px-2 py-0.5 transition-colors duration-200 group-hover:underline group-hover:underline-offset-4"
+                    style={{ background: entry.rosterStatus === "active" ? "rgba(255,255,255,0.18)" : "rgba(0,0,0,0.25)" }}
+                  >
+                    {ROSTER_STATUS_LABELS[entry.rosterStatus]}
+                    <IconInfo size={16} aria-hidden />
+                  </span>
+                </HelpPopover>
+              )}
               {awards
                 .filter((a) => a.hero)
                 .map((a) => (

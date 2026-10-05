@@ -125,3 +125,41 @@ export function schoolGroupOf(raw: string | null | undefined, foreign: boolean):
   if (foreign || /[A-Za-z]/.test(s)) return SCHOOL_ABROAD;
   return s;
 }
+
+// ─────────────────────────────────────────────
+// 현역·미등록·은퇴 (2026-10-06 사용자 결정)
+// ─────────────────────────────────────────────
+// 재료: KBL 현역 등록 명단(서버 B 선수 마스터 regSc=Y, data/raw/players/active.json — 매일 수집 안에서 주 1회 확인).
+// 명단에 없다고 은퇴는 아니다(2026-10-05 조사: 25-26 에 뛰고 미등록 44명 — 군 복무·FA·부상 등, 반대로 3~4시즌 쉬다 다시
+// 등록된 선수 14명). 그래서 "최근 3시즌(기록 있는 최신 시즌 포함) 동안 기록이 없고 명단에도 없음"일 때만 은퇴로 본다.
+
+/** 현역(명단에 있음) · 미등록(명단에 없고 최근에 뛰었음) · 은퇴(국내) · KBL 떠남(외국 선수) */
+export type RosterStatus = "active" | "unregistered" | "retired" | "left";
+
+/** 이 시즌 수 동안(기록 있는 최신 시즌 포함) 기록이 없고 명단에도 없으면 은퇴 */
+export const ROSTER_RETIRE_SEASONS = 3;
+
+export const ROSTER_STATUS_LABELS: Record<RosterStatus, string> = {
+  active: "현역",
+  unregistered: "미등록",
+  retired: "은퇴",
+  left: "KBL 떠남",
+};
+
+/**
+ * 한 선수의 상태.
+ * @param registered 지금 등록 명단에 있는지
+ * @param lastSeasonCode 마지막으로 뛴 시즌 코드
+ * @param seasonCodes 선수가 있는 시즌 코드 전부 (순서 무관 — 시즌 코드는 홀수로 띄엄띄엄 늘어서 차이 대신 순번으로 센다)
+ */
+export function rosterStatusOf(
+  registered: boolean,
+  lastSeasonCode: number,
+  seasonCodes: readonly number[],
+  nationality: Nationality,
+): RosterStatus {
+  if (registered) return "active";
+  const recent = [...seasonCodes].sort((a, b) => b - a).slice(0, ROSTER_RETIRE_SEASONS);
+  if (recent.length === 0 || lastSeasonCode >= recent[recent.length - 1]) return "unregistered";
+  return nationality === "domestic" ? "retired" : "left";
+}

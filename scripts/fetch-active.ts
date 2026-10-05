@@ -2,6 +2,7 @@
 //
 // 숏폼 "개막전 대기록" 이 은퇴 선수를 고르지 않게 쓴다(scripts/build-short-milestones.ts). 매일 수집(fetch.ts)의
 // 전체 마스터(regSc=N)에는 은퇴 선수도 마지막 팀 코드가 그대로 남아 있어 현역을 가를 수 없다.
+// 매일 수집(fetch.ts fetchActiveRoster)이 주 1회 같은 명단을 받고 바뀔 때만 저장한다(2026-10-06) — 이 파일은 손으로 한 번 받을 때만.
 // 실행(Actions — 세션 환경은 KBL 차단): npx tsx scripts/fetch-active.ts
 // 저장: 페이지 응답을 받은 그대로 배열로 (원칙 2). 실패하면 파일을 쓰지 않는다 → 빌더는 지난 시즌 명단으로 대신한다.
 

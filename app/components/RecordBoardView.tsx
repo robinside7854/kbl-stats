@@ -4,6 +4,7 @@
 // 서버가 부문마다 필터(국내/외국인 × 전체/현역)별 상위 50을 모두 담아 보내고(lib/data unionForFilters), 이 화면은 걸러서 순위만 다시 센다
 // (lib/records filterRecordList). 선택은 주소 ?kind=&cat=&mode=&origin=&active=1 에 남긴다.
 // GA4: filter_change screen=records_game|records_season|records_awards (kind·category·mode·origin·active_only).
+import InfoLink from "./InfoLink";
 import { useEffect, useMemo, useState } from "react";
 import { filterRecordList, GAME_KINDS, type GameKind, type RecordListsData, type RecordMode, type RecordOrigin } from "@/lib/records";
 import ChipRow from "./ChipRow";
@@ -139,6 +140,7 @@ export default function RecordBoardView({ screen, data, categories, kinds = fals
         >
           현역만
         </button>
+        <InfoLink term="rosterStatus" />
       </div>
       <section aria-label={`${def.label} 순위`} className="mt-4">
         <RecordList

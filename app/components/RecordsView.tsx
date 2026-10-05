@@ -1,6 +1,7 @@
 "use client";
 // 역대 통산 순위 화면(하위 탭 "누적", 머리말·탭은 RecordsHeader): 부문 칩 · 합계/경기당 · 국적(전체/국내/외국인) · 현역만(?active=1) → 순위 목록 50명씩 "더 보기".
 // 순위·표기는 lib/records 순수 함수. 선택 상태는 주소 ?cat=&mode=&origin= 에 남긴다(정적 HTML 은 기본 상태: 통산 득점 합계).
+import InfoLink from "./InfoLink";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
@@ -90,6 +91,7 @@ export default function RecordsView({ totals, spanLabel, latestSeasonCode }: { t
         >
           현역만
         </button>
+        <InfoLink term="rosterStatus" />
       </div>
       {effMode === "perGame" && <p className="mt-2 text-sub text-ink-3">경기당 순위는 통산 {RECORDS_MIN_GAMES}경기 이상 선수만</p>}
 

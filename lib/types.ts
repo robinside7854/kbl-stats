@@ -4,6 +4,7 @@
 
 import type { LeaderZoneCounts, ShotZoneSummary, ZoneCounts } from "./shots";
 import type { OffenseTypeKey } from "./glossary";
+import type { RosterStatus } from "./roster";
 
 // ─────────────────────────────────────────────
 // 선수 프로필 — 서버 B 선수 마스터(data/raw/players/players.json)에서 playerNo 로 조인 (scripts/player-master.ts)
@@ -295,6 +296,8 @@ export interface PlayerIndexEntry extends PlayerProfile {
   championships?: number[];
   /** 역대 수상 (공홈 역대수상현황, scripts/awards.ts) — 시즌 오름차순. 옛 색인엔 필드가 없다 */
   awards?: PlayerAward[];
+  /** 현역·미등록·은퇴 (lib/roster rosterStatusOf, KBL 등록 명단 기준). 명단 raw 가 없으면 null — 옛 색인엔 필드가 없다 */
+  rosterStatus?: RosterStatus | null;
 }
 
 /** 수상 부문: 정규리그 MVP(2025-26 부터 국내선수 MVP)·외국선수상(외국선수 MVP)·챔프전 MVP·올스타 MVP·베스트5·수비 5걸·신인상·최우수 수비상·식스맨상·기량 발전상 */

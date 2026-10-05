@@ -4,6 +4,7 @@
 // KBL 이 발표하는 공식 통산 기록과 다를 수 있다(기록 정정 등) → 화면·용어에 안내.
 
 import { perGame } from "./metrics";
+import type { RosterStatus } from "./roster";
 
 export type RecordStatKey = "points" | "reb" | "ast" | "stl" | "blk" | "tpm" | "doubleDoubles" | "tripleDoubles" | "games" | "minutes" | "wins";
 export type RecordMode = "total" | "perGame";
@@ -52,6 +53,8 @@ export interface CareerTotal {
   lastLabel: string;
   /** 마지막으로 뛴 시즌 코드 — 현역 판정(isActiveCareer)에 쓴다 */
   lastSeasonCode: number;
+  /** KBL 등록 명단 기준 상태 (lib/roster rosterStatusOf). 없으면(명단 raw 없음) 마지막 시즌으로 현역을 판정 */
+  rosterStatus?: RosterStatus | null;
   /** 마지막 시즌 팀 한글 약칭·색 */
   lastTeam: string;
   lastTeamColor: string;
@@ -81,6 +84,7 @@ export function sumCareerTotals<T extends Omit<CareerTotal, "seasons" | "firstLa
     if (!cur) {
       by.set(r.id, {
         id: r.id, nameKo: r.nameKo, photoUrl: r.photoUrl, origin: r.origin,
+        rosterStatus: r.rosterStatus ?? null,
         seasons: 1, firstLabel: r.seasonLabel, lastLabel: r.seasonLabel, lastSeasonCode: r.seasonCode, lastTeam: r.teamShort, lastTeamColor: r.teamColor,
         firstCode: r.seasonCode, lastCode: r.seasonCode,
         games: r.games, minutes: r.minutes, points: r.points, reb: r.reb, ast: r.ast, stl: r.stl, blk: r.blk, tpm: r.tpm,
@@ -108,10 +112,11 @@ export function sumCareerTotals<T extends Omit<CareerTotal, "seasons" | "firstLa
 }
 
 /**
- * 현역 판정: 기록이 있는 가장 최근 시즌(latestSeasonCode — 코드표에서 선수 있는 최신 시즌)에 뛰었으면 현역.
- * 개막 전에는 직전 시즌 선수가 현역이다(은퇴 발표는 KBL 기록에 없어 다음 시즌 첫 경기 전까지는 구분하지 못한다).
+ * 현역 판정: KBL 등록 명단(rosterStatus)이 있으면 그것 — 명단에 있으면 현역(2026-10-06).
+ * 명단 raw 가 없을 때만 예전 규칙: 기록이 있는 가장 최근 시즌(latestSeasonCode)에 뛰었으면 현역.
  */
-export function isActiveCareer(t: Pick<CareerTotal, "lastSeasonCode">, latestSeasonCode: number): boolean {
+export function isActiveCareer(t: Pick<CareerTotal, "lastSeasonCode" | "rosterStatus">, latestSeasonCode: number): boolean {
+  if (t.rosterStatus) return t.rosterStatus === "active";
   return t.lastSeasonCode === latestSeasonCode;
 }
 

@@ -1,4 +1,5 @@
 // 업데이트 소식 글 목록·띠배너 규칙 (lib/updates.ts) — npm run test:updates
+import { GLOSSARY_ANCHORS } from "../lib/glossary";
 import assert from "node:assert/strict";
 import { bannerPost, itemHref, itemText, latestPost, postBySlug, shouldShowBanner, sortedPosts, UPDATE_POSTS, type UpdatePost } from "../lib/updates";
 
@@ -28,14 +29,15 @@ for (const t of texts) {
 }
 
 // 사이트 안 링크는 있는 화면으로
-const ROUTES = ["/", "/players", "/teams", "/records", "/game", "/game/ranking", "/likes", "/privacy", "/me", "/updates"];
+const ROUTES = ["/", "/players", "/teams", "/records", "/game", "/game/ranking", "/likes", "/privacy", "/me", "/updates", "/glossary"];
 for (const p of UPDATE_POSTS)
   for (const b of p.blocks) {
     if (b.kind !== "list" && b.kind !== "steps") continue;
     for (const it of b.items) {
       const href = itemHref(it);
       if (!href) continue;
-      const ok = ROUTES.includes(href) || (href.startsWith("/updates/") && !!postBySlug(href.slice("/updates/".length)));
+      const anchor = href.startsWith("/glossary#") && Object.values(GLOSSARY_ANCHORS).includes(href.slice("/glossary#".length));
+      const ok = ROUTES.includes(href) || anchor || (href.startsWith("/updates/") && !!postBySlug(href.slice("/updates/".length)));
       assert.ok(ok, `${p.slug}: 없는 주소 ${href}`);
     }
   }

@@ -31,7 +31,8 @@ export type GlossaryKey =
   | "records"
   | "winPct"
   | "prime"
-  | "game54";
+  | "game54"
+  | "rosterStatus";
 
 /** 용어 화면의 묶음 (순서 = 화면 순서) */
 export type GlossaryGroup = "stats" | "grades" | "shots" | "etc";
@@ -278,6 +279,16 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     note: "시즌 기록을 더한 값이라 KBL 공식 통산 기록과 조금 다를 수 있습니다. 경기당 순위는 200경기 이상 뛴 선수만 넣습니다.",
     source: null,
   },
+  {
+    key: "rosterStatus",
+    group: "etc",
+    name: "현역·미등록·은퇴",
+    short: "KBL 선수 등록 명단에 지금 이름이 있으면 현역입니다.",
+    note: "명단은 일주일에 한 번 확인합니다. 명단에 없어도 군 복무, FA, 부상일 수 있어서 최근 3시즌 동안 기록이 없을 때만 은퇴로 봅니다.",
+    formula: "현역: 등록 명단에 있음 · 미등록: 명단에 없지만 최근 3시즌 안에 뛰었음 · 은퇴(외국 선수는 KBL 떠남): 명단에 없고 최근 3시즌 동안 기록이 없음 · 다시 등록되면 현역",
+    brief: "현역: 등록 명단에 있음 · 미등록: 명단에 없지만 최근 3시즌 안에 뛰었음 · 은퇴: 명단에 없고 최근 3시즌 기록 없음",
+    source: null,
+  },
 ];
 
 const BY_KEY = new Map(GLOSSARY.map((e) => [e.key, e]));
@@ -317,6 +328,7 @@ export const GLOSSARY_ANCHORS: Record<GlossaryKey, string> = {
   winPct: "win-pct",
   prime: "prime",
   game54: "game-54-0",
+  rosterStatus: "roster-status",
 };
 
 /** 도움말 팝오버 한 개의 내용 (app/components/HelpPopover — 그 자리에서 뜨는 ⓘ 설명) */

@@ -195,3 +195,36 @@ const gctx = buildCardContext(guards, DEFAULT_QUALIFY, file.coverage, { threshol
 assert.equal(gctx.qualifiedCount, 1);
 assert.deepEqual(gctx.thresholds, file.defaults.thresholds);
 console.log("roster: 카드 파일·변환 통과");
+
+// ── 현역·미등록·은퇴 (2026-10-06) ──
+{
+  const { rosterStatusOf } = await import("../lib/roster");
+  const codes = [41, 43, 45, 47, 49];
+  assert.equal(rosterStatusOf(true, 41, codes, "domestic"), "active", "명단에 있으면 오래 쉬었어도 현역 (상무 복귀 등)");
+  assert.equal(rosterStatusOf(false, 49, codes, "foreign"), "unregistered", "이번 시즌 뛰고 빠짐 (외국 선수 교체 등)");
+  assert.equal(rosterStatusOf(false, 47, codes, "domestic"), "unregistered", "지난 시즌까지 뛰고 미등록 = 군 복무·FA 일 수 있음");
+  assert.equal(rosterStatusOf(false, 45, codes, "domestic"), "unregistered", "최근 3시즌 안(45·47·49)");
+  assert.equal(rosterStatusOf(false, 43, codes, "domestic"), "retired", "최근 3시즌 기록 없음 → 은퇴");
+  assert.equal(rosterStatusOf(false, 43, codes, "foreign"), "left", "외국 선수는 KBL 떠남");
+  assert.equal(rosterStatusOf(false, 43, codes, "asia"), "left", "아시아쿼터도 KBL 떠남");
+  assert.equal(rosterStatusOf(false, 43, [49, 41, 47, 43, 45], "domestic"), "retired", "시즌 순서 무관");
+}
+{
+  const { rosterCheckDue, rosterChange, applyRosterCheck, EMPTY_ROSTER_LOG } = await import("../scripts/active-roster");
+  assert.equal(rosterCheckDue(null, "2026-10-06"), true, "확인한 적 없으면 확인");
+  assert.equal(rosterCheckDue("2026-10-05", "2026-10-11"), false, "6일 뒤는 아직");
+  assert.equal(rosterCheckDue("2026-10-05", "2026-10-12"), true, "7일 뒤 확인");
+  assert.equal(rosterCheckDue("2026-12-28", "2027-01-04"), true, "해 넘김");
+  const a = { playerNo: 1, teamCode: "16", backNum: "3", rowNo: 1 };
+  const b = { playerNo: 2, teamCode: "55", backNum: "7", rowNo: 2 };
+  assert.equal(rosterChange([a, b], [{ ...b, rowNo: 1 }, { ...a, rowNo: 2 }], "2026-10-12"), null, "순서·rowNo 만 바뀌면 같은 명단");
+  const moved = rosterChange([a, b], [{ ...a, teamCode: "60" }, { playerNo: 3, teamCode: "10" }], "2026-10-12");
+  assert.deepEqual(moved, { date: "2026-10-12", count: 2, added: ["3"], removed: ["2"], updated: 1 }, "들어옴·빠짐·이적");
+  const first = applyRosterCheck(EMPTY_ROSTER_LOG, null, [a], "2026-10-05");
+  assert.equal(first.changed?.added.length, 1, "처음 받은 명단은 바뀜으로 저장");
+  const same = applyRosterCheck(first.log, [a], [a], "2026-10-12");
+  assert.equal(same.changed, null);
+  assert.equal(same.log.checkedAt, "2026-10-12", "안 바뀌어도 확인 날짜는 갱신");
+  assert.equal(same.log.changes.length, 1);
+}
+console.log("현역 상태·명단 확인 규칙 통과");

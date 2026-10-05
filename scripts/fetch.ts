@@ -30,6 +30,8 @@ import { collectSeasonShots } from "./collect-shots.js";
 import { highsTargetSeasons, playerNosFromTraditional, todayKst, updateFirstSeen } from "./highs.js";
 import { seasonLabelOf } from "./shots.js";
 import { hasNewHighlight, parseFeed, readSavedFeeds } from "./highlights.js";
+import { applyRosterCheck, EMPTY_ROSTER_LOG, rosterCheckDue, type RosterLog } from "./active-roster.js";
+import { masterRows } from "./player-master.js";
 
 async function saveCodes(name: string, body: unknown) {
   const dir = join(DATA_DIR, "codes");
@@ -119,6 +121,50 @@ async function fetchPlayerMaster(): Promise<void> {
   await saveRaw("players", "players", pages);
   console.log(`[선수 마스터] ${count}명 (${pages.length}쪽)`);
   await sleep(REQUEST_INTERVAL_MS);
+}
+
+/** 현역 등록 명단 확인 기록 (scripts/active-roster.ts RosterLog) */
+const ROSTER_LOG_FILE = join(DATA_DIR, "active-roster-log.json");
+
+/**
+ * 현역 등록 명단(regSc=Y, 약 190명 · 1~2회 요청) — 일주일에 한 번만 받고(rosterCheckDue), 바뀌었을 때만
+ * data/raw/players/active.json 을 다시 쓴다. 확인 날짜·변경은 data/active-roster-log.json.
+ * 한 쪽이라도 실패하면 아무것도 쓰지 않는다(지난 명단·확인 날짜 그대로 → 다음 날 다시 시도).
+ */
+async function fetchActiveRoster(today: string): Promise<void> {
+  const log: RosterLog = await readFile(ROSTER_LOG_FILE, "utf8").then((t) => JSON.parse(t) as RosterLog).catch(() => EMPTY_ROSTER_LOG);
+  if (!rosterCheckDue(log.checkedAt, today)) {
+    console.log(`[현역 명단] 이번 주 확인함(${log.checkedAt}) — 건너뜀`);
+    return;
+  }
+  type Page = { totalCn?: string | number; playerList?: unknown[] };
+  const url = (pageNo: number) =>
+    `${CODES_API}${PLAYER_MASTER_PATH}?${new URLSearchParams({ regSc: "Y", pageNo: String(pageNo), listCn: String(PAGE_SIZE) })}`;
+  const pages: unknown[] = [];
+  let count = 0;
+  let total = Infinity;
+  for (let page = 1; page <= PLAYER_MASTER_MAX_PAGES && count < total; page++) {
+    await sleep(REQUEST_INTERVAL_MS);
+    const body = await getJson(url(page));
+    const parsed = (typeof body === "string" ? JSON.parse(body) : body) as Page;
+    const list = Array.isArray(parsed?.playerList) ? parsed.playerList : null;
+    if (!list) throw new Error(`${page}쪽: 예상 밖 응답 (playerList 없음)`);
+    if (list.length === 0) break;
+    if (page === 1) total = Number(parsed.totalCn) || Infinity;
+    pages.push(body);
+    count += list.length;
+  }
+  if (count === 0) throw new Error("0명 (헤더 누락 등으로 빈 응답)");
+  const file = join(DATA_DIR, "raw", "players", "active.json");
+  const oldRows = await readFile(file, "utf8").then((t) => masterRows(JSON.parse(t))).catch(() => null);
+  const r = applyRosterCheck(log, oldRows, masterRows(pages), today);
+  if (r.changed) {
+    await saveRaw("players", "active", pages);
+    console.log(`[현역 명단] ${count}명 — 바뀜(들어옴 ${r.changed.added.length} · 빠짐 ${r.changed.removed.length} · 정보 바뀜 ${r.changed.updated}) → 저장`);
+  } else {
+    console.log(`[현역 명단] ${count}명 — 지난번과 같음`);
+  }
+  await writeFile(ROSTER_LOG_FILE, `${JSON.stringify(r.log, null, 2)}\n`, "utf8");
 }
 
 /** 시즌 첫 수집일 기록 파일 (시즌 코드 → "YYYY-MM-DD"). 한 경기 최다 대상 선정에 쓴다 */
@@ -340,6 +386,15 @@ async function main() {
       await fetchHighlights();
     } catch (e) {
       warnings.push(`highlights(하이라이트 RSS): ${(e as Error).message}`);
+    }
+  }
+
+  // 현역 등록 명단 (주 1회) — 실패해도 경고만 (다음 날 다시 시도)
+  if (!all) {
+    try {
+      await fetchActiveRoster(todayKst());
+    } catch (e) {
+      warnings.push(`active(현역 등록 명단): ${(e as Error).message}`);
     }
   }
 

@@ -31,6 +31,19 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-10-06-roster-status",
+    date: "2026-10-06",
+    kind: "update",
+    title: "선수 페이지에 현역·은퇴 표시가 붙어요",
+    summary: "현역·은퇴 표시 생겼어요",
+    blocks: [
+      { kind: "p", text: "선수 이름 아래에 현역, 미등록, 은퇴 중 하나가 붙어요. KBL 선수 등록 명단을 일주일에 한 번 확인해서 정해요." },
+      { kind: "p", text: "명단에 없다고 바로 은퇴는 아니에요. 군 복무나 FA일 수 있어서, 최근 3시즌 동안 기록이 없을 때만 은퇴로 봐요. 표시를 누르면 기준이 나와요." },
+      { kind: "p", text: "역대 기록의 '현역만'도 같은 명단으로 바뀌었어요." },
+      { kind: "list", items: [{ text: "역대 기록 보기", href: "/records" }, { text: "판정 기준 보기", href: "/glossary#roster-status" }] },
+    ],
+  },
+  {
     slug: "2026-10-06-career-table",
     date: "2026-10-06",
     kind: "update",

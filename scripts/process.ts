@@ -20,7 +20,8 @@ import { DATA_DIR, HIGHLIGHT_SOURCE, SEASON_CODES_FALLBACK } from "./config.js";
 import { computeTeamShareStats, seasonCoverage, usgFromKbl } from "../lib/metrics.js";
 import { playerPhotoUrl, teamLogoUrl } from "./image-urls.js";
 import { teamShortNameKo } from "../lib/teams.js";
-import { buildProfileMap, EMPTY_PROFILE, EMPTY_PROFILE_EXTRA, isForeignPlayer, profileExtraFrom, type ProfileExtra } from "./player-master.js";
+import { buildProfileMap, masterRows, EMPTY_PROFILE, EMPTY_PROFILE_EXTRA, isForeignPlayer, profileExtraFrom, type ProfileExtra } from "./player-master.js";
+import { nationalityOf, rosterStatusOf } from "../lib/roster.js";
 import { hasCareerHighs, parseMostGame, todayKst, type ParsedMostGame } from "./highs.js";
 import { buildSeasonGames, parseBoxLog, type BoxLogRow } from "./boxscores.js";
 import { matchHighlights, readSavedFeeds, type FeedEntry } from "./highlights.js";
@@ -688,6 +689,34 @@ async function readProfileExtras(): Promise<Map<string, ProfileExtra>> {
   return out;
 }
 
+/**
+ * 현역·미등록·은퇴 (lib/roster rosterStatusOf) — 재료는 KBL 현역 등록 명단 raw(data/raw/players/active.json, fetch.ts 가 주 1회).
+ * 명단이 없거나 비었으면 전부 null(화면은 예전 규칙 "최신 시즌에 뛰었으면 현역")
+ */
+async function attachRosterStatus(index: PlayerIndexEntry[], seasons: SeasonData[]): Promise<void> {
+  const file = join(DATA_DIR, "raw", "players", "active.json");
+  let registered: Set<string> | null = null;
+  try {
+    const rows = masterRows(JSON.parse(await readFile(file, "utf8")));
+    if (rows.length > 0) registered = new Set(rows.map((r) => String(r.playerNo)));
+  } catch {
+    // 없음
+  }
+  if (!registered) {
+    console.warn(`현역 등록 명단 없음(${file}) → rosterStatus null (화면은 최신 시즌 출전으로 현역 판정)`);
+    for (const e of index) e.rosterStatus = null;
+    return;
+  }
+  const codes = seasons.filter((s) => s.players.length > 0).map((s) => s.seasonCode);
+  const tally: Record<string, number> = {};
+  for (const e of index) {
+    const last = e.seasons[e.seasons.length - 1]?.seasonCode ?? -1;
+    e.rosterStatus = rosterStatusOf(registered.has(e.id), last, codes, nationalityOf(e));
+    tally[e.rosterStatus] = (tally[e.rosterStatus] ?? 0) + 1;
+  }
+  console.log(`현역 등록 명단: ${registered.size}명 → 상태 ${JSON.stringify(tally)}`);
+}
+
 const postseasonSummary: string[] = [];
 
 async function main() {
@@ -749,6 +778,7 @@ async function main() {
     await writeFile(join(DATA_DIR, "processed", String(season.seasonCode), "players.json"), JSON.stringify(season, null, 2), "utf8");
   }
   const playersIndex = buildPlayersIndex(done);
+  await attachRosterStatus(playersIndex, done);
   const indexJson = `[\n${playersIndex.map((e) => JSON.stringify(e)).join(",\n")}\n]\n`;
   await writeFile(join(DATA_DIR, "processed", "players-index.json"), indexJson, "utf8");
   console.log(`선수 색인: ${playersIndex.length}명 → ${join(DATA_DIR, "processed", "players-index.json")}`);

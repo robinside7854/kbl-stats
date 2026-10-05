@@ -522,6 +522,7 @@ export function loadCareerTotals(): CareerTotal[] {
         id: p.id,
         nameKo: p.nameKo,
         photoUrl: idx?.photoUrl ?? p.photoUrl,
+        rosterStatus: idx?.rosterStatus ?? null,
         origin: (nationalityOf(idx ?? p) === "domestic" ? "domestic" : "foreign") as "domestic" | "foreign",
         seasonCode: season.seasonCode,
         seasonLabel: season.seasonLabel,
@@ -624,7 +625,10 @@ function filterMetaOf(id: string): { origin: "domestic" | "foreign"; active: boo
     filterMetaCache = new Map(
       loadPlayersIndex().map((e) => [
         e.id,
-        { origin: nationalityOf(e) === "domestic" ? "domestic" : "foreign", active: e.seasons[e.seasons.length - 1]?.seasonCode === latest },
+        {
+          origin: nationalityOf(e) === "domestic" ? "domestic" : "foreign",
+          active: latest !== undefined && isActiveCareer({ lastSeasonCode: e.seasons[e.seasons.length - 1]?.seasonCode ?? -1, rosterStatus: e.rosterStatus }, latest),
+        },
       ]),
     );
   }
