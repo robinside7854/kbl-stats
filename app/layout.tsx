@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { SITE_NAME, SITE_URL, shareMetadata } from "@/lib/share";
 import Analytics from "./components/Analytics";
+import AppInstallTracker from "./components/AppInstallTracker";
 import { FONT_CDN_ORIGIN, PRETENDARD_CSS_URL } from "./components/webFont";
 import "./globals.css";
 
@@ -14,6 +15,8 @@ export const metadata: Metadata = {
     path: "/",
   }),
   applicationName: SITE_NAME,
+  // 아이폰 "홈 화면에 추가" 를 앱처럼(주소창 없이) 열기 (2026-10-05 앱 설치 — 안드로이드는 app/manifest.ts)
+  appleWebApp: { capable: true, title: "KBL 스탯", statusBarStyle: "default" },
 };
 
 export const viewport: Viewport = {
@@ -38,6 +41,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="min-h-dvh">
         {children}
+        <AppInstallTracker />
         <Analytics />
       </body>
     </html>

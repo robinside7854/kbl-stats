@@ -134,7 +134,8 @@ export default function SiteNav({ seasons, seasonCode, view, onSeasonChange, wid
         {BOTTOM_MENU.map((m) => {
           const active = m.views.includes(view);
           const Icon = m.icon;
-          // 가운데 홈은 다른 칸보다 크게·위로 띄운 둥근 버튼 (2026-10-03 사용자: 더 누르기 쉽게)
+          // 가운데 홈 = 둥근 버튼 (2026-10-03). 2026-10-05 사용자: 위로 띄우지 않고 다른 칸과 같은 줄로 내림·"홈" 글자 없앰
+          // (삼성 인터넷이 화면 아래 가운데에 띄우는 "위로 가기" 버튼에 가려지던 것 — 그 버튼은 사이트가 끌 수 없다)
           if (m === HOME) {
             return (
               <Link
@@ -143,15 +144,12 @@ export default function SiteNav({ seasons, seasonCode, view, onSeasonChange, wid
                 onClick={() => trackEvent("nav_click", { menu: m.label, place: "bottom" })}
                 aria-current={active ? "page" : undefined}
                 aria-label={m.label}
-                className="focus-ring-inset group relative flex h-14 flex-col items-center justify-center gap-0.5 text-caption font-bold text-ink"
+                className="focus-ring-inset group flex h-14 items-center justify-center"
               >
-                {/* 아이콘 자리(24px)는 비워 두고 원을 위로 띄운다 — 글자 줄이 다른 칸과 같은 높이 */}
-                <span aria-hidden className="h-6" />
                 {/* deslop-ignore-next-line 19 */}
-                <span className={`absolute -top-6 left-1/2 flex h-14 w-14 -translate-x-1/2 items-center justify-center rounded-full border-4 border-surface shadow-card transition-colors duration-200 ${active ? "bg-ink text-bg" : "bg-series-1 text-white group-hover:bg-ink"}`}>
+                <span className={`flex h-11 w-11 items-center justify-center rounded-full shadow-card transition-colors duration-200 ${active ? "bg-ink text-bg" : "bg-series-1 text-white group-hover:bg-ink"}`}>
                   <Icon size={24} />
                 </span>
-                <span className="whitespace-nowrap leading-none tracking-tight">{m.label}</span>
               </Link>
             );
           }
