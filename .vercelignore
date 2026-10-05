@@ -1,0 +1,8 @@
+# Vercel 배포에서 뺄 것 (2026-10-05 — Vercel 무료 플랜 저장공간 10GB 초과 대응, CLAUDE.md "배포 규칙")
+# Vercel 은 배포마다 소스 스냅샷을 보관한다. 저장소 258MB 중 207MB 가 data/raw 인데 빌드는 이걸 읽지 않는다
+# (화면·prebuild 는 data/processed 만, raw 는 GitHub Actions 의 scripts/process.ts 만 읽는다).
+# ⚠ scripts/·assets/fonts/·data/processed/·data/codes/ 는 빌드가 쓰므로 여기 넣지 말 것.
+data/raw/
+docs/
+tests/
+shorts/

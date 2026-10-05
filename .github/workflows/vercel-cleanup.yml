@@ -1,0 +1,43 @@
+# Vercel 옛 배포 정리 — 무료 플랜 저장공간(10GB) 대응 (2026-10-05, scripts/vercel-cleanup.ts)
+# 평소에는 매일 수집(fetch.yml) 끝에 같은 스크립트가 돌아서 이 워크플로는 예비다:
+#   - 수동: GitHub → Actions → "Vercel 옛 배포 정리" → Run workflow (dry_run 에 1 을 넣으면 지울 목록만 본다)
+#   - 예약: 매주 월요일 12:00 KST (GitHub 예약은 자주 빠진다 — CLAUDE.md 매일 수집 메모. 빠져도 매일 수집 쪽이 돈다)
+# 남기는 것: 지금 운영 배포 + 진행 중 + 완료 최근 5개. 토큰: 저장소 Settings → Secrets and variables → Actions → VERCEL_TOKEN
+name: Vercel 옛 배포 정리
+
+on:
+  schedule:
+    - cron: "0 3 * * 1"   # 월요일 12:00 KST
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "1 이면 지우지 않고 목록만"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4 (판 고정, 2026-10-03 보안 점검)
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: 정리
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          if [ "${{ github.event.inputs.dry_run }}" = "1" ]; then
+            npx tsx scripts/vercel-cleanup.ts --dry-run
+          else
+            npx tsx scripts/vercel-cleanup.ts
+          fi

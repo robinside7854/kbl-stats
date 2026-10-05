@@ -29,6 +29,8 @@ jobs:
     timeout-minutes: 330
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4 (판 고정, 2026-10-03 보안 점검)
+        with:
+          fetch-depth: 0   # data-backfill 브랜치 이어받기·main 위에 rebase 에 공통 조상이 필요하다 (2026-10-05)
 
       - name: 실행 횟수 확인 (0 이면 건너뜀)
         id: gate
@@ -56,6 +58,13 @@ jobs:
         run: |
           git config user.name "robinside7854"
           git config user.email "252681033+robinside7854@users.noreply.github.com"
+          # 시즌마다 main 에 푸시하지 않는다 — 커밋마다 Vercel 배포(소스 스냅샷 약 260MB)가 생겨 저장공간 한도(10GB)를 넘겼다(2026-09-30).
+          # 중간 저장은 data-backfill 브랜치(vercel.json 이 main 만 배포하므로 배포 안 함), main 에는 맨 끝 단계에서 한 번만.
+          # 지난 실행이 중간에 끊겼으면 그 브랜치에 남은 raw 를 이어받는다(같은 파일이 겹치면 main 쪽을 둔다).
+          git checkout -q -B data-backfill
+          if git fetch -q origin data-backfill 2>/dev/null; then
+            git merge -q --no-edit -X ours origin/data-backfill || { git merge --abort; echo "::warning::data-backfill 이어받기 실패 — 처음부터 받습니다"; }
+          fi
           # 시간 제한(330분) 전에 새 시즌을 시작하지 않도록 300분 예산 — 남은 시간에 가공·커밋 단계가 돈다
           deadline=$(( $(date +%s) + 300 * 60 ))
           failed=""
@@ -68,8 +77,7 @@ jobs:
             for d in data/raw/highs data/raw/profiles; do [ -d "$d" ] && git add "$d"; done
             if ! git diff --cached --quiet; then
               git commit -q -m "데이터 백필: 한 경기 최다·프로필 시즌 $s"
-              git pull -q --rebase origin main
-              git push -q
+              git push -q -f origin HEAD:data-backfill
             fi
           done
           if [ -n "$failed" ]; then
@@ -90,6 +98,13 @@ jobs:
             echo "변경 없음"
           else
             git commit -m "데이터 가공: 한 경기 최다 백필 반영 $(date -u +'%Y-%m-%d %H:%M UTC')"
-            git pull --rebase origin main
-            git push
           fi
+
+      - name: main 에 반영 (배포 한 번)
+        if: always() && steps.gate.outputs.run == 'true'
+        run: |
+          # 이번 실행의 모든 데이터 커밋을 최신 main 위에 얹어 한 번에 푸시 → Vercel 배포 1회. 겹치는 데이터 파일은 방금 받은 쪽(-X theirs).
+          git fetch -q origin main
+          git rebase -X theirs origin/main
+          git push origin HEAD:main
+          git push -q origin --delete data-backfill || true
