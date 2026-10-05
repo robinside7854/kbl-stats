@@ -1,5 +1,6 @@
 "use client";
-// 경기 카드 한 장 (홈 "오늘의 경기"·일정 화면 공용, 2026-10-03): 원정·홈 팀과 점수(이긴 쪽 굵게), 경기장·시간, 수훈 선수,
+// 경기 카드 한 장 (홈 "오늘의 경기"·일정 화면 공용, 2026-10-03): 스코어보드는 좌우 배치(2026-10-05 사용자 — 위아래는 팀과 점수가 멀고
+// 승자가 잘 안 보였다): **홈 팀이 늘 왼쪽** | 점수 "88 : 85"(이긴 쪽 진하게) | 원정 팀, 이긴 팀 이름 아래 "승" 표시. 그 아래 경기장·시간, 수훈 선수,
 // "박스스코어 보기"를 누르면 팝업(2026-10-04 사용자 결정 — 카드 안에 펼치던 것을 바꿈: 폰은 아래에서 올라오는 시트, PC 는 가운데 창이라
 // 14열 표가 카드 폭에 눌리지 않는다). 박스스코어는 카드에 들어 있거나(홈) 누를 때 받아 온다(일정 — /games/{시즌}/{날짜}.json).
 // 하이라이트 영상(2026-10-04, game.highlight = TVING SPORTS 유튜브 영상 번호)이 있으면 "하이라이트" 버튼 → 같은 팝업에 youtube-nocookie 영상.
@@ -48,14 +49,15 @@ export default function GameCard({ game: g, seasonCode, teams, stars = null, loa
   const [failed, setFailed] = useState(false);
   const win = winnerSide(g);
   const hasBox = !!g.box || !!loadBox;
-  const sides = (["away", "home"] as const).map((k) => ({
+  const sides = (["home", "away"] as const).map((k) => ({
     key: k,
     info: teamInfoOf(teams, g[k].teamCode, g[k].name),
     score: g[k].score,
     won: win === k,
   }));
   const starsOf = (k: "away" | "home") => stars?.[k] ?? [];
-  const matchTitle = `${sides[0].info.shortName} ${g.away.score ?? "–"} : ${g.home.score ?? "–"} ${sides[1].info.shortName}`;
+  const matchTitle = `${sides[0].info.shortName} ${g.home.score ?? "–"} : ${g.away.score ?? "–"} ${sides[1].info.shortName}`;
+  const [homeSide, awaySide] = sides;
   const matchSub = [gameDayLabel(g.date), g.stadium].filter(Boolean).join(" · ");
 
   async function openBox() {
@@ -77,21 +79,24 @@ export default function GameCard({ game: g, seasonCode, teams, stars = null, loa
 
   return (
     <article className="surface-card tabular rounded-container p-3">
-      {sides.map((s) => (
-        <div key={s.key} className="flex min-h-10 items-center gap-2.5">
-          <TeamLogo logoUrl={s.info.logoUrl} shortName={s.info.shortName} color={s.info.color} size={28} />
-          <span className={`min-w-0 flex-1 truncate text-body ${s.won ? "font-bold text-ink" : "font-medium text-ink-2"}`}>
-            {s.info.shortName}
-            <span className="ml-1.5 text-caption font-semibold tracking-wide text-ink-3">{s.key === "home" ? "HOME" : "AWAY"}</span>
-          </span>
-          <span className={`text-h2 leading-none ${s.won ? "font-black text-ink" : "font-semibold text-ink-3"}`}>
-            {g.ended ? (s.score ?? "–") : ""}
-          </span>
+      {/* 스코어보드: 홈(왼쪽) | 점수 | 원정(오른쪽) */}
+      <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
+        <TeamSide side={homeSide} />
+        <div className="flex flex-col items-center px-1">
+          {g.ended ? (
+            <p className="flex items-baseline gap-1.5 leading-none" aria-label={`${homeSide.info.shortName} ${homeSide.score ?? "–"}점, ${awaySide.info.shortName} ${awaySide.score ?? "–"}점`}>
+              <Score side={homeSide} />
+              <span className="text-h2 font-semibold text-ink-3">:</span>
+              <Score side={awaySide} />
+            </p>
+          ) : (
+            <p className="text-h2 font-bold leading-none text-ink">{g.start ?? "–"}</p>
+          )}
+          <p className="mt-1.5 text-caption text-ink-3">{g.ended ? "종료" : g.start ? "시작" : "예정"}</p>
         </div>
-      ))}
-      <p className="mt-1 text-caption text-ink-3">
-        {[g.ended ? "종료" : g.start ? `${g.start} 시작` : "예정", g.stadium].filter(Boolean).join(" · ")}
-      </p>
+        <TeamSide side={awaySide} />
+      </div>
+      {g.stadium && <p className="mt-1 text-center text-caption text-ink-3">{g.stadium}</p>}
       {(starsOf("away").length > 0 || starsOf("home").length > 0) && (
         <ul className="mt-2 space-y-1.5 border-t border-line pt-2 text-sub">
           {sides.map((s) => {
@@ -246,4 +251,30 @@ function BoxScoreDialog({ title, sub, onClose, children }: { title: string; sub:
     </div>,
     document.body,
   );
+}
+
+interface SideView {
+  key: "home" | "away";
+  info: GameTeamInfo;
+  score: number | null;
+  won: boolean;
+}
+
+/** 스코어보드 한쪽 팀: 로고·이름·HOME/AWAY, 이긴 팀은 "승" 표시 */
+function TeamSide({ side: s }: { side: SideView }) {
+  return (
+    <div className="flex min-w-0 flex-col items-center text-center">
+      <TeamLogo logoUrl={s.info.logoUrl} shortName={s.info.shortName} color={s.info.color} size={36} />
+      <span className={`mt-1 w-full truncate text-body ${s.won ? "font-bold text-ink" : "font-medium text-ink-2"}`}>{s.info.shortName}</span>
+      <span className="mt-0.5 flex items-center gap-1 text-caption font-semibold tracking-wide text-ink-3">
+        {s.key === "home" ? "HOME" : "AWAY"}
+        {s.won && <span className="rounded-sm bg-ink px-1 text-caption font-bold tracking-normal text-bg">승</span>}
+      </span>
+    </div>
+  );
+}
+
+/** 점수 한쪽: 이긴 쪽은 진한 검정, 진 쪽은 옅은 회색 */
+function Score({ side: s }: { side: SideView }) {
+  return <span className={`text-h1 ${s.won ? "font-black text-ink" : "font-semibold text-ink-3"}`}>{s.score ?? "–"}</span>;
 }

@@ -31,6 +31,17 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-10-05-scoreboard",
+    date: "2026-10-05",
+    kind: "update",
+    title: "경기 카드 점수판 바꿨어요",
+    summary: "경기 점수판이 좌우로 바뀌었어요",
+    blocks: [
+      { kind: "p", text: "경기 카드를 홈 팀 왼쪽, 원정 팀 오른쪽으로 놓고 가운데 점수를 크게 넣었어요. 이긴 팀은 이름 아래 '승'이 붙어요." },
+      { kind: "list", items: [{ text: "홈에서 오늘의 경기 보기", href: "/" }] },
+    ],
+  },
+  {
     slug: "2026-10-05-asia-quota",
     date: "2026-10-05",
     kind: "update",
