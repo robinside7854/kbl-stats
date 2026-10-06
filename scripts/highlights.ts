@@ -98,3 +98,21 @@ export async function readSavedFeeds(dir: string): Promise<FeedEntry[]> {
   }
   return [...seen.values()];
 }
+
+/** 끝난 경기의 하이라이트를 며칠 동안 기다리나 — 이 기간이 지나도 없으면 더는 RSS 를 보지 않는다 (보통 2~10시간 뒤 올라옴) */
+export const HIGHLIGHT_WAIT_DAYS = 3;
+
+/**
+ * 하이라이트를 아직 기다리는 경기: 끝났고, 영상이 안 붙었고, 경기 날짜가 오늘(한국 날짜 "YYYY-MM-DD")에서 HIGHLIGHT_WAIT_DAYS 일 안.
+ * 매일 수집 사이 알람(scripts/highlight-watch.ts)이 이게 비었으면 유튜브에 요청하지 않는다.
+ */
+export function pendingHighlightGames<T extends { date: string; ended: boolean; highlight?: string }>(
+  games: readonly T[],
+  today: string,
+  days = HIGHLIGHT_WAIT_DAYS,
+): T[] {
+  const from = new Date(`${today}T00:00:00Z`);
+  from.setUTCDate(from.getUTCDate() - days);
+  const fromIso = from.toISOString().slice(0, 10);
+  return games.filter((g) => g.ended && !g.highlight && g.date >= fromIso && g.date <= today);
+}

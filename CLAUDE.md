@@ -93,7 +93,7 @@ KBL 공홈은 화면을 그릴 때 아래 두 서버에서 JSON을 받아온다.
 ### 경기 하이라이트 영상 — 유튜브 TVING SPORTS (2026-10-04 Actions 러너 확인)
 - KBL 중계사 TVING SPORTS 채널(`UC8JtQf77wqhVpOQ8Cze8JjA`) RSS `https://www.youtube.com/feeds/videos.xml?channel_id=…` — **키 없음, 최근 15개만**(야구·쇼츠가 섞임). oEmbed 200 → 임베드 허용
 - 제목 형식: `[DB vs 소노] 10/4 경기 I 2026-27 KCC 프로농구 I 하이라이트 I TVING` — **앞이 홈 팀**. 올라오는 시각은 경기 끝나고 2~4시간 뒤(10/4 16시 경기 → 22시)라 보통 **다음 날 수집**에 들어간다
-- 수집: `npm run fetch` 가 RSS 1회 → 새 경기 하이라이트가 있을 때만 `data/raw/highlights/tving/{UTC시각}.xml`(응답 그대로). 실패는 경고(`fetch:all` 은 건너뜀). 15개 창을 넘기기 전에 매일 쌓는 게 핵심 — 하루라도 수집이 빠지고 영상이 15개 넘게 올라오면 그 사이 하이라이트는 놓친다(그때는 Data API 키로 채우는 방법이 있음)
+- 수집: `npm run fetch` 가 RSS 1회 → 새 경기 하이라이트가 있을 때만 `data/raw/highlights/tving/{UTC시각}.xml`(응답 그대로). 실패는 경고(`fetch:all` 은 건너뜀). **매일 수집 뒤의 알람도 하이라이트만 확인**(2026-10-06, `scripts/highlight-watch.ts` — 3일 안 끝난 경기에 영상이 없을 때만 RSS 1회, 새로 맞으면 process → games.json·RSS raw 만 커밋, fetch.yml "하이라이트만 확인", 알람은 새벽 2:40 까지). 15개 창을 넘기기 전에 매일 쌓는 게 핵심 — 하루라도 수집이 빠지고 영상이 15개 넘게 올라오면 그 사이 하이라이트는 놓친다(그때는 Data API 키로 채우는 방법이 있음)
 - 가공: `scripts/highlights.ts`(parseFeed·parseHighlightTitle·matchHighlights — 날짜 + 두 팀 이름 끝맞춤, 홈·원정 뒤바뀐 제목도) → games.json 경기에 `highlight`(영상 번호). 화면 `GameCard` "하이라이트" 버튼 → 팝업 youtube-nocookie 영상(CSP frame-src)
 
 ### 플레이오프·챔프전 시즌 합계 (2026-10-03 — 역대 기록 "한 시즌 최다")
@@ -379,6 +379,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-06 (하이라이트 공백 줄이기): 10/5 경기 하이라이트가 22시·새벽 1시에 올라와 그날 20시 수집에 못 들어감(다음 날 수집까지 하루 공백). → fetch.yml 에 "하이라이트만 확인" 단계(그날 수집을 안 하는 알람마다, `scripts/highlight-watch.ts` + `scripts/highlights pendingHighlightGames` 3일 안·영상 없는 경기가 있을 때만 RSS 1회) + 맞으면 process 후 games.json·RSS raw 만 커밋. 알람 시각 18:10~02:40 KST(예약 `10,40 9-17 * * *`, cron-job.org 는 사용자가 0·1·2시 추가). 화면 변경 없음 → 업데이트 글 없음. 이 푸시로 fetch.yml 이 돌아 10/5 두 경기 하이라이트를 바로 연결.
 - 2026-10-06 (시작 화면·팀 화면 개편): ① 사용자 결정 시작 화면 시안 A(리그 남색) — 안드로이드는 manifest `background_color` #011B6A, 아이폰·아이패드는 화면 크기별 그림 15장 `public/splash/*.png`(`scripts/build-splash.tsx` 한 번 돌려 커밋, 목록 `lib/splash.ts`, layout `appleWebApp.startupImage`). 아이콘 그림은 `scripts/app-art.ts` 로 빼서 아이콘·시작 화면이 같이 씀. ② `/teams` 개편: 하위 탭 지금 팀/추억의 팀(`?tab=past`), 지금 팀은 이번 시즌 순위 순 카드(순위 칩·승패), 폰 2열·md 5열, 우승은 트로피+숫자·팬 수만, "좋아요 순위"는 머리말 링크, "자세한 순위표" 링크. **팀 좋아요 삭제**(팀 페이지 하트·좋아요 순위 "팀" 탭 — 서버 표·API 는 그대로). GA4 filter_change teams tab. 업데이트 소식 글. main 배포.
 - 2026-10-06 (일정 내 응원팀만): 사용자 요청 — 일정 화면(`ScheduleView`)에 "내 응원팀 / 전체 일정"(로그인 + 그 시즌 응원팀 경기가 있는 회원만, 기본 내 응원팀, 고른 것은 localStorage `kbl-stats:schedule-scope:v1`), 응원팀 없는 회원은 "응원팀 고르기" 안내, 로그인 안 한 방문자는 "로그인하고 응원팀을 고르면 우리 팀 경기만" 안내 카드(로그인 꺼진 빌드는 없음). 규칙 `lib/games gamesOfTeams·initialScheduleScope`. GA4 filter_change schedule scope, 새 이벤트 `login_prompt_click`(place — 이미 등록된 매개변수). 업데이트 소식 글. main 배포.
 - 2026-10-05 (Vercel 저장공간 초과 대응): Usage 가 Deployment Storage 10.58/10GB(kbl-stats 9.94GB)·Fluid CPU 4h26m/4h(농구 대시보드 89%). 원인 = 저장소 안 `data/raw` 207MB 가 배포마다 소스 스냅샷으로 쌓임 + 9/30 백필이 시즌마다 main 푸시(배포 38개) + 무료 플랜엔 자동 삭제 없음. 조치 ① 사용자 `vercel remove --safe` 39개 삭제 ② `.vercelignore`(raw·docs·tests·shorts) ③ 백필 3종을 `data-backfill` 브랜치 중간 저장 → main 1회 ④ `scripts/vercel-cleanup.ts` 매일 수집 끝 + `vercel-cleanup.yml`, VERCEL_TOKEN Secret. 안 한 것: 결과물 다이어트(`.next/server` 340MB). 화면 변경 없음 → 업데이트 소식 글 없음. main 배포.

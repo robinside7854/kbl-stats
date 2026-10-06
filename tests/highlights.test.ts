@@ -37,3 +37,14 @@ assert.equal(matchHighlights(games, [{ videoId: "x1", title: "[소노 vs DB] 10/
 assert.equal(hasNewHighlight(entries, new Set(["Mt2NqynFuG8", "0nEdK8yqggo"])), false); // 야구 영상만 새것
 assert.equal(hasNewHighlight(entries, new Set(["Mt2NqynFuG8"])), true);
 console.log("highlights: 제목 해석·경기 맞추기 통과");
+
+// ── 하이라이트 기다리는 경기 (2026-10-06) ──
+{
+  const { pendingHighlightGames } = await import("../scripts/highlights");
+  const g = (date: string, ended: boolean, highlight?: string) => ({ date, ended, ...(highlight ? { highlight } : {}) });
+  const games = [g("2026-10-02", true), g("2026-10-03", true, "abc"), g("2026-10-04", true), g("2026-10-05", true), g("2026-10-06", false), g("2026-10-07", false)];
+  assert.deepEqual(pendingHighlightGames(games, "2026-10-06").map((x) => x.date), ["2026-10-04", "2026-10-05"], "끝났고 영상 없고 3일 안");
+  assert.deepEqual(pendingHighlightGames(games, "2026-10-05").map((x) => x.date), ["2026-10-02", "2026-10-04", "2026-10-05"], "3일 전까지 포함");
+  assert.equal(pendingHighlightGames(games, "2026-10-12").length, 0, "오래된 경기는 더 기다리지 않음");
+  console.log("highlights: 기다리는 경기 통과");
+}

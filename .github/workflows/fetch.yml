@@ -17,7 +17,8 @@ on:
     # 2026-10-05: 그날 예약 12번이 하나도 시작되지 않음(10-04 도 12번 중 1번, 66분 늦게) — GitHub 예약 실행이 빠지는 문제.
     #   → 사용자 결정: 바깥 알람(cron-job.org)이 같은 시각에 workflow_dispatch(mode=auto)로 깨운다(docs/external-cron.md).
     #   이 예약은 예비로 남겨 둔다 — 둘 다 와도 문지기가 하루 1회만 수집한다.
-    - cron: "10,40 9-14 * * *"   # 18:10, 18:40 … 23:10, 23:40 KST
+    # 2026-10-06: 하이라이트(경기 뒤 2~10시간)를 이어서 잡으려고 새벽 2:40 까지 늘림 — 자정 넘은 알람은 문지기가 전날 몫으로 본다
+    - cron: "10,40 9-17 * * *"   # 18:10, 18:40 … 02:10, 02:40 KST
   # 이 파일을 main 에 푸시하면 깨운다 — 문지기를 거친다(오늘 경기가 끝났고 아직 안 받았을 때만 수집).
   # 커밋 메시지에 [수집] 이 있으면 문지기 없이 바로 수집 (Claude 세션은 Run workflow 버튼 권한이 없어서)
   push:
@@ -61,6 +62,33 @@ jobs:
           # 바로 수집: Run workflow 버튼(mode 비움) · 커밋 메시지에 [수집] 이 있는 푸시. 나머지(예약·바깥 알람·보통 푸시)는 문지기
           FORCE: ${{ ((github.event_name == 'workflow_dispatch' && inputs.mode != 'auto') || (github.event_name == 'push' && contains(github.event.head_commit.message, '[수집]'))) && '1' || '0' }}
         run: npx tsx scripts/fetch-gate.ts check
+
+      # 하이라이트만 확인 (2026-10-06 사용자: "하이라이트는 되도록 공백 없이") — 그날 수집을 안 하는 알람마다.
+      # TVING 영상은 경기 끝나고 2~10시간 뒤에 올라와 하루 1번 수집으로는 하루씩 늦었다. 3일 안 끝난 경기 중 영상이 없는 게 있을 때만
+      # 유튜브 RSS 를 1번 보고(scripts/highlight-watch.ts), 새로 맞는 영상이 있으면 가공 → games.json 과 RSS raw 만 커밋 → Vercel 재배포.
+      - name: 하이라이트만 확인
+        id: hl
+        if: steps.gate.outputs.run != 'true'
+        run: npx tsx scripts/highlight-watch.ts
+
+      - name: 하이라이트 반영
+        if: steps.hl.outputs.changed == 'true'
+        run: |
+          npm run process
+          git config user.name "robinside7854"
+          git config user.email "252681033+robinside7854@users.noreply.github.com"
+          git add data/raw/highlights data/processed/*/games.json
+          if git diff --cached --quiet; then
+            echo "변경 없음"
+            exit 0
+          fi
+          git commit -m "하이라이트 연결: $(date -u +'%Y-%m-%d %H:%M UTC')"
+          for i in 1 2 3; do
+            if git pull --rebase -X theirs origin main && git push; then exit 0; fi
+            echo "push 실패 — ${i}번째, 다시 시도"
+            sleep 10
+          done
+          exit 1
 
       - name: 수집
         if: steps.gate.outputs.run == 'true'
