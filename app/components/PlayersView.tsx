@@ -45,6 +45,7 @@ import { SCHOOL_ABROAD } from "@/lib/roster";
 
 const badgeDef = (key: string) => BADGE_DEFS.find((d) => d.key === key);
 import ChipRow from "./ChipRow";
+import MoreChipRow from "./MoreChipRow";
 import FilterSheet, { FilterGroup } from "./FilterSheet";
 import { IconChevronDown } from "./icons";
 import InfoLink from "./InfoLink";
@@ -251,7 +252,7 @@ export default function PlayersView({ seasons, latest, initialFile, topBadges, b
             </FilterGroup>
             {schoolOptions.length > 0 && (
               <FilterGroup label="출신교" hint="외국·아시아쿼터 선수와 해외 학교는 '해외'로 묶습니다">
-                <ChipRow
+                <MoreChipRow
                   label="출신교"
                   chips={[
                     { value: "", label: "전체" },
@@ -264,7 +265,7 @@ export default function PlayersView({ seasons, latest, initialFile, topBadges, b
             )}
             {badgeOptions.length > 0 && (
               <FilterGroup label="칭호" hint="통산 기준 칭호 (예: 득점왕은 한 번이라도 경기당 득점 1위)">
-                <ChipRow
+                <MoreChipRow
                   label="칭호"
                   chips={[
                     { value: "", label: "전체" },

@@ -1,7 +1,8 @@
 "use client";
 // 시즌 순위표 화면 (PLAN.md §2-1, §5-4): 부문 1~3위 "표지" 카드 + 전체 순위.
 // 전체 순위는 RowList — 모바일(<1024px)은 행 카드(누르면 전 항목 펼침, 정렬은 "정렬 기준" 드롭다운), PC는 표(열 제목 정렬).
-// 1차 컨트롤은 부문 칩 한 줄, 나머지(경기당/합계·포지션·국적·팀·표본 기준)는 FilterSheet (디자인 점검 A1·A2·A3).
+// 1차 컨트롤은 많이 보는 부문 칩 한 줄 + "다른 부문" 펼침(2026-10-06 — 묶음 단계 없앰, 표 머리글을 눌러도 부문이 바뀜), 나머지(경기당/합계·포지션·국적·팀·표본 기준)는 FilterSheet.
+// 머리말·탭은 "기록" 메뉴 공용 RecordsHeader(시즌별 탭). 시즌 어워즈는 수상 탭으로 옮김(2026-10-06).
 // 정렬·필터·순위·표기는 전부 lib/leaders.ts 순수 함수 — 이 파일은 상태와 배치만 맡는다.
 // 포지션(전체/가드/포워드/센터)·국적(전체/국내/외국/아시아쿼터) 칩으로 집단을 좁히면 1~3위·순위도 그 집단 안 순위다
 // (lib/leaders filterLeaders → rankMap). 성공률 시도 기준은 집단과 관계없이 리그 전체 값.
@@ -11,16 +12,15 @@
 // 선택 상태는 주소 쿼리(?cat=&mode=&origin=&pos=&team=&q=)에 남긴다. useSearchParams 대신 window.location 을 읽어
 // 정적 HTML에 기본 상태(경기당 득점)의 카드·표가 그대로 렌더링되게 한다 (CardExplorer 와 같은 방식).
 import { seasonShortLabel } from "@/lib/career";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { CardTeam, LeaderPlayer } from "@/lib/types";
 import { attemptsNote, attemptThresholds, qualifyLabel, qualifyPresetsFor } from "@/lib/metrics";
 import {
   attemptName,
   availableCategories,
-  availableCategoryGroups,
   categoryChipLabel,
-  categoryGroupOf,
-  type LeaderCategoryGroupKey,
+  primaryCategories,
+  secondaryCategoryGroups,
   columnOrder,
   DEFAULT_LEADERS_STATE,
   clearLeaderFilter,
@@ -74,6 +74,7 @@ import FilterSheet, { FilterGroup } from "./FilterSheet";
 import { IconChevronDown, IconChevronRight, IconChevronUp } from "./icons";
 import InfoLink from "./InfoLink";
 import PlayerAvatar from "./PlayerAvatar";
+import RecordsHeader from "./RecordsHeader";
 import RowList, { type RowColumn } from "./RowList";
 import SeasonHighStrip from "./SeasonHighStrip";
 import Segmented from "./Segmented";
@@ -81,13 +82,12 @@ import TeamLogo from "./TeamLogo";
 import { trackEvent, trackFilters } from "./track";
 
 interface Props {
+  seasonCode: number;
   seasonLabel: string;
   players: LeaderPlayer[];
   teams: CardTeam[];
   /** 이 시즌 한 경기 최다 카드 (서버에서 계산). 빈 배열이면 섹션을 숨긴다 */
   seasonHighs?: SeasonHighCard[];
-  /** 마감된 시즌의 어워즈 (서버에서 그린 SeasonAwardsBoard, 없으면 null) — 머리말 바로 아래 */
-  awards?: ReactNode;
   /** 진행 중 시즌이면 기본 표본 기준이 "출전 선수 전원" (lib/metrics qualifyPresetsFor, 2026-10-03) */
   ongoing?: boolean;
 }
@@ -149,7 +149,7 @@ function CoverCard({
   const hideCircle = hero ? "lg:hidden" : "xl:hidden";
   return (
     <article
-      className={`tabular relative overflow-hidden rounded-container border border-black/10 dark:border-white/15 ${
+      className={`tabular relative flex flex-col overflow-hidden rounded-container border border-black/10 dark:border-white/15 ${
         hero ? "col-span-2 p-4 sm:p-5 lg:px-7 lg:pb-0 lg:pt-6" : "p-3 xl:px-5 xl:pb-0 xl:pt-4"
       }`}
       style={{ background: color.primary, color: color.text }}
@@ -164,7 +164,8 @@ function CoverCard({
       >
         {entry.rank}
       </span>
-      <div className="relative flex items-stretch gap-3">
+      {/* flex-1: 1위 카드 높이에 맞춰 늘어난 2·3위 카드도 사진이 바닥에 붙는다 (2026-10-06 사용자: 사진이 잘려 보임) */}
+      <div className="relative flex flex-1 items-stretch gap-3">
         <div className={`min-w-0 flex-1 ${wide === "lg" ? "lg:max-w-[22rem] lg:pb-6" : "xl:pb-4"}`}>
           <div className={`flex items-center ${hero ? "gap-4" : "gap-2.5"}`}>
             <span className={hideCircle}>
@@ -203,14 +204,14 @@ function CoverCard({
           </p>
         </div>
         <div className={`${showPortrait} shrink-0 self-end`}>
-          <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={color} variant="portrait" size={hero ? 250 : 170} />
+          <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={color} variant="portrait" size={hero ? 250 : 190} />
         </div>
       </div>
     </article>
   );
 }
 
-export default function LeadersView({ seasonLabel, players, teams, seasonHighs = [], awards = null, ongoing = false }: Props) {
+export default function LeadersView({ seasonCode, seasonLabel, players, teams, seasonHighs = [], ongoing = false }: Props) {
   const presets = useMemo(() => qualifyPresetsFor(ongoing), [ongoing]);
   const [state, setState] = useState<LeadersState>(DEFAULT_LEADERS_STATE);
   // 표 정렬 (null 이면 선택한 부문의 "상위" 방향 — 턴오버는 적은 순)
@@ -237,8 +238,11 @@ export default function LeadersView({ seasonLabel, players, teams, seasonHighs =
   // 이 시즌에 기록이 있는 부문만 칩으로 (허슬은 2025-26, 슛 구역은 슛 차트 있는 시즌). 공유 링크의 부문이 없으면 기본 부문
   const categories = useMemo(() => availableCategories(players), [players]);
   const category = categories.includes(state.category) ? state.category : DEFAULT_LEADERS_STATE.category;
-  const groups = useMemo(() => availableCategoryGroups(categories), [categories]);
-  const groupKey = categoryGroupOf(category);
+  const primary = useMemo(() => primaryCategories(categories), [categories]);
+  const moreGroups = useMemo(() => secondaryCategoryGroups(categories), [categories]);
+  const inPrimary = primary.includes(category);
+  // "다른 부문" 펼침: 지금 부문이 칩 한 줄에 없으면 처음부터 펼쳐 둔다
+  const [moreOpen, setMoreOpen] = useState(false);
   const rule = presets[presetIdx] ?? presets[0];
   const columns = columnOrder(category);
   const sortKey = sort?.key ?? category;
@@ -282,18 +286,17 @@ export default function LeadersView({ seasonLabel, players, teams, seasonHighs =
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
-  function chooseGroup(key: LeaderCategoryGroupKey) {
-    if (key === groupKey) return;
-    const first = groups.find((g) => g.key === key)?.categories[0];
-    if (first) chooseCategory(first);
-  }
-
   function chooseCategory(key: LeaderStatKey) {
     update({ category: key });
     setSort(null);
   }
 
   function clickHeader(key: LeaderStatKey) {
+    // 부문으로 고를 수 있는 열이면 위 1~3위 카드도 그 기록으로 (2026-10-06 사용자: 고르는 길을 하나로)
+    if (key !== category && categories.includes(key)) {
+      chooseCategory(key);
+      return;
+    }
     setSort(key === sortKey ? { key, dir: sortDir === "desc" ? "asc" : "desc" } : { key, dir: defaultSortDir(key) });
   }
 
@@ -390,37 +393,55 @@ export default function LeadersView({ seasonLabel, players, teams, seasonHighs =
 
   return (
     <main className="mx-auto max-w-page px-4 pt-5">
-      <header className="mb-3">
-        <p className="text-sub font-medium text-ink-3">{seasonShortLabel(seasonLabel)} KBL 정규시즌</p>
-        <h1 className="mt-0.5 text-h1 font-bold">시즌 리더보드</h1>
-      </header>
+      <RecordsHeader tab="leaders" leadersSeason={seasonCode} scope={`${seasonShortLabel(seasonLabel)} KBL 정규시즌`} />
 
-      {awards}
-      {awards && <h2 className="mb-2 text-h2 font-bold">부문별 순위</h2>}
-
-      {/* 1차 컨트롤: 묶음(기본·슈팅·슛 구역·고급·허슬) → 그 묶음의 부문 칩. 옆으로 밀지 않아도 다 보이게 */}
-      <div role="group" aria-label="부문 묶음" className="grid auto-cols-fr grid-flow-col rounded-control border border-line bg-surface p-0.5">
-        {groups.map((g) => (
+      {/* 1차 컨트롤: 많이 보는 부문 칩 한 줄 + "다른 부문" (슈팅·슛 구역·고급·허슬은 펼쳐서). 표 머리글을 눌러도 부문이 바뀐다 */}
+      <div className="flex flex-wrap items-center gap-2">
+        <ChipRow
+          label="부문 선택"
+          chips={[
+            ...primary.map((key) => ({ value: key, label: categoryChipLabel(key) })),
+            // 다른 부문을 골랐으면 그 부문을 칩 한 줄 끝에 보여 준다 (지금 무엇을 보는지)
+            ...(inPrimary ? [] : [{ value: category, label: LEADER_STATS[category].label }]),
+          ]}
+          value={category}
+          onChange={chooseCategory}
+        />
+        {moreGroups.length > 0 && (
           <button
-            key={g.key}
             type="button"
-            aria-pressed={g.key === groupKey}
-            onClick={() => chooseGroup(g.key)}
-            className={`focus-ring-inset h-10 min-w-0 cursor-pointer whitespace-nowrap rounded-md px-1 text-body font-semibold transition-colors duration-200 ${
-              g.key === groupKey ? "bg-ink text-bg" : "text-ink-2 hover:bg-surface-2"
-            }`}
+            aria-expanded={moreOpen}
+            aria-controls="leaders-more"
+            onClick={() => {
+              trackFilters("leaders", { more_categories: moreOpen ? "close" : "open" });
+              setMoreOpen((v) => !v);
+            }}
+            className="focus-ring inline-flex h-10 shrink-0 cursor-pointer items-center gap-1 rounded-control border border-line bg-surface px-3 text-body font-semibold text-ink-2 transition-colors duration-200 hover:bg-surface-2"
           >
-            {g.label}
+            다른 부문
+            {moreOpen ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
           </button>
-        ))}
+        )}
       </div>
-      <ChipRow
-        label="부문 선택"
-        className="mt-2"
-        chips={(groups.find((g) => g.key === groupKey)?.categories ?? []).map((key) => ({ value: key, label: categoryChipLabel(key) }))}
-        value={category}
-        onChange={chooseCategory}
-      />
+      {moreOpen && (
+        <div id="leaders-more" className="surface-card mt-2 grid gap-3 rounded-container p-3 sm:grid-cols-2 xl:grid-cols-4">
+          {moreGroups.map((g) => (
+            <div key={g.key} className="min-w-0">
+              <p className="text-sub font-semibold text-ink-3">{g.label}</p>
+              <ChipRow
+                label={`${g.label} 부문`}
+                className="mt-1"
+                chips={g.categories.map((key) => ({ value: key, label: categoryChipLabel(key) }))}
+                value={category}
+                onChange={(k) => {
+                  chooseCategory(k);
+                  setMoreOpen(false);
+                }}
+              />
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* 나머지 필터: 버튼 → 시트(모바일) / 패널(PC). 적용 중인 것은 요약 칩 */}
       <section aria-label="필터" className="mt-3">

@@ -27,6 +27,8 @@ import {
   clearLeaderFilter,
   resetLeaderFilters,
   LEADERS_PAGE_SIZE,
+  primaryCategories as primaryCategoriesOf,
+  secondaryCategoryGroups as secondaryGroupsOf,
 } from "../lib/leaders";
 import { attemptThresholds, DEFAULT_QUALIFY, QUALIFY_PRESETS } from "../lib/metrics";
 import { teamShortLabel } from "../lib/images";
@@ -266,4 +268,15 @@ console.log("leaders: 모든 검사 통과");
   const r = rankMap([mk({ id: "u1", usgPct: 30 }), mk({ id: "u2", usgPct: 20 }), noUsg], "usgPct", "perGame");
   assert.deepEqual([...r.entries()], [["u1", 1], ["u2", 2]]); // 값 없는 선수는 순위 없음
   console.log("leaders: USG% 열 통과");
+}
+
+// ── 부문 칩 한 줄 + 다른 부문 (2026-10-06) ──
+{
+  const avail = ["points", "reb", "ast", "stl", "blk", "tpm", "fgPct", "tpPct", "per", "tsPct"] as const;
+  assert.deepEqual(primaryCategoriesOf([...avail]), ["points", "reb", "ast", "stl", "blk", "tpm"]);
+  const more = secondaryGroupsOf([...avail]);
+  assert.deepEqual(more.map((g) => g.key), ["shooting", "advanced"]);
+  assert.deepEqual(more[0].categories, ["fgPct", "tpPct"]); // 3점 성공은 칩 한 줄에 있어서 뺀다
+  assert.deepEqual(primaryCategoriesOf(["points", "per"]), ["points"]);
+  console.log("leaders: 부문 칩 한 줄 통과");
 }

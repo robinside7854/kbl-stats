@@ -158,29 +158,34 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
           setState((s) => ({ ...s, season: c }));
         }} scroll />
         </div>
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-          <Segmented
-            label="순위 비교 범위"
-            options={groupLabel ? scopeOptions : scopeOptions.slice(0, 1)}
-            value={scope}
-            onChange={(v) => {
-              trackFilters("player", { scope: v });
-              setState((s) => ({ ...s, scope: v }));
-            }}
-          />
-          <Link
-            href={compareHref({ id: playerId, seasonCode: season })}
-            className="focus-ring link-shortcut text-body"
-          >
-            비교 탭에서 다른 선수·시즌과 비교
-            <IconChevronRight size={16} />
-          </Link>
-        </div>
-        {!groupLabel && <p className="text-sub text-ink-3">포지션 정보가 없는 선수라 순위 범위는 전체만 볼 수 있습니다.</p>}
       </section>
 
       {/* ── 카드 (PC 가로 카드 한 줄) → 추이 + 하이라이트 ── */}
       <div className="mt-4">{deck}</div>
+      {/* 순위 기준(전체 / 같은 포지션)은 카드 아래 작은 전환으로 (2026-10-06 사용자: 위에 늘어선 컨트롤 줄이기) */}
+      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+        {groupLabel && (
+          <span className="flex items-center gap-2 text-sub font-medium text-ink-3">
+            순위 기준
+            <Segmented
+              label="순위 비교 범위"
+              options={scopeOptions}
+              value={scope}
+              onChange={(v) => {
+                trackFilters("player", { scope: v });
+                setState((s) => ({ ...s, scope: v }));
+              }}
+            />
+          </span>
+        )}
+        <Link
+          href={compareHref({ id: playerId, seasonCode: season })}
+          className="focus-ring link-shortcut text-body"
+        >
+          비교 탭에서 다른 선수·시즌과 비교
+          <IconChevronRight size={16} />
+        </Link>
+      </div>
       <p className="mt-3 text-sub leading-relaxed text-ink-3">
         등급은 같은 국적 집단 안, 순위는 리그 전체{groupLabel ? "(또는 같은 포지션)" : ""} 기준입니다 <InfoLink term="radarAxes" />. 사진은 모든 시즌에 같은 한 장입니다.
       </p>

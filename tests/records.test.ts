@@ -11,6 +11,8 @@ import {
   withRanks,
   filterRecordList,
   recordBarShare,
+  recordFilterChips,
+  DEFAULT_RECORD_FILTERS,
   type RecordListItem,
   type SeasonLineEntry,
 } from "../lib/records";
@@ -87,5 +89,13 @@ assert.equal(recordBarShare(50, 100), 0.5);
 assert.equal(recordBarShare(120, 100), 1);
 assert.equal(recordBarShare(10, 0), 0);
 assert.equal(recordBarShare(-1, 10), 0);
+
+// 필터 요약 칩 (기본값이 아닌 것만, 경기당은 부문에 단위가 있을 때만)
+assert.deepEqual(recordFilterChips(DEFAULT_RECORD_FILTERS, true), []);
+assert.deepEqual(
+  recordFilterChips({ kind: "playoff", mode: "perGame", origin: "domestic", activeOnly: true }, true).map((c) => c.label),
+  ["플레이오프", "경기당", "국내", "현역만"],
+);
+assert.deepEqual(recordFilterChips({ ...DEFAULT_RECORD_FILTERS, mode: "perGame" }, false), []);
 
 console.log("records: 통과");

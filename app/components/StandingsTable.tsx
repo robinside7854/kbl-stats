@@ -1,5 +1,5 @@
 "use client";
-// 팀 화면 "팀 순위" (2026-10-03 사용자 요청: 모바일 하단 메뉴에 "팀"). 경기 결과(경기 목록 점수)로 센 순위 — lib/games computeStandings.
+// 팀 순위 표 (2026-10-03, 2026-10-06 부터 "팀" 화면 지금 팀 탭의 "표로 보기" — TeamsIndexView). 경기 결과(경기 목록 점수)로 센 순위 — lib/games computeStandings.
 // 줄을 누르면 그 팀 페이지의 그 시즌 로스터(/team/코드?season=, 2026-10-04). GA4: team_select {team_code, season_code}.
 // 폰 360px: 순위·팀·승-패·승률·승차 + 최근 5경기(점), PC 는 홈/원정·득실도.
 import Link from "next/link";
@@ -14,7 +14,8 @@ export interface StandingTeam {
   color: TeamColor;
 }
 
-interface Props {
+/** 한 시즌 순위 (서버가 시즌마다 만들어 넘긴다) */
+export interface StandingsSeason {
   seasonCode: number;
   seasonShort: string;
   rows: StandingRow[];
@@ -28,17 +29,12 @@ interface Props {
 // deslop-ignore-next-line 19
 const DOT = "inline-block h-2 w-2 rounded-full";
 
-export default function StandingsView({ seasonCode, seasonShort, rows, teams, championCode, ongoing }: Props) {
+export default function StandingsTable({ season }: { season: StandingsSeason }) {
+  const { seasonCode, rows, teams, championCode } = season;
+  if (rows.length === 0) return <p className="surface-card rounded-container p-4 text-sub text-ink-3">이 시즌 경기 결과가 없습니다</p>;
   return (
-    <main className="mx-auto max-w-page px-4 pb-6 pt-5">
-      <h1 className="text-h1 font-black">{seasonShort} 팀 순위</h1>
-      <p className="mt-0.5 text-sub text-ink-3">
-        정규시즌 경기 결과로 센 순위{ongoing ? " · 진행 중" : ""} · 팀을 누르면 그 팀 페이지
-      </p>
-      {rows.length === 0 ? (
-        <p className="surface-card mt-4 rounded-container p-4 text-sub text-ink-3">이 시즌 경기 결과가 없습니다</p>
-      ) : (
-        <div className="surface-card tabular mt-4 rounded-container px-3 py-1">
+    <>
+      <div className="surface-card tabular rounded-container px-3 py-1">
           <table className="w-full table-fixed text-sub lg:text-body">
             <colgroup>
               <col className="w-7 lg:w-10" />
@@ -111,10 +107,9 @@ export default function StandingsView({ seasonCode, seasonShort, rows, teams, ch
             </tbody>
           </table>
         </div>
-      )}
       <p className="mt-2 text-caption text-ink-3">
         승률이 같으면 승 수·득실차 순 (KBL 공식 동률 규정인 상대 전적은 반영하지 않음) · 최근 5: 채운 점 승, 빈 점 패
       </p>
-    </main>
+    </>
   );
 }

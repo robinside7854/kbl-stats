@@ -1,5 +1,5 @@
 "use client";
-// 역대 통산 순위 화면(하위 탭 "누적", 머리말·탭은 RecordsHeader): 부문 칩 · 합계/경기당 · 국적(전체/국내/외국인) · 현역만(?active=1) → 순위 목록 50명씩 "더 보기".
+// 역대 통산 순위 화면("기록" 메뉴 통산 탭, 머리말·탭은 RecordsHeader): 부문 칩 → 필터 버튼(합계/경기당·국적·현역만 ?active=1, 2026-10-06) → 순위 목록 50명씩 "더 보기".
 // 순위·표기는 lib/records 순수 함수. 선택 상태는 주소 ?cat=&mode=&origin= 에 남긴다(정적 HTML 은 기본 상태: 통산 득점 합계).
 import InfoLink from "./InfoLink";
 import { useEffect, useMemo, useState } from "react";
@@ -11,6 +11,9 @@ import {
   RECORD_STATS,
   RECORDS_MIN_GAMES,
   RECORDS_PAGE_SIZE,
+  DEFAULT_RECORD_FILTERS,
+  recordFilterChips,
+  type RecordFilterField,
   recordBarShare,
   type CareerTotal,
   type RecordMode,
@@ -21,6 +24,8 @@ import { seasonRangeLabel } from "@/lib/career";
 import { teamShortLabel } from "@/lib/images";
 import ChipRow from "./ChipRow";
 import PlayerAvatar from "./PlayerAvatar";
+import ActiveOnlyToggle from "./ActiveOnlyToggle";
+import FilterSheet, { FilterGroup } from "./FilterSheet";
 import RecordsHeader from "./RecordsHeader";
 import Segmented from "./Segmented";
 import { trackFilters } from "./track";
@@ -70,30 +75,48 @@ export default function RecordsView({ totals, spanLabel, latestSeasonCode }: { t
   );
   const shown = rows.slice(0, limit);
   const barMax = rows[0]?.value ?? 0;
+  function reset(field: RecordFilterField) {
+    if (field === "mode") setMode("total");
+    if (field === "origin") setOrigin("all");
+    if (field === "activeOnly") setActiveOnly(false);
+  }
   const title = `${effMode === "perGame" ? "통산 경기당" : "통산"} ${def.label}`;
 
   return (
     <main className="mx-auto max-w-page px-4 pt-5">
-      <RecordsHeader tab="career" scope={`KBL 정규시즌 · ${spanLabel}`} />
+      <RecordsHeader tab="career" leadersSeason={latestSeasonCode} scope={`KBL 정규시즌 · ${spanLabel}`} />
 
       <ChipRow label="부문 선택" scroll chips={RECORD_STATS.map((d) => ({ value: d.key, label: d.label }))} value={cat} onChange={(v) => { trackFilters("records", { category: v }); setCat(v); }} />
-      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
-        {def.perGame && <Segmented label="통산 합계 또는 경기당" options={MODE_OPTIONS} value={mode} onChange={(v) => { trackFilters("records", { mode: v }); setMode(v); }} />}
-        <Segmented label="국적" options={ORIGIN_OPTIONS} value={origin} onChange={(v) => { trackFilters("records", { origin: v }); setOrigin(v); }} />
-        <button
-          type="button"
-          aria-pressed={activeOnly}
-          onClick={() => {
-            trackFilters("records", { active_only: !activeOnly });
-            setActiveOnly((v) => !v);
-          }}
-          className={`focus-ring-inset flex h-10 cursor-pointer items-center whitespace-nowrap rounded-control border px-3 text-body font-semibold transition-colors duration-200 ${
-            activeOnly ? "border-ink bg-ink text-bg" : "border-line bg-surface text-ink-2 hover:bg-surface-2"
-          }`}
+      {/* 합계/경기당·국적·현역만은 필터 버튼 안 (2026-10-06 사용자: 누르는 단계 최대 2번) */}
+      <div className="mt-3">
+        <FilterSheet
+          chips={recordFilterChips({ ...DEFAULT_RECORD_FILTERS, mode, origin, activeOnly }, !!def.perGame).map((c) => ({
+            key: c.field,
+            label: c.label,
+            onClear: () => reset(c.field),
+          }))}
+          onReset={() => (["mode", "origin", "activeOnly"] as const).forEach(reset)}
+          resultText={`${rows.length}명 보기`}
+          trailing={`${rows.length.toLocaleString("ko-KR")}명`}
         >
-          현역만
-        </button>
-        <InfoLink term="rosterStatus" />
+          {def.perGame && (
+            <FilterGroup label="기록 단위" hint={`경기당 순위는 통산 ${RECORDS_MIN_GAMES}경기 이상 선수만`}>
+              <Segmented label="통산 합계 또는 경기당" options={MODE_OPTIONS} value={mode} onChange={(v) => { trackFilters("records", { mode: v }); setMode(v); }} />
+            </FilterGroup>
+          )}
+          <FilterGroup label="국적">
+            <Segmented label="국적" options={ORIGIN_OPTIONS} value={origin} onChange={(v) => { trackFilters("records", { origin: v }); setOrigin(v); }} />
+          </FilterGroup>
+          <FilterGroup label="현역" hint={<>현역 = KBL 현역 등록 명단에 있는 선수 <InfoLink term="rosterStatus" /></>}>
+            <ActiveOnlyToggle
+              on={activeOnly}
+              onChange={(v) => {
+                trackFilters("records", { active_only: v });
+                setActiveOnly(v);
+              }}
+            />
+          </FilterGroup>
+        </FilterSheet>
       </div>
       {effMode === "perGame" && <p className="mt-2 text-sub text-ink-3">경기당 순위는 통산 {RECORDS_MIN_GAMES}경기 이상 선수만</p>}
 

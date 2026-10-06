@@ -396,3 +396,24 @@ export function recordBarShare(value: number, max: number): number {
   if (!(max > 0) || !(value > 0)) return 0;
   return Math.min(1, value / max);
 }
+
+/** 역대 기록 필터 상태 (경기 구분·합계/경기당·국적·현역만) — 필터 버튼 안으로 모은 것들 (2026-10-06 사용자: 누르는 단계 최대 2번) */
+export interface RecordFilterState {
+  kind: GameKind;
+  mode: RecordMode;
+  origin: RecordOrigin;
+  activeOnly: boolean;
+}
+export type RecordFilterField = keyof RecordFilterState;
+
+export const DEFAULT_RECORD_FILTERS: RecordFilterState = { kind: "regular", mode: "total", origin: "all", activeOnly: false };
+
+/** 기본값이 아닌 필터만 요약 칩으로 (필터 버튼 옆). modeApplies: 지금 부문에 경기당 단위가 있는가 */
+export function recordFilterChips(s: RecordFilterState, modeApplies: boolean): { field: RecordFilterField; label: string }[] {
+  const out: { field: RecordFilterField; label: string }[] = [];
+  if (s.kind !== "regular") out.push({ field: "kind", label: GAME_KINDS.find((g) => g.value === s.kind)?.label ?? s.kind });
+  if (modeApplies && s.mode === "perGame") out.push({ field: "mode", label: "경기당" });
+  if (s.origin !== "all") out.push({ field: "origin", label: s.origin === "domestic" ? "국내" : "외국인" });
+  if (s.activeOnly) out.push({ field: "activeOnly", label: "현역만" });
+  return out;
+}

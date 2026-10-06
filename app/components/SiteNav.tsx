@@ -17,7 +17,7 @@ import AccountButton from "./AccountButton";
 import RandomCardButton from "./RandomCardButton";
 import ShareButton from "./ShareButton";
 import UpdateBanner from "./UpdateBanner";
-import { IconBall, IconCalendar, IconHome, IconLeaders, IconPlayer, IconTeam, IconTrophy } from "./icons";
+import { IconBall, IconCalendar, IconHome, IconLeaders, IconPlayer, IconTeam } from "./icons";
 import SiteLogo, { SITE_HEADER_NAME } from "./SiteLogo";
 import { trackEvent, trackFilters } from "./track";
 
@@ -25,15 +25,15 @@ export type SiteView = "home" | "players" | "player" | "teams" | "team" | "leade
 
 type MenuItem = { views: SiteView[]; label: string; short?: string; icon: (p: { size: 24 }) => React.ReactNode; href: (seasonCode: number) => string };
 const HOME: MenuItem = { views: ["home"], label: "홈", icon: IconHome, href: () => "/" };
-/** 홈 왼쪽 / 오른쪽 메뉴 (2026-10-03 사용자: 모바일 하단은 홈을 가운데, 왼쪽 선수·팀·리더보드, 오른쪽 일정·역대 기록·54-0 — 비교는 2026-10-03 메뉴에서 빼고 선수 상세 "비교" 버튼으로) */
+/** 홈 왼쪽 / 오른쪽 메뉴 (2026-10-03 사용자: 모바일 하단은 홈 가운데 — 비교는 메뉴에서 빼고 선수 상세 "비교" 버튼으로).
+ *  2026-10-06 사용자 결정: 리더보드 + 역대 기록 → "기록" 하나(탭 한 줄은 RecordsHeader), 팀 순위는 "팀" 화면 안 표로 보기 */
 const LEFT: MenuItem[] = [
   { views: ["players", "player", "compare"], label: "선수", icon: IconPlayer, href: () => "/players" },
   { views: ["teams", "team"], label: "팀", icon: IconTeam, href: () => "/teams" },
-  { views: ["leaders"], label: "리더보드", icon: IconLeaders, href: (c) => `/season/${c}/leaders` },
+  { views: ["leaders", "records"], label: "기록", icon: IconLeaders, href: (c) => `/season/${c}/leaders` },
 ];
 const RIGHT: MenuItem[] = [
   { views: ["schedule"], label: "일정", icon: IconCalendar, href: (c) => `/season/${c}/schedule` },
-  { views: ["records"], label: "역대 기록", short: "기록", icon: IconTrophy, href: () => "/records" },
   { views: ["game"], label: "54-0", icon: IconBall, href: () => "/game" },
 ];
 /** PC 상단 메뉴 순서 (홈 먼저) */
@@ -44,7 +44,6 @@ const BOTTOM_MENU: MenuItem[] = [...LEFT, HOME, ...RIGHT];
 /** 시즌 주소가 있는 화면 (시즌을 바꾸면 그 주소로 이동) */
 const SEASON_ROUTES: Partial<Record<SiteView, (c: number) => string>> = {
   leaders: (c) => `/season/${c}/leaders`,
-  teams: (c) => `/season/${c}/teams`,
   schedule: (c) => `/season/${c}/schedule`,
 };
 
@@ -130,7 +129,7 @@ export default function SiteNav({ seasons, seasonCode, view, onSeasonChange, wid
       {/* 모바일 하단 탭 바 (앱처럼, 2026-10-01). 본문 아래 여백은 globals.css --bottom-nav-h */}
       <nav
         aria-label="화면 메뉴"
-        className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-7 border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] md:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-6 border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] md:hidden"
       >
         {BOTTOM_MENU.map((m) => {
           const active = m.views.includes(view);

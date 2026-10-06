@@ -2,29 +2,47 @@
 // 모든 팀 화면 (/teams, 2026-10-04 · 2026-10-06 개편): 하위 탭 "지금 팀"(이번 시즌 순위 순) / "추억의 팀"(매각·해체로 코드가 끝난 팀).
 // 2026-10-06 사용자: 폰에서도 2열 카드, 우승은 트로피 + 숫자만, 팀 좋아요는 없애고 팬 수만(응원팀으로 고른 회원 수, /api/likes 1분 캐시),
 //   지금 팀은 시즌 순위를 카드에 바로(1위부터), 좋아요 순위(선수)는 머리말 링크. 탭은 주소 ?tab=past 로 기억.
-// GA4: 카드 누르기 team_select {team_code, place:"teams"}, 탭 filter_change screen=teams filter=tab value=now|past
+// 2026-10-06: 지금 팀 탭에 "카드 / 표" 전환 — 표는 시즌을 골라 보는 팀 순위(따로 있던 /season/코드/teams 화면을 합침, 주소 ?view=table&season=).
+// GA4: 카드 누르기 team_select {team_code, place:"teams"}, 탭 filter_change screen=teams filter=tab value=now|past · view card|table · season 코드
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { TeamIndexEntry } from "@/lib/franchise";
 import ChipRow from "./ChipRow";
+import Segmented from "./Segmented";
+import StandingsTable, { type StandingsSeason } from "./StandingsTable";
 import TeamLogo from "./TeamLogo";
-import { IconChevronRight, IconHeart, IconMegaphone, IconTrophy } from "./icons";
+import { IconHeart, IconMegaphone, IconTrophy } from "./icons";
 import { trackEvent, trackFilters } from "./track";
 import { useLikeCounts } from "./useLikes";
 
 type Tab = "now" | "past";
+type View = "card" | "table";
+const VIEW_OPTIONS: { value: View; label: string }[] = [
+  { value: "card", label: "카드" },
+  { value: "table", label: "표" },
+];
 
-export default function TeamsIndexView({ teams, seasonCode, seasonShort, records }: {
+export default function TeamsIndexView({ teams, seasonCode, seasonShort, records, standings }: {
   teams: TeamIndexEntry[];
   seasonCode: number;
   seasonShort: string;
   records: Record<string, { wins: number; losses: number; rank: number }>;
+  /** 시즌별 순위 표 (최신 시즌 먼저) */
+  standings: StandingsSeason[];
 }) {
   const counts = useLikeCounts();
   const [tab, setTab] = useState<Tab>("now");
+  const [view, setView] = useState<View>("card");
+  // 표로 볼 시즌: 경기 결과가 있는 시즌만 (최신 시즌은 개막 전이어도 둔다)
+  const tableSeasons = useMemo(() => standings.filter((s, i) => i === 0 || s.rows.length > 0), [standings]);
+  const [tableSeason, setTableSeason] = useState(seasonCode);
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("tab") === "past") setTab("past");
-  }, []);
+    const qs = new URLSearchParams(window.location.search);
+    if (qs.get("tab") === "past") setTab("past");
+    if (qs.get("view") === "table") setView("table");
+    const sc = Number(qs.get("season"));
+    if (tableSeasons.some((s) => s.seasonCode === sc)) setTableSeason(sc);
+  }, [tableSeasons]);
 
   // 지금 팀: 이번 시즌 순위 순(같은 순위는 원래 순서), 아직 경기 없는 팀은 뒤
   const active = useMemo(
@@ -36,11 +54,33 @@ export default function TeamsIndexView({ teams, seasonCode, seasonShort, records
   );
   const memories = useMemo(() => teams.filter((t) => !t.active), [teams]);
 
+  // 주소: ?tab=past / ?view=table&season= (기본값은 뺀다)
+  function writeUrl(next: { tab: Tab; view: View; season: number }) {
+    const qs = new URLSearchParams();
+    if (next.tab === "past") qs.set("tab", "past");
+    else if (next.view === "table") {
+      qs.set("view", "table");
+      if (next.season !== seasonCode) qs.set("season", String(next.season));
+    }
+    const q = qs.toString();
+    window.history.replaceState(null, "", `${window.location.pathname}${q ? `?${q}` : ""}`);
+  }
   function changeTab(v: Tab) {
     setTab(v);
     trackFilters("teams", { tab: v });
-    window.history.replaceState(null, "", v === "past" ? `${window.location.pathname}?tab=past` : window.location.pathname);
+    writeUrl({ tab: v, view, season: tableSeason });
   }
+  function changeView(v: View) {
+    setView(v);
+    trackFilters("teams", { view: v });
+    writeUrl({ tab, view: v, season: tableSeason });
+  }
+  function changeTableSeason(v: number) {
+    setTableSeason(v);
+    trackFilters("teams", { season: v });
+    writeUrl({ tab, view, season: v });
+  }
+  const shownStandings = tableSeasons.find((s) => s.seasonCode === tableSeason) ?? tableSeasons[0];
 
   const card = (t: TeamIndexEntry) => {
     const rec = t.active ? records[t.brand.teamCode] : undefined;
@@ -115,14 +155,36 @@ export default function TeamsIndexView({ teams, seasonCode, seasonShort, records
 
       {tab === "now" ? (
         <>
-          <div className="mt-3 flex flex-wrap items-center justify-between gap-x-3">
-            <p className="text-sub text-ink-2">{seasonShort} 시즌 순위 · 승률 순</p>
-            <Link href={`/season/${seasonCode}/teams`} className="focus-ring link-shortcut text-sub">
-              자세한 순위표
-              <IconChevronRight size={16} aria-hidden />
-            </Link>
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+            {view === "card" || !shownStandings ? (
+              <p className="text-sub text-ink-2">{seasonShort} 시즌 순위 · 승률 순</p>
+            ) : (
+              <label className="flex items-center gap-2 text-sub font-medium text-ink-2">
+                <span className="shrink-0">시즌</span>
+                <select
+                  aria-label="순위 시즌 선택"
+                  className="focus-ring h-10 min-w-0 cursor-pointer rounded-control border border-line bg-surface px-2 text-base text-ink"
+                  value={shownStandings.seasonCode}
+                  onChange={(e) => changeTableSeason(Number(e.target.value))}
+                >
+                  {tableSeasons.map((s) => (
+                    <option key={s.seasonCode} value={s.seasonCode}>
+                      {s.seasonShort}
+                    </option>
+                  ))}
+                </select>
+                {shownStandings.ongoing && <span className="text-ink-3">진행 중</span>}
+              </label>
+            )}
+            <Segmented label="카드 또는 표로 보기" options={VIEW_OPTIONS} value={view} onChange={changeView} />
           </div>
+          {view === "table" && shownStandings ? (
+            <div className="mt-2">
+              <StandingsTable season={shownStandings} />
+            </div>
+          ) : (
           <ul className="mt-2 grid grid-cols-2 gap-2 md:grid-cols-5">{active.map(card)}</ul>
+          )}
         </>
       ) : (
         <>

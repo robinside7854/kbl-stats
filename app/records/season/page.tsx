@@ -21,7 +21,7 @@ export default function RecordsSeasonPage() {
     <>
       <SiteNav seasons={seasons} seasonCode={latest?.seasonCode ?? 0} view="records" wide />
       <main className="mx-auto max-w-page px-4 pt-5">
-        <RecordsHeader tab="season" />
+        <RecordsHeader tab="season" leadersSeason={latest?.seasonCode ?? 0} />
         <SeasonBestsView data={loadSeasonBestLists()} hasPostseason={hasPostseasonData()} />
       </main>
       <SourceFooter fetchedAt={latest ? loadSeasonData(latest.seasonCode)?.fetchedAt : undefined} wide />

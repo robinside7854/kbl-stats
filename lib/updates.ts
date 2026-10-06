@@ -31,6 +31,26 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-10-06-menu-tidy",
+    date: "2026-10-06",
+    kind: "update",
+    title: "메뉴랑 필터를 정리했어요",
+    summary: "메뉴·필터 정리",
+    blocks: [
+      { kind: "p", text: "고르는 단계가 너무 많아서 한 번 정리했어요. 원하는 걸 두 번 안에 찾을 수 있어요." },
+      {
+        kind: "list",
+        items: [
+          "리더보드랑 역대 기록은 \"기록\" 메뉴 하나로 합쳤어요. 위 탭에서 시즌별·통산·한 경기 최다·한 시즌 최다·수상을 골라요",
+          "시즌 어워즈는 기록 메뉴의 수상 탭에서 시즌을 골라 봐요",
+          { text: "팀 순위는 팀 화면에서 \"표\"를 누르면 나와요", href: "/teams" },
+          "리더보드 부문은 칩 한 줄로, 나머지는 \"다른 부문\"에 있어요. 표 머리글을 눌러도 1~3위가 바뀌어요",
+          "국적·현역만 같은 조건은 \"필터\" 버튼 안으로 넣었어요",
+        ],
+      },
+    ],
+  },
+  {
     slug: "2026-10-06-pc-bigger",
     date: "2026-10-06",
     kind: "update",

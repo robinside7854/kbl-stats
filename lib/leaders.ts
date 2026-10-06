@@ -165,6 +165,24 @@ export function availableCategoryGroups(available: readonly LeaderStatKey[]): Le
   );
 }
 
+/**
+ * 리더보드 부문 칩 한 줄 (2026-10-06 사용자: 누르는 단계는 최대 2번 — 묶음 → 부문 두 단계를 한 줄로).
+ * 많이 보는 6개는 늘 칩으로, 나머지는 "다른 부문" 버튼을 눌러 펼친 묶음 목록에서 고른다.
+ */
+export const PRIMARY_CATEGORIES: readonly LeaderStatKey[] = ["points", "reb", "ast", "stl", "blk", "tpm"];
+
+/** 칩 한 줄에 놓을 부문 (그 시즌에 있는 것만) */
+export function primaryCategories(available: readonly LeaderStatKey[]): LeaderStatKey[] {
+  return PRIMARY_CATEGORIES.filter((k) => available.includes(k));
+}
+
+/** "다른 부문" 펼침 목록: 칩 한 줄에 없는 부문을 묶음별로 (빈 묶음은 뺀다) */
+export function secondaryCategoryGroups(available: readonly LeaderStatKey[]): LeaderCategoryGroup[] {
+  return availableCategoryGroups(available)
+    .map((g) => ({ ...g, categories: g.categories.filter((k) => !PRIMARY_CATEGORIES.includes(k)) }))
+    .filter((g) => g.categories.length > 0);
+}
+
 /** 묶음 칩 안의 짧은 이름: 슛 구역 묶음은 " 성공률"을 뗀다(묶음 이름이 이미 말해 줌) */
 export function categoryChipLabel(key: LeaderStatKey): string {
   const def = LEADER_STATS[key];
