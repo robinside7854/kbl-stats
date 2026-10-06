@@ -116,3 +116,29 @@ export function pendingHighlightGames<T extends { date: string; ended: boolean; 
   const fromIso = from.toISOString().slice(0, 10);
   return games.filter((g) => g.ended && !g.highlight && g.date >= fromIso && g.date <= today);
 }
+
+/**
+ * RSS 받기 — 주소 여러 개를 번갈아 최대 rounds 바퀴(사이 waitMs). 영상이 하나라도 읽히는 응답이면 그 XML, 끝까지 안 되면 마지막 오류를 던진다.
+ * 유튜브 RSS 가 가끔 404 를 줘서(2026-10-06) 만든 것. fetch.ts(매일 수집)·highlight-watch.ts(알람) 공용
+ */
+export async function fetchHighlightFeed(urls: readonly string[], rounds = 3, waitMs = 5000): Promise<string> {
+  let last = "응답 없음";
+  for (let r = 0; r < rounds; r++) {
+    for (const url of urls) {
+      try {
+        const res = await fetch(url, { headers: { "User-Agent": "kbl-stats fan project (non-commercial; github.com/robinside7854/kbl-stats)" } });
+        if (!res.ok) {
+          last = `HTTP ${res.status}`;
+        } else {
+          const xml = await res.text();
+          if (parseFeed(xml).length > 0) return xml;
+          last = "RSS 형식이 다름 (영상 0개)";
+        }
+      } catch (e) {
+        last = (e as Error).message;
+      }
+      await new Promise((ok) => setTimeout(ok, waitMs));
+    }
+  }
+  throw new Error(`RSS ${urls.length}개 주소 × ${rounds}번 실패: ${last}`);
+}

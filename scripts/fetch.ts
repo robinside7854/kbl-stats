@@ -21,7 +21,7 @@ import {
   STATS_API, CODES_API, GAME_CODE, SEASON_CODES_FALLBACK,
   DEFAULT_SEASONS, REQUEST_INTERVAL_MS, PAGE_SIZE, DATA_DIR,
   PLAYER_MASTER_PATH, PLAYER_MASTER_REG_SC, PLAYER_MASTER_MAX_PAGES, AWARDS_PAGE_URL, SITE_ORIGIN,
-  HIGHLIGHT_FEED_URL, HIGHLIGHT_SOURCE,
+  HIGHLIGHT_FEED_URLS, HIGHLIGHT_SOURCE,
 } from "./config.js";
 import { getJson, getText, saveRaw, sleep } from "./http.js";
 import { bundleScriptSrc, extractAwardsData } from "./awards.js";
@@ -29,7 +29,7 @@ import { collectGameLogs, collectHighs, collectProfiles } from "./collect-extras
 import { collectSeasonShots } from "./collect-shots.js";
 import { highsTargetSeasons, playerNosFromTraditional, todayKst, updateFirstSeen } from "./highs.js";
 import { seasonLabelOf } from "./shots.js";
-import { hasNewHighlight, parseFeed, readSavedFeeds } from "./highlights.js";
+import { fetchHighlightFeed, hasNewHighlight, parseFeed, readSavedFeeds } from "./highlights.js";
 import { applyRosterCheck, EMPTY_ROSTER_LOG, rosterCheckDue, type RosterLog } from "./active-roster.js";
 import { masterRows } from "./player-master.js";
 
@@ -330,11 +330,8 @@ async function fetchAwards(): Promise<void> {
  * KBL 서버가 아니라 유튜브라 실패해도 경고만.
  */
 async function fetchHighlights(): Promise<void> {
-  const res = await fetch(HIGHLIGHT_FEED_URL, { headers: { "User-Agent": "kbl-stats fan project (non-commercial; github.com/robinside7854/kbl-stats)" } });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const xml = await res.text();
+  const xml = await fetchHighlightFeed(HIGHLIGHT_FEED_URLS);
   const entries = parseFeed(xml);
-  if (entries.length === 0) throw new Error("RSS 형식이 다름 (영상 0개)");
   const dir = join(DATA_DIR, "raw", "highlights", HIGHLIGHT_SOURCE);
   const known = new Set((await readSavedFeeds(dir)).map((e) => e.videoId));
   if (!hasNewHighlight(entries, known)) {

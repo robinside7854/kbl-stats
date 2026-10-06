@@ -65,7 +65,7 @@ jobs:
 
       # 하이라이트만 확인 (2026-10-06 사용자: "하이라이트는 되도록 공백 없이") — 그날 수집을 안 하는 알람마다.
       # TVING 영상은 경기 끝나고 2~10시간 뒤에 올라와 하루 1번 수집으로는 하루씩 늦었다. 3일 안 끝난 경기 중 영상이 없는 게 있을 때만
-      # 유튜브 RSS 를 1번 보고(scripts/highlight-watch.ts — 결과는 Actions 화면 notice 한 줄), 새로 맞는 영상이 있으면 가공 → games.json 과 RSS raw 만 커밋 → Vercel 재배포.
+      # 유튜브 RSS 를 보고(scripts/highlight-watch.ts — 가끔 404 라 주소 2개 × 3번 다시 시도, 결과는 Actions 화면 notice 한 줄), 새로 맞는 영상이 있으면 가공 → games.json 과 RSS raw 만 커밋 → Vercel 재배포.
       - name: 하이라이트만 확인
         id: hl
         if: steps.gate.outputs.run != 'true'

@@ -6,8 +6,8 @@
 // 실패해도 종료 코드 0 (매일 수집을 막지 않게). 실행: npx tsx scripts/highlight-watch.ts
 import { appendFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { DATA_DIR, HIGHLIGHT_FEED_URL, HIGHLIGHT_SOURCE } from "./config.js";
-import { matchHighlights, parseFeed, pendingHighlightGames } from "./highlights.js";
+import { DATA_DIR, HIGHLIGHT_FEED_URLS, HIGHLIGHT_SOURCE } from "./config.js";
+import { fetchHighlightFeed, matchHighlights, parseFeed, pendingHighlightGames } from "./highlights.js";
 import { todayKst } from "./highs.js";
 import type { SeasonGame } from "../lib/types.js";
 
@@ -36,9 +36,7 @@ async function main() {
     return output(false);
   }
   console.log(`[하이라이트] 기다리는 경기 ${pending.length}개: ${pending.map((g) => `${g.date} ${g.home.name}-${g.away.name}`).join(", ")}`);
-  const res = await fetch(HIGHLIGHT_FEED_URL, { headers: { "User-Agent": "kbl-stats fan project (non-commercial; github.com/robinside7854/kbl-stats)" } });
-  if (!res.ok) throw new Error(`RSS HTTP ${res.status}`);
-  const xml = await res.text();
+  const xml = await fetchHighlightFeed(HIGHLIGHT_FEED_URLS);
   const entries = parseFeed(xml);
   const found = matchHighlights(pending, entries);
   if (found.size === 0) {
