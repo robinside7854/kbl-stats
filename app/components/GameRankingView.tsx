@@ -45,7 +45,7 @@ export default function GameRankingView({ teams }: { teams: AccountTeam[] }) {
   const loginOn = enabledLoginProviders().length > 0;
 
   return (
-    <main className="mx-auto max-w-3xl px-4 pb-6 pt-5">
+    <main className="mx-auto max-w-5xl px-4 pb-6 pt-5">
       <h1 className="text-h1 font-black">54-0 주간 순위</h1>
       <p className="mt-0.5 text-sub text-ink-3">
         한 주는 월요일 0시부터 일요일 밤까지예요{cur && cur !== "error" ? ` (${weekRangeLabel(new Date(cur.from))})` : ""}.

@@ -31,7 +31,7 @@ export default function BirthdayStrip({ players, seasonCode }: { players: Birthd
   const [, m, d] = today.split("-");
 
   return (
-    <section aria-labelledby="birthday-title" className="mx-auto mt-8 max-w-5xl px-4">
+    <section aria-labelledby="birthday-title" className="mx-auto mt-8 max-w-page px-4">
       <h2 id="birthday-title" className="flex items-center gap-1.5 text-h2 font-bold">
         <IconCake size={20} className="text-series-1" />
         오늘 생일

@@ -162,7 +162,7 @@ export default function CompareView({ seasons, initialA, initialB }: Props) {
   );
 
   return (
-    <main className="mx-auto max-w-5xl px-4 pt-5">
+    <main className="mx-auto max-w-page px-4 pt-5">
       <header className="mb-4">
         <h1 className="text-h1 font-bold">비교</h1>
         <p className="mt-1 text-body text-ink-2">두 선수, 또는 한 선수의 두 시즌을 나란히 봅니다.</p>

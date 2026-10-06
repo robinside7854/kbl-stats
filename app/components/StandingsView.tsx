@@ -30,7 +30,7 @@ const DOT = "inline-block h-2 w-2 rounded-full";
 
 export default function StandingsView({ seasonCode, seasonShort, rows, teams, championCode, ongoing }: Props) {
   return (
-    <main className="mx-auto max-w-3xl px-4 pb-6 pt-5">
+    <main className="mx-auto max-w-page px-4 pb-6 pt-5">
       <h1 className="text-h1 font-black">{seasonShort} 팀 순위</h1>
       <p className="mt-0.5 text-sub text-ink-3">
         정규시즌 경기 결과로 센 순위{ongoing ? " · 진행 중" : ""} · 팀을 누르면 그 팀 페이지

@@ -201,7 +201,7 @@ export default function PlayersView({ seasons, latest, initialFile, topBadges, b
     <>
       {/* 시즌은 상단 시즌 선택이 맡는다(본문 시즌 칩 없음), 검색은 본문 큰 검색창 하나 (디자인 점검 A4·A5) */}
       <SiteNav seasons={seasons} seasonCode={state.season} view="players" onSeasonChange={(c) => update({ season: c })} wide hideSearch />
-      <main className="mx-auto max-w-5xl px-4 pt-5">
+      <main className="mx-auto max-w-page px-4 pt-5">
         <h1 className="mb-3 text-h1 font-bold">선수</h1>
 
         <PlayerSearch size="lg" autoFocusDesktop label="선수 이름으로 찾기" placeholder="선수 이름 (한글·영문, 예: 워니)" className="w-full" />

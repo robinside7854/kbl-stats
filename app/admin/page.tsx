@@ -16,7 +16,7 @@ export default function AdminPage() {
   return (
     <>
       <SiteNav seasons={seasons} seasonCode={seasons[0]?.seasonCode ?? 0} view="me" />
-      <main className="mx-auto max-w-5xl px-4 pb-6 pt-5">
+      <main className="mx-auto max-w-page px-4 pb-6 pt-5">
         <h1 className="mb-4 text-h1 font-black">회원 목록</h1>
         <AdminView teams={loadAccountTeams()} />
       </main>

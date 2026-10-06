@@ -71,7 +71,7 @@ export default function RecordsView({ totals, spanLabel, latestSeasonCode }: { t
   const title = `${effMode === "perGame" ? "통산 경기당" : "통산"} ${def.label}`;
 
   return (
-    <main className="mx-auto max-w-5xl px-4 pt-5">
+    <main className="mx-auto max-w-page px-4 pt-5">
       <RecordsHeader tab="career" scope={`KBL 정규시즌 · ${spanLabel}`} />
 
       <ChipRow label="부문 선택" scroll chips={RECORD_STATS.map((d) => ({ value: d.key, label: d.label }))} value={cat} onChange={(v) => { trackFilters("records", { category: v }); setCat(v); }} />

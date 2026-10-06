@@ -41,7 +41,7 @@ export default function UpdateBanner() {
 
   return (
     <div className="border-t border-line bg-series-1/10">
-      <div className="mx-auto flex max-w-5xl items-center gap-1 px-4">
+      <div className="mx-auto flex max-w-page items-center gap-1 px-4">
         <Link
           href={`/updates/${slug}`}
           onClick={() => trackEvent("update_banner_click", { post_slug: slug })}

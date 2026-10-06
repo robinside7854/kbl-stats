@@ -64,7 +64,7 @@ export default function HomeView({ season, fetchedLabel, upcoming, categories, t
         </p>
       )}
 
-      <div className="mx-auto max-w-5xl px-4 pt-5">
+      <div className="mx-auto max-w-page px-4 pt-5">
         <p className="text-sub font-medium text-ink-3">
           기록 갱신 {fetchedLabel}
         </p>
@@ -81,7 +81,7 @@ export default function HomeView({ season, fetchedLabel, upcoming, categories, t
       <BirthdayStrip players={birthdays} seasonCode={code} />
 
       {/* 부문별 1~3위 */}
-      <section aria-labelledby="leaders-title" className="mx-auto mt-8 max-w-5xl px-4">
+      <section aria-labelledby="leaders-title" className="mx-auto mt-8 max-w-page px-4">
         <div className="flex items-baseline justify-between gap-2">
           <h2 id="leaders-title" className="text-h2 font-bold">
             부문별 1~3위

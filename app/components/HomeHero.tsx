@@ -63,7 +63,7 @@ function Hero({
   const label = LEADER_STATS[statKey].label;
   const unit = HOME_UNITS[statKey] ?? "";
   return (
-    <section aria-label={`${label} 1위 ${p.nameKo}`} className="mx-auto mt-3 max-w-5xl sm:px-4">
+    <section aria-label={`${label} 1위 ${p.nameKo}`} className="mx-auto mt-3 max-w-page sm:px-4">
       <div
         className="relative overflow-hidden sm:rounded-container"
         style={{ background: `linear-gradient(155deg, ${color.primary} 0%, ${mid} 55%, ${dark} 100%)`, color: color.text }}

@@ -86,7 +86,7 @@ export default async function PlayerPage({ params }: { params: Params }) {
       <SiteNav seasons={allSeasons} seasonCode={allSeasons[0]?.seasonCode ?? latest.seasonCode} view="player" wide />
       <main className="pb-2">
         <PlayerHero entry={entry} seasons={seasons} today={today} badges={badges} milestones={loadMilestones(playerNo)} />
-        <div className="mx-auto mt-6 max-w-5xl px-4">
+        <div className="mx-auto mt-6 max-w-page px-4">
           {card ? (
             <PlayerSeasonCards
               playerId={playerNo}
@@ -105,11 +105,11 @@ export default async function PlayerPage({ params }: { params: Params }) {
             trend
           )}
         </div>
-        <div className="mx-auto mt-8 max-w-5xl px-4">
+        <div className="mx-auto mt-8 max-w-page px-4">
           <CareerTable seasons={seasons} playoffSeasons={career.playoffSeasons} />
         </div>
         {achievements.length > 0 && (
-          <div className="mx-auto mt-8 max-w-5xl px-4">
+          <div className="mx-auto mt-8 max-w-page px-4">
             <CareerHighs items={achievements} teamPrimary={latest.team?.color.primary ?? FALLBACK_TEAM_COLOR.primary} />
           </div>
         )}

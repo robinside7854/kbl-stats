@@ -73,7 +73,7 @@ export default function SiteNav({ seasons, seasonCode, view, onSeasonChange, wid
 
   return (
     <header className="border-b border-line bg-surface">
-      <div className={`mx-auto ${wide ? "max-w-5xl" : "max-w-3xl"} px-4`}>
+      <div className={`mx-auto max-w-page px-4`}>
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 pt-3">
           <Link href="/" className="focus-ring order-1 inline-flex h-10 shrink-0 items-center gap-2 rounded-control text-body font-bold tracking-tight text-ink">
             <SiteLogo />

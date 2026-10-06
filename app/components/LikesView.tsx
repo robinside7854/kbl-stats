@@ -46,7 +46,7 @@ export default function LikesView({ teams }: { teams: (TeamBrand & { active: boo
 
   if (enabledLoginProviders().length === 0) {
     return (
-      <main className="mx-auto max-w-3xl px-4 pb-6 pt-5">
+      <main className="mx-auto max-w-5xl px-4 pb-6 pt-5">
         <h1 className="text-h1 font-black">좋아요 순위</h1>
         <p className="surface-card mt-4 rounded-container p-4 text-body text-ink-2">로그인 기능을 준비 중이라 좋아요를 아직 모으지 않아요.</p>
       </main>
@@ -54,7 +54,7 @@ export default function LikesView({ teams }: { teams: (TeamBrand & { active: boo
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-4 pb-6 pt-5">
+    <main className="mx-auto max-w-5xl px-4 pb-6 pt-5">
       <h1 className="text-h1 font-black">좋아요 순위</h1>
       <p className="mt-0.5 text-sub text-ink-3">
         {tab === "fans" ? "팀 팬 수는 그 팀을 응원팀으로 고른 회원 수예요." : "로그인한 팬이 선수 페이지에서 누른 좋아요 수예요."} 1분마다 새로 세요.

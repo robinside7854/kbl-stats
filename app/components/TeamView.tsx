@@ -83,7 +83,7 @@ export default function TeamView({ data }: { data: TeamPageData }) {
         aria-label={`${brand.name} 소개`}
         style={{ background: `linear-gradient(160deg, ${brand.color.primary} 0%, ${mid} 55%, ${dark} 100%)`, color: brand.color.text }}
       >
-        <div className="mx-auto flex max-w-5xl flex-col gap-3 px-4 pb-5 pt-6 sm:flex-row sm:items-center sm:gap-5">
+        <div className="mx-auto flex max-w-page flex-col gap-3 px-4 pb-5 pt-6 sm:flex-row sm:items-center sm:gap-5">
           <span className="flex h-20 w-20 shrink-0 items-center justify-center rounded-container bg-white p-2 sm:h-24 sm:w-24">
             <TeamLogo logoUrl={brand.logoUrl} shortName={brand.shortName} color={brand.color} size={64} />
           </span>
@@ -115,7 +115,7 @@ export default function TeamView({ data }: { data: TeamPageData }) {
         </div>
       </section>
 
-      <div className="mx-auto mt-4 max-w-5xl space-y-4 px-4">
+      <div className="mx-auto mt-4 max-w-page space-y-4 px-4">
         {data.lineage.length > 0 && (
           <Card title="구단 계보">
             <p className="mt-1 text-sub text-ink-3">구단이 팔리면 KBL 은 새 팀 코드로 기록을 따로 셉니다. 이름을 누르면 그 팀 페이지로 가요.</p>

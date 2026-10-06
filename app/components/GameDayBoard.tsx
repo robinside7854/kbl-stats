@@ -27,7 +27,7 @@ export default function GameDayBoard({ day, next, seasonCode, teams }: Props) {
   const isToday = today === day.date;
 
   return (
-    <section aria-labelledby="games-title" className="mx-auto mt-6 max-w-5xl px-4">
+    <section aria-labelledby="games-title" className="mx-auto mt-6 max-w-page px-4">
       <div className="flex items-center justify-between gap-2">
         <h2 id="games-title" className="text-h2 font-bold">
           {isToday ? "오늘의 경기" : "최근 경기"}
@@ -40,7 +40,7 @@ export default function GameDayBoard({ day, next, seasonCode, teams }: Props) {
           전체 일정 <IconChevronRight size={16} />
         </Link>
       </div>
-      <ul className="mt-3 grid items-start gap-3 md:grid-cols-2">
+      <ul className={`mt-3 grid items-start gap-3 md:grid-cols-2 ${day.games.length >= 3 ? "xl:grid-cols-3" : ""}`}>
         {day.games.map((g) => (
           <li key={g.gmkey}>
             <GameCard

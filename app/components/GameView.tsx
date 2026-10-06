@@ -275,7 +275,7 @@ export default function GameView() {
   const currentTeams = pool && current ? teamsOf(pool, current) : [];
 
   return (
-    <main className="mx-auto max-w-3xl px-4 pt-5">
+    <main className="mx-auto max-w-5xl px-4 pt-5">
       <header className="mb-4">
         <h1 className="flex items-center gap-1 text-h1 font-bold">
           54-0 <InfoLink term="game54" className="ml-1" />

@@ -20,7 +20,7 @@ export default function RecordsAwardsPage() {
   return (
     <>
       <SiteNav seasons={seasons} seasonCode={latest?.seasonCode ?? 0} view="records" wide />
-      <main className="mx-auto max-w-5xl px-4 pt-5">
+      <main className="mx-auto max-w-page px-4 pt-5">
         <RecordsHeader tab="awards" />
         <AwardRecordsView data={loadAwardLists()} categories={AWARD_RANK_DEFS.map((d) => ({ value: d.key, label: d.label }))} />
       </main>

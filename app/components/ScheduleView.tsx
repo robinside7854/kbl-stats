@@ -129,7 +129,7 @@ export default function ScheduleView({ seasonCode, seasonShort, games, teams, in
   }
 
   return (
-    <main className="mx-auto max-w-5xl px-4 pb-6 pt-5">
+    <main className="mx-auto max-w-page px-4 pb-6 pt-5">
       <h1 className="text-h1 font-black">{seasonShort} 경기 일정</h1>
       <p className="mt-0.5 text-sub text-ink-3">정규시즌 · 끝난 경기는 "박스스코어 보기"</p>
       {progress && <SeasonProgressBar progress={progress} className="mt-3 max-w-md" />}
@@ -196,7 +196,7 @@ export default function ScheduleView({ seasonCode, seasonShort, games, teams, in
                 )}
                 <span className="text-sub font-medium text-ink-3">{d.games.length}경기</span>
               </h2>
-              <ul className="mt-2 grid items-start gap-3 md:grid-cols-2">
+              <ul className="mt-2 grid items-start gap-3 md:grid-cols-2 xl:grid-cols-3">
                 {d.games.map((g) => (
                   <li key={g.gmkey}>
                     <GameCard

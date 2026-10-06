@@ -69,7 +69,7 @@ export default function GlossaryPage() {
   return (
     <>
       <SiteNav seasons={seasons} seasonCode={latest} view="glossary" wide />
-      <main className="mx-auto max-w-5xl px-4 pt-5">
+      <main className="mx-auto max-w-page px-4 pt-5">
         <header className="mb-2">
           <h1 className="text-h1 font-bold">용어 풀이</h1>
           <p className="mt-1 text-body text-ink-2">이 사이트에 나오는 숫자와 라벨이 무슨 뜻인지 짧게 적었습니다.</p>

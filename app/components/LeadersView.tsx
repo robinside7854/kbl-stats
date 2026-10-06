@@ -377,7 +377,7 @@ export default function LeadersView({ seasonLabel, players, teams, seasonHighs =
   ];
 
   return (
-    <main className="mx-auto max-w-5xl px-4 pt-5">
+    <main className="mx-auto max-w-page px-4 pt-5">
       <header className="mb-3">
         <p className="text-sub font-medium text-ink-3">{seasonShortLabel(seasonLabel)} KBL 정규시즌</p>
         <h1 className="mt-0.5 text-h1 font-bold">시즌 리더보드</h1>

@@ -87,7 +87,7 @@ export default function TeamsIndexView({ teams, seasonCode, seasonShort, records
   };
 
   return (
-    <main className="mx-auto max-w-5xl px-4 pb-6 pt-5">
+    <main className="mx-auto max-w-page px-4 pb-6 pt-5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h1 className="text-h1 font-black">팀</h1>

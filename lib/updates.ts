@@ -31,6 +31,17 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-10-06-wide-pc",
+    date: "2026-10-06",
+    kind: "update",
+    title: "PC에서 화면을 더 넓게 써요",
+    summary: "PC 화면 더 넓게",
+    blocks: [
+      { kind: "p", text: "PC로 보면 양옆 빈자리가 많았는데, 이제 화면을 더 넓게 써요. 일정은 한 줄에 경기 카드가 세 개씩 나와요." },
+      { kind: "list", items: [{ text: "홈에서 보기", href: "/" }] },
+    ],
+  },
+  {
     slug: "2026-10-06-teams-tab",
     date: "2026-10-06",
     kind: "update",
