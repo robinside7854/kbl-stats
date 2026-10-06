@@ -70,7 +70,7 @@ jobs:
         id: hl
         if: steps.gate.outputs.run != 'true'
         env:
-          # 있으면 YouTube Data API 먼저(RSS 가 404 일 때 대신) — 저장소 Secrets, 없으면 RSS 만
+          # 있으면 YouTube Data API 먼저(RSS 가 404 일 때 대신) — 저장소 Secrets(2026-10-06 사용자 등록), 없으면 RSS 만
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
         run: npx tsx scripts/highlight-watch.ts
 
