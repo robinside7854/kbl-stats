@@ -11,6 +11,11 @@ import { matchHighlights, parseFeed, pendingHighlightGames } from "./highlights.
 import { todayKst } from "./highs.js";
 import type { SeasonGame } from "../lib/types.js";
 
+/** Actions 화면·API(check-run annotations)에서 결과를 볼 수 있게 notice 한 줄 (로그 파일은 세션에서 못 읽어서) */
+function notice(msg: string) {
+  console.log(process.env.GITHUB_ACTIONS ? `::notice title=하이라이트::${msg}` : msg);
+}
+
 async function output(changed: boolean) {
   const file = process.env.GITHUB_OUTPUT;
   if (file) await appendFile(file, `changed=${changed}\n`);
@@ -34,20 +39,22 @@ async function main() {
   const res = await fetch(HIGHLIGHT_FEED_URL, { headers: { "User-Agent": "kbl-stats fan project (non-commercial; github.com/robinside7854/kbl-stats)" } });
   if (!res.ok) throw new Error(`RSS HTTP ${res.status}`);
   const xml = await res.text();
-  const found = matchHighlights(pending, parseFeed(xml));
+  const entries = parseFeed(xml);
+  const found = matchHighlights(pending, entries);
   if (found.size === 0) {
-    console.log("[하이라이트] 아직 안 올라옴");
+    const kbl = entries.filter((e) => e.title.includes("프로농구")).map((e) => e.title.slice(0, 40));
+    notice(`아직 안 올라옴 — 기다리는 ${pending.length}경기, RSS ${entries.length}개 중 농구 ${kbl.length}개: ${kbl.join(" / ")}`);
     return output(false);
   }
   const dir = join(DATA_DIR, "raw", "highlights", HIGHLIGHT_SOURCE);
   await mkdir(dir, { recursive: true });
   const stamp = new Date().toISOString().replace(/[-:]/g, "").slice(0, 13);
   await writeFile(join(dir, `${stamp}.xml`), xml, "utf8");
-  console.log(`[하이라이트] ${found.size}경기 새 영상 → ${dir}/${stamp}.xml`);
+  notice(`${found.size}경기 새 영상 연결 (${[...found.keys()].join(", ")})`);
   return output(true);
 }
 
 main().catch(async (e) => {
-  console.warn(`[하이라이트] 확인 실패(경고만): ${(e as Error).message}`);
+  notice(`확인 실패(경고만): ${(e as Error).message}`);
   await output(false);
 });
