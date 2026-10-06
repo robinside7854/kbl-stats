@@ -67,12 +67,16 @@ export const HIGHLIGHT_CHANNEL_ID = "UC8JtQf77wqhVpOQ8Cze8JjA";
 export const HIGHLIGHT_FEED_URL = `https://www.youtube.com/feeds/videos.xml?channel_id=${HIGHLIGHT_CHANNEL_ID}`;
 /**
  * 유튜브 RSS 는 가끔 404 를 준다(2026-10-06 Actions 러너에서 확인 — 전날은 됐음). 채널 주소 → 같은 채널 "업로드" 재생목록 주소(UC → UU)
- * 순서로 번갈아 몇 번 다시 시도한다(scripts/highlights.ts fetchHighlightFeed). 같은 Atom 형식
+ * 순서로 번갈아 몇 번 다시 시도한다(scripts/highlights.ts fetchHighlightSource — Secrets YOUTUBE_API_KEY 가 있으면 YouTube Data API 를 먼저). 같은 Atom 형식
  */
 export const HIGHLIGHT_FEED_URLS = [
   HIGHLIGHT_FEED_URL,
   `https://www.youtube.com/feeds/videos.xml?playlist_id=UU${HIGHLIGHT_CHANNEL_ID.slice(2)}`,
 ];
+/** 같은 채널의 "업로드" 재생목록 (YouTube Data API 대신 경로 — 키가 있을 때만) */
+export const HIGHLIGHT_UPLOADS_PLAYLIST = `UU${HIGHLIGHT_CHANNEL_ID.slice(2)}`;
+/** 환경변수(GitHub Secrets YOUTUBE_API_KEY)가 있으면 API 설정, 없으면 null */
+export const highlightApi = () => (process.env.YOUTUBE_API_KEY ? { key: process.env.YOUTUBE_API_KEY, playlistId: HIGHLIGHT_UPLOADS_PLAYLIST } : null);
 /** raw 폴더 data/raw/highlights/{이름}/ */
 export const HIGHLIGHT_SOURCE = "tving";
 

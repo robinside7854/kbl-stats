@@ -16,6 +16,24 @@ export interface FeedEntry {
 const decode = (s: string) =>
   s.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'");
 
+/**
+ * YouTube Data API v3 playlistItems.list 응답(채널 "업로드" 재생목록) → 영상 목록. 형식이 다르면 빈 배열.
+ * RSS 가 막힐 때 쓰는 대신 경로(2026-10-06) — 키는 GitHub Secrets YOUTUBE_API_KEY, 요청 1번 = 1 unit(하루 무료 10,000)
+ */
+export function parseApiItems(body: string): FeedEntry[] {
+  try {
+    const items = (JSON.parse(body) as { items?: { snippet?: { title?: string; publishedAt?: string; resourceId?: { videoId?: string } } }[] }).items;
+    if (!Array.isArray(items)) return [];
+    return items.flatMap((it) => {
+      const sn = it.snippet;
+      const id = sn?.resourceId?.videoId;
+      return id && sn?.title && sn.publishedAt ? [{ videoId: id, title: sn.title, published: sn.publishedAt }] : [];
+    });
+  } catch {
+    return [];
+  }
+}
+
 /** 유튜브 RSS(Atom) → 영상 목록. 형식이 다르면 빈 배열 */
 export function parseFeed(xml: string): FeedEntry[] {
   const out: FeedEntry[] = [];
@@ -93,8 +111,9 @@ export function hasNewHighlight(entries: readonly FeedEntry[], known: ReadonlySe
 export async function readSavedFeeds(dir: string): Promise<FeedEntry[]> {
   const seen = new Map<string, FeedEntry>();
   for (const f of (await readdir(dir).catch(() => [] as string[])).sort()) {
-    if (!f.endsWith(".xml")) continue;
-    for (const e of parseFeed(await readFile(join(dir, f), "utf8").catch(() => ""))) if (!seen.has(e.videoId)) seen.set(e.videoId, e);
+    const parse = f.endsWith(".xml") ? parseFeed : f.endsWith(".json") ? parseApiItems : null;
+    if (!parse) continue;
+    for (const e of parse(await readFile(join(dir, f), "utf8").catch(() => ""))) if (!seen.has(e.videoId)) seen.set(e.videoId, e);
   }
   return [...seen.values()];
 }
@@ -118,27 +137,47 @@ export function pendingHighlightGames<T extends { date: string; ended: boolean; 
 }
 
 /**
- * RSS 받기 — 주소 여러 개를 번갈아 최대 rounds 바퀴(사이 waitMs). 영상이 하나라도 읽히는 응답이면 그 XML, 끝까지 안 되면 마지막 오류를 던진다.
- * 유튜브 RSS 가 가끔 404 를 줘서(2026-10-06) 만든 것. fetch.ts(매일 수집)·highlight-watch.ts(알람) 공용
+ * 하이라이트 영상 목록 받기. API 키가 있으면 YouTube Data API(최근 50개) 먼저, 안 되면 RSS 주소들을 번갈아 rounds 바퀴(사이 waitMs).
+ * 유튜브 RSS 가 가끔(2026-10-06 은 몇 시간째) 404 를 줘서 만든 것. 저장은 받은 그대로(body) — ext 로 raw 파일 확장자를 정한다.
+ * fetch.ts(매일 수집)·highlight-watch.ts(알람) 공용. 끝까지 안 되면 마지막 오류를 던진다
  */
-export async function fetchHighlightFeed(urls: readonly string[], rounds = 3, waitMs = 5000): Promise<string> {
+export async function fetchHighlightSource(
+  rssUrls: readonly string[],
+  api: { key: string; playlistId: string } | null,
+  rounds = 3,
+  waitMs = 5000,
+): Promise<{ body: string; ext: "xml" | "json"; entries: FeedEntry[] }> {
+  const ua = { "User-Agent": "kbl-stats fan project (non-commercial; github.com/robinside7854/kbl-stats)" };
   let last = "응답 없음";
+  if (api) {
+    try {
+      const q = new URLSearchParams({ part: "snippet", playlistId: api.playlistId, maxResults: "50", key: api.key });
+      const res = await fetch(`https://www.googleapis.com/youtube/v3/playlistItems?${q}`);
+      const body = await res.text();
+      const entries = parseApiItems(body);
+      if (res.ok && entries.length > 0) return { body, ext: "json", entries };
+      last = `API HTTP ${res.status}`;
+    } catch (e) {
+      last = `API ${(e as Error).message}`;
+    }
+  }
   for (let r = 0; r < rounds; r++) {
-    for (const url of urls) {
+    for (const url of rssUrls) {
       try {
-        const res = await fetch(url, { headers: { "User-Agent": "kbl-stats fan project (non-commercial; github.com/robinside7854/kbl-stats)" } });
+        const res = await fetch(url, { headers: ua });
         if (!res.ok) {
-          last = `HTTP ${res.status}`;
+          last = `RSS HTTP ${res.status}`;
         } else {
-          const xml = await res.text();
-          if (parseFeed(xml).length > 0) return xml;
+          const body = await res.text();
+          const entries = parseFeed(body);
+          if (entries.length > 0) return { body, ext: "xml", entries };
           last = "RSS 형식이 다름 (영상 0개)";
         }
       } catch (e) {
-        last = (e as Error).message;
+        last = `RSS ${(e as Error).message}`;
       }
       await new Promise((ok) => setTimeout(ok, waitMs));
     }
   }
-  throw new Error(`RSS ${urls.length}개 주소 × ${rounds}번 실패: ${last}`);
+  throw new Error(`${api ? "API·" : ""}RSS 모두 실패: ${last}`);
 }

@@ -48,3 +48,16 @@ console.log("highlights: 제목 해석·경기 맞추기 통과");
   assert.equal(pendingHighlightGames(games, "2026-10-12").length, 0, "오래된 경기는 더 기다리지 않음");
   console.log("highlights: 기다리는 경기 통과");
 }
+
+// ── YouTube Data API 응답 (2026-10-06) ──
+{
+  const { parseApiItems } = await import("../scripts/highlights");
+  const body = JSON.stringify({ items: [
+    { snippet: { title: "[현대모비스 vs KCC] 10/5 경기 I 2026-27 KCC 프로농구 I 하이라이트 I TVING", publishedAt: "2026-10-05T13:00:00Z", resourceId: { videoId: "abcDEF12345" } } },
+    { snippet: { title: "깨진 항목" } },
+  ] });
+  assert.deepEqual(parseApiItems(body), [{ videoId: "abcDEF12345", title: "[현대모비스 vs KCC] 10/5 경기 I 2026-27 KCC 프로농구 I 하이라이트 I TVING", published: "2026-10-05T13:00:00Z" }]);
+  assert.deepEqual(parseApiItems("<html>"), []);
+  assert.deepEqual(parseApiItems('{"error":{"code":403}}'), []);
+  console.log("highlights: API 응답 통과");
+}

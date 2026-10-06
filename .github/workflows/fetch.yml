@@ -69,6 +69,9 @@ jobs:
       - name: 하이라이트만 확인
         id: hl
         if: steps.gate.outputs.run != 'true'
+        env:
+          # 있으면 YouTube Data API 먼저(RSS 가 404 일 때 대신) — 저장소 Secrets, 없으면 RSS 만
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
         run: npx tsx scripts/highlight-watch.ts
 
       - name: 하이라이트 반영
@@ -92,6 +95,8 @@ jobs:
 
       - name: 수집
         if: steps.gate.outputs.run == 'true'
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
         run: |
           if [ "${{ github.event.inputs.seasons }}" = "all" ]; then
             npm run fetch:all

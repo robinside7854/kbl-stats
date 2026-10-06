@@ -21,7 +21,7 @@ import {
   STATS_API, CODES_API, GAME_CODE, SEASON_CODES_FALLBACK,
   DEFAULT_SEASONS, REQUEST_INTERVAL_MS, PAGE_SIZE, DATA_DIR,
   PLAYER_MASTER_PATH, PLAYER_MASTER_REG_SC, PLAYER_MASTER_MAX_PAGES, AWARDS_PAGE_URL, SITE_ORIGIN,
-  HIGHLIGHT_FEED_URLS, HIGHLIGHT_SOURCE,
+  HIGHLIGHT_FEED_URLS, HIGHLIGHT_SOURCE, highlightApi,
 } from "./config.js";
 import { getJson, getText, saveRaw, sleep } from "./http.js";
 import { bundleScriptSrc, extractAwardsData } from "./awards.js";
@@ -29,7 +29,7 @@ import { collectGameLogs, collectHighs, collectProfiles } from "./collect-extras
 import { collectSeasonShots } from "./collect-shots.js";
 import { highsTargetSeasons, playerNosFromTraditional, todayKst, updateFirstSeen } from "./highs.js";
 import { seasonLabelOf } from "./shots.js";
-import { fetchHighlightFeed, hasNewHighlight, parseFeed, readSavedFeeds } from "./highlights.js";
+import { fetchHighlightSource, hasNewHighlight, readSavedFeeds } from "./highlights.js";
 import { applyRosterCheck, EMPTY_ROSTER_LOG, rosterCheckDue, type RosterLog } from "./active-roster.js";
 import { masterRows } from "./player-master.js";
 
@@ -330,8 +330,8 @@ async function fetchAwards(): Promise<void> {
  * KBL 서버가 아니라 유튜브라 실패해도 경고만.
  */
 async function fetchHighlights(): Promise<void> {
-  const xml = await fetchHighlightFeed(HIGHLIGHT_FEED_URLS);
-  const entries = parseFeed(xml);
+  const src = await fetchHighlightSource(HIGHLIGHT_FEED_URLS, highlightApi());
+  const entries = src.entries;
   const dir = join(DATA_DIR, "raw", "highlights", HIGHLIGHT_SOURCE);
   const known = new Set((await readSavedFeeds(dir)).map((e) => e.videoId));
   if (!hasNewHighlight(entries, known)) {
@@ -340,8 +340,8 @@ async function fetchHighlights(): Promise<void> {
   }
   await mkdir(dir, { recursive: true });
   const stamp = new Date().toISOString().replace(/[-:]/g, "").slice(0, 13); // 20261004T1426
-  await writeFile(join(dir, `${stamp}.xml`), xml, "utf8");
-  console.log(`[하이라이트] 새 영상 있음 → ${dir}/${stamp}.xml`);
+  await writeFile(join(dir, `${stamp}.${src.ext}`), src.body, "utf8");
+  console.log(`[하이라이트] 새 영상 있음 → ${dir}/${stamp}.${src.ext}`);
 }
 
 async function main() {
