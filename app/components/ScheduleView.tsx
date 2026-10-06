@@ -68,6 +68,10 @@ function loadDay(seasonCode: number, date: string) {
   return p;
 }
 
+/** PC 날짜 묶음이 차지할 칸 수·안쪽 칸 수 (경기 수 1·2·3+). Tailwind 가 찾을 수 있게 글자 그대로 적는다 */
+const DAY_SPAN: Record<number, string> = { 0: "", 1: "xl:col-span-1", 2: "xl:col-span-2", 3: "xl:col-span-3" };
+const DAY_COLS: Record<number, string> = { 0: "", 1: "xl:grid-cols-1", 2: "xl:grid-cols-2", 3: "xl:grid-cols-3" };
+
 export default function ScheduleView({ seasonCode, seasonShort, games, teams, initialMonth, progress }: Props) {
   const months = useMemo(() => monthsOf(games), [games]);
   const [month, setMonth] = useState<string | null>(initialMonth);
@@ -187,8 +191,10 @@ export default function ScheduleView({ seasonCode, seasonShort, games, teams, in
               </button>
             </p>
           )}
+          {/* PC(1280px 이상): 날짜 묶음을 3칸 격자에 경기 수만큼 칸을 차지해 이어 붙인다 — 1~2경기 날의 오른쪽 빈칸을 다음 날이 채움 (2026-10-06 사용자) */}
+          <div className="xl:grid xl:grid-cols-3 xl:items-start xl:gap-x-3">
           {days.map((d) => (
-            <section key={d.date} id={`d-${d.date}`} aria-labelledby={`h-${d.date}`} className="mt-5 scroll-mt-4">
+            <section key={d.date} id={`d-${d.date}`} aria-labelledby={`h-${d.date}`} className={`mt-5 min-w-0 scroll-mt-4 ${DAY_SPAN[Math.min(d.games.length, 3)]}`}>
               <h2 id={`h-${d.date}`} className="flex items-center gap-2 text-body font-bold text-ink">
                 {gameDayLabel(d.date)}
                 {today === d.date && (
@@ -196,7 +202,7 @@ export default function ScheduleView({ seasonCode, seasonShort, games, teams, in
                 )}
                 <span className="text-sub font-medium text-ink-3">{d.games.length}경기</span>
               </h2>
-              <ul className="mt-2 grid items-start gap-3 md:grid-cols-2 xl:grid-cols-3">
+              <ul className={`mt-2 grid items-start gap-3 md:grid-cols-2 ${DAY_COLS[Math.min(d.games.length, 3)]}`}>
                 {d.games.map((g) => (
                   <li key={g.gmkey}>
                     <GameCard
@@ -212,6 +218,7 @@ export default function ScheduleView({ seasonCode, seasonShort, games, teams, in
               </ul>
             </section>
           ))}
+          </div>
         </>
       )}
     </main>

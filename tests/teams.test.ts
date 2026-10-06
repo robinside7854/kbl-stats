@@ -13,7 +13,7 @@ import {
   readableInk,
   oklabDistance,
 } from "../lib/teams";
-import { nextHeroIndex, pickHomeSeason } from "../lib/home";
+import { heroStatLine, nextHeroIndex, pickHomeSeason } from "../lib/home";
 import { DEFAULT_QUALIFY, QUALIFY_PRESETS } from "../lib/metrics";
 
 const PALETTE = ["#2a78d6", "#eb6834", "#1baf7a"];
@@ -88,6 +88,14 @@ for (const theme of gradeThemes)
       }
 
 console.log("teams.test.ts: 모든 테스트 통과");
+
+// ── 홈 표지 PC 가운데 6칸 (경기당) ──
+{
+  const line = heroStatLine({ games: 4, points: 80, reb: 40, ast: 20, stl: 8, blk: 4, tpm: 12 });
+  assert.deepEqual(line.map((x) => x.key), ["points", "reb", "ast", "stl", "blk", "tpm"]);
+  assert.deepEqual(line.map((x) => x.value), [20, 10, 5, 2, 1, 3]);
+  assert.equal(heroStatLine({ games: 0, points: 0, reb: 0, ast: 0, stl: 0, blk: 0, tpm: 0 })[0].value, 0);
+}
 
 // ── 오늘 생일 (lib/home birthdaysOn·kstDateString) ──
 {

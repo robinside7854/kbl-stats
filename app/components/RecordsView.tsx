@@ -11,6 +11,7 @@ import {
   RECORD_STATS,
   RECORDS_MIN_GAMES,
   RECORDS_PAGE_SIZE,
+  recordBarShare,
   type CareerTotal,
   type RecordMode,
   type RecordOrigin,
@@ -68,6 +69,7 @@ export default function RecordsView({ totals, spanLabel, latestSeasonCode }: { t
     [totals, cat, effMode, origin, activeOnly, latestSeasonCode],
   );
   const shown = rows.slice(0, limit);
+  const barMax = rows[0]?.value ?? 0;
   const title = `${effMode === "perGame" ? "통산 경기당" : "통산"} ${def.label}`;
 
   return (
@@ -105,6 +107,7 @@ export default function RecordsView({ totals, spanLabel, latestSeasonCode }: { t
           <ol className="surface-card tabular divide-y divide-line rounded-container">
             {shown.map((r) => {
               const t = r.total;
+              const share = recordBarShare(r.value, barMax);
               const span = seasonRangeLabel(t.firstLabel, t.lastLabel);
               return (
                 <li key={t.id}>
@@ -113,13 +116,16 @@ export default function RecordsView({ totals, spanLabel, latestSeasonCode }: { t
                     className="focus-ring-inset flex min-h-14 items-center gap-3 px-3 py-2 transition-colors duration-200 hover:bg-surface-2"
                   >
                     <span className={`w-8 shrink-0 text-center text-body ${r.rank <= 3 ? "font-black text-ink" : "font-semibold text-ink-3"}`}>{r.rank}</span>
-                    <PlayerAvatar
-                      photoUrl={t.photoUrl}
-                      nameKo={t.nameKo}
-                      color={{ primary: t.lastTeamColor, secondary: t.lastTeamColor, text: "#ffffff" }}
-                      size={r.rank <= 3 ? 40 : 32}
-                    />
-                    <span className="min-w-0 flex-1">
+                    {/* 사진 자리 폭 고정: 1~3위 사진이 커도 이름·막대 시작선이 같게 */}
+                    <span className="flex w-10 shrink-0 justify-center">
+                      <PlayerAvatar
+                        photoUrl={t.photoUrl}
+                        nameKo={t.nameKo}
+                        color={{ primary: t.lastTeamColor, secondary: t.lastTeamColor, text: "#ffffff" }}
+                        size={r.rank <= 3 ? 40 : 32}
+                      />
+                    </span>
+                    <span className="min-w-0 flex-1 md:w-80 md:flex-none xl:w-96">
                       <span className="flex min-w-0 items-center gap-1.5">
                         <span className="truncate text-body font-semibold leading-tight text-ink">{t.nameKo}</span>
                         {isActiveCareer(t, latestSeasonCode) && (
@@ -130,8 +136,13 @@ export default function RecordsView({ totals, spanLabel, latestSeasonCode }: { t
                         {span} · {t.seasons}시즌 · {t.games.toLocaleString("ko-KR")}경기{cat === "wins" ? ` · ${t.wins.toLocaleString("ko-KR")}승 ${t.losses.toLocaleString("ko-KR")}패` : ""} · {teamShortLabel(t.lastTeam)}
                       </span>
                     </span>
-                    <span className="shrink-0 text-right">
-                      <span className="block text-lg font-bold leading-tight tracking-tight text-ink">{formatRecord(r.value, cat, effMode)}</span>
+                    {/* PC: 1위 대비 막대 (이름과 숫자 사이 빈칸 대신) */}
+                    <span aria-hidden className="hidden min-w-0 flex-1 md:block">
+                      <span className="block h-2.5 rounded-sm opacity-80" style={{ width: `${share * 100}%`, background: t.lastTeamColor }} />
+                    </span>
+                    <span className="shrink-0 text-right md:w-28">
+                      {/* deslop-ignore-next-line 11 */}
+                      <span className="block text-lg font-bold leading-tight tracking-tight text-ink lg:text-xl">{formatRecord(r.value, cat, effMode)}</span>
                       <span className="block text-caption text-ink-3">{def.unit}</span>
                     </span>
                   </Link>

@@ -1,6 +1,7 @@
 // 홈(/) "이번 시즌 한눈에" 규칙 — 순수 함수만 둔다. 부문 순위는 lib/leaders.ts topLeaders 를 그대로 쓴다.
 import type { LeaderStatKey } from "./leaders";
-import type { SeasonOption } from "./types";
+import { perGame } from "./metrics";
+import type { LeaderPlayer, SeasonOption } from "./types";
 
 /** 홈 부문별 1~3위 카드 (경기당, 기본 표본 기준). 순서 = 화면 순서 */
 export const HOME_CATEGORIES: readonly LeaderStatKey[] = ["points", "reb", "ast", "stl", "blk", "tpm"];
@@ -95,3 +96,12 @@ export function nextHeroIndex(keys: readonly string[], last: string | null, rand
 
 /** 표지 부문 기억 키 (localStorage) */
 export const HOME_HERO_STORAGE_KEY = "kbl-stats:home-hero:v1";
+
+/** 홈 표지 PC 가운데 칸: 그 선수의 이번 시즌 경기당 기록 6개 (HOME_CATEGORIES 순서, 2026-10-06 사용자: PC 표지 가운데가 비어 있다) */
+export interface HeroStat {
+  key: LeaderStatKey;
+  value: number;
+}
+export function heroStatLine(p: Pick<LeaderPlayer, "games" | "points" | "reb" | "ast" | "stl" | "blk" | "tpm">): HeroStat[] {
+  return HOME_CATEGORIES.map((key) => ({ key, value: perGame(p[key as "points" | "reb" | "ast" | "stl" | "blk" | "tpm"], p.games) }));
+}

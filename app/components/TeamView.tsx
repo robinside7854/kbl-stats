@@ -186,19 +186,19 @@ export default function TeamView({ data }: { data: TeamPageData }) {
             <p className="mt-3 text-sub text-ink-3">이 시즌 선수 기록이 없습니다</p>
           ) : (
             <ul className="mt-3 divide-y divide-line">
-              <li className="grid grid-cols-[minmax(0,1fr)_2.5rem_2.5rem_2.5rem] gap-2 pb-2 text-caption font-semibold text-ink-3 sm:grid-cols-[minmax(0,1fr)_3rem_3rem_3.5rem_3.5rem_3.5rem]">
+              <li className="grid grid-cols-[minmax(0,1fr)_2.5rem_2.5rem_2.5rem] gap-2 pb-2 text-caption font-semibold text-ink-3 sm:grid-cols-[minmax(0,1fr)_3rem_3rem_3.5rem_3.5rem_3.5rem] lg:grid-cols-[minmax(0,20rem)_repeat(5,minmax(0,1fr))]">
                 <span>선수 (경기당)</span>
-                <span className="hidden text-right sm:block">경기</span>
-                <span className="hidden text-right sm:block">분</span>
-                <span className="text-right">득점</span>
-                <span className="text-right">리바</span>
-                <span className="text-right">어시</span>
+                <span className="hidden text-right lg:text-center sm:block">경기</span>
+                <span className="hidden text-right lg:text-center sm:block">분</span>
+                <span className="text-right lg:text-center">득점</span>
+                <span className="text-right lg:text-center">리바</span>
+                <span className="text-right lg:text-center">어시</span>
               </li>
               {roster.map((p) => (
                 <li key={p.id}>
                   <Link
                     href={`/player/${p.id}?season=${season}`}
-                    className="focus-ring-inset grid min-h-12 grid-cols-[minmax(0,1fr)_2.5rem_2.5rem_2.5rem] items-center gap-2 py-1.5 text-sub transition-colors duration-200 hover:bg-surface-2 sm:grid-cols-[minmax(0,1fr)_3rem_3rem_3.5rem_3.5rem_3.5rem]"
+                    className="focus-ring-inset grid min-h-12 grid-cols-[minmax(0,1fr)_2.5rem_2.5rem_2.5rem] items-center gap-2 py-1.5 text-sub transition-colors duration-200 hover:bg-surface-2 sm:grid-cols-[minmax(0,1fr)_3rem_3rem_3.5rem_3.5rem_3.5rem] lg:grid-cols-[minmax(0,20rem)_repeat(5,minmax(0,1fr))]"
                   >
                     <span className="flex min-w-0 items-center gap-2">
                       <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.name} color={brand.color} size={32} />
@@ -210,10 +210,10 @@ export default function TeamView({ data }: { data: TeamPageData }) {
                         </span>
                       </span>
                     </span>
-                    <span className="hidden text-right tabular text-ink-2 sm:block">{p.gp}</span>
-                    <span className="hidden text-right tabular text-ink-2 sm:block">{p.mpg.toFixed(1)}</span>
-                    <span className="text-right font-semibold tabular text-ink">{p.ppg.toFixed(1)}</span>
-                    <span className="text-right tabular text-ink-2">{p.rpg.toFixed(1)}</span>
+                    <span className="hidden text-right lg:text-center tabular text-ink-2 sm:block">{p.gp}</span>
+                    <span className="hidden text-right lg:text-center tabular text-ink-2 sm:block">{p.mpg.toFixed(1)}</span>
+                    <span className="text-right lg:text-center font-semibold tabular text-ink">{p.ppg.toFixed(1)}</span>
+                    <span className="text-right lg:text-center tabular text-ink-2">{p.rpg.toFixed(1)}</span>
                     <span className="text-right tabular text-ink-2">{p.apg.toFixed(1)}</span>
                   </Link>
                 </li>

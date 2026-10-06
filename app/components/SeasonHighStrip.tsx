@@ -4,7 +4,7 @@
 // 고른 순위표 부문과 대응하는 카드(득점·리바운드·어시스트·스틸·블록)는 테두리로 강조하고, 보이도록 줄을 민다.
 // 카드 내용은 서버에서 lib/highs buildSeasonHighCards 로 다 만들어 넘긴다. 카드가 없으면 부르는 쪽이 섹션을 숨긴다.
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type CSSProperties } from "react";
 import type { SeasonHighCard } from "@/lib/highs";
 import type { CardTeam, SeasonHighLeaderKey } from "@/lib/types";
 import { teamShortLabel } from "@/lib/images";
@@ -43,7 +43,12 @@ export default function SeasonHighStrip({ cards, teamByCode, activeKey }: Props)
         </h2>
         <p className="text-sub text-ink-3">정규시즌 · 같은 기록이면 먼저 낸 선수</p>
       </div>
-      <ul ref={listRef} className="relative flex snap-x gap-2.5 overflow-x-auto px-0.5 pb-2 pt-1 [scrollbar-width:thin]">
+      {/* PC(1280px 이상)는 옆으로 밀지 않고 화면 폭을 카드 수만큼 나눠 채운다 (2026-10-06 사용자: 오른쪽이 빈다) */}
+      <ul
+        ref={listRef}
+        className="relative flex snap-x gap-2.5 overflow-x-auto px-0.5 pb-2 pt-1 [scrollbar-width:thin] xl:grid xl:grid-cols-(--high-cols) xl:overflow-visible"
+        style={{ "--high-cols": `repeat(${cards.length}, minmax(0, 1fr))` } as CSSProperties}
+      >
         {cards.map((c) => {
           const team = teamByCode.get(c.teamCode);
           const on = c.key === activeKey;
@@ -51,7 +56,7 @@ export default function SeasonHighStrip({ cards, teamByCode, activeKey }: Props)
             <li
               key={c.key}
               data-key={c.key}
-              className={`surface-card tabular w-[11.5rem] shrink-0 snap-start rounded-container p-3 ${on ? "outline-2 -outline-offset-2 outline-ink" : ""}`}
+              className={`surface-card tabular w-[11.5rem] shrink-0 snap-start rounded-container p-3 xl:w-auto xl:min-w-0 ${on ? "outline-2 -outline-offset-2 outline-ink" : ""}`}
               aria-current={on ? "true" : undefined}
             >
               <p className="flex items-baseline justify-between gap-2 text-sub font-semibold text-ink-2">
@@ -88,7 +93,7 @@ export default function SeasonHighStrip({ cards, teamByCode, activeKey }: Props)
           );
         })}
       </ul>
-      <p className="mt-1 flex items-center gap-1 text-sub text-ink-3">
+      <p className="mt-1 flex items-center gap-1 text-sub text-ink-3 xl:hidden">
         옆으로 밀어 {cards.length}개 부문 보기 <IconArrowRight size={16} />
       </p>
     </section>

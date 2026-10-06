@@ -39,21 +39,24 @@ export default function StandingsView({ seasonCode, seasonShort, rows, teams, ch
         <p className="surface-card mt-4 rounded-container p-4 text-sub text-ink-3">이 시즌 경기 결과가 없습니다</p>
       ) : (
         <div className="surface-card tabular mt-4 rounded-container px-3 py-1">
-          <table className="w-full table-fixed text-sub">
+          <table className="w-full table-fixed text-sub lg:text-body">
             <colgroup>
-              <col className="w-7" />
-              <col />
-              <col className="w-12 sm:w-16" />
-              <col className="w-11 sm:w-14" />
-              <col className="w-9 sm:w-12" />
-              <col className="hidden w-16 sm:table-column" />
-              <col className="hidden w-16 sm:table-column" />
-              <col className="w-12 sm:w-20" />
+              <col className="w-7 lg:w-10" />
+              <col className="lg:w-64" />
+              {/* PC: 팀 이름과 숫자 사이를 승률 막대로 (2026-10-06 사용자: 넓은 빈칸) */}
+              <col className="hidden lg:table-column" />
+              <col className="w-12 sm:w-16 lg:w-24" />
+              <col className="w-11 sm:w-14 lg:w-20" />
+              <col className="w-9 sm:w-12 lg:w-16" />
+              <col className="hidden w-16 sm:table-column lg:w-20" />
+              <col className="hidden w-16 sm:table-column lg:w-20" />
+              <col className="w-12 sm:w-20 lg:w-36" />
             </colgroup>
             <thead>
               <tr className="border-b border-line text-caption text-ink-3">
                 <th scope="col" className="py-2 text-left font-medium">순위</th>
                 <th scope="col" className="py-2 text-left font-medium">팀</th>
+                <td aria-hidden className="hidden lg:table-cell" />
                 <th scope="col" className="py-2 text-right font-medium">승-패</th>
                 <th scope="col" className="py-2 text-right font-medium">승률</th>
                 <th scope="col" className="py-2 text-right font-medium">승차</th>
@@ -86,6 +89,9 @@ export default function StandingsView({ seasonCode, seasonShort, rows, teams, ch
                         )}
                       </Link>
                     </th>
+                    <td aria-hidden className="hidden pl-4 lg:table-cell">
+                      <span className="block h-2.5 rounded-sm opacity-80" style={{ width: `${Math.round(r.pct * 1000) / 10}%`, background: t?.color?.primary ?? "#6b7280" }} />
+                    </td>
                     <td className="text-right text-ink">{`${r.wins}-${r.losses}`}</td>
                     <td className="text-right font-semibold text-ink">{pctLabel(r.pct)}</td>
                     <td className="text-right text-ink-2">{gamesBehindLabel(r.gamesBehind)}</td>
@@ -97,7 +103,7 @@ export default function StandingsView({ seasonCode, seasonShort, rows, teams, ch
                           <span key={i} aria-hidden className={`${DOT} ${x === "W" ? "bg-ink" : "border border-ink-3"}`} />
                         ))}
                       </span>
-                      <span className="hidden pl-1 text-caption text-ink-3 sm:inline">{r.streak}</span>
+                      <span className="hidden whitespace-nowrap pl-1 text-caption text-ink-3 sm:inline">{r.streak}</span>
                     </td>
                   </tr>
                 );

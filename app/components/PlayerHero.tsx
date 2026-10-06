@@ -95,7 +95,7 @@ export default function PlayerHero({ entry, seasons, today, badges, milestones =
               </span>
             </div>
             {/* deslop-ignore-next-line 11 */}
-            <h1 className="mt-3 text-[2rem] font-black leading-[1.1] tracking-tight [overflow-wrap:anywhere] sm:text-5xl">
+            <h1 className="mt-3 text-[2rem] font-black leading-[1.1] tracking-tight [overflow-wrap:anywhere] sm:text-5xl lg:text-6xl">
               {entry.nameKo}
             </h1>
             <p className="mt-1 truncate text-sub font-medium opacity-85 sm:text-body">{entry.nameEn}</p>
@@ -115,8 +115,11 @@ export default function PlayerHero({ entry, seasons, today, badges, milestones =
             <span className="flex sm:hidden">
               <PlayerAvatar photoUrl={entry.photoUrl} nameKo={entry.nameKo} color={color} variant="portrait" size={200} />
             </span>
-            <span className="hidden sm:flex">
+            <span className="hidden sm:flex lg:hidden">
               <PlayerAvatar photoUrl={entry.photoUrl} nameKo={entry.nameKo} color={color} variant="portrait" size={280} />
+            </span>
+            <span className="hidden lg:flex">
+              <PlayerAvatar photoUrl={entry.photoUrl} nameKo={entry.nameKo} color={color} variant="portrait" size={330} />
             </span>
           </div>
           {/* 칩·프로필: 폰은 띠 전체 폭의 어두운 바닥 줄, 640px 이상은 글 열 아래 */}
@@ -198,12 +201,28 @@ export default function PlayerHero({ entry, seasons, today, badges, milestones =
             <p id="awards-title" className="text-sub font-semibold text-ink-2">
               수상 경력 <span className="font-normal text-ink-3">· KBL 역대수상현황</span>
             </p>
-            <dl className="surface-card tabular mt-1.5 divide-y divide-line rounded-card">
+            <dl className="surface-card tabular mt-1.5 divide-y divide-line rounded-card lg:hidden">
               {awards.map((a) => (
                 <div key={a.key} className="grid grid-cols-[6.5rem_2.75rem_minmax(0,1fr)] items-baseline gap-2 px-3 py-2 text-sub sm:grid-cols-[8rem_3rem_minmax(0,1fr)]">
                   <dt className="font-semibold text-ink">{a.label}</dt>
                   <dd className="font-bold text-ink">{a.count}회</dd>
                   <dd className="min-w-0 text-ink-2 [overflow-wrap:anywhere]">{a.seasons}</dd>
+                </div>
+              ))}
+            </dl>
+            {/* PC: 상마다 카드 한 장, 네 칸 (2026-10-06 사용자: 넓은 표 오른쪽이 빈다) */}
+            <dl className="tabular mt-1.5 hidden grid-cols-4 gap-2 lg:grid">
+              {awards.map((a) => (
+                <div key={a.key} className="surface-card min-w-0 rounded-card px-4 py-3">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <dt className="truncate text-body font-semibold text-ink">{a.label}</dt>
+                    {/* deslop-ignore-next-line 11 */}
+                    <dd className="shrink-0 text-2xl font-black leading-none text-ink">
+                      {a.count}
+                      <span className="ml-0.5 text-sub font-bold text-ink-3">회</span>
+                    </dd>
+                  </div>
+                  <dd className="mt-1.5 text-sub text-ink-2 [overflow-wrap:anywhere]">{a.seasons}</dd>
                 </div>
               ))}
             </dl>

@@ -33,18 +33,24 @@ function WinnerName({ w, className = "" }: { w: AwardWinnerView; className?: str
 function MajorCard({ item }: { item: AwardItemView }) {
   const gold = item.key === "mvp" || item.key === "finalsMvp";
   return (
-    <li className="surface-card flex min-w-0 flex-col rounded-card p-3">
+    <li className="surface-card flex min-w-0 flex-col rounded-card p-3 lg:p-4">
       <span
-        className="inline-flex w-fit items-center gap-1 rounded-control px-2 py-0.5 text-caption font-bold"
+        className="inline-flex w-fit items-center gap-1 rounded-control px-2 py-0.5 text-caption font-bold lg:text-sub"
         style={gold ? GOLD : { background: "var(--surface-2)", color: "var(--ink-2)" }}
       >
         <IconTrophy size={16} aria-hidden />
         {item.label}
       </span>
       {item.winners.map((w, i) => (
-        <div key={`${w.name}-${i}`} className="mt-2.5 flex min-w-0 items-center gap-2.5">
-          <PlayerAvatar photoUrl={w.photoUrl} nameKo={w.name} color={w.team?.color ?? FALLBACK_TEAM_COLOR} size={52} />
-          <WinnerName w={w} className="min-w-0 text-body [overflow-wrap:anywhere]" />
+        <div key={`${w.name}-${i}`} className="mt-2.5 flex min-w-0 items-center gap-2.5 lg:mt-3 lg:gap-4">
+          {/* PC 는 사진·이름을 크게 (2026-10-06 사용자: 넓은 카드에 작은 글씨만 있다) */}
+          <span className="lg:hidden">
+            <PlayerAvatar photoUrl={w.photoUrl} nameKo={w.name} color={w.team?.color ?? FALLBACK_TEAM_COLOR} size={52} />
+          </span>
+          <span className="hidden lg:inline">
+            <PlayerAvatar photoUrl={w.photoUrl} nameKo={w.name} color={w.team?.color ?? FALLBACK_TEAM_COLOR} size={76} />
+          </span>
+          <WinnerName w={w} className="min-w-0 text-body [overflow-wrap:anywhere] lg:text-h2" />
         </div>
       ))}
     </li>
@@ -54,16 +60,21 @@ function MajorCard({ item }: { item: AwardItemView }) {
 /** 사진 줄 카드: 베스트5·수비 5걸(한 상의 5명) / 정규리그 시상(상마다 한 칸, 위에 상 이름) */
 function PhotoRow({ title, cells }: { title: string; cells: { caption: string | null; w: AwardWinnerView }[] }) {
   return (
-    <div className="surface-card rounded-card p-3">
-      <p className="text-sub font-bold text-ink">{title}</p>
+    <div className="surface-card rounded-card p-3 lg:p-4">
+      <p className="text-sub font-bold text-ink lg:text-body">{title}</p>
       <ul className="mt-2 grid grid-cols-5 gap-x-1.5 gap-y-3">
         {cells.map(({ caption, w }, i) => {
           const inner = (
             <>
-              {caption && <span className="mb-1 flex h-8 w-full items-end justify-center break-keep text-caption font-semibold leading-tight text-ink-2">{caption}</span>}
-              <PlayerAvatar photoUrl={w.photoUrl} nameKo={w.name} color={w.team?.color ?? FALLBACK_TEAM_COLOR} size={44} />
-              <span className="mt-1 w-full truncate text-caption font-semibold text-ink">{w.name}</span>
-              <span className="w-full truncate text-caption text-ink-3">{w.teamLabel}</span>
+              {caption && <span className="mb-1 flex h-8 w-full items-end justify-center break-keep text-caption font-semibold leading-tight text-ink-2 lg:text-sub">{caption}</span>}
+              <span className="lg:hidden">
+                <PlayerAvatar photoUrl={w.photoUrl} nameKo={w.name} color={w.team?.color ?? FALLBACK_TEAM_COLOR} size={44} />
+              </span>
+              <span className="hidden lg:inline">
+                <PlayerAvatar photoUrl={w.photoUrl} nameKo={w.name} color={w.team?.color ?? FALLBACK_TEAM_COLOR} size={80} />
+              </span>
+              <span className="mt-1 w-full truncate text-caption font-semibold text-ink lg:mt-2 lg:text-body">{w.name}</span>
+              <span className="w-full truncate text-caption text-ink-3 lg:text-sub">{w.teamLabel}</span>
             </>
           );
           return (

@@ -123,7 +123,9 @@ function LogoChip({ team, fallback, size }: { team?: CardTeam; fallback: string;
   );
 }
 
-/** 1~3위 표지 카드. 1위는 크게(hero), 2·3위는 반 폭 */
+/** 1~3위 표지 카드. 1위는 크게(hero), 2·3위는 반 폭.
+ * PC(2026-10-06 사용자: 1위 카드 오른쪽이 비어 있다): 오른쪽에 큰 세로 사진, 이름·숫자를 키운다 —
+ * 1위는 1024px 이상, 2·3위는 칸이 넉넉한 1280px 이상에서만(그 아래는 동그라미 사진 그대로). */
 function CoverCard({
   entry,
   team,
@@ -141,59 +143,69 @@ function CoverCard({
   const color = team?.color ?? FALLBACK_TEAM_COLOR;
   const teamLabel = teamShortLabel(team?.shortName ?? p.teamShort);
   const lowerIsBetter = LEADER_STATS[category].better === "low";
+  // 큰 사진이 보이는 폭: 1위 lg, 2·3위 xl
+  const wide = hero ? "lg" : "xl";
+  const showPortrait = hero ? "hidden lg:block" : "hidden xl:block";
+  const hideCircle = hero ? "lg:hidden" : "xl:hidden";
   return (
     <article
-      className={`tabular relative overflow-hidden rounded-container border border-black/10 dark:border-white/15 ${hero ? "col-span-2 p-4 sm:p-5" : "p-3"}`}
+      className={`tabular relative overflow-hidden rounded-container border border-black/10 dark:border-white/15 ${
+        hero ? "col-span-2 p-4 sm:p-5 lg:px-7 lg:pb-0 lg:pt-6" : "p-3 xl:px-5 xl:pb-0 xl:pt-4"
+      }`}
       style={{ background: color.primary, color: color.text }}
       aria-label={`${entry.rank}위 ${p.nameKo} ${teamLabel} ${statTitle(category, mode)} ${formatStat(entry.value, category, mode)}`}
     >
-      {/* 배경의 큰 순위 숫자 (장식) */}
+      {/* 배경의 큰 순위 숫자 (장식) — 오른쪽 끝. PC 1위는 사진을 글 바로 옆에 붙이고 남는 오른쪽을 숫자가 채운다 */}
       <span
         aria-hidden
         className={`pointer-events-none absolute -bottom-4 right-1 select-none font-black leading-none opacity-15 ${
-          hero ? "text-[9rem]" : "text-[5.5rem]"
+          hero ? "text-[9rem] lg:right-4 lg:text-[13rem]" : "text-[5.5rem] xl:text-[7rem]"
         }`}
       >
         {entry.rank}
       </span>
-      <div className={`relative flex items-center ${hero ? "gap-4" : "gap-2.5"}`}>
-        <PlayerAvatar
-          photoUrl={p.photoUrl}
-          nameKo={p.nameKo}
-          color={color}
-          size={hero ? 88 : 48}
-          className="ring-2 ring-white/70"
-        />
-        <div className="min-w-0">
-          <p className={`font-semibold opacity-85 ${hero ? "text-sub" : "text-caption"}`}>{entry.rank}위</p>
-          <h3 className={`font-bold leading-tight break-keep ${hero ? "truncate text-2xl" : "line-clamp-2 text-base"}`} title={p.nameKo}>
-            <Link href={`/player/${p.id}`} className="focus-ring rounded-control underline-offset-4 hover:underline">
-              {p.nameKo}
-            </Link>
-          </h3>
-          <p className={`mt-1 flex min-w-0 items-center gap-1.5 opacity-90 ${hero ? "text-body" : "text-caption"}`}>
-            <LogoChip team={team} fallback={p.teamShort} size={hero ? 20 : 14} />
-            <span className="truncate">{teamLabel}</span>
-            {hero && (
-              <span className="shrink-0">
-                · {positionLabel(p.position) ? `${positionLabel(p.position)} · ` : ""}
-                {NATIONALITY_LABELS[nationalityOf(p)]}
-              </span>
-            )}
-            {!hero && p.position && <span className="shrink-0">· {p.position}</span>}
+      <div className="relative flex items-stretch gap-3">
+        <div className={`min-w-0 flex-1 ${wide === "lg" ? "lg:max-w-[22rem] lg:pb-6" : "xl:pb-4"}`}>
+          <div className={`flex items-center ${hero ? "gap-4" : "gap-2.5"}`}>
+            <span className={hideCircle}>
+              <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={color} size={hero ? 88 : 48} className="ring-2 ring-white/70" />
+            </span>
+            <div className="min-w-0">
+              <p className={`font-semibold opacity-85 ${hero ? "text-sub lg:text-body" : "text-caption xl:text-sub"}`}>{entry.rank}위</p>
+              {/* deslop-ignore-next-line 11 */}
+              <h3 className={`font-bold leading-tight break-keep ${hero ? "truncate text-2xl lg:text-5xl lg:leading-[1.1]" : "line-clamp-2 text-base xl:text-2xl"}`} title={p.nameKo}>
+                <Link href={`/player/${p.id}`} className="focus-ring rounded-control underline-offset-4 hover:underline">
+                  {p.nameKo}
+                </Link>
+              </h3>
+              <p className={`mt-1 flex min-w-0 items-center gap-1.5 opacity-90 ${hero ? "text-body lg:mt-2" : "text-caption xl:text-sub"}`}>
+                <LogoChip team={team} fallback={p.teamShort} size={hero ? 20 : 14} />
+                <span className="truncate">{teamLabel}</span>
+                {hero && (
+                  <span className="shrink-0">
+                    · {positionLabel(p.position) ? `${positionLabel(p.position)} · ` : ""}
+                    {NATIONALITY_LABELS[nationalityOf(p)]}
+                  </span>
+                )}
+                {!hero && p.position && <span className="shrink-0">· {p.position}</span>}
+              </p>
+            </div>
+          </div>
+          <p className={`relative ${hero ? "mt-4 lg:mt-6" : "mt-2.5 xl:mt-4"}`}>
+            <span className={`block font-semibold opacity-85 ${hero ? "text-sub lg:text-body" : "text-caption xl:text-sub"}`}>
+              {statTitle(category, mode)}
+              {lowerIsBetter && <span className="whitespace-nowrap"> · 적을수록 상위</span>}
+            </span>
+            {/* deslop-ignore-next-line 11 */}
+            <span className={`block font-bold leading-none tracking-tight ${hero ? "mt-1 text-5xl lg:mt-2 lg:text-7xl" : "mt-0.5 text-3xl xl:mt-1 xl:text-5xl"}`}>
+              {formatStat(entry.value, category, mode)}
+            </span>
           </p>
         </div>
+        <div className={`${showPortrait} shrink-0 self-end`}>
+          <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={color} variant="portrait" size={hero ? 250 : 170} />
+        </div>
       </div>
-      <p className={`relative ${hero ? "mt-4" : "mt-2.5"}`}>
-        <span className={`block font-semibold opacity-85 ${hero ? "text-sub" : "text-caption"}`}>
-          {statTitle(category, mode)}
-          {lowerIsBetter && <span className="whitespace-nowrap"> · 적을수록 상위</span>}
-        </span>
-        {/* deslop-ignore-next-line 11 */}
-        <span className={`block font-bold leading-none tracking-tight ${hero ? "mt-1 text-5xl" : "mt-0.5 text-3xl"}`}>
-          {formatStat(entry.value, category, mode)}
-        </span>
-      </p>
     </article>
   );
 }

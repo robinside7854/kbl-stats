@@ -56,7 +56,7 @@ export default function GameDayBoard({ day, next, seasonCode, teams }: Props) {
       {next && next.games.length > 0 && (
         <div className="surface-card mt-3 rounded-container p-3">
           <p className="text-sub font-bold text-ink">다음 경기 · {gameDayLabel(next.date)}</p>
-          <ul className="mt-1 divide-y divide-line">
+          <ul className="mt-1 divide-y divide-line md:grid md:grid-cols-2 md:gap-x-6 md:divide-y-0 xl:grid-cols-3">
             {next.games.map((g) => {
               const away = teamInfoOf(teams, g.away.teamCode, g.away.name);
               const home = teamInfoOf(teams, g.home.teamCode, g.home.name);
@@ -69,7 +69,7 @@ export default function GameDayBoard({ day, next, seasonCode, teams }: Props) {
                   <span className="text-ink-3">vs</span>
                   <TeamLogo logoUrl={away.logoUrl} shortName={away.shortName} color={away.color} size={20} />
                   <span className="min-w-0 truncate font-semibold text-ink">{teamShortLabel(away.shortName)}</span>
-                  {g.stadium && <span className="ml-auto hidden shrink-0 text-caption text-ink-3 sm:inline">{g.stadium}</span>}
+                  {g.stadium && <span className="ml-auto hidden min-w-0 truncate text-caption text-ink-3 sm:inline md:ml-2">{g.stadium}</span>}
                 </li>
               );
             })}

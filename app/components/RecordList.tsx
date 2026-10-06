@@ -3,7 +3,7 @@
 // 부문을 바꾸면 부모가 key 를 바꿔 처음 20개부터 다시 보인다. 이름 쪽을 누르면 선수 상세, 정규시즌 한 경기 기록은 오른쪽 달력 버튼으로 그날 경기 일정(박스스코어)으로 간다.
 import Link from "next/link";
 import { useState } from "react";
-import type { RecordListItem, RecordPerson } from "@/lib/records";
+import { recordBarShare, type RecordListItem, type RecordPerson } from "@/lib/records";
 import { IconCalendar } from "./icons";
 import PlayerAvatar from "./PlayerAvatar";
 
@@ -12,6 +12,8 @@ const PAGE = 20;
 export default function RecordList({ items, people, empty }: { items: RecordListItem[]; people: Record<string, RecordPerson>; empty: string }) {
   const [limit, setLimit] = useState(PAGE);
   const shown = items.slice(0, limit);
+  // PC 막대 기준 = 목록 1위 값 (num 은 순위를 매기는 값, 클수록 위)
+  const barMax = items.reduce((m, r) => Math.max(m, r.num), 0);
   if (items.length === 0) return <p className="surface-card rounded-container px-4 py-8 text-center text-body text-ink-2">{empty}</p>;
   return (
     <>
@@ -26,18 +28,26 @@ export default function RecordList({ items, people, empty }: { items: RecordList
                 className="focus-ring-inset flex min-h-14 min-w-0 flex-1 items-center gap-3 px-3 py-2 transition-colors duration-200 hover:bg-surface-2"
               >
                 <span className={`w-7 shrink-0 text-center text-body ${r.rank <= 3 ? "font-black text-ink" : "font-semibold text-ink-3"}`}>{r.rank}</span>
-                <PlayerAvatar
-                  photoUrl={p?.photoUrl ?? null}
-                  nameKo={name}
-                  color={{ primary: p?.color ?? "#6b7280", secondary: p?.color ?? "#6b7280", text: "#ffffff" }}
-                  size={r.rank <= 3 ? 40 : 32}
-                />
-                <span className="min-w-0 flex-1">
+                {/* 사진 자리 폭 고정: 1~3위 사진이 커도 이름·막대 시작선이 같게 */}
+                <span className="flex w-10 shrink-0 justify-center">
+                  <PlayerAvatar
+                    photoUrl={p?.photoUrl ?? null}
+                    nameKo={name}
+                    color={{ primary: p?.color ?? "#6b7280", secondary: p?.color ?? "#6b7280", text: "#ffffff" }}
+                    size={r.rank <= 3 ? 40 : 32}
+                  />
+                </span>
+                <span className="min-w-0 flex-1 md:w-96 md:flex-none xl:w-[28rem]">
                   <span className="block truncate text-body font-semibold leading-tight text-ink">{name}</span>
                   <span className="block text-sub leading-snug text-ink-3">{r.sub}</span>
                 </span>
-                <span className="shrink-0 text-right">
-                  <span className="block text-lg font-bold leading-tight tracking-tight text-ink">
+                {/* PC: 1위 대비 막대 (이름과 숫자 사이 빈칸 대신) */}
+                <span aria-hidden className="hidden min-w-0 flex-1 md:block">
+                  <span className="block h-2.5 rounded-sm opacity-80" style={{ width: `${recordBarShare(r.num, barMax) * 100}%`, background: p?.color ?? "#6b7280" }} />
+                </span>
+                <span className="shrink-0 text-right md:min-w-28">
+                  {/* deslop-ignore-next-line 11 */}
+                  <span className="block text-lg font-bold leading-tight tracking-tight text-ink lg:text-xl">
                     {r.value}
                     <span className="ml-0.5 text-caption font-medium text-ink-3">{r.unit}</span>
                   </span>

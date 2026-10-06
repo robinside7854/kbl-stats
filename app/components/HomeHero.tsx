@@ -1,12 +1,13 @@
 "use client";
 // 홈 표지: 부문 1위 한 명 (2026-10-01 사용자: 새로고침할 때마다 부문을 돌려 가며).
+// PC(1024px 이상, 2026-10-06 사용자: 가운데가 비어 있다)는 이름·숫자를 키우고 가운데에 그 선수의 경기당 기록 6칸(지금 부문 강조).
 // 정적 HTML 은 첫 부문(득점)으로 그리고, 브라우저에서 지난번 부문의 다음 부문으로 바꾼다(lib/home nextHeroIndex, 기억은 localStorage).
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
 import type { CardTeam, LeaderPlayer } from "@/lib/types";
 import { formatStat, LEADER_STATS, type LeaderEntry, type LeaderStatKey } from "@/lib/leaders";
-import { HOME_HERO_STORAGE_KEY, HOME_UNITS, nextHeroIndex } from "@/lib/home";
+import { heroStatLine, HOME_HERO_STORAGE_KEY, HOME_UNITS, nextHeroIndex } from "@/lib/home";
 import { mixHex, teamShortLabel } from "@/lib/images";
 import { playerHref } from "@/lib/cardview";
 import { nationalityOf, NATIONALITY_LABELS, positionLabel } from "@/lib/roster";
@@ -76,18 +77,18 @@ function Hero({
         >
           {teamShortLabel(teamName, 5)}
         </span>
-        <div className="relative flex min-h-[260px] items-end px-4 sm:min-h-[320px] sm:px-8">
-          <div className="relative z-10 min-w-0 flex-1 pb-5 pt-5">
-            <p className="inline-flex rounded-control px-2.5 py-1 text-sub font-bold" style={{ background: "rgba(0,0,0,0.25)" }}>
+        <div className="relative flex min-h-[260px] items-end px-4 sm:min-h-[320px] sm:px-8 lg:min-h-[360px] lg:gap-8 lg:px-10">
+          <div className="relative z-10 min-w-0 flex-1 pb-5 pt-5 lg:flex-none lg:pb-8 lg:pt-8">
+            <p className="inline-flex rounded-control px-2.5 py-1 text-sub font-bold lg:text-body" style={{ background: "rgba(0,0,0,0.25)" }}>
               {label} 1위
             </p>
             {/* deslop-ignore-next-line 11 */}
-            <h2 className="mt-3 text-[2.1rem] font-black leading-[1.05] tracking-tight [overflow-wrap:anywhere] sm:text-6xl">
+            <h2 className="mt-3 text-[2.1rem] font-black leading-[1.05] tracking-tight [overflow-wrap:anywhere] sm:text-6xl lg:text-7xl">
               <Link href={`/player/${p.id}`} className="focus-ring rounded-control underline-offset-4 hover:underline">
                 {p.nameKo}
               </Link>
             </h2>
-            <p className="mt-2 flex items-center gap-1.5 text-body font-semibold opacity-90">
+            <p className="mt-2 flex items-center gap-1.5 text-body font-semibold opacity-90 lg:mt-3">
               <span className="inline-flex rounded-control bg-white p-0.5">
                 <TeamLogo logoUrl={team?.logoUrl} shortName={teamName} color={color} size={20} />
               </span>
@@ -96,7 +97,7 @@ function Hero({
             </p>
             <p className="tabular mt-4 leading-none">
               {/* deslop-ignore-next-line 11 */}
-              <span className="text-5xl font-black tracking-tight sm:text-6xl">{value}</span>
+              <span className="text-5xl font-black tracking-tight sm:text-6xl lg:text-7xl">{value}</span>
               <span className="ml-1 text-lg font-bold">{unit}</span>
             </p>
             <p className="mt-1.5 text-body font-semibold opacity-90">경기당 {label} {value}{unit}</p>
@@ -107,12 +108,40 @@ function Hero({
               선수 카드 보기 <IconChevronRight size={16} />
             </Link>
           </div>
+          {/* PC 가운데: 이번 시즌 경기당 기록 6칸 */}
+          <div className="relative z-10 hidden min-w-0 flex-1 self-center lg:block">
+          <dl className="grid grid-cols-3 gap-2 xl:gap-3">
+            {heroStatLine(p).map((s) => {
+              const on = s.key === statKey;
+              return (
+                <div
+                  key={s.key}
+                  className="rounded-card px-3 py-2.5 xl:px-4 xl:py-3"
+                  style={{ background: on ? "rgba(255,255,255,0.22)" : "rgba(0,0,0,0.2)", boxShadow: on ? "inset 0 0 0 2px rgba(255,255,255,0.7)" : undefined }}
+                >
+                  <dt className="text-sub font-semibold opacity-85">{LEADER_STATS[s.key].label}</dt>
+                  {/* deslop-ignore-next-line 11 */}
+                  <dd className="tabular mt-0.5 text-3xl font-black leading-none tracking-tight">
+                    {formatStat(s.value, s.key, "perGame")}
+                    <span className="ml-0.5 text-sub font-bold opacity-85">{HOME_UNITS[s.key] ?? ""}</span>
+                  </dd>
+                </div>
+              );
+            })}
+          </dl>
+            <p className="mt-2 text-sub font-semibold opacity-85">
+              {p.games}경기 · {p.wins}승 {p.losses}패 · 경기당 기록
+            </p>
+          </div>
           <div className="relative -mr-3 shrink-0 self-end sm:mr-0">
             <span className="sm:hidden">
               <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={color} variant="portrait" size={220} />
             </span>
-            <span className="hidden sm:inline">
+            <span className="hidden sm:inline lg:hidden">
               <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={color} variant="portrait" size={310} />
+            </span>
+            <span className="hidden lg:inline">
+              <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={color} variant="portrait" size={350} />
             </span>
           </div>
         </div>

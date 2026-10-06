@@ -75,8 +75,8 @@ export default function SiteNav({ seasons, seasonCode, view, onSeasonChange, wid
     <header className="border-b border-line bg-surface">
       <div className={`mx-auto max-w-page px-4`}>
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 pt-3">
-          <Link href="/" className="focus-ring order-1 inline-flex h-10 shrink-0 items-center gap-2 rounded-control text-body font-bold tracking-tight text-ink">
-            <SiteLogo />
+          <Link href="/" className="focus-ring order-1 inline-flex h-10 shrink-0 items-center gap-2 rounded-control text-body font-bold tracking-tight text-ink lg:h-12 lg:gap-2.5 lg:text-h2">
+            <SiteLogo heightLg={30} />
             <span className="sr-only">KBL </span>
             {SITE_HEADER_NAME}
           </Link>
@@ -86,7 +86,7 @@ export default function SiteNav({ seasons, seasonCode, view, onSeasonChange, wid
             <ShareButton />
             <AccountButton active={view === "me"} />
           </div>
-          {!hideSearch && <PlayerSearch className="order-4 w-full sm:order-2 sm:w-auto sm:max-w-xs sm:flex-1" />}
+          {!hideSearch && <PlayerSearch className="order-4 w-full sm:order-2 sm:w-auto sm:max-w-xs sm:flex-1 lg:max-w-md" />}
           {showSeason && (
             <label className="order-3 flex min-w-0 items-center gap-2 text-sub font-medium text-ink-2 sm:order-3">
               <span className="shrink-0">시즌</span>
@@ -116,7 +116,7 @@ export default function SiteNav({ seasons, seasonCode, view, onSeasonChange, wid
                 href={m.href(seasonCode)}
                 onClick={() => trackEvent("nav_click", { menu: m.label, place: "top" })}
                 aria-current={active ? "page" : undefined}
-                className={`focus-ring-inset -mb-px flex h-11 shrink-0 items-center whitespace-nowrap border-b-2 px-2 text-body font-semibold transition-colors duration-200 sm:px-3 ${
+                className={`focus-ring-inset -mb-px flex h-11 shrink-0 items-center whitespace-nowrap border-b-2 px-2 text-body font-semibold transition-colors duration-200 sm:px-3 lg:h-12 lg:px-4 lg:text-[1.125rem] ${
                   active ? "border-ink text-ink" : "border-transparent text-ink-2 hover:text-ink"
                 }`}
               >

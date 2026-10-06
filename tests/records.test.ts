@@ -10,6 +10,7 @@ import {
   sumCareerTotals,
   withRanks,
   filterRecordList,
+  recordBarShare,
   type RecordListItem,
   type SeasonLineEntry,
 } from "../lib/records";
@@ -80,5 +81,11 @@ assert.deepEqual(filterRecordList(list, "domestic", false).map((r) => [r.id, r.r
 assert.deepEqual(filterRecordList(list, "domestic", true).map((r) => [r.id, r.rank]), [["d2", 1], ["d3", 2]]);
 assert.deepEqual(filterRecordList(list, "foreign", true), []);
 assert.equal(filterRecordList(list, "all", false, 1).length, 1);
+
+// PC 막대 길이 (1위 대비)
+assert.equal(recordBarShare(50, 100), 0.5);
+assert.equal(recordBarShare(120, 100), 1);
+assert.equal(recordBarShare(10, 0), 0);
+assert.equal(recordBarShare(-1, 10), 0);
 
 console.log("records: 통과");

@@ -387,3 +387,12 @@ export function filterRecordList(items: readonly RecordListItem[], origin: Recor
   const kept = items.filter((r) => (origin === "all" || r.origin === origin) && (!activeOnly || r.active));
   return withRanks(kept, (r) => r.num).filter((r) => r.rank <= top);
 }
+
+/**
+ * 역대 기록 목록 PC 막대 길이 (0~1): 그 목록 1위 값에 대한 비율 (2026-10-06 사용자: PC 에서 이름과 숫자 사이가 비어 있다 → 막대로 채움).
+ * 값·최댓값이 0 이하이면 0.
+ */
+export function recordBarShare(value: number, max: number): number {
+  if (!(max > 0) || !(value > 0)) return 0;
+  return Math.min(1, value / max);
+}
