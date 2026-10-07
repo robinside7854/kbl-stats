@@ -13,6 +13,9 @@ const CACHE_KEY = "kbl-stats:me:v2"; // v2: teamCodes·likes 추가(2026-10-04) 
 const SYNCED_KEY = "kbl-stats:favorites-synced:v1";
 // 마지막으로 쓴 로그인 회사 — 로그아웃해도 남겨 둬서 로그인 버튼에 "최근 사용"으로 보여 준다(탈퇴하면 지움)
 const LAST_PROVIDER_KEY = "kbl-stats:last-login:v1";
+// 마지막으로 확인한 내 정보 — 서버가 잠깐 늦거나 실패해도(DB 깨우는 중 등) 헤더가 "로그인"으로 바뀌지 않게
+// (2026-10-07 사용자: 로그인이 자꾸 풀려 보임). 진짜 로그아웃(401)·탈퇴 때만 지운다
+const LAST_MEMBER_KEY = "kbl-stats:me-last:v1";
 const CACHE_MS = 10 * 60 * 1000;
 export const ACCOUNT_EVENT = "kbl-account-change";
 
@@ -31,6 +34,7 @@ export function hasSignedInHint(): boolean {
 function clearSession() {
   safe(() => {
     window.localStorage.removeItem(HINT_KEY);
+    window.localStorage.removeItem(LAST_MEMBER_KEY);
     window.sessionStorage.removeItem(CACHE_KEY);
     window.sessionStorage.removeItem(SYNCED_KEY);
   }, undefined);
@@ -41,6 +45,7 @@ function remember(member: MemberView) {
     window.localStorage.setItem(HINT_KEY, "1");
     if (member.provider) window.localStorage.setItem(LAST_PROVIDER_KEY, member.provider);
     window.sessionStorage.setItem(CACHE_KEY, JSON.stringify({ at: Date.now(), member }));
+    window.localStorage.setItem(LAST_MEMBER_KEY, JSON.stringify(member));
   }, undefined);
   window.dispatchEvent(new CustomEvent(ACCOUNT_EVENT));
 }
@@ -59,6 +64,14 @@ export function cachedMember(): MemberView | null {
   }, null);
 }
 
+/** 마지막으로 확인한 내 정보 (기억 시간 제한 없음 — 서버 확인 전·실패 때 헤더 표시용) */
+export function lastKnownMember(): MemberView | null {
+  return safe(() => {
+    const raw = window.localStorage.getItem(LAST_MEMBER_KEY);
+    return raw ? (JSON.parse(raw) as MemberView) : null;
+  }, null);
+}
+
 /** suggestedNickname: 네이버 별명 (닉네임을 아직 안 정했을 때만, 화면은 칸에 미리 채우기만) */
 /** linkResult: 방금 계정 연결을 하고 돌아왔으면 그 결과 (화면이 안내한 뒤 clearSuggestion 으로 지운다) */
 export type MeResult =
@@ -72,6 +85,14 @@ export async function fetchMe(fresh = false): Promise<MeResult> {
     const c = cachedMember();
     if (c) return { status: "signed_in", member: c };
   }
+  const first = await requestMe();
+  if (first.status !== "error") return first;
+  // 서버가 잠깐 실패하면(DB 가 자다 깨는 중 등) 한 번 더 — 실패를 로그아웃으로 보지 않는다
+  await new Promise((r) => setTimeout(r, 1500));
+  return requestMe();
+}
+
+async function requestMe(): Promise<MeResult> {
   try {
     const res = await fetch("/api/me", { cache: "no-store" });
     if (res.status === 401) {

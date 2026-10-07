@@ -7,7 +7,7 @@ import Link from "next/link";
 import { enabledLoginProviders, type MemberView } from "@/lib/account";
 import type { TeamColor } from "@/lib/types";
 import teamColors from "@/data/codes/team-colors.json";
-import { ACCOUNT_EVENT, cachedMember, fetchMe, hasSignedInHint, syncFavorites } from "./account-client";
+import { ACCOUNT_EVENT, cachedMember, fetchMe, hasSignedInHint, lastKnownMember, syncFavorites } from "./account-client";
 import { IconPlayer } from "./icons";
 import MemberBadge from "./MemberBadge";
 import { setUserProperties, trackEvent } from "./track";
@@ -21,11 +21,14 @@ export default function AccountButton({ active = false }: { active?: boolean }) 
 
   useEffect(() => {
     if (!enabled) return;
-    const refresh = () => setMember(hasSignedInHint() ? cachedMember() : null);
+    // 로그인한 적 있는 브라우저는 서버 확인 전에도 마지막으로 본 내 정보를 바로 보여 준다
+    const refresh = () => setMember(hasSignedInHint() ? cachedMember() ?? lastKnownMember() : null);
     refresh();
     if (hasSignedInHint()) {
       void fetchMe().then((r) => {
-        if (r.status !== "signed_in") return setMember(null);
+        // 진짜 로그아웃(401)일 때만 "로그인"으로. 서버 오류는 마지막 정보를 그대로 둔다
+        if (r.status === "signed_out") return setMember(null);
+        if (r.status !== "signed_in") return;
         setMember(r.member);
         void syncFavorites(r.member);
       });
