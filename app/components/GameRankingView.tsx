@@ -1,18 +1,76 @@
 "use client";
 // 54-0 주간 순위 화면 (/game/ranking, 2026-10-05): 이번 주 / 지난주 칩 → 순위 줄(순위·닉네임 배지·승패·다섯 명·라인업 보기).
 // 순위 = 회원마다 그 주 가장 좋은 판 하나, 닉네임을 정한 회원만, 서버가 다시 계산해 맞춘 기록만 (lib/server/members weeklyGameRanking).
+// 줄마다 다섯 명 미니 카드(사진·종합 등급·이름·시즌·팀, 2026-10-07 사용자 요청) — 라인업 주소를 54-0 후보 풀(/game/pool.json, 게임과 같은 파일)로 풀어서.
+// 풀을 받기 전·못 받으면 이름 글자만. 카드를 누르면 그 선수 그 시즌 페이지.
 // 주소 ?week=last. GA4: filter_change screen=game_ranking filter=week
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { enabledLoginProviders, weekRangeLabel, type GameRanking, type RankingWeek } from "@/lib/account";
-import { GAME_SEASON_GAMES } from "@/lib/game";
+import { decodeLineupParam, findCandidateTeam, GAME_SEASON_GAMES, type GameCandidate, type GamePool, type GameTeam } from "@/lib/game";
+import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
 import type { AccountTeam } from "./AccountView";
 import { fetchGameRanking } from "./account-client";
 import ChipRow from "./ChipRow";
+import GradeChip from "./GameGradeChip";
 import MemberBadge from "./MemberBadge";
+import PlayerAvatar from "./PlayerAvatar";
 import Skeleton from "./Skeleton";
 import { IconChevronRight } from "./icons";
 import { trackFilters } from "./track";
+import { useMedia } from "./useMedia";
+import { useThemeColors, type ThemeColors } from "./useThemeColors";
+
+type Pick = { c: GameCandidate; team: GameTeam | null };
+
+/** 54-0 후보 풀 — 순위가 있을 때만 한 번 받는다 (게임 화면과 같은 파일이라 브라우저 캐시를 같이 쓴다) */
+function useGamePool(need: boolean): GamePool | null {
+  const [pool, setPool] = useState<GamePool | null>(null);
+  useEffect(() => {
+    if (!need || pool) return;
+    let alive = true;
+    fetch("/game/pool.json")
+      .then((r) => (r.ok ? (r.json() as Promise<GamePool>) : null))
+      .then((p) => alive && p && setPool(p))
+      .catch(() => undefined);
+    return () => {
+      alive = false;
+    };
+  }, [need, pool]);
+  return pool;
+}
+
+function LineupCards({ picks, colors, wide }: { picks: Pick[]; colors: ThemeColors; wide: boolean }) {
+  return (
+    <ul className="mt-2 grid grid-cols-5 gap-1.5 sm:gap-2">
+      {picks.map(({ c, team }) => {
+        const color = team?.color ?? FALLBACK_TEAM_COLOR;
+        return (
+          <li key={`${c.id}:${c.seasonCode}`} className="min-w-0">
+            <Link
+              href={`/player/${c.id}?season=${c.seasonCode}`}
+              className="focus-ring block overflow-hidden rounded-card border border-line bg-surface transition-colors duration-200 hover:bg-surface-2"
+            >
+              <span className="relative flex h-[72px] items-end justify-center overflow-hidden sm:h-[104px]" style={{ background: color.primary }}>
+                <PlayerAvatar photoUrl={c.photoUrl} nameKo={c.nameKo} color={color} variant="portrait" size={wide ? 100 : 68} />
+                <span className="absolute left-1 top-1">
+                  <GradeChip score={c.score} color={color} colors={colors} />
+                </span>
+              </span>
+              <span className="block px-1 pb-1 pt-0.5 text-center">
+                <span className="block truncate text-caption font-bold text-ink">{c.nameKo}</span>
+                <span className="block truncate text-caption text-ink-3 tabular">
+                  {c.season}
+                  {wide && team?.name ? ` · ${team.name}` : ""}
+                </span>
+              </span>
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
 
 export default function GameRankingView({ teams }: { teams: AccountTeam[] }) {
   const [week, setWeek] = useState<RankingWeek>("this");
@@ -43,6 +101,13 @@ export default function GameRankingView({ teams }: { teams: AccountTeam[] }) {
 
   const cur = data[week];
   const loginOn = enabledLoginProviders().length > 0;
+  const colors = useThemeColors();
+  const wide = useMedia("(min-width: 640px)");
+  const pool = useGamePool(!!cur && cur !== "error" && cur.rows.length > 0);
+  const picksOf = (lineup: string): Pick[] | null => {
+    const players = pool ? decodeLineupParam(pool, lineup) : null;
+    return players ? players.map((c) => ({ c, team: findCandidateTeam(pool!, c) })) : null;
+  };
 
   return (
     <main className="mx-auto max-w-5xl px-4 pb-6 pt-5">
@@ -82,12 +147,13 @@ export default function GameRankingView({ teams }: { teams: AccountTeam[] }) {
             {cur.rows.map((r) => {
               const t = r.teamCode ? teamOf.get(r.teamCode) : undefined;
               const perfect = r.wins === GAME_SEASON_GAMES;
+              const picks = picksOf(r.lineup);
               return (
-                <li key={r.rank} className="flex items-start gap-3 px-2 py-3">
-                  <span className={`w-7 shrink-0 pt-0.5 text-right tabular ${r.rank <= 3 ? "text-body font-black text-ink" : "text-sub font-bold text-ink-3"}`}>{r.rank}</span>
-                  <div className="min-w-0 flex-1">
+                <li key={r.rank} className="px-2 py-3">
+                  <div>
                     <div className="flex items-center justify-between gap-2">
-                      <span className="min-w-0 text-body">
+                      <span className="flex min-w-0 items-center gap-2 text-body">
+                        <span className={`w-6 shrink-0 text-right tabular ${r.rank <= 3 ? "text-body font-black text-ink" : "text-sub font-bold text-ink-3"}`}>{r.rank}</span>
                         <MemberBadge nickname={r.nickname} teamColor={t?.color} teamName={t?.name} />
                       </span>
                       <span className="shrink-0 text-body font-black tabular text-ink">
@@ -100,7 +166,7 @@ export default function GameRankingView({ teams }: { teams: AccountTeam[] }) {
                         )}
                       </span>
                     </div>
-                    <p className="mt-1 text-caption text-ink-2">{r.names.join(" · ")}</p>
+                    {picks ? <LineupCards picks={picks} colors={colors} wide={wide} /> : <p className="mt-1 text-caption text-ink-2">{r.names.join(" · ")}</p>}
                     <div className="mt-1 flex flex-wrap items-center justify-between gap-x-3 text-caption text-ink-3">
                       <span className="tabular">
                         전력 {r.rating} · 라인업 {r.plays}개

@@ -31,6 +31,17 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-10-07-ranking-cards",
+    date: "2026-10-07",
+    kind: "update",
+    title: "주간 순위에 선수 카드가 붙었어요",
+    summary: "주간 순위에 선수 카드 추가",
+    blocks: [
+      { kind: "p", text: "54-0 주간 순위에서 이름만 나오던 다섯 명이 사진, 종합 등급, 시즌이 담긴 작은 카드로 바뀌었어요. 카드를 누르면 그 선수 그 시즌 페이지로 가요." },
+      { kind: "list", items: [{ text: "주간 순위 보기", href: "/game/ranking" }] },
+    ],
+  },
+  {
     slug: "2026-10-07-spacing",
     date: "2026-10-07",
     kind: "update",
