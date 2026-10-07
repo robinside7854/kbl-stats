@@ -33,12 +33,13 @@ export default function HighlightCards({ title, items, teamPrimary }: Props) {
                 : undefined
             }
           >
-            <span className="text-sub font-semibold text-ink-2 [overflow-wrap:anywhere]">{h.title}</span>
+            <span className="text-sub font-semibold text-ink-2 break-keep">{h.title}</span>
             <span className="mt-1 text-h2 font-bold tracking-tight text-ink">
               {h.value}
-              <span className="ml-1 text-caption font-medium text-ink-3">{h.unit}</span>
+              {/* 폰 3칸은 좁아 "23.2경기당" 처럼 붙어 꺾이므로 단위를 아래 줄로 */}
+              <span className="block whitespace-nowrap text-caption font-medium text-ink-3 sm:ml-1 sm:inline">{h.unit}</span>
             </span>
-            {h.note && <span className="mt-0.5 text-caption text-ink-3 [overflow-wrap:anywhere]">{h.note}</span>}
+            {h.note && <span className="mt-0.5 text-caption text-ink-3 break-keep">{h.note}</span>}
           </li>
         ))}
       </ul>

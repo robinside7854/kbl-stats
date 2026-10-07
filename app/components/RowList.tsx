@@ -155,7 +155,7 @@ export default function RowList<R>({
                   key={c.key}
                   scope="col"
                   aria-sort={c.ariaSort}
-                  className={`border-b border-line ${dense ? "px-1" : "px-1.5"} py-2 font-medium ${ALIGN[c.align ?? "right"]} ${
+                  className={`whitespace-nowrap border-b border-line ${dense ? "px-1" : "px-1.5"} py-2 font-medium ${ALIGN[c.align ?? "right"]} ${
                     c.active ? "bg-surface-2 text-ink" : ""
                   } ${c.headerClassName ?? ""}`}
                 >

@@ -12,8 +12,17 @@ import { IconTrophy } from "./icons";
 const GOLD = { background: "var(--grade-s)", color: "var(--grade-s-ink)" };
 
 /** 이름 + 팀 (링크가 있으면 선수 상세 그 시즌으로) */
-function WinnerName({ w, className = "" }: { w: AwardWinnerView; className?: string }) {
-  const body = (
+function WinnerName({ w, className = "", stacked = false }: { w: AwardWinnerView; className?: string; stacked?: boolean }) {
+  // stacked: 이름 아래 줄에 팀 — 좁은 카드에서 "아셈 마레이 LG" 가 이름 중간에서 꺾이지 않게
+  const body = stacked ? (
+    <>
+      <span className="block font-bold text-ink">{w.name}</span>
+      <span className="block text-sub text-ink-3 lg:text-body">
+        {w.teamLabel}
+        {w.note && <> · {w.note}</>}
+      </span>
+    </>
+  ) : (
     <>
       <span className="font-bold text-ink">{w.name}</span>
       <span className="text-ink-3"> {w.teamLabel}</span>
@@ -50,7 +59,7 @@ function MajorCard({ item }: { item: AwardItemView }) {
           <span className="hidden lg:inline">
             <PlayerAvatar photoUrl={w.photoUrl} nameKo={w.name} color={w.team?.color ?? FALLBACK_TEAM_COLOR} size={76} />
           </span>
-          <WinnerName w={w} className="min-w-0 text-body [overflow-wrap:anywhere] lg:text-h2" />
+          <WinnerName w={w} stacked className="min-w-0 text-body break-keep lg:text-h2" />
         </div>
       ))}
     </li>
@@ -62,7 +71,8 @@ function PhotoRow({ title, cells }: { title: string; cells: { caption: string | 
   return (
     <div className="surface-card rounded-card p-3 lg:p-4">
       <p className="text-sub font-bold text-ink lg:text-body">{title}</p>
-      <ul className="mt-2 grid grid-cols-5 gap-x-1.5 gap-y-3">
+      {/* 상 이름이 위에 붙는 줄(정규리그 시상)은 폰에서 3칸 — 5칸이면 "페어플레이상" 이 칸을 넘친다 */}
+      <ul className={`mt-2 grid gap-x-1.5 gap-y-3 ${cells.some((c) => c.caption) ? "grid-cols-3 sm:grid-cols-5" : "grid-cols-5"}`}>
         {cells.map(({ caption, w }, i) => {
           const inner = (
             <>

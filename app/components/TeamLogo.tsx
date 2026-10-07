@@ -37,7 +37,7 @@ export default function TeamLogo({ logoUrl, shortName, color = FALLBACK, size = 
       }}
       title={shortName}
     >
-      {!loaded && <span aria-hidden={!!src}>{mark}</span>}
+      {!loaded && <span className="whitespace-nowrap" aria-hidden={!!src}>{mark}</span>}
       {src && (
         // eslint-disable-next-line @next/next/no-img-element
         <img

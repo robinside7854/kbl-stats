@@ -42,7 +42,7 @@ export default function StandingsTable({ season }: { season: StandingsSeason }) 
               {/* PC: 팀 이름과 숫자 사이를 승률 막대로 (2026-10-06 사용자: 넓은 빈칸) */}
               <col className="hidden lg:table-column" />
               <col className="w-12 sm:w-16 lg:w-24" />
-              <col className="w-11 sm:w-14 lg:w-20" />
+              <col className="w-[3.25rem] sm:w-14 lg:w-20" />
               <col className="w-9 sm:w-12 lg:w-16" />
               <col className="hidden w-16 sm:table-column lg:w-20" />
               <col className="hidden w-16 sm:table-column lg:w-20" />

@@ -31,6 +31,26 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-10-07-spacing",
+    date: "2026-10-07",
+    kind: "update",
+    title: "글자 간격이랑 줄바꿈을 다듬었어요",
+    summary: "글자 간격 다듬기",
+    blocks: [
+      { kind: "p", text: "숫자가 옆 칸이랑 붙어 보이거나 이름이 어색하게 꺾이던 곳을 고쳤어요." },
+      {
+        kind: "list",
+        items: [
+          "박스스코어 턴오버·자유투% 칸을 넓혀서 옆 숫자랑 안 붙어요",
+          "리더보드 2·3위 이름이 폰에서 두 줄로 꺾이지 않게 사진 아래로 옮겼어요",
+          "선수 하이라이트 칸의 \"경기당\"은 숫자 아래 줄로 내렸어요",
+          "수상 카드는 이름 아래에 팀을 따로 적어요",
+          { text: "팀 순위 표 승-패랑 승률 사이도 띄웠어요", href: "/teams" },
+        ],
+      },
+    ],
+  },
+  {
     slug: "2026-10-06-menu-tidy",
     date: "2026-10-06",
     kind: "update",
