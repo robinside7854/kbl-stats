@@ -108,8 +108,8 @@ function Hero({
               선수 카드 보기 <IconChevronRight size={16} />
             </Link>
           </div>
-          {/* PC 가운데: 이번 시즌 경기당 기록 6칸 */}
-          <div className="relative z-10 hidden min-w-0 flex-1 self-center lg:block">
+          {/* PC 가운데: 이번 시즌 경기당 기록 6칸 — 1280px 부터(1024 에서는 칸이 좁아 "리바운드"·"4.0점"이 꺾인다) */}
+          <div className="relative z-10 hidden min-w-0 flex-1 self-center xl:block">
           <dl className="grid grid-cols-3 gap-2 xl:gap-3">
             {heroStatLine(p).map((s) => {
               const on = s.key === statKey;
@@ -119,9 +119,9 @@ function Hero({
                   className="rounded-card px-3 py-2.5 xl:px-4 xl:py-3"
                   style={{ background: on ? "rgba(255,255,255,0.22)" : "rgba(0,0,0,0.2)", boxShadow: on ? "inset 0 0 0 2px rgba(255,255,255,0.7)" : undefined }}
                 >
-                  <dt className="text-sub font-semibold opacity-85">{LEADER_STATS[s.key].label}</dt>
+                  <dt className="whitespace-nowrap text-sub font-semibold opacity-85">{LEADER_STATS[s.key].label}</dt>
                   {/* deslop-ignore-next-line 11 */}
-                  <dd className="tabular mt-0.5 text-3xl font-black leading-none tracking-tight">
+                  <dd className="tabular mt-0.5 whitespace-nowrap text-3xl font-black leading-none tracking-tight">
                     {formatStat(s.value, s.key, "perGame")}
                     <span className="ml-0.5 text-sub font-bold opacity-85">{HOME_UNITS[s.key] ?? ""}</span>
                   </dd>

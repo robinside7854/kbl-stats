@@ -167,14 +167,14 @@ function CoverCard({
       {/* flex-1: 1위 카드 높이에 맞춰 늘어난 2·3위 카드도 사진이 바닥에 붙는다 (2026-10-06 사용자: 사진이 잘려 보임) */}
       <div className="relative flex flex-1 items-stretch gap-3">
         <div className={`min-w-0 flex-1 ${wide === "lg" ? "lg:max-w-[22rem] lg:pb-6" : "xl:pb-4"}`}>
-          <div className={`flex items-center ${hero ? "gap-4" : "gap-2.5"}`}>
+          <div className={`flex ${hero ? "items-center gap-4" : "flex-col items-start gap-2 xl:flex-row xl:items-center xl:gap-2.5"}`}>
             <span className={hideCircle}>
               <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={color} size={hero ? 88 : 48} className="ring-2 ring-white/70" />
             </span>
             <div className="min-w-0">
               <p className={`font-semibold opacity-85 ${hero ? "text-sub lg:text-body" : "text-caption xl:text-sub"}`}>{entry.rank}위</p>
               {/* deslop-ignore-next-line 11 */}
-              <h3 className={`font-bold leading-tight break-keep ${hero ? "truncate text-2xl lg:text-5xl lg:leading-[1.1]" : "line-clamp-2 text-base xl:text-2xl"}`} title={p.nameKo}>
+              <h3 className={`font-bold leading-tight break-keep ${hero ? "truncate text-2xl lg:text-5xl lg:leading-[1.1]" : "line-clamp-2 text-base xl:text-xl 2xl:text-2xl"}`} title={p.nameKo}>
                 <Link href={`/player/${p.id}`} className="focus-ring rounded-control underline-offset-4 hover:underline">
                   {p.nameKo}
                 </Link>
@@ -327,7 +327,7 @@ export default function LeadersView({ seasonCode, seasonLabel, players, teams, s
       header: "선수",
       align: "left",
       rowHeader: true,
-      headerClassName: "w-36",
+      headerClassName: "w-36 xl:w-48",
       className: "font-normal",
       cell: (p) => {
         const team = teamByCode.get(p.teamCode);
@@ -340,7 +340,7 @@ export default function LeadersView({ seasonCode, seasonLabel, players, teams, s
           >
             <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={team?.color} size={28} />
             <span className="min-w-0">
-              <span className="block max-w-24 truncate font-semibold leading-tight text-ink underline-offset-2 group-hover:underline">
+              <span className="block max-w-24 truncate font-semibold leading-tight text-ink xl:max-w-36 underline-offset-2 group-hover:underline">
                 {p.nameKo}
               </span>
               <span className="flex min-w-0 items-center gap-1 text-caption text-ink-3">

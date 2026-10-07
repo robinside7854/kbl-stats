@@ -100,7 +100,7 @@ export default function TeamsIndexView({ teams, seasonCode, seasonShort, records
           <span className="flex h-14 w-14 items-center justify-center rounded-card bg-white p-1 ring-1 ring-inset ring-line">
             <TeamLogo logoUrl={t.brand.logoUrl} shortName={t.brand.shortName} color={t.brand.color} size={44} />
           </span>
-          <span className="mt-2 w-full text-body font-bold leading-tight text-ink [overflow-wrap:anywhere] [text-wrap:balance]">{t.brand.name}</span>
+          <span className="mt-2 w-full text-body font-bold leading-tight text-ink break-keep [text-wrap:balance]">{t.brand.name}</span>
           <span className="mt-1 w-full text-caption text-ink-3 tabular">
             {t.active
               ? rec

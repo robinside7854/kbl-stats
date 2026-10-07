@@ -2,7 +2,7 @@
 // 경기 박스스코어 (홈 "오늘의 경기"·일정 화면 공용, 2026-10-03).
 // - 팀 고르기(원정·홈) → 표. 머리글을 누르면 그 열 내림차순(기본 득점순, lib/games sortBoxRows)
 // - 열: 분·득점·리바·어시·스틸·블록·턴오버 / 야투(성공/시도)·야투%·3점·자유투.
-//   표가 든 상자가 좁으면(48rem 미만, 폰·PC 두 칸 카드) 가로 스크롤 없이 "기본 / 슈팅" 두 보기로 나누고, 넓으면 한 표에 전부.
+//   표가 든 상자가 좁으면(56rem 미만, 폰·PC 두 칸 카드) 가로 스크롤 없이 "기본 / 슈팅" 두 보기로 나누고, 넓으면 한 표에 전부.
 // - 슈팅 보기: 야투·야투%·3점·3점%·자유투·자유투% (2026-10-03 사용자: 3점·자유투 성공률도 %로)
 // GA4: filter_change screen=boxscore (sort·view).
 import Link from "next/link";
@@ -21,8 +21,8 @@ interface Col {
   short?: string;
   /** 폰에서 이 열이 보이는 보기 */
   views: readonly View[];
-  /** 칸 너비: count(숫자) / made(성공/시도·분) / pct(성공률) */
-  size: "count" | "made" | "pct";
+  /** 칸 너비: count(숫자) / made(성공/시도·분) / pct(성공률) / wide(머리글이 긴 열 — 턴오버·자유투%) */
+  size: "count" | "made" | "pct" | "wide";
   cell: (r: GameBoxRow) => string;
   total: (rows: readonly GameBoxRow[]) => string;
 }
@@ -54,19 +54,21 @@ const COLS: Col[] = [
   { key: "ast", label: "어시", views: ["basic"], size: "count", ...count("ast") },
   { key: "stl", label: "스틸", views: ["basic"], size: "count", ...count("stl") },
   { key: "blk", label: "블록", views: ["basic"], size: "count", ...count("blk") },
-  { key: "tov", label: "턴오버", short: "TO", views: ["basic"], size: "count", ...count("tov") },
+  { key: "tov", label: "턴오버", short: "TO", views: ["basic"], size: "wide", ...count("tov") },
   { key: "fgm", label: "야투", views: ["shoot"], size: "made", ...made("fgm", "fga") },
   pctCol("fgPct", "야투%", "야투%", fgPctOf),
   { key: "tpm", label: "3점", views: ["shoot"], size: "made", ...made("tpm", "tpa") },
   pctCol("tpPct", "3점%", "3점%", tpPctOf),
   { key: "ftm", label: "자유투", short: "FT", views: ["shoot"], size: "made", ...made("ftm", "fta") },
-  pctCol("ftPct", "자유투%", "FT%", ftPctOf),
+  { ...pctCol("ftPct", "자유투%", "FT%", ftPctOf), size: "wide" },
 ];
 
+// 넓은 표(@4xl)는 머리글 글자 + 열 사이 여백(pl-2)이 들어가게 (2026-10-07 사용자: 턴오버가 옆 열과 붙어 보임)
 const SIZE: Record<Col["size"], string> = {
-  count: "w-[2.1rem] @3xl:w-[2.6rem]",
-  made: "w-[2.6rem] @3xl:w-[3.2rem]",
-  pct: "w-[2.5rem] @3xl:w-[3.4rem]",
+  count: "w-[2.1rem] @4xl:w-[3.25rem]",
+  made: "w-[2.6rem] @4xl:w-[4rem]",
+  pct: "w-[2.5rem] @4xl:w-[4rem]",
+  wide: "w-[2.5rem] @4xl:w-[4.5rem]",
 };
 
 export interface BoxSide {
@@ -81,14 +83,14 @@ export default function BoxScore({ sides, seasonCode }: { sides: BoxSide[]; seas
   const [sort, setSort] = useState<BoxSortKey>("pts");
   const cur = sides.find((s) => s.key === side) ?? sides[0];
   const rows = sortBoxRows(cur?.rows ?? [], sort);
-  // 상자 폭이 48rem(768px) 미만이면 지금 보기에 없는 열은 숨기고, 그 이상은 전부 (container query — 두 칸 카드 안에서도 넘치지 않게)
-  const vis = (c: Col) => (c.views.includes(view) ? "" : "hidden @3xl:table-cell");
+  // 상자 폭이 56rem(896px) 미만이면 지금 보기에 없는 열은 숨기고, 그 이상은 전부 (container query — 두 칸 카드 안에서도 넘치지 않게)
+  const vis = (c: Col) => (c.views.includes(view) ? "" : "hidden @4xl:table-cell");
 
   return (
     <div className="@container mt-2">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <Segmented label="팀 고르기" options={sides.map((s) => ({ value: s.key, label: s.name }))} value={cur?.key ?? "home"} onChange={setSide} />
-        <div className="@3xl:hidden">
+        <div className="@4xl:hidden">
           <Segmented
             label="기록 보기"
             options={[
@@ -103,7 +105,7 @@ export default function BoxScore({ sides, seasonCode }: { sides: BoxSide[]; seas
           />
         </div>
       </div>
-      <table className="tabular mt-2 w-full table-fixed text-caption @3xl:text-sub">
+      <table className="tabular mt-2 w-full table-fixed text-caption @4xl:text-sub">
         <colgroup>
           <col />
           {COLS.map((c) => (
@@ -116,7 +118,7 @@ export default function BoxScore({ sides, seasonCode }: { sides: BoxSide[]; seas
             {COLS.map((c) => {
               const active = sort === c.key;
               return (
-                <th key={c.key} scope="col" aria-sort={active ? "descending" : undefined} className={`p-0 text-right font-medium ${vis(c)}`}>
+                <th key={c.key} scope="col" aria-sort={active ? "descending" : undefined} className={`p-0 pl-1 text-right font-medium @4xl:pl-2 ${vis(c)}`}>
                   <button
                     type="button"
                     onClick={() => {
@@ -130,8 +132,8 @@ export default function BoxScore({ sides, seasonCode }: { sides: BoxSide[]; seas
                   >
                     {c.short ? (
                       <>
-                        <span className="@3xl:hidden" aria-hidden>{c.short}</span>
-                        <span className="sr-only @3xl:not-sr-only">{c.label}</span>
+                        <span className="@4xl:hidden" aria-hidden>{c.short}</span>
+                        <span className="sr-only @4xl:not-sr-only">{c.label}</span>
                       </>
                     ) : (
                       c.label
@@ -154,7 +156,7 @@ export default function BoxScore({ sides, seasonCode }: { sides: BoxSide[]; seas
                 </Link>
               </th>
               {COLS.map((c) => (
-                <td key={c.key} className={`text-right ${vis(c)} ${sort === c.key ? "font-bold text-ink" : "text-ink-2"}`}>
+                <td key={c.key} className={`pl-1 text-right @4xl:pl-2 ${vis(c)} ${sort === c.key ? "font-bold text-ink" : "text-ink-2"}`}>
                   {c.cell(r)}
                 </td>
               ))}
@@ -163,7 +165,7 @@ export default function BoxScore({ sides, seasonCode }: { sides: BoxSide[]; seas
           <tr className="font-semibold text-ink">
             <th scope="row" className="py-2 text-left">합계</th>
             {COLS.map((c) => (
-              <td key={c.key} className={`text-right ${vis(c)}`}>
+              <td key={c.key} className={`pl-1 text-right @4xl:pl-2 ${vis(c)}`}>
                 {c.total(rows)}
               </td>
             ))}

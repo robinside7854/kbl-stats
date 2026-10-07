@@ -122,7 +122,7 @@ function GridCard({ e, team, seasonCode, colors, badge }: { e: GridEntry; team?:
       )}
       <span className="mt-auto pt-2 text-caption text-ink-3">
         경기당 <b className="text-base font-bold tracking-tight text-ink">{formatCardValue(e.ppg, false)}</b>점
-        {p.nationality && p.nationality !== "domestic" && <span className="ml-1">· {NATIONALITY_LABELS[nationalityOf(p)]}</span>}
+        {p.nationality && p.nationality !== "domestic" && <span className="ml-1 inline-block whitespace-nowrap">· {NATIONALITY_LABELS[nationalityOf(p)]}</span>}
       </span>
     </Link>
   );

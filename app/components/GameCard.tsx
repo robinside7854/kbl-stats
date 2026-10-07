@@ -227,7 +227,7 @@ function BoxScoreDialog({ title, sub, onClose, children }: { title: string; sub:
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="relative flex max-h-[90dvh] w-full flex-col rounded-t-container border-t border-line bg-surface md:max-h-[85dvh] md:max-w-4xl md:rounded-container md:border"
+        className="relative flex max-h-[90dvh] w-full flex-col rounded-t-container border-t border-line bg-surface md:max-h-[85dvh] md:max-w-5xl md:rounded-container md:border"
       >
         <div className="flex items-start justify-between gap-2 px-4 pb-1 pt-3">
           <div className="min-w-0">

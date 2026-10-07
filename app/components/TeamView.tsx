@@ -334,7 +334,7 @@ export default function TeamView({ data }: { data: TeamPageData }) {
               {data.awards.map((a) => (
                 <li key={`${a.seasonCode}-${a.key}-${a.playerNo}`} className="flex min-h-11 items-center gap-3 py-1.5 text-sub">
                   <span className="w-12 shrink-0 font-semibold tabular text-ink-3">{a.label}</span>
-                  <span className="w-24 shrink-0 text-ink-2">{a.awardLabel}</span>
+                  <span className="w-28 shrink-0 whitespace-nowrap text-ink-2">{a.awardLabel}</span>
                   <Link href={`/player/${a.playerNo}?season=${a.seasonCode}`} className="focus-ring min-w-0 truncate rounded-md font-semibold text-ink underline-offset-2 hover:underline">
                     {a.name}
                   </Link>
