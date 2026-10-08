@@ -159,3 +159,15 @@ console.log("games: 팀 순위 통과");
   assert.deepEqual(gameKeyPoints({ ...close, ended: false }, names), []);
   console.log("games: 이 경기 포인트 통과");
 }
+
+// 응원팀 경기 먼저 (2026-10-08 C-11)
+{
+  const { myTeamsFirst } = await import("../lib/games");
+  const m = (h: string, a: string) => ({ home: { teamCode: h }, away: { teamCode: a } });
+  const games = [m("10", "16"), m("50", "60"), m("55", "70"), m("66", "50")];
+  const key = (list: { home: { teamCode: string }; away: { teamCode: string } }[]) => list.map((g) => `${g.home.teamCode}-${g.away.teamCode}`);
+  assert.deepEqual(key(myTeamsFirst(games, ["70", "50"])), ["55-70", "50-60", "66-50", "10-16"], "첫 응원팀 경기가 맨 앞, 나머지는 원래 순서");
+  assert.deepEqual(key(myTeamsFirst(games, [])), key(games));
+  assert.deepEqual(key(myTeamsFirst(games, ["99"])), key(games));
+  console.log("games: 응원팀 경기 먼저 통과");
+}

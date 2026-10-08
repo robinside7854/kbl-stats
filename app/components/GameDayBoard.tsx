@@ -2,14 +2,16 @@
 // 홈 "오늘의 경기" (2026-10-03 사용자 요청: 오늘 경기 기록·맞대결·선수 기록).
 // 끝난 경기가 있는 가장 최근 날짜의 경기 카드(GameCard: 점수·팀·수훈 선수 → "박스스코어 보기" 팝업) + 다음 경기 대진 + 전체 일정 링크.
 // 날짜가 브라우저의 한국 날짜와 같으면 "오늘의 경기", 아니면 "최근 경기". 데이터·계산은 lib/games (서버에서 고른 경기만 받는다).
+// 로그인 회원이 응원팀을 골랐으면 그 팀 경기를 맨 앞에 놓고 "내 응원팀" 표시 (2026-10-08, lib/games myTeamsFirst — 정적 HTML 은 기본 순서).
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { gameDayLabel, teamStandouts, type GameDay } from "@/lib/games";
+import { useEffect, useMemo, useState } from "react";
+import { gameDayLabel, myTeamsFirst, teamStandouts, type GameDay } from "@/lib/games";
 import { kstDateString } from "@/lib/home";
 import { teamShortLabel } from "@/lib/images";
 import GameCard, { teamInfoOf, type GameTeamInfo } from "./GameCard";
 import { IconChevronRight } from "./icons";
 import TeamLogo from "./TeamLogo";
+import { useMember } from "./useLikes";
 
 export type { GameTeamInfo };
 
@@ -25,6 +27,12 @@ export default function GameDayBoard({ day, next, seasonCode, teams }: Props) {
   const [today, setToday] = useState<string | null>(null);
   useEffect(() => setToday(kstDateString(new Date())), []);
   const isToday = today === day.date;
+  const member = useMember();
+  const myCodes = useMemo(() => member?.teamCodes ?? [], [member]);
+  const mySet = useMemo(() => new Set(myCodes), [myCodes]);
+  const isMine = (g: { home: { teamCode: string }; away: { teamCode: string } }) => mySet.has(g.home.teamCode) || mySet.has(g.away.teamCode);
+  const games = useMemo(() => myTeamsFirst(day.games, myCodes), [day.games, myCodes]);
+  const nextGames = useMemo(() => (next ? myTeamsFirst(next.games, myCodes) : []), [next, myCodes]);
 
   return (
     <section aria-labelledby="games-title" className="mx-auto mt-6 max-w-page px-4">
@@ -40,8 +48,8 @@ export default function GameDayBoard({ day, next, seasonCode, teams }: Props) {
           전체 일정 <IconChevronRight size={16} />
         </Link>
       </div>
-      <ul className={`mt-3 grid items-start gap-3 md:grid-cols-2 ${day.games.length >= 3 ? "xl:grid-cols-3" : ""}`}>
-        {day.games.map((g) => (
+      <ul className={`mt-3 grid items-start gap-3 md:grid-cols-2 ${games.length >= 3 ? "xl:grid-cols-3" : ""}`}>
+        {games.map((g) => (
           <li key={g.gmkey}>
             <GameCard
               game={g}
@@ -49,15 +57,16 @@ export default function GameDayBoard({ day, next, seasonCode, teams }: Props) {
               teams={teams}
               stars={g.box ? { away: teamStandouts(g.box.away), home: teamStandouts(g.box.home) } : null}
               place="home"
+              mine={isMine(g)}
             />
           </li>
         ))}
       </ul>
-      {next && next.games.length > 0 && (
+      {next && nextGames.length > 0 && (
         <div className="surface-card mt-3 rounded-container p-3">
           <p className="text-sub font-bold text-ink">다음 경기 · {gameDayLabel(next.date)}</p>
           <ul className="mt-1 divide-y divide-line md:grid md:grid-cols-2 md:gap-x-6 md:divide-y-0 xl:grid-cols-3">
-            {next.games.map((g) => {
+            {nextGames.map((g) => {
               const away = teamInfoOf(teams, g.away.teamCode, g.away.name);
               const home = teamInfoOf(teams, g.home.teamCode, g.home.name);
               return (
@@ -69,6 +78,7 @@ export default function GameDayBoard({ day, next, seasonCode, teams }: Props) {
                   <span className="text-ink-3">vs</span>
                   <TeamLogo logoUrl={away.logoUrl} shortName={away.shortName} color={away.color} size={20} />
                   <span className="min-w-0 truncate font-semibold text-ink">{teamShortLabel(away.shortName)}</span>
+                  {isMine(g) && <span className="shrink-0 text-caption font-semibold text-series-1">내 응원팀</span>}
                   {g.stadium && <span className="ml-auto hidden min-w-0 truncate text-caption text-ink-3 sm:inline md:ml-2">{g.stadium}</span>}
                 </li>
               );

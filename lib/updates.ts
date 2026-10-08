@@ -31,6 +31,23 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-10-08-home-my-team",
+    date: "2026-10-08",
+    kind: "update",
+    title: "홈에서 우리 팀 경기가 먼저 나와요",
+    summary: "홈에 응원팀 경기 먼저",
+    blocks: [
+      { kind: "p", text: "로그인하고 응원팀을 골라 두면 홈 최근 경기와 다음 경기에서 우리 팀 경기가 맨 앞에 와요. \"내 응원팀\" 표시도 붙어요." },
+      {
+        kind: "list",
+        items: [
+          "즐겨찾기한 선수가 있으면 홈에서 큰 표지 카드보다 위에 보여요",
+          { text: "응원팀 고르러 가기", href: "/me" },
+        ],
+      },
+    ],
+  },
+  {
     slug: "2026-10-08-rank-change",
     date: "2026-10-08",
     kind: "update",

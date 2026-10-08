@@ -36,12 +36,14 @@ interface Props {
   /** 박스스코어를 누를 때 받아 오는 함수 (game.box 가 없을 때) */
   loadBox?: () => Promise<Box | null>;
   place: "home" | "schedule";
+  /** 내 응원팀 경기 (홈에서 맨 앞에 올 때 위에 작게 표시, 2026-10-08) */
+  mine?: boolean;
 }
 
 export const teamInfoOf = (teams: Record<string, GameTeamInfo>, code: string, fallback: string): GameTeamInfo =>
   teams[code] ?? { shortName: fallback, logoUrl: null, color: FALLBACK_TEAM_COLOR };
 
-export default function GameCard({ game: g, seasonCode, teams, stars = null, loadBox, place }: Props) {
+export default function GameCard({ game: g, seasonCode, teams, stars = null, loadBox, place, mine = false }: Props) {
   const [open, setOpen] = useState(false);
   const [video, setVideo] = useState(false);
   const [box, setBox] = useState<Box | null>(g.box);
@@ -79,6 +81,7 @@ export default function GameCard({ game: g, seasonCode, teams, stars = null, loa
 
   return (
     <article className="surface-card tabular rounded-container p-3">
+      {mine && <p className="mb-1 text-caption font-semibold text-series-1">내 응원팀 경기</p>}
       {/* 스코어보드: 홈(왼쪽) | 점수 | 원정(오른쪽) */}
       <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
         <TeamSide side={homeSide} />

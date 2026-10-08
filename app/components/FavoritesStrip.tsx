@@ -30,7 +30,7 @@ export default function FavoritesStrip() {
   const shown = all ? entries : entries.slice(0, FAVORITES_VISIBLE);
 
   return (
-    <section aria-labelledby="fav-title" className="mx-auto mt-8 max-w-page px-4">
+    <section aria-labelledby="fav-title" className="mx-auto mb-5 mt-8 max-w-page px-4">
       <h2 id="fav-title" className="flex items-center gap-1.5 text-h2 font-bold">
         <IconStar size={20} filled className="text-[var(--grade-s)]" />
         즐겨찾기

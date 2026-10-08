@@ -1,5 +1,5 @@
 // 홈 "KBL 2026-2027 시즌" (옛 제목 "이번 시즌 한눈에") (PLAN.md §2-4, §3 ⑤, §5-4). 서버 컴포넌트 — 계산은 app/page.tsx 가 lib/ 함수로 끝내고 결과만 받는다.
-// 구성(모바일 우선): 개막 전 안내 → 오늘의 경기(GameDayBoard, 2026-10-03) → 히어로(부문 1위 표지, 새로고침마다 부문이 바뀜 — HomeHero) → 오늘 생일 → 부문별 1~3위 카드 줄.
+// 구성(모바일 우선): 개막 전 안내 → 오늘의 경기(GameDayBoard, 2026-10-03 — 응원팀 경기 먼저) → 즐겨찾기(있을 때만) → 히어로(부문 1위 표지, 새로고침마다 부문이 바뀜 — HomeHero) → 오늘 생일 → 부문별 1~3위 카드 줄.
 // 바로가기·시즌별 목록은 2026-10-01 사용자 요청으로 뺐다(상단 메뉴·시즌 선택과 겹침).
 import Link from "next/link";
 import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
@@ -76,9 +76,10 @@ export default function HomeView({ season, fetchedLabel, asOf = null, upcoming, 
 
       {gameDay && <GameDayBoard day={gameDay} next={nextGameDay} seasonCode={code} teams={gameTeams} />}
 
-      {heroItems.length > 0 && <HomeHero items={heroItems} seasonCode={code} />}
-
+      {/* 즐겨찾기가 있으면 표지 위에 (2026-10-08 홈 자동 맞춤 — 없으면 아무것도 안 그려서 기본 순서 그대로) */}
       <FavoritesStrip />
+
+      {heroItems.length > 0 && <HomeHero items={heroItems} seasonCode={code} />}
 
       <BirthdayStrip players={birthdays} seasonCode={code} />
 

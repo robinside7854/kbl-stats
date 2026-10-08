@@ -399,3 +399,19 @@ export function gameKeyPoints(g: SeasonGame, names: Record<BoxSide, string>): st
   if (edge) out.push(edge.text);
   return out.slice(0, 3);
 }
+
+/**
+ * 응원팀 경기를 앞으로 (2026-10-08 토스 검토 C-11 가벼운 안: 홈 편집 화면 대신 자동 맞춤).
+ * 응원팀을 고른 순서대로(첫 팀 경기가 맨 앞), 나머지는 원래 순서 그대로. 응원팀이 없으면 그대로.
+ */
+export function myTeamsFirst<T extends { home: { teamCode: string }; away: { teamCode: string } }>(
+  games: readonly T[],
+  teamCodes: readonly string[],
+): T[] {
+  if (teamCodes.length === 0) return games.slice();
+  const rank = (g: T) => {
+    const i = teamCodes.findIndex((c) => c === g.home.teamCode || c === g.away.teamCode);
+    return i < 0 ? teamCodes.length : i;
+  };
+  return games.map((g, i) => ({ g, i, r: rank(g) })).sort((a, b) => a.r - b.r || a.i - b.i).map((x) => x.g);
+}
