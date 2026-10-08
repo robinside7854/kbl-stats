@@ -286,3 +286,18 @@ console.log("player: 프로필 표기 통과");
   assert.ok(Number.isNaN(old.fgPct));
   console.log("player: 통산 줄·플레이오프 줄 통과");
 }
+
+// 시즌 범위 막대 (2026-10-08 B-9)
+{
+  const { gameRanges, rangePosition } = await import("../lib/career");
+  const l = (date: string, pts: number, reb = 0, ast = 0) => ({ date, pts, reb, ast });
+  assert.equal(gameRanges([l("2026-10-03", 10), l("2026-10-04", 20)]), null, "두 경기는 범위를 안 그림");
+  const r = gameRanges([l("2026-10-05", 30, 5, 2), l("2026-10-03", 10, 9, 4), l("2026-10-04", 20, 7, 0)])!;
+  assert.equal(r.games, 3);
+  assert.equal(r.lastDate, "2026-10-05");
+  assert.deepEqual(r.rows[0], { key: "pts", label: "득점", min: 10, max: 30, avg: 20, last: 30 });
+  assert.equal(r.rows[2].avg, 2);
+  assert.equal(rangePosition(20, 10, 30), 50);
+  assert.equal(rangePosition(5, 5, 5), 50);
+  console.log("player: 시즌 범위 막대 통과");
+}

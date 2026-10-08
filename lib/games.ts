@@ -319,3 +319,83 @@ export function initialScheduleScope(saved: string | null | undefined, hasTeamGa
   if (!hasTeamGames) return "all";
   return saved === "all" ? "all" : "mine";
 }
+
+// ─────────────────────────────────────────────
+// "이 경기 포인트" (2026-10-08 토스 검토 B-8: 토스증권 "왜 올랐을까?" 요점 3줄처럼) — 박스스코어 팝업 위 2~3줄.
+// AI 를 쓰지 않고 박스스코어 숫자로만 만든다. 문턱은 우리 규칙(아래 상수).
+// ─────────────────────────────────────────────
+
+/** 접전·대승 점수 차 */
+export const POINT_CLOSE_MARGIN = 3;
+export const POINT_BLOWOUT_MARGIN = 20;
+/** 한 선수 득점이 이 이상이면 그 선수를 먼저 (트리플더블이 없을 때) */
+export const POINT_BIG_SCORE = 30;
+/** 팀 기록 차이 문턱 — 이만큼 넘게 벌어진 것 중 문턱 대비 가장 큰 것 하나 */
+export const POINT_TEAM_EDGES = [
+  { key: "reb", label: "리바운드", min: 8, better: "high" },
+  { key: "tpm", label: "3점", min: 5, better: "high" },
+  { key: "ast", label: "어시스트", min: 8, better: "high" },
+  { key: "tov", label: "턴오버", min: 6, better: "low" },
+] as const;
+
+type BoxSide = "home" | "away";
+
+function teamSum(rows: readonly GameBoxRow[], key: "reb" | "tpm" | "ast" | "tov"): number {
+  return rows.reduce((n, r) => n + r[key], 0);
+}
+
+/** 10개 넘긴 부문 수 (득점·리바·어시·스틸·블록) */
+function doubleCount(r: GameBoxRow): number {
+  return [r.pts, r.reb, r.ast, r.stl, r.blk].filter((v) => v >= 10).length;
+}
+
+function doubleLine(r: GameBoxRow): string {
+  const parts: string[] = [`${r.pts}점`];
+  if (r.reb >= 10) parts.push(`${r.reb}리바`);
+  if (r.ast >= 10) parts.push(`${r.ast}어시`);
+  if (r.stl >= 10) parts.push(`${r.stl}스틸`);
+  if (r.blk >= 10) parts.push(`${r.blk}블록`);
+  return parts.join(" ");
+}
+
+/** 경기 요점 최대 3줄. names = 팀 약칭. 박스스코어가 없거나 안 끝난 경기는 [] */
+export function gameKeyPoints(g: SeasonGame, names: Record<BoxSide, string>): string[] {
+  const win = winnerSide(g);
+  if (!g.box || !win || g.home.score === null || g.away.score === null) return [];
+  const out: string[] = [];
+  const lose: BoxSide = win === "home" ? "away" : "home";
+  const margin = Math.abs(g.home.score - g.away.score);
+  if (margin <= POINT_CLOSE_MARGIN) out.push(`${names[win]} ${margin}점 차 접전 끝에 승리`);
+  else if (margin >= POINT_BLOWOUT_MARGIN) out.push(`${names[win]} ${margin}점 차 대승`);
+
+  // 선수 한 명: 트리플더블 → 30점 이상 → 더블더블 (같은 줄에선 득점 많은 선수)
+  const all = (["home", "away"] as const).flatMap((k) => g.box![k].map((r) => ({ r, side: k })));
+  const byPts = [...all].sort((a, b) => b.r.pts - a.r.pts || b.r.reb - a.r.reb || b.r.ast - a.r.ast);
+  const triple = byPts.find((x) => doubleCount(x.r) >= 3);
+  const big = byPts.find((x) => x.r.pts >= POINT_BIG_SCORE);
+  const dbl = byPts.find((x) => doubleCount(x.r) >= 2);
+  if (triple) out.push(`${triple.r.nameKo}(${names[triple.side]}) 트리플더블 · ${doubleLine(triple.r)}`);
+  else if (big) out.push(`${big.r.nameKo}(${names[big.side]}) ${big.r.pts}점 · 야투 ${big.r.fgm}/${big.r.fga}${big.r.tpm >= 3 ? ` · 3점 ${big.r.tpm}개` : ""}`);
+  else if (dbl) out.push(`${dbl.r.nameKo}(${names[dbl.side]}) 더블더블 · ${doubleLine(dbl.r)}`);
+
+  // 팀 기록 차이: 문턱 대비 가장 크게 벌어진 것 하나 (이긴 팀이 앞선 것을 먼저)
+  let edge: { text: string; score: number } | null = null;
+  for (const e of POINT_TEAM_EDGES) {
+    const w = teamSum(g.box[win], e.key);
+    const l = teamSum(g.box[lose], e.key);
+    const diff = e.better === "high" ? w - l : l - w; // 이긴 팀 기준 앞선 만큼
+    const abs = Math.abs(diff);
+    if (abs < e.min) continue;
+    const side = diff > 0 ? win : lose;
+    const mine = side === win ? w : l;
+    const theirs = side === win ? l : w;
+    const text =
+      e.better === "high"
+        ? `${names[side]} ${e.label} ${abs}개 더 (${mine}-${theirs})`
+        : `${names[side]} ${e.label} ${abs}개 적음 (${mine}-${theirs})`;
+    const score = (abs / e.min) * (diff > 0 ? 1.2 : 1);
+    if (!edge || score > edge.score) edge = { text, score };
+  }
+  if (edge) out.push(edge.text);
+  return out.slice(0, 3);
+}

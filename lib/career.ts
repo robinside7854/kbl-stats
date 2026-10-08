@@ -527,3 +527,68 @@ export function playoffLeaderRow(line: PostseasonLine, base: LeaderPlayer): Lead
     zones: null,
   };
 }
+
+// ─────────────────────────────────────────────
+// 시즌 범위 막대 (2026-10-08 토스 검토 B-9: 토스증권 "1일 최저~최고" 막대 위 점) — 그 시즌 경기별 기록의 최저·최고와
+// 평균·최근 경기 자리. 재료는 경기별 박스스코어(data/processed/{시즌}/games.json, 박스스코어가 있는 시즌만).
+// ─────────────────────────────────────────────
+
+export interface PlayerGameLine {
+  /** 경기 날짜 "2026-10-03" */
+  date: string;
+  pts: number;
+  reb: number;
+  ast: number;
+}
+
+export const RANGE_STATS = [
+  { key: "pts", label: "득점" },
+  { key: "reb", label: "리바운드" },
+  { key: "ast", label: "어시스트" },
+] as const;
+
+/** 막대를 그리는 최소 경기 수 (두세 경기로는 범위가 뜻이 없다 — 우리 규칙) */
+export const RANGE_MIN_GAMES = 3;
+
+export interface GameRange {
+  key: (typeof RANGE_STATS)[number]["key"];
+  label: string;
+  min: number;
+  max: number;
+  avg: number;
+  last: number;
+}
+
+export interface GameRangeSet {
+  games: number;
+  lastDate: string;
+  rows: GameRange[];
+}
+
+/** 경기별 기록(날짜 순) → 득점·리바운드·어시스트 범위. 경기가 적으면 null */
+export function gameRanges(lines: readonly PlayerGameLine[]): GameRangeSet | null {
+  if (lines.length < RANGE_MIN_GAMES) return null;
+  const sorted = [...lines].sort((a, b) => a.date.localeCompare(b.date));
+  const last = sorted[sorted.length - 1];
+  return {
+    games: sorted.length,
+    lastDate: last.date,
+    rows: RANGE_STATS.map(({ key, label }) => {
+      const vals = sorted.map((l) => l[key]);
+      return {
+        key,
+        label,
+        min: Math.min(...vals),
+        max: Math.max(...vals),
+        avg: Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 10) / 10,
+        last: last[key],
+      };
+    }),
+  };
+}
+
+/** 막대 위 자리 (0~100). 최저 = 최고면 가운데 */
+export function rangePosition(v: number, min: number, max: number): number {
+  if (max <= min) return 50;
+  return Math.max(0, Math.min(100, ((v - min) / (max - min)) * 100));
+}

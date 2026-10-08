@@ -35,6 +35,8 @@ import type { PlayerShotsFile } from "@/lib/shots";
 import type { SimilarEntry } from "@/lib/similar";
 import SimilarPlayers from "./SimilarPlayers";
 import PercentileBars from "./PercentileBars";
+import GameRangeBars from "./GameRangeBars";
+import type { GameRangeSet } from "@/lib/career";
 import { trackFilters } from "./track";
 
 /** 시즌별 기록표 등 다른 컴포넌트가 카드 시즌을 바꿀 때 보내는 이벤트 이름 */
@@ -61,9 +63,11 @@ interface Props {
   similar?: Record<number, SimilarEntry[]>;
   /** 프라임 시즌 코드 (lib/prime). 없으면 null */
   primeSeason?: number | null;
+  /** 시즌별 경기 범위 (박스스코어가 있는 시즌만, lib/career gameRanges) */
+  gameRanges?: Record<number, GameRangeSet>;
 }
 
-export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, groupLabel, aside, careerHighRows, shotSeasons, initialShots, similar, primeSeason }: Props) {
+export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, groupLabel, aside, careerHighRows, shotSeasons, initialShots, similar, primeSeason, gameRanges }: Props) {
   const codes = useMemo(() => seasons.map((s) => s.seasonCode), [seasons]);
   const labelOf = (code: number) => seasonShortLabel(seasons.find((s) => s.seasonCode === code)?.seasonLabel ?? String(code));
   const [state, setState] = useState<PlayerViewState>({ season: initial.seasonCode, scope: "all" });
@@ -133,7 +137,7 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
       {/* ── 조작: 시즌 칩 · 순위 범위 · 비교 탭 링크 ── */}
       <section aria-label="카드 보기 설정" className="space-y-2.5">
         <div ref={setChipsEl}>
-          <h2 className="text-h2 font-bold">시즌 카드</h2>
+          <h2 id="season-cards-title" className="text-h2 font-bold">시즌 카드</h2>
           <div className="mb-1.5 mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
             <p className="text-sub font-semibold text-ink-2">
               시즌 <span className="font-normal text-ink-3">· {seasons.length}시즌 뛰었음</span>
@@ -189,6 +193,12 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
       <p className="mt-3 text-sub leading-relaxed text-ink-3">
         등급은 같은 국적 집단 안, 순위는 리그 전체{groupLabel ? "(또는 같은 포지션)" : ""} 기준입니다 <InfoLink term="radarAxes" />. 사진은 모든 시즌에 같은 한 장입니다.
       </p>
+      {/* 경기별 기록 범위 (토스 검토 B-9): 박스스코어가 있는 시즌만, 카드 시즌을 따른다 */}
+      {gameRanges?.[season] && (
+        <div className="mt-6">
+          <GameRangeBars data={gameRanges[season]} seasonShort={labelOf(season)} />
+        </div>
+      )}
       {/* 세부 능력치 백분위 막대 (Baseball Savant 방식): 카드와 같은 시즌·같은 등급 집단 */}
       {view && (
         <div className="mt-6">

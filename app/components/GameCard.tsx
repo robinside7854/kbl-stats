@@ -10,7 +10,7 @@ import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { GameBoxRow, SeasonGame, TeamColor } from "@/lib/types";
-import { gameDayLabel, STANDOUT_LABELS, standoutLine, winnerSide, type Standout } from "@/lib/games";
+import { gameDayLabel, gameKeyPoints, STANDOUT_LABELS, standoutLine, winnerSide, type Standout } from "@/lib/games";
 import { teamShortLabel } from "@/lib/images";
 import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
 import BoxScore from "./BoxScore";
@@ -182,10 +182,13 @@ export default function GameCard({ game: g, seasonCode, teams, stars = null, loa
               onClose={() => setOpen(false)}
             >
               {box ? (
-                <BoxScore
-                  seasonCode={seasonCode}
-                  sides={sides.map((s) => ({ key: s.key, name: s.info.shortName, rows: box[s.key] }))}
-                />
+                <>
+                  <KeyPoints game={{ ...g, box }} names={{ home: homeSide.info.shortName, away: awaySide.info.shortName }} />
+                  <BoxScore
+                    seasonCode={seasonCode}
+                    sides={sides.map((s) => ({ key: s.key, name: s.info.shortName, rows: box[s.key] }))}
+                  />
+                </>
               ) : loading ? (
                 <Skeleton className="mt-2 h-48 w-full" />
               ) : failed ? (
@@ -200,6 +203,25 @@ export default function GameCard({ game: g, seasonCode, teams, stars = null, loa
 }
 
 /** 박스스코어·하이라이트 팝업: 폰 = 아래 시트(화면 높이 90%), PC(768px 이상) = 가운데 창. 바깥·ESC·닫기로 닫힘, 열린 동안 뒤 화면 스크롤 잠금, 닫으면 누른 버튼으로 포커스 복귀 */
+/** 이 경기 포인트 (lib/games gameKeyPoints — 박스스코어 숫자로 만든 요점, 없으면 안 보임) */
+function KeyPoints({ game, names }: { game: SeasonGame; names: { home: string; away: string } }) {
+  const points = gameKeyPoints(game, names);
+  if (points.length === 0) return null;
+  return (
+    <section aria-label="이 경기 포인트" className="mb-3 rounded-card bg-surface-2 px-3 py-2.5">
+      <h3 className="text-sub font-bold text-ink">이 경기 포인트</h3>
+      <ul className="mt-1 space-y-0.5">
+        {points.map((p) => (
+          <li key={p} className="flex gap-2 text-body text-ink break-keep">
+            <span aria-hidden className="text-[var(--series-1)]">·</span>
+            <span className="tabular">{p}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 function BoxScoreDialog({ title, sub, onClose, children }: { title: string; sub: string; onClose: () => void; children: React.ReactNode }) {
   const titleId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);

@@ -4,7 +4,7 @@ import { seasonShortLabel } from "@/lib/career";
 import type { Metadata } from "next";
 import { ogImagePath, shareMetadata } from "@/lib/share";
 import { notFound } from "next/navigation";
-import { listSeasonsWithPlayers, loadSeasonData, loadSeasonHighCards, toCardTeams, toLeaderPlayers, isSeasonOngoing, dataAsOfDate } from "@/lib/data";
+import { listSeasonsWithPlayers, loadSeasonData, loadSeasonHighCards, toCardTeams, toLeaderPlayers, isSeasonOngoing, dataAsOfDate, loadLeaderPrevious } from "@/lib/data";
 import { asOfLabel } from "@/lib/games";
 import LeadersView from "@/app/components/LeadersView";
 import SiteNav from "@/app/components/SiteNav";
@@ -50,6 +50,7 @@ export default async function LeadersPage({ params }: { params: Params }) {
         seasonHighs={loadSeasonHighCards(season)}
         ongoing={ongoing}
         asOf={asOfDate ? asOfLabel(asOfDate) : null}
+        previous={loadLeaderPrevious(season.seasonCode)}
       />
       <SourceFooter fetchedAt={season.fetchedAt} wide />
     </>

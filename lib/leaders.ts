@@ -653,3 +653,88 @@ export function seasonLeaderMarks(
   }
   return out;
 }
+
+// ─────────────────────────────────────────────
+// 순위 변동 ▲▼ (2026-10-08 토스 검토 B — 토스증권 "실시간 이슈"처럼 순위 옆에 변동·새로 진입)
+// 진행 중 시즌만: 마지막 경기일 기록을 빼서 "그 전 경기일까지" 합계를 만들고, 같은 필터·같은 방식으로 순위를 다시 매겨 비교한다.
+// 누적 기록 부문(득점·리바·어시·스틸·블록·3점)만 — 성공률·고급 지표는 하루 기록으로 되돌릴 수 없다.
+// ─────────────────────────────────────────────
+
+/** 순위 변동을 보여 주는 부문 */
+export const RANK_CHANGE_KEYS: readonly LeaderStatKey[] = PRIMARY_CATEGORIES;
+/** 이 순위 안에 처음 들어오면 "새로" */
+export const RANK_NEW_TOP = 10;
+
+/** 그 전 경기일까지의 합계 (마지막 경기일에 뛴 선수만 — 안 뛴 선수는 지금과 같다) */
+export interface PrevLine {
+  games: number;
+  minutes: number;
+  points: number;
+  reb: number;
+  ast: number;
+  stl: number;
+  blk: number;
+  tpm: number;
+}
+
+/** 마지막 경기일 한 줄 (games.json 박스스코어에서 필요한 것만) */
+export interface DayLine {
+  id: string;
+  sec: number;
+  pts: number;
+  reb: number;
+  ast: number;
+  stl: number;
+  blk: number;
+  tpm: number;
+}
+
+/** 지금 합계 − 마지막 경기일 기록. 출전 시간이 0 인 줄(명단만 오른 선수)도 경기 수 1 로 센다(KBL 경기 수와 같게 — 박스에 있으면 뛴 것) */
+export function previousLines(players: readonly LeaderPlayer[], day: readonly DayLine[]): Record<string, PrevLine> {
+  const byId = new Map(players.map((p) => [p.id, p]));
+  const out: Record<string, PrevLine> = {};
+  for (const r of day) {
+    const p = byId.get(r.id);
+    if (!p) continue;
+    out[r.id] = {
+      games: Math.max(0, p.games - 1),
+      minutes: Math.max(0, p.minutes - r.sec / 60),
+      points: Math.max(0, p.points - r.pts),
+      reb: Math.max(0, p.reb - r.reb),
+      ast: Math.max(0, p.ast - r.ast),
+      stl: Math.max(0, p.stl - r.stl),
+      blk: Math.max(0, p.blk - r.blk),
+      tpm: Math.max(0, p.tpm - r.tpm),
+    };
+  }
+  return out;
+}
+
+/** 그 전 경기일 시점의 선수 목록 (그때 아직 안 뛴 선수 = 경기 0 은 뺀다) */
+export function withPrevious<T extends LeaderPlayer>(players: readonly T[], prev: Record<string, PrevLine>): T[] {
+  return players.flatMap((p) => {
+    const l = prev[p.id];
+    if (!l) return [p];
+    if (l.games <= 0) return [];
+    return [{ ...p, ...l }];
+  });
+}
+
+export interface RankChange {
+  kind: "up" | "down" | "new";
+  /** 오르거나 내린 계단 수 (new 는 0) */
+  delta: number;
+}
+
+/** 지금 순위 vs 그 전 순위 → 바뀐 선수만 (같으면 없음). 상위 RANK_NEW_TOP 에 처음 들어오면 new */
+export function rankChanges(cur: ReadonlyMap<string, number>, prev: ReadonlyMap<string, number>, top = RANK_NEW_TOP): Map<string, RankChange> {
+  const out = new Map<string, RankChange>();
+  for (const [id, r] of cur) {
+    const before = prev.get(id);
+    if (r <= top && (before === undefined || before > top)) out.set(id, { kind: "new", delta: 0 });
+    else if (before === undefined) continue;
+    else if (before > r) out.set(id, { kind: "up", delta: before - r });
+    else if (before < r) out.set(id, { kind: "down", delta: r - before });
+  }
+  return out;
+}

@@ -191,6 +191,8 @@ export interface MemberView {
   teamCodes: string[];
   favorites: string[];
   likes: MyLikes;
+  /** 끈 알림 묶음 (lib/notifications NOTIF_GROUPS 키, 2026-10-08) */
+  notifOff?: string[];
   /** 이 회원에 연결된 로그인 수단 (회사 순서) */
   logins: LoginProvider[];
   isAdmin?: boolean;

@@ -7,12 +7,13 @@ import { gameDayLabel } from "@/lib/games";
 import { NOTIF_KIND_LABEL, NOTIF_WINDOW_DAYS, type NotifItem } from "@/lib/notifications";
 import { IconChevronRight } from "./icons";
 import PushToggle from "./PushToggle";
+import NotifKindSettings from "./NotifKindSettings";
 import Skeleton from "./Skeleton";
 import { trackEvent } from "./track";
 import { useNotifications } from "./useNotifications";
 
 export default function NotificationsView() {
-  const { mine, seenSet, seenReady, markAllRead, loaded, subscribed, favorites, teams, seasonCode } = useNotifications();
+  const { prefs, mine, seenSet, seenReady, markAllRead, loaded, subscribed, favorites, teams, seasonCode } = useNotifications();
   // 이번에 열었을 때 새 소식이던 것 (읽음 처리 뒤에도 파란 점을 남긴다)
   const freshRef = useRef<Set<string> | null>(null);
   const [, force] = useState(0);
@@ -44,6 +45,7 @@ export default function NotificationsView() {
         즐겨찾기한 선수 {favorites.length}명 · 응원팀 {teams.length}팀의 최근 {NOTIF_WINDOW_DAYS}일 경기 소식이에요. 기록은 경기가 끝나고 한두 시간 뒤에 들어와요.
       </p>
       <PushToggle />
+      {subscribed && <NotifKindSettings prefs={prefs} />}
 
       {!loaded ? (
         <div className="mt-5 space-y-2" aria-hidden>
@@ -69,7 +71,9 @@ export default function NotificationsView() {
       ) : mine.length === 0 ? (
         <div className="surface-card mt-5 rounded-container p-5">
           <p className="text-body font-bold text-ink">최근 {NOTIF_WINDOW_DAYS}일 동안 새 소식이 없어요</p>
-          <p className="mt-1 text-sub text-ink-2">즐겨찾기한 선수나 응원팀이 경기를 치르면 여기에 쌓여요.</p>
+          <p className="mt-1 text-sub text-ink-2">
+            즐겨찾기한 선수나 응원팀이 경기를 치르면 여기에 쌓여요.{prefs.off.length > 0 ? " 꺼 둔 종류는 보이지 않아요." : ""}
+          </p>
           <div className="mt-3 flex flex-wrap gap-x-4">
             {seasonCode !== null && (
               <Link href={`/season/${seasonCode}/schedule`} className="link-shortcut">

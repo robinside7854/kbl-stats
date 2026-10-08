@@ -38,15 +38,20 @@ import {
   leadersQueryString,
   madeAttempts,
   parseLeadersQuery,
+  rankChanges,
   rankMap,
+  RANK_CHANGE_KEYS,
   resetLeaderFilters,
   rowSummaryKeys,
   sortLeaders,
+  withPrevious,
   statTitle,
   statValue,
   topLeaders,
   zoneThresholds,
   type LeaderEntry,
+  type PrevLine,
+  type RankChange,
   type LeaderStatKey,
   type LeaderThresholds,
   type LeadersState,
@@ -55,6 +60,7 @@ import {
   type StatMode,
 } from "@/lib/leaders";
 import { teamShortLabel } from "@/lib/images";
+import { gameDayLabel } from "@/lib/games";
 import { LEADER_COLUMN_GLOSSARY } from "@/lib/glossary";
 import { LEADER_CATEGORY_HIGH, type SeasonHighCard } from "@/lib/highs";
 import {
@@ -71,7 +77,7 @@ import Link from "next/link";
 import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
 import ChipRow from "./ChipRow";
 import FilterSheet, { FilterGroup } from "./FilterSheet";
-import { IconChevronDown, IconChevronRight, IconChevronUp } from "./icons";
+import { IconArrowUp, IconChevronDown, IconChevronRight, IconChevronUp } from "./icons";
 import InfoLink from "./InfoLink";
 import PlayerAvatar from "./PlayerAvatar";
 import RecordsHeader from "./RecordsHeader";
@@ -92,6 +98,29 @@ interface Props {
   ongoing?: boolean;
   /** 진행 중 시즌의 기준 한 줄 ("10월 7일 경기까지 반영") — 마감 시즌은 null */
   asOf?: string | null;
+  /** 순위 변동 재료 — 그 전 경기일까지 합계 (lib/data loadLeaderPrevious, 진행 중 시즌만) */
+  previous?: { date: string; lines: Record<string, PrevLine> } | null;
+}
+
+/** 순위 옆 작은 변동 표시 (▲2 · ▼1 · 새로). onColor: 팀 색 카드 위라 글자색 그대로 */
+function RankDelta({ change, onColor = false }: { change?: RankChange; onColor?: boolean }) {
+  if (!change) return null;
+  if (change.kind === "new")
+    return (
+      <span className={`whitespace-nowrap text-caption font-bold ${onColor ? "" : "text-[var(--div-hot)]"}`} aria-label="새로 10위 안에 들어옴">
+        새로
+      </span>
+    );
+  const up = change.kind === "up";
+  return (
+    <span
+      className={`inline-flex items-center whitespace-nowrap text-caption font-bold ${onColor ? "" : up ? "text-[var(--div-hot)]" : "text-[var(--div-cold)]"}`}
+      aria-label={`${change.delta}계단 ${up ? "오름" : "내림"}`}
+    >
+      <IconArrowUp size={16} className={`h-3 w-3 ${up ? "" : "rotate-180"}`} aria-hidden />
+      {change.delta}
+    </span>
+  );
 }
 
 const MODE_OPTIONS: { value: StatMode; label: string }[] = [
@@ -134,7 +163,9 @@ function CoverCard({
   category,
   mode,
   hero,
+  change,
 }: {
+  change?: RankChange;
   entry: LeaderEntry<LeaderPlayer>;
   team?: CardTeam;
   category: LeaderStatKey;
@@ -174,7 +205,9 @@ function CoverCard({
               <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={color} size={hero ? 88 : 48} className="ring-2 ring-white/70" />
             </span>
             <div className="min-w-0">
-              <p className={`font-semibold opacity-85 ${hero ? "text-sub lg:text-body" : "text-caption xl:text-sub"}`}>{entry.rank}위</p>
+              <p className={`flex items-center gap-1.5 font-semibold opacity-85 ${hero ? "text-sub lg:text-body" : "text-caption xl:text-sub"}`}>
+                {entry.rank}위 <RankDelta change={change} onColor />
+              </p>
               {/* deslop-ignore-next-line 11 */}
               <h3 className={`font-bold leading-tight break-keep ${hero ? "truncate text-2xl lg:text-5xl lg:leading-[1.1]" : "line-clamp-2 text-base xl:text-xl 2xl:text-2xl"}`} title={p.nameKo}>
                 <Link href={`/player/${p.id}`} className="focus-ring rounded-control underline-offset-4 hover:underline">
@@ -213,7 +246,7 @@ function CoverCard({
   );
 }
 
-export default function LeadersView({ seasonCode, seasonLabel, players, teams, seasonHighs = [], ongoing = false, asOf = null }: Props) {
+export default function LeadersView({ seasonCode, seasonLabel, players, teams, seasonHighs = [], ongoing = false, asOf = null, previous = null }: Props) {
   const presets = useMemo(() => qualifyPresetsFor(ongoing), [ongoing]);
   const [state, setState] = useState<LeadersState>(DEFAULT_LEADERS_STATE);
   // 표 정렬 (null 이면 선택한 부문의 "상위" 방향 — 턴오버는 적은 순)
@@ -269,6 +302,23 @@ export default function LeadersView({ seasonCode, seasonLabel, players, teams, s
     [filtered, sortKey, sortDir, mode, thresholds],
   );
   const ranks = useMemo(() => rankMap(filtered, sortKey, mode, thresholds), [filtered, sortKey, mode, thresholds]);
+  // 순위 변동: 그 전 경기일까지 합계로 같은 필터·같은 단위 순위를 다시 매겨 비교 (누적 부문만, lib/leaders rankChanges)
+  const prevFiltered = useMemo(
+    () => (previous ? filterLeaders(withPrevious(players, previous.lines), { origin, position, teamCode, rule }) : null),
+    [previous, players, origin, position, teamCode, rule],
+  );
+  const changesFor = (key: LeaderStatKey, cur: Map<string, number>) =>
+    prevFiltered && RANK_CHANGE_KEYS.includes(key) ? rankChanges(cur, rankMap(prevFiltered, key, mode, thresholds)) : null;
+  const tableChanges = useMemo(
+    () => (sortDir === defaultSortDir(sortKey) ? changesFor(sortKey, ranks) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [prevFiltered, sortKey, sortDir, ranks, mode, thresholds],
+  );
+  const coverChanges = useMemo(
+    () => changesFor(category, rankMap(filtered, category, mode, thresholds)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [prevFiltered, category, filtered, mode, thresholds],
+  );
   const note = attemptsNote(thresholds);
   const teamName = (code: string) => teamShortLabel(teamByCode.get(code)?.shortName ?? code);
 
@@ -322,7 +372,12 @@ export default function LeadersView({ seasonCode, seasonLabel, players, teams, s
         const r = ranks.get(p.id);
         return r !== undefined && r <= 3 ? "font-bold text-ink" : "";
       },
-      cell: (p) => ranks.get(p.id) ?? "–",
+      cell: (p) => (
+        <span className="inline-flex flex-col items-center leading-tight">
+          {ranks.get(p.id) ?? "–"}
+          <RankDelta change={tableChanges?.get(p.id)} />
+        </span>
+      ),
     },
     {
       key: "player",
@@ -530,6 +585,7 @@ export default function LeadersView({ seasonCode, seasonLabel, players, teams, s
                 category={category}
                 mode={mode}
                 hero={i === 0}
+                change={coverChanges?.get(e.player.id)}
               />
             ))}
           </div>
@@ -611,9 +667,10 @@ export default function LeadersView({ seasonCode, seasonLabel, players, teams, s
               return (
                 <>
                   <span
-                    className={`tabular w-7 shrink-0 text-center text-body ${rank !== undefined && rank <= 3 ? "font-black text-ink" : "font-semibold text-ink-3"}`}
+                    className={`tabular flex w-7 shrink-0 flex-col items-center text-center text-body leading-tight ${rank !== undefined && rank <= 3 ? "font-black text-ink" : "font-semibold text-ink-3"}`}
                   >
                     {rank ?? "–"}
+                    <RankDelta change={tableChanges?.get(p.id)} />
                   </span>
                   <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={team?.color} size={36} />
                   <span className="min-w-0 flex-1">
@@ -665,6 +722,11 @@ export default function LeadersView({ seasonCode, seasonLabel, players, teams, s
               </Link>
             )}
           />
+          {previous && (tableChanges || coverChanges) && (
+            <p className="mt-2 text-sub leading-relaxed text-ink-3">
+              순위 옆 화살표는 {gameDayLabel(previous.date)} 경기까지 순위와 비교한 거예요. "새로"는 처음 10위 안에 든 선수.
+            </p>
+          )}
           <p className="mt-2 text-sub leading-relaxed text-ink-3">
             성공률 아래 작은 숫자는 시즌 합계 성공/시도. 경기당 시도가 리그 평균({note})보다 적으면 순위 칸에 - 표시
             {" "}<InfoLink term="attempts" />

@@ -31,6 +31,28 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-10-08-rank-change",
+    date: "2026-10-08",
+    kind: "update",
+    title: "순위가 오르내린 게 보여요",
+    summary: "리더보드 순위 변동",
+    blocks: [
+      { kind: "p", text: "시즌 중 리더보드 순위 옆에 지난 경기일보다 몇 계단 오르고 내렸는지 화살표가 붙어요. 처음 10위 안에 든 선수는 \"새로\"라고 떠요." },
+      {
+        kind: "list",
+        items: [
+          "선수 페이지를 내리면 맨 위에 이름이 작게 붙고, 카드·추이·슛 차트·기록·커리어 하이로 바로 가는 탭이 생겨요",
+          "선수 페이지에 이번 시즌 경기별 득점·리바·어시 최저~최고 막대가 생겼어요. 파란 점이 평균, 빈 동그라미가 최근 경기예요",
+          "박스스코어를 열면 맨 위에 이 경기 포인트가 두세 줄 나와요",
+          "알림함에서 받을 소식을 종류별로 끄고 켤 수 있어요. 폰 알림에도 똑같이 적용돼요",
+          "선수 페이지 맨 위가 PC 에서 덜 비어 보이게 통산 기록을 옆에 붙였어요",
+          { text: "기록 보러 가기", href: "/records" },
+          { text: "알림함 가기", href: "/notifications" },
+        ],
+      },
+    ],
+  },
+  {
     slug: "2026-10-08-search-asof",
     date: "2026-10-08",
     kind: "update",

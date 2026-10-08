@@ -4,9 +4,38 @@ import { IconStar } from "./icons";
 import { useFavorites } from "./useFavorites";
 import { trackEvent } from "./track";
 
-export default function FavoriteButton({ playerId, nameKo, className = "" }: { playerId: string; nameKo: string; className?: string }) {
+export default function FavoriteButton({
+  playerId,
+  nameKo,
+  className = "",
+  plain = false,
+}: {
+  playerId: string;
+  nameKo: string;
+  className?: string;
+  /** 흰 바탕용 별 아이콘 버튼 (선수 상세 압축 머리말) */
+  plain?: boolean;
+}) {
   const { has, toggle, ready } = useFavorites();
   const on = ready && has(playerId);
+  if (plain) {
+    return (
+      <button
+        type="button"
+        onClick={() => {
+          trackEvent(on ? "favorite_remove" : "favorite_add", { player_no: playerId });
+          toggle(playerId);
+        }}
+        aria-pressed={on}
+        aria-label={on ? `${nameKo} 즐겨찾기 해제` : `${nameKo} 즐겨찾기`}
+        className={`focus-ring inline-flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-control transition-colors duration-200 hover:bg-surface-2 ${
+          on ? "text-[var(--series-1)]" : "text-ink-3 hover:text-ink"
+        } ${className}`}
+      >
+        <IconStar size={20} filled={on} />
+      </button>
+    );
+  }
   return (
     <button
       type="button"

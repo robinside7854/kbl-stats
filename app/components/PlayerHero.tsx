@@ -66,26 +66,21 @@ export default function PlayerHero({ entry, seasons, today, badges, milestones =
     { label: "3점%", value: pctText(sum.tpPct), perGame: false },
   ];
 
+  const careerNote = `통산 ${sum.seasons}시즌 정규시즌 · 득점~블록은 경기당 · 승패는 뛴 경기만${sum.winPct !== null ? ` (승률 ${NF1.format(sum.winPct)}%)` : ""}`;
+
   return (
-    <section aria-label={`${entry.nameKo} 선수 소개`}>
+    <section id="player-hero" aria-label={`${entry.nameKo} 선수 소개`}>
       {/* ── 팀 색 띠 + 사진 ── */}
       <div
         className="relative overflow-hidden"
         style={{ background: `linear-gradient(160deg, ${color.primary} 0%, ${mid} 55%, ${dark} 100%)`, color: color.text }}
       >
-        {/* 장식: 최근 팀 약칭 큰 글씨 */}
-        <span
-          aria-hidden
-          // deslop-ignore-next-line 11
-          className="pointer-events-none absolute -right-3 top-2 select-none whitespace-nowrap text-[7.5rem] font-black leading-none tracking-tighter opacity-10 sm:text-[11rem]"
-        >
-          {teamShortLabel(teamName, 5)}
-        </span>
         {/* 배치 (2026-10-03 사용자: 폰에서 글이 길어 띠가 사진보다 훨씬 커 보임):
             폰 = [이름 묶음 | 사진] 한 줄 + 그 아래 칩·프로필을 띠 전체 폭으로(어두운 바닥 줄 위에 사진이 서 있게)
             640px 이상 = 예전처럼 왼쪽 글 한 열 + 오른쪽 큰 사진(두 줄에 걸침). DOM 은 하나, 격자 자리만 바꾼다
-            PC(1024px 이상, 2026-10-08 사용자: 글과 사진이 너무 멀다) = 글 열은 내용 폭만(fit-content), 사진은 글 바로 옆 */}
-        <div className="relative mx-auto grid max-w-page grid-cols-[minmax(0,1fr)_auto] px-4 sm:min-h-[300px] lg:grid-cols-[fit-content(40rem)_auto] lg:justify-start lg:gap-x-10">
+            PC(1024px 이상, 2026-10-08 사용자: 글과 사진이 너무 멀다) = 사진은 글 바로 옆. 1280px 이상은 오른쪽 빈자리를 통산 기록 8칸으로 채우고 띠 아래 기록 줄은 숨김.
+            배경에 깔던 큰 팀 이름 글자는 사용자 요청으로 없앰) */}
+        <div className="relative mx-auto grid max-w-page grid-cols-[minmax(0,1fr)_auto] px-4 sm:min-h-[300px] lg:grid-cols-[fit-content(36rem)_auto] lg:justify-start lg:gap-x-10 xl:grid-cols-[fit-content(30rem)_auto_minmax(0,1fr)] xl:justify-normal">
           <div className="relative z-10 col-start-1 row-start-1 min-w-0 pb-3 pt-5 pr-2 sm:pb-0">
             <div className="flex items-center gap-2">
               <span className="inline-flex rounded-control bg-white p-1 shadow-card">
@@ -96,7 +91,7 @@ export default function PlayerHero({ entry, seasons, today, badges, milestones =
               </span>
             </div>
             {/* deslop-ignore-next-line 11 */}
-            <h1 className="mt-3 text-[2rem] font-black leading-[1.1] tracking-tight [overflow-wrap:anywhere] sm:text-5xl lg:text-6xl">
+            <h1 id="player-name" className="mt-3 text-[2rem] font-black leading-[1.1] tracking-tight [overflow-wrap:anywhere] sm:text-5xl lg:text-6xl">
               {entry.nameKo}
             </h1>
             <p className="mt-1 truncate text-sub font-medium opacity-85 sm:text-body">{entry.nameEn}</p>
@@ -176,16 +171,32 @@ export default function PlayerHero({ entry, seasons, today, badges, milestones =
               </dl>
             )}
           </div>
+          {/* 넓은 PC(1280px 이상): 통산 요약 8칸을 띠 오른쪽에 (그보다 좁으면 띠 아래 흰 줄) */}
+          <div
+            className="relative z-10 hidden min-w-0 self-center py-6 xl:col-start-3 xl:row-span-2 xl:row-start-1 xl:block"
+            style={{ "--hero-floor": floor } as React.CSSProperties}
+          >
+            <dl className="tabular grid grid-cols-4 gap-1.5">
+              {tiles.map((t) => (
+                <div key={t.label} className="min-w-0 rounded-card bg-[var(--hero-floor)] px-3 py-2.5">
+                  <dt className="truncate text-sub font-medium opacity-75">{t.label}</dt>
+                  <dd className="mt-0.5 text-2xl font-bold tracking-tight">{t.value}</dd>
+                  {"sub" in t && t.sub && <dd className="whitespace-nowrap text-caption opacity-75">{t.sub}</dd>}
+                </div>
+              ))}
+            </dl>
+            <p className="mt-2 text-caption opacity-75">{careerNote}</p>
+          </div>
         </div>
       </div>
 
       {/* ── 통산 요약 + 소속 이력 ── */}
       <div className="mx-auto max-w-page px-4">
-        <dl className="tabular -mt-px grid grid-cols-4 gap-px overflow-hidden rounded-b-container border border-t-0 border-line bg-line shadow-card lg:grid-cols-8">
+        <dl className="tabular -mt-px grid grid-cols-4 gap-px overflow-hidden rounded-b-container border border-t-0 border-line bg-line shadow-card lg:grid-cols-8 xl:hidden">
           {tiles.map((t) => (
             <div key={t.label} className="min-w-0 bg-surface px-1.5 py-3 text-center sm:px-3">
               <dt className="truncate text-caption font-medium text-ink-3 sm:text-sub">
-                {t.perGame ? <span className="hidden sm:inline">경기당 </span> : null}
+                {t.perGame ? <span className="hidden sm:inline lg:hidden">경기당 </span> : null}
                 {t.label}
               </dt>
               <dd className="mt-0.5 text-xl font-bold tracking-tight text-ink sm:text-3xl lg:text-2xl">{t.value}</dd>
@@ -193,9 +204,7 @@ export default function PlayerHero({ entry, seasons, today, badges, milestones =
             </div>
           ))}
         </dl>
-        <p className="mt-1.5 text-caption text-ink-3">
-          통산 {sum.seasons}시즌 정규시즌 · 득점~블록은 경기당 · 승패는 뛴 경기만{sum.winPct !== null ? ` (승률 ${NF1.format(sum.winPct)}%)` : ""}
-        </p>
+        <p className="mt-1.5 text-caption text-ink-3 xl:hidden">{careerNote}</p>
 
         {awards.length > 0 && (
           <section aria-labelledby="awards-title" className="mt-4">

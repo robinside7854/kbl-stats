@@ -305,3 +305,37 @@ export const NOTIF_KIND_LABEL: Record<NotifKind, string> = {
   highlight: "하이라이트",
   player_game: "선수 기록",
 };
+
+// ─────────────────────────────────────────────
+// 종류별 켜기·끄기 (2026-10-08 토스 검토 B-7) — 알림함·폰 알림 공용. 저장은 "끈 묶음" 목록
+// (새 종류가 생기면 기본으로 켜지게). 로그인 회원은 계정(members.notif_off), 아니면 이 브라우저.
+// ─────────────────────────────────────────────
+
+export type NotifGroup = "team" | "player" | "highlight" | "record";
+
+export const NOTIF_GROUPS: { key: NotifGroup; label: string; desc: string; kinds: NotifKind[] }[] = [
+  { key: "team", label: "응원팀 경기 결과", desc: "응원팀이 이기거나 졌을 때 점수와 팀 득점 1위", kinds: ["team_result"] },
+  { key: "player", label: "즐겨찾기 선수 기록", desc: "그 경기 득점·리바운드·어시스트", kinds: ["player_game"] },
+  { key: "highlight", label: "하이라이트 영상", desc: "응원팀 경기 하이라이트가 올라오면", kinds: ["highlight"] },
+  { key: "record", label: "기록 달성", desc: "커리어 하이, 이번 시즌 최다, 통산 이정표", kinds: ["high", "milestone"] },
+];
+
+const GROUP_OF_KIND = new Map<NotifKind, NotifGroup>(NOTIF_GROUPS.flatMap((g) => g.kinds.map((k) => [k, g.key] as const)));
+
+export function notifGroupOf(kind: NotifKind): NotifGroup {
+  return GROUP_OF_KIND.get(kind) ?? "record";
+}
+
+/** 저장된 값 → 끈 묶음 목록 (모르는 값·중복은 버린다) */
+export function parseNotifOff(input: unknown): NotifGroup[] {
+  if (!Array.isArray(input)) return [];
+  const keys = new Set<string>(NOTIF_GROUPS.map((g) => g.key));
+  return NOTIF_GROUPS.map((g) => g.key).filter((k) => input.includes(k) && keys.has(k));
+}
+
+/** 끈 묶음 소식 빼기 */
+export function withoutOffGroups(items: readonly NotifItem[], off: readonly string[]): NotifItem[] {
+  if (off.length === 0) return items.slice();
+  const set = new Set(off);
+  return items.filter((it) => !set.has(notifGroupOf(it.kind)));
+}

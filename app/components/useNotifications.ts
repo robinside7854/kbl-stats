@@ -1,11 +1,12 @@
 "use client";
 // 알림함 (2026-10-08): /notifications.json(빌드 때 만든 최근 경기 소식, scripts/build-notifications.ts)에서
 // 이 브라우저 즐겨찾기 선수·로그인 회원 응원팀 것만 고른다(lib/notifications myNotifs). 읽음은 이 브라우저 localStorage.
-// 즐겨찾기도 응원팀도 없으면 파일을 받지 않는다(요청 아끼기).
+// 즐겨찾기도 응원팀도 없으면 파일을 받지 않는다(요청 아끼기). 끈 종류(notif-prefs, 2026-10-08)는 빼고 센다.
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { initialSeen, mergeSeen, myNotifs, type NotifFeed, type NotifItem } from "@/lib/notifications";
+import { initialSeen, mergeSeen, myNotifs, withoutOffGroups, type NotifFeed, type NotifItem } from "@/lib/notifications";
 import { ACCOUNT_EVENT, cachedMember, hasSignedInHint, lastKnownMember } from "./account-client";
 import { useFavorites } from "./useFavorites";
+import { useNotifPrefs } from "./notif-prefs";
 
 const SEEN_KEY = "kbl-stats:notif-seen:v1";
 const SEEN_EVENT = "kbl-notif-seen";
@@ -46,6 +47,7 @@ function memberTeams(): string[] {
 
 export function useNotifications() {
   const fav = useFavorites();
+  const prefs = useNotifPrefs();
   const [teams, setTeams] = useState<string[]>([]);
   const [feed, setFeed] = useState<NotifFeed | null>(null);
   const [seen, setSeen] = useState<string[] | null>(null);
@@ -82,7 +84,10 @@ export function useNotifications() {
     };
   }, [fav.ready, subscribed]);
 
-  const mine: NotifItem[] = useMemo(() => (feed ? myNotifs(feed.items, fav.list, teams) : []), [feed, fav.list, teams]);
+  const mine: NotifItem[] = useMemo(
+    () => (feed ? withoutOffGroups(myNotifs(feed.items, fav.list, teams), prefs.off) : []),
+    [feed, fav.list, teams, prefs.off],
+  );
 
   // 처음 쓰는 브라우저: 가장 최근 경기일 것만 새 알림으로
   useEffect(() => {
@@ -96,5 +101,5 @@ export function useNotifications() {
     writeSeen(mergeSeen(readSeen() ?? [], mine.map((it) => it.id)));
   }, [mine]);
 
-  return { mine, unread, seenSet, seenReady: seen !== null, markAllRead, loaded, subscribed, favorites: fav.list, teams, seasonCode: feed?.seasonCode ?? null };
+  return { prefs, mine, unread, seenSet, seenReady: seen !== null, markAllRead, loaded, subscribed, favorites: fav.list, teams, seasonCode: feed?.seasonCode ?? null };
 }

@@ -92,6 +92,15 @@ console.log("notifications: 통과");
   const sentAll = new Set(picked.map((i) => i.id));
   assert.equal(pickPushItems(items, { favorites: ["A"], teams: ["55"], sent: sentAll }).length, 0);
   assert.equal(pickPushItems(items, { favorites: [], teams: [], sent: new Set() }).length, 0);
+  // 끈 종류는 빼고 (2026-10-08 B-7)
+  const { notifGroupOf, parseNotifOff, withoutOffGroups } = await import("../lib/notifications");
+  assert.deepEqual(parseNotifOff(["record", "x", "team", "team"]), ["team", "record"]);
+  assert.deepEqual(parseNotifOff("team"), []);
+  assert.equal(notifGroupOf("milestone"), "record");
+  assert.equal(notifGroupOf("team_result"), "team");
+  const noTeam = pickPushItems(items, { favorites: ["A"], teams: ["55"], sent: new Set(), off: ["team"] });
+  assert.ok(noTeam.every((i) => i.kind !== "team_result"));
+  assert.equal(withoutOffGroups(items, ["team", "player", "highlight", "record"]).length, 0);
   // 하나로 묶기
   const one = composePush(picked.slice(0, 1))!;
   assert.equal(one.title, picked[0].title);

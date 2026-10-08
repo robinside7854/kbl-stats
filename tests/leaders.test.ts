@@ -280,3 +280,23 @@ console.log("leaders: 모든 검사 통과");
   assert.deepEqual(primaryCategoriesOf(["points", "per"]), ["points"]);
   console.log("leaders: 부문 칩 한 줄 통과");
 }
+
+// ── 순위 변동 (2026-10-08) ──
+{
+  const { previousLines, withPrevious, rankChanges, rankMap: rm } = await import("../lib/leaders");
+  const day = (id: string, pts: number) => ({ id, sec: 1800, pts, reb: 0, ast: 0, stl: 0, blk: 0, tpm: 0 });
+  const ps = [mk({ id: "a", games: 2, minutes: 60, points: 40 }), mk({ id: "b", games: 2, minutes: 60, points: 30 }), mk({ id: "c", games: 1, minutes: 30, points: 25 })];
+  // 마지막 경기일: a 5점, c 25점(첫 경기) → 그 전엔 a 35/1경기, b 30/2(안 뜀), c 없음
+  const prev = previousLines(ps, [day("a", 5), day("c", 25)]);
+  assert.equal(prev.a.points, 35);
+  assert.equal(prev.a.games, 1);
+  const before = withPrevious(ps, prev);
+  assert.deepEqual(before.map((p) => p.id), ["a", "b"]); // c 는 그때 0경기
+  const cur = rm(ps, "points", "perGame"); // c 25 > a 20 > b 15
+  const old = rm(before, "points", "perGame"); // a 35 > b 15
+  const ch = rankChanges(cur, old);
+  assert.equal(ch.get("c")?.kind, "new");
+  assert.deepEqual(ch.get("a"), { kind: "down", delta: 1 });
+  assert.deepEqual(ch.get("b"), { kind: "down", delta: 1 }); // 2위 → 3위
+  console.log("leaders: 순위 변동 통과");
+}

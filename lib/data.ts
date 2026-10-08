@@ -42,7 +42,7 @@ import {
   type SeasonBestKey,
 } from "./records";
 import { buildSeasonHighCards, formatHighDate, formatHighShot, formatHighTimes, SEASON_HIGH_LEADER_KEYS, type SeasonHighCard } from "./highs";
-import { AWARD_LABELS, seasonShortLabel } from "./career";
+import { AWARD_LABELS, gameRanges, seasonShortLabel, type GameRangeSet, type PlayerGameLine } from "./career";
 import { nationalityOf, schoolGroupOf } from "./roster";
 import { findSimilar, toAxisVector, type SimilarEntry, type SimilarVector } from "./similar";
 import { pickPrimeSeasons, primeCandidatesOf, type PrimeCandidate } from "./prime";
@@ -55,7 +55,7 @@ import {
   buildTenures, franchiseLeaders, franchiseTotals, lineageChain, longestTenures, nameSpans, pickLegends, playoffStage, TEAM_LEADER_STATS,
   type PlayerTenure, type RosterRow, type SeasonPlayerLine, type TeamAwardLine, type TeamBrand, type TeamIndexEntry, type TeamPageData, type TeamSeasonRow,
 } from "./franchise";
-import { seasonLeaderMarks, type LeaderStatKey, type StatMode } from "./leaders";
+import { previousLines, seasonLeaderMarks, type DayLine, type LeaderStatKey, type PrevLine, type StatMode } from "./leaders";
 import { buildBadgeIndex, playerBadges, type BadgeCareer, type BadgeIndex, type BadgeSeasonRow, type PlayerBadge } from "./badges";
 
 const PROCESSED_DIR = path.join(process.cwd(), "data", "processed");
@@ -100,6 +100,35 @@ export function loadSeasonGames(seasonCode: number): SeasonGame[] {
   return games;
 }
 
+/** 시즌 → 선수 번호 → 그 시즌 경기별 기록 (박스스코어가 있는 경기, 출전한 경기만). 선수 범위 막대(lib/career gameRanges)용 */
+const gameLinesCache = new Map<number, Map<string, PlayerGameLine[]>>();
+function seasonGameLines(seasonCode: number): Map<string, PlayerGameLine[]> {
+  const hit = gameLinesCache.get(seasonCode);
+  if (hit) return hit;
+  const out = new Map<string, PlayerGameLine[]>();
+  for (const g of loadSeasonGames(seasonCode)) {
+    if (!g.ended || !g.box) continue;
+    for (const r of [...g.box.home, ...g.box.away]) {
+      if (r.sec <= 0) continue;
+      const list = out.get(r.id) ?? [];
+      list.push({ date: g.date, pts: r.pts, reb: r.reb, ast: r.ast });
+      out.set(r.id, list);
+    }
+  }
+  gameLinesCache.set(seasonCode, out);
+  return out;
+}
+
+/** 이 선수의 시즌별 경기 범위 (시즌 코드 → 범위). 박스스코어가 있고 RANGE_MIN_GAMES 경기 이상 뛴 시즌만 */
+export function loadPlayerGameRanges(playerNo: string, seasonCodes: readonly number[]): Record<number, GameRangeSet> {
+  const out: Record<number, GameRangeSet> = {};
+  for (const code of seasonCodes) {
+    const r = gameRanges(seasonGameLines(code).get(playerNo) ?? []);
+    if (r) out[code] = r;
+  }
+  return out;
+}
+
 /**
  * 경기 화면용 팀 이름·로고 (팀 코드 → 정보). 그 시즌 팀표가 먼저, 아직 기록이 없는 팀(개막 직후)은 직전 시즌 팀표.
  * 홈 "오늘의 경기"·일정 화면 공용.
@@ -128,6 +157,22 @@ export function dataAsOfDate(): string | null {
 export function dataAsOfLabel(): string | null {
   const d = dataAsOfDate();
   return d ? asOfLabel(d) : null;
+}
+
+/**
+ * 리더보드 순위 변동 재료 (진행 중 시즌만, lib/leaders previousLines): 마지막 경기일 기록을 뺀 "그 전 경기일까지" 합계.
+ * 마지막 경기일 경기 중 박스스코어가 없는 게 있거나, 그 전 경기일이 없으면(개막일) null
+ */
+export function loadLeaderPrevious(seasonCode: number): { date: string; lines: Record<string, PrevLine> } | null {
+  if (!isSeasonOngoing(seasonCode)) return null;
+  const season = loadSeasonData(seasonCode);
+  const games = loadSeasonGames(seasonCode);
+  const day = latestGameDay(games);
+  if (!season || !day || day.games.some((g) => g.ended && !g.box)) return null;
+  const prevDate = games.reduce<string | null>((m, g) => (g.ended && g.date < day.date && (!m || g.date > m) ? g.date : m), null);
+  if (!prevDate) return null;
+  const rows: DayLine[] = day.games.flatMap((g) => [...(g.box?.home ?? []), ...(g.box?.away ?? [])]);
+  return { date: prevDate, lines: previousLines(toLeaderPlayers(season), rows) };
 }
 
 let latestWithPlayers: number | null | undefined;

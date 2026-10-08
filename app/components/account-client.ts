@@ -122,7 +122,7 @@ async function send(method: "PATCH" | "PUT" | "DELETE" | "POST", url: string, bo
 
 export type SaveResult = { ok: true; member: MemberView } | { ok: false; message: string };
 
-export async function saveProfile(patch: { nickname?: string; teamCodes?: string[] }): Promise<SaveResult> {
+export async function saveProfile(patch: { nickname?: string; teamCodes?: string[]; notifOff?: string[] }): Promise<SaveResult> {
   try {
     const r = await send("PATCH", "/api/me", patch);
     if (!r.ok) return { ok: false, message: typeof r.data.message === "string" ? r.data.message : "저장하지 못했어요. 잠시 뒤 다시 해 주세요." };

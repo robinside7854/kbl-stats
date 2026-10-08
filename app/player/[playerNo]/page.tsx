@@ -22,8 +22,10 @@ import {
   loadSimilarPlayers,
   loadMilestones,
   loadCareerTotals,
+  loadPlayerGameRanges,
 } from "@/lib/data";
-import { activeSpanLabel, seoulDateIso } from "@/lib/career";
+import { activeSpanLabel, seasonShortLabel, seoulDateIso } from "@/lib/career";
+import { teamShortLabel } from "@/lib/images";
 import { buildSeasonCardView } from "@/lib/cardview";
 import { POSITION_GROUP_LABELS } from "@/lib/roster";
 import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
@@ -32,6 +34,7 @@ import CareerTable from "@/app/components/CareerTable";
 import CareerTrend from "@/app/components/CareerTrend";
 import PlayerHero from "@/app/components/PlayerHero";
 import RecentPlayerMark from "@/app/components/RecentPlayerMark";
+import PlayerSectionNav from "@/app/components/PlayerSectionNav";
 import PlayerSeasonCards from "@/app/components/PlayerSeasonCards";
 import SiteNav from "@/app/components/SiteNav";
 import SourceFooter from "@/app/components/SourceFooter";
@@ -87,6 +90,13 @@ export default async function PlayerPage({ params }: { params: Params }) {
       <SiteNav seasons={allSeasons} seasonCode={allSeasons[0]?.seasonCode ?? latest.seasonCode} view="player" wide />
       <main className="pb-2">
         <RecentPlayerMark playerId={entry.id} />
+        <PlayerSectionNav
+          playerId={entry.id}
+          nameKo={entry.nameKo}
+          photoUrl={entry.photoUrl}
+          teamLabel={`${seasonShortLabel(latest.seasonLabel)} ${teamShortLabel(latest.team?.shortName ?? latest.teamShort)}`}
+          color={latest.team?.color ?? FALLBACK_TEAM_COLOR}
+        />
         <PlayerHero entry={entry} seasons={seasons} today={today} badges={badges} milestones={loadMilestones(playerNo)} />
         <div className="mx-auto mt-6 max-w-page px-4">
           {card ? (
@@ -102,6 +112,7 @@ export default async function PlayerPage({ params }: { params: Params }) {
               initialShots={loadPlayerShots(latest.seasonCode, playerNo)}
               similar={loadSimilarPlayers(playerNo)}
               primeSeason={loadPrimeSeason(playerNo)}
+              gameRanges={loadPlayerGameRanges(playerNo, seasons.map((s) => s.seasonCode))}
             />
           ) : (
             trend

@@ -137,3 +137,25 @@ console.log("games: 팀 순위 통과");
   assert.equal(initialScheduleScope("엉뚱", true), "mine");
   console.log("games: 내 응원팀 일정 통과");
 }
+
+// 이 경기 포인트 (2026-10-08 B-8)
+{
+  const { gameKeyPoints } = await import("../lib/games");
+  const p = (id: string, o: Partial<GameBoxRow>) => ({ id, nameKo: id, sec: 1000, pts: 0, oreb: 0, dreb: 0, reb: 0, ast: 0, stl: 0, blk: 0, tov: 0, pf: 0, fgm: 0, fga: 0, tpm: 0, tpa: 0, ftm: 0, fta: 0, ...o }) as GameBoxRow;
+  const g = (hs: number, as: number, home: GameBoxRow[], away: GameBoxRow[]) =>
+    ({ gmkey: "S1G01N1", date: "2026-10-08", start: null, stadium: null, ended: true, home: { teamCode: "1", name: "H", score: hs }, away: { teamCode: "2", name: "A", score: as }, box: { home, away } }) as const;
+  const names = { home: "홈", away: "원정" };
+  // 2점 차 접전 + 트리플더블 + 리바운드 12개 더
+  const close = g(80, 78, [p("가", { pts: 15, reb: 20, ast: 10 }), p("나", { pts: 31, fgm: 12, fga: 20 })], [p("다", { pts: 20, reb: 8 })]);
+  assert.deepEqual(gameKeyPoints(close, names), ["홈 2점 차 접전 끝에 승리", "가(홈) 트리플더블 · 15점 20리바 10어시", "홈 리바운드 12개 더 (20-8)"]);
+  // 대승 + 30점(3점 3개 이상) · 팀 차이 없음
+  const blow = g(70, 95, [p("가", { pts: 10, reb: 5 })], [p("다", { pts: 33, fgm: 11, fga: 18, tpm: 4, reb: 3 })]);
+  assert.deepEqual(gameKeyPoints(blow, names), ["원정 25점 차 대승", "다(원정) 33점 · 야투 11/18 · 3점 4개"]);
+  // 진 팀이 턴오버 적음
+  const tov = g(85, 80, [p("가", { pts: 20, tov: 15 })], [p("다", { pts: 20, tov: 8 })]);
+  assert.deepEqual(gameKeyPoints(tov, names), ["원정 턴오버 7개 적음 (8-15)"]);
+  // 박스스코어가 없거나 안 끝난 경기는 없음
+  assert.deepEqual(gameKeyPoints({ ...close, box: null }, names), []);
+  assert.deepEqual(gameKeyPoints({ ...close, ended: false }, names), []);
+  console.log("games: 이 경기 포인트 통과");
+}

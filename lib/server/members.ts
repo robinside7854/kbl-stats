@@ -10,6 +10,7 @@ import {
   LOGIN_PROVIDERS, MAX_FAVORITES, MAX_LIKES, MAX_TEAMS, mergeFavorites, normalizeTeamCodes, providerOfMemberId, sanitizeFavorites,
   type AdminMemberRow, type GameRanking, type GameRankRow, type LikeCounts, type RankingWeek, GAME_RANKING_LIMIT, kstWeekStart, type LikeKind, type LoginProvider, type MemberView, type MyLikes,
 } from "../account";
+import { parseNotifOff } from "../notifications";
 
 /** SQL 문장 + 값($1, $2 …) → 행 목록 */
 export type Query = (text: string, params?: unknown[]) => Promise<Record<string, unknown>[]>;
@@ -82,6 +83,8 @@ export const SCHEMA_SQL = [
     sent_at timestamptz NOT NULL DEFAULT now(),
     PRIMARY KEY (member_id, notif_id)
   )`,
+  // 알림 종류별 끄기 (2026-10-08) — 끈 묶음 키(lib/notifications NOTIF_GROUPS)
+  `ALTER TABLE members ADD COLUMN IF NOT EXISTS notif_off text[] NOT NULL DEFAULT '{}'`,
   // 연결 기능 이전 회원(로그인 수단이 하나도 안 적힌 회원): 회원 번호가 곧 로그인 번호
   `INSERT INTO member_logins (login_id, member_id, provider)
     SELECT m.id, m.id, m.provider FROM members m
@@ -149,10 +152,11 @@ async function likesOf(q: Query, memberId: string): Promise<MyLikes> {
 }
 
 async function viewOf(q: Query, memberId: string, loginId: string): Promise<MemberView> {
-  const rows = await q(`SELECT nickname, team_codes, favorites FROM members WHERE id = $1`, [memberId]);
+  const rows = await q(`SELECT nickname, team_codes, favorites, notif_off FROM members WHERE id = $1`, [memberId]);
   const row = rows[0];
   const teamCodes = teamsOf(row?.team_codes);
   return {
+    notifOff: parseNotifOff(row?.notif_off),
     provider: providerOfMemberId(loginId),
     nickname: (row?.nickname as string | null) ?? null,
     teamCode: teamCodes[0] ?? null,
@@ -174,7 +178,7 @@ export type ProfileResult = { ok: true; member: MemberView } | { ok: false; erro
 export async function updateProfile(
   q: Query,
   loginId: string,
-  patch: { nickname?: string | null; teamCode?: string | null; teamCodes?: string[] },
+  patch: { nickname?: string | null; teamCode?: string | null; teamCodes?: string[]; notifOff?: string[] },
 ): Promise<ProfileResult> {
   const id = await resolveMemberId(q, loginId);
   if (patch.nickname) {
@@ -185,6 +189,7 @@ export async function updateProfile(
     if (patch.nickname !== undefined) await q(`UPDATE members SET nickname = $2, updated_at = now() WHERE id = $1`, [id, patch.nickname]);
     const teams = patch.teamCodes !== undefined ? patch.teamCodes.slice(0, MAX_TEAMS) : patch.teamCode !== undefined ? (patch.teamCode ? [patch.teamCode] : []) : null;
     if (teams) await q(`UPDATE members SET team_codes = $2::text[], team_code = $3, updated_at = now() WHERE id = $1`, [id, teams, teams[0] ?? null]);
+    if (patch.notifOff !== undefined) await q(`UPDATE members SET notif_off = $2::text[], updated_at = now() WHERE id = $1`, [id, parseNotifOff(patch.notifOff)]);
   } catch (e) {
     // 거의 동시에 같은 닉네임을 저장한 경우 (유일 인덱스)
     if (String((e as { code?: string })?.code) === "23505") return { ok: false, error: "nickname_taken" };
@@ -467,14 +472,16 @@ export interface PushTarget {
   subscriptions: PushSubscriptionRow[];
   /** 이미 보낸 알림 번호 */
   sent: Set<string>;
+  /** 끈 알림 묶음 */
+  off: string[];
 }
 
 /** 보낼 대상: 구독 기기가 있는 회원마다 즐겨찾기·응원팀·기기·보낸 알림 */
 export async function pushTargets(q: Query): Promise<PushTarget[]> {
-  const rows = await q(`SELECT m.id, m.favorites, m.team_codes,
+  const rows = await q(`SELECT m.id, m.favorites, m.team_codes, m.notif_off,
       json_agg(json_build_object('endpoint', s.endpoint, 'p256dh', s.p256dh, 'auth', s.auth)) AS subs
     FROM push_subscriptions s JOIN members m ON m.id = s.member_id
-    GROUP BY m.id, m.favorites, m.team_codes`);
+    GROUP BY m.id, m.favorites, m.team_codes, m.notif_off`);
   const sentRows = await q(`SELECT member_id, notif_id FROM push_sent`);
   const sent = new Map<string, Set<string>>();
   for (const r of sentRows) {
@@ -490,6 +497,7 @@ export async function pushTargets(q: Query): Promise<PushTarget[]> {
       teams: teamsOf(r.team_codes),
       subscriptions: subs,
       sent: sent.get(String(r.id)) ?? new Set(),
+      off: parseNotifOff(r.notif_off),
     };
   });
 }

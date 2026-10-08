@@ -80,7 +80,7 @@ await ensureSchema(q); // 두 번 불러도 괜찮다
 const a = "google:111";
 const b = "naver:222";
 assert.deepEqual(await getOrCreateMember(q, a), {
-  provider: "google", nickname: null, teamCode: null, teamCodes: [], favorites: [], likes: { players: [], teams: [] }, logins: ["google"],
+  provider: "google", nickname: null, teamCode: null, teamCodes: [], favorites: [], notifOff: [], likes: { players: [], teams: [] }, logins: ["google"],
 });
 await getOrCreateMember(q, a); // 같은 회원 다시 — 중복 행 없음
 assert.equal((await q("SELECT count(*)::int AS n FROM members")).at(0)?.n, 1);
@@ -345,6 +345,11 @@ console.log("account: 계정 연결·관리자 규칙 통과");
   assert.deepEqual(ts[0].favorites, ["111", "222"]);
   assert.deepEqual(ts[0].teams, ["55"]);
   assert.equal(ts[0].subscriptions.length, 2);
+  assert.deepEqual(ts[0].off, []);
+  // 알림 종류 끄기 (2026-10-08) — 모르는 값은 버리고, 회원 정보·보낼 대상에 같이 보인다
+  const off = await updateProfile(q4, "google:p", { notifOff: ["highlight", "nope", "team"] });
+  assert.ok(off.ok && off.member.notifOff?.join() === "team,highlight");
+  assert.deepEqual((await pushTargets(q4))[0].off, ["team", "highlight"]);
   // 보낸 알림 적기 → 다음에 읽힘
   await markPushSent(q4, ts[0].memberId, ["r:1:55", "p:1:111"]);
   ts = await pushTargets(q4);
