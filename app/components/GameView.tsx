@@ -8,18 +8,19 @@ import Link from "next/link";
 import {
   canPick, decodeLineupParam, emptyLineup, encodeLineupParam, foreignCount, GAME_FOREIGN_MAX, GAME_ROUNDS, GAME_SEASON_GAMES,
   GAME_SLOTS, isLineupFull, lineupTotals, openSlotsFor, pickBlockReason, placePick, respinEra, respinTeam, resultVerdict,
-  simulateSeason, SLOT_LABELS, spin, teamOfCandidate, teamsOf, GAME_SPIN_TEAMS, filterByPositionChip, sortCandidatesBy, POSITION_CHIPS, SORT_COLUMNS, nextSort, schoolChemistryComment, CHEM_SCHOOL_MIN, CHEM_SCHOOL_BONUS, CHEM_PRIME_MIN, CHEM_PRIME_BONUS, CHEM_CHAMP_PER, type LineupBonus, type PositionChip, type SortDir, type SortKey, type SortStat, type GameCandidate, type GamePool, type GameTeam, type Lineup,
+  simulateSeason, findCandidateTeam, SLOT_LABELS, spin, teamOfCandidate, teamsOf, GAME_SPIN_TEAMS, filterByPositionChip, sortCandidatesBy, POSITION_CHIPS, SORT_COLUMNS, nextSort, schoolChemistryComment, CHEM_SCHOOL_MIN, CHEM_SCHOOL_BONUS, CHEM_PRIME_MIN, CHEM_PRIME_BONUS, CHEM_CHAMP_PER, type LineupBonus, type PositionChip, type SortDir, type SortKey, type SortStat, type GameCandidate, type GamePool, type GameTeam, type Lineup,
   type SeasonResult, type Spin,
 } from "@/lib/game";
-import { overallGrade, RADAR_AXES, RADAR_AXIS_LABELS } from "@/lib/metrics";
+import { RADAR_AXES, RADAR_AXIS_LABELS } from "@/lib/metrics";
 import { playerHref } from "@/lib/cardview";
 import { positionLabel } from "@/lib/roster";
-import { FALLBACK_TEAM_COLOR, gradeTone } from "@/lib/teams";
+import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
 import type { TeamColor } from "@/lib/types";
 import { teamShortLabel } from "@/lib/images";
 import ChipRow from "./ChipRow";
 import { IconChevronDown, IconChevronRight, IconChevronUp } from "./icons";
 import InfoLink from "./InfoLink";
+import GradeChip from "./GameGradeChip";
 import PlayerAvatar from "./PlayerAvatar";
 import Skeleton from "./Skeleton";
 import TeamLogo from "./TeamLogo";
@@ -374,8 +375,7 @@ export default function GameView() {
 }
 
 function findTeam(pool: GamePool, c: GameCandidate): GameTeam {
-  for (const e of pool.eras) for (const t of e.teams) if (t.candidates.includes(c)) return t;
-  return { teamCode: "", name: "", logoUrl: null, color: FALLBACK_TEAM_COLOR, candidates: [] };
+  return findCandidateTeam(pool, c) ?? { teamCode: "", name: "", logoUrl: null, color: FALLBACK_TEAM_COLOR, candidates: [] };
 }
 
 /** 슬롯머신 한 대: 이름표 + 창. 도는 동안 값이 바뀔 때마다 위에서 내려오고, 멈추면 한 번 튕긴다 */
@@ -974,16 +974,3 @@ function BonusList({ bonuses, picked }: { bonuses: LineupBonus[]; picked: Picked
   );
 }
 
-function GradeChip({ score, color, colors }: { score: number; color: TeamColor; colors: ThemeColors }) {
-  const grade = overallGrade(score);
-  const tone = gradeTone(grade, color, colors);
-  return (
-    <span
-      className="inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-control border px-1 text-caption font-black"
-      style={{ background: tone.bg, color: tone.ink, borderColor: tone.border }}
-      aria-label={`종합 등급 ${grade}`}
-    >
-      {grade}
-    </span>
-  );
-}

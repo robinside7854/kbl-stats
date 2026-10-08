@@ -545,3 +545,9 @@ export function recheckLineup(pool: GamePool, lineup: string): { wins: number; r
     names: players.map((p) => `${p.nameKo} ${p.season}`),
   };
 }
+
+/** 후보가 든 팀 (풀에서 찾기 — 공유 결과·주간 순위가 라인업 주소만 알 때) */
+export function findCandidateTeam(pool: GamePool, c: GameCandidate): GameTeam | null {
+  for (const e of pool.eras) for (const t of e.teams) if (t.candidates.includes(c)) return t;
+  return null;
+}
