@@ -83,8 +83,9 @@ export default function PlayerHero({ entry, seasons, today, badges, milestones =
         </span>
         {/* 배치 (2026-10-03 사용자: 폰에서 글이 길어 띠가 사진보다 훨씬 커 보임):
             폰 = [이름 묶음 | 사진] 한 줄 + 그 아래 칩·프로필을 띠 전체 폭으로(어두운 바닥 줄 위에 사진이 서 있게)
-            640px 이상 = 예전처럼 왼쪽 글 한 열 + 오른쪽 큰 사진(두 줄에 걸침). DOM 은 하나, 격자 자리만 바꾼다 */}
-        <div className="relative mx-auto grid max-w-page grid-cols-[minmax(0,1fr)_auto] px-4 sm:min-h-[300px]">
+            640px 이상 = 예전처럼 왼쪽 글 한 열 + 오른쪽 큰 사진(두 줄에 걸침). DOM 은 하나, 격자 자리만 바꾼다
+            PC(1024px 이상, 2026-10-08 사용자: 글과 사진이 너무 멀다) = 글 열은 내용 폭만(fit-content), 사진은 글 바로 옆 */}
+        <div className="relative mx-auto grid max-w-page grid-cols-[minmax(0,1fr)_auto] px-4 sm:min-h-[300px] lg:grid-cols-[fit-content(40rem)_auto] lg:justify-start lg:gap-x-10">
           <div className="relative z-10 col-start-1 row-start-1 min-w-0 pb-3 pt-5 pr-2 sm:pb-0">
             <div className="flex items-center gap-2">
               <span className="inline-flex rounded-control bg-white p-1 shadow-card">
@@ -110,7 +111,7 @@ export default function PlayerHero({ entry, seasons, today, badges, milestones =
               </div>
             )}
           </div>
-          <div className="relative col-start-2 row-start-1 -mr-2 self-end sm:row-span-2 sm:mr-4">
+          <div className="relative col-start-2 row-start-1 -mr-2 self-end sm:row-span-2 sm:mr-4 lg:mr-0">
             {/* flex 로 감싼다: 인라인이면 글자 기준선 아래 빈칸이 생겨 사진이 바닥 줄에서 떠 보인다 (2026-10-03) */}
             <span className="flex sm:hidden">
               <PlayerAvatar photoUrl={entry.photoUrl} nameKo={entry.nameKo} color={color} variant="portrait" size={200} />
