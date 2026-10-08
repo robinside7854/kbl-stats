@@ -2,6 +2,8 @@
 // 알림함과 같은 목록(scripts/notif-feed.ts) → 회원마다 즐겨찾기 선수·응원팀 새 소식(lib/push pickPushItems) → 기기마다 알림 하나(composePush).
 // 필요한 Secrets: DATABASE_URL(Neon — Vercel 과 같은 값), VAPID_PRIVATE_KEY. 공개 키는 data/codes/site.json pushPublicKey.
 // 둘 중 하나라도 없으면 아무것도 안 하고 끝난다(수집을 막지 않는다). 실패도 경고만.
+// --test: 소식 대신 "테스트 알림" 하나를 켜 둔 모든 기기에 보낸다(보낸 기록은 안 남김) — .github/workflows/push-check.yml
+// 결과는 Actions 화면 notice 한 줄로도 남긴다(세션은 로그를 못 읽어 check-run 주석으로 확인).
 import { neon } from "@neondatabase/serverless";
 import webpush from "web-push";
 import site from "../data/codes/site.json";
@@ -9,12 +11,21 @@ import { composePush, pickPushItems, pushPublicKey } from "../lib/push.js";
 import { ensureSchema, markPushSent, prunePushSent, pushTargets, removePushEndpoint, type Query } from "../lib/server/members.js";
 import { buildNotifFeed } from "./notif-feed.js";
 
+const TEST_PAYLOAD = { title: "폰 알림 테스트", body: "이 알림이 보이면 잘 켜진 거예요", url: "/notifications", tag: "kbl-test" };
+
+/** 로그 + Actions 화면 notice (GitHub 이 실행 결과 주석으로 보여 준다) */
+function notice(text: string) {
+  console.log(`폰 알림: ${text}`);
+  if (process.env.GITHUB_ACTIONS) console.log(`::notice title=폰 알림::${text}`);
+}
+
 async function main() {
   const url = process.env.DATABASE_URL ?? process.env.POSTGRES_URL ?? "";
   const privateKey = process.env.VAPID_PRIVATE_KEY ?? "";
   const publicKey = pushPublicKey();
+  const test = process.argv.includes("--test");
   if (!url || !privateKey || !publicKey) {
-    console.log("폰 알림: 설정 없음(DATABASE_URL·VAPID_PRIVATE_KEY) — 건너뜀");
+    notice(`설정 없음 (DATABASE_URL ${url ? "있음" : "없음"} · VAPID_PRIVATE_KEY ${privateKey ? "있음" : "없음"}) — 건너뜀`);
     return;
   }
   webpush.setVapidDetails(site.siteUrl, publicKey, privateKey);
@@ -28,8 +39,8 @@ async function main() {
   let gone = 0;
   let failed = 0;
   for (const t of targets) {
-    const items = pickPushItems(feed.items, t);
-    const payload = composePush(items);
+    const items = test ? [] : pickPushItems(feed.items, t);
+    const payload = test ? TEST_PAYLOAD : composePush(items);
     if (!payload) continue;
     let delivered = false;
     for (const s of t.subscriptions) {
@@ -49,12 +60,14 @@ async function main() {
       }
     }
     // 한 기기라도 받았으면 보낸 것으로 (다음 수집 때 같은 소식을 다시 보내지 않게)
-    if (delivered) await markPushSent(q, t.memberId, items.map((it) => it.id));
+    if (delivered && !test) await markPushSent(q, t.memberId, items.map((it) => it.id));
   }
   await prunePushSent(q);
-  console.log(`폰 알림: 회원 ${targets.length}명 · 보냄 ${sent} · 없어진 기기 ${gone} · 실패 ${failed}`);
+  const devices = targets.reduce((n, t) => n + t.subscriptions.length, 0);
+  notice(`${test ? "테스트 · " : ""}켠 회원 ${targets.length}명(기기 ${devices}) · 보냄 ${sent} · 없어진 기기 ${gone} · 실패 ${failed}`);
 }
 
 main().catch((e) => {
   console.warn("폰 알림 보내기 실패 (수집에는 영향 없음):", e);
+  if (process.env.GITHUB_ACTIONS) console.log(`::warning title=폰 알림::보내기 실패 — ${String((e as Error)?.message ?? e).slice(0, 200)}`);
 });
