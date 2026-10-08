@@ -31,6 +31,27 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-10-08-notifications",
+    date: "2026-10-08",
+    kind: "update",
+    title: "알림함이 생겼어요",
+    summary: "즐겨찾기 선수 알림함",
+    blocks: [
+      { kind: "p", text: "화면 위 종을 누르면 즐겨찾기한 선수와 응원팀 소식이 모여 있어요. 새 소식이 있으면 종에 숫자가 떠요." },
+      {
+        kind: "list",
+        items: [
+          "응원팀 경기 결과랑 하이라이트 영상",
+          "즐겨찾기한 선수의 그날 기록",
+          "커리어 하이, 이번 시즌 최다, 통산 이정표 달성",
+          { text: "알림함 보기", href: "/notifications" },
+          { text: "선수 즐겨찾기하러 가기", href: "/players" },
+        ],
+      },
+      { kind: "p", text: "기록은 경기 끝나고 한두 시간 뒤에 들어와요. 응원팀 소식은 로그인하고 응원팀을 골라야 와요. 폰 알림은 다음에 붙일게요." },
+    ],
+  },
+  {
     slug: "2026-10-07-spacing",
     date: "2026-10-07",
     kind: "update",

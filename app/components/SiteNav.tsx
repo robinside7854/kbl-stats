@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 import type { SeasonOption } from "@/lib/types";
 import PlayerSearch from "./PlayerSearch";
 import AccountButton from "./AccountButton";
+import NotificationBell from "./NotificationBell";
 import RandomCardButton from "./RandomCardButton";
 import ShareButton from "./ShareButton";
 import UpdateBanner from "./UpdateBanner";
@@ -21,7 +22,7 @@ import { IconBall, IconCalendar, IconHome, IconLeaders, IconPlayer, IconTeam } f
 import SiteLogo, { SITE_HEADER_NAME } from "./SiteLogo";
 import { trackEvent, trackFilters } from "./track";
 
-export type SiteView = "home" | "players" | "player" | "teams" | "team" | "leaders" | "schedule" | "compare" | "glossary" | "records" | "game" | "privacy" | "me" | "updates";
+export type SiteView = "home" | "players" | "player" | "teams" | "team" | "leaders" | "schedule" | "compare" | "glossary" | "records" | "game" | "privacy" | "me" | "updates" | "notifications";
 
 type MenuItem = { views: SiteView[]; label: string; short?: string; icon: (p: { size: 24 }) => React.ReactNode; href: (seasonCode: number) => string };
 const HOME: MenuItem = { views: ["home"], label: "홈", icon: IconHome, href: () => "/" };
@@ -77,12 +78,22 @@ export default function SiteNav({ seasons, seasonCode, view, onSeasonChange, wid
           <Link href="/" className="focus-ring order-1 inline-flex h-10 shrink-0 items-center gap-2 rounded-control text-body font-bold tracking-tight text-ink lg:h-12 lg:gap-2.5 lg:text-h2">
             <SiteLogo heightLg={30} />
             <span className="sr-only">KBL </span>
-            {SITE_HEADER_NAME}
+            {/* 440px 미만은 이름을 두 줄로 — 오른쪽 버튼 4개(랜덤·공유·알림·계정)가 첫 줄에 같이 들어가게 */}
+            <span className="max-[439px]:text-sub max-[439px]:leading-[1.1]">
+              {SITE_HEADER_NAME.split(" ").map((w, i) => (
+                <span key={w}>
+                  {i > 0 && <br className="min-[440px]:hidden" />}
+                  {i > 0 && <span className="max-[439px]:hidden"> </span>}
+                  {w}
+                </span>
+              ))}
+            </span>
           </Link>
           {/* 랜덤 카드·공유: 모바일은 첫 줄 오른쪽, PC 는 맨 끝 */}
-          <div className="order-2 flex shrink-0 items-center gap-2 sm:order-4">
+          <div className="order-2 flex shrink-0 items-center gap-1.5 min-[400px]:gap-2 sm:order-4">
             <RandomCardButton />
             <ShareButton />
+            <NotificationBell active={view === "notifications"} />
             <AccountButton active={view === "me"} />
           </div>
           {!hideSearch && <PlayerSearch className="order-4 w-full sm:order-2 sm:w-auto sm:max-w-xs sm:flex-1 lg:max-w-md" />}
