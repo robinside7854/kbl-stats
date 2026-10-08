@@ -76,3 +76,29 @@ assert.equal(big[big.length - 1], "new");
 assert.deepEqual(mergeSeen(["a"], ["a", "b"]), ["a", "b"]);
 
 console.log("notifications: 통과");
+
+// ── 폰 푸시 (lib/push) ──
+{
+  const { composePush, parsePushSubscription, pickPushItems, PUSH_OPEN_URL } = await import("../lib/push");
+  // 마지막 경기일(10-09)과 전날만, 안 보낸 것만
+  const picked = pickPushItems(items, { favorites: ["A"], teams: ["55"], sent: new Set() });
+  assert.ok(picked.length > 0 && picked.every((i) => i.date >= "2026-10-08"));
+  const sentAll = new Set(picked.map((i) => i.id));
+  assert.equal(pickPushItems(items, { favorites: ["A"], teams: ["55"], sent: sentAll }).length, 0);
+  assert.equal(pickPushItems(items, { favorites: [], teams: [], sent: new Set() }).length, 0);
+  // 하나로 묶기
+  const one = composePush(picked.slice(0, 1))!;
+  assert.equal(one.title, picked[0].title);
+  assert.equal(one.url, PUSH_OPEN_URL);
+  const many = composePush(picked)!;
+  assert.equal(many.title, picked[0].title);
+  if (picked.length > 2) assert.ok(many.body.includes(`외 ${picked.length - 2}개`));
+  assert.equal(composePush([]), null);
+  // 구독 검사
+  const ok = { endpoint: "https://fcm.googleapis.com/fcm/send/abc", keys: { p256dh: "B".repeat(87), auth: "x".repeat(22) } };
+  assert.ok(parsePushSubscription(ok));
+  assert.equal(parsePushSubscription({ ...ok, endpoint: "http://insecure" }), null);
+  assert.equal(parsePushSubscription({ ...ok, keys: { p256dh: "short", auth: "x".repeat(22) } }), null);
+  assert.equal(parsePushSubscription(null), null);
+  console.log("notifications: 폰 푸시 고르기·묶기·구독 검사 통과");
+}

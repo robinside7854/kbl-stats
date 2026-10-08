@@ -326,3 +326,53 @@ console.log("account: 계정 연결·관리자 규칙 통과");
   await db3.close();
   console.log("account: 54-0 내 기록(검사·저장·같은 라인업 한 줄·요약·지우기·상한·합치기·탈퇴)·주간 순위 통과");
 }
+
+// ── 폰 푸시 알림 구독 (2026-10-08) ──
+{
+  const { savePushSubscription, deletePushSubscription, hasPushSubscription, pushTargets, markPushSent, prunePushSent, removePushEndpoint } = await import("../lib/server/members");
+  const db4 = new PGlite();
+  const q4: Query = async (text, params) => (await db4.query(text, params ?? [])).rows as Record<string, unknown>[];
+  await ensureSchema(q4);
+  const sub = (n: number) => ({ endpoint: `https://push.example/${n}`, p256dh: "k".repeat(60), auth: "a".repeat(16) });
+  await setFavorites(q4, "google:p", ["111", "222"]);
+  await updateProfile(q4, "google:p", { teamCodes: ["55"] });
+  await savePushSubscription(q4, "google:p", sub(1));
+  await savePushSubscription(q4, "google:p", sub(2));
+  await savePushSubscription(q4, "google:p", sub(1)); // 같은 기기 다시 → 한 줄
+  assert.equal(await hasPushSubscription(q4, "google:p", sub(1).endpoint), true);
+  let ts = await pushTargets(q4);
+  assert.equal(ts.length, 1);
+  assert.deepEqual(ts[0].favorites, ["111", "222"]);
+  assert.deepEqual(ts[0].teams, ["55"]);
+  assert.equal(ts[0].subscriptions.length, 2);
+  // 보낸 알림 적기 → 다음에 읽힘
+  await markPushSent(q4, ts[0].memberId, ["r:1:55", "p:1:111"]);
+  ts = await pushTargets(q4);
+  assert.ok(ts[0].sent.has("r:1:55") && ts[0].sent.has("p:1:111"));
+  await prunePushSent(q4, 0); // 0일 → 지금보다 오래된 것 없음… 기록은 now() 라 남는다
+  // 같은 기기를 다른 계정이 켜면 그 계정으로 옮김
+  await savePushSubscription(q4, "naver:q", sub(2));
+  assert.equal(await hasPushSubscription(q4, "google:p", sub(2).endpoint), false);
+  assert.equal(await hasPushSubscription(q4, "naver:q", sub(2).endpoint), true);
+  // 남의 기기는 못 끈다, 내 기기는 끈다
+  await deletePushSubscription(q4, "naver:q", sub(1).endpoint);
+  assert.equal(await hasPushSubscription(q4, "google:p", sub(1).endpoint), true);
+  await deletePushSubscription(q4, "google:p", sub(1).endpoint);
+  assert.equal(await hasPushSubscription(q4, "google:p", sub(1).endpoint), false);
+  // 없어진 기기 지우기
+  await removePushEndpoint(q4, sub(2).endpoint);
+  assert.equal((await pushTargets(q4)).length, 0);
+  // 계정 합치기: 기기와 보낸 기록이 옮겨진다
+  await savePushSubscription(q4, "naver:q", sub(3));
+  await markPushSent(q4, await resolveMemberId(q4, "naver:q"), ["x"]);
+  assert.deepEqual(await linkLogin(q4, "google:p", "naver:q"), { ok: true, merged: true });
+  ts = await pushTargets(q4);
+  assert.equal(ts.length, 1);
+  assert.equal(ts[0].memberId, await resolveMemberId(q4, "google:p"));
+  assert.ok(ts[0].sent.has("x"));
+  // 탈퇴하면 기기도 지워진다
+  await deleteMember(q4, "google:p");
+  assert.equal((await pushTargets(q4)).length, 0);
+  await db4.close();
+  console.log("account: 폰 알림 구독(저장·옮김·끄기·보낸 기록·합치기·탈퇴) 통과");
+}

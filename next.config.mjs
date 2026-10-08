@@ -14,6 +14,8 @@ const CSP = [
   "img-src 'self' data: blob: https://kbl.or.kr https://*.google-analytics.com https://*.googletagmanager.com",
   "connect-src 'self' https://cdn.jsdelivr.net https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com",
   "frame-src https://www.youtube-nocookie.com",
+  // 폰 푸시 알림 받는 서비스 워커 public/sw.js (2026-10-08)
+  "worker-src 'self'",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
@@ -51,7 +53,11 @@ const nextConfig = {
   // 응답에 "X-Powered-By: Next.js" 를 붙이지 않는다 (쓰는 기술을 굳이 알리지 않게)
   poweredByHeader: false,
   async headers() {
-    return [{ source: "/:path*", headers: SECURITY_HEADERS }];
+    return [
+      { source: "/:path*", headers: SECURITY_HEADERS },
+      // 서비스 워커는 늘 새로 받게 (고친 내용이 기기에 바로 닿도록)
+      { source: "/sw.js", headers: [{ key: "Cache-Control", value: "no-cache" }] },
+    ];
   },
   // 화면은 data/processed 의 JSON만 읽는다 (빌드 시점). 타입 검사는 tsconfig.json(app+lib)만 대상.
 

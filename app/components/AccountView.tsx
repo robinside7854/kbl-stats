@@ -10,6 +10,7 @@ import {
   type LoginProvider, type MemberView,
 } from "@/lib/account";
 import type { TeamColor } from "@/lib/types";
+import { disablePush } from "./push-client";
 import { clearSuggestion, deleteAccount, fetchMe, forgetAccount, saveProfile, startLink, syncFavorites, unlinkProvider } from "./account-client";
 import LoginButtons from "./LoginButtons";
 import GameHistoryCard from "./GameHistoryCard";
@@ -146,11 +147,14 @@ function SignedIn({ member, suggested, teams, onChange }: { member: MemberView; 
 
   async function logout() {
     trackEvent("logout");
+    // 이 기기 폰 알림도 끈다 (로그아웃한 폰에 계정 소식이 계속 오지 않게)
+    await disablePush();
     forgetAccount();
     await signOut({ callbackUrl: "/me" });
   }
 
   async function remove() {
+    await disablePush();
     const ok = await deleteAccount();
     if (!ok) return setMessage({ ok: false, text: "탈퇴하지 못했어요. 잠시 뒤 다시 해 주세요." });
     trackEvent("account_delete");

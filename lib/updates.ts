@@ -31,6 +31,26 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-10-08-push",
+    date: "2026-10-08",
+    kind: "update",
+    title: "폰으로 알림을 받을 수 있어요",
+    summary: "폰 알림 켜기",
+    blocks: [
+      { kind: "p", text: "알림함 맨 위 \"켜기\"를 누르면 즐겨찾기 선수랑 응원팀 소식이 폰으로 와요. 사이트를 안 열어도 돼요." },
+      {
+        kind: "list",
+        items: [
+          "로그인한 상태에서 켤 수 있어요",
+          "아이폰은 사파리 공유 버튼에서 \"홈 화면에 추가\"로 설치한 앱에서 켜요",
+          "기록이 들어오고 몇 분 뒤 하루 한 번, 소식을 하나로 묶어서 보내요",
+          { text: "알림 켜러 가기", href: "/notifications" },
+        ],
+      },
+      { kind: "p", text: "업데이트 소식도 10개씩 쪽으로 나눴어요." },
+    ],
+  },
+  {
     slug: "2026-10-08-notifications",
     date: "2026-10-08",
     kind: "update",
@@ -387,4 +407,23 @@ export function itemText(item: UpdateItem): string {
 }
 export function itemHref(item: UpdateItem): string | null {
   return typeof item === "string" ? null : item.href;
+}
+
+/** 글쓴이 — 업데이트 소식은 운영자만 쓴다 (2026-10-08 사용자: 운영자가 올린 글인 걸 알게) */
+export const UPDATE_AUTHOR = "로방";
+
+/** 목록 한 쪽에 보이는 글 수 (2026-10-08 사용자: 10개씩) */
+export const UPDATES_PER_PAGE = 10;
+
+/** "?page=" 값 → 1 이상 정수 (이상한 값은 1) */
+export function parsePageParam(raw: string | null | undefined): number {
+  const n = Number(raw);
+  return Number.isInteger(n) && n >= 1 ? n : 1;
+}
+
+/** 목록 나누기: 쪽 번호가 넘치면 마지막 쪽 */
+export function paginate<T>(items: readonly T[], page: number, perPage = UPDATES_PER_PAGE): { items: T[]; page: number; totalPages: number } {
+  const totalPages = Math.max(1, Math.ceil(items.length / perPage));
+  const p = Math.min(Math.max(1, page), totalPages);
+  return { items: items.slice((p - 1) * perPage, p * perPage), page: p, totalPages };
 }

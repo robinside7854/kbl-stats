@@ -137,6 +137,20 @@ jobs:
             exit 1
           fi
 
+      # 폰 푸시 알림 (2026-10-08 알림 2단계) — 새 데이터(수집 또는 하이라이트 연결)를 올린 뒤, 즐겨찾기 선수·응원팀 새 소식을 회원 폰으로.
+      # 알림을 누르면 사이트 알림함이 열리므로 Vercel 재배포(약 4~5분)를 기다렸다 보낸다. Secrets DATABASE_URL·VAPID_PRIVATE_KEY 가 없으면 건너뜀.
+      # 실패해도 수집 결과에는 영향 없음 (scripts/send-push.ts)
+      - name: 폰 알림 보내기
+        if: always() && (steps.gate.outputs.run == 'true' || steps.hl.outputs.changed == 'true')
+        continue-on-error: true
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+        run: |
+          if [ -z "$DATABASE_URL" ] || [ -z "$VAPID_PRIVATE_KEY" ]; then echo "폰 알림 설정 없음 — 건너뜀"; exit 0; fi
+          sleep 300
+          npx tsx scripts/send-push.ts
+
       # Vercel 옛 배포 정리 — 무료 플랜엔 자동 삭제가 없어 배포가 하루 1개씩 쌓인다(2026-10-05 저장공간 10GB 초과). 최근 5개 + 현재 운영만 남긴다.
       # 토큰은 저장소 Secrets 의 VERCEL_TOKEN(없으면 건너뜀). 실패해도 수집 결과에는 영향 없음.
       - name: Vercel 옛 배포 정리 (저장공간)

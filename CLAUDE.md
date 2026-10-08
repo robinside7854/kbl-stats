@@ -181,6 +181,8 @@ kbl-stats/
 │   ├── prepare-short.ts ← 숏폼 렌더 준비: AI 목소리(ELEVENLABS_API_KEY+VOICE_ID 면 ElevenLabs 한 번에 읽기·글자 시각, 아니면 GOOGLE_TTS_API_KEY → Google, 그다음 edge-tts, 다 없으면 추정 길이)·사진·로고 받기·글꼴 복사 → shorts/public/{slug}/props.json·upload.txt (git 제외)
 │   ├── build-og.tsx     ← 공유 미리보기 이미지 public/og/*.png (prebuild, 1200×630, next/og + assets/fonts/Pretendard OFL): site(밝은 바탕 + KBL 리그 로고 — 빌드 때 1회 받아 캐시, 실패 시 글자 배지)·records·game·leaders/{시즌}·player/{번호} 약 1,370장·51MB. 사진·로고 없이 팀 색·이름·기록만(외부 요청 없음). 내용 해시로 .next/cache/og 재사용(첫 빌드 약 3분, 이후 바뀐 것만). git 제외
 │   ├── build-app-icons.ts ← 앱 설치 아이콘 public/icons/icon·maskable 192·512 PNG + app/icon.svg·apple-icon.png (그림 = 이 파일 안 KBL 글자·농구공·막대, 한 번 돌려 커밋 — prebuild 아님). 설치 설정은 app/manifest.ts
+│   ├── notif-feed.ts    ← 알림 목록 만들기 buildNotifFeed (build-notifications·send-push 공용)
+│   ├── send-push.ts     ← 폰 푸시 알림 보내기 (fetch.yml "폰 알림 보내기", Secrets DATABASE_URL·VAPID_PRIVATE_KEY, lib/push pickPushItems·composePush, web-push)
 │   ├── build-notifications.ts ← 알림함 목록 public/notifications.json (prebuild·predev, lib/notifications buildNotifItems — 최근 7일 경기, git 제외)
 │   ├── build-games.ts   ← 날짜별 박스스코어 파일 public/games/{시즌}/{날짜}.json (prebuild·predev, 일정 화면이 펼칠 때 받음, git 제외)
 │   └── build-cards.ts   ← 비교 탭용 시즌별 카드 데이터 public/cards/{seasonCode}.json 생성 (prebuild·predev, 형식은 lib/cards.ts v2 — 레이더 구성 요소 열 포함, 시즌당 약 28~55KB, git 제외)
@@ -230,6 +232,7 @@ kbl-stats/
 │   ├── server/          ← 서버 전용: auth.ts(next-auth 설정·currentLoginId·로그인 콜백에서 계정 연결), db.ts(Neon 연결·표 준비), members.ts(SQL — 표 members(응원팀 여러 팀 team_codes) + member_logins(로그인 번호 → 회원) + member_likes(좋아요) + member_games(54-0 내 기록, 라인업 하나에 한 줄·최근 200개, saveGameRecord·gameHistory·deleteGameRecord), resolveMemberId·linkLogin(합치기)·unlinkLogin·setLike·likeCounts·listMembers, 테스트는 PGlite), link.ts(연결 표시 쿠키 — 값은 lib/link-token.ts 서명·5분), admin.ts(ADMIN_LOGIN_IDS), api.ts(쓰기 요청 Origin·JSON 검사)
 │   ├── franchise.ts     ← 팀 페이지 규칙 (순수: 플레이오프 단계 playoffStage(우승·준우승·4강·6강, 정규 1·2위는 4강부터), 통산 franchiseTotals(통합 우승 = 정규 1위 + 우승), 레전드 isLegend·pickLegends(이 팀 10시즌 이상 — 2026-10-04 사용자 결정), 팀 통산 기록 buildTenures·franchiseLeaders, 이름 구간 nameSpans, 계보 lineageChain(data/codes/team-lineage.json — 매각으로 코드가 바뀐 구단 잇기, 손으로 관리)) — 재료는 lib/data loadFranchises·loadTeamIndex
 │   ├── notifications.ts ← 알림 규칙 (순수: windowGames·buildNotifItems(경기 결과·하이라이트·선수 기록·커리어 하이·시즌 최다·이정표)·myNotifs·initialSeen·mergeSeen) — 화면 useNotifications·NotificationBell·NotificationsView(/notifications)
+│   ├── push.ts          ← 폰 푸시 규칙 (순수: pickPushItems(마지막 경기일·전날·안 보낸 것)·composePush(알림 하나로 묶기)·parsePushSubscription·pushPublicKey(site.json)) — 화면 PushToggle·push-client·public/sw.js, 서버 /api/me/push, 보내기 scripts/send-push.ts
 │   ├── updates.ts       ← 업데이트 소식 글 (UPDATE_POSTS 새 글 맨 위·sortedPosts·latestPost·shouldShowBanner(닫은 글이면 숨김) — 글 쓰는 규칙은 "업데이트 소식 규칙")
 │   ├── favorites.ts     ← 즐겨찾기 (순수: parseFavorites·toggleFavorite, FAVORITES_VISIBLE 5 — 저장은 app/components/useFavorites localStorage)
 │   ├── prime.ts         ← 프라임 시즌 (pickPrimeSeasons·primeCandidatesOf)
@@ -329,12 +332,13 @@ kbl-stats/
   | login_prompt_click | place(schedule) | 로그인 안 한 방문자에게 보이는 "로그인하면 ~" 안내의 로그인 링크 |
   | app_install | (없음) | 앱 설치 완료 (브라우저 "앱 설치"·"홈 화면에 추가", `AppInstallTracker`) — 설치한 앱으로 연 방문은 사용자 속성 `display_mode`(standalone/browser) |
   | update_banner_click / update_banner_dismiss | post_slug | 헤더 아래 업데이트 띠배너 누르기 / 닫기 (게시판 열람은 page_view) |
-  | update_post_delete / update_post_restore | post_slug | 관리자가 업데이트 글 삭제 / 되돌리기 |
+  | update_post_delete | post_slug | 관리자가 업데이트 글 영구 삭제 (되돌리기는 2026-10-08 없앰) |
   | highlight_open | game_key(gmkey), season_code, place(home/schedule) | 경기 카드 "하이라이트" (유튜브 영상 팝업) |
   | boxscore_open | game_key(gmkey), season_code, place(home/schedule) | 홈 "오늘의 경기"·일정 화면 선수 기록 펼치기 (정렬·보기 전환은 filter_change screen=boxscore sort·view, 일정 달은 screen=schedule month) |
   | compare_open | player_no | 선수 상세 "비교" 버튼 (고른 선수는 search_select mode=compare) |
   | team_select | team_code, season_code 또는 place(teams) | 팀 순위·모든 팀에서 팀 누르기(→ 팀 페이지) |
   | share_click | method(native/copy), page | 헤더 공유 버튼 (폰은 기기 공유 창, PC 는 주소 복사) |
+  | push_enable / push_disable / push_click | result / result / (없음) | 알림함 폰 알림 켜기(on·denied·failed·signed_out) / 끄기(off·failed) / 폰 알림을 눌러 들어옴(?src=push) |
   | notif_open / notif_click | unread / kind | 헤더 알림 종 누르기(그때 새 소식 수) / 알림함 소식 누르기(high·milestone·team_result·highlight·player_game) |
   | filter_change (선수 기록표) | screen=player filter=career_kind value=regular/playoff | 선수 상세 시즌별 기록 정규시즌·플레이오프 전환 |
   | filter_change (역대 기록) | screen=records filter=tab · screen=records_game/records_season/records_awards filter=kind·category·mode·origin·active_only | 역대 기록 하위 탭·경기 구분·부문·합계/경기당·국적·현역만 |
@@ -343,7 +347,8 @@ kbl-stats/
 - **화면에 보이는 기능을 새로 만들거나 바꾸면 같은 커밋에 업데이트 소식 글을 하나 쓴다.** `lib/updates.ts UPDATE_POSTS` **맨 위에** 더한다(slug `YYYY-MM-DD-영어`, date 한국 날짜, kind update/guide, title, summary 20자 이하 — 폰 띠배너 한 줄, blocks). 맨 위 글이 모든 화면 헤더 아래 띠배너(`UpdateBanner`)에 자동으로 뜬다(닫으면 그 브라우저는 다음 새 글까지 숨김)
 - 말투: 짧게, 해요체, 캐주얼, AI 티 안 나게 — "뭐가 생겼는지·어디서 보는지"만. 긴 대시·느낌표·과장("획기적", "다양한") 금지, 설명 늘어놓지 않기. 고친 버그·데이터 수집·내부 정리처럼 팬이 볼 게 없는 일은 쓰지 않는다. 같은 날 작은 수정 여러 개는 글 하나로
 - 링크는 사이트 안 주소만(`{ text, href }`) — `tests/updates.test.ts` 가 순서·말투·링크를 확인
-- **관리자 삭제(2026-10-05)**: 관리자는 목록·글 화면의 "삭제"로 글을 숨긴다(DB 표 `hidden_updates` 에 글 번호만, `/api/updates/hidden` GET 공개 1분 캐시·POST 관리자만, 화면 `UpdateAdmin`·`useHiddenUpdates`). 글은 코드에 남고 관리자에게만 흐리게 + "되돌리기". 띠배너는 지운 글을 건너뛰고 그다음 글(`lib/updates bannerPost`). 완전히 없애려면 `UPDATE_POSTS` 에서 지운다
+- **관리자 삭제(2026-10-05, 2026-10-08 영구 삭제)**: 관리자는 목록·글 화면의 "삭제"로 글을 바로 영구 삭제한다(되돌리기 없음, 관리자에게도 안 보임 — DB 표 `hidden_updates` 에 글 번호만, `/api/updates/hidden` GET 공개 1분 캐시·POST 관리자만, 화면 `UpdateAdmin`·`useHiddenUpdates`). 띠배너는 지운 글을 건너뛰고 그다음 글(`lib/updates bannerPost`). 코드에도 남지 않게 하려면 `UPDATE_POSTS` 에서 지운다(지운 글 번호는 hidden_updates 에서 읽을 수 있다)
+- 목록은 10개씩 쪽 나눔(`/updates?page=N`), 글쓴이는 늘 "로방 · 운영자"(`UPDATE_AUTHOR`)
 
 ## 코딩 규칙
 - 파일·변수 이름은 영어, 주석과 커밋 메시지는 한국어
@@ -383,6 +388,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-08 (폰 푸시 알림·업데이트 소식 쪽 나눔): 사용자 "2단계 폰 푸시 진행, 업데이트 소식 10개씩 쪽 나눔·글쓴이 로방·삭제는 바로 영구 삭제". ① **폰 푸시**: 알림함 맨 위 `PushToggle`(로그인 회원, 아이폰은 홈 화면에 추가한 앱만 — 사파리에선 안내) → `push-client`(서비스 워커 `public/sw.js` 등록·`pushManager.subscribe`·`/api/me/push` POST/DELETE, 로그아웃·탈퇴 때 끔) → DB 표 `push_subscriptions`(기기 주소·키, 회원 지우면 같이)·`push_sent`(보낸 소식 번호, 3주). 보내기 = fetch.yml "폰 알림 보내기"(수집 또는 하이라이트 연결 뒤, Vercel 재배포 기다려 5분 쉬고 `scripts/send-push.ts`: `scripts/notif-feed.ts buildNotifFeed`(build-notifications 와 공용) → `lib/push pickPushItems`(마지막 경기일·전날, 안 보낸 것) → `composePush`(회원마다 알림 하나, 첫 소식 제목 + "외 N개") → web-push, 404·410 기기 지움). 공개 키 = `data/codes/site.json pushPublicKey`(공개 값), 비밀 키 = GitHub Secrets `VAPID_PRIVATE_KEY` + `DATABASE_URL`(Vercel 과 같은 Neon 주소) — 없으면 건너뜀. CSP worker-src·sw.js no-cache. 개인정보 안내 폰 알림 항목·시행일 10-08. ② **업데이트 소식**: 10개씩 쪽 나눔(`lib/updates paginate·parsePageParam·UPDATES_PER_PAGE`, `/updates?page=N`, Suspense 로 정적 HTML 은 1쪽), 글쓴이 "로방 · 운영자"(`UPDATE_AUTHOR`, 목록·글), 관리자 삭제 = 바로 영구 삭제(확인 창 "되돌릴 수 없어요", 되돌리기·관리자 흐리게 보기 없앰 — 지운 글은 관리자에게도 안 보임, 글 주소는 "삭제된 글이에요"). npm audit fix(source-map-js) → 0. GA4 새 이벤트 `push_enable`(result on/denied/failed/signed_out)·`push_disable`(result off/failed)·`push_click`, login_prompt_click place=push(새 매개변수 없음). 업데이트 소식 글. main 배포.
 - 2026-10-08 (알림함 1단계): 사용자 "즐겨찾기 선수·응원팀 기록이나 결과가 업데이트되면 알림" → 결정: 사이트 안 알림함 먼저, 폰 푸시는 2단계 / 내용: 응원팀 경기 결과·즐겨찾기 선수 그날 기록·하이라이트 영상·시즌 최다/커리어 하이/이정표. 구현: `lib/notifications.ts`(순수: 최근 경기일부터 7일 `windowGames`, `buildNotifItems` — 경기 결과(+팀 득점 1위)·하이라이트·선수 기록·커리어 하이(값 = 색인 careerHighs.regular 이고 이번 시즌, 통산 20경기 이상 뛴 선수만, 날짜가 다르면 "타이")·이번 시즌 최다(앞서 3경기 이상)·통산 이정표(MILESTONE_STEPS, 통산 합계에서 뒤 경기들을 빼 그 경기 직후 값), 부문별 최소 값 HIGH_KEYS, `myNotifs`·`initialSeen`(처음엔 최근 경기일만 새 소식)·`mergeSeen`(읽음 상한 2000)) → `scripts/build-notifications.ts`(prebuild·predev) → `public/notifications.json`(git 제외, 지금 215개·gzip 약 6KB). 화면: 헤더 종 `NotificationBell`(새 소식 수 파란 배지) → `/notifications` `NotificationsView`(날짜별, 열면 모두 읽음, 이번에 본 새 소식엔 파란 점), 훅 `useNotifications`(즐겨찾기도 응원팀도 없으면 파일 안 받음, 응원팀 = 로그인 회원 teamCodes, 읽음 localStorage `kbl-stats:notif-seen:v1`). GA4 새 이벤트 `notif_open`(unread — 맞춤 정의 등록 필요)·`notif_click`(kind), login_prompt_click place=notifications. 개인정보 안내에 저장 항목, SCOPE IN, 업데이트 소식 글. main 배포.
 - 2026-10-07 (주간 순위 선수 카드): 사용자 요청 — 54-0 주간 순위 줄마다 이름 대신 다섯 명 미니 카드(팀 색 바탕·세로 사진·종합 등급 칩·이름·시즌, PC 는 팀 이름까지, 누르면 /player/번호?season=). 라인업 주소를 브라우저가 /game/pool.json(게임과 같은 파일)으로 풀고(`lib/game findCandidateTeam`), 받기 전·실패면 이름 글자. 등급 칩은 `GameGradeChip` 로 빼서 게임 결과와 같이 씀. 업데이트 소식 글. 새 GA4 이벤트 없음(카드 이동은 page_view). 검증: typecheck·test·build·slop 0, Playwright 360/1280(다크) 카드 15장·가로 넘침 0·콘솔 에러 0. main 배포.
 - 2026-10-07 (로그인 풀려 보임): 사용자 "로그인이 계속 풀리고 로그인 버튼을 누르면 다시 접속됨" → 원인: 헤더(`AccountButton`)가 `/api/me` 응답이 401(진짜 로그아웃)이 아니라 오류(DB 깨우는 중 지연·500 등)여도 "로그인"으로 바꿨음. 로그인 쿠키(30일)는 살아 있어 /me 에 가면 다시 확인돼 로그인돼 보였던 것. 고침: 오류면 1.5초 뒤 한 번 더, 그래도 오류면 마지막으로 확인한 내 정보(localStorage `kbl-stats:me-last:v1`, 로그아웃·탈퇴 때 지움)를 그대로 표시, 401 일 때만 로그아웃 표시. 서버 쪽 로그(Vercel MCP)는 403 이라 실제 오류 횟수는 확인 못 함. 개인정보 안내에 저장 항목 한 줄. 버그 수정이라 업데이트 소식 글 없음. main 배포.

@@ -9,7 +9,7 @@ import { IconChevronLeft } from "@/app/components/icons";
 import SiteNav from "@/app/components/SiteNav";
 import SourceFooter from "@/app/components/SourceFooter";
 import UpdatePostBody from "@/app/components/UpdatePostBody";
-import { UpdatePostGuard } from "@/app/components/UpdateAdmin";
+import { UpdateAuthor, UpdatePostGuard } from "@/app/components/UpdateAdmin";
 
 export const dynamicParams = false;
 
@@ -43,6 +43,7 @@ export default async function UpdatePostPage({ params }: { params: Promise<{ slu
             <p className="flex items-center gap-2 text-caption text-ink-3">
               <span className="font-semibold">{UPDATE_KIND_LABELS[post.kind]}</span>
               <span className="tabular">{formatPostDate(post.date)}</span>
+              <UpdateAuthor />
             </p>
             <h1 className="mt-1 text-h1 font-black">{post.title}</h1>
             <div className="surface-card mt-4 rounded-container px-4 py-4">

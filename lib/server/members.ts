@@ -65,6 +65,23 @@ export const SCHEMA_SQL = [
     slug text PRIMARY KEY,
     hidden_at timestamptz NOT NULL DEFAULT now()
   )`,
+  // 폰 푸시 알림 (2026-10-08) — 기기(브라우저)마다 한 줄, 회원을 지우면 같이 지워진다. 주소·키는 브라우저 푸시 서비스가 준 값
+  `CREATE TABLE IF NOT EXISTS push_subscriptions (
+    endpoint text PRIMARY KEY,
+    member_id text NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+    p256dh text NOT NULL,
+    auth text NOT NULL,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    last_sent_at timestamptz
+  )`,
+  `CREATE INDEX IF NOT EXISTS push_subscriptions_member ON push_subscriptions (member_id)`,
+  // 이미 보낸 알림 번호 (같은 소식을 두 번 보내지 않게, 3주 지나면 지움)
+  `CREATE TABLE IF NOT EXISTS push_sent (
+    member_id text NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+    notif_id text NOT NULL,
+    sent_at timestamptz NOT NULL DEFAULT now(),
+    PRIMARY KEY (member_id, notif_id)
+  )`,
   // 연결 기능 이전 회원(로그인 수단이 하나도 안 적힌 회원): 회원 번호가 곧 로그인 번호
   `INSERT INTO member_logins (login_id, member_id, provider)
     SELECT m.id, m.id, m.provider FROM members m
@@ -232,6 +249,11 @@ export async function linkLogin(q: Query, currentLoginId: string, newLoginId: st
   await q(`INSERT INTO member_games (member_id, lineup, wins, rating, bonuses, names, played_at, verified)
     SELECT $1, lineup, wins, rating, bonuses, names, played_at, verified FROM member_games WHERE member_id = $2
     ON CONFLICT (member_id, lineup) DO NOTHING`, [me, owner]);
+  // 폰 알림 기기·보낸 알림도 옮긴다
+  await q(`UPDATE push_subscriptions SET member_id = $1 WHERE member_id = $2`, [me, owner]);
+  await q(`INSERT INTO push_sent (member_id, notif_id, sent_at)
+    SELECT $1, notif_id, sent_at FROM push_sent WHERE member_id = $2
+    ON CONFLICT (member_id, notif_id) DO NOTHING`, [me, owner]);
   await q(`UPDATE member_logins SET member_id = $1, linked_at = now() WHERE member_id = $2`, [me, owner]);
   await q(`DELETE FROM members WHERE id = $1`, [owner]);
   if (!a?.nickname && b?.nickname) await q(`UPDATE members SET nickname = $2 WHERE id = $1 AND nickname IS NULL`, [me, b.nickname]);
@@ -402,4 +424,92 @@ export async function setUpdateHidden(q: Query, slug: string, hidden: boolean): 
   if (hidden) await q(`INSERT INTO hidden_updates (slug) VALUES ($1) ON CONFLICT DO NOTHING`, [slug]);
   else await q(`DELETE FROM hidden_updates WHERE slug = $1`, [slug]);
   return hiddenUpdates(q);
+}
+
+// ─────────────────────────────────────────────
+// 폰 푸시 알림 (2026-10-08) — 구독은 화면(/api/me/push), 보내기는 매일 수집 뒤 scripts/send-push.ts
+// ─────────────────────────────────────────────
+
+export interface PushSubscriptionRow {
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+}
+
+/** 이 기기 구독 저장 (같은 기기가 다른 계정으로 바꿔 켜면 그 계정으로 옮긴다) */
+export async function savePushSubscription(q: Query, loginId: string, sub: PushSubscriptionRow): Promise<void> {
+  const id = await resolveMemberId(q, loginId);
+  await q(
+    `INSERT INTO push_subscriptions (endpoint, member_id, p256dh, auth) VALUES ($1, $2, $3, $4)
+     ON CONFLICT (endpoint) DO UPDATE SET member_id = EXCLUDED.member_id, p256dh = EXCLUDED.p256dh, auth = EXCLUDED.auth`,
+    [sub.endpoint, id, sub.p256dh, sub.auth],
+  );
+}
+
+/** 이 기기 구독 끄기 (내 계정 것만) */
+export async function deletePushSubscription(q: Query, loginId: string, endpoint: string): Promise<void> {
+  const id = await memberOfLogin(q, loginId);
+  if (id) await q(`DELETE FROM push_subscriptions WHERE endpoint = $1 AND member_id = $2`, [endpoint, id]);
+}
+
+/** 이 기기가 내 계정으로 알림을 받고 있나 */
+export async function hasPushSubscription(q: Query, loginId: string, endpoint: string): Promise<boolean> {
+  const id = await memberOfLogin(q, loginId);
+  if (!id) return false;
+  const rows = await q(`SELECT 1 FROM push_subscriptions WHERE endpoint = $1 AND member_id = $2`, [endpoint, id]);
+  return rows.length > 0;
+}
+
+export interface PushTarget {
+  memberId: string;
+  favorites: string[];
+  teams: string[];
+  subscriptions: PushSubscriptionRow[];
+  /** 이미 보낸 알림 번호 */
+  sent: Set<string>;
+}
+
+/** 보낼 대상: 구독 기기가 있는 회원마다 즐겨찾기·응원팀·기기·보낸 알림 */
+export async function pushTargets(q: Query): Promise<PushTarget[]> {
+  const rows = await q(`SELECT m.id, m.favorites, m.team_codes,
+      json_agg(json_build_object('endpoint', s.endpoint, 'p256dh', s.p256dh, 'auth', s.auth)) AS subs
+    FROM push_subscriptions s JOIN members m ON m.id = s.member_id
+    GROUP BY m.id, m.favorites, m.team_codes`);
+  const sentRows = await q(`SELECT member_id, notif_id FROM push_sent`);
+  const sent = new Map<string, Set<string>>();
+  for (const r of sentRows) {
+    const k = String(r.member_id);
+    if (!sent.has(k)) sent.set(k, new Set());
+    sent.get(k)!.add(String(r.notif_id));
+  }
+  return rows.map((r) => {
+    const subs = (typeof r.subs === "string" ? JSON.parse(r.subs) : r.subs) as PushSubscriptionRow[];
+    return {
+      memberId: String(r.id),
+      favorites: sanitizeFavorites(r.favorites ?? []),
+      teams: teamsOf(r.team_codes),
+      subscriptions: subs,
+      sent: sent.get(String(r.id)) ?? new Set(),
+    };
+  });
+}
+
+/** 보낸 알림 적기 + 3주 넘은 기록 지우기 */
+export async function markPushSent(q: Query, memberId: string, ids: readonly string[]): Promise<void> {
+  if (ids.length > 0) {
+    await q(
+      `INSERT INTO push_sent (member_id, notif_id) SELECT $1, unnest($2::text[]) ON CONFLICT (member_id, notif_id) DO NOTHING`,
+      [memberId, [...ids]],
+    );
+  }
+  await q(`UPDATE push_subscriptions SET last_sent_at = now() WHERE member_id = $1`, [memberId]);
+}
+
+export async function prunePushSent(q: Query, days = 21): Promise<void> {
+  await q(`DELETE FROM push_sent WHERE sent_at < now() - make_interval(days => $1)`, [days]);
+}
+
+/** 푸시 서비스가 "없는 기기"(404·410)라고 하면 지운다 */
+export async function removePushEndpoint(q: Query, endpoint: string): Promise<void> {
+  await q(`DELETE FROM push_subscriptions WHERE endpoint = $1`, [endpoint]);
 }

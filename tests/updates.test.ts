@@ -62,3 +62,20 @@ assert.equal(bannerPost(["a"], "b", sample), null);
 assert.equal(bannerPost(["a", "b", "c"], null, sample), null);
 
 console.log("updates 테스트 통과");
+
+// 쪽 나누기 (2026-10-08: 10개씩)
+{
+  const { paginate, parsePageParam, UPDATES_PER_PAGE, UPDATE_AUTHOR } = await import("../lib/updates");
+  assert.equal(UPDATES_PER_PAGE, 10);
+  assert.equal(UPDATE_AUTHOR, "로방");
+  const list = Array.from({ length: 23 }, (_, i) => i);
+  assert.deepEqual(paginate(list, 1), { items: list.slice(0, 10), page: 1, totalPages: 3 });
+  assert.deepEqual(paginate(list, 3).items, [20, 21, 22]);
+  assert.equal(paginate(list, 9).page, 3); // 넘치면 마지막 쪽
+  assert.equal(paginate([], 1).totalPages, 1);
+  assert.equal(parsePageParam("2"), 2);
+  assert.equal(parsePageParam("0"), 1);
+  assert.equal(parsePageParam("abc"), 1);
+  assert.equal(parsePageParam(null), 1);
+  console.log("updates: 쪽 나누기 통과");
+}

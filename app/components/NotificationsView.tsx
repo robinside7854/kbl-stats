@@ -6,6 +6,7 @@ import { enabledLoginProviders } from "@/lib/account";
 import { gameDayLabel } from "@/lib/games";
 import { NOTIF_KIND_LABEL, NOTIF_WINDOW_DAYS, type NotifItem } from "@/lib/notifications";
 import { IconChevronRight } from "./icons";
+import PushToggle from "./PushToggle";
 import Skeleton from "./Skeleton";
 import { trackEvent } from "./track";
 import { useNotifications } from "./useNotifications";
@@ -28,6 +29,11 @@ export default function NotificationsView() {
     return [...m.entries()];
   }, [mine]);
 
+  // 폰 알림을 눌러 들어온 방문 (sw.js 가 ?src=push 로 연다)
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("src") === "push") trackEvent("push_click");
+  }, []);
+
   const loginOn = enabledLoginProviders().length > 0;
   const fresh = freshRef.current ?? new Set<string>();
 
@@ -37,6 +43,7 @@ export default function NotificationsView() {
       <p className="mt-1 text-sub text-ink-3">
         즐겨찾기한 선수 {favorites.length}명 · 응원팀 {teams.length}팀의 최근 {NOTIF_WINDOW_DAYS}일 경기 소식이에요. 기록은 경기가 끝나고 한두 시간 뒤에 들어와요.
       </p>
+      <PushToggle />
 
       {!loaded ? (
         <div className="mt-5 space-y-2" aria-hidden>
