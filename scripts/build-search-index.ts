@@ -9,7 +9,8 @@ import { buildSearchIndex } from "../lib/search.js";
 import { decodeSeasonCards, encodeSeasonCards } from "../lib/cards.js";
 import { toCardPlayers, toCardTeams } from "../lib/convert.js";
 import { pickPrimeSeasons, primeCandidatesOf, type PrimeCandidate } from "../lib/prime.js";
-import type { PlayerIndexEntry, SeasonData, SeasonOption } from "../lib/types.js";
+import type { PlayerIndexEntry, SeasonData, SeasonGamesFile, SeasonOption } from "../lib/types.js";
+import { dayTopPerformers, latestGameDay } from "../lib/games.js";
 
 const ROOT = process.cwd();
 const PROCESSED = join(ROOT, "data", "processed");
@@ -58,6 +59,19 @@ async function main() {
   const json = JSON.stringify(entries);
   await writeFile(join(ROOT, "public", "search-index.json"), json, "utf8");
   console.log(`검색 색인: ${entries.length}명, ${(json.length / 1024).toFixed(0)}KB → public/search-index.json`);
+
+  // 검색창 빈 화면 "경기 활약" (2026-10-08): 끝난 경기가 있는 가장 최근 시즌의 마지막 경기일 득점 상위 3명 → public/search-hot.json
+  let hot: { date: string; players: { id: string; line: string }[] } | null = null;
+  for (const s of [...seasons].sort((a, b) => b.seasonCode - a.seasonCode)) {
+    const file = join(PROCESSED, String(s.seasonCode), "games.json");
+    if (!existsSync(file)) continue;
+    const day = latestGameDay((JSON.parse(await readFile(file, "utf8")) as SeasonGamesFile).games ?? []);
+    if (!day) continue;
+    hot = { date: day.date, players: dayTopPerformers(day, 3) };
+    break;
+  }
+  await writeFile(join(ROOT, "public", "search-hot.json"), JSON.stringify(hot ?? { date: null, players: [] }), "utf8");
+  console.log(`검색 경기 활약: ${hot ? `${hot.date} ${hot.players.length}명` : "없음"} → public/search-hot.json`);
 }
 
 main().catch((e) => {

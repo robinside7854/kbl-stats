@@ -2,12 +2,13 @@
 // 알림함과 같은 목록(scripts/notif-feed.ts) → 회원마다 즐겨찾기 선수·응원팀 새 소식(lib/push pickPushItems) → 기기마다 알림 하나(composePush).
 // 필요한 Secrets: DATABASE_URL(Neon — Vercel 과 같은 값), VAPID_PRIVATE_KEY. 공개 키는 data/codes/site.json pushPublicKey.
 // 둘 중 하나라도 없으면 아무것도 안 하고 끝난다(수집을 막지 않는다). 실패도 경고만.
+// 자정~아침 8시(한국)는 보내지 않는다(lib/push isQuietHour) — 아침 보내기는 .github/workflows/push-morning.yml.
 // --test: 소식 대신 "테스트 알림" 하나를 켜 둔 모든 기기에 보낸다(보낸 기록은 안 남김) — .github/workflows/push-check.yml
 // 결과는 Actions 화면 notice 한 줄로도 남긴다(세션은 로그를 못 읽어 check-run 주석으로 확인).
 import { neon } from "@neondatabase/serverless";
 import webpush from "web-push";
 import site from "../data/codes/site.json";
-import { composePush, pickPushItems, pushPublicKey } from "../lib/push.js";
+import { composePush, isQuietHour, pickPushItems, pushPublicKey } from "../lib/push.js";
 import { ensureSchema, markPushSent, prunePushSent, pushTargets, removePushEndpoint, type Query } from "../lib/server/members.js";
 import { buildNotifFeed } from "./notif-feed.js";
 
@@ -26,6 +27,11 @@ async function main() {
   const test = process.argv.includes("--test");
   if (!url || !privateKey || !publicKey) {
     notice(`설정 없음 (DATABASE_URL ${url ? "있음" : "없음"} · VAPID_PRIVATE_KEY ${privateKey ? "있음" : "없음"}) — 건너뜀`);
+    return;
+  }
+  // 새벽(자정~8시)에는 보내지 않는다 — 보낸 기록을 안 남기므로 아침 보내기(push-morning.yml)나 다음 수집 때 같이 간다
+  if (!test && isQuietHour(new Date())) {
+    notice("새벽이라 보내지 않음 — 아침 8시 넘어 보내요");
     return;
   }
   webpush.setVapidDetails(site.siteUrl, publicKey, privateKey);

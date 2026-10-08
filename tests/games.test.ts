@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import type { GameBoxRow } from "../lib/types";
 import { buildSeasonGames, parseBoxLog } from "../scripts/boxscores";
 import { seasonProgress, seasonTitle, standoutLine, teamStandouts } from "../lib/games";
-import { computeStandings, gameDayLabel, gamesBehindLabel, latestGameDay, minutesLabel, nextGameDay, pctLabel, topPerformer } from "../lib/games";
+import { asOfLabel, computeStandings, dayTopPerformers, gameDayLabel, gamesBehindLabel, latestGameDay, minutesLabel, nextGameDay, pctLabel, topPerformer } from "../lib/games";
 
 const item = (n: number, date: string, h: string, a: string, sh: number | null, sa: number | null, ended = 1, gameCode = "01") => ({
   gmkey: `S49G${gameCode}N${n}`, seasonCode: 49, gameCode, gameNo: n, gameDate: date, gameStart: "1400", stadiumname: "사직",
@@ -45,7 +45,13 @@ assert.equal(latestGameDay(games)?.date, "2026-10-03");
 assert.equal(latestGameDay(games)?.games.length, 2);
 assert.equal(nextGameDay(games, "2026-10-03")?.date, "2026-10-04");
 assert.equal(latestGameDay([]), null);
+{
+  const top = dayTopPerformers(latestGameDay(games)!, 2);
+  assert.equal(top.length, 2);
+  assert.ok(top.every((t) => /득점/.test(t.line)));
+}
 assert.equal(gameDayLabel("2026-10-03"), "10월 3일 (토)");
+assert.equal(asOfLabel("2026-10-07"), "10월 7일 경기까지 반영");
 assert.equal(minutesLabel(1958), "32:38");
 assert.equal(topPerformer(games[0].box!.home)?.nameKo, "가");
 console.log("games: 경기일·표기 통과");

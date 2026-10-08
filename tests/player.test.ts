@@ -20,7 +20,7 @@ import {
   trendRows,
   trendValue,
 } from "../lib/career";
-import { buildSearchIndex, matchScore, normalizeName, searchPlayers, searchSpanLabel } from "../lib/search";
+import { buildSearchIndex, matchScore, normalizeName, parseRecentPlayers, pushRecentPlayer, searchPlayers, searchSpanLabel } from "../lib/search";
 import type { LeaderPlayer, PlayerIndexEntry, SearchEntry } from "../lib/types";
 
 // ── 통산: 합계 ÷ 합계 경기 (시즌 평균의 평균이 아님) ──
@@ -161,6 +161,12 @@ assert.deepEqual(searchPlayers(idx, "워니").map((e) => e.id), ["1", "5"]);
 assert.deepEqual(searchPlayers(idx, "김민수").map((e) => e.id), ["3", "2"]);
 assert.deepEqual(searchPlayers(idx, "민수").map((e) => e.id), ["4", "3", "2"]);
 assert.equal(searchPlayers(idx, "", 10).length, 0);
+// 최근 본 선수: 최근 것이 앞, 같은 선수 하나, 최대 5명, 깨진 값은 빈 목록
+assert.deepEqual(pushRecentPlayer(["1", "2", "3"], "2"), ["2", "1", "3"]);
+assert.deepEqual(pushRecentPlayer(["1", "2", "3", "4", "5"], "6"), ["6", "1", "2", "3", "4"]);
+assert.deepEqual(parseRecentPlayers('["291680","x<y",3]'), ["291680"]);
+assert.deepEqual(parseRecentPlayers("{"), []);
+assert.deepEqual(parseRecentPlayers(null), []);
 assert.equal(searchPlayers(Array.from({ length: 30 }, (_, i) => mkS(String(i), `김${i}`, "", i)), "김", 10).length, 10);
 assert.equal(searchSpanLabel({ from: "25-26", to: "25-26" }), "25-26");
 assert.equal(searchSpanLabel({ from: "19-20", to: "25-26" }), "19-26");

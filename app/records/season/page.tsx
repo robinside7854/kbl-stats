@@ -2,7 +2,7 @@
 // 정규시즌은 시즌 파일, 플레이오프·챔프전은 postseason.json(서버 A gameCode 03,04 / 04) → lib/data loadSeasonBestLists.
 import type { Metadata } from "next";
 import { ogImagePath, shareMetadata } from "@/lib/share";
-import { hasPostseasonData, listSeasonsWithPlayers, loadSeasonBestLists, loadSeasonData } from "@/lib/data";
+import { dataAsOfLabel, hasPostseasonData, listSeasonsWithPlayers, loadSeasonBestLists, loadSeasonData } from "@/lib/data";
 import RecordsHeader from "@/app/components/RecordsHeader";
 import { SeasonBestsView } from "@/app/components/RecordTabViews";
 import SiteNav from "@/app/components/SiteNav";
@@ -21,7 +21,7 @@ export default function RecordsSeasonPage() {
     <>
       <SiteNav seasons={seasons} seasonCode={latest?.seasonCode ?? 0} view="records" wide />
       <main className="mx-auto max-w-page px-4 pt-5">
-        <RecordsHeader tab="season" leadersSeason={latest?.seasonCode ?? 0} />
+        <RecordsHeader tab="season" leadersSeason={latest?.seasonCode ?? 0} asOf={dataAsOfLabel()} />
         <SeasonBestsView data={loadSeasonBestLists()} hasPostseason={hasPostseasonData()} />
       </main>
       <SourceFooter fetchedAt={latest ? loadSeasonData(latest.seasonCode)?.fetchedAt : undefined} wide />

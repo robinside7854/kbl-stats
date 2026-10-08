@@ -10,7 +10,7 @@ import ChipRow from "./ChipRow";
 import PlayerAvatar from "./PlayerAvatar";
 import Skeleton from "./Skeleton";
 import TeamLogo from "./TeamLogo";
-import { IconHeart, IconMegaphone } from "./icons";
+import { IconChevronRight, IconHeart, IconMegaphone } from "./icons";
 import { trackFilters } from "./track";
 import { useLikeCounts } from "./useLikes";
 import { loadSearchIndex } from "./useSearchIndex";
@@ -77,7 +77,12 @@ export default function LikesView({ teams }: { teams: (TeamBrand & { active: boo
           <Skeleton className="h-64 w-full rounded-card" />
         ) : tab === "player" ? (
           players.length === 0 ? (
-            <p className="p-3 text-body text-ink-2">아직 좋아요를 받은 선수가 없어요. 선수 페이지에서 첫 좋아요를 눌러 보세요.</p>
+            <div className="p-3">
+              <p className="text-body text-ink-2">아직 좋아요를 받은 선수가 없어요. 선수 페이지에서 첫 좋아요를 눌러 보세요.</p>
+              <Link href="/players" className="link-shortcut">
+                선수 찾아보기 <IconChevronRight size={16} />
+              </Link>
+            </div>
           ) : (
             <ol className="divide-y divide-line">
               {players.map(([id, n], i) => {

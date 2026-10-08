@@ -31,6 +31,7 @@ import CareerHighs from "@/app/components/CareerHighs";
 import CareerTable from "@/app/components/CareerTable";
 import CareerTrend from "@/app/components/CareerTrend";
 import PlayerHero from "@/app/components/PlayerHero";
+import RecentPlayerMark from "@/app/components/RecentPlayerMark";
 import PlayerSeasonCards from "@/app/components/PlayerSeasonCards";
 import SiteNav from "@/app/components/SiteNav";
 import SourceFooter from "@/app/components/SourceFooter";
@@ -85,6 +86,7 @@ export default async function PlayerPage({ params }: { params: Params }) {
     <>
       <SiteNav seasons={allSeasons} seasonCode={allSeasons[0]?.seasonCode ?? latest.seasonCode} view="player" wide />
       <main className="pb-2">
+        <RecentPlayerMark playerId={entry.id} />
         <PlayerHero entry={entry} seasons={seasons} today={today} badges={badges} milestones={loadMilestones(playerNo)} />
         <div className="mx-auto mt-6 max-w-page px-4">
           {card ? (

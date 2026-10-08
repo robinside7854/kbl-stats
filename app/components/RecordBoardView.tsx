@@ -22,7 +22,7 @@ import FilterSheet, { FilterGroup } from "./FilterSheet";
 import ChipRow from "./ChipRow";
 import RecordList from "./RecordList";
 import Segmented from "./Segmented";
-import { trackFilters } from "./track";
+import { trackEvent, trackFilters } from "./track";
 
 export interface BoardCategory {
   value: string;
@@ -180,6 +180,15 @@ export default function RecordBoardView({ screen, data, categories, kinds = fals
           items={items}
           people={data.people}
           empty={(all ?? []).length > 0 && filtered ? "조건에 맞는 선수가 없습니다." : (emptyText?.(kind) ?? "기록이 없습니다.")}
+          onReset={
+            (all ?? []).length > 0 && filtered
+              ? () => {
+                  trackEvent("filter_reset", { screen });
+                  reset("origin");
+                  reset("activeOnly");
+                }
+              : undefined
+          }
         />
         <p className="mt-2 text-sub text-ink-3">{note(kind, effMode)}</p>
       </section>

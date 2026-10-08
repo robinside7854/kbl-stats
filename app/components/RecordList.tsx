@@ -9,12 +9,19 @@ import PlayerAvatar from "./PlayerAvatar";
 
 const PAGE = 20;
 
-export default function RecordList({ items, people, empty }: { items: RecordListItem[]; people: Record<string, RecordPerson>; empty: string }) {
+/** onReset: 필터 때문에 비었을 때만 넘긴다 → "필터 초기화" 버튼 (빈 화면엔 다음 행동, 2026-10-08) */
+export default function RecordList({ items, people, empty, onReset }: { items: RecordListItem[]; people: Record<string, RecordPerson>; empty: string; onReset?: () => void }) {
   const [limit, setLimit] = useState(PAGE);
   const shown = items.slice(0, limit);
   // PC 막대 기준 = 목록 1위 값 (num 은 순위를 매기는 값, 클수록 위)
   const barMax = items.reduce((m, r) => Math.max(m, r.num), 0);
-  if (items.length === 0) return <p className="surface-card rounded-container px-4 py-8 text-center text-body text-ink-2">{empty}</p>;
+  if (items.length === 0)
+    return (
+      <div className="surface-card rounded-container px-4 py-8 text-center">
+        <p className="text-body text-ink-2">{empty}</p>
+        {onReset && <ResetButton onClick={onReset} />}
+      </div>
+    );
   return (
     <>
       <ol className="surface-card tabular divide-y divide-line rounded-container">
@@ -82,5 +89,18 @@ export default function RecordList({ items, people, empty }: { items: RecordList
         </button>
       )}
     </>
+  );
+}
+
+/** 결과 0명일 때 "필터 초기화" (리더보드·선수 탭과 같은 모양) */
+export function ResetButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="focus-ring mt-4 h-11 rounded-control border border-line bg-surface px-4 text-body font-semibold text-ink transition-colors duration-200 hover:bg-surface-2"
+    >
+      필터 초기화
+    </button>
   );
 }

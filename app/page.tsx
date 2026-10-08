@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { shareMetadata } from "@/lib/share";
 import { notFound } from "next/navigation";
 import { findPlayerIndexEntry, listAllSeasons, listSeasonsWithPlayers, loadSeasonData, loadSeasonGames, gameTeamInfos, seasonQualify, toCardTeams, toLeaderPlayers } from "@/lib/data";
-import { latestGameDay, nextGameDay, seasonProgress } from "@/lib/games";
+import { latestGameDay, nextGameDay, seasonProgress, asOfLabel } from "@/lib/games";
 import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
 import type { BirthdayPlayer } from "./components/BirthdayStrip";
 import { filterLeaders, topLeaders } from "@/lib/leaders";
@@ -54,6 +54,7 @@ export default function HomePage() {
       <HomeView
         season={shown}
         fetchedLabel={formatFetchedAt(season.fetchedAt)}
+        asOf={gameDay ? asOfLabel(gameDay.date) : null}
         upcoming={upcoming}
         categories={categories}
         teams={teams}

@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { shareMetadata } from "@/lib/share";
 import { computeStandings } from "@/lib/games";
 import { seasonShortLabel } from "@/lib/career";
-import { isSeasonOngoing, listSeasonsWithPlayers, loadSeasonData, loadSeasonGames, loadTeamIndex, toCardTeams } from "@/lib/data";
+import { dataAsOfLabel, isSeasonOngoing, listSeasonsWithPlayers, loadSeasonData, loadSeasonGames, loadTeamIndex, toCardTeams } from "@/lib/data";
 import type { StandingsSeason, StandingTeam } from "@/app/components/StandingsTable";
 import SiteNav from "@/app/components/SiteNav";
 import SourceFooter from "@/app/components/SourceFooter";
@@ -44,6 +44,7 @@ export default function TeamsPage() {
         seasonShort={latest ? seasonShortLabel(loadSeasonData(latest.seasonCode)?.seasonLabel ?? latest.seasonLabel) : ""}
         records={records}
         standings={standingsSeasons}
+        asOf={dataAsOfLabel()}
       />
       <SourceFooter />
     </>

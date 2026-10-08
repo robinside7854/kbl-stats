@@ -27,8 +27,9 @@ import PlayerAvatar from "./PlayerAvatar";
 import ActiveOnlyToggle from "./ActiveOnlyToggle";
 import FilterSheet, { FilterGroup } from "./FilterSheet";
 import RecordsHeader from "./RecordsHeader";
+import { ResetButton } from "./RecordList";
 import Segmented from "./Segmented";
-import { trackFilters } from "./track";
+import { trackEvent, trackFilters } from "./track";
 
 const MODE_OPTIONS: { value: RecordMode; label: string }[] = [
   { value: "total", label: "통산 합계" },
@@ -40,7 +41,7 @@ const ORIGIN_OPTIONS: { value: RecordOrigin; label: string }[] = [
   { value: "foreign", label: "외국인" },
 ];
 
-export default function RecordsView({ totals, spanLabel, latestSeasonCode }: { totals: CareerTotal[]; spanLabel: string; latestSeasonCode: number }) {
+export default function RecordsView({ totals, spanLabel, latestSeasonCode, asOf = null }: { totals: CareerTotal[]; spanLabel: string; latestSeasonCode: number; asOf?: string | null }) {
   const [cat, setCat] = useState<RecordStatKey>("points");
   const [mode, setMode] = useState<RecordMode>("total");
   const [origin, setOrigin] = useState<RecordOrigin>("all");
@@ -84,7 +85,7 @@ export default function RecordsView({ totals, spanLabel, latestSeasonCode }: { t
 
   return (
     <main className="mx-auto max-w-page px-4 pt-5">
-      <RecordsHeader tab="career" leadersSeason={latestSeasonCode} scope={`KBL 정규시즌 · ${spanLabel}`} />
+      <RecordsHeader tab="career" leadersSeason={latestSeasonCode} scope={`KBL 정규시즌 · ${spanLabel}`} asOf={asOf} />
 
       <ChipRow label="부문 선택" scroll chips={RECORD_STATS.map((d) => ({ value: d.key, label: d.label }))} value={cat} onChange={(v) => { trackFilters("records", { category: v }); setCat(v); }} />
       {/* 합계/경기당·국적·현역만은 필터 버튼 안 (2026-10-06 사용자: 누르는 단계 최대 2번) */}
@@ -125,7 +126,15 @@ export default function RecordsView({ totals, spanLabel, latestSeasonCode }: { t
           {title} 순위
         </h2>
         {shown.length === 0 ? (
-          <p className="surface-card rounded-container px-4 py-8 text-center text-body text-ink-2">조건에 맞는 선수가 없습니다.</p>
+          <div className="surface-card rounded-container px-4 py-8 text-center">
+            <p className="text-body text-ink-2">조건에 맞는 선수가 없습니다.</p>
+            <ResetButton
+              onClick={() => {
+                trackEvent("filter_reset", { screen: "records" });
+                (["mode", "origin", "activeOnly"] as const).forEach(reset);
+              }}
+            />
+          </div>
         ) : (
           <ol className="surface-card tabular divide-y divide-line rounded-container">
             {shown.map((r) => {

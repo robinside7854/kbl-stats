@@ -31,6 +31,25 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-10-08-search-asof",
+    date: "2026-10-08",
+    kind: "update",
+    title: "검색창이 조금 똑똑해졌어요",
+    summary: "검색창 최근 본 선수",
+    blocks: [
+      { kind: "p", text: "검색창을 누르기만 해도 최근 본 선수랑 지난 경기 활약 선수 3명이 바로 떠요." },
+      {
+        kind: "list",
+        items: [
+          "홈·기록·팀 화면 위에 \"10월 7일 경기까지 반영\"처럼 언제 기록인지 적어 뒀어요",
+          "폰 알림은 밤 12시부터 아침 8시까지 쉬고, 그 사이 소식은 아침에 모아서 보내요",
+          "기록 화면에서 필터 때문에 아무도 안 나오면 \"필터 초기화\" 버튼이 나와요",
+          { text: "기록 보러 가기", href: "/records" },
+        ],
+      },
+    ],
+  },
+  {
     slug: "2026-10-08-push",
     date: "2026-10-08",
     kind: "update",

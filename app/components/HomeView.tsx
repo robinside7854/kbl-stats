@@ -30,6 +30,8 @@ export interface HomeCategory {
 interface Props {
   season: SeasonOption;
   fetchedLabel: string;
+  /** "10월 7일 경기까지 반영" (최근 경기일, lib/games asOfLabel) — 있으면 갱신 시각 대신 이 줄 */
+  asOf?: string | null;
   /** 개막 전이면 그 시즌 (코드표 최신 시즌) */
   upcoming: SeasonOption | null;
   categories: HomeCategory[];
@@ -48,7 +50,7 @@ interface Props {
 /** 순위표 부문 링크 (득점은 기본 부문이라 쿼리 없음 — lib/leaders DEFAULT_CATEGORY) */
 const leadersHref = (code: number, key: LeaderStatKey) => `/season/${code}/leaders${key === "points" ? "" : `?cat=${key}`}`;
 
-export default function HomeView({ season, fetchedLabel, upcoming, categories, teams, qualifyText, birthdays, gameDay = null, nextGameDay = null, gameTeams = {}, progress = null }: Props) {
+export default function HomeView({ season, fetchedLabel, asOf = null, upcoming, categories, teams, qualifyText, birthdays, gameDay = null, nextGameDay = null, gameTeams = {}, progress = null }: Props) {
   const teamByCode = new Map(teams.map((t) => [t.teamCode, t]));
   const code = season.seasonCode;
   const short = seasonShortLabel(season.seasonLabel);
@@ -66,7 +68,7 @@ export default function HomeView({ season, fetchedLabel, upcoming, categories, t
 
       <div className="mx-auto max-w-page px-4 pt-5">
         <p className="text-sub font-medium text-ink-3">
-          기록 갱신 {fetchedLabel}
+          {asOf ?? `기록 갱신 ${fetchedLabel}`}
         </p>
         <h1 className="mt-0.5 text-h1 font-black">{seasonTitle(season.seasonLabel)}</h1>
         {progress && <SeasonProgressBar progress={progress} className="mt-3 max-w-md" />}

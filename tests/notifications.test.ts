@@ -79,7 +79,13 @@ console.log("notifications: 통과");
 
 // ── 폰 푸시 (lib/push) ──
 {
-  const { composePush, parsePushSubscription, pickPushItems, PUSH_OPEN_URL } = await import("../lib/push");
+  const { composePush, isQuietHour, parsePushSubscription, pickPushItems, PUSH_OPEN_URL } = await import("../lib/push");
+  // 조용한 시간 = 한국 자정~아침 8시 (UTC 15시~23시)
+  assert.equal(isQuietHour(new Date("2026-10-08T14:50:00Z")), false); // 23:50 KST — 늦은 수집은 보냄
+  assert.equal(isQuietHour(new Date("2026-10-08T15:00:00Z")), true); // 00:00
+  assert.equal(isQuietHour(new Date("2026-10-08T17:45:00Z")), true); // 02:45 하이라이트 알람
+  assert.equal(isQuietHour(new Date("2026-10-08T22:59:00Z")), true); // 07:59
+  assert.equal(isQuietHour(new Date("2026-10-08T23:10:00Z")), false); // 08:10 아침 보내기
   // 마지막 경기일(10-09)과 전날만, 안 보낸 것만
   const picked = pickPushItems(items, { favorites: ["A"], teams: ["55"], sent: new Set() });
   assert.ok(picked.length > 0 && picked.every((i) => i.date >= "2026-10-08"));

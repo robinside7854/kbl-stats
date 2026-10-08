@@ -139,9 +139,16 @@ export default function GameRankingView({ teams }: { teams: AccountTeam[] }) {
         ) : cur === "error" ? (
           <p className="p-3 text-body text-ink-2">순위를 불러오지 못했어요. 잠시 뒤 새로고침해 주세요.</p>
         ) : cur.rows.length === 0 ? (
-          <p className="p-3 text-body text-ink-2">
-            {week === "this" ? "이번 주 기록이 아직 없어요. 첫 1위에 도전해 보세요." : "지난주에는 순위에 오른 기록이 없어요."}
-          </p>
+          <div className="p-3">
+            <p className="text-body text-ink-2">
+              {week === "this" ? "이번 주 기록이 아직 없어요. 첫 1위에 도전해 보세요." : "지난주에는 순위에 오른 기록이 없어요."}
+            </p>
+            {week === "this" && (
+              <Link href="/game" className="link-shortcut">
+                54-0 하러 가기 <IconChevronRight size={16} />
+              </Link>
+            )}
+          </div>
         ) : (
           <ol className="divide-y divide-line">
             {cur.rows.map((r) => {

@@ -60,8 +60,8 @@ export default function GameHistoryCard() {
       ) : history.plays === 0 ? (
         <p className="mt-1 text-body text-ink-2">
           아직 기록이 없어요. 로그인한 채로 54-0을 끝까지 하면 여기에 쌓여요.{" "}
-          <Link href="/game" className="focus-ring rounded-control font-semibold text-ink underline underline-offset-2">
-            54-0 하러 가기
+          <Link href="/game" className="link-shortcut">
+            54-0 하러 가기 <IconChevronRight size={16} />
           </Link>
         </p>
       ) : (

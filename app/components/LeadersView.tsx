@@ -90,6 +90,8 @@ interface Props {
   seasonHighs?: SeasonHighCard[];
   /** 진행 중 시즌이면 기본 표본 기준이 "출전 선수 전원" (lib/metrics qualifyPresetsFor, 2026-10-03) */
   ongoing?: boolean;
+  /** 진행 중 시즌의 기준 한 줄 ("10월 7일 경기까지 반영") — 마감 시즌은 null */
+  asOf?: string | null;
 }
 
 const MODE_OPTIONS: { value: StatMode; label: string }[] = [
@@ -211,7 +213,7 @@ function CoverCard({
   );
 }
 
-export default function LeadersView({ seasonCode, seasonLabel, players, teams, seasonHighs = [], ongoing = false }: Props) {
+export default function LeadersView({ seasonCode, seasonLabel, players, teams, seasonHighs = [], ongoing = false, asOf = null }: Props) {
   const presets = useMemo(() => qualifyPresetsFor(ongoing), [ongoing]);
   const [state, setState] = useState<LeadersState>(DEFAULT_LEADERS_STATE);
   // 표 정렬 (null 이면 선택한 부문의 "상위" 방향 — 턴오버는 적은 순)
@@ -393,7 +395,7 @@ export default function LeadersView({ seasonCode, seasonLabel, players, teams, s
 
   return (
     <main className="mx-auto max-w-page px-4 pt-5">
-      <RecordsHeader tab="leaders" leadersSeason={seasonCode} scope={`${seasonShortLabel(seasonLabel)} KBL 정규시즌`} />
+      <RecordsHeader tab="leaders" leadersSeason={seasonCode} scope={`${seasonShortLabel(seasonLabel)} KBL 정규시즌`} asOf={asOf} />
 
       {/* 1차 컨트롤: 많이 보는 부문 칩 한 줄 + "다른 부문" (슈팅·슛 구역·고급·허슬은 펼쳐서). 표 머리글을 눌러도 부문이 바뀐다 */}
       <div className="flex flex-wrap items-center gap-2">

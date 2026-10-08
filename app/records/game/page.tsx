@@ -2,7 +2,7 @@
 // 재료는 선수별 통산 한 경기 최다(색인 careerHighs, KBL 공홈 선수 기록) → lib/data loadGameHighLists.
 import type { Metadata } from "next";
 import { ogImagePath, shareMetadata } from "@/lib/share";
-import { listSeasonsWithPlayers, loadGameHighLists, loadSeasonData } from "@/lib/data";
+import { dataAsOfLabel, listSeasonsWithPlayers, loadGameHighLists, loadSeasonData } from "@/lib/data";
 import RecordsHeader from "@/app/components/RecordsHeader";
 import { GameHighsView } from "@/app/components/RecordTabViews";
 import SiteNav from "@/app/components/SiteNav";
@@ -21,7 +21,7 @@ export default function RecordsGamePage() {
     <>
       <SiteNav seasons={seasons} seasonCode={latest?.seasonCode ?? 0} view="records" wide />
       <main className="mx-auto max-w-page px-4 pt-5">
-        <RecordsHeader tab="game" leadersSeason={latest?.seasonCode ?? 0} />
+        <RecordsHeader tab="game" leadersSeason={latest?.seasonCode ?? 0} asOf={dataAsOfLabel()} />
         <GameHighsView data={loadGameHighLists()} />
       </main>
       <SourceFooter fetchedAt={latest ? loadSeasonData(latest.seasonCode)?.fetchedAt : undefined} wide />

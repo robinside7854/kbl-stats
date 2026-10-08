@@ -11,6 +11,12 @@ export function gameDayLabel(date: string): string {
   return `${Number(m[2])}월 ${Number(m[3])}일 (${WEEKDAYS[wd]})`;
 }
 
+/** "2026-10-07" → "10월 7일 경기까지 반영" — 기록 화면 머리말의 기준 한 줄 (lib/data dataAsOfDate) */
+export function asOfLabel(date: string): string {
+  const m = /^\d{4}-(\d{2})-(\d{2})$/.exec(date);
+  return m ? `${Number(m[1])}월 ${Number(m[2])}일 경기까지 반영` : `${date} 경기까지 반영`;
+}
+
 export interface GameDay {
   date: string;
   games: SeasonGame[];
@@ -67,6 +73,15 @@ export function performerLine(r: GameBoxRow): string {
   if (r.reb >= 5) parts.push(`${r.reb}리바`);
   if (r.ast >= 5) parts.push(`${r.ast}어시`);
   return parts.join(" ");
+}
+
+/** 그날 모든 경기에서 득점 많은 선수 n명 (검색창 빈 화면 "경기 활약", 2026-10-08 토스 검토). 같으면 리바 → 어시 */
+export function dayTopPerformers(day: GameDay, n = 3): { id: string; line: string }[] {
+  const rows = day.games.flatMap((g) => [...(g.box?.home ?? []), ...(g.box?.away ?? [])]);
+  return [...rows]
+    .sort((a, b) => b.pts - a.pts || b.reb - a.reb || b.ast - a.ast)
+    .slice(0, n)
+    .map((r) => ({ id: r.id, line: performerLine(r) }));
 }
 
 /** 경기 카드 "주요 선수" 구분 (2026-10-05 사용자: 팀별 2명 — 득점 1위 + 어시·3점·수비·리바 중 돋보인 선수) */

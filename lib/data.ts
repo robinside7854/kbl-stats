@@ -48,7 +48,7 @@ import { findSimilar, toAxisVector, type SimilarEntry, type SimilarVector } from
 import { pickPrimeSeasons, primeCandidatesOf, type PrimeCandidate } from "./prime";
 import { DEFAULT_QUALIFY, buildCardEntry, gradeGroupOf, isDomesticPool, isOngoingSeason, isQualified, seasonDefaultQualify } from "./metrics";
 import { seasonContext } from "./cardview";
-import { computeStandings } from "./games";
+import { asOfLabel, computeStandings, latestGameDay } from "./games";
 import { pickRegularChampions } from "./game-pool";
 import teamLineage from "@/data/codes/team-lineage.json";
 import {
@@ -113,6 +113,21 @@ export function gameTeamInfos(seasonCode: number): Record<string, { shortName: s
     out[t.teamCode] = { shortName: t.shortName, logoUrl: t.logoUrl, color: t.color };
   }
   return out;
+}
+
+/**
+ * 기록이 어디까지 들어왔는지 (2026-10-08 토스 검토 — "오늘 13:16 기준"처럼 기준을 늘 보이게):
+ * 선수가 있는 가장 최근 시즌에서 끝난 경기의 가장 늦은 날짜("2026-10-07"). 경기 파일이 없으면 null
+ */
+export function dataAsOfDate(): string | null {
+  const latest = listSeasonsWithPlayers()[0];
+  if (!latest) return null;
+  return latestGameDay(loadSeasonGames(latest.seasonCode))?.date ?? null;
+}
+/** 위 날짜의 화면 문구 ("10월 7일 경기까지 반영"), 없으면 null */
+export function dataAsOfLabel(): string | null {
+  const d = dataAsOfDate();
+  return d ? asOfLabel(d) : null;
 }
 
 let latestWithPlayers: number | null | undefined;

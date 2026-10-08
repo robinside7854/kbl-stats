@@ -3,7 +3,7 @@
 // 재료는 선수 색인 awards(KBL 역대수상현황)·championships(챔프전 4승 팀) → lib/data loadAwardLists.
 import type { Metadata } from "next";
 import { ogImagePath, shareMetadata } from "@/lib/share";
-import { AWARD_RANK_DEFS, findPlayerIndexEntry, listSeasonsWithPlayers, loadAwardLists, loadSeasonData, toCardTeams } from "@/lib/data";
+import { dataAsOfLabel, AWARD_RANK_DEFS, findPlayerIndexEntry, listSeasonsWithPlayers, loadAwardLists, loadSeasonData, toCardTeams } from "@/lib/data";
 import { buildSeasonAwardsView } from "@/lib/awards";
 import { seasonShortLabel } from "@/lib/career";
 import SeasonAwardsPicker, { type SeasonAwardsOption } from "@/app/components/SeasonAwardsPicker";
@@ -32,7 +32,7 @@ export default function RecordsAwardsPage() {
     <>
       <SiteNav seasons={seasons} seasonCode={latest?.seasonCode ?? 0} view="records" wide />
       <main className="mx-auto max-w-page px-4 pt-5">
-        <RecordsHeader tab="awards" leadersSeason={latest?.seasonCode ?? 0} />
+        <RecordsHeader tab="awards" leadersSeason={latest?.seasonCode ?? 0} asOf={dataAsOfLabel()} />
         <SeasonAwardsPicker seasons={awardSeasons} />
         <h2 className="mb-3 mt-8 text-h2 font-bold">역대 수상 횟수</h2>
         <AwardRecordsView data={loadAwardLists()} categories={AWARD_RANK_DEFS.map((d) => ({ value: d.key, label: d.label }))} />

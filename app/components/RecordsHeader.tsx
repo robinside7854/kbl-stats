@@ -20,11 +20,18 @@ const TABS: { key: RecordsTab; label: string; short?: string; href: (leadersSeas
 /**
  * scope: 제목 위 범위 한 줄(예: "25-26 KBL 정규시즌"). 없으면 안 그린다.
  * leadersSeason: "시즌별" 탭이 갈 시즌 (보통 선수가 있는 최신 시즌)
+ * asOf: 기준 한 줄("10월 7일 경기까지 반영", lib/games asOfLabel) — 지난 시즌 리더보드처럼 상관없는 화면은 안 넘긴다
  */
-export default function RecordsHeader({ tab, scope, leadersSeason }: { tab: RecordsTab; scope?: string; leadersSeason: number }) {
+export default function RecordsHeader({ tab, scope, leadersSeason, asOf }: { tab: RecordsTab; scope?: string; leadersSeason: number; asOf?: string | null }) {
   return (
     <header className="mb-3">
-      {scope && <p className="text-sub font-medium text-ink-3">{scope}</p>}
+      {(scope || asOf) && (
+        <p className="text-sub font-medium text-ink-3">
+          {scope}
+          {scope && asOf && " · "}
+          {asOf}
+        </p>
+      )}
       <h1 className="mt-0.5 flex items-center gap-1 text-h1 font-bold">
         기록 {tab !== "leaders" && <InfoLink term="records" className="ml-1" />}
       </h1>

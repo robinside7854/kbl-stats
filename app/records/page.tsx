@@ -3,7 +3,7 @@
 import { seasonRangeLabel } from "@/lib/career";
 import type { Metadata } from "next";
 import { ogImagePath, shareMetadata } from "@/lib/share";
-import { listSeasonsWithPlayers, loadCareerTotals, loadSeasonData } from "@/lib/data";
+import { dataAsOfLabel, listSeasonsWithPlayers, loadCareerTotals, loadSeasonData } from "@/lib/data";
 import RecordsView from "@/app/components/RecordsView";
 import SiteNav from "@/app/components/SiteNav";
 import SourceFooter from "@/app/components/SourceFooter";
@@ -21,7 +21,7 @@ export default function RecordsPage() {
   return (
     <>
       <SiteNav seasons={seasons} seasonCode={latest?.seasonCode ?? 0} view="records" wide />
-      <RecordsView totals={loadCareerTotals()} spanLabel={oldest && latest ? seasonRangeLabel(oldest.seasonLabel, latest.seasonLabel) : ""} latestSeasonCode={latest?.seasonCode ?? 0} />
+      <RecordsView totals={loadCareerTotals()} spanLabel={oldest && latest ? seasonRangeLabel(oldest.seasonLabel, latest.seasonLabel) : ""} latestSeasonCode={latest?.seasonCode ?? 0} asOf={dataAsOfLabel()} />
       <SourceFooter fetchedAt={latest ? loadSeasonData(latest.seasonCode)?.fetchedAt : undefined} wide />
     </>
   );

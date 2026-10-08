@@ -4,7 +4,8 @@ import { seasonShortLabel } from "@/lib/career";
 import type { Metadata } from "next";
 import { ogImagePath, shareMetadata } from "@/lib/share";
 import { notFound } from "next/navigation";
-import { listSeasonsWithPlayers, loadSeasonData, loadSeasonHighCards, toCardTeams, toLeaderPlayers, isSeasonOngoing } from "@/lib/data";
+import { listSeasonsWithPlayers, loadSeasonData, loadSeasonHighCards, toCardTeams, toLeaderPlayers, isSeasonOngoing, dataAsOfDate } from "@/lib/data";
+import { asOfLabel } from "@/lib/games";
 import LeadersView from "@/app/components/LeadersView";
 import SiteNav from "@/app/components/SiteNav";
 import SourceFooter from "@/app/components/SourceFooter";
@@ -35,6 +36,8 @@ export default async function LeadersPage({ params }: { params: Params }) {
   if (!season || season.players.length === 0) notFound();
 
   const teams = toCardTeams(season);
+  const ongoing = isSeasonOngoing(season.seasonCode);
+  const asOfDate = ongoing ? dataAsOfDate() : null;
 
   return (
     <>
@@ -45,7 +48,8 @@ export default async function LeadersPage({ params }: { params: Params }) {
         players={toLeaderPlayers(season)}
         teams={teams}
         seasonHighs={loadSeasonHighCards(season)}
-        ongoing={isSeasonOngoing(season.seasonCode)}
+        ongoing={ongoing}
+        asOf={asOfDate ? asOfLabel(asOfDate) : null}
       />
       <SourceFooter fetchedAt={season.fetchedAt} wide />
     </>

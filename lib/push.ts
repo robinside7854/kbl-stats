@@ -6,6 +6,17 @@ import site from "../data/codes/site.json";
 /** 마지막 경기일과 그 전날 소식만 보낸다 (처음 켠 사람에게 지난 주 소식이 한꺼번에 가지 않게) */
 export const PUSH_LOOKBACK_DAYS = 2;
 
+/** 조용한 시간 (한국 시간, 2026-10-08 토스 검토): 자정~아침 8시에는 보내지 않고 아침 첫 보내기(push-morning.yml 08:10)에 묶는다.
+ *  하이라이트 확인 알람이 새벽 2:40 까지 돌아 새벽에 폰이 울릴 수 있었다. 늦은 경기 수집(밤 10~11시대)은 그대로 보낸다 */
+export const PUSH_QUIET_START_HOUR = 0;
+export const PUSH_QUIET_END_HOUR = 8;
+
+/** 지금이 조용한 시간인지 (한국 시간 = UTC+9) */
+export function isQuietHour(now: Date): boolean {
+  const hour = (now.getUTCHours() + 9) % 24;
+  return hour >= PUSH_QUIET_START_HOUR && hour < PUSH_QUIET_END_HOUR;
+}
+
 /** 알림을 눌렀을 때 열 주소 — 알림함 (src=push 로 GA 에서 구분) */
 export const PUSH_OPEN_URL = "/notifications?src=push";
 

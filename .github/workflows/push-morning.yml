@@ -1,0 +1,38 @@
+# 아침 폰 알림 (2026-10-08) — 자정~아침 8시에 생긴 소식(늦게 올라온 하이라이트 등)은 그때 보내지 않고(lib/push isQuietHour)
+# 여기서 아침에 한 번 묶어 보낸다. 보낼 게 없으면 아무것도 안 보낸다(이미 보낸 소식은 push_sent 로 거른다).
+# GitHub 예약이 빠지는 날은 다음 저녁 수집 뒤 "폰 알림 보내기"가 같이 보낸다(마지막 경기일·전날 소식까지 고름).
+name: 아침 폰 알림
+
+on:
+  schedule:
+    - cron: "10 23 * * *"   # 08:10 KST
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: push-morning
+  cancel-in-progress: false
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4 (판 고정, 2026-10-03 보안 점검)
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: 폰 알림 보내기
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+        run: |
+          if [ -z "$DATABASE_URL" ] || [ -z "$VAPID_PRIVATE_KEY" ]; then echo "폰 알림 설정 없음 — 건너뜀"; exit 0; fi
+          npx tsx scripts/send-push.ts

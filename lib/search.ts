@@ -105,3 +105,18 @@ export function pickRandomCard(
   const season = e.prime ?? e.seasons[Math.min(e.seasons.length - 1, Math.floor(rand() * e.seasons.length))];
   return { id: e.id, seasonCode: season };
 }
+
+/** 최근 본 선수 (검색창 빈 화면, 2026-10-08 토스 검토) — 이 브라우저에만(localStorage). 최근 것이 앞, 같은 선수는 하나만 */
+export const RECENT_PLAYERS_MAX = 5;
+export function pushRecentPlayer(list: readonly string[], id: string, max = RECENT_PLAYERS_MAX): string[] {
+  return [id, ...list.filter((x) => x !== id)].slice(0, max);
+}
+/** 저장된 값 읽기 — 깨진 값은 빈 목록 */
+export function parseRecentPlayers(raw: string | null | undefined): string[] {
+  try {
+    const v = JSON.parse(raw ?? "[]");
+    return Array.isArray(v) ? v.filter((x): x is string => typeof x === "string" && /^\d{1,10}$/.test(x)).slice(0, RECENT_PLAYERS_MAX) : [];
+  } catch {
+    return [];
+  }
+}

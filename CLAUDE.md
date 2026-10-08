@@ -182,7 +182,7 @@ kbl-stats/
 │   ├── build-og.tsx     ← 공유 미리보기 이미지 public/og/*.png (prebuild, 1200×630, next/og + assets/fonts/Pretendard OFL): site(밝은 바탕 + KBL 리그 로고 — 빌드 때 1회 받아 캐시, 실패 시 글자 배지)·records·game·leaders/{시즌}·player/{번호} 약 1,370장·51MB. 사진·로고 없이 팀 색·이름·기록만(외부 요청 없음). 내용 해시로 .next/cache/og 재사용(첫 빌드 약 3분, 이후 바뀐 것만). git 제외
 │   ├── build-app-icons.ts ← 앱 설치 아이콘 public/icons/icon·maskable 192·512 PNG + app/icon.svg·apple-icon.png (그림 = 이 파일 안 KBL 글자·농구공·막대, 한 번 돌려 커밋 — prebuild 아님). 설치 설정은 app/manifest.ts
 │   ├── notif-feed.ts    ← 알림 목록 만들기 buildNotifFeed (build-notifications·send-push 공용)
-│   ├── send-push.ts     ← 폰 푸시 알림 보내기 (fetch.yml "폰 알림 보내기", Secrets DATABASE_URL·VAPID_PRIVATE_KEY, lib/push pickPushItems·composePush, web-push)
+│   ├── send-push.ts     ← 폰 푸시 알림 보내기 (자정~아침 8시는 건너뜀 — 아침은 push-morning.yml 08:10, fetch.yml "폰 알림 보내기", Secrets DATABASE_URL·VAPID_PRIVATE_KEY, lib/push pickPushItems·composePush, web-push)
 │   ├── build-notifications.ts ← 알림함 목록 public/notifications.json (prebuild·predev, lib/notifications buildNotifItems — 최근 7일 경기, git 제외)
 │   ├── build-games.ts   ← 날짜별 박스스코어 파일 public/games/{시즌}/{날짜}.json (prebuild·predev, 일정 화면이 펼칠 때 받음, git 제외)
 │   └── build-cards.ts   ← 비교 탭용 시즌별 카드 데이터 public/cards/{seasonCode}.json 생성 (prebuild·predev, 형식은 lib/cards.ts v2 — 레이더 구성 요소 열 포함, 시즌당 약 28~55KB, git 제외)
@@ -308,7 +308,7 @@ kbl-stats/
   | filter_reset | screen | 필터 초기화 |
   | help_open | topic | ⓘ 도움말 열기 (어떤 용어가 어려운지) |
   | csv_download | season, category, mode | 리더보드 CSV |
-  | search_select | player_no, mode(go/compare) | 검색에서 선수 고르기 |
+  | search_select | player_no, mode(go/compare/recent/hot) | 검색에서 선수 고르기 (recent·hot = 검색창 빈 화면의 최근 본 선수·경기 활약, 2026-10-08) |
   | random_card | player_no, season_code | 랜덤 카드 |
   | image_save | file_name | 카드·54-0 이미지 저장 |
   | favorite_add / favorite_remove | player_no | 즐겨찾기 |
@@ -388,6 +388,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-08 (토스 검토 A 4가지): 사용자 "A 먼저". ① **새벽 폰 알림 막기**: 한국 자정~아침 8시는 보내지 않음(`lib/push isQuietHour`, send-push 가 건너뛰고 보낸 기록 안 남김) → 새 워크플로 `push-morning.yml`(08:10 KST 예약, send-push 만) + 빠지면 다음 저녁 수집 뒤 보내기가 같이 보냄. 알림함 켜짐 문구 "밤 12시~아침 8시엔 쉬어요" ② **기준 한 줄** "10월 7일 경기까지 반영"(`lib/games asOfLabel`, `lib/data dataAsOfDate·dataAsOfLabel` = 선수 있는 최신 시즌의 마지막 끝난 경기일): 홈(갱신 시각 대신)·기록 5탭 머리말(`RecordsHeader asOf`, 시즌별은 진행 중 시즌만)·팀 화면 지금 팀 ③ **검색창 빈 화면**: 누르기만 하면 최근 본 선수 5명(localStorage `kbl-stats:recent-players:v1`, 선수 상세 `RecentPlayerMark` 가 저장, `lib/search pushRecentPlayer·parseRecentPlayers`) + 마지막 경기일 득점 상위 3명(`public/search-hot.json` — build-search-index 가 `lib/games dayTopPerformers` 로, git 제외). GA4 search_select mode recent·hot(새 매개변수 없음, 링크 클릭도 이제 기록) ④ **빈 화면 다음 행동**: 기록 통산·한 경기·한 시즌·수상 0명이면 "필터 초기화"(`RecordList ResetButton`, filter_reset screen=records·records_*), 알림함 새 소식 없음 → 다음 경기 일정·선수 찾기, 54-0 주간 순위·내 기록 → 54-0 하러 가기(link-shortcut), 좋아요 순위 → 선수 찾아보기. 개인정보 안내에 최근 본 선수. 업데이트 소식 글. main 배포.
 - 2026-10-08 (토스 UX 검토): 사용자가 유아이볼(uibowl) MCP 연결 — 무료 등급은 검색마다 3개. 토스·토스증권 화면(홈·검색·종목 상세·랭킹·알림 설정·바텀시트·빈 화면·완료·차트·게이미피케이션)을 보고 `docs/toss-ux-review-2026-10-08.md` 작성: A 새벽 알림 막기(하이라이트 알람이 02:40 까지라 새벽 푸시 가능 — 실제 문제)·"N일 경기까지 반영" 기준 표시·검색 빈 화면(최근 본 선수·어제 활약)·빈 화면 다음 행동 / B 리더보드 순위 변동 ▲▼·선수 상세 압축 머리글+섹션 탭·알림 종류별 토글·경기 포인트 요약(규칙)·시즌 범위 막대 / C 승부 예측 원탭·홈 편집·팬 배지. 사용자 결정 대기. 코드 변경 없음.
 - 2026-10-08 (선수 머리말 PC 간격): 사용자 "PC 에서 프로필 글과 사진이 너무 멀다" → `PlayerHero` 1024px 이상은 글 열을 내용 폭만(`fit-content(40rem)`), 사진은 글 바로 옆 40px(`justify-start gap-x-10`). 폰·태블릿은 그대로. 작은 손질이라 업데이트 소식 글 없음. main 배포.
 - 2026-10-08 (폰 알림 점검): 사용자가 GitHub Secrets DATABASE_URL·VAPID_PRIVATE_KEY 등록. 점검 워크플로 `push-check.yml`(실행 횟수 올려 main 푸시, `# 테스트 알림: 예` 면 `send-push.ts --test` — 켠 기기 모두에 "폰 알림 테스트", 보낸 기록 안 남김), send-push 결과를 Actions notice(`::notice title=폰 알림::`)로 — 세션은 check-run 주석으로 확인. 실행 2회째(사용자 폰 켬): 회원 1명·기기 2·보냄 2·실패 0, 사용자 폰 수신 확인 — 폰 푸시 끝까지 동작.

@@ -22,13 +22,15 @@ const VIEW_OPTIONS: { value: View; label: string }[] = [
   { value: "table", label: "표" },
 ];
 
-export default function TeamsIndexView({ teams, seasonCode, seasonShort, records, standings }: {
+export default function TeamsIndexView({ teams, seasonCode, seasonShort, records, standings, asOf = null }: {
   teams: TeamIndexEntry[];
   seasonCode: number;
   seasonShort: string;
   records: Record<string, { wins: number; losses: number; rank: number }>;
   /** 시즌별 순위 표 (최신 시즌 먼저) */
   standings: StandingsSeason[];
+  /** "10월 7일 경기까지 반영" — 지금 시즌 카드에만 붙인다 */
+  asOf?: string | null;
 }) {
   const counts = useLikeCounts();
   const [tab, setTab] = useState<Tab>("now");
@@ -157,7 +159,9 @@ export default function TeamsIndexView({ teams, seasonCode, seasonShort, records
         <>
           <div className="mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
             {view === "card" || !shownStandings ? (
-              <p className="text-sub text-ink-2">{seasonShort} 시즌 순위 · 승률 순</p>
+              <p className="text-sub text-ink-2">
+                {seasonShort} 시즌 순위 · 승률 순{asOf && <span className="text-ink-3"> · {asOf}</span>}
+              </p>
             ) : (
               <label className="flex items-center gap-2 text-sub font-medium text-ink-2">
                 <span className="shrink-0">시즌</span>

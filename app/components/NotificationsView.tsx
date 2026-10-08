@@ -12,7 +12,7 @@ import { trackEvent } from "./track";
 import { useNotifications } from "./useNotifications";
 
 export default function NotificationsView() {
-  const { mine, seenSet, seenReady, markAllRead, loaded, subscribed, favorites, teams } = useNotifications();
+  const { mine, seenSet, seenReady, markAllRead, loaded, subscribed, favorites, teams, seasonCode } = useNotifications();
   // 이번에 열었을 때 새 소식이던 것 (읽음 처리 뒤에도 파란 점을 남긴다)
   const freshRef = useRef<Set<string> | null>(null);
   const [, force] = useState(0);
@@ -70,6 +70,16 @@ export default function NotificationsView() {
         <div className="surface-card mt-5 rounded-container p-5">
           <p className="text-body font-bold text-ink">최근 {NOTIF_WINDOW_DAYS}일 동안 새 소식이 없어요</p>
           <p className="mt-1 text-sub text-ink-2">즐겨찾기한 선수나 응원팀이 경기를 치르면 여기에 쌓여요.</p>
+          <div className="mt-3 flex flex-wrap gap-x-4">
+            {seasonCode !== null && (
+              <Link href={`/season/${seasonCode}/schedule`} className="link-shortcut">
+                다음 경기 일정 보기 <IconChevronRight size={16} />
+              </Link>
+            )}
+            <Link href="/players" className="link-shortcut">
+              즐겨찾기할 선수 찾기 <IconChevronRight size={16} />
+            </Link>
+          </div>
         </div>
       ) : (
         <div className="mt-5 space-y-5">
