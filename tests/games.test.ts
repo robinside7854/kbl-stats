@@ -171,3 +171,17 @@ console.log("games: 팀 순위 통과");
   assert.deepEqual(key(myTeamsFirst(games, ["99"])), key(games));
   console.log("games: 응원팀 경기 먼저 통과");
 }
+
+// 일정 지난 경기 접기 (2026-10-09)
+{
+  const { splitPastDays } = await import("../lib/games");
+  const d = (date: string) => ({ date });
+  const days = [d("2026-10-03"), d("2026-10-04"), d("2026-10-05"), d("2026-10-07"), d("2026-10-09"), d("2026-10-11")];
+  const r = splitPastDays(days, "2026-10-09");
+  assert.deepEqual(r.hidden.map((x) => x.date), ["2026-10-03", "2026-10-04"], "지난 4일 중 최근 2일만 보임");
+  assert.deepEqual(r.visible.map((x) => x.date), ["2026-10-05", "2026-10-07", "2026-10-09", "2026-10-11"], "오늘·앞으로는 보임");
+  assert.equal(splitPastDays(days, "2026-10-01").hidden.length, 0, "시즌 전이면 접을 것 없음");
+  assert.deepEqual(splitPastDays(days, "2026-12-01").visible.map((x) => x.date), ["2026-10-09", "2026-10-11"], "지난 달은 마지막 2일만");
+  assert.equal(splitPastDays(days, null).hidden.length, 0, "오늘을 모르면 접지 않음");
+  console.log("games: 일정 지난 경기 접기 통과");
+}

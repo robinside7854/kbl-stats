@@ -7,13 +7,15 @@
 // 내 응원팀만 (2026-10-06 사용자 요청): 로그인한 회원은 응원팀(여러 팀) 경기만 보는 게 기본, "전체"로 바꿀 수 있다(고른 것은 이 브라우저에 기억).
 //   응원팀을 안 골랐으면 고르러 가는 안내, 로그인 안 했으면 "로그인하면 우리 팀 경기만 볼 수 있다" 안내(로그인이 꺼진 빌드는 둘 다 없음).
 //   GA4: filter_change screen=schedule filter=scope value=mine|all, login_prompt_click place=schedule.
+// 지난 경기 접기 (2026-10-09 사용자: 모바일 세로 스크롤이 너무 길다): 오늘 이전 경기일은 최근 2일만 보이고 그 전은
+//   "지난 경기 N일 더 보기"로 접는다(lib/games splitPastDays). ?date= 로 접힌 날을 가리키면 펼친다. GA4: filter_change screen=schedule filter=past value=open.
 import { useEffect, useMemo, useState } from "react";
 import type { GameBoxRow, SeasonGame } from "@/lib/types";
-import { gameDayLabel, gamesOfTeams, groupByDate, initialScheduleScope, monthLabel, monthsOf, pickMonth, type ScheduleScope, type SeasonProgress, type Standout } from "@/lib/games";
+import { gameDayLabel, gamesOfTeams, groupByDate, splitPastDays, initialScheduleScope, monthLabel, monthsOf, pickMonth, type ScheduleScope, type SeasonProgress, type Standout } from "@/lib/games";
 import { enabledLoginProviders } from "@/lib/account";
 import Link from "next/link";
 import Segmented from "./Segmented";
-import { IconChevronRight } from "./icons";
+import { IconChevronDown, IconChevronRight } from "./icons";
 import { useMember } from "./useLikes";
 import { kstDateString } from "@/lib/home";
 import ChipRow from "./ChipRow";
@@ -110,15 +112,26 @@ export default function ScheduleView({ seasonCode, seasonShort, games, teams, in
 
   const shown = mine ? myGames : games;
   const days = useMemo(() => groupByDate(shown.filter((g) => g.date.slice(0, 7) === month)), [shown, month]);
+  // 지난 경기 접기 — 달·범위를 바꾸면 다시 접는다
+  const [pastOpen, setPastOpen] = useState(false);
+  useEffect(() => setPastOpen(false), [month, scope]);
+  const split = useMemo(() => splitPastDays(days, today), [days, today]);
+  const visibleDays = pastOpen ? days : split.visible;
+  const hiddenGames = split.hidden.reduce((n, d) => n + d.games.length, 0);
 
   // 고른 날짜(없으면 오늘 이후 첫 경기일)로 스크롤
   useEffect(() => {
     if (!target) return;
     const first = days.find((d) => d.date >= target) ?? days[days.length - 1];
     if (!first) return;
+    // 접힌 날을 가리키면 펼친 뒤 다음 그리기에서 스크롤
+    if (!pastOpen && split.hidden.some((d) => d.date === first.date)) {
+      setPastOpen(true);
+      return;
+    }
     document.getElementById(`d-${first.date}`)?.scrollIntoView({ block: "start" });
     setTarget(null);
-  }, [target, days]);
+  }, [target, days, pastOpen, split]);
 
   function changeScope(v: ScheduleScope) {
     trackFilters("schedule", { scope: v });
@@ -192,8 +205,23 @@ export default function ScheduleView({ seasonCode, seasonShort, games, teams, in
             </p>
           )}
           {/* PC(1280px 이상): 날짜 묶음을 3칸 격자에 경기 수만큼 칸을 차지해 이어 붙인다 — 1~2경기 날의 오른쪽 빈칸을 다음 날이 채움 (2026-10-06 사용자) */}
+          {!pastOpen && split.hidden.length > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                trackFilters("schedule", { past: "open" });
+                setPastOpen(true);
+              }}
+              aria-expanded={false}
+              className="focus-ring mt-4 flex h-11 w-full cursor-pointer items-center justify-center gap-1.5 rounded-control border border-line bg-surface text-sub font-semibold text-ink-2 transition-colors duration-200 hover:bg-surface-2"
+            >
+              지난 경기 {split.hidden.length}일 더 보기
+              <span className="font-normal text-ink-3">· {hiddenGames}경기</span>
+              <IconChevronDown size={16} />
+            </button>
+          )}
           <div className="xl:grid xl:grid-cols-3 xl:items-start xl:gap-x-3">
-          {days.map((d) => (
+          {visibleDays.map((d) => (
             <section key={d.date} id={`d-${d.date}`} aria-labelledby={`h-${d.date}`} className={`mt-5 min-w-0 scroll-mt-4 ${DAY_SPAN[Math.min(d.games.length, 3)]}`}>
               <h2 id={`h-${d.date}`} className="flex items-center gap-2 text-body font-bold text-ink">
                 {gameDayLabel(d.date)}

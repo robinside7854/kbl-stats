@@ -415,3 +415,21 @@ export function myTeamsFirst<T extends { home: { teamCode: string }; away: { tea
   };
   return games.map((g, i) => ({ g, i, r: rank(g) })).sort((a, b) => a.r - b.r || a.i - b.i).map((x) => x.g);
 }
+
+/** 일정 화면에서 펼쳐 둘 지난 경기일 수 (2026-10-09 사용자: 모바일 세로 스크롤이 너무 길다 → 최근 2일만) */
+export const SCHEDULE_RECENT_PAST_DAYS = 2;
+
+/**
+ * 일정 날짜 묶음 → 접어 둘 지난 날 / 보일 날. 오늘보다 앞선 경기일 중 가장 최근 keep 일과 오늘·앞으로의 날은 보이고,
+ * 그보다 오래된 날은 접는다. today 를 모르면(첫 화면 그리기 전) 접지 않는다.
+ */
+export function splitPastDays<T extends { date: string }>(
+  days: readonly T[],
+  today: string | null,
+  keep = SCHEDULE_RECENT_PAST_DAYS,
+): { hidden: T[]; visible: T[] } {
+  if (!today) return { hidden: [], visible: days.slice() };
+  const pastCount = days.filter((d) => d.date < today).length;
+  const cut = Math.max(0, pastCount - keep);
+  return { hidden: days.slice(0, cut), visible: days.slice(cut) };
+}

@@ -31,6 +31,16 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-10-09-schedule-fold",
+    date: "2026-10-09",
+    kind: "update",
+    title: "일정에서 지난 경기는 접어 뒀어요",
+    summary: "일정 지난 경기 접기",
+    blocks: [
+      { kind: "p", text: "일정 화면에서 지난 경기는 최근 이틀 치만 보이고, 그 전 경기는 맨 위 \"지난 경기 더 보기\"를 누르면 나와요. 폰에서 한참 내리지 않아도 돼요." },
+    ],
+  },
+  {
     slug: "2026-10-08-home-my-team",
     date: "2026-10-08",
     kind: "update",
