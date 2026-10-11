@@ -11,6 +11,7 @@ import { teamShortLabel } from "@/lib/images";
 import GameCard, { teamInfoOf, type GameTeamInfo } from "./GameCard";
 import { IconChevronRight } from "./icons";
 import TeamLogo from "./TeamLogo";
+import StreakText from "./StreakText";
 import { useMember } from "./useLikes";
 
 export type { GameTeamInfo };
@@ -21,9 +22,11 @@ interface Props {
   seasonCode: number;
   /** 팀 코드 → 이름·로고 (이 시즌, 없으면 직전 시즌 팀표) */
   teams: Record<string, GameTeamInfo>;
+  /** 팀 코드 → 지금 2경기 이상 연승·연패 (lib/games notableStreak) — 다음 경기 줄에 */
+  streaks?: Record<string, { label: string; kind: "W" | "L" }>;
 }
 
-export default function GameDayBoard({ day, next, seasonCode, teams }: Props) {
+export default function GameDayBoard({ day, next, seasonCode, teams, streaks = {} }: Props) {
   const [today, setToday] = useState<string | null>(null);
   useEffect(() => setToday(kstDateString(new Date())), []);
   const isToday = today === day.date;
@@ -75,9 +78,11 @@ export default function GameDayBoard({ day, next, seasonCode, teams }: Props) {
                   {/* 홈 팀이 늘 왼쪽 (2026-10-05, 경기 카드와 같은 순서) */}
                   <TeamLogo logoUrl={home.logoUrl} shortName={home.shortName} color={home.color} size={20} />
                   <span className="min-w-0 truncate font-semibold text-ink">{teamShortLabel(home.shortName)}</span>
+                  <StreakText streak={streaks[g.home.teamCode]} />
                   <span className="text-ink-3">vs</span>
                   <TeamLogo logoUrl={away.logoUrl} shortName={away.shortName} color={away.color} size={20} />
                   <span className="min-w-0 truncate font-semibold text-ink">{teamShortLabel(away.shortName)}</span>
+                  <StreakText streak={streaks[g.away.teamCode]} />
                   {isMine(g) && <span className="shrink-0 text-caption font-semibold text-series-1">내 응원팀</span>}
                   {g.stadium && <span className="ml-auto hidden min-w-0 truncate text-caption text-ink-3 sm:inline md:ml-2">{g.stadium}</span>}
                 </li>

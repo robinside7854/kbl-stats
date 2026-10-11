@@ -69,6 +69,17 @@ assert.deepEqual(rows.map((r) => `${r.rank}${r.teamCode}${r.wins}-${r.losses}`),
 assert.equal(rows[1].gamesBehind, 1);
 assert.deepEqual(rows[0].last5, ["W", "L", "W", "W"]);
 assert.equal(rows[0].streak, "2연승");
+assert.equal(rows[0].streakKind, "W");
+assert.equal(rows[0].streakCount, 2);
+{
+  const { notableStreak } = await import("../lib/games");
+  assert.deepEqual(notableStreak(rows[0]), { label: "2연승", kind: "W" });
+  // C: L W L L → 2연패
+  assert.deepEqual(notableStreak(rows[2]), { label: "2연패", kind: "L" });
+  // 1연승은 안 보임
+  assert.equal(notableStreak({ streakKind: "W", streakCount: 1 }), null);
+  assert.equal(notableStreak({ streakKind: null, streakCount: 0 }), null);
+}
 assert.equal(rows[0].homeWins, 2);
 assert.equal(pctLabel(0.75), ".750");
 assert.equal(pctLabel(1), "1.000");

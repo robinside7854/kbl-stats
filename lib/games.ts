@@ -178,10 +178,22 @@ export interface StandingRow {
   last5: ("W" | "L")[];
   /** "3연승" / "2연패" / "" */
   streak: string;
+  /** 지금 이어지는 연승(W)·연패(L)와 경기 수 (경기 없으면 null·0) */
+  streakKind: "W" | "L" | null;
+  streakCount: number;
+}
+
+/** 연승·연패를 따로 보여 줄 최소 경기 수 (1연승은 소식이 아니라서 — 2026-10-11 우리 규칙) */
+export const STREAK_SHOW_MIN = 2;
+
+/** 보여 줄 만한 연승·연패 { label: "3연승", kind } — 2경기 미만이면 null */
+export function notableStreak(r: Pick<StandingRow, "streakKind" | "streakCount">): { label: string; kind: "W" | "L" } | null {
+  if (!r.streakKind || r.streakCount < STREAK_SHOW_MIN) return null;
+  return { label: `${r.streakCount}${r.streakKind === "W" ? "연승" : "연패"}`, kind: r.streakKind };
 }
 
 export function computeStandings(games: readonly SeasonGame[]): StandingRow[] {
-  type Acc = Omit<StandingRow, "rank" | "games" | "pct" | "gamesBehind" | "last5" | "streak"> & { results: ("W" | "L")[] };
+  type Acc = Omit<StandingRow, "rank" | "games" | "pct" | "gamesBehind" | "last5" | "streak" | "streakKind" | "streakCount"> & { results: ("W" | "L")[] };
   const acc = new Map<string, Acc>();
   const get = (side: GameSide) => {
     let a = acc.get(side.teamCode);
@@ -218,6 +230,8 @@ export function computeStandings(games: readonly SeasonGame[]): StandingRow[] {
       pct: games ? a.wins / games : 0,
       last5: results.slice(-5),
       streak: last ? `${n}${last === "W" ? "연승" : "연패"}` : "",
+      streakKind: last ?? null,
+      streakCount: n,
       rank: 0,
       gamesBehind: 0,
     };

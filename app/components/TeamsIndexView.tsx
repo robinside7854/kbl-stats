@@ -11,6 +11,7 @@ import ChipRow from "./ChipRow";
 import Segmented from "./Segmented";
 import StandingsTable, { type StandingsSeason } from "./StandingsTable";
 import TeamLogo from "./TeamLogo";
+import StreakText from "./StreakText";
 import { IconHeart, IconMegaphone, IconTrophy } from "./icons";
 import { trackEvent, trackFilters } from "./track";
 import { useLikeCounts } from "./useLikes";
@@ -26,7 +27,7 @@ export default function TeamsIndexView({ teams, seasonCode, seasonShort, records
   teams: TeamIndexEntry[];
   seasonCode: number;
   seasonShort: string;
-  records: Record<string, { wins: number; losses: number; rank: number }>;
+  records: Record<string, { wins: number; losses: number; rank: number; streak?: { label: string; kind: "W" | "L" } | null }>;
   /** 시즌별 순위 표 (최신 시즌 먼저) */
   standings: StandingsSeason[];
   /** "10월 7일 경기까지 반영" — 지금 시즌 카드에만 붙인다 */
@@ -106,7 +107,17 @@ export default function TeamsIndexView({ teams, seasonCode, seasonShort, records
           <span className="mt-1 w-full text-caption text-ink-3 tabular">
             {t.active
               ? rec
-                ? `${rec.wins}승 ${rec.losses}패`
+                ? (
+                  <>
+                    {`${rec.wins}승 ${rec.losses}패`}
+                    {rec.streak && (
+                      <>
+                        {" · "}
+                        <StreakText streak={rec.streak} />
+                      </>
+                    )}
+                  </>
+                )
                 : "아직 경기 없음"
               : `${t.spanLabel} · ${t.seasons}시즌`}
           </span>

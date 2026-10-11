@@ -3,8 +3,8 @@
 import type { Metadata } from "next";
 import { shareMetadata } from "@/lib/share";
 import { notFound } from "next/navigation";
-import { findPlayerIndexEntry, listAllSeasons, listSeasonsWithPlayers, loadSeasonData, loadSeasonGames, gameTeamInfos, seasonQualify, toCardTeams, toLeaderPlayers } from "@/lib/data";
-import { latestGameDay, nextGameDay, seasonProgress, asOfLabel } from "@/lib/games";
+import { findPlayerIndexEntry, loadRecentFeats, listAllSeasons, listSeasonsWithPlayers, loadSeasonData, loadSeasonGames, gameTeamInfos, seasonQualify, toCardTeams, toLeaderPlayers } from "@/lib/data";
+import { latestGameDay, nextGameDay, seasonProgress, asOfLabel, computeStandings, notableStreak } from "@/lib/games";
 import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
 import type { BirthdayPlayer } from "./components/BirthdayStrip";
 import { filterLeaders, topLeaders } from "@/lib/leaders";
@@ -47,6 +47,14 @@ export default function HomePage() {
   const gameTeams = gameTeamInfos(shown.seasonCode);
   // 진행률은 진행 중인 시즌만 (개막 전이라 직전 시즌을 보여 줄 때는 안 보임)
   const seasonProgressNow = upcoming ? null : seasonProgress(games);
+  // 새로 나온 기록(최근 7일 대기록)·다음 경기 팀 연승/연패 — 2026-10-11 (개막 전 직전 시즌을 보일 땐 안 보임)
+  const feats = upcoming ? [] : loadRecentFeats(shown.seasonCode);
+  const streaks = upcoming
+    ? {}
+    : Object.fromEntries(computeStandings(games).flatMap((r) => {
+        const s = notableStreak(r);
+        return s ? [[r.teamCode, s]] : [];
+      }));
 
   return (
     <>
@@ -63,6 +71,8 @@ export default function HomePage() {
         progress={seasonProgressNow}
         nextGameDay={nextDay}
         gameTeams={gameTeams}
+        feats={feats}
+        streaks={streaks}
         qualifyText={qualifyLabel(rule)}
       />
       <SourceFooter fetchedAt={season.fetchedAt} wide />

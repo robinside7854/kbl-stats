@@ -2,7 +2,7 @@
 // 빌드 때 최근 경기(정규시즌 마지막 경기일부터 7일)로 "모두에게 같은" 알림 목록을 만들고(scripts/build-notifications.ts →
 // public/notifications.json), 브라우저가 내 즐겨찾기 선수·응원팀 것만 골라 보여 준다 — 서버·DB 필요 없음.
 // 2단계(폰 푸시)도 같은 목록을 쓴다. 순수 함수만.
-import type { GameBoxRow, SeasonGame } from "./types";
+import type { GameBoxRow, SeasonGame, TeamColor } from "./types";
 import { MILESTONE_STEPS } from "./records";
 
 export type NotifKind = "high" | "milestone" | "team_result" | "highlight" | "player_game";
@@ -20,7 +20,24 @@ export interface NotifItem {
   title: string;
   body: string;
   href: string;
+  /** 대기록(high·milestone)만: 홈 "새로 나온 기록"이 쓰는 구조 값 (2026-10-11) */
+  feat?: FeatInfo;
 }
+
+/** 대기록 한 줄의 재료 — 선수 이름을 뺀 문구와 단계, 경기 점수·그날 기록 */
+export interface FeatInfo {
+  level: FeatLevel;
+  /** "33득점" · "통산 3,000득점 달성" */
+  text: string;
+  /** "삼성 88 : 85 소노" (선수 팀이 앞) */
+  game: string;
+  won: boolean;
+  /** 그날 기록 "33득점 · 6어시스트" */
+  stat: string;
+  name: string;
+}
+
+export type FeatLevel = "career" | "careerTie" | "season" | "milestone";
 
 export interface NotifFeed {
   version: 1;
@@ -224,6 +241,7 @@ export function buildNotifItems(allGames: readonly SeasonGame[], ctx: NotifConte
             label = "이번 시즌 최다";
           }
           if (!label) continue;
+          const level: FeatLevel = label === "커리어 하이" ? "career" : label === "커리어 하이 타이" ? "careerTie" : "season";
           items.push({
             id: `h:${g.gmkey}:${r.id}:${h.key}`,
             kind: "high",
@@ -232,6 +250,7 @@ export function buildNotifItems(allGames: readonly SeasonGame[], ctx: NotifConte
             title: `${r.nameKo} ${label} ${h.text(v)}`,
             body: `${text} · ${playerStatLine(r)}`,
             href: `/player/${r.id}?season=${ctx.seasonCode}`,
+            feat: { level, text: h.text(v), game: text, won, stat: playerStatLine(r), name: r.nameKo },
           });
         }
         // 통산 이정표 돌파
@@ -252,6 +271,7 @@ export function buildNotifItems(allGames: readonly SeasonGame[], ctx: NotifConte
               title: `${r.nameKo} 통산 ${m.text(NF.format(target))} 달성`,
               body: `${text} · 지금 통산 ${m.text(NF.format(now))}`,
               href: `/player/${r.id}?season=${ctx.seasonCode}`,
+              feat: { level: "milestone", text: `통산 ${m.text(NF.format(target))}`, game: text, won, stat: playerStatLine(r), name: r.nameKo },
             });
           }
         }
@@ -338,4 +358,84 @@ export function withoutOffGroups(items: readonly NotifItem[], off: readonly stri
   if (off.length === 0) return items.slice();
   const set = new Set(off);
   return items.filter((it) => !set.has(notifGroupOf(it.kind)));
+}
+
+// ─────────────────────────────────────────────
+// 홈 "새로 나온 기록" (2026-10-11 사용자 결정 — 즐겨찾기와 상관없이 모두에게)
+// 알림 목록의 대기록(커리어 하이·시즌 최다·통산 이정표)을 선수-경기 하나로 묶는다.
+// ─────────────────────────────────────────────
+
+export interface FeatGroup {
+  /** 경기 번호:선수 번호 */
+  key: string;
+  date: string;
+  player: string;
+  name: string;
+  href: string;
+  game: string;
+  won: boolean;
+  stat: string;
+  /** 단계 높은 것 먼저 */
+  lines: { level: FeatLevel; text: string }[];
+}
+
+/** 홈 한 칸 (featGroups + 사진·팀 색 — lib/data loadRecentFeats) */
+export interface RecentFeat extends FeatGroup {
+  photoUrl: string | null;
+  teamShort: string;
+  color: TeamColor;
+}
+
+export const FEAT_LEVEL_LABEL: Record<FeatLevel, string> = {
+  career: "커리어 하이",
+  careerTie: "커리어 하이 타이",
+  season: "시즌 최다",
+  milestone: "이정표",
+};
+
+const LEVEL_ORDER: Record<FeatLevel, number> = { career: 0, careerTie: 1, milestone: 2, season: 3 };
+
+/** 대기록만 골라 선수-경기로 묶기 → 날짜 최신 → 가장 높은 단계 → 줄 많은 순 */
+export function featGroups(items: readonly NotifItem[]): FeatGroup[] {
+  const map = new Map<string, FeatGroup>();
+  for (const it of items) {
+    if (!it.feat || !it.player) continue;
+    const gmkey = it.id.split(":")[1] ?? it.date;
+    const key = `${gmkey}:${it.player}`;
+    let g = map.get(key);
+    if (!g) {
+      g = { key, date: it.date, player: it.player, name: it.feat.name, href: it.href, game: it.feat.game, won: it.feat.won, stat: it.feat.stat, lines: [] };
+      map.set(key, g);
+    }
+    g.lines.push({ level: it.feat.level, text: it.feat.text });
+  }
+  const groups = [...map.values()];
+  for (const g of groups) g.lines.sort((a, b) => LEVEL_ORDER[a.level] - LEVEL_ORDER[b.level]);
+  const best = (g: FeatGroup) => LEVEL_ORDER[g.lines[0].level];
+  return groups.sort((a, b) => b.date.localeCompare(a.date) || best(a) - best(b) || b.lines.length - a.lines.length || a.name.localeCompare(b.name, "ko"));
+}
+
+/** 선수 색인 → 정규시즌 커리어 하이 (build-notifications·홈 공용) */
+export function careerHighsFromIndex(index: readonly { id: string; careerHighs?: unknown }[]): NotifContext["careerHighs"] {
+  const out: NotifContext["careerHighs"] = {};
+  for (const p of index) {
+    const reg = (p.careerHighs as { regular?: NotifContext["careerHighs"][string] } | null | undefined)?.regular;
+    if (reg) out[p.id] = reg;
+  }
+  return out;
+}
+
+/** 시즌 파일 선수들 → 선수별 통산 합계 (이정표 계산 재료) */
+export function careerSumsFromSeasons(
+  seasons: readonly { players: readonly { playerNo: string; points: number; reb: number; ast: number; stl: number; blk: number; tpm: number; games: number; wins: number }[] }[],
+): Record<string, CareerSums> {
+  const out: Record<string, CareerSums> = {};
+  for (const season of seasons) {
+    for (const p of season.players) {
+      const c = (out[p.playerNo] ??= { points: 0, reb: 0, ast: 0, stl: 0, blk: 0, tpm: 0, games: 0, wins: 0 });
+      c.points += p.points; c.reb += p.reb; c.ast += p.ast; c.stl += p.stl; c.blk += p.blk; c.tpm += p.tpm;
+      c.games += p.games; c.wins += p.wins;
+    }
+  }
+  return out;
 }

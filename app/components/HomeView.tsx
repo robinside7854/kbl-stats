@@ -1,5 +1,5 @@
 // 홈 "KBL 2026-2027 시즌" (옛 제목 "이번 시즌 한눈에") (PLAN.md §2-4, §3 ⑤, §5-4). 서버 컴포넌트 — 계산은 app/page.tsx 가 lib/ 함수로 끝내고 결과만 받는다.
-// 구성(모바일 우선): 개막 전 안내 → 오늘의 경기(GameDayBoard, 2026-10-03 — 응원팀 경기 먼저) → 즐겨찾기(있을 때만) → 히어로(부문 1위 표지, 새로고침마다 부문이 바뀜 — HomeHero) → 오늘 생일 → 부문별 1~3위 카드 줄.
+// 구성(모바일 우선): 개막 전 안내 → 오늘의 경기(GameDayBoard, 2026-10-03 — 응원팀 경기 먼저, 다음 경기 팀 연승·연패) → 새로 나온 기록(RecentFeats, 2026-10-11) → 즐겨찾기(있을 때만) → 히어로(부문 1위 표지, 새로고침마다 부문이 바뀜 — HomeHero) → 오늘 생일 → 부문별 1~3위 카드 줄.
 // 바로가기·시즌별 목록은 2026-10-01 사용자 요청으로 뺐다(상단 메뉴·시즌 선택과 겹침).
 import Link from "next/link";
 import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
@@ -19,6 +19,8 @@ import HomeHero, { type HeroItem } from "./HomeHero";
 import GameDayBoard, { type GameTeamInfo } from "./GameDayBoard";
 import { seasonTitle, type GameDay, type SeasonProgress } from "@/lib/games";
 import SeasonProgressBar from "./SeasonProgressBar";
+import RecentFeats from "./RecentFeats";
+import type { RecentFeat } from "@/lib/notifications";
 
 const GRAY: TeamColor = FALLBACK_TEAM_COLOR;
 
@@ -45,12 +47,16 @@ interface Props {
   gameTeams?: Record<string, GameTeamInfo>;
   /** 정규시즌 진행률 (진행 중 시즌만, 아니면 null) */
   progress?: SeasonProgress | null;
+  /** 최근 7일 대기록 (lib/data loadRecentFeats) */
+  feats?: RecentFeat[];
+  /** 팀 코드 → 2경기 이상 연승·연패 (다음 경기 줄에 표시) */
+  streaks?: Record<string, { label: string; kind: "W" | "L" }>;
 }
 
 /** 순위표 부문 링크 (득점은 기본 부문이라 쿼리 없음 — lib/leaders DEFAULT_CATEGORY) */
 const leadersHref = (code: number, key: LeaderStatKey) => `/season/${code}/leaders${key === "points" ? "" : `?cat=${key}`}`;
 
-export default function HomeView({ season, fetchedLabel, asOf = null, upcoming, categories, teams, qualifyText, birthdays, gameDay = null, nextGameDay = null, gameTeams = {}, progress = null }: Props) {
+export default function HomeView({ season, fetchedLabel, asOf = null, upcoming, categories, teams, qualifyText, birthdays, gameDay = null, nextGameDay = null, gameTeams = {}, progress = null, feats = [], streaks = {} }: Props) {
   const teamByCode = new Map(teams.map((t) => [t.teamCode, t]));
   const code = season.seasonCode;
   const short = seasonShortLabel(season.seasonLabel);
@@ -74,7 +80,9 @@ export default function HomeView({ season, fetchedLabel, asOf = null, upcoming, 
         {progress && <SeasonProgressBar progress={progress} className="mt-3 max-w-md" />}
       </div>
 
-      {gameDay && <GameDayBoard day={gameDay} next={nextGameDay} seasonCode={code} teams={gameTeams} />}
+      {gameDay && <GameDayBoard day={gameDay} next={nextGameDay} seasonCode={code} teams={gameTeams} streaks={streaks} />}
+
+      {gameDay && <RecentFeats feats={feats} latestDate={gameDay.date} />}
 
       {/* 즐겨찾기가 있으면 표지 위에 (2026-10-08 홈 자동 맞춤 — 없으면 아무것도 안 그려서 기본 순서 그대로) */}
       <FavoritesStrip />

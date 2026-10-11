@@ -49,6 +49,8 @@ import { pickPrimeSeasons, primeCandidatesOf, type PrimeCandidate } from "./prim
 import { DEFAULT_QUALIFY, buildCardEntry, gradeGroupOf, isDomesticPool, isOngoingSeason, isQualified, seasonDefaultQualify } from "./metrics";
 import { seasonContext } from "./cardview";
 import { asOfLabel, computeStandings, latestGameDay } from "./games";
+import { buildNotifItems, careerHighsFromIndex, careerSumsFromSeasons, featGroups, type RecentFeat } from "./notifications";
+import { FALLBACK_TEAM_COLOR } from "./teams";
 import { pickRegularChampions } from "./game-pool";
 import teamLineage from "@/data/codes/team-lineage.json";
 import {
@@ -173,6 +175,33 @@ export function loadLeaderPrevious(seasonCode: number): { date: string; lines: R
   if (!prevDate) return null;
   const rows: DayLine[] = day.games.flatMap((g) => [...(g.box?.home ?? []), ...(g.box?.away ?? [])]);
   return { date: prevDate, lines: previousLines(toLeaderPlayers(season), rows) };
+}
+
+/**
+ * 최근 7일(마지막 경기일부터) 대기록 — 커리어 하이·시즌 최다·통산 이정표 (2026-10-11 사용자 결정 A: 즐겨찾기와 상관없이 홈에서 모두에게).
+ * 알림함과 같은 규칙(lib/notifications buildNotifItems)을 빌드 때 그대로 돌린다. 박스스코어가 없으면 빈 배열
+ */
+export function loadRecentFeats(seasonCode: number): RecentFeat[] {
+  const games = loadSeasonGames(seasonCode);
+  if (!games.some((g) => g.ended && g.box)) return [];
+  const season = loadSeasonData(seasonCode);
+  const teams = season ? toCardTeams(season) : [];
+  const teamShort = Object.fromEntries((season?.teams ?? []).map((t) => [t.teamCode, t.shortNameKo]));
+  const seasonFiles = listSeasonsWithPlayers().flatMap((s) => {
+    const d = loadSeasonData(s.seasonCode);
+    return d ? [d] : [];
+  });
+  const items = buildNotifItems(games, {
+    seasonCode,
+    teamShort,
+    careerHighs: careerHighsFromIndex(loadPlayersIndex()),
+    careerSums: careerSumsFromSeasons(seasonFiles),
+  });
+  const teamOfPlayer = new Map((season?.players ?? []).map((p) => [p.playerNo, p.teamCode]));
+  return featGroups(items).map((g) => {
+    const team = teams.find((t) => t.teamCode === teamOfPlayer.get(g.player));
+    return { ...g, photoUrl: photoOf(g.player), teamShort: team?.shortName ?? "", color: team?.color ?? FALLBACK_TEAM_COLOR };
+  });
 }
 
 let latestWithPlayers: number | null | undefined;

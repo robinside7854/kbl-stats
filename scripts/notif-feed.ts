@@ -3,7 +3,7 @@
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { buildNotifItems, type CareerSums, type NotifContext, type NotifFeed } from "../lib/notifications.js";
+import { buildNotifItems, careerHighsFromIndex, careerSumsFromSeasons, type NotifFeed } from "../lib/notifications.js";
 import type { PlayerIndexEntry, SeasonData, SeasonGamesFile, SeasonOption } from "../lib/types.js";
 
 const PROCESSED = join(process.cwd(), "data", "processed");
@@ -28,24 +28,17 @@ export async function buildNotifFeed(): Promise<NotifFeed> {
   const feed: NotifFeed = { version: 1, seasonCode: seasonCode ?? 0, builtAt: new Date().toISOString(), items: [] };
   if (seasonCode === null || !games) return feed;
 
-  const careerSums: Record<string, CareerSums> = {};
   const teamShort: Record<string, string> = {};
+  const seasonFiles: SeasonData[] = [];
   for (const s of seasons) {
     const season = await readJson<SeasonData | null>(join(PROCESSED, String(s.seasonCode), "players.json"), null);
     if (!season) continue;
     if (s.seasonCode === seasonCode) for (const t of season.teams ?? []) teamShort[t.teamCode] = t.shortNameKo;
-    for (const p of season.players) {
-      const c = (careerSums[p.playerNo] ??= { points: 0, reb: 0, ast: 0, stl: 0, blk: 0, tpm: 0, games: 0, wins: 0 });
-      c.points += p.points; c.reb += p.reb; c.ast += p.ast; c.stl += p.stl; c.blk += p.blk; c.tpm += p.tpm;
-      c.games += p.games; c.wins += p.wins;
-    }
+    seasonFiles.push(season);
   }
+  const careerSums = careerSumsFromSeasons(seasonFiles);
   const index = await readJson<PlayerIndexEntry[]>(join(PROCESSED, "players-index.json"), []);
-  const careerHighs: NotifContext["careerHighs"] = {};
-  for (const p of index) {
-    const reg = (p.careerHighs as { regular?: NotifContext["careerHighs"][string] } | null | undefined)?.regular;
-    if (reg) careerHighs[p.id] = reg;
-  }
+  const careerHighs = careerHighsFromIndex(index);
   feed.items = buildNotifItems(games.games, { seasonCode, teamShort, careerHighs, careerSums });
   return feed;
 }

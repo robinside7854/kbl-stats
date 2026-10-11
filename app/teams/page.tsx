@@ -1,7 +1,7 @@
 // 모든 팀 (2026-10-04, 메뉴 "팀"): 지금 리그 팀(이번 시즌 성적, 카드 또는 시즌별 순위 표) + 추억의 팀(매각·해체로 코드가 끝난 팀). 팀 카드 → /team/코드.
 import type { Metadata } from "next";
 import { shareMetadata } from "@/lib/share";
-import { computeStandings } from "@/lib/games";
+import { computeStandings, notableStreak } from "@/lib/games";
 import { seasonShortLabel } from "@/lib/career";
 import { dataAsOfLabel, isSeasonOngoing, listSeasonsWithPlayers, loadSeasonData, loadSeasonGames, loadTeamIndex, toCardTeams } from "@/lib/data";
 import type { StandingsSeason, StandingTeam } from "@/app/components/StandingsTable";
@@ -19,7 +19,7 @@ export default function TeamsPage() {
   const seasons = listSeasonsWithPlayers();
   const latest = seasons[0];
   const standings = latest ? computeStandings(loadSeasonGames(latest.seasonCode)) : [];
-  const records = Object.fromEntries(standings.map((r) => [r.teamCode, { wins: r.wins, losses: r.losses, rank: r.rank }]));
+  const records = Object.fromEntries(standings.map((r) => [r.teamCode, { wins: r.wins, losses: r.losses, rank: r.rank, streak: notableStreak(r) }]));
   // "표로 보기": 시즌마다 순위 표 (2026-10-06 — 따로 있던 팀 순위 화면을 여기로 합침, 최신 시즌 먼저)
   const standingsSeasons: StandingsSeason[] = seasons.flatMap((s) => {
     const season = loadSeasonData(s.seasonCode);

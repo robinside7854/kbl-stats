@@ -328,6 +328,7 @@ kbl-stats/
   | filter_change (팀·좋아요) | screen=team filter=season·leader · screen=likes filter=tab(player/fans) · screen=teams filter=tab(now/past) | 팀 페이지 로스터 시즌·팀 통산 기록 부문 / 좋아요 순위 선수·팀 팬 수 / 모든 팀 지금 팀·추억의 팀 |
   | nav_click(menu "로그인"·"내 계정") | | 헤더 계정 버튼 |
   | contact_click | (없음) | 푸터 문의 이메일 누르기 |
+  | home_feat_click | kind(career·careerTie·milestone·season), player_no | 홈 "새로 나온 기록" 칸 누르기 ("더 보기"는 filter_change screen=home filter=feats value=more) |
   | filter_change (일정 범위) | screen=schedule filter=scope value=mine/all | 일정 화면 내 응원팀만 / 전체 일정 (로그인 + 응원팀 있는 회원만 보임) |
   | login_prompt_click | place(schedule) | 로그인 안 한 방문자에게 보이는 "로그인하면 ~" 안내의 로그인 링크 |
   | app_install | (없음) | 앱 설치 완료 (브라우저 "앱 설치"·"홈 화면에 추가", `AppInstallTracker`) — 설치한 앱으로 연 방문은 사용자 속성 `display_mode`(standalone/browser) |
@@ -389,6 +390,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-11 (새로 나온 기록·연승 연패): 사용자 "오늘 들어와서 볼 거리 점검" → 제안 A~F 중 사용자 결정 **A·B 먼저**. ① **홈 "새로 나온 기록"**(`RecentFeats`, 경기 카드 바로 아래): 최근 7일 경기의 커리어 하이·시즌 최다·통산 이정표를 즐겨찾기와 상관없이 모두에게 — 알림함과 같은 규칙(`buildNotifItems`)을 빌드 때 돌려 `lib/notifications featGroups`(선수-경기 한 칸, 커리어 하이 → 이정표 → 시즌 최다 순, 알림 항목에 구조 값 `feat` 추가)·`lib/data loadRecentFeats`. 처음 6칸 + "N개 더 보기", 통산 합계·커리어 하이 재료는 `careerSumsFromSeasons·careerHighsFromIndex`(build-notifications 와 공용). 10/11 기준 27칸(그날 12). ② **연승·연패**(`lib/games notableStreak`, 2경기 이상만 — `STREAK_SHOW_MIN`, `StandingRow.streakKind·streakCount`): 홈 다음 경기 줄 팀 이름 옆·팀 화면 지금 팀 카드 "3승 1패 · 3연승"·순위 표 최근 5 아래(폰도), 글자 `StreakText`(연승 빨강·연패 파랑 = 리더보드 순위 변동 색). GA4 새 이벤트 `home_feat_click`(kind = 가장 높은 단계 career·careerTie·milestone·season, player_no — 매개변수 둘 다 이미 등록), filter_change screen=home filter=feats value=more. 업데이트 소식 글. main 배포.
 - 2026-10-11 (폰 하단 메뉴 대칭): 사용자 "메뉴가 짝수라 홈 가운데 하단 메뉴가 비대칭(선수·팀·기록 | 홈 | 일정·54-0)" → 선택지(7칸 알림 추가 / 홈 맨 왼쪽 6칸 / 5칸 54-0 빼기) 중 사용자 결정 **홈 맨 왼쪽 6칸**: `SiteNav BOTTOM_MENU = MENU`(PC 상단과 같은 순서 홈·선수·팀·기록·일정·54-0), 가운데 둥근 파란 홈 버튼 삭제 — 홈도 다른 칸과 같은 아이콘+글자, 지금 화면 파란 표시 규칙 그대로. GA4 그대로(nav_click place=bottom). 업데이트 소식 글. main 배포.
 - 2026-10-09 (일정 지난 경기 접기): 사용자 "모바일 일정 전체 보기 세로 스크롤이 너무 길다, 지난 경기는 접고 최근 2일만" → `ScheduleView` 가 고른 달 안에서 오늘 이전 경기일은 최근 2일만 보이고 그 전은 맨 위 "지난 경기 N일 더 보기 · M경기" 버튼으로 접음(`lib/games splitPastDays·SCHEDULE_RECENT_PAST_DAYS`, 오늘·앞으로는 그대로, 지난 달도 마지막 2일만, 달·범위 바꾸면 다시 접힘, ?date= 가 접힌 날이면 펼쳐서 스크롤). PC 도 같은 규칙. 정적 HTML 은 다 그린 뒤 브라우저가 오늘 날짜로 접음. GA4 filter_change screen=schedule filter=past value=open(새 매개변수 없음). 업데이트 소식 글. main 배포.
 - 2026-10-08 (홈 자동 맞춤, 토스 C-11 가벼운 안): 사용자 "11번은 가벼운 대안, 12번(배지·출석)은 보류, 10번(예측)은 미진행". 편집 화면 없이 ① 로그인 회원 응원팀 경기를 홈 최근 경기·다음 경기 맨 앞에(`lib/games myTeamsFirst` — 고른 순서대로, 나머지 원래 순서, `GameDayBoard` 가 `useMember` teamCodes 로, 카드 위 "내 응원팀 경기"·다음 경기 줄 "내 응원팀"(`GameCard mine`)) ② 즐겨찾기 줄을 표지(HomeHero) 위로(없으면 안 그려 기본 순서). 정적 HTML 은 기본 순서. 새 GA4 이벤트 없음(사용자 동작이 아니라 자동 배치 — 응원팀별은 사용자 속성 support_team 으로 볼 수 있음). 업데이트 소식 글. main 배포.

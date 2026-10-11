@@ -4,8 +4,9 @@
 // 폰 360px: 순위·팀·승-패·승률·승차 + 최근 5경기(점), PC 는 홈/원정·득실도.
 import Link from "next/link";
 import type { TeamColor } from "@/lib/types";
-import { gamesBehindLabel, pctLabel, type StandingRow } from "@/lib/games";
+import { gamesBehindLabel, notableStreak, pctLabel, type StandingRow } from "@/lib/games";
 import TeamLogo from "./TeamLogo";
+import StreakText from "./StreakText";
 import { trackEvent } from "./track";
 
 export interface StandingTeam {
@@ -99,7 +100,8 @@ export default function StandingsTable({ season }: { season: StandingsSeason }) 
                           <span key={i} aria-hidden className={`${DOT} ${x === "W" ? "bg-ink" : "border border-ink-3"}`} />
                         ))}
                       </span>
-                      <span className="hidden whitespace-nowrap pl-1 text-caption text-ink-3 sm:inline">{r.streak}</span>
+                      {/* 2연승·2연패 이상만, 폰에서도 (2026-10-11 사용자 결정 B) */}
+                      {notableStreak(r) && <StreakText streak={notableStreak(r)!} className="block pt-0.5 sm:inline sm:pl-1 sm:pt-0" />}
                     </td>
                   </tr>
                 );

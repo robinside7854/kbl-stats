@@ -117,3 +117,34 @@ console.log("notifications: 통과");
   assert.equal(parsePushSubscription(null), null);
   console.log("notifications: 폰 푸시 고르기·묶기·구독 검사 통과");
 }
+
+// 홈 "새로 나온 기록" (2026-10-11): 대기록만, 선수-경기로 묶기, 단계 높은 것 먼저
+{
+  const { featGroups, careerSumsFromSeasons, careerHighsFromIndex } = await import("../lib/notifications");
+  const groups = featGroups(items);
+  assert.ok(groups.length > 0);
+  assert.ok(groups.every((g) => g.date === "2026-10-09"));
+  const a = groups.find((g) => g.player === "A")!;
+  // A: 시즌 최다 25득점 + 통산 1,000득점 → 한 칸, 이정표가 시즌 최다보다 먼저
+  assert.deepEqual(a.lines.map((l) => l.level), ["milestone", "season"]);
+  assert.equal(a.lines[0].text, "통산 1,000득점");
+  assert.equal(a.lines[1].text, "25득점");
+  assert.equal(a.name, "가선수");
+  assert.equal(a.game, "SK 70 : 90 KCC");
+  assert.equal(a.won, false);
+  // 커리어 하이(B)가 맨 앞
+  assert.equal(groups[0].player, "B");
+  assert.equal(groups[0].lines[0].level, "career");
+  // 경기 기록·결과 알림은 들어가지 않음
+  assert.equal(featGroups(items.filter((i) => i.kind === "player_game" || i.kind === "team_result")).length, 0);
+  // 재료 함수
+  const sums = careerSumsFromSeasons([
+    { players: [{ playerNo: "A", points: 10, reb: 1, ast: 2, stl: 0, blk: 0, tpm: 1, games: 2, wins: 1 }] },
+    { players: [{ playerNo: "A", points: 5, reb: 1, ast: 0, stl: 1, blk: 0, tpm: 0, games: 1, wins: 0 }] },
+  ]);
+  assert.deepEqual(sums.A, { points: 15, reb: 2, ast: 2, stl: 1, blk: 0, tpm: 1, games: 3, wins: 1 });
+  assert.deepEqual(careerHighsFromIndex([{ id: "B", careerHighs: { regular: { pts: { value: 30, date: "2026-10-01", seasonCode: 49 } } } }, { id: "C", careerHighs: null }]), {
+    B: { pts: { value: 30, date: "2026-10-01", seasonCode: 49 } },
+  });
+  console.log("notifications: 새로 나온 기록 묶기 통과");
+}
