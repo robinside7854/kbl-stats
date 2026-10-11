@@ -164,24 +164,26 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
         </div>
       </section>
 
+      {/* 순위 기준(전체 / 같은 포지션)은 카드 바로 위 — 카드 속 순위와 한 화면에 보이게
+          (2026-10-06 카드 아래로 옮겼다가 2026-10-11 사용자: "버튼이 너무 밑이라 순위와 한 번에 안 보임") */}
+      {groupLabel && (
+        <div className="mt-3 flex items-center gap-2 text-sub font-medium text-ink-3">
+          순위 기준
+          <Segmented
+            label="순위 비교 범위"
+            options={scopeOptions}
+            value={scope}
+            onChange={(v) => {
+              trackFilters("player", { scope: v });
+              setState((s) => ({ ...s, scope: v }));
+            }}
+          />
+        </div>
+      )}
+
       {/* ── 카드 (PC 가로 카드 한 줄) → 추이 + 하이라이트 ── */}
-      <div className="mt-4">{deck}</div>
-      {/* 순위 기준(전체 / 같은 포지션)은 카드 아래 작은 전환으로 (2026-10-06 사용자: 위에 늘어선 컨트롤 줄이기) */}
+      <div className={groupLabel ? "mt-2" : "mt-4"}>{deck}</div>
       <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
-        {groupLabel && (
-          <span className="flex items-center gap-2 text-sub font-medium text-ink-3">
-            순위 기준
-            <Segmented
-              label="순위 비교 범위"
-              options={scopeOptions}
-              value={scope}
-              onChange={(v) => {
-                trackFilters("player", { scope: v });
-                setState((s) => ({ ...s, scope: v }));
-              }}
-            />
-          </span>
-        )}
         <Link
           href={compareHref({ id: playerId, seasonCode: season })}
           className="focus-ring link-shortcut text-body"

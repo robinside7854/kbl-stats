@@ -148,3 +148,31 @@ console.log("notifications: 통과");
   });
   console.log("notifications: 새로 나온 기록 묶기 통과");
 }
+
+// 홈 규칙 (2026-10-11): 이정표는 득점·출전만, 시즌 최다는 리그 최고 갱신만, 커리어 하이는 그대로
+{
+  const { leagueSeasonRecords, homeFeatItems, featGroups } = await import("../lib/notifications");
+  // 10-01 리바 9(첫 날 — 비교 대상 없어 제외) → 10-03 리바 12(갱신) → 10-05 12(같음, 갱신 아님) → 10-09 득점 25 갱신
+  const lg = [
+    game(1, "2026-10-01", 80, 70, [row("A", "가선수", { pts: 20, reb: 9 })], [row("B", "나선수")]),
+    game(2, "2026-10-03", 80, 70, [row("A", "가선수", { pts: 20 })], [row("B", "나선수", { reb: 12 })]),
+    game(3, "2026-10-05", 80, 70, [row("A", "가선수", { pts: 20, reb: 12 })], [row("B", "나선수")]),
+    game(4, "2026-10-09", 70, 90, [row("A", "가선수", { pts: 25 })], [row("B", "나선수")]),
+  ];
+  const rec = leagueSeasonRecords(lg, ctx);
+  assert.deepEqual(rec.map((i) => i.id), ["l:S49G01N2:B:reb", "l:S49G01N4:A:pts"]);
+  assert.equal(rec[0].feat?.level, "league");
+  assert.equal(rec[0].feat?.text, "12리바운드");
+  // 창(7일) 밖 경기는 빠짐
+  assert.deepEqual(leagueSeasonRecords(lg, ctx, 1).map((i) => i.id), ["l:S49G01N4:A:pts"]);
+  // homeFeatItems: 개인 시즌 최다는 빠지고, 이정표는 득점·출전만
+  const base = buildNotifItems(games, ctx);
+  const home = homeFeatItems(base, []);
+  assert.ok(home.every((i) => i.feat && i.feat.level !== "season"));
+  assert.ok(home.some((i) => i.id === "m:S49G01N4:A:points"));
+  assert.ok(home.some((i) => i.id === "h:S49G01N4:B:reb"), "커리어 하이 유지");
+  const fakeMs = { ...base.find((i) => i.id === "m:S49G01N4:A:points")!, id: "m:S49G01N4:A:reb" };
+  assert.equal(homeFeatItems([fakeMs], []).length, 0, "리바운드 이정표는 홈에 안 보임");
+  assert.equal(featGroups(homeFeatItems(base, rec)).find((g) => g.player === "A")?.lines[0].level, "league");
+  console.log("notifications: 홈 기록 규칙 통과");
+}

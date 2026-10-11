@@ -37,7 +37,8 @@ export interface FeatInfo {
   name: string;
 }
 
-export type FeatLevel = "career" | "careerTie" | "season" | "milestone";
+/** season = 그 선수의 이번 시즌 최다(알림함), league = 이번 시즌 리그 전체 최고 기록 갱신(홈) */
+export type FeatLevel = "career" | "careerTie" | "league" | "season" | "milestone";
 
 export interface NotifFeed {
   version: 1;
@@ -111,7 +112,7 @@ export function windowGames(games: readonly SeasonGame[], windowDays = NOTIF_WIN
   return done.filter((g) => g.date >= from);
 }
 
-function scoreLine(g: SeasonGame, side: "home" | "away", ctx: NotifContext): { text: string; won: boolean } {
+function scoreLine(g: SeasonGame, side: "home" | "away", ctx: Pick<NotifContext, "teamShort">): { text: string; won: boolean } {
   const me = g[side];
   const opp = side === "home" ? g.away : g.home;
   const name = (code: string, fallback: string) => ctx.teamShort[code] ?? fallback;
@@ -389,11 +390,12 @@ export interface RecentFeat extends FeatGroup {
 export const FEAT_LEVEL_LABEL: Record<FeatLevel, string> = {
   career: "커리어 하이",
   careerTie: "커리어 하이 타이",
-  season: "시즌 최다",
+  league: "시즌 최다",
+  season: "개인 시즌 최다",
   milestone: "이정표",
 };
 
-const LEVEL_ORDER: Record<FeatLevel, number> = { career: 0, careerTie: 1, milestone: 2, season: 3 };
+const LEVEL_ORDER: Record<FeatLevel, number> = { career: 0, careerTie: 1, league: 2, milestone: 3, season: 4 };
 
 /** 대기록만 골라 선수-경기로 묶기 → 날짜 최신 → 가장 높은 단계 → 줄 많은 순 */
 export function featGroups(items: readonly NotifItem[]): FeatGroup[] {
@@ -438,4 +440,61 @@ export function careerSumsFromSeasons(
     }
   }
   return out;
+}
+
+// ─────────────────────────────────────────────
+// 홈 "새로 나온 기록" 고르는 규칙 (2026-10-11 사용자 결정)
+// - 커리어 하이(타이 포함)는 그대로
+// - 이정표는 통산 득점·출전 경기만
+// - 시즌 최다는 선수 본인 것이 아니라 "이번 시즌 그 부문 리그 최고 기록"을 새로 쓴 경우만 (leagueSeasonRecords)
+// ─────────────────────────────────────────────
+
+export const HOME_MILESTONE_KEYS: readonly MilestoneKey[] = ["points", "games"];
+
+/**
+ * 이번 시즌 리그 최고 기록 갱신: 그 경기 날짜 전까지 누구의 한 경기 기록보다도 높고(같으면 갱신 아님) 그날 가장 높은 값.
+ * 시즌 첫 경기일은 비교할 기록이 없어 빼고, 부문별 최소 값(HIGH_KEYS min)도 지킨다. 최근 windowDays 경기만 알린다.
+ */
+export function leagueSeasonRecords(allGames: readonly SeasonGame[], ctx: Pick<NotifContext, "seasonCode" | "teamShort">, windowDays = NOTIF_WINDOW_DAYS): NotifItem[] {
+  const done = allGames.filter((g) => g.ended && g.box && g.home.score !== null && g.away.score !== null);
+  const recentKeys = new Set(windowGames(allGames, windowDays).map((g) => g.gmkey));
+  const dates = [...new Set(done.map((g) => g.date))].sort();
+  const best: Record<HighKey, number> = { pts: 0, reb: 0, ast: 0, tpm: 0, stl: 0, blk: 0 };
+  const items: NotifItem[] = [];
+  dates.forEach((date, di) => {
+    const dayGames = done.filter((g) => g.date === date);
+    const rows = dayGames.flatMap((g) => (["home", "away"] as const).flatMap((side) => g.box![side].filter((r) => r.sec > 0).map((r) => ({ g, side, r }))));
+    for (const h of HIGH_KEYS) {
+      const dayMax = rows.reduce((m, x) => Math.max(m, x.r[h.key]), 0);
+      if (di > 0 && dayMax > best[h.key] && dayMax >= h.min) {
+        for (const { g, side, r } of rows) {
+          if (r[h.key] !== dayMax || !recentKeys.has(g.gmkey)) continue;
+          const { text, won } = scoreLine(g, side, ctx);
+          items.push({
+            id: `l:${g.gmkey}:${r.id}:${h.key}`,
+            kind: "high",
+            date,
+            player: r.id,
+            title: `${r.nameKo} 이번 시즌 최고 ${h.text(r[h.key])}`,
+            body: `${text} · ${playerStatLine(r)}`,
+            href: `/player/${r.id}?season=${ctx.seasonCode}`,
+            feat: { level: "league", text: h.text(r[h.key]), game: text, won, stat: playerStatLine(r), name: r.nameKo },
+          });
+        }
+      }
+      best[h.key] = Math.max(best[h.key], dayMax);
+    }
+  });
+  return items;
+}
+
+/** 알림 목록 + 리그 최고 갱신 → 홈에 보일 대기록만 (커리어 하이·리그 시즌 최고·득점/출전 이정표) */
+export function homeFeatItems(items: readonly NotifItem[], league: readonly NotifItem[]): NotifItem[] {
+  const keep = items.filter((it) => {
+    if (!it.feat) return false;
+    if (it.feat.level === "career" || it.feat.level === "careerTie") return true;
+    if (it.feat.level === "milestone") return (HOME_MILESTONE_KEYS as readonly string[]).includes(it.id.split(":")[3] ?? "");
+    return false;
+  });
+  return [...keep, ...league];
 }

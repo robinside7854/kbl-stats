@@ -49,7 +49,7 @@ import { pickPrimeSeasons, primeCandidatesOf, type PrimeCandidate } from "./prim
 import { DEFAULT_QUALIFY, buildCardEntry, gradeGroupOf, isDomesticPool, isOngoingSeason, isQualified, seasonDefaultQualify } from "./metrics";
 import { seasonContext } from "./cardview";
 import { asOfLabel, computeStandings, latestGameDay } from "./games";
-import { buildNotifItems, careerHighsFromIndex, careerSumsFromSeasons, featGroups, type RecentFeat } from "./notifications";
+import { buildNotifItems, careerHighsFromIndex, careerSumsFromSeasons, featGroups, homeFeatItems, leagueSeasonRecords, type RecentFeat } from "./notifications";
 import { FALLBACK_TEAM_COLOR } from "./teams";
 import { pickRegularChampions } from "./game-pool";
 import teamLineage from "@/data/codes/team-lineage.json";
@@ -178,7 +178,7 @@ export function loadLeaderPrevious(seasonCode: number): { date: string; lines: R
 }
 
 /**
- * 최근 7일(마지막 경기일부터) 대기록 — 커리어 하이·시즌 최다·통산 이정표 (2026-10-11 사용자 결정 A: 즐겨찾기와 상관없이 홈에서 모두에게).
+ * 최근 7일(마지막 경기일부터) 대기록 — 커리어 하이·이번 시즌 리그 최고 갱신·통산 득점/출전 이정표 (2026-10-11 사용자 결정 A: 즐겨찾기와 상관없이 홈에서 모두에게).
  * 알림함과 같은 규칙(lib/notifications buildNotifItems)을 빌드 때 그대로 돌린다. 박스스코어가 없으면 빈 배열
  */
 export function loadRecentFeats(seasonCode: number): RecentFeat[] {
@@ -191,12 +191,14 @@ export function loadRecentFeats(seasonCode: number): RecentFeat[] {
     const d = loadSeasonData(s.seasonCode);
     return d ? [d] : [];
   });
-  const items = buildNotifItems(games, {
+  const ctx = {
     seasonCode,
     teamShort,
     careerHighs: careerHighsFromIndex(loadPlayersIndex()),
     careerSums: careerSumsFromSeasons(seasonFiles),
-  });
+  };
+  // 홈 규칙(2026-10-11): 커리어 하이 + 이번 시즌 리그 최고 갱신 + 통산 득점·출전 이정표만
+  const items = homeFeatItems(buildNotifItems(games, ctx), leagueSeasonRecords(games, ctx));
   const teamOfPlayer = new Map((season?.players ?? []).map((p) => [p.playerNo, p.teamCode]));
   return featGroups(items).map((g) => {
     const team = teams.find((t) => t.teamCode === teamOfPlayer.get(g.player));

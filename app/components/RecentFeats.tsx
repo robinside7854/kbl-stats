@@ -1,8 +1,8 @@
 "use client";
 // 홈 "새로 나온 기록" (2026-10-11 사용자 결정 A — 즐겨찾기·응원팀과 상관없이 모두에게).
-// 최근 7일 경기에서 나온 커리어 하이·시즌 최다·통산 이정표를 선수-경기 한 칸으로 (규칙은 알림함과 같은 lib/notifications, 재료는 lib/data loadRecentFeats).
+// 최근 7일 경기에서 나온 커리어 하이·이번 시즌 리그 최다 갱신·통산 득점/출전 이정표를 선수-경기 한 칸으로 (규칙은 알림함과 같은 lib/notifications, 재료는 lib/data loadRecentFeats).
 // 처음엔 FEATS_VISIBLE 칸만, "더 보기"로 전부. 마지막 경기일이 아닌 칸은 날짜를 붙인다.
-// GA4: home_feat_click(kind = 가장 높은 단계, player_no) · filter_change screen=home filter=feats value=more
+// GA4: home_feat_click(kind = 가장 높은 단계 career·careerTie·league·milestone, player_no) · filter_change screen=home filter=feats value=more
 import Link from "next/link";
 import { useState } from "react";
 import { FEAT_LEVEL_LABEL, type FeatLevel, type RecentFeat } from "@/lib/notifications";
