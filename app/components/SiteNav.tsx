@@ -26,7 +26,7 @@ export type SiteView = "home" | "players" | "player" | "teams" | "team" | "leade
 
 type MenuItem = { views: SiteView[]; label: string; short?: string; icon: (p: { size: 24 }) => React.ReactNode; href: (seasonCode: number) => string };
 const HOME: MenuItem = { views: ["home"], label: "홈", icon: IconHome, href: () => "/" };
-/** 홈 왼쪽 / 오른쪽 메뉴 (2026-10-03 사용자: 모바일 하단은 홈 가운데 — 비교는 메뉴에서 빼고 선수 상세 "비교" 버튼으로).
+/** 홈 다음 메뉴 (2026-10-03: 비교는 메뉴에서 빼고 선수 상세 "비교" 버튼으로. 2026-10-11 모바일 하단도 홈 맨 왼쪽).
  *  2026-10-06 사용자 결정: 리더보드 + 역대 기록 → "기록" 하나(탭 한 줄은 RecordsHeader), 팀 순위는 "팀" 화면 안 표로 보기 */
 const LEFT: MenuItem[] = [
   { views: ["players", "player", "compare"], label: "선수", icon: IconPlayer, href: () => "/players" },
@@ -39,8 +39,8 @@ const RIGHT: MenuItem[] = [
 ];
 /** PC 상단 메뉴 순서 (홈 먼저) */
 const MENU: MenuItem[] = [HOME, ...LEFT, ...RIGHT];
-/** 모바일 하단 탭 순서 (홈 가운데) */
-const BOTTOM_MENU: MenuItem[] = [...LEFT, HOME, ...RIGHT];
+/** 모바일 하단 탭 순서 — PC 와 같은 순서, 홈 맨 왼쪽 (2026-10-11 사용자: 홈을 가운데 두면 3 | 홈 | 2 로 비대칭이라 6칸을 같은 모양으로) */
+const BOTTOM_MENU: MenuItem[] = MENU;
 
 /** 시즌 주소가 있는 화면 (시즌을 바꾸면 그 주소로 이동) */
 const SEASON_ROUTES: Partial<Record<SiteView, (c: number) => string>> = {
@@ -145,25 +145,6 @@ export default function SiteNav({ seasons, seasonCode, view, onSeasonChange, wid
         {BOTTOM_MENU.map((m) => {
           const active = m.views.includes(view);
           const Icon = m.icon;
-          // 가운데 홈 = 둥근 버튼 (2026-10-03). 2026-10-05 사용자: 위로 띄우지 않고 다른 칸과 같은 줄로 내림·"홈" 글자 없앰
-          // (삼성 인터넷이 화면 아래 가운데에 띄우는 "위로 가기" 버튼에 가려지던 것 — 그 버튼은 사이트가 끌 수 없다)
-          if (m === HOME) {
-            return (
-              <Link
-                key={m.label}
-                href={m.href(seasonCode)}
-                onClick={() => trackEvent("nav_click", { menu: m.label, place: "bottom" })}
-                aria-current={active ? "page" : undefined}
-                aria-label={m.label}
-                className="focus-ring-inset group flex h-14 items-center justify-center"
-              >
-                {/* deslop-ignore-next-line 19 */}
-                <span className={`flex h-11 w-11 items-center justify-center rounded-full shadow-card transition-colors duration-200 ${active ? "bg-ink text-bg" : "bg-series-1 text-white group-hover:bg-ink"}`}>
-                  <Icon size={24} />
-                </span>
-              </Link>
-            );
-          }
           return (
             <Link
               key={m.label}

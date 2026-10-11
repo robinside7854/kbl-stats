@@ -31,6 +31,14 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-10-11-bottom-menu",
+    date: "2026-10-11",
+    kind: "update",
+    title: "폰 아래 메뉴를 가지런히 정리했어요",
+    summary: "폰 아래 메뉴 정리",
+    blocks: [{ kind: "p", text: "폰 화면 아래 메뉴에서 홈을 맨 왼쪽으로 옮기고 여섯 칸을 같은 모양으로 맞췄어요. 지금 보고 있는 화면은 파랗게 표시돼요." }],
+  },
+  {
     slug: "2026-10-09-schedule-fold",
     date: "2026-10-09",
     kind: "update",
