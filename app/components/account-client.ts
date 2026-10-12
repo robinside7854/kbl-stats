@@ -85,6 +85,17 @@ export async function fetchMe(fresh = false): Promise<MeResult> {
     const c = cachedMember();
     if (c) return { status: "signed_in", member: c };
   }
+  // fresh(저장 직후 등)는 늘 새로 묻는다. 그 밖에는 같은 화면 여러 곳(헤더 계정 버튼·응원팀 훅 등)이 동시에 물어도
+  // 요청은 하나 (2026-10-12 — 홈에서 /api/me 가 2번 나갔다)
+  if (fresh) return requestMeWithRetry();
+  inflightMe ??= requestMeWithRetry().finally(() => {
+    inflightMe = null;
+  });
+  return inflightMe;
+}
+let inflightMe: Promise<MeResult> | null = null;
+
+async function requestMeWithRetry(): Promise<MeResult> {
   const first = await requestMe();
   if (first.status !== "error") return first;
   // 서버가 잠깐 실패하면(DB 가 자다 깨는 중 등) 한 번 더 — 실패를 로그아웃으로 보지 않는다

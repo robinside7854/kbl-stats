@@ -39,3 +39,19 @@ assert.equal(decideFetch({ now: at("2026-10-06", "23:40"), games: null, lastDate
 // 수동 실행은 항상
 assert.equal(decideFetch({ now: at("2026-10-03", "10:00"), games: null, lastDate: "2026-10-03", force: true }).run, true);
 console.log("fetch-gate: 수집 시각 판정 통과");
+
+// fetch.yml 은 문지기·하이라이트 확인을 설치(npm ci) 전에 tsx 하나만 내려받아 돌린다 (2026-10-12) — 그 판이 package.json 의 tsx 와 같은 큰 판인지
+{
+  const { readFileSync } = await import("node:fs");
+  const yml = readFileSync(".github/workflows/fetch.yml", "utf8");
+  const pkg = JSON.parse(readFileSync("package.json", "utf8")) as { devDependencies?: Record<string, string>; dependencies?: Record<string, string> };
+  const range = pkg.devDependencies?.tsx ?? pkg.dependencies?.tsx ?? "";
+  const pinned = [...yml.matchAll(/tsx@(\d+)\.\d+\.\d+/g)].map((m) => m[1]);
+  assert.ok(pinned.length >= 2, "문지기·하이라이트 확인 두 단계");
+  assert.ok(pinned.every((major) => range.replace(/^\D+/, "").startsWith(`${major}.`)), `fetch.yml tsx 큰 판 ${pinned} ↔ package.json ${range}`);
+  // 설치 단계는 문지기 뒤, 수집할 때만
+  const gateAt = yml.indexOf("scripts/fetch-gate.ts check");
+  const ciAt = yml.indexOf("run: npm ci");
+  assert.ok(gateAt > 0 && ciAt > gateAt, "npm ci 는 문지기 다음");
+  console.log("fetch-gate: 설치 전 문지기 순서 통과");
+}

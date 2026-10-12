@@ -13,7 +13,7 @@ on:
     #   - 오늘 경기가 모두 끝나고 1시간 지났으면 그다음 깨어난 때 수집 (주말 낮 경기 → 저녁 7~8시대, 평일 19시 경기 → 밤 10시대)
     #   - 경기 없는 날·늦게 끝난 날은 23시 이후 첫 깨어남에 수집 (자정을 넘겨 늦게 돌아도 그날 몫)
     # 2026-10-04: GitHub 예약 실행이 1~3시간씩 밀려(10-04 18:40 실행이 19:40 까지 시작 안 함) 네 번 → 열두 번으로 늘림.
-    #   깨울 때마다 npm ci + 경기 목록 요청 1회만 하고(수집이 끝난 날은 그마저 하지 않음), 수집은 하루 1회.
+    #   깨울 때마다 경기 목록 요청 1회만 하고(설치는 수집할 때만, 2026-10-12)(수집이 끝난 날은 그마저 하지 않음), 수집은 하루 1회.
     # 2026-10-05: 그날 예약 12번이 하나도 시작되지 않음(10-04 도 12번 중 1번, 66분 늦게) — GitHub 예약 실행이 빠지는 문제.
     #   → 사용자 결정: 바깥 알람(cron-job.org)이 같은 시각에 workflow_dispatch(mode=auto)로 깨운다(docs/external-cron.md).
     #   이 예약은 예비로 남겨 둔다 — 둘 다 와도 문지기가 하루 1회만 수집한다.
@@ -54,14 +54,15 @@ jobs:
           node-version: 20
           cache: npm
 
-      - run: npm ci
-
+      # 문지기·하이라이트 확인은 설치(npm ci, 약 1분 반) 전에 (2026-10-12 사용자 결정: 알람 하루 약 18번 중 수집은 1번뿐이라
+      # 나머지 회차의 설치 시간을 아낀다). 두 스크립트는 Node 기본 기능과 저장소 안 파일만 쓰므로 tsx 하나만 있으면 된다 —
+      # npx 가 tsx 만 내려받는다(node_modules 안 만듦). 판은 package.json devDependencies tsx 와 맞춘다.
       - name: 오늘 수집할지 (경기 종료 확인)
         id: gate
         env:
           # 바로 수집: Run workflow 버튼(mode 비움) · 커밋 메시지에 [수집] 이 있는 푸시. 나머지(예약·바깥 알람·보통 푸시)는 문지기
           FORCE: ${{ ((github.event_name == 'workflow_dispatch' && inputs.mode != 'auto') || (github.event_name == 'push' && contains(github.event.head_commit.message, '[수집]'))) && '1' || '0' }}
-        run: npx tsx scripts/fetch-gate.ts check
+        run: npx --yes tsx@4.23.15 scripts/fetch-gate.ts check
 
       # 하이라이트만 확인 (2026-10-06 사용자: "하이라이트는 되도록 공백 없이") — 그날 수집을 안 하는 알람마다.
       # TVING 영상은 경기 끝나고 2~10시간 뒤에 올라와 하루 1번 수집으로는 하루씩 늦었다. 3일 안 끝난 경기 중 영상이 없는 게 있을 때만
@@ -72,7 +73,12 @@ jobs:
         env:
           # 있으면 YouTube Data API 먼저(RSS 가 404 일 때 대신) — 저장소 Secrets(2026-10-06 사용자 등록), 없으면 RSS 만
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
-        run: npx tsx scripts/highlight-watch.ts
+        run: npx --yes tsx@4.23.15 scripts/highlight-watch.ts
+
+      # 여기서부터는 수집하는 날이나 새 하이라이트가 맞은 회차만 — 그때만 설치한다
+      - name: 설치
+        if: steps.gate.outputs.run == 'true' || steps.hl.outputs.changed == 'true'
+        run: npm ci
 
       - name: 하이라이트 반영
         if: steps.hl.outputs.changed == 'true'

@@ -47,6 +47,11 @@ function loginProviders() {
 }
 
 /** @type {import('next').NextConfig} */
+/** public/ 의 빌드 생성 데이터 파일 (scripts/build-*.ts) */
+const DATA_FILES = ["/notifications.json", "/search-index.json", "/search-hot.json", "/game/pool.json", "/cards/:path*", "/shots/:path*", "/games/:path*"];
+const DATA_CACHE = [{ key: "Cache-Control", value: "public, max-age=300, stale-while-revalidate=3600" }];
+const IMAGE_CACHE = [{ key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" }];
+
 const nextConfig = {
   env: { NEXT_PUBLIC_LOGIN_PROVIDERS: loginProviders() },
   reactStrictMode: true,
@@ -57,6 +62,12 @@ const nextConfig = {
       { source: "/:path*", headers: SECURITY_HEADERS },
       // 서비스 워커는 늘 새로 받게 (고친 내용이 기기에 바로 닿도록)
       { source: "/sw.js", headers: [{ key: "Cache-Control", value: "no-cache" }] },
+      // 빌드 때 만든 우리 데이터 파일 — 하루 한 번만 바뀌므로 브라우저가 5분 동안은 다시 묻지 않게 (2026-10-12 호출 줄이기:
+      // 기본값은 화면을 옮길 때마다 "바뀌었나?" 를 다시 물어 Vercel 요청 수에 잡혔다). 5분이 지나면 가진 걸 먼저 보여 주고 뒤에서 새로 받는다.
+      // Vercel 쪽 저장(CDN)은 배포 때 자동으로 비워지므로 새 데이터는 늦어도 5분 안에 보인다.
+      ...DATA_FILES.map((source) => ({ source, headers: DATA_CACHE })),
+      // 공유 미리보기·앱 아이콘·시작 화면 그림 — 거의 안 바뀌어 하루
+      ...["/og/:path*", "/icons/:path*", "/splash/:path*"].map((source) => ({ source, headers: IMAGE_CACHE })),
     ];
   },
   // 화면은 data/processed 의 JSON만 읽는다 (빌드 시점). 타입 검사는 tsconfig.json(app+lib)만 대상.
