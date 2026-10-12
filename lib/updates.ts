@@ -31,6 +31,39 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-10-12-good-news-alerts",
+    date: "2026-10-12",
+    kind: "update",
+    title: "알림에 좋은 소식이 더 와요",
+    summary: "알림 종류가 늘었어요",
+    blocks: [
+      { kind: "p", text: "응원팀이랑 즐겨찾기 선수 소식을 더 챙겨 드려요." },
+      { kind: "h", text: "응원팀" },
+      {
+        kind: "list",
+        items: [
+          "경기 있는 날 아침에 시작 시각",
+          "3연승부터, 3연패 이상 끊었을 때",
+          "1위에 오르거나 6위 안으로 들어왔을 때",
+          "플레이오프 진출, 4강 직행, 정규리그 1위가 확정됐을 때",
+        ],
+      },
+      { kind: "h", text: "즐겨찾기 선수" },
+      {
+        kind: "list",
+        items: [
+          "더블더블, 트리플더블",
+          "이번 시즌 리그 최고 기록",
+          "경기당 부문 5위 안이나 1위에 올랐을 때",
+          "통산 기록 역대 30위 안에서 순위가 올랐을 때",
+          "생일, MVP 같은 수상",
+        ],
+      },
+      { kind: "p", text: "받기 싫은 종류는 알림함 위 받을 소식에서 끌 수 있어요." },
+      { kind: "list", items: [{ text: "알림함 열기", href: "/notifications" }] },
+    ],
+  },
+  {
     slug: "2026-10-11-recent-feats",
     date: "2026-10-11",
     kind: "update",

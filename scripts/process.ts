@@ -28,6 +28,7 @@ import { matchHighlights, readSavedFeeds, type FeedEntry } from "./highlights.js
 import { attachShotAttempts, parseGameLog, type GameLogRow } from "./gamelogs.js";
 import { computeSeasonHighLeaders, SHOT_HIGH_KEYS } from "../lib/highs.js";
 import { regularGamesOf } from "./shots.js";
+import { AWARD_SEEN_SEASONS, awardSeenKey, updateAwardSeen, type AwardSeenState } from "./award-seen.js";
 import { leagueZoneAverages, normalizeShot, toShotPoint, zoneSummary, type NormalizedShot } from "../lib/shots.js";
 import type { AwardKey, SeasonAwards, CareerHighs, HighsSet, Player, PlayerIndexEntry, PlayerProfile, PostseasonFile, PostseasonLine, SeasonData, Team, TeamColor } from "../lib/types.js";
 
@@ -598,6 +599,25 @@ function seasonAwardsOf(season: SeasonData): SeasonAwards | null {
   return { awards: [...byKey.values()], regular: results?.regular ?? null, finals: results?.finals ?? null };
 }
 
+/** 수상 알림용 처음 본 날 (scripts/award-seen.ts) — 선수가 있는 최근 시즌들의 수상 칸 → data/award-first-seen.json */
+async function writeAwardSeen(seasons: SeasonData[]): Promise<void> {
+  const file = join(DATA_DIR, "award-first-seen.json");
+  let prev: AwardSeenState | null = null;
+  try {
+    prev = JSON.parse(await readFile(file, "utf8")) as AwardSeenState;
+  } catch {
+    prev = null;
+  }
+  const recent = seasons.filter((s) => s.players.length > 0).map((s) => s.seasonCode).sort((a, b) => b - a).slice(0, AWARD_SEEN_SEASONS);
+  const keys: string[] = [];
+  for (const s of seasons) {
+    if (!recent.includes(s.seasonCode)) continue;
+    for (const a of s.seasonAwards?.awards ?? []) for (const w of a.winners) if (w.playerNo) keys.push(awardSeenKey(s.seasonCode, a.key, w.playerNo, w.note));
+  }
+  const next = updateAwardSeen(prev, keys, todayKst());
+  await writeFile(file, JSON.stringify(next, null, 2) + "\n", "utf8");
+}
+
 /**
  * 선수 색인: playerNo 기준으로 전 시즌 등장 기록을 모은다.
  * 이름·영문명·외국인 여부는 가장 최근 시즌 값. 시즌은 오름차순, 선수는 한글 이름순(같으면 playerNo순).
@@ -777,6 +797,7 @@ async function main() {
     season.seasonAwards = sa;
     await writeFile(join(DATA_DIR, "processed", String(season.seasonCode), "players.json"), JSON.stringify(season, null, 2), "utf8");
   }
+  await writeAwardSeen(done);
   const playersIndex = buildPlayersIndex(done);
   await attachRosterStatus(playersIndex, done);
   const indexJson = `[\n${playersIndex.map((e) => JSON.stringify(e)).join(",\n")}\n]\n`;

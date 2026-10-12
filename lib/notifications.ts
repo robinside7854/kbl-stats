@@ -5,7 +5,22 @@
 import type { GameBoxRow, SeasonGame, TeamColor } from "./types";
 import { MILESTONE_STEPS } from "./records";
 
-export type NotifKind = "high" | "milestone" | "team_result" | "highlight" | "player_game";
+export type NotifKind =
+  | "high"
+  | "milestone"
+  | "double"
+  | "team_result"
+  | "highlight"
+  | "player_game"
+  // 2026-10-12 사용자 결정: 좋은 소식 더 (lib/notif-news.ts)
+  | "team_streak"
+  | "team_rank"
+  | "team_clinch"
+  | "team_preview"
+  | "leader_rank"
+  | "alltime_rank"
+  | "birthday"
+  | "award";
 
 export interface NotifItem {
   /** 고유 번호 (읽음 표시에 쓴다) */
@@ -20,6 +35,8 @@ export interface NotifItem {
   title: string;
   body: string;
   href: string;
+  /** 경기 날 안내(team_preview)만: 경기 시작 시각(ISO, 한국 시간) — 폰 알림은 이 시각 전에만 보낸다 */
+  startsAt?: string;
   /** 대기록(high·milestone)만: 홈 "새로 나온 기록"이 쓰는 구조 값 (2026-10-11) */
   feat?: FeatInfo;
 }
@@ -52,7 +69,22 @@ export interface NotifFeed {
 export const NOTIF_WINDOW_DAYS = 7;
 
 /** 같은 날짜 안 보여 줄 순서 — 대기록 먼저 */
-const KIND_ORDER: Record<NotifKind, number> = { high: 0, milestone: 1, team_result: 2, highlight: 3, player_game: 4 };
+const KIND_ORDER: Record<NotifKind, number> = {
+  team_preview: 0,
+  team_clinch: 1,
+  award: 2,
+  high: 3,
+  milestone: 4,
+  alltime_rank: 5,
+  leader_rank: 6,
+  double: 7,
+  team_rank: 8,
+  team_streak: 9,
+  team_result: 10,
+  highlight: 11,
+  birthday: 12,
+  player_game: 13,
+};
 
 /** 시즌 하이·커리어 하이로 알릴 부문과 최소 값 (1스틸 "시즌 최다" 같은 소식은 안 보낸다 — 우리 규칙) */
 export const HIGH_KEYS = [
@@ -128,6 +160,26 @@ export function playerStatLine(r: GameBoxRow): string {
   if (r.stl >= 3) parts.push(`${r.stl}스틸`);
   if (r.blk >= 3) parts.push(`${r.blk}블록`);
   return parts.join(" · ");
+}
+
+/** 두 자릿수를 센 부문 (득점·리바·어시·스틸·블록) */
+const DOUBLE_PARTS = [
+  { key: "pts", unit: "득점" },
+  { key: "reb", unit: "리바운드" },
+  { key: "ast", unit: "어시스트" },
+  { key: "stl", unit: "스틸" },
+  { key: "blk", unit: "블록" },
+] as const;
+
+/** 두 부문 이상 두 자릿수면 "더블더블", 셋이면 "트리플더블", 넷 이상 "쿼드러플더블" — 아니면 null */
+export function doubleOf(r: Pick<GameBoxRow, "pts" | "reb" | "ast" | "stl" | "blk">): string | null {
+  const n = DOUBLE_PARTS.filter((d) => r[d.key] >= 10).length;
+  return n >= 4 ? "쿼드러플더블" : n === 3 ? "트리플더블" : n === 2 ? "더블더블" : null;
+}
+
+/** 두 자릿수 부문만 "12득점 · 10리바운드" */
+function doubleStatLine(r: GameBoxRow): string {
+  return DOUBLE_PARTS.filter((d) => r[d.key] >= 10).map((d) => `${r[d.key]}${d.unit}`).join(" · ");
 }
 
 function shootingLine(r: GameBoxRow): string {
@@ -227,6 +279,19 @@ export function buildNotifItems(allGames: readonly SeasonGame[], ctx: NotifConte
           body: `${text} ${won ? "승" : "패"} · ${shootingLine(r)}`,
           href: `/player/${r.id}?season=${ctx.seasonCode}`,
         });
+        // 더블더블·트리플더블 (2026-10-12)
+        const dbl = doubleOf(r);
+        if (dbl) {
+          items.push({
+            id: `d:${g.gmkey}:${r.id}`,
+            kind: "double",
+            date: g.date,
+            player: r.id,
+            title: `${r.nameKo} ${dbl}`,
+            body: `${doubleStatLine(r)} · ${text} ${won ? "승" : "패"}`,
+            href: `/player/${r.id}?season=${ctx.seasonCode}`,
+          });
+        }
         // 커리어 하이 / 시즌 최다 (한 부문에 하나 — 커리어가 먼저)
         const before = prior.get(g.gmkey)?.get(r.id);
         const sumAfter = after.get(g.gmkey)?.get(r.id);
@@ -322,9 +387,18 @@ export function mergeSeen(seen: readonly string[], add: readonly string[]): stri
 export const NOTIF_KIND_LABEL: Record<NotifKind, string> = {
   high: "대기록",
   milestone: "이정표",
+  double: "더블더블",
   team_result: "경기 결과",
   highlight: "하이라이트",
   player_game: "선수 기록",
+  team_streak: "연승",
+  team_rank: "팀 순위",
+  team_clinch: "확정",
+  team_preview: "오늘 경기",
+  leader_rank: "부문 순위",
+  alltime_rank: "역대 순위",
+  birthday: "생일",
+  award: "수상",
 };
 
 // ─────────────────────────────────────────────
@@ -332,13 +406,17 @@ export const NOTIF_KIND_LABEL: Record<NotifKind, string> = {
 // (새 종류가 생기면 기본으로 켜지게). 로그인 회원은 계정(members.notif_off), 아니면 이 브라우저.
 // ─────────────────────────────────────────────
 
-export type NotifGroup = "team" | "player" | "highlight" | "record";
+export type NotifGroup = "team" | "team_news" | "preview" | "player" | "highlight" | "record" | "rank" | "celebrate";
 
 export const NOTIF_GROUPS: { key: NotifGroup; label: string; desc: string; kinds: NotifKind[] }[] = [
+  { key: "preview", label: "경기 날 안내", desc: "응원팀 경기가 있는 날 아침에 시작 시각", kinds: ["team_preview"] },
   { key: "team", label: "응원팀 경기 결과", desc: "응원팀이 이기거나 졌을 때 점수와 팀 득점 1위", kinds: ["team_result"] },
-  { key: "player", label: "즐겨찾기 선수 기록", desc: "그 경기 득점·리바운드·어시스트", kinds: ["player_game"] },
+  { key: "team_news", label: "응원팀 순위·연승", desc: "3연승, 연패 탈출, 1위·6위 안 진입, 플레이오프 확정", kinds: ["team_streak", "team_rank", "team_clinch"] },
   { key: "highlight", label: "하이라이트 영상", desc: "응원팀 경기 하이라이트가 올라오면", kinds: ["highlight"] },
-  { key: "record", label: "기록 달성", desc: "커리어 하이, 이번 시즌 최다, 통산 이정표", kinds: ["high", "milestone"] },
+  { key: "player", label: "즐겨찾기 선수 기록", desc: "그 경기 득점·리바운드·어시스트", kinds: ["player_game"] },
+  { key: "record", label: "기록 달성", desc: "더블더블, 커리어 하이, 이번 시즌 최고, 통산 이정표", kinds: ["double", "high", "milestone"] },
+  { key: "rank", label: "선수 순위", desc: "부문 5위 안·1위 진입, 통산 역대 순위 상승", kinds: ["leader_rank", "alltime_rank"] },
+  { key: "celebrate", label: "생일·수상", desc: "즐겨찾기 선수 생일, MVP 등 수상", kinds: ["birthday", "award"] },
 ];
 
 const GROUP_OF_KIND = new Map<NotifKind, NotifGroup>(NOTIF_GROUPS.flatMap((g) => g.kinds.map((k) => [k, g.key] as const)));
@@ -359,6 +437,20 @@ export function withoutOffGroups(items: readonly NotifItem[], off: readonly stri
   if (off.length === 0) return items.slice();
   const set = new Set(off);
   return items.filter((it) => !set.has(notifGroupOf(it.kind)));
+}
+
+/** 한국 날짜 "YYYY-MM-DD" */
+export function kstDate(now: Date): string {
+  return new Date(now.getTime() + 9 * 3600_000).toISOString().slice(0, 10);
+}
+
+/**
+ * 지금 보여 줄 소식 (2026-10-12): 목록에는 앞으로 며칠 치 경기 날 안내·생일이 미리 들어 있다(빌드가 매일 있지 않아서).
+ * 오늘(한국 날짜) 이후 소식은 숨기고, 경기 날 안내는 그날만.
+ */
+export function visibleNotifs(items: readonly NotifItem[], now: Date): NotifItem[] {
+  const today = kstDate(now);
+  return items.filter((it) => it.date <= today && (it.kind !== "team_preview" || it.date === today));
 }
 
 // ─────────────────────────────────────────────

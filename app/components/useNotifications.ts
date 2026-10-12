@@ -3,7 +3,7 @@
 // 이 브라우저 즐겨찾기 선수·로그인 회원 응원팀 것만 고른다(lib/notifications myNotifs). 읽음은 이 브라우저 localStorage.
 // 즐겨찾기도 응원팀도 없으면 파일을 받지 않는다(요청 아끼기). 끈 종류(notif-prefs, 2026-10-08)는 빼고 센다.
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { initialSeen, mergeSeen, myNotifs, withoutOffGroups, type NotifFeed, type NotifItem } from "@/lib/notifications";
+import { initialSeen, mergeSeen, myNotifs, visibleNotifs, withoutOffGroups, type NotifFeed, type NotifItem } from "@/lib/notifications";
 import { ACCOUNT_EVENT, cachedMember, hasSignedInHint, lastKnownMember } from "./account-client";
 import { useFavorites } from "./useFavorites";
 import { useNotifPrefs } from "./notif-prefs";
@@ -85,7 +85,8 @@ export function useNotifications() {
   }, [fav.ready, subscribed]);
 
   const mine: NotifItem[] = useMemo(
-    () => (feed ? withoutOffGroups(myNotifs(feed.items, fav.list, teams), prefs.off) : []),
+    // 목록에는 앞날 소식(경기 날 안내·생일)이 미리 들어 있어 오늘까지만 (visibleNotifs, 2026-10-12)
+    () => (feed ? withoutOffGroups(myNotifs(visibleNotifs(feed.items, new Date()), fav.list, teams), prefs.off) : []),
     [feed, fav.list, teams, prefs.off],
   );
 

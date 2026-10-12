@@ -1,6 +1,6 @@
 // 폰 푸시 알림 규칙 (2026-10-08 알림 2단계). 순수 함수 — 화면(구독 검사)·scripts/send-push.ts(보낼 것 고르기·문구) 공용.
 // 알림 내용은 알림함과 같은 목록(lib/notifications)을 쓴다. 회원 한 명에게 한 번 수집에 알림 하나(여러 소식은 묶음).
-import { myNotifs, withoutOffGroups, type NotifItem } from "./notifications";
+import { myNotifs, visibleNotifs, withoutOffGroups, type NotifItem } from "./notifications";
 import site from "../data/codes/site.json";
 
 /** 마지막 경기일과 그 전날 소식만 보낸다 (처음 켠 사람에게 지난 주 소식이 한꺼번에 가지 않게) */
@@ -34,11 +34,16 @@ function addDays(date: string, days: number): string {
   return d.toISOString().slice(0, 10);
 }
 
-/** 이 회원에게 새로 보낼 소식 (최근 PUSH_LOOKBACK_DAYS 일 · 아직 안 보낸 것 · 끈 종류 빼고 · 알림함 순서) */
+/**
+ * 이 회원에게 새로 보낼 소식 (최근 PUSH_LOOKBACK_DAYS 일 · 아직 안 보낸 것 · 끈 종류 빼고 · 알림함 순서).
+ * now: 앞날 소식(경기 날 안내·생일)은 그날이 되어야, 경기 날 안내는 경기 시작 전에만 (2026-10-12)
+ */
 export function pickPushItems(
-  items: readonly NotifItem[],
+  all: readonly NotifItem[],
   target: { favorites: readonly string[]; teams: readonly string[]; sent: ReadonlySet<string>; off?: readonly string[] },
+  now: Date = new Date(),
 ): NotifItem[] {
+  const items = visibleNotifs(all, now).filter((it) => !it.startsAt || Date.parse(it.startsAt) > now.getTime());
   const mine = withoutOffGroups(myNotifs(items, target.favorites, target.teams), target.off ?? []);
   if (mine.length === 0) return [];
   const latest = items.reduce((m, it) => (it.date > m ? it.date : m), items[0].date);

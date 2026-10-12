@@ -42,7 +42,7 @@ export default function NotificationsView() {
     <>
       <h1 className="text-h1 font-black">알림</h1>
       <p className="mt-1 text-sub text-ink-3">
-        즐겨찾기한 선수 {favorites.length}명 · 응원팀 {teams.length}팀의 최근 {NOTIF_WINDOW_DAYS}일 경기 소식이에요. 기록은 경기가 끝나고 한두 시간 뒤에 들어와요.
+        즐겨찾기한 선수 {favorites.length}명 · 응원팀 {teams.length}팀의 최근 {NOTIF_WINDOW_DAYS}일 소식이에요. 기록은 경기가 끝나고 한두 시간 뒤에 들어와요.
       </p>
       <PushToggle />
       {subscribed && <NotifKindSettings prefs={prefs} />}
@@ -56,7 +56,7 @@ export default function NotificationsView() {
       ) : !subscribed ? (
         <div className="surface-card mt-5 rounded-container p-5">
           <p className="text-body font-bold text-ink">아직 받을 소식이 없어요</p>
-          <p className="mt-1 text-sub text-ink-2">선수 페이지에서 별을 눌러 즐겨찾기하면 그 선수 기록·커리어 하이·이정표를 알려 드려요.</p>
+          <p className="mt-1 text-sub text-ink-2">선수 페이지에서 별을 눌러 즐겨찾기하면 그 선수 기록·커리어 하이·순위·생일을 알려 드려요.</p>
           <div className="mt-3 flex flex-wrap gap-x-4">
             <Link href="/players" className="link-shortcut">
               선수 찾기 <IconChevronRight size={16} />
