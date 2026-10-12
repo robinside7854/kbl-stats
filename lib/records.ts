@@ -417,3 +417,28 @@ export function recordFilterChips(s: RecordFilterState, modeApplies: boolean): {
   if (s.activeOnly) out.push({ field: "activeOnly", label: "현역만" });
   return out;
 }
+
+// ─────────────────────────────────────────────
+// 역대 기록 목록 나눠 받기 (2026-10-12 호출·속도 정리 3번): 한 경기 최다·한 시즌 최다 페이지는 부문·구분·단위마다 목록이 수십 개라
+// 전부 HTML 에 넣으면 압축 후 120~134KB 였다. 페이지에는 처음 보이는 목록 하나만 넣고, 나머지는 고를 때
+// /records/data/{탭}/{목록}.json(빌드 때 미리 만든 정적 파일, app/records/data/[tab]/[key]/route.ts)을 받는다.
+// ─────────────────────────────────────────────
+
+export type RecordTab = "game" | "season";
+
+/** 목록 키 — 한 경기 "구분:부문", 한 시즌 "구분:부문:단위" (lib/data 가 만드는 키와 같다) */
+export const gameHighListKey = (kind: GameKind, cat: string) => `${kind}:${cat}`;
+export const seasonBestListKey = (kind: GameKind, cat: string, mode: RecordMode) => `${kind}:${cat}:${mode}`;
+
+/** 목록 하나만 담은 데이터 (그 목록에 나오는 선수 정보만) */
+export function pickRecordList(data: RecordListsData, key: string): RecordListsData {
+  const list = data.lists[key] ?? [];
+  const people: Record<string, RecordPerson> = {};
+  for (const r of list) if (data.people[r.id]) people[r.id] = data.people[r.id];
+  return { people, lists: { [key]: list } };
+}
+
+/** 목록 키 ↔ 파일 이름 ("regular:pts" ↔ "regular_pts") — 주소에 쌍점을 쓰지 않게 */
+export const recordListSlug = (key: string) => key.replace(/:/g, "_");
+export const recordListKeyFromSlug = (slug: string) => slug.replace(/\.json$/, "").replace(/_/g, ":");
+export const recordListUrl = (tab: RecordTab, key: string) => `/records/data/${tab}/${recordListSlug(key)}.json`;

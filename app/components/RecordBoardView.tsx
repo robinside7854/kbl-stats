@@ -2,6 +2,7 @@
 // 역대 기록 하위 탭 화면 공용 (한 경기 최다·한 시즌 최다·수상·우승, 2026-10-03):
 // 부문 칩 한 줄 → "필터" 버튼(경기 구분·합계/경기당·국적·현역만, 2026-10-06) → 순위 목록(RecordList).
 // 서버가 부문마다 필터(국내/외국인 × 전체/현역)별 상위 50을 모두 담아 보내고(lib/data unionForFilters), 이 화면은 걸러서 순위만 다시 센다
+// remote 가 있으면(한 경기·한 시즌 최다, 2026-10-12) 페이지에는 처음 목록 하나만 들어 있고 다른 목록은 고를 때 정적 파일로 받는다(lib/records recordListUrl)
 // (lib/records filterRecordList). 선택은 주소 ?kind=&cat=&mode=&origin=&active=1 에 남긴다.
 // GA4: filter_change screen=records_game|records_season|records_awards (kind·category·mode·origin·active_only).
 import InfoLink from "./InfoLink";
@@ -16,12 +17,15 @@ import {
   type RecordListsData,
   type RecordMode,
   type RecordOrigin,
+  type RecordTab,
+  recordListUrl,
 } from "@/lib/records";
 import ActiveOnlyToggle from "./ActiveOnlyToggle";
 import FilterSheet, { FilterGroup } from "./FilterSheet";
 import ChipRow from "./ChipRow";
 import RecordList from "./RecordList";
 import Segmented from "./Segmented";
+import Skeleton from "./Skeleton";
 import { trackEvent, trackFilters } from "./track";
 
 export interface BoardCategory {
@@ -39,6 +43,8 @@ interface Props {
   kinds?: boolean;
   /** 합계/경기당 전환을 쓰는가 */
   modes?: boolean;
+  /** 페이지에 없는 목록은 /records/data/{remote}/… 에서 받는다 */
+  remote?: RecordTab;
   /** 목록 키 만들기 (lib/data 의 키 규칙과 같아야 한다) */
   listKey: (kind: GameKind, cat: string, mode: RecordMode) => string;
   /** 목록 아래 안내 (지금 고른 상태에 맞춰) */
@@ -58,7 +64,7 @@ const MODE_OPTIONS: { value: RecordMode; label: string }[] = [
   { value: "perGame", label: "경기당" },
 ];
 
-export default function RecordBoardView({ screen, data, categories, kinds = false, modes = false, listKey, note, emptyText }: Props) {
+export default function RecordBoardView({ screen, data, categories, kinds = false, modes = false, remote, listKey, note, emptyText }: Props) {
   const [kind, setKind] = useState<GameKind>("regular");
   const [cat, setCat] = useState(categories[0].value);
   const [mode, setMode] = useState<RecordMode>("total");
@@ -92,7 +98,28 @@ export default function RecordBoardView({ screen, data, categories, kinds = fals
   const def = categories.find((d) => d.value === cat) ?? categories[0];
   const effMode: RecordMode = modes && def.perGame ? mode : "total";
   const key = listKey(kind, def.value, effMode);
-  const all = data.lists[key];
+  // 받아 온 목록 (키 → 목록·선수 정보). 실패한 키는 null
+  const [loaded, setLoaded] = useState<Record<string, RecordListsData | null>>({});
+  const missing = !!remote && !(key in data.lists) && !(key in loaded);
+  useEffect(() => {
+    if (!missing || !remote) return;
+    let alive = true;
+    fetch(recordListUrl(remote, key))
+      .then((r) => (r.ok ? (r.json() as Promise<RecordListsData>) : null))
+      .catch(() => null)
+      .then((got) => {
+        if (alive) setLoaded((m) => ({ ...m, [key]: got }));
+      });
+    return () => {
+      alive = false;
+    };
+  }, [missing, remote, key]);
+  const all = data.lists[key] ?? loaded[key]?.lists[key];
+  const people = useMemo(() => {
+    const extra = loaded[key]?.people;
+    return extra ? { ...data.people, ...extra } : data.people;
+  }, [data.people, loaded, key]);
+  const failed = loaded[key] === null;
   const items = useMemo(() => filterRecordList(all ?? [], origin, activeOnly), [all, origin, activeOnly]);
   const filtered = origin !== "all" || activeOnly;
   function reset(field: RecordFilterField) {
@@ -175,10 +202,37 @@ export default function RecordBoardView({ screen, data, categories, kinds = fals
         </FilterSheet>
       </div>
       <section aria-label={`${def.label} 순위`} className="mt-4">
+        {missing ? (
+          <div className="surface-card rounded-container p-3">
+            <p role="status" className="sr-only">
+              순위 불러오는 중
+            </p>
+            {Array.from({ length: 6 }, (_, i) => (
+              <Skeleton key={i} className="my-2 h-12 w-full" />
+            ))}
+          </div>
+        ) : failed ? (
+          <div role="alert" className="surface-card rounded-container px-4 py-8 text-center text-body text-ink-2">
+            <p>순위를 불러오지 못했어요.</p>
+            <button
+              type="button"
+              onClick={() =>
+                setLoaded((m) => {
+                  const next = { ...m };
+                  delete next[key];
+                  return next;
+                })
+              }
+              className="focus-ring mt-3 inline-flex h-10 cursor-pointer items-center rounded-control border border-line px-4 text-sub font-semibold text-ink transition-colors duration-200 hover:bg-surface-2"
+            >
+              다시 불러오기
+            </button>
+          </div>
+        ) : (
         <RecordList
           key={`${key}:${origin}:${activeOnly}`}
           items={items}
-          people={data.people}
+          people={people}
           empty={(all ?? []).length > 0 && filtered ? "조건에 맞는 선수가 없습니다." : (emptyText?.(kind) ?? "기록이 없습니다.")}
           onReset={
             (all ?? []).length > 0 && filtered
@@ -190,6 +244,7 @@ export default function RecordBoardView({ screen, data, categories, kinds = fals
               : undefined
           }
         />
+        )}
         <p className="mt-2 text-sub text-ink-3">{note(kind, effMode)}</p>
       </section>
     </>

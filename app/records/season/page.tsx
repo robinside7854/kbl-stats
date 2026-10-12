@@ -3,6 +3,7 @@
 import type { Metadata } from "next";
 import { ogImagePath, shareMetadata } from "@/lib/share";
 import { dataAsOfLabel, hasPostseasonData, listSeasonsWithPlayers, loadSeasonBestLists, loadSeasonData } from "@/lib/data";
+import { pickRecordList, SEASON_BEST_STATS, seasonBestListKey } from "@/lib/records";
 import RecordsHeader from "@/app/components/RecordsHeader";
 import { SeasonBestsView } from "@/app/components/RecordTabViews";
 import SiteNav from "@/app/components/SiteNav";
@@ -22,7 +23,8 @@ export default function RecordsSeasonPage() {
       <SiteNav seasons={seasons} seasonCode={latest?.seasonCode ?? 0} view="records" wide />
       <main className="mx-auto max-w-page px-4 pt-5">
         <RecordsHeader tab="season" leadersSeason={latest?.seasonCode ?? 0} asOf={dataAsOfLabel()} />
-        <SeasonBestsView data={loadSeasonBestLists()} hasPostseason={hasPostseasonData()} />
+        {/* 처음 보이는 목록 하나만 — 나머지는 고를 때 /records/data/season/… (2026-10-12) */}
+        <SeasonBestsView data={pickRecordList(loadSeasonBestLists(), seasonBestListKey("regular", SEASON_BEST_STATS[0].key, "total"))} hasPostseason={hasPostseasonData()} />
       </main>
       <SourceFooter fetchedAt={latest ? loadSeasonData(latest.seasonCode)?.fetchedAt : undefined} wide />
     </>

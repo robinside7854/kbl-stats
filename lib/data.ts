@@ -744,8 +744,13 @@ function unionForFilters<T extends { id: string }, R extends T>(entries: readonl
   return rank(entries.filter((e) => keep.has(keyOf(e))), Number.POSITIVE_INFINITY);
 }
 
-/** 한 경기 최다: 구분(정규·플옵·챔프) × 부문 11개, 선수별 통산 최고 기록(색인 careerHighs)으로 순위 */
+/** 한 경기 최다: 구분(정규·플옵·챔프) × 부문 11개, 선수별 통산 최고 기록(색인 careerHighs)으로 순위.
+ *  빌드 때 페이지 하나 + 목록 파일 33개(app/records/data)가 같이 부르므로 한 번만 계산한다 */
+let gameHighListsCache: RecordListsData | null = null;
 export function loadGameHighLists(): RecordListsData {
+  return (gameHighListsCache ??= buildGameHighLists());
+}
+function buildGameHighLists(): RecordListsData {
   const index = loadPlayersIndex();
   const scheduled = new Set(listSeasonsWithPlayers().map((s) => s.seasonCode));
   const lists: Record<string, RecordListItem[]> = {};
@@ -792,8 +797,12 @@ export function hasPostseasonData(): boolean {
   return listSeasonsWithPlayers().some((s) => readPostseason(s.seasonCode) !== null);
 }
 
-/** 한 시즌 최다: 구분 × 부문 × 합계/경기당. 정규시즌은 시즌 파일, 플옵·챔프전은 postseason.json */
+/** 한 시즌 최다: 구분 × 부문 × 합계/경기당. 정규시즌은 시즌 파일, 플옵·챔프전은 postseason.json (한 번만 계산 — 위와 같은 이유) */
+let seasonBestListsCache: RecordListsData | null = null;
 export function loadSeasonBestLists(): RecordListsData {
+  return (seasonBestListsCache ??= buildSeasonBestLists());
+}
+function buildSeasonBestLists(): RecordListsData {
   type Line = { id: string; seasonCode: number; teamCode: string; games: number; perGameOk: boolean; stats: Record<SeasonBestKey, number> };
   const byKind: Record<GameKind, Line[]> = { regular: [], playoff: [], finals: [] };
   const statsOf = (p: Pick<PostseasonLine, "points" | "reb" | "ast" | "stl" | "blk" | "tpm" | "ftm" | "doubleDoubles" | "tripleDoubles">) => ({

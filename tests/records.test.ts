@@ -99,3 +99,22 @@ assert.deepEqual(
 assert.deepEqual(recordFilterChips({ ...DEFAULT_RECORD_FILTERS, mode: "perGame" }, false), []);
 
 console.log("records: 통과");
+
+// 역대 기록 목록 나눠 받기 (2026-10-12): 키·파일 이름 왕복, 목록 하나만 담기
+{
+  const { pickRecordList, recordListSlug, recordListKeyFromSlug, recordListUrl, gameHighListKey, seasonBestListKey } = await import("../lib/records");
+  assert.equal(gameHighListKey("regular", "pts"), "regular:pts");
+  assert.equal(seasonBestListKey("playoff", "doubleDoubles", "perGame"), "playoff:doubleDoubles:perGame");
+  for (const k of ["regular:pts", "playoff:doubleDoubles:perGame", "finals:tpm:total"]) {
+    assert.equal(recordListKeyFromSlug(`${recordListSlug(k)}.json`), k);
+  }
+  assert.equal(recordListUrl("season", "regular:points:total"), "/records/data/season/regular_points_total.json");
+  const item = (id: string, num: number) => ({ rank: 1, id, num, origin: "domestic" as const, active: false, value: String(num), unit: "점", sub: "", note: null, gameHref: null });
+  const person = (id: string) => ({ nameKo: id, photoUrl: null, teamShort: "", color: "#000" }) as never;
+  const data = { people: { a: person("a"), b: person("b"), c: person("c") }, lists: { x: [item("a", 3), item("b", 2)], y: [item("c", 1)] } };
+  const picked = pickRecordList(data, "x");
+  assert.deepEqual(Object.keys(picked.lists), ["x"]);
+  assert.deepEqual(Object.keys(picked.people).sort(), ["a", "b"]);
+  assert.deepEqual(pickRecordList(data, "없음"), { people: {}, lists: { 없음: [] } });
+  console.log("records: 목록 나눠 받기 통과");
+}

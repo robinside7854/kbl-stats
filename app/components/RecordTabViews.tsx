@@ -1,7 +1,7 @@
 "use client";
 // 역대 기록 하위 탭 세 개의 설정 (부문·목록 키·안내 문구) — 화면 틀은 RecordBoardView. 서버 페이지는 데이터만 넘긴다.
 import { highDef, SEASON_HIGH_LEADER_KEYS } from "@/lib/highs";
-import { POSTSEASON_MIN_GAMES, REGULAR_MIN_GAMES_SHARE, SEASON_BEST_STATS, type RecordListsData } from "@/lib/records";
+import { gameHighListKey, POSTSEASON_MIN_GAMES, REGULAR_MIN_GAMES_SHARE, SEASON_BEST_STATS, seasonBestListKey, type RecordListsData } from "@/lib/records";
 import RecordBoardView from "./RecordBoardView";
 
 /** 한 경기 최다 부문 이름 (lib/highs 이름에서 "슛" 을 빼 칩을 짧게) */
@@ -14,7 +14,8 @@ export function GameHighsView({ data }: { data: RecordListsData }) {
       data={data}
       categories={GAME_CATEGORIES}
       kinds
-      listKey={(kind, cat) => `${kind}:${cat}`}
+      remote="game"
+      listKey={(kind, cat) => gameHighListKey(kind, cat)}
       note={() =>
         "선수마다 가장 좋은 기록 하나만 셉니다(같은 선수의 두 번째 기록은 순위에 없음). 같은 기록을 여러 번 냈으면 횟수를 함께, 날짜는 KBL 이 알려 준 그 기록의 경기. 정규시즌은 달력 버튼으로 그날 경기로 갑니다."
       }
@@ -30,7 +31,8 @@ export function SeasonBestsView({ data, hasPostseason }: { data: RecordListsData
       categories={SEASON_BEST_STATS.map((d) => ({ value: d.key, label: d.label, perGame: d.perGame }))}
       kinds
       modes
-      listKey={(kind, cat, mode) => `${kind}:${cat}:${mode}`}
+      remote="season"
+      listKey={(kind, cat, mode) => seasonBestListKey(kind, cat, mode)}
       emptyText={(kind) =>
         kind !== "regular" && !hasPostseason ? "플레이오프·챔프전 시즌 기록은 오늘 밤 수집부터 채워집니다." : "기록이 없습니다."
       }

@@ -3,6 +3,8 @@
 import type { Metadata } from "next";
 import { ogImagePath, shareMetadata } from "@/lib/share";
 import { dataAsOfLabel, listSeasonsWithPlayers, loadGameHighLists, loadSeasonData } from "@/lib/data";
+import { SEASON_HIGH_LEADER_KEYS } from "@/lib/highs";
+import { gameHighListKey, pickRecordList } from "@/lib/records";
 import RecordsHeader from "@/app/components/RecordsHeader";
 import { GameHighsView } from "@/app/components/RecordTabViews";
 import SiteNav from "@/app/components/SiteNav";
@@ -22,7 +24,8 @@ export default function RecordsGamePage() {
       <SiteNav seasons={seasons} seasonCode={latest?.seasonCode ?? 0} view="records" wide />
       <main className="mx-auto max-w-page px-4 pt-5">
         <RecordsHeader tab="game" leadersSeason={latest?.seasonCode ?? 0} asOf={dataAsOfLabel()} />
-        <GameHighsView data={loadGameHighLists()} />
+        {/* 처음 보이는 목록 하나만 — 나머지는 고를 때 /records/data/game/… (2026-10-12) */}
+        <GameHighsView data={pickRecordList(loadGameHighLists(), gameHighListKey("regular", SEASON_HIGH_LEADER_KEYS[0]))} />
       </main>
       <SourceFooter fetchedAt={latest ? loadSeasonData(latest.seasonCode)?.fetchedAt : undefined} wide />
     </>
