@@ -29,6 +29,7 @@ import { teamShortLabel } from "@/lib/images";
 import { buildSeasonCardView } from "@/lib/cardview";
 import { POSITION_GROUP_LABELS } from "@/lib/roster";
 import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
+import type { SimilarEntry } from "@/lib/similar";
 import CareerHighs from "@/app/components/CareerHighs";
 import CareerTable from "@/app/components/CareerTable";
 import CareerTrend from "@/app/components/CareerTrend";
@@ -41,6 +42,11 @@ import SourceFooter from "@/app/components/SourceFooter";
 
 // 색인에 없는 선수 번호는 404
 export const dynamicParams = false;
+
+// 비슷한 시즌은 처음 보이는 카드 시즌 것만 페이지에 넣는다 — 나머지 시즌은 고를 때 /similar/{번호}.json (2026-10-14)
+function pickSimilarSeason(all: Record<number, SimilarEntry[]>, seasonCode: number): Record<number, SimilarEntry[]> {
+  return seasonCode in all ? { [seasonCode]: all[seasonCode] } : {};
+}
 
 export function generateStaticParams() {
   return loadPlayersIndex().map((e) => ({ playerNo: e.id }));
@@ -76,6 +82,7 @@ export default async function PlayerPage({ params }: { params: Params }) {
   const latest = seasons[seasons.length - 1];
   const latestCards = loadSeasonCards(latest.seasonCode);
   const card = latestCards ? buildSeasonCardView(latestCards, playerNo, "all") : null;
+  const similarAll = loadSimilarPlayers(playerNo);
   const allSeasons = listSeasonsWithPlayers();
   const highTabs = loadCareerHighTabs(entry);
   const achievements = loadCareerHighAchievements(entry);
@@ -110,7 +117,8 @@ export default async function PlayerPage({ params }: { params: Params }) {
               careerHighRows={highTabs.find((t) => t.key === "regular")?.rows ?? []}
               shotSeasons={playerShotSeasons(playerNo, seasons.map((s) => s.seasonCode))}
               initialShots={loadPlayerShots(latest.seasonCode, playerNo)}
-              similar={loadSimilarPlayers(playerNo)}
+              similar={pickSimilarSeason(similarAll, card.seasonCode)}
+              similarSeasons={Object.keys(similarAll).map(Number)}
               primeSeason={loadPrimeSeason(playerNo)}
               gameRanges={loadPlayerGameRanges(playerNo, seasons.map((s) => s.seasonCode))}
             />

@@ -112,3 +112,12 @@ export interface SimilarEntry {
   sameRole: boolean;
 }
 
+
+/**
+ * 선수 한 명의 시즌별 비슷한 시즌 파일 주소 (2026-10-14 결과물 줄이기).
+ * 선수 페이지에는 처음 보이는 시즌 목록만 넣고, 다른 시즌을 고르면 이 파일 하나를 받는다
+ * (빌드 때 app/similar/[file]/route.ts 가 정적 파일로 만든다 — 내용 = 시즌 코드 → SimilarEntry[]).
+ */
+export function similarFileUrl(playerNo: string): string {
+  return `/similar/${playerNo}.json`;
+}

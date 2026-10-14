@@ -32,7 +32,7 @@ import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
 import HighlightCards from "./HighlightCards";
 import ShotChart from "./ShotChart";
 import type { PlayerShotsFile } from "@/lib/shots";
-import type { SimilarEntry } from "@/lib/similar";
+import { similarFileUrl, type SimilarEntry } from "@/lib/similar";
 import SimilarPlayers from "./SimilarPlayers";
 import PercentileBars from "./PercentileBars";
 import GameRangeBars from "./GameRangeBars";
@@ -59,15 +59,17 @@ interface Props {
   shotSeasons: number[];
   /** 서버가 넣은 최신 시즌 슛 파일 (없으면 null) */
   initialShots: PlayerShotsFile | null;
-  /** 시즌별 비슷한 시즌 5개 (빌드 때 lib/similar). 표본 미달 시즌은 키가 없다 */
+  /** 처음 보이는 시즌의 비슷한 시즌 5개 (빌드 때 lib/similar). 다른 시즌은 고를 때 /similar/{번호}.json 을 받는다. 표본 미달 시즌은 키가 없다 */
   similar?: Record<number, SimilarEntry[]>;
+  /** 비슷한 시즌이 있는 시즌 코드 (여기 없는 시즌은 파일을 받지 않고 "표본 미달" 안내) */
+  similarSeasons?: number[];
   /** 프라임 시즌 코드 (lib/prime). 없으면 null */
   primeSeason?: number | null;
   /** 시즌별 경기 범위 (박스스코어가 있는 시즌만, lib/career gameRanges) */
   gameRanges?: Record<number, GameRangeSet>;
 }
 
-export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, groupLabel, aside, careerHighRows, shotSeasons, initialShots, similar, primeSeason, gameRanges }: Props) {
+export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, groupLabel, aside, careerHighRows, shotSeasons, initialShots, similar, similarSeasons, primeSeason, gameRanges }: Props) {
   const codes = useMemo(() => seasons.map((s) => s.seasonCode), [seasons]);
   const labelOf = (code: number) => seasonShortLabel(seasons.find((s) => s.seasonCode === code)?.seasonLabel ?? String(code));
   const [state, setState] = useState<PlayerViewState>({ season: initial.seasonCode, scope: "all" });
@@ -92,6 +94,7 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
 
   const { season, scope } = state;
   const a = useCardView(playerId, season, scope, initial);
+  const similarState = useSimilarSeasons(playerId, season, similar, similarSeasons);
 
   const scopeOptions: { value: CardScope; label: string }[] = [
     { value: "all", label: "전체" },
@@ -236,9 +239,38 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
       {/* 비슷한 시즌: 카드와 같은 시즌을 따른다 */}
       {similar && (
         <div className="mt-8">
-          <SimilarPlayers items={similar[season]} seasonShort={labelOf(season)} />
+          <SimilarPlayers items={similarState.items} loading={similarState.loading} seasonShort={labelOf(season)} />
         </div>
       )}
     </div>
   );
+}
+
+/**
+ * 비슷한 시즌 목록 (2026-10-14 결과물 줄이기): 페이지에는 처음 시즌 것만 들어 있고,
+ * 그 밖의 시즌을 고르면 선수 파일(/similar/{번호}.json — 모든 시즌)을 한 번 받아 둔다.
+ */
+function useSimilarSeasons(
+  playerId: string,
+  season: number,
+  initial: Record<number, SimilarEntry[]> | undefined,
+  available: number[] | undefined,
+) {
+  const [all, setAll] = useState<Record<number, SimilarEntry[]> | null>(null);
+  const [failed, setFailed] = useState(false);
+  const inInitial = !!initial && season in initial;
+  const need = !!initial && !inInitial && !!available?.includes(season) && all === null && !failed;
+  useEffect(() => {
+    if (!need) return;
+    let alive = true;
+    fetch(similarFileUrl(playerId))
+      .then((r) => (r.ok ? (r.json() as Promise<Record<number, SimilarEntry[]>>) : Promise.reject(new Error(String(r.status)))))
+      .then((d) => alive && setAll(d))
+      .catch(() => alive && setFailed(true));
+    return () => {
+      alive = false;
+    };
+  }, [need, playerId]);
+  if (inInitial) return { items: initial![season], loading: false };
+  return { items: all?.[season], loading: need };
 }

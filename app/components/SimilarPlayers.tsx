@@ -8,8 +8,18 @@ import { teamShortLabel } from "@/lib/images";
 import type { SimilarEntry } from "@/lib/similar";
 import InfoLink from "./InfoLink";
 import PlayerAvatar from "./PlayerAvatar";
+import Skeleton from "./Skeleton";
 
-export default function SimilarPlayers({ items, seasonShort }: { items: SimilarEntry[] | undefined; seasonShort: string }) {
+export default function SimilarPlayers({
+  items,
+  loading = false,
+  seasonShort,
+}: {
+  items: SimilarEntry[] | undefined;
+  /** 다른 시즌 목록을 받는 중 (/similar/{번호}.json) */
+  loading?: boolean;
+  seasonShort: string;
+}) {
   return (
     <section aria-labelledby="similar-title">
       <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
@@ -18,7 +28,13 @@ export default function SimilarPlayers({ items, seasonShort }: { items: SimilarE
         </h2>
         <span className="text-sub text-ink-3">{seasonShort} 능력치·평가·유형이 닮은 다른 선수</span>
       </div>
-      {!items || items.length === 0 ? (
+      {loading ? (
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5" aria-hidden>
+          {Array.from({ length: 5 }, (_, i) => (
+            <Skeleton key={i} className="h-16 rounded-card lg:h-32" />
+          ))}
+        </div>
+      ) : !items || items.length === 0 ? (
         <p className="surface-card rounded-container px-4 py-5 text-sub text-ink-2">이 시즌은 표본 기준(10경기·100분)에 못 미쳐 비교하지 않습니다.</p>
       ) : (
         <ol className="tabular grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
