@@ -101,6 +101,16 @@ export function franchiseTotals(rows: readonly TeamSeasonRow[]): FranchiseTotals
   };
 }
 
+/** 가장 좋은 정규시즌 (팀 페이지 "역대 실적", 2026-10-14) — 끝난 시즌 중 승률 → 승수 → 최근 순. 없으면 null */
+export function bestRegularSeason(rows: readonly TeamSeasonRow[]): TeamSeasonRow | null {
+  let best: TeamSeasonRow | null = null;
+  for (const r of rows) {
+    if (r.ongoing || r.pct === null) continue;
+    if (!best || r.pct > best.pct! || (r.pct === best.pct && (r.wins > best.wins || (r.wins === best.wins && r.seasonCode > best.seasonCode)))) best = r;
+  }
+  return best;
+}
+
 /** 승률 표기 ".667" */
 export function pctText(p: number | null): string {
   if (p === null) return "–";

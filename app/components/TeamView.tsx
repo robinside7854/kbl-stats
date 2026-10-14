@@ -4,17 +4,20 @@
 // 주소 ?season=코드 로 그 시즌 로스터를 연다. GA4: filter_change screen=team filter=season·leader, fan_add/remove(FanButton — 지금 팀만)
 // 2026-10-14 스포츠 앱 비교: 맨 위 "최근·다음 경기" 띠(TeamGameStrip, 지금 팀만), 로스터 아래 "상대 전적"(시즌 칩을 따름 —
 // 줄을 누르면 상대 팀 페이지의 그 시즌, GA4 team_select {team_code, place:"h2h"}).
+// 2026-10-14 사용자 "지난 시즌을 쭉 늘어놓지 말고 과거 실적으로, 기본은 그 시즌 먼저": 경기 띠 → 이번 시즌(없으면 최근·마지막 시즌)
+// 로스터 → 그 시즌 상대 전적 → "역대 실적"(통산 숫자 + 시즌마다 순위·PO 결과 칸, 칸을 누르면 위가 그 시즌으로 — 30시즌 칩 줄은 없앰,
+// 긴 시즌별 성적 표는 접어 둠: GA4 filter_change team history open/close) → 레전드 → 팀 통산 기록 → 수상(처음 8개) → 계보.
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { mixHex } from "@/lib/images";
 import type { TeamHeadToHeadLine } from "@/lib/games";
-import { LEGEND_RULE_TEXT, majorAwardSummary, PLAYOFF_STAGE_LABELS, pctText, type PlayoffStage, type TeamLeaderKey, type TeamPageData } from "@/lib/franchise";
+import { bestRegularSeason, LEGEND_RULE_TEXT, majorAwardSummary, PLAYOFF_STAGE_LABELS, pctText, type PlayoffStage, type TeamLeaderKey, type TeamPageData, type TeamSeasonRow } from "@/lib/franchise";
 import ChipRow from "./ChipRow";
 import FanButton from "./FanButton";
 import PlayerAvatar from "./PlayerAvatar";
 import TeamLogo from "./TeamLogo";
 import TeamGameStrip, { type TeamStripData } from "./TeamGameStrip";
-import { IconArrowRight, IconTrophy } from "./icons";
+import { IconArrowRight, IconChevronDown, IconChevronLeft, IconTrophy } from "./icons";
 import { trackEvent, trackFilters } from "./track";
 
 const NF = new Intl.NumberFormat("ko-KR");
@@ -41,10 +44,32 @@ function StageChip({ stage }: { stage: PlayoffStage | null }) {
   );
 }
 
+/** 역대 실적 칸 아래 글자 */
+function cellStage(r: TeamSeasonRow): string {
+  if (r.ongoing) return "진행 중";
+  return r.stage ? PLAYOFF_STAGE_LABELS[r.stage] : "탈락";
+}
+
+/** 역대 실적 칸 모양 — 우승은 금색(style 로), 준우승은 테두리, 4강·6강은 회색 면, 못 간 시즌은 점선 */
+function cellClass(r: TeamSeasonRow): string {
+  if (r.ongoing) return "border border-line text-ink hover:bg-surface-2";
+  if (r.stage === "champion") return "";
+  if (r.stage === "runnerUp") return "border border-ink bg-surface-2 text-ink";
+  if (r.stage) return "bg-surface-2 text-ink hover:bg-line";
+  return "border border-dashed border-line text-ink-3 hover:bg-surface-2";
+}
+
+/** 수상 기록 처음에 보이는 개수 */
+const AWARDS_VISIBLE = 8;
+
 export default function TeamView({ data, strip = null, h2h = {} }: { data: TeamPageData; strip?: TeamStripData | null; h2h?: Record<string, TeamHeadToHeadLine[]> }) {
   const { brand, totals, rows } = data;
-  const [season, setSeason] = useState<number>(rows[0]?.seasonCode ?? 0);
+  // 기본 = 가장 최근 시즌 (지금 팀은 이번 시즌, 아직 첫 경기 전이면 지난 시즌 / 추억의 팀은 마지막 시즌)
+  const defaultSeason = rows[0]?.seasonCode ?? 0;
+  const [season, setSeason] = useState<number>(defaultSeason);
   const [leader, setLeader] = useState<TeamLeaderKey>("pts");
+  const [tableOpen, setTableOpen] = useState(false);
+  const [awardsOpen, setAwardsOpen] = useState(false);
 
   useEffect(() => {
     const q = Number(new URLSearchParams(window.location.search).get("season"));
@@ -63,13 +88,15 @@ export default function TeamView({ data, strip = null, h2h = {} }: { data: TeamP
   const row = rows.find((r) => r.seasonCode === season) ?? rows[0];
   const roster = data.rosters[String(season)] ?? [];
   const champSeasons = rows.filter((r) => r.stage === "champion");
+  const best = useMemo(() => bestRegularSeason(rows), [rows]);
+  const isDefault = season === defaultSeason;
+  const notStarted = Boolean(data.active && strip && rows[0] && strip.seasonCode !== rows[0].seasonCode);
+  const defaultTitle = !data.active ? "마지막 시즌" : rows[0]?.ongoing ? "이번 시즌" : "최근 시즌";
+  const seasonTitle = isDefault ? `${defaultTitle} · ${row?.label ?? ""}` : `${row?.label ?? ""} 시즌`;
+  const awards = awardsOpen ? data.awards : data.awards.slice(0, AWARDS_VISIBLE);
   const leaderList = data.leaders.find((l) => l.key === leader);
   const dark = mixHex(brand.color.primary, "#000000", 0.6);
   const mid = mixHex(brand.color.primary, "#000000", 0.3);
-  const seasonChips = useMemo(
-    () => rows.map((r) => ({ value: r.seasonCode, label: r.label, highlight: r.stage === "champion" })),
-    [rows],
-  );
 
   const totalTiles: [string, string, string?][] = [
     ["시즌", `${totals.seasons}`],
@@ -121,58 +148,22 @@ export default function TeamView({ data, strip = null, h2h = {} }: { data: TeamP
 
       <div className="mx-auto mt-4 max-w-page space-y-4 px-4">
         {strip && <TeamGameStrip strip={strip} />}
-        {data.lineage.length > 0 && (
-          <Card title="구단 계보">
-            <p className="mt-1 text-sub text-ink-3">구단이 팔리면 KBL 은 새 팀 코드로 기록을 따로 셉니다. 이름을 누르면 그 팀 페이지로 가요.</p>
-            <ol className="mt-3 flex flex-wrap items-center gap-x-1 gap-y-2">
-              {data.lineage.map((l, i) => (
-                <li key={l.teamCode} className="flex items-center gap-1">
-                  {i > 0 && <IconArrowRight size={16} className="text-ink-3" />}
-                  {l.teamCode === brand.teamCode ? (
-                    <span className="inline-flex h-10 items-center gap-2 rounded-control border border-ink bg-surface-2 px-2.5 text-sub font-bold">
-                      <TeamLogo logoUrl={l.logoUrl} shortName={l.shortName} color={l.color} size={20} />
-                      {l.name}
-                    </span>
-                  ) : (
-                    <Link
-                      href={`/team/${l.teamCode}`}
-                      className="focus-ring inline-flex h-10 items-center gap-2 rounded-control border border-line px-2.5 text-sub font-semibold text-ink transition-colors duration-200 hover:bg-surface-2"
-                    >
-                      <TeamLogo logoUrl={l.logoUrl} shortName={l.shortName} color={l.color} size={20} />
-                      {l.name}
-                      <span className="text-caption font-normal text-ink-3">{l.span}</span>
-                    </Link>
-                  )}
-                </li>
-              ))}
-            </ol>
-          </Card>
-        )}
 
-        <Card title="KBL 통산 성적">
-          <dl className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-            {totalTiles.map(([label, value, sub]) => (
-              <div key={label} className="rounded-card bg-surface-2 p-3">
-                <dt className="text-caption text-ink-3">{label}</dt>
-                <dd className="mt-0.5 text-body font-black tabular">{value}</dd>
-                {sub && <dd className="text-caption text-ink-3">{sub}</dd>}
-              </div>
-            ))}
-          </dl>
-          {champSeasons.length > 0 && (
-            <p className="mt-3 text-sub text-ink-2">
-              <span className="font-semibold text-ink">우승 시즌</span>{" "}
-              {champSeasons
-                .map((r) => `${r.label}${r.regularFirst ? "(통합)" : ""}`)
-                .reverse()
-                .join(" · ")}
-            </p>
-          )}
-          <p className="mt-2 text-caption text-ink-3">정규시즌 승패·순위는 경기 결과로 센 값, 플레이오프 4강·6강은 대진으로 판정한 값입니다(옛 시즌은 방식이 달라 다를 수 있음).</p>
-        </Card>
-
-        <Card title="시즌별 로스터" id="roster">
-          <ChipRow label="시즌" chips={seasonChips} value={season} onChange={(v) => pickSeason(v)} scroll className="mt-3" />
+        <section id="roster" aria-label={seasonTitle} className="surface-card scroll-mt-20 rounded-container p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-h2 font-bold">{seasonTitle}</h2>
+            {!isDefault && (
+              <button
+                type="button"
+                onClick={() => pickSeason(defaultSeason)}
+                className="focus-ring inline-flex h-10 items-center gap-1 rounded-control border border-line px-3 text-sub font-semibold text-ink transition-colors duration-200 hover:bg-surface-2"
+              >
+                <IconChevronLeft size={16} />
+                {defaultTitle}으로
+              </button>
+            )}
+          </div>
+          {isDefault && notStarted && <p className="mt-1 text-sub text-ink-3">{strip?.seasonShort} 시즌은 아직 첫 경기 전이라 지난 시즌을 먼저 보여 줘요.</p>}
           {row && (
             <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sub text-ink-2">
               <span className="inline-flex items-center gap-2 font-semibold text-ink">
@@ -225,11 +216,11 @@ export default function TeamView({ data, strip = null, h2h = {} }: { data: TeamP
               ))}
             </ul>
           )}
-        </Card>
+        </section>
 
         {(h2h[String(season)]?.length ?? 0) > 0 && (
-          <Card title="상대 전적">
-            <p className="mt-1 text-sub text-ink-3">{row?.label} 정규시즌 · 위 시즌 칩을 따라가요</p>
+          <Card title={`${row?.label ?? ""} 상대 전적`}>
+            <p className="mt-1 text-sub text-ink-3">정규시즌 · 위에서 보는 시즌을 따라가요</p>
             <ul className="tabular mt-3 divide-y divide-line">
               <li className="grid grid-cols-[minmax(0,1fr)_4.5rem_4rem] gap-2 pb-2 text-caption font-semibold text-ink-3 sm:grid-cols-[minmax(0,1fr)_6rem_5rem_6rem]">
                 <span>상대</span>
@@ -267,8 +258,94 @@ export default function TeamView({ data, strip = null, h2h = {} }: { data: TeamP
           </Card>
         )}
 
-        <Card title="시즌별 성적">
-          <p className="mt-1 text-sub text-ink-3">줄을 누르면 위에서 그 시즌 로스터를 보여 줘요.</p>
+        <Card title="역대 실적">
+          <dl className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+            {totalTiles.map(([label, value, sub]) => (
+              <div key={label} className="rounded-card bg-surface-2 p-3">
+                <dt className="text-caption text-ink-3">{label}</dt>
+                <dd className="mt-0.5 text-body font-black tabular">{value}</dd>
+                {sub && <dd className="text-caption text-ink-3">{sub}</dd>}
+              </div>
+            ))}
+          </dl>
+          <div className="mt-3 space-y-1 text-sub text-ink-2">
+            {champSeasons.length > 0 && (
+              <p>
+                <span className="font-semibold text-ink">우승 시즌</span>{" "}
+                {champSeasons
+                  .map((r) => `${r.label}${r.regularFirst ? "(통합)" : ""}`)
+                  .reverse()
+                  .join(" · ")}
+              </p>
+            )}
+            {best && (
+              <p className="tabular">
+                <span className="font-semibold text-ink">최고 정규시즌</span> {best.label} {best.wins}승 {best.losses}패 · 승률 {pctText(best.pct)}
+                {best.rank ? ` · ${best.rank}위` : ""}
+              </p>
+            )}
+          </div>
+
+          <h3 className="mt-5 text-body font-bold">시즌마다 어디까지 갔나</h3>
+          <p className="mt-0.5 text-sub text-ink-3">칸을 누르면 위에서 그 시즌 로스터를 보여 줘요.</p>
+          <ul className="mt-3 grid grid-cols-5 gap-1.5 sm:grid-cols-8 lg:grid-cols-10 xl:grid-cols-[repeat(15,minmax(0,1fr))]">
+            {rows.map((r) => {
+              const picked = r.seasonCode === season;
+              return (
+                <li key={r.seasonCode}>
+                  <button
+                    type="button"
+                    onClick={() => pickSeason(r.seasonCode, true)}
+                    aria-pressed={picked}
+                    aria-label={`${r.label} ${r.wins}승 ${r.losses}패${r.rank ? ` ${r.rank}위` : ""} ${cellStage(r)}`}
+                    className={`focus-ring flex min-h-16 w-full cursor-pointer flex-col items-center justify-center rounded-control px-0.5 py-1.5 text-center transition-colors duration-200 ${cellClass(r)} ${
+                      picked ? "outline outline-2 outline-offset-1 outline-[var(--series-1)]" : ""
+                    }`}
+                    style={r.stage === "champion" && !r.ongoing ? { background: "var(--grade-s)", color: "var(--grade-s-ink)" } : undefined}
+                  >
+                    <span className="text-caption tabular opacity-80">{r.label}</span>
+                    <span className="text-sub font-black leading-tight tabular">{r.rank ? `${r.rank}위` : "–"}</span>
+                    <span className="whitespace-nowrap text-caption font-semibold">{cellStage(r)}</span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+          <p className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-caption text-ink-3">
+            <span className="inline-flex items-center gap-1">
+              <span aria-hidden className="h-3 w-3 rounded-sm" style={{ background: "var(--grade-s)" }} />
+              우승
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <span aria-hidden className="h-3 w-3 rounded-sm border border-ink bg-surface-2" />
+              준우승
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <span aria-hidden className="h-3 w-3 rounded-sm bg-surface-2" />
+              4강·6강
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <span aria-hidden className="h-3 w-3 rounded-sm border border-dashed border-line" />
+              플레이오프 못 감
+            </span>
+          </p>
+
+          <button
+            type="button"
+            onClick={() => {
+              const next = !tableOpen;
+              setTableOpen(next);
+              trackFilters("team", { history: next ? "open" : "close" });
+            }}
+            aria-expanded={tableOpen}
+            aria-controls="team-season-table"
+            className="focus-ring mt-4 inline-flex h-10 items-center gap-1 rounded-control border border-line px-3 text-sub font-semibold text-ink transition-colors duration-200 hover:bg-surface-2"
+          >
+            {tableOpen ? "시즌별 성적 표 접기" : "시즌별 성적 표 보기"}
+            <IconChevronDown size={16} className={`transition-transform duration-200 ${tableOpen ? "rotate-180" : ""}`} />
+          </button>
+          {tableOpen && (
+            <div id="team-season-table">
           <ul className="mt-3 divide-y divide-line">
             <li className="grid grid-cols-[3.25rem_1.5rem_minmax(0,1fr)_3rem_3.75rem] gap-2 pb-2 text-caption font-semibold text-ink-3 sm:grid-cols-[4rem_minmax(0,1fr)_6rem_4rem_3.5rem_4.5rem_minmax(0,1fr)]">
               <span>시즌</span>
@@ -312,6 +389,9 @@ export default function TeamView({ data, strip = null, h2h = {} }: { data: TeamP
               </li>
             ))}
           </ul>
+            </div>
+          )}
+          <p className="mt-3 text-caption text-ink-3">정규시즌 승패·순위는 경기 결과로 센 값, 플레이오프 4강·6강은 대진으로 판정한 값입니다(옛 시즌은 방식이 달라 다를 수 있음).</p>
         </Card>
 
         <Card title={data.legends.length > 0 ? `레전드 ${data.legends.length}명` : "가장 오래 뛴 선수"}>
@@ -376,7 +456,7 @@ export default function TeamView({ data, strip = null, h2h = {} }: { data: TeamP
           <Card title="수상 기록">
             <p className="mt-1 text-sub text-ink-3">이 팀 소속으로 받은 KBL 시상</p>
             <ul className="mt-3 divide-y divide-line">
-              {data.awards.map((a) => (
+              {awards.map((a) => (
                 <li key={`${a.seasonCode}-${a.key}-${a.playerNo}`} className="flex min-h-11 items-center gap-3 py-1.5 text-sub">
                   <span className="w-12 shrink-0 font-semibold tabular text-ink-3">{a.label}</span>
                   <span className="w-28 shrink-0 whitespace-nowrap text-ink-2">{a.awardLabel}</span>
@@ -386,6 +466,49 @@ export default function TeamView({ data, strip = null, h2h = {} }: { data: TeamP
                 </li>
               ))}
             </ul>
+            {data.awards.length > AWARDS_VISIBLE && (
+              <button
+                type="button"
+                onClick={() => {
+                  const next = !awardsOpen;
+                  setAwardsOpen(next);
+                  trackFilters("team", { awards: next ? "open" : "close" });
+                }}
+                aria-expanded={awardsOpen}
+                className="focus-ring mt-2 inline-flex h-10 items-center gap-1 rounded-control border border-line px-3 text-sub font-semibold text-ink transition-colors duration-200 hover:bg-surface-2"
+              >
+                {awardsOpen ? "접기" : `${data.awards.length - AWARDS_VISIBLE}개 더 보기`}
+                <IconChevronDown size={16} className={`transition-transform duration-200 ${awardsOpen ? "rotate-180" : ""}`} />
+              </button>
+            )}
+          </Card>
+        )}
+
+        {data.lineage.length > 0 && (
+          <Card title="구단 계보">
+            <p className="mt-1 text-sub text-ink-3">구단이 팔리면 KBL 은 새 팀 코드로 기록을 따로 셉니다. 이름을 누르면 그 팀 페이지로 가요.</p>
+            <ol className="mt-3 flex flex-wrap items-center gap-x-1 gap-y-2">
+              {data.lineage.map((l, i) => (
+                <li key={l.teamCode} className="flex items-center gap-1">
+                  {i > 0 && <IconArrowRight size={16} className="text-ink-3" />}
+                  {l.teamCode === brand.teamCode ? (
+                    <span className="inline-flex h-10 items-center gap-2 rounded-control border border-ink bg-surface-2 px-2.5 text-sub font-bold">
+                      <TeamLogo logoUrl={l.logoUrl} shortName={l.shortName} color={l.color} size={20} />
+                      {l.name}
+                    </span>
+                  ) : (
+                    <Link
+                      href={`/team/${l.teamCode}`}
+                      className="focus-ring inline-flex h-10 items-center gap-2 rounded-control border border-line px-2.5 text-sub font-semibold text-ink transition-colors duration-200 hover:bg-surface-2"
+                    >
+                      <TeamLogo logoUrl={l.logoUrl} shortName={l.shortName} color={l.color} size={20} />
+                      {l.name}
+                      <span className="text-caption font-normal text-ink-3">{l.span}</span>
+                    </Link>
+                  )}
+                </li>
+              ))}
+            </ol>
           </Card>
         )}
 

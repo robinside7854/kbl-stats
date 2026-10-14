@@ -1,7 +1,7 @@
 // 팀 페이지 규칙 (lib/franchise) 검증 — npm run test:franchise
 import assert from "node:assert/strict";
 import {
-  buildTenures, franchiseLeaders, franchiseTotals, isLegend, lineageChain, longestTenures, majorAwardSummary, nameSpans, pctText, pickLegends, playoffStage,
+  bestRegularSeason, buildTenures, franchiseLeaders, franchiseTotals, isLegend, lineageChain, longestTenures, majorAwardSummary, nameSpans, pctText, pickLegends, playoffStage,
   type SeasonPlayerLine, type TeamSeasonRow,
 } from "../lib/franchise";
 
@@ -64,4 +64,14 @@ assert.deepEqual(lineageChain("65", succ), ["25", "37", "65", "64"]);
 assert.deepEqual(lineageChain("70", succ), ["40", "70"]);
 assert.deepEqual(lineageChain("55", succ), ["55"]);
 assert.deepEqual(lineageChain("x", succ), ["y", "x"]); // 고리가 있어도 멈춘다
+// ── 가장 좋은 정규시즌 ──
+assert.equal(bestRegularSeason([]), null);
+{
+  const a = row({ seasonCode: 3, wins: 30, losses: 24, pct: 30 / 54 });
+  const b = row({ seasonCode: 5, wins: 40, losses: 14, pct: 40 / 54 });
+  const c = row({ seasonCode: 7, wins: 2, losses: 0, pct: 1, ongoing: true }); // 진행 중은 뺀다
+  const d = row({ seasonCode: 9, wins: 40, losses: 14, pct: 40 / 54 }); // 같으면 최근
+  assert.equal(bestRegularSeason([a, b, c])?.seasonCode, 5);
+  assert.equal(bestRegularSeason([a, b, c, d])?.seasonCode, 9);
+}
 console.log("franchise: 플레이오프 단계·통산·레전드·팀 기록·이름 구간·계보 통과");
