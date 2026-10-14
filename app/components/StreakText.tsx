@@ -9,3 +9,8 @@ export default function StreakText({ streak, className = "" }: { streak?: { labe
     </span>
   );
 }
+
+/** 한 경기 승·패 글자 "승"/"패" (같은 색 규칙 — 경기 띠·선수 최근 경기 공용, 2026-10-14) */
+export function ResultTag({ win, className = "" }: { win: boolean; className?: string }) {
+  return <span className={`font-bold ${win ? "text-[var(--div-hot)]" : "text-[var(--div-cold)]"} ${className}`}>{win ? "승" : "패"}</span>;
+}

@@ -23,6 +23,7 @@ import {
   loadMilestones,
   loadCareerTotals,
   loadPlayerGameRanges,
+  loadPlayerRecentGames,
 } from "@/lib/data";
 import { activeSpanLabel, seasonShortLabel, seoulDateIso } from "@/lib/career";
 import { teamShortLabel } from "@/lib/images";
@@ -121,6 +122,7 @@ export default async function PlayerPage({ params }: { params: Params }) {
               similarSeasons={Object.keys(similarAll).map(Number)}
               primeSeason={loadPrimeSeason(playerNo)}
               gameRanges={loadPlayerGameRanges(playerNo, seasons.map((s) => s.seasonCode))}
+              recentGames={loadPlayerRecentGames(playerNo, seasons.map((s) => s.seasonCode))}
             />
           ) : (
             trend

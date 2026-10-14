@@ -31,6 +31,27 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-10-14-head-to-head-recent-games",
+    date: "2026-10-14",
+    kind: "update",
+    title: "상대 전적이랑 최근 경기 생겼어요",
+    summary: "상대 전적·최근 경기 추가",
+    blocks: [
+      { kind: "h", text: "팀" },
+      {
+        kind: "list",
+        items: [
+          "팀 화면 표로 보기 아래에 팀 간 상대 전적 표",
+          "팀 페이지 맨 위에 지난 3경기 결과랑 다음 2경기",
+          "팀 페이지 로스터 아래에 상대 팀별 전적",
+        ],
+      },
+      { kind: "h", text: "선수" },
+      { kind: "p", text: "선수 페이지에 최근 5경기 기록이 나와요. 누르면 그날 경기로 가요. 박스스코어가 있는 25-26 시즌부터만 보여요." },
+      { kind: "list", items: [{ text: "팀 화면 보기", href: "/teams" }] },
+    ],
+  },
+  {
     slug: "2026-10-14-ongoing-qualify",
     date: "2026-10-14",
     kind: "update",

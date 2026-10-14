@@ -3,6 +3,7 @@
 // 2026-10-06 사용자: 폰에서도 2열 카드, 우승은 트로피 + 숫자만, 팀 좋아요는 없애고 팬 수만(응원팀으로 고른 회원 수, /api/likes 1분 캐시),
 //   지금 팀은 시즌 순위를 카드에 바로(1위부터), 좋아요 순위(선수)는 머리말 링크. 탭은 주소 ?tab=past 로 기억.
 // 2026-10-06: 지금 팀 탭에 "카드 / 표" 전환 — 표는 시즌을 골라 보는 팀 순위(따로 있던 /season/코드/teams 화면을 합침, 주소 ?view=table&season=).
+// 2026-10-14: 표 보기 순위 표 아래에 팀 간 상대 전적 표(HeadToHeadMatrix, 같은 시즌 고르기를 따름).
 // GA4: 카드 누르기 team_select {team_code, place:"teams"}, 탭 filter_change screen=teams filter=tab value=now|past · view card|table · season 코드
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -10,6 +11,7 @@ import type { TeamIndexEntry } from "@/lib/franchise";
 import ChipRow from "./ChipRow";
 import Segmented from "./Segmented";
 import StandingsTable, { type StandingsSeason } from "./StandingsTable";
+import HeadToHeadMatrix from "./HeadToHeadMatrix";
 import TeamLogo from "./TeamLogo";
 import StreakText from "./StreakText";
 import { IconHeart, IconMegaphone, IconTrophy } from "./icons";
@@ -196,6 +198,7 @@ export default function TeamsIndexView({ teams, seasonCode, seasonShort, records
           {view === "table" && shownStandings ? (
             <div className="mt-2">
               <StandingsTable season={shownStandings} />
+              <HeadToHeadMatrix season={shownStandings} />
             </div>
           ) : (
           <ul className="mt-2 grid grid-cols-2 gap-2 md:grid-cols-5">{active.map(card)}</ul>

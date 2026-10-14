@@ -48,7 +48,7 @@ import { findSimilar, toAxisVector, type SimilarEntry, type SimilarVector } from
 import { pickPrimeSeasons, primeCandidatesOf, type PrimeCandidate } from "./prime";
 import { DEFAULT_QUALIFY, buildCardEntry, gradeGroupOf, isDomesticPool, isOngoingSeason, isQualified, seasonDefaultQualify } from "./metrics";
 import { seasonContext } from "./cardview";
-import { asOfLabel, computeStandings, latestGameDay } from "./games";
+import { asOfLabel, computeStandings, headToHead, latestGameDay, playerRecentGames, teamGameStrip, type HeadToHeadRecord, type OppBrand, type PlayerRecentGame, type TeamHeadToHeadLine, type TeamStripGame } from "./games";
 import { buildNotifItems, careerHighsFromIndex, careerSumsFromSeasons, featGroups, homeFeatItems, leagueSeasonRecords, type RecentFeat } from "./notifications";
 import { FALLBACK_TEAM_COLOR } from "./teams";
 import { pickRegularChampions } from "./game-pool";
@@ -129,6 +129,50 @@ export function loadPlayerGameRanges(playerNo: string, seasonCodes: readonly num
     if (r) out[code] = r;
   }
   return out;
+}
+
+/** 이 선수의 시즌별 최근 경기 (시즌 코드 → 최근 5경기, 최근 먼저). 박스스코어가 있는 시즌만 (2026-10-14 스포츠 앱 비교 5) */
+export function loadPlayerRecentGames(playerNo: string, seasonCodes: readonly number[]): Record<number, (PlayerRecentGame & { opp: OppBrand })[]> {
+  const out: Record<number, (PlayerRecentGame & { opp: OppBrand })[]> = {};
+  for (const code of seasonCodes) {
+    if (!seasonGameLines(code).has(playerNo)) continue;
+    const list = playerRecentGames(loadSeasonGames(code), playerNo);
+    if (list.length === 0) continue;
+    const infos = gameTeamInfos(code);
+    out[code] = list.map((g) => ({ ...g, opp: infos[g.oppCode] ?? { shortName: g.oppName, logoUrl: null, color: FALLBACK_TEAM_COLOR } }));
+  }
+  return out;
+}
+
+/**
+ * 이 팀의 시즌별 상대 전적 (시즌 코드 → 상대 팀 줄, 승률 높은 순 → 이름). 경기 결과가 있는 시즌만 (2026-10-14 스포츠 앱 비교 A-1).
+ */
+const h2hCache = new Map<number, Map<string, Map<string, HeadToHeadRecord>>>();
+export function loadTeamHeadToHead(teamCode: string, seasonCodes: readonly number[]): Record<string, TeamHeadToHeadLine[]> {
+  const out: Record<string, TeamHeadToHeadLine[]> = {};
+  for (const code of seasonCodes) {
+    let h = h2hCache.get(code);
+    if (!h) h2hCache.set(code, (h = headToHead(loadSeasonGames(code))));
+    const mine = h.get(teamCode);
+    if (!mine || mine.size === 0) continue;
+    const infos = gameTeamInfos(code);
+    out[String(code)] = [...mine.entries()]
+      .map(([opp, r]) => ({ teamCode: opp, ...(infos[opp] ?? { shortName: opp, logoUrl: null, color: FALLBACK_TEAM_COLOR }), ...r }))
+      .sort((a, b) => b.wins / (b.wins + b.losses) - a.wins / (a.wins + a.losses) || b.wins - a.wins || a.shortName.localeCompare(b.shortName, "ko"));
+  }
+  return out;
+}
+
+/** 팀 페이지 맨 위 경기 띠 (지난 3 + 다음 2, 선수가 있는 최신 시즌). 그 시즌에 이 팀 경기가 없으면 null (2026-10-14 스포츠 앱 비교 B-3) */
+export function loadTeamStrip(teamCode: string): { seasonCode: number; seasonShort: string; past: TeamStripGame[]; next: TeamStripGame[]; opps: Record<string, OppBrand> } | null {
+  const latest = listSeasonsWithPlayers()[0];
+  if (!latest) return null;
+  const strip = teamGameStrip(loadSeasonGames(latest.seasonCode), teamCode);
+  if (strip.past.length + strip.next.length === 0) return null;
+  const infos = gameTeamInfos(latest.seasonCode);
+  const opps: Record<string, OppBrand> = {};
+  for (const g of [...strip.past, ...strip.next]) opps[g.oppCode] = infos[g.oppCode] ?? { shortName: g.oppName, logoUrl: null, color: FALLBACK_TEAM_COLOR };
+  return { seasonCode: latest.seasonCode, seasonShort: seasonShortLabel(latest.seasonLabel), ...strip, opps };
 }
 
 /**

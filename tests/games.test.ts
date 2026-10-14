@@ -196,3 +196,40 @@ console.log("games: 팀 순위 통과");
   assert.equal(splitPastDays(days, null).hidden.length, 0, "오늘을 모르면 접지 않음");
   console.log("games: 일정 지난 경기 접기 통과");
 }
+
+// 2026-10-14 스포츠 앱 비교: 팀 간 상대 전적·팀 경기 띠·선수 최근 경기
+{
+  const { headToHead, headToHeadWins, teamGameStrip, playerRecentGames } = await import("../lib/games");
+  const mk = (n: number, date: string, h: string, a: string, sh: number | null, sa: number | null, box: SeasonGameBox = null) => ({
+    gmkey: `S1G01N${n}`, date, start: "19:00", stadium: null, ended: sh !== null, box,
+    home: { teamCode: h, name: `팀${h}`, score: sh }, away: { teamCode: a, name: `팀${a}`, score: sa },
+  });
+  type SeasonGameBox = { home: GameBoxRow[]; away: GameBoxRow[] } | null;
+  const row = (id: string, pts: number, sec = 600): GameBoxRow => ({ id, nameKo: id, sec, pts, oreb: 0, dreb: 2, reb: 2, ast: 1, stl: 0, blk: 0, tov: 0, pf: 0, fgm: 2, fga: 4, tpm: 1, tpa: 2, ftm: 0, fta: 0 });
+  const list = [
+    mk(1, "2026-10-01", "A", "B", 80, 70, { home: [row("p", 20)], away: [row("q", 10)] }),
+    mk(2, "2026-10-02", "B", "A", 75, 70, { home: [row("q", 15)], away: [row("p", 8)] }),
+    mk(3, "2026-10-03", "A", "C", 90, 60),
+    mk(4, "2026-10-04", "C", "A", 85, 80, { home: [], away: [row("p", 0, 0)] }), // 출전 안 함
+    mk(5, "2026-10-05", "A", "B", null, null),
+    mk(6, "2026-10-06", "C", "A", null, null),
+    mk(7, "2026-10-07", "A", "C", null, null),
+  ];
+  const h = headToHead(list);
+  assert.deepEqual(h.get("A")?.get("B"), { wins: 1, losses: 1, pointsFor: 150, pointsAgainst: 145 });
+  assert.deepEqual(h.get("C")?.get("A"), { wins: 1, losses: 1, pointsFor: 145, pointsAgainst: 170 });
+  assert.equal(h.get("B")?.get("C"), undefined, "맞붙지 않은 팀은 없음");
+  assert.deepEqual(headToHeadWins(["A", "B", "C"], list), [[0, 1, 1], [1, 0, 0], [1, 0, 0]]);
+
+  const s = teamGameStrip(list, "A");
+  assert.deepEqual(s.past.map((x) => x.gmkey), ["S1G01N2", "S1G01N3", "S1G01N4"], "지난 3경기 오래된 → 최근");
+  assert.deepEqual(s.next.map((x) => x.gmkey), ["S1G01N5", "S1G01N6"], "다음 2경기");
+  assert.deepEqual([s.past[0].win, s.past[0].home, s.past[0].teamScore, s.past[0].oppScore, s.past[0].oppCode], [false, false, 70, 75, "B"]);
+  assert.equal(s.next[0].win, null);
+  assert.equal(teamGameStrip(list, "Z").past.length, 0);
+
+  const r = playerRecentGames(list, "p");
+  assert.deepEqual(r.map((x) => `${x.gmkey}:${x.pts}:${x.win ? "W" : "L"}:${x.home ? "H" : "A"}`), ["S1G01N2:8:L:A", "S1G01N1:20:W:H"], "최근 먼저, 안 뛴 경기·박스 없는 경기 제외");
+  assert.equal(playerRecentGames(list, "p", 1).length, 1);
+  console.log("games: 상대 전적·경기 띠·최근 경기 통과");
+}

@@ -24,6 +24,8 @@ export interface StandingsSeason {
   /** 우승팀 코드 (마감 시즌만) */
   championCode: string | null;
   ongoing: boolean;
+  /** 팀 간 상대 전적 승 수 — h2h[i][j] = rows[i] 팀이 rows[j] 팀에게 이긴 수 (lib/games headToHeadWins, 2026-10-14) */
+  h2h?: number[][];
 }
 
 // 승패 점은 색 점이라 완전한 원 (디자인 토큰 규칙의 예외: 아바타·색 점)

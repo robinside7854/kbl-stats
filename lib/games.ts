@@ -1,5 +1,5 @@
 // 시즌 경기 규칙 (순수) — 홈 "오늘의 경기"·팀 순위 (2026-10-03 사용자 요청). 재료는 data/processed/{시즌}/games.json (scripts/boxscores.ts).
-import type { GameBoxRow, GameSide, SeasonGame } from "./types";
+import type { GameBoxRow, GameSide, SeasonGame, TeamColor } from "./types";
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 
@@ -447,3 +447,178 @@ export function splitPastDays<T extends { date: string }>(
   const cut = Math.max(0, pastCount - keep);
   return { hidden: days.slice(0, cut), visible: days.slice(cut) };
 }
+
+// ─────────────────────────────────────────────
+// 팀 간 상대 전적 (2026-10-14 스포츠 앱 비교 A-1 — KBO STATS "팀간전적" 탭 참고). 끝난 정규시즌 경기 점수로 센다.
+// ─────────────────────────────────────────────
+
+export interface HeadToHeadRecord {
+  wins: number;
+  losses: number;
+  /** 득점·실점 합 */
+  pointsFor: number;
+  pointsAgainst: number;
+}
+
+/** 팀 → 상대 팀 → 전적 */
+export function headToHead(games: readonly SeasonGame[]): Map<string, Map<string, HeadToHeadRecord>> {
+  const out = new Map<string, Map<string, HeadToHeadRecord>>();
+  const rec = (team: string, opp: string) => {
+    let m = out.get(team);
+    if (!m) out.set(team, (m = new Map()));
+    let r = m.get(opp);
+    if (!r) m.set(opp, (r = { wins: 0, losses: 0, pointsFor: 0, pointsAgainst: 0 }));
+    return r;
+  };
+  for (const g of games) {
+    const w = winnerSide(g);
+    if (!w || !g.home.teamCode || !g.away.teamCode) continue;
+    const h = rec(g.home.teamCode, g.away.teamCode);
+    const a = rec(g.away.teamCode, g.home.teamCode);
+    h.pointsFor += g.home.score!; h.pointsAgainst += g.away.score!;
+    a.pointsFor += g.away.score!; a.pointsAgainst += g.home.score!;
+    if (w === "home") { h.wins++; a.losses++; } else { a.wins++; h.losses++; }
+  }
+  return out;
+}
+
+/**
+ * 순위 표 순서대로 상대 전적 승 수 표 — wins[i][j] = i 팀이 j 팀에게 이긴 수 (진 수는 wins[j][i]).
+ * 같은 팀 칸·맞붙은 적 없는 칸은 0 (화면은 games[i][j] = wins[i][j] + wins[j][i] 가 0 이면 "–").
+ */
+export function headToHeadWins(order: readonly string[], games: readonly SeasonGame[]): number[][] {
+  const h2h = headToHead(games);
+  return order.map((a) => order.map((b) => (a === b ? 0 : (h2h.get(a)?.get(b)?.wins ?? 0))));
+}
+
+// ─────────────────────────────────────────────
+// 팀 경기 띠 (2026-10-14 스포츠 앱 비교 B-3 — KBO STATS 마이팀 날짜 칸): 지난 경기 몇 개 + 다음 경기 몇 개
+// ─────────────────────────────────────────────
+
+export const TEAM_STRIP_PAST = 3;
+export const TEAM_STRIP_NEXT = 2;
+
+export interface TeamStripGame {
+  gmkey: string;
+  date: string;
+  start: string | null;
+  /** 이 팀이 홈 */
+  home: boolean;
+  oppCode: string;
+  oppName: string;
+  /** 끝난 경기만 (아니면 null) */
+  teamScore: number | null;
+  oppScore: number | null;
+  /** 이겼으면 true, 졌으면 false, 아직이면 null */
+  win: boolean | null;
+}
+
+/** 시즌 경기에서 이 팀의 지난 경기(최근 past 개, 오래된 → 최근)와 다음 경기(next 개, 가까운 순) */
+export function teamGameStrip(
+  games: readonly SeasonGame[],
+  teamCode: string,
+  past = TEAM_STRIP_PAST,
+  next = TEAM_STRIP_NEXT,
+): { past: TeamStripGame[]; next: TeamStripGame[] } {
+  const mine = games
+    .filter((g) => g.home.teamCode === teamCode || g.away.teamCode === teamCode)
+    .sort((a, b) => a.date.localeCompare(b.date) || (a.start ?? "").localeCompare(b.start ?? ""));
+  const toStrip = (g: SeasonGame): TeamStripGame => {
+    const home = g.home.teamCode === teamCode;
+    const me = home ? g.home : g.away;
+    const opp = home ? g.away : g.home;
+    const w = winnerSide(g);
+    return {
+      gmkey: g.gmkey,
+      date: g.date,
+      start: g.start,
+      home,
+      oppCode: opp.teamCode,
+      oppName: opp.name,
+      teamScore: w ? me.score : null,
+      oppScore: w ? opp.score : null,
+      win: w ? (w === "home") === home : null,
+    };
+  };
+  const ended = mine.filter((g) => winnerSide(g));
+  const upcoming = mine.filter((g) => !g.ended && !winnerSide(g));
+  return { past: ended.slice(-past).map(toStrip), next: upcoming.slice(0, next).map(toStrip) };
+}
+
+// ─────────────────────────────────────────────
+// 선수 최근 경기 (2026-10-14 스포츠 앱 비교 5 — NBA·ESPN 선수 화면의 "최근 경기"). 박스스코어가 있는 시즌만
+// ─────────────────────────────────────────────
+
+export const RECENT_GAMES_COUNT = 5;
+
+/** 경기 화면에 쓰는 상대 팀 이름·로고 한 줄 */
+export interface OppBrand {
+  shortName: string;
+  logoUrl: string | null;
+  color: TeamColor;
+}
+
+/** 팀 페이지 상대 전적 한 줄 (그 시즌 상대 팀 이름·로고 + 전적) */
+export interface TeamHeadToHeadLine extends HeadToHeadRecord, OppBrand {
+  teamCode: string;
+}
+
+export interface PlayerRecentGame {
+  gmkey: string;
+  date: string;
+  home: boolean;
+  oppCode: string;
+  oppName: string;
+  teamScore: number;
+  oppScore: number;
+  win: boolean;
+  sec: number;
+  pts: number;
+  reb: number;
+  ast: number;
+  stl: number;
+  blk: number;
+  tpm: number;
+  fgm: number;
+  fga: number;
+}
+
+/** 시즌 경기에서 이 선수가 뛴 최근 n 경기 (최근 먼저). 박스스코어가 없는 시즌이면 [] */
+export function playerRecentGames(games: readonly SeasonGame[], playerNo: string, n = RECENT_GAMES_COUNT): PlayerRecentGame[] {
+  const out: PlayerRecentGame[] = [];
+  const ordered = [...games].sort((a, b) => b.date.localeCompare(a.date) || (b.start ?? "").localeCompare(a.start ?? ""));
+  for (const g of ordered) {
+    if (out.length >= n) break;
+    const w = winnerSide(g);
+    if (!w || !g.box) continue;
+    for (const side of ["home", "away"] as const) {
+      const r = g.box[side].find((x) => x.id === playerNo);
+      if (!r || r.sec <= 0) continue;
+      const opp = side === "home" ? g.away : g.home;
+      out.push({
+        gmkey: g.gmkey,
+        date: g.date,
+        home: side === "home",
+        oppCode: opp.teamCode,
+        oppName: opp.name,
+        teamScore: g[side].score!,
+        oppScore: opp.score!,
+        win: w === side,
+        sec: r.sec,
+        pts: r.pts,
+        reb: r.reb,
+        ast: r.ast,
+        stl: r.stl,
+        blk: r.blk,
+        tpm: r.tpm,
+        fgm: r.fgm,
+        fga: r.fga,
+      });
+      break;
+    }
+  }
+  return out;
+}
+
+/** 경기 일정 화면의 그날로 가는 주소 (경기 띠·최근 경기 줄 공용) */
+export const scheduleDayHref = (seasonCode: number, date: string) => `/season/${seasonCode}/schedule?date=${date}`;

@@ -2,16 +2,20 @@
 // 팀 페이지 본문 (/team/[팀코드], 2026-10-04): 머리말(로고·이름 이력·좋아요·계보) → 통산 성적 → 시즌 고르기 + 그 시즌 로스터
 // → 시즌별 성적 표 → 레전드 → 팀 통산 기록 → 수상. 재료는 lib/data loadFranchises (규칙 lib/franchise).
 // 주소 ?season=코드 로 그 시즌 로스터를 연다. GA4: filter_change screen=team filter=season·leader, fan_add/remove(FanButton — 지금 팀만)
+// 2026-10-14 스포츠 앱 비교: 맨 위 "최근·다음 경기" 띠(TeamGameStrip, 지금 팀만), 로스터 아래 "상대 전적"(시즌 칩을 따름 —
+// 줄을 누르면 상대 팀 페이지의 그 시즌, GA4 team_select {team_code, place:"h2h"}).
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { mixHex } from "@/lib/images";
+import type { TeamHeadToHeadLine } from "@/lib/games";
 import { LEGEND_RULE_TEXT, majorAwardSummary, PLAYOFF_STAGE_LABELS, pctText, type PlayoffStage, type TeamLeaderKey, type TeamPageData } from "@/lib/franchise";
 import ChipRow from "./ChipRow";
 import FanButton from "./FanButton";
 import PlayerAvatar from "./PlayerAvatar";
 import TeamLogo from "./TeamLogo";
+import TeamGameStrip, { type TeamStripData } from "./TeamGameStrip";
 import { IconArrowRight, IconTrophy } from "./icons";
-import { trackFilters } from "./track";
+import { trackEvent, trackFilters } from "./track";
 
 const NF = new Intl.NumberFormat("ko-KR");
 
@@ -37,7 +41,7 @@ function StageChip({ stage }: { stage: PlayoffStage | null }) {
   );
 }
 
-export default function TeamView({ data }: { data: TeamPageData }) {
+export default function TeamView({ data, strip = null, h2h = {} }: { data: TeamPageData; strip?: TeamStripData | null; h2h?: Record<string, TeamHeadToHeadLine[]> }) {
   const { brand, totals, rows } = data;
   const [season, setSeason] = useState<number>(rows[0]?.seasonCode ?? 0);
   const [leader, setLeader] = useState<TeamLeaderKey>("pts");
@@ -116,6 +120,7 @@ export default function TeamView({ data }: { data: TeamPageData }) {
       </section>
 
       <div className="mx-auto mt-4 max-w-page space-y-4 px-4">
+        {strip && <TeamGameStrip strip={strip} />}
         {data.lineage.length > 0 && (
           <Card title="구단 계보">
             <p className="mt-1 text-sub text-ink-3">구단이 팔리면 KBL 은 새 팀 코드로 기록을 따로 셉니다. 이름을 누르면 그 팀 페이지로 가요.</p>
@@ -221,6 +226,46 @@ export default function TeamView({ data }: { data: TeamPageData }) {
             </ul>
           )}
         </Card>
+
+        {(h2h[String(season)]?.length ?? 0) > 0 && (
+          <Card title="상대 전적">
+            <p className="mt-1 text-sub text-ink-3">{row?.label} 정규시즌 · 위 시즌 칩을 따라가요</p>
+            <ul className="tabular mt-3 divide-y divide-line">
+              <li className="grid grid-cols-[minmax(0,1fr)_4.5rem_4rem] gap-2 pb-2 text-caption font-semibold text-ink-3 sm:grid-cols-[minmax(0,1fr)_6rem_5rem_6rem]">
+                <span>상대</span>
+                <span className="text-right">승-패</span>
+                <span className="hidden text-right sm:block">승률</span>
+                <span className="text-right">평균 득실</span>
+              </li>
+              {h2h[String(season)].map((o) => {
+                const games = o.wins + o.losses;
+                const diff = games ? (o.pointsFor - o.pointsAgainst) / games : 0;
+                return (
+                  <li key={o.teamCode}>
+                    <Link
+                      href={`/team/${o.teamCode}?season=${season}`}
+                      onClick={() => trackEvent("team_select", { team_code: o.teamCode, place: "h2h" })}
+                      className="focus-ring-inset grid min-h-12 grid-cols-[minmax(0,1fr)_4.5rem_4rem] items-center gap-2 py-1.5 text-sub transition-colors duration-200 hover:bg-surface-2 sm:grid-cols-[minmax(0,1fr)_6rem_5rem_6rem]"
+                    >
+                      <span className="flex min-w-0 items-center gap-2">
+                        <TeamLogo logoUrl={o.logoUrl} shortName={o.shortName} color={o.color} size={24} />
+                        <span className="truncate font-semibold text-ink">{o.shortName}</span>
+                      </span>
+                      <span className={`text-right ${o.wins > o.losses ? "font-bold text-ink" : "text-ink-2"}`}>
+                        {o.wins}-{o.losses}
+                      </span>
+                      <span className="hidden text-right text-ink-2 sm:block">{pctText(games ? o.wins / games : 0)}</span>
+                      <span className={`text-right ${diff > 0 ? "text-[var(--div-hot)]" : diff < 0 ? "text-[var(--div-cold)]" : "text-ink-2"}`}>
+                        {diff > 0 ? "+" : ""}
+                        {diff.toFixed(1)}
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </Card>
+        )}
 
         <Card title="시즌별 성적">
           <p className="mt-1 text-sub text-ink-3">줄을 누르면 위에서 그 시즌 로스터를 보여 줘요.</p>

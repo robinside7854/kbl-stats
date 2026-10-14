@@ -1,7 +1,7 @@
 // 모든 팀 (2026-10-04, 메뉴 "팀"): 지금 리그 팀(이번 시즌 성적, 카드 또는 시즌별 순위 표) + 추억의 팀(매각·해체로 코드가 끝난 팀). 팀 카드 → /team/코드.
 import type { Metadata } from "next";
 import { shareMetadata } from "@/lib/share";
-import { computeStandings, notableStreak } from "@/lib/games";
+import { computeStandings, headToHeadWins, notableStreak } from "@/lib/games";
 import { seasonShortLabel } from "@/lib/career";
 import { dataAsOfLabel, isSeasonOngoing, listSeasonsWithPlayers, loadSeasonData, loadSeasonGames, loadTeamIndex, toCardTeams } from "@/lib/data";
 import type { StandingsSeason, StandingTeam } from "@/app/components/StandingsTable";
@@ -26,10 +26,12 @@ export default function TeamsPage() {
     if (!season) return [];
     const teams: Record<string, StandingTeam> = {};
     for (const t of toCardTeams(season)) teams[t.teamCode] = { shortName: t.shortName, logoUrl: t.logoUrl, color: t.color };
+    const rows = s.seasonCode === latest?.seasonCode ? standings : computeStandings(loadSeasonGames(s.seasonCode));
     return [{
       seasonCode: s.seasonCode,
       seasonShort: seasonShortLabel(season.seasonLabel),
-      rows: s.seasonCode === latest?.seasonCode ? standings : computeStandings(loadSeasonGames(s.seasonCode)),
+      rows,
+      h2h: headToHeadWins(rows.map((r) => r.teamCode), loadSeasonGames(s.seasonCode)),
       teams,
       championCode: season.champion?.teamCode ?? null,
       ongoing: isSeasonOngoing(s.seasonCode),

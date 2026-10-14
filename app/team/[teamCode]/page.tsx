@@ -3,7 +3,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { shareMetadata } from "@/lib/share";
-import { listSeasonsWithPlayers, loadFranchises } from "@/lib/data";
+import { listSeasonsWithPlayers, loadFranchises, loadTeamHeadToHead, loadTeamStrip } from "@/lib/data";
 import SiteNav from "@/app/components/SiteNav";
 import SourceFooter from "@/app/components/SourceFooter";
 import TeamView from "@/app/components/TeamView";
@@ -36,7 +36,7 @@ export default async function TeamPage({ params }: { params: Params }) {
   return (
     <>
       <SiteNav seasons={seasons} seasonCode={seasons[0]?.seasonCode ?? 0} view="team" />
-      <TeamView data={data} />
+      <TeamView data={data} strip={data.active ? loadTeamStrip(teamCode) : null} h2h={loadTeamHeadToHead(teamCode, data.rows.map((r) => r.seasonCode))} />
       <SourceFooter />
     </>
   );

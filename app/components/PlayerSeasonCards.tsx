@@ -36,6 +36,8 @@ import { similarFileUrl, type SimilarEntry } from "@/lib/similar";
 import SimilarPlayers from "./SimilarPlayers";
 import PercentileBars from "./PercentileBars";
 import GameRangeBars from "./GameRangeBars";
+import PlayerRecentGames from "./PlayerRecentGames";
+import type { OppBrand, PlayerRecentGame } from "@/lib/games";
 import type { GameRangeSet } from "@/lib/career";
 import { trackFilters } from "./track";
 
@@ -67,9 +69,11 @@ interface Props {
   primeSeason?: number | null;
   /** 시즌별 경기 범위 (박스스코어가 있는 시즌만, lib/career gameRanges) */
   gameRanges?: Record<number, GameRangeSet>;
+  /** 시즌별 최근 5경기 (박스스코어가 있는 시즌만, lib/games playerRecentGames — 2026-10-14) */
+  recentGames?: Record<number, (PlayerRecentGame & { opp: OppBrand })[]>;
 }
 
-export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, groupLabel, aside, careerHighRows, shotSeasons, initialShots, similar, similarSeasons, primeSeason, gameRanges }: Props) {
+export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, groupLabel, aside, careerHighRows, shotSeasons, initialShots, similar, similarSeasons, primeSeason, gameRanges, recentGames }: Props) {
   const codes = useMemo(() => seasons.map((s) => s.seasonCode), [seasons]);
   const labelOf = (code: number) => seasonShortLabel(seasons.find((s) => s.seasonCode === code)?.seasonLabel ?? String(code));
   const [state, setState] = useState<PlayerViewState>({ season: initial.seasonCode, scope: "all" });
@@ -202,6 +206,12 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
       {gameRanges?.[season] && (
         <div className="mt-6">
           <GameRangeBars data={gameRanges[season]} seasonShort={labelOf(season)} />
+        </div>
+      )}
+      {/* 최근 경기 (스포츠 앱 비교 5): 박스스코어가 있는 시즌만, 카드 시즌을 따른다 */}
+      {recentGames?.[season] && (
+        <div className="mt-6">
+          <PlayerRecentGames games={recentGames[season]} seasonCode={season} seasonShort={labelOf(season)} />
         </div>
       )}
       {/* 세부 능력치 백분위 막대 (Baseball Savant 방식): 카드와 같은 시즌·같은 등급 집단 */}
