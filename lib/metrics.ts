@@ -24,6 +24,8 @@ import {
 export interface QualifyRule {
   minGames: number;
   minMinutes: number;
+  /** 진행 중 시즌 기본 기준(ongoingQualify)이면 팀 경기 비율 — 표기만 다르다 */
+  teamShare?: number;
 }
 
 /** 기본 기준: 10경기 이상 AND 누적 100분 이상. 1997 시즌(팀당 21경기)에서도 절반 수준이라 무리 없음. */
@@ -40,26 +42,44 @@ export const QUALIFY_PRESETS: readonly QualifyRule[] = [
   { minGames: 5, minMinutes: 50 },
 ];
 /**
- * 진행 중 시즌의 기본 기준 = 기준 없음(출전 선수 전원). 2026-10-03 사용자: 개막 직후엔 아무도 10경기를 못 채워
- * 리더보드·홈이 비었다 → 진행 중 시즌은 기준 없이, 마감된 시즌만 기본 기준(DEFAULT_QUALIFY).
- * 시즌이 쌓이면 출전이 적은 선수가 경기당 순위 위로 올 수 있다 — 그때는 순위표 "표본 기준" 고급 필터로 거른다.
+ * 기준 없음(출전 선수 전원). 2026-10-03 사용자: 개막 직후엔 아무도 10경기를 못 채워 리더보드·홈이 비었다 → 진행 중 시즌은 기준 없이.
+ * 2026-10-14 사용자 결정: 1~2경기 선수가 경기당 순위·등급에 끼어 → 진행 중 시즌 기본은 ongoingQualify(팀 경기 절반), 이것은 고를 수 있는 보기로 남긴다.
  */
 export const NO_QUALIFY: QualifyRule = { minGames: 0, minMinutes: 0 };
 const isNoQualify = (r: QualifyRule) => r.minGames <= 0 && r.minMinutes <= 0;
-/** 프리셋 긴 표기, 예: "10경기·100분 이상" (기준 없음 = "출전 선수 전원") */
-export const qualifyLabel = (r: QualifyRule) => (isNoQualify(r) ? "출전 선수 전원" : `${r.minGames}경기·${r.minMinutes}분 이상`);
+/** 프리셋 긴 표기, 예: "10경기·100분 이상" (기준 없음 = "출전 선수 전원", 진행 중 시즌 기본 = "팀 경기 절반 이상 (3경기+)") */
+export const qualifyLabel = (r: QualifyRule) =>
+  r.teamShare ? `팀 경기 절반 이상 (${r.minGames}경기+)` : isNoQualify(r) ? "출전 선수 전원" : r.minMinutes <= 0 ? `${r.minGames}경기 이상` : `${r.minGames}경기·${r.minMinutes}분 이상`;
 /** 모바일 선택 상자용 짧은 표기, 예: "10경기·100분+" */
-export const qualifyShort = (r: QualifyRule) => (isNoQualify(r) ? "전원" : `${r.minGames}경기·${r.minMinutes}분+`);
+export const qualifyShort = (r: QualifyRule) =>
+  r.teamShare ? `팀 경기 절반(${r.minGames}경기+)` : isNoQualify(r) ? "전원" : r.minMinutes <= 0 ? `${r.minGames}경기+` : `${r.minGames}경기·${r.minMinutes}분+`;
+
+/** 진행 중 시즌 기본 기준: 팀이 치른 경기의 이 비율 이상 뛴 선수 (2026-10-14 사용자 결정, 우리 규칙 — KBL 공식 규정 아님) */
+export const ONGOING_QUALIFY_SHARE = 0.5;
+
+/**
+ * 진행 중 시즌 기본 표본 기준 = 팀 경기 수 × ONGOING_QUALIFY_SHARE (올림, 최소 1경기).
+ * 팀 경기 수 = 팀마다 가장 많이 뛴 선수의 경기 수 → 팀들의 가운데값(개막이 늦은 팀 하나 때문에 기준이 내려가지 않게).
+ * 데이터가 매일 바뀌므로 기준도 시즌이 쌓일수록 저절로 올라간다.
+ */
+export function ongoingQualify(players: readonly { teamCode: string; games: number }[]): QualifyRule {
+  const teamGames = new Map<string, number>();
+  for (const p of players) if (p.games > 0) teamGames.set(p.teamCode, Math.max(teamGames.get(p.teamCode) ?? 0, p.games));
+  const v = [...teamGames.values()].sort((a, b) => a - b);
+  const median = v.length === 0 ? 0 : v.length % 2 ? v[(v.length - 1) / 2] : (v[v.length / 2 - 1] + v[v.length / 2]) / 2;
+  return { minGames: Math.max(1, Math.ceil(median * ONGOING_QUALIFY_SHARE)), minMinutes: 0, teamShare: ONGOING_QUALIFY_SHARE };
+}
 
 /** 진행 중 시즌 = 선수가 있는 가장 최근 시즌이고 아직 우승팀(챔프전 4승)이 없다 */
 export function isOngoingSeason(seasonCode: number, latestWithPlayers: number | null, champion: unknown): boolean {
   return seasonCode === latestWithPlayers && !champion;
 }
-/** 시즌의 기본 표본 기준: 진행 중이면 기준 없음, 마감이면 DEFAULT_QUALIFY */
-export const seasonDefaultQualify = (ongoing: boolean): QualifyRule => (ongoing ? NO_QUALIFY : DEFAULT_QUALIFY);
-/** 순위표 표본 기준 목록 (첫 번째가 기본값). 진행 중 시즌은 맨 앞에 "출전 선수 전원" */
-export const qualifyPresetsFor = (ongoing: boolean): readonly QualifyRule[] =>
-  ongoing ? [NO_QUALIFY, ...QUALIFY_PRESETS] : QUALIFY_PRESETS;
+/** 시즌의 기본 표본 기준: 진행 중이면 팀 경기 절반(ongoingQualify — 그 시즌 선수 목록 필요), 마감이면 DEFAULT_QUALIFY */
+export const seasonDefaultQualify = (ongoing: boolean, players: readonly { teamCode: string; games: number }[] = []): QualifyRule =>
+  ongoing ? ongoingQualify(players) : DEFAULT_QUALIFY;
+/** 순위표 표본 기준 목록 (첫 번째가 기본값). 진행 중 시즌은 팀 경기 절반 → 출전 선수 전원 → 고정 프리셋 */
+export const qualifyPresetsFor = (ongoing: boolean, players: readonly { teamCode: string; games: number }[] = []): readonly QualifyRule[] =>
+  ongoing ? [ongoingQualify(players), NO_QUALIFY, ...QUALIFY_PRESETS] : QUALIFY_PRESETS;
 
 export function isQualified(p: { games: number; minutes: number }, rule: QualifyRule): boolean {
   return p.games >= rule.minGames && p.minutes >= rule.minMinutes;

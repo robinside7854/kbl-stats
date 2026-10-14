@@ -399,17 +399,29 @@ assert.equal(topShareLabel(null), null);
   console.log("metrics: 수상 가산점 통과");
 }
 
-// 진행 중 시즌 = 표본 기준 없음 (2026-10-03)
+// 진행 중 시즌 = 팀 경기 절반 이상 (2026-10-03 기준 없음 → 2026-10-14 팀 경기 절반)
 {
   const m = await import("../lib/metrics");
   assert.equal(m.isOngoingSeason(49, 49, null), true);
   assert.equal(m.isOngoingSeason(49, 49, { teamCode: "60" }), false); // 우승팀이 나오면 마감
   assert.equal(m.isOngoingSeason(47, 49, null), false);              // 지난 시즌은 마감
-  assert.deepEqual(m.seasonDefaultQualify(true), m.NO_QUALIFY);
-  assert.deepEqual(m.seasonDefaultQualify(false), m.DEFAULT_QUALIFY);
+  // 팀 경기 수 = 팀마다 가장 많이 뛴 선수 → 가운데값. 5·5·4·0(개막 전 팀은 안 셈) → 가운데값 5 → 절반 올림 3경기
+  const ps = [
+    { teamCode: "A", games: 5 }, { teamCode: "A", games: 1 },
+    { teamCode: "B", games: 5 }, { teamCode: "C", games: 4 }, { teamCode: "D", games: 0 },
+  ];
+  const auto = m.ongoingQualify(ps);
+  assert.equal(auto.minGames, 3);
+  assert.equal(auto.minMinutes, 0);
+  assert.equal(m.qualifyLabel(auto), "팀 경기 절반 이상 (3경기+)");
+  assert.equal(m.isQualified({ games: 1, minutes: 30 }, auto), false);
+  assert.equal(m.ongoingQualify([]).minGames, 1); // 경기가 없어도 최소 1경기
+  assert.deepEqual(m.seasonDefaultQualify(true, ps), auto);
+  assert.deepEqual(m.seasonDefaultQualify(false, ps), m.DEFAULT_QUALIFY);
   assert.equal(m.isQualified({ games: 1, minutes: 2 }, m.NO_QUALIFY), true);
   assert.equal(m.qualifyLabel(m.NO_QUALIFY), "출전 선수 전원");
-  assert.equal(m.qualifyPresetsFor(true)[0], m.NO_QUALIFY);
-  assert.equal(m.qualifyPresetsFor(true).length, m.QUALIFY_PRESETS.length + 1);
+  assert.deepEqual(m.qualifyPresetsFor(true, ps)[0], auto);
+  assert.equal(m.qualifyPresetsFor(true, ps)[1], m.NO_QUALIFY); // "출전 선수 전원" 은 고를 수 있게 남김
+  assert.equal(m.qualifyPresetsFor(true, ps).length, m.QUALIFY_PRESETS.length + 2);
   console.log("metrics: 진행 중 시즌 기준 통과");
 }

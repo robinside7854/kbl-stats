@@ -326,9 +326,9 @@ async function main() {
     }
   }
 
-  // 리더보드: 시즌마다 경기당 득점 1~3위 (마감 시즌은 기본 표본 기준, 진행 중 시즌은 전원 — 리더보드 기본과 같다)
+  // 리더보드: 시즌마다 경기당 득점 1~3위 (마감 시즌은 기본 표본 기준, 진행 중 시즌은 팀 경기 절반 — 리더보드 기본과 같다)
   for (const [code, d] of seasons) {
-    const rule = seasonDefaultQualify(isOngoingSeason(code, latest, d.champion ?? null));
+    const rule = seasonDefaultQualify(isOngoingSeason(code, latest, d.champion ?? null), d.players);
     const top = d.players
       .filter((p) => p.games > 0 && isQualified(p, rule))
       .map((p) => ({ p, v: perGame(p.points, p.games) }))

@@ -216,7 +216,7 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     name: "표본 기준",
     short: "너무 적게 뛴 선수가 순위를 흐리지 않게, 일정 이상 뛴 선수만 순위와 등급에 넣습니다.",
     note: "기준에 못 미친 선수도 기록은 보이고, 순위 자리에 '표본 미달'이 뜹니다.",
-    formula: "기본 10경기, 100분 이상",
+    formula: "기본 10경기, 100분 이상 · 진행 중 시즌은 팀이 치른 경기의 절반 이상",
     source: null,
   },
   {

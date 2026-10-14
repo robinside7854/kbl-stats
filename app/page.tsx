@@ -26,7 +26,7 @@ export default function HomePage() {
   const season = shown ? loadSeasonData(shown.seasonCode) : null;
   if (!shown || !season) notFound();
 
-  // 부문별 1~3위: 경기당, 그 시즌 기본 표본 기준 (순위표 기본 화면과 같은 값 — 진행 중 시즌은 출전 선수 전원)
+  // 부문별 1~3위: 경기당, 그 시즌 기본 표본 기준 (순위표 기본 화면과 같은 값 — 진행 중 시즌은 팀 경기 절반 이상)
   const rule = seasonQualify(shown.seasonCode);
   const qualified = filterLeaders(toLeaderPlayers(season), { origin: "all", teamCode: null, rule });
   const categories = HOME_CATEGORIES.map((key) => ({ key, entries: topLeaders(qualified, key, "perGame", 3) }));

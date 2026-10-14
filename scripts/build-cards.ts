@@ -30,7 +30,7 @@ async function main() {
   await rm(OUT, { recursive: true, force: true });
   await mkdir(OUT, { recursive: true });
 
-  // 진행 중 시즌(선수 있는 가장 최근 시즌, 우승팀 없음)은 표본 기준 없음 — lib/data seasonQualify 와 같은 규칙
+  // 진행 중 시즌(선수 있는 가장 최근 시즌, 우승팀 없음)은 팀 경기 절반 이상 — lib/data seasonQualify 와 같은 규칙
   const loaded = new Map<number, SeasonData>();
   for (const s of seasons) {
     const season = await readJson<SeasonData | null>(join(PROCESSED, String(s.seasonCode), "players.json"), null);
@@ -48,7 +48,7 @@ async function main() {
     const file = encodeSeasonCards(
       { seasonCode: season.seasonCode, seasonLabel: season.seasonLabel, coverage: season.coverage, teams: toCardTeams(season) },
       players,
-      seasonDefaultQualify(isOngoingSeason(season.seasonCode, latest, season.champion ?? null)),
+      seasonDefaultQualify(isOngoingSeason(season.seasonCode, latest, season.champion ?? null), season.players),
     );
     all.push(decodeSeasonCards(file));
     const json = JSON.stringify(file);

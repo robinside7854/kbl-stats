@@ -6,7 +6,10 @@
 // - pageSize 를 주면 앞에서 그만큼만 보이고 "더 보기 (남은 n명)" 버튼. resetKey 가 바뀌면(필터·정렬 변경) 처음 개수로 돌아간다.
 // 값 계산은 부르는 쪽이 lib/ 함수로 끝내서 넘긴다 — 이 파일은 배치와 펼침·개수 상태만 맡는다.
 // 순위표(LeadersView)·선수 기록표(CareerTable)가 같이 쓴다.
+// 2026-10-14 결과물 줄이기: 정적 HTML 에는 모바일 목록만 넣고 PC 표는 브라우저가 화면 폭을 확인한 뒤 그린다
+// (전에는 둘 다 HTML 에 들어가 선수 페이지 1,336장마다 표가 약 50KB씩 더 들어갔다). 폰에서는 표를 아예 만들지 않는다.
 import { Fragment, useEffect, useId, useState, type ReactNode } from "react";
+import { useMedia } from "./useMedia";
 import { takeFirst } from "@/lib/leaders";
 import { IconChevronDown } from "./icons";
 
@@ -80,6 +83,8 @@ export default function RowList<R>({
   dense = false,
 }: Props<R>) {
   const baseId = useId();
+  // 정적 HTML·첫 렌더는 false(모바일 목록) — PC 는 화면 폭을 확인한 뒤 표로 바꾼다
+  const desktop = useMedia("(min-width: 1024px)");
   const [open, setOpen] = useState<ReadonlySet<string>>(() => new Set());
   const [limit, setLimit] = useState(pageSize ?? Infinity);
 
@@ -105,92 +110,96 @@ export default function RowList<R>({
   return (
     <div>
       {/* ── 모바일·태블릿: 행 카드 ── */}
-      <ul aria-label={caption} className="surface-card tabular overflow-hidden rounded-container lg:hidden">
-        {shown.map((r) => {
-          const key = rowKey(r);
-          const isOpen = open.has(key);
-          const panelId = `${baseId}-${key}`;
-          return (
-            <li key={key} className="border-b border-line last:border-b-0">
-              <button
-                type="button"
-                aria-expanded={isOpen}
-                aria-controls={panelId}
-                aria-label={rowLabel(r)}
-                onClick={() => toggle(key)}
-                className="focus-ring-inset flex min-h-14 w-full cursor-pointer items-center gap-2.5 px-3 py-2 text-left transition-colors duration-200 hover:bg-surface-2"
-              >
-                <span className="flex min-w-0 flex-1 items-center gap-2.5">{summary(r)}</span>
-                <IconChevronDown
-                  size={16}
-                  className={`shrink-0 text-ink-3 transition-transform duration-200 motion-reduce:transition-none ${isOpen ? "rotate-180" : ""}`}
-                />
-              </button>
-              {isOpen && (
-                <div id={panelId} className="bg-surface-2 px-3 pb-3 pt-2.5">
-                  <dl className="tabular grid grid-cols-2 gap-x-4 gap-y-1.5 text-body">
-                    {details(r).map((d) => (
-                      <div key={d.key} className="flex min-w-0 items-baseline justify-between gap-2 border-b border-line/70 pb-1">
-                        <dt className="shrink-0 text-sub text-ink-3">{d.label}</dt>
-                        <dd className={`min-w-0 text-right ${d.strong ? "font-bold text-ink" : "text-ink-2"}`}>{d.value}</dd>
-                      </div>
-                    ))}
-                  </dl>
-                  {detailFooter && <div className="mt-2.5">{detailFooter(r)}</div>}
-                </div>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+      {!desktop && (
+        <ul aria-label={caption} className="surface-card tabular overflow-hidden rounded-container lg:hidden">
+          {shown.map((r) => {
+            const key = rowKey(r);
+            const isOpen = open.has(key);
+            const panelId = `${baseId}-${key}`;
+            return (
+              <li key={key} className="border-b border-line last:border-b-0">
+                <button
+                  type="button"
+                  aria-expanded={isOpen}
+                  aria-controls={panelId}
+                  aria-label={rowLabel(r)}
+                  onClick={() => toggle(key)}
+                  className="focus-ring-inset flex min-h-14 w-full cursor-pointer items-center gap-2.5 px-3 py-2 text-left transition-colors duration-200 hover:bg-surface-2"
+                >
+                  <span className="flex min-w-0 flex-1 items-center gap-2.5">{summary(r)}</span>
+                  <IconChevronDown
+                    size={16}
+                    className={`shrink-0 text-ink-3 transition-transform duration-200 motion-reduce:transition-none ${isOpen ? "rotate-180" : ""}`}
+                  />
+                </button>
+                {isOpen && (
+                  <div id={panelId} className="bg-surface-2 px-3 pb-3 pt-2.5">
+                    <dl className="tabular grid grid-cols-2 gap-x-4 gap-y-1.5 text-body">
+                      {details(r).map((d) => (
+                        <div key={d.key} className="flex min-w-0 items-baseline justify-between gap-2 border-b border-line/70 pb-1">
+                          <dt className="shrink-0 text-sub text-ink-3">{d.label}</dt>
+                          <dd className={`min-w-0 text-right ${d.strong ? "font-bold text-ink" : "text-ink-2"}`}>{d.value}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                    {detailFooter && <div className="mt-2.5">{detailFooter(r)}</div>}
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
 
       {/* ── PC: 전체 표 (가로 스크롤 없음 — 열 폭·글자를 줄여 992px 안에 넣는다) ── */}
-      <div className="surface-card hidden overflow-hidden rounded-container lg:block">
-        <table className="tabular w-full border-separate border-spacing-0 text-sub">
-          <caption className="sr-only">{caption}</caption>
-          <thead>
-            <tr className="text-sub text-ink-3">
-              {columns.map((c) => (
-                <th
-                  key={c.key}
-                  scope="col"
-                  aria-sort={c.ariaSort}
-                  className={`whitespace-nowrap border-b border-line ${dense ? "px-1" : "px-1.5"} py-2 font-medium ${ALIGN[c.align ?? "right"]} ${
-                    c.active ? "bg-surface-2 text-ink" : ""
-                  } ${c.headerClassName ?? ""}`}
-                >
-                  {c.header}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {shown.map((r) => {
-              const strong = emphasize?.(r) ?? false;
-              return (
-                <tr key={rowKey(r)} className="transition-colors duration-200 hover:bg-surface-2">
-                  {columns.map((c) => {
-                    const cls = `h-12 border-b border-line ${dense ? "px-1" : "px-1.5"} py-1.5 ${ALIGN[c.align ?? "right"]} ${
-                      c.active ? "bg-surface-2 font-semibold text-ink" : "text-ink-2"
-                    } ${strong && c.rowHeader ? "font-bold" : ""} ${cellClass(c, r)}`;
-                    return (
-                      <Fragment key={c.key}>
-                        {c.rowHeader ? (
-                          <th scope="row" className={cls}>
-                            {c.cell(r)}
-                          </th>
-                        ) : (
-                          <td className={cls}>{c.cell(r)}</td>
-                        )}
-                      </Fragment>
-                    );
-                  })}
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+      {desktop && (
+        <div className="surface-card hidden overflow-hidden rounded-container lg:block">
+          <table className="tabular w-full border-separate border-spacing-0 text-sub">
+            <caption className="sr-only">{caption}</caption>
+            <thead>
+              <tr className="text-sub text-ink-3">
+                {columns.map((c) => (
+                  <th
+                    key={c.key}
+                    scope="col"
+                    aria-sort={c.ariaSort}
+                    className={`whitespace-nowrap border-b border-line ${dense ? "px-1" : "px-1.5"} py-2 font-medium ${ALIGN[c.align ?? "right"]} ${
+                      c.active ? "bg-surface-2 text-ink" : ""
+                    } ${c.headerClassName ?? ""}`}
+                  >
+                    {c.header}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {shown.map((r) => {
+                const strong = emphasize?.(r) ?? false;
+                return (
+                  <tr key={rowKey(r)} className="transition-colors duration-200 hover:bg-surface-2">
+                    {columns.map((c) => {
+                      const cls = `h-12 border-b border-line ${dense ? "px-1" : "px-1.5"} py-1.5 ${ALIGN[c.align ?? "right"]} ${
+                        c.active ? "bg-surface-2 font-semibold text-ink" : "text-ink-2"
+                      } ${strong && c.rowHeader ? "font-bold" : ""} ${cellClass(c, r)}`;
+                      return (
+                        <Fragment key={c.key}>
+                          {c.rowHeader ? (
+                            <th scope="row" className={cls}>
+                              {c.cell(r)}
+                            </th>
+                          ) : (
+                            <td className={cls}>{c.cell(r)}</td>
+                          )}
+                        </Fragment>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {remaining > 0 && (
         <button

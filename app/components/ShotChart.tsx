@@ -28,6 +28,7 @@ import { IconInfo } from "./icons";
 import InfoLink from "./InfoLink";
 import Skeleton from "./Skeleton";
 import { useThemeColors } from "./useThemeColors";
+import { useMounted } from "./useMedia";
 import { trackFilters } from "./track";
 
 // 선수·시즌 파일은 한 번만 받는다 (시즌 칩을 오가도 다시 받지 않음)
@@ -118,6 +119,8 @@ export default function ShotChart({ playerId, seasonCode, seasonShort, available
   const madeColor = ensureMarkContrast(teamPrimary, colors.surface, 3);
   const barColor = desaturate(madeColor, 0.2);
   const type = file?.zones.offenseType ?? null;
+  // 코트 그림·구역표는 브라우저에서만 그린다 — 정적 HTML 에서 빼서 선수 페이지 결과물을 줄인다 (2026-10-14)
+  const mounted = useMounted();
 
   return (
     <section aria-labelledby="shot-chart-title" className="scroll-mt-4">
@@ -143,7 +146,7 @@ export default function ShotChart({ playerId, seasonCode, seasonShort, available
         <p role="alert" className="surface-card rounded-container px-4 py-6 text-center text-body text-ink-2">
           슛 차트를 불러오지 못했습니다. 시즌을 다시 눌러 주세요.
         </p>
-      ) : status === "loading" || !file ? (
+      ) : status === "loading" || !file || !mounted ? (
         <>
           <p role="status" className="sr-only">
             슛 차트 불러오는 중

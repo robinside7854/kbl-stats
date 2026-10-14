@@ -31,6 +31,19 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-10-14-ongoing-qualify",
+    date: "2026-10-14",
+    kind: "update",
+    title: "이번 시즌 순위는 경기 절반 이상 뛴 선수만",
+    summary: "이번 시즌 순위 기준 바뀜",
+    blocks: [
+      { kind: "p", text: "시즌 초반엔 한 경기만 뛴 선수가 경기당 순위 맨 위에 오르곤 했어요." },
+      { kind: "p", text: "이제 이번 시즌 순위와 카드 등급은 팀이 치른 경기의 절반 이상 뛴 선수만 들어가요. 경기가 쌓이면 기준도 같이 올라가요." },
+      { kind: "p", text: "모두 보고 싶으면 필터에서 표본 기준을 출전 선수 전원으로 바꾸면 돼요." },
+      { kind: "list", items: [{ text: "표본 기준 풀이 보기", href: "/glossary#qualify" }] },
+    ],
+  },
+  {
     slug: "2026-10-12-good-news-alerts",
     date: "2026-10-12",
     kind: "update",

@@ -212,8 +212,8 @@ export function isSeasonOngoing(seasonCode: number): boolean {
   const latest = latestWithPlayers;
   return isOngoingSeason(seasonCode, latest, loadSeasonData(seasonCode)?.champion ?? null);
 }
-/** 시즌 기본 표본 기준 (진행 중 = 출전 선수 전원, 마감 = DEFAULT_QUALIFY) */
-export const seasonQualify = (seasonCode: number) => seasonDefaultQualify(isSeasonOngoing(seasonCode));
+/** 시즌 기본 표본 기준 (진행 중 = 팀 경기 절반 이상(ongoingQualify), 마감 = DEFAULT_QUALIFY) */
+export const seasonQualify = (seasonCode: number) => seasonDefaultQualify(isSeasonOngoing(seasonCode), loadSeasonData(seasonCode)?.players ?? []);
 
 export function listSeasonsWithPlayers(): SeasonOption[] {
   const seasons = readJson<SeasonOption[]>("seasons.json");

@@ -94,7 +94,7 @@ interface Props {
   teams: CardTeam[];
   /** 이 시즌 한 경기 최다 카드 (서버에서 계산). 빈 배열이면 섹션을 숨긴다 */
   seasonHighs?: SeasonHighCard[];
-  /** 진행 중 시즌이면 기본 표본 기준이 "출전 선수 전원" (lib/metrics qualifyPresetsFor, 2026-10-03) */
+  /** 진행 중 시즌이면 기본 표본 기준이 "팀 경기 절반 이상" (lib/metrics qualifyPresetsFor, 2026-10-14) */
   ongoing?: boolean;
   /** 진행 중 시즌의 기준 한 줄 ("10월 7일 경기까지 반영") — 마감 시즌은 null */
   asOf?: string | null;
@@ -247,7 +247,7 @@ function CoverCard({
 }
 
 export default function LeadersView({ seasonCode, seasonLabel, players, teams, seasonHighs = [], ongoing = false, asOf = null, previous = null }: Props) {
-  const presets = useMemo(() => qualifyPresetsFor(ongoing), [ongoing]);
+  const presets = useMemo(() => qualifyPresetsFor(ongoing, players), [ongoing, players]);
   const [state, setState] = useState<LeadersState>(DEFAULT_LEADERS_STATE);
   // 표 정렬 (null 이면 선택한 부문의 "상위" 방향 — 턴오버는 적은 순)
   const [sort, setSort] = useState<{ key: LeaderStatKey; dir: SortDir } | null>(null);
