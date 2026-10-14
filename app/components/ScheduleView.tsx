@@ -9,9 +9,11 @@
 //   GA4: filter_change screen=schedule filter=scope value=mine|all, login_prompt_click place=schedule.
 // 지난 경기 접기 (2026-10-09 사용자: 모바일 세로 스크롤이 너무 길다): 오늘 이전 경기일은 최근 2일만 보이고 그 전은
 //   "지난 경기 N일 더 보기"로 접는다(lib/games splitPastDays). ?date= 로 접힌 날을 가리키면 펼친다. GA4: filter_change screen=schedule filter=past value=open.
+// 달력 띠 (2026-10-14 스포츠 앱 비교 2번): 달 칩 아래 그 달 날짜 칸(CalendarStrip, lib/games monthCalendar) — 누르면 그날로 내려간다.
+//   GA4: filter_change screen=schedule filter=calendar value=mine|all(그때 보기 범위).
 import { useEffect, useMemo, useState } from "react";
 import type { GameBoxRow, SeasonGame } from "@/lib/types";
-import { gameDayLabel, gamesOfTeams, groupByDate, splitPastDays, initialScheduleScope, monthLabel, monthsOf, pickMonth, type ScheduleScope, type SeasonProgress, type Standout } from "@/lib/games";
+import { gameDayLabel, gamesOfTeams, groupByDate, splitPastDays, initialScheduleScope, monthCalendar, monthLabel, monthsOf, pickMonth, type ScheduleScope, type SeasonProgress, type Standout } from "@/lib/games";
 import { enabledLoginProviders } from "@/lib/account";
 import Link from "next/link";
 import Segmented from "./Segmented";
@@ -21,6 +23,7 @@ import { kstDateString } from "@/lib/home";
 import ChipRow from "./ChipRow";
 import GameCard, { type GameTeamInfo } from "./GameCard";
 import SeasonProgressBar from "./SeasonProgressBar";
+import CalendarStrip from "./CalendarStrip";
 import { trackEvent, trackFilters } from "./track";
 
 const SCOPE_KEY = "kbl-stats:schedule-scope:v1";
@@ -112,6 +115,7 @@ export default function ScheduleView({ seasonCode, seasonShort, games, teams, in
 
   const shown = mine ? myGames : games;
   const days = useMemo(() => groupByDate(shown.filter((g) => g.date.slice(0, 7) === month)), [shown, month]);
+  const calendar = useMemo(() => (month ? monthCalendar(month, shown, mine ? myCodes : []) : []), [month, shown, mine, myCodes]);
   // 지난 경기 접기 — 달·범위를 바꾸면 다시 접는다
   const [pastOpen, setPastOpen] = useState(false);
   useEffect(() => setPastOpen(false), [month, scope]);
@@ -137,6 +141,12 @@ export default function ScheduleView({ seasonCode, seasonShort, games, teams, in
     trackFilters("schedule", { scope: v });
     saveScope(v);
     setScope(v);
+  }
+
+  function pickDay(date: string) {
+    trackFilters("schedule", { calendar: mine ? "mine" : "all" });
+    window.history.replaceState(null, "", `${window.location.pathname}?date=${date}`);
+    setTarget(date);
   }
 
   function changeMonth(m: string) {
@@ -196,6 +206,7 @@ export default function ScheduleView({ seasonCode, seasonShort, games, teams, in
             value={month ?? months[0]}
             onChange={changeMonth}
           />
+          <CalendarStrip days={calendar} teams={teams} today={today} mine={mine} onPick={pickDay} className="mt-3" />
           {days.length === 0 && mine && (
             <p className="surface-card mt-4 rounded-container p-4 text-sub text-ink-3">
               이 달엔 응원팀 경기가 없어요.{" "}

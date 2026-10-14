@@ -49,9 +49,23 @@ export interface AwardItemView {
 }
 
 export interface SeasonAwardsView {
+  seasonCode: number;
   groups: { group: AwardGroup; label: string; items: AwardItemView[] }[];
   regular: SeasonAwards["regular"];
   finals: SeasonAwards["finals"];
+  /** 챔피언·준우승·정규리그 1·2위 팀 이름(수상 표 표기) → 팀 코드 — 팀 페이지 링크용 (2026-10-14), 못 찾으면 없음 */
+  teamCodes: Record<string, string>;
+}
+
+/** 수상 표 팀 이름("KCC"·"현대모비스") → 그 시즌 팀 코드. 공백 무시 같은 약칭 → 이름 끝맞춤. 없거나 둘 이상이면 null */
+export function teamCodeOfName(name: string, teams: readonly CardTeam[]): string | null {
+  const norm = (x: string) => x.replace(/\s+/g, "");
+  const n = norm(name);
+  if (!n) return null;
+  const exact = teams.filter((t) => norm(t.shortName) === n);
+  if (exact.length === 1) return exact[0].teamCode;
+  const ends = teams.filter((t) => norm(t.shortName).endsWith(n) || n.endsWith(norm(t.shortName)));
+  return ends.length === 1 ? ends[0].teamCode : null;
 }
 
 /**
@@ -88,5 +102,10 @@ export function buildSeasonAwardsView(
     if (!g) groups.push((g = { group: def.group, label: AWARD_GROUP_LABELS[def.group], items: [] }));
     g.items.push({ key: def.key, label: def.label, winners });
   }
-  return { groups, regular: sa.regular, finals: sa.finals };
+  const teamCodes: Record<string, string> = {};
+  for (const name of [sa.finals?.champion, sa.finals?.runnerUp, sa.regular?.first, sa.regular?.second]) {
+    const code = name ? teamCodeOfName(name, teams) : null;
+    if (name && code) teamCodes[name] = code;
+  }
+  return { seasonCode, groups, regular: sa.regular, finals: sa.finals, teamCodes };
 }

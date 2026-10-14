@@ -622,3 +622,54 @@ export function playerRecentGames(games: readonly SeasonGame[], playerNo: string
 
 /** 경기 일정 화면의 그날로 가는 주소 (경기 띠·최근 경기 줄 공용) */
 export const scheduleDayHref = (seasonCode: number, date: string) => `/season/${seasonCode}/schedule?date=${date}`;
+
+// ── 일정 달력 띠 (2026-10-14 스포츠 앱 비교 2번 — 레사모 달력) ─────────────
+/** 달력 띠 한 칸: 그 달 하루 */
+export interface CalendarDay {
+  /** "2026-10-03" */
+  date: string;
+  day: number;
+  /** "일"~"토" */
+  weekday: string;
+  /** 0 일요일 · 6 토요일 */
+  weekdayIndex: number;
+  /** 그날 경기 수 (보이는 범위 기준) */
+  games: number;
+  /** 내 응원팀 경기 — 그날 첫 경기의 상대 팀·결과 (내 팀 기준, 안 끝났으면 null) */
+  mine: { oppCode: string; result: "win" | "loss" | null } | null;
+}
+
+/** "2026-10" 달의 날짜 칸 1일~말일. myCodes 가 있으면 그 팀이 나온 첫 경기를 mine 으로 */
+export function monthCalendar(month: string, games: readonly SeasonGame[], myCodes: readonly string[] = []): CalendarDay[] {
+  const m = /^(\d{4})-(\d{2})$/.exec(month);
+  if (!m) return [];
+  const y = Number(m[1]);
+  const mo = Number(m[2]);
+  const last = new Date(Date.UTC(y, mo, 0)).getUTCDate();
+  const byDate = new Map<string, SeasonGame[]>();
+  for (const g of games) {
+    if (g.date.slice(0, 7) !== month) continue;
+    const list = byDate.get(g.date) ?? [];
+    list.push(g);
+    byDate.set(g.date, list);
+  }
+  const mySet = new Set(myCodes);
+  const out: CalendarDay[] = [];
+  for (let d = 1; d <= last; d++) {
+    const date = `${month}-${String(d).padStart(2, "0")}`;
+    const wd = new Date(Date.UTC(y, mo - 1, d)).getUTCDay();
+    const list = byDate.get(date) ?? [];
+    let mine: CalendarDay["mine"] = null;
+    if (mySet.size > 0) {
+      const g = list.find((x) => mySet.has(x.home.teamCode) || mySet.has(x.away.teamCode));
+      if (g) {
+        const side = mySet.has(g.home.teamCode) ? "home" : "away";
+        const opp = side === "home" ? g.away : g.home;
+        const win = winnerSide(g);
+        mine = { oppCode: opp.teamCode, result: win === null ? null : win === side ? "win" : "loss" };
+      }
+    }
+    out.push({ date, day: d, weekday: WEEKDAYS[wd], weekdayIndex: wd, games: list.length, mine });
+  }
+  return out;
+}

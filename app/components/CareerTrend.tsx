@@ -23,6 +23,7 @@ import {
 } from "@/lib/career";
 import { teamShortLabel } from "@/lib/images";
 import TeamLogo from "./TeamLogo";
+import { TeamLink } from "./EntityLinks";
 import { useThemeColors } from "./useThemeColors";
 import { trackFilters } from "./track";
 
@@ -46,6 +47,7 @@ interface Datum extends TrendRow {
   color: string;
   textColor: string;
   logoUrl: string | null;
+  teamCode: string;
 }
 
 /** 로고 점 지름 (px): 보통 시즌 / 이적 시즌 */
@@ -123,6 +125,7 @@ export default function CareerTrend({ seasons, allSeasons, fill = false }: Props
           color: (s?.team?.color ?? GRAY).primary,
           textColor: (s?.team?.color ?? GRAY).text,
           logoUrl: s?.team?.logoUrl ?? null,
+          teamCode: s?.teamCode ?? "",
         };
       }),
     [seasons, allSeasons, key, bySeason],
@@ -132,7 +135,7 @@ export default function CareerTrend({ seasons, allSeasons, fill = false }: Props
   const legend = useMemo(() => {
     const seen = new Map<string, Datum>();
     for (const d of data) if (d.value !== null && !seen.has(d.team)) seen.set(d.team, d);
-    return [...seen.values()].map((d) => ({ team: d.team, color: { primary: d.color, secondary: d.color, text: d.textColor }, logoUrl: d.logoUrl }));
+    return [...seen.values()].map((d) => ({ team: d.team, code: d.teamCode, season: d.seasonCode, color: { primary: d.color, secondary: d.color, text: d.textColor }, logoUrl: d.logoUrl }));
   }, [data]);
 
   if (seasons.length < 2) {
@@ -264,10 +267,10 @@ export default function CareerTrend({ seasons, allSeasons, fill = false }: Props
       <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sub text-ink-2">
         <span className="text-ink-3">점 = 그 시즌 팀 로고{legend.length > 1 ? " · 테두리 있는 큰 점 = 이적한 시즌" : ""}</span>
         {legend.map((l) => (
-          <span key={l.team} className="inline-flex items-center gap-1.5">
+          <TeamLink key={l.team} code={l.code} season={l.season} place="career_trend" className="inline-flex min-h-10 items-center gap-1.5">
             <TeamLogo logoUrl={l.logoUrl} shortName={l.team} color={l.color} size={16} />
             {l.team}
-          </span>
+          </TeamLink>
         ))}
       </div>
       <p className="mt-1 text-caption leading-snug text-ink-3">

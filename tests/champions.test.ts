@@ -107,3 +107,19 @@ import { buildSeasonAwardsView } from "../lib/awards";
   assert.equal(buildSeasonAwardsView({ awards: [], regular: null, finals: null }, 47, [], () => null), null);
   console.log("awards: 시즌 어워즈 화면 통과");
 }
+
+// ── 수상 표 팀 이름 → 팀 코드 (팀 페이지 링크, 2026-10-14) ──
+{
+  const { teamCodeOfName } = await import("../lib/awards");
+  const color = { primary: "#000", secondary: "#fff", text: "#fff" };
+  const ts = [
+    { teamCode: "10", shortName: "현대모비스", logoUrl: null, color },
+    { teamCode: "60", shortName: "KCC", logoUrl: null, color },
+    { teamCode: "35", shortName: "삼성", logoUrl: null, color },
+  ];
+  assert.equal(teamCodeOfName("KCC", ts), "60");
+  assert.equal(teamCodeOfName("모비스", ts), "10");
+  assert.equal(teamCodeOfName("울산 현대모비스", ts), "10");
+  assert.equal(teamCodeOfName("LG", ts), null);
+  console.log("champions: 수상 팀 이름 → 코드 통과");
+}

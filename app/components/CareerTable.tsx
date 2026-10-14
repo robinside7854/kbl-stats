@@ -28,6 +28,7 @@ import { PLAYER_SEASON_EVENT } from "./PlayerSeasonCards";
 import RowList, { type RowColumn } from "./RowList";
 import Segmented from "./Segmented";
 import TeamLogo from "./TeamLogo";
+import { TeamLink } from "./EntityLinks";
 import { trackFilters } from "./track";
 
 const MODE_OPTIONS: { value: StatMode; label: string }[] = [
@@ -107,10 +108,10 @@ export default function CareerTable({ seasons, playoffSeasons = [] }: { seasons:
       cell: (s) => isTotal(s) ? (
         <span className="whitespace-nowrap text-ink-2">{teamOf(s)}</span>
       ) : (
-        <span className="flex items-center gap-1.5 whitespace-nowrap">
+        <TeamLink code={s.teamCode} season={s.seasonCode} place="career_table" className="flex min-h-10 items-center gap-1.5 whitespace-nowrap">
           <TeamLogo logoUrl={s.team?.logoUrl} shortName={teamOf(s)} color={s.team?.color} size={20} />
           <span className="max-w-20 truncate">{teamShortLabel(teamOf(s))}</span>
-        </span>
+        </TeamLink>
       ),
     },
     ...TABLE_COLUMNS.map(
@@ -220,13 +221,20 @@ export default function CareerTable({ seasons, playoffSeasons = [] }: { seasons:
           })
         }
         detailFooter={(s) => isTotal(s) ? null : (
-          <button
-            type="button"
-            onClick={() => showSeasonCard(s.seasonCode)}
-            className="focus-ring link-shortcut px-1 text-body"
-          >
-            {seasonShortLabel(s.seasonLabel)} 선수 카드 보기 <IconChevronRight size={16} />
-          </button>
+          <span className="flex flex-wrap gap-x-4">
+            <button
+              type="button"
+              onClick={() => showSeasonCard(s.seasonCode)}
+              className="focus-ring link-shortcut px-1 text-body"
+            >
+              {seasonShortLabel(s.seasonLabel)} 선수 카드 보기 <IconChevronRight size={16} />
+            </button>
+            {s.teamCode && (
+              <TeamLink code={s.teamCode} season={s.seasonCode} place="career_row" className="link-shortcut px-1 text-body">
+                {teamShortLabel(teamOf(s))} 팀 페이지 <IconChevronRight size={16} />
+              </TeamLink>
+            )}
+          </span>
         )}
       />
       <p className="mt-2 text-sub text-ink-3">

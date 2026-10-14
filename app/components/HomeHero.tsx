@@ -14,6 +14,7 @@ import { nationalityOf, NATIONALITY_LABELS, positionLabel } from "@/lib/roster";
 import { IconChevronRight } from "./icons";
 import PlayerAvatar from "./PlayerAvatar";
 import TeamLogo from "./TeamLogo";
+import { TeamLink } from "./EntityLinks";
 
 export interface HeroItem {
   key: LeaderStatKey;
@@ -84,15 +85,17 @@ function Hero({
             </p>
             {/* deslop-ignore-next-line 11 */}
             <h2 className="mt-3 text-[2.1rem] font-black leading-[1.05] tracking-tight [overflow-wrap:anywhere] sm:text-6xl lg:text-7xl">
-              <Link href={`/player/${p.id}`} className="focus-ring rounded-control underline-offset-4 hover:underline">
+              <Link href={playerHref(p.id, seasonCode)} className="focus-ring rounded-control underline-offset-4 hover:underline">
                 {p.nameKo}
               </Link>
             </h2>
             <p className="mt-2 flex items-center gap-1.5 text-body font-semibold opacity-90 lg:mt-3">
-              <span className="inline-flex rounded-control bg-white p-0.5">
-                <TeamLogo logoUrl={team?.logoUrl} shortName={teamName} color={color} size={20} />
-              </span>
-              {teamShortLabel(teamName)}
+              <TeamLink code={p.teamCode} season={seasonCode} place="home_hero" className="inline-flex min-h-10 items-center gap-1.5">
+                <span className="inline-flex rounded-control bg-white p-0.5">
+                  <TeamLogo logoUrl={team?.logoUrl} shortName={teamName} color={color} size={20} />
+                </span>
+                {teamShortLabel(teamName)}
+              </TeamLink>
               {positionLabel(p.position) ? ` · ${positionLabel(p.position)}` : ""} · {NATIONALITY_LABELS[nationalityOf(p)]}
             </p>
             <p className="tabular mt-4 leading-none">
@@ -133,7 +136,7 @@ function Hero({
               {p.games}경기 · {p.wins}승 {p.losses}패 · 경기당 기록
             </p>
           </div>
-          <div className="relative -mr-3 shrink-0 self-end sm:mr-0">
+          <Link href={playerHref(p.id, seasonCode)} tabIndex={-1} aria-hidden className="relative -mr-3 shrink-0 self-end sm:mr-0">
             <span className="sm:hidden">
               <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={color} variant="portrait" size={220} />
             </span>
@@ -143,7 +146,7 @@ function Hero({
             <span className="hidden lg:inline">
               <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={color} variant="portrait" size={350} />
             </span>
-          </div>
+          </Link>
         </div>
       </div>
     </section>

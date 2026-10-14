@@ -5,6 +5,7 @@
 // 결과는 주소 ?l= 로 남겨 링크로 공유, 이미지 저장은 공식 사진 없는 사본(useCardSave).
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { PlayerLink, TeamLink } from "./EntityLinks";
 import {
   canPick, decodeLineupParam, emptyLineup, encodeLineupParam, foreignCount, GAME_FOREIGN_MAX, GAME_ROUNDS, GAME_SEASON_GAMES,
   GAME_SLOTS, isLineupFull, lineupTotals, openSlotsFor, pickBlockReason, placePick, respinEra, respinTeam, resultVerdict,
@@ -790,15 +791,21 @@ function ResultCard({ picked, result, colors, official }: { picked: Picked[]; re
               style={{ left: `${spot.x}%`, top: `${spot.y}%` }}
             >
               {/* 폰은 코트가 작아 사진·이름표를 줄인다 (윙 이름표가 로우 사진에 겹치지 않게) */}
-              <span className="flex sm:hidden">
-                <PlayerAvatar photoUrl={p.c.photoUrl} nameKo={p.c.nameKo} color={p.team.color} size={48} official={official} />
-              </span>
-              <span className="hidden sm:flex">
-                <PlayerAvatar photoUrl={p.c.photoUrl} nameKo={p.c.nameKo} color={p.team.color} size={64} official={official} />
-              </span>
+              {/* 화면에서는 사진·이름이 선수 페이지, 팀이 팀 페이지 (2026-10-14) — 저장 이미지(official=false)는 링크 없음 */}
+              {/* deslop-ignore-next-line 19 */}
+              <PlayerLink id={official ? p.c.id : null} season={p.c.seasonCode} tabIndex={-1} aria-label={`${p.c.nameKo} 선수 페이지`} className="flex rounded-full">
+                <span className="flex sm:hidden">
+                  <PlayerAvatar photoUrl={p.c.photoUrl} nameKo={p.c.nameKo} color={p.team.color} size={48} official={official} />
+                </span>
+                <span className="hidden sm:flex">
+                  <PlayerAvatar photoUrl={p.c.photoUrl} nameKo={p.c.nameKo} color={p.team.color} size={64} official={official} />
+                </span>
+              </PlayerLink>
               <span className="surface-card mt-1 flex max-w-full flex-col rounded-control px-1.5 py-0.5 sm:px-2 sm:py-1">
                 <span className="flex min-w-0 items-center justify-center gap-1">
-                  <span className="truncate text-sub font-bold text-ink">{p.c.nameKo}</span>
+                  <PlayerLink id={official ? p.c.id : null} season={p.c.seasonCode} className="truncate text-sub font-bold text-ink hover:underline">
+                    {p.c.nameKo}
+                  </PlayerLink>
                   <GradeChip score={p.c.score} color={p.team.color} colors={colors} />
                 </span>
                 <span className="tabular truncate text-caption text-ink-2">
@@ -806,7 +813,10 @@ function ResultCard({ picked, result, colors, official }: { picked: Picked[]; re
                   {p === mvp ? " · MVP" : ""}
                 </span>
                 <span className="tabular truncate text-caption text-ink-3">
-                  {teamShortLabel(p.team.name)} {p.c.span}
+                  <TeamLink code={official ? p.team.teamCode : null} season={p.c.seasonCode} place="game_result">
+                    {teamShortLabel(p.team.name)}
+                  </TeamLink>{" "}
+                  {p.c.span}
                 </span>
               </span>
             </div>
@@ -860,7 +870,7 @@ function ResultCard({ picked, result, colors, official }: { picked: Picked[]; re
         </tfoot>
       </table>
 
-      <BonusList bonuses={result.rating.bonuses} picked={picked} />
+      <BonusList bonuses={result.rating.bonuses} picked={picked} official={official} />
 
       <h3 className="mt-4 text-sub font-bold text-ink">팀 능력치</h3>
       <ul className="mt-1.5 space-y-1.5">
@@ -948,7 +958,7 @@ function GameRules({ open, onToggle }: { open: boolean; onToggle: (next: boolean
 }
 
 /** 가산점 (동문 케미·프라임 타임·우승 DNA) — 없으면 노릴 수 있는 것을 한 줄로 */
-function BonusList({ bonuses, picked }: { bonuses: LineupBonus[]; picked: Picked[] }) {
+function BonusList({ bonuses, picked, official }: { bonuses: LineupBonus[]; picked: Picked[]; official: boolean }) {
   const nameOf = new Map(picked.map((p) => [p.c.id, p.c.nameKo]));
   return (
     <>
@@ -964,7 +974,19 @@ function BonusList({ bonuses, picked }: { bonuses: LineupBonus[]; picked: Picked
                 <span className="min-w-0 flex-1 truncate text-ink-2">{b.detail}</span>
                 <span className="tabular shrink-0 font-bold text-ink">+{b.points.toFixed(b.points % 1 === 0 ? 0 : 2).replace(/0$/, "")}</span>
               </p>
-              <p className="mt-0.5 text-caption text-ink-3">{b.playerIds.map((id) => nameOf.get(id) ?? id).join(" · ")}</p>
+              <p className="mt-0.5 text-caption text-ink-3">
+                {b.playerIds.map((id, i) => {
+                  const c = picked.find((x) => x.c.id === id)?.c;
+                  return (
+                    <span key={id}>
+                      {i > 0 && " · "}
+                      <PlayerLink id={official ? id : null} season={c?.seasonCode} className="hover:underline">
+                        {nameOf.get(id) ?? id}
+                      </PlayerLink>
+                    </span>
+                  );
+                })}
+              </p>
               {b.key === "school" && <p className="mt-1 text-caption font-semibold text-ink">{schoolChemistryComment(b)}</p>}
             </li>
           ))}

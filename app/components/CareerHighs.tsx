@@ -10,6 +10,7 @@ import { BADGE_DEFS } from "@/lib/badges";
 import { desaturate, readableInk } from "@/lib/teams";
 import { badgeStyle } from "./BadgeRow";
 import InfoLink from "./InfoLink";
+import { TeamLink } from "./EntityLinks";
 
 const BADGE_LABEL = new Map(BADGE_DEFS.map((d) => [d.key, d.label]));
 
@@ -61,7 +62,22 @@ export default function CareerHighs({ items, teamPrimary }: Props) {
                 {a.shot && <span className="text-caption font-medium text-ink-3">{a.shot}</span>}
               </p>
               <p className="mt-0.5 text-caption text-ink-3 [overflow-wrap:anywhere]">
-                {a.value === null ? "정규시즌 기록 없음" : `${a.opponent ? `vs ${a.opponent} · ` : ""}${a.date}`}
+                {a.value === null ? (
+                  "정규시즌 기록 없음"
+                ) : (
+                  <>
+                    {a.opponent && (
+                      <>
+                        vs{" "}
+                        <TeamLink code={a.opponentCode} season={a.opponentSeason} place="career_high" className="font-medium text-ink-2">
+                          {a.opponent}
+                        </TeamLink>
+                        {" · "}
+                      </>
+                    )}
+                    {a.date}
+                  </>
+                )}
               </p>
               {(best || a.milestone) && (
                 <div className="mt-1.5 flex flex-wrap gap-1">

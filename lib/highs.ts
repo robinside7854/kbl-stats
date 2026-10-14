@@ -161,6 +161,7 @@ export interface SeasonHighCard {
   teamCode: string;         // 그 선수의 이 시즌 팀 (카드 색·로고)
   date: string;             // "2023.10.21"
   opponent: string | null;  // 상대 팀 한글 약칭 (모르면 코드, 코드도 없으면 null)
+  opponentCode: string | null; // 상대 팀 코드 (팀 페이지 링크, 2026-10-14)
   times: number | null;     // 같은 기록 횟수
   shot: string | null;      // 슛 부문의 그 경기 성공/시도·성공률 "5/8 · 62.5%" (없으면 null)
 }
@@ -192,6 +193,7 @@ export function buildSeasonHighCards(
       teamCode: p.teamCode,
       date: formatHighDate(l.date),
       opponent: l.opponentTeamCode ? (teamName(l.opponentTeamCode) ?? l.opponentTeamCode) : null,
+      opponentCode: l.opponentTeamCode ?? null,
       times: l.times,
       shot: formatHighShot(l, key),
     });

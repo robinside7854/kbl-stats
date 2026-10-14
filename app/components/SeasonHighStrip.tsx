@@ -12,15 +12,17 @@ import { IconArrowRight } from "./icons";
 import InfoLink from "./InfoLink";
 import PlayerAvatar from "./PlayerAvatar";
 import TeamLogo from "./TeamLogo";
+import { TeamLink } from "./EntityLinks";
 
 interface Props {
   cards: SeasonHighCard[];
   teamByCode: ReadonlyMap<string, CardTeam>;
   /** 강조할 부문 (순위표에서 고른 부문과 대응할 때만) */
   activeKey: SeasonHighLeaderKey | null;
+  seasonCode: number;
 }
 
-export default function SeasonHighStrip({ cards, teamByCode, activeKey }: Props) {
+export default function SeasonHighStrip({ cards, teamByCode, activeKey, seasonCode }: Props) {
   const listRef = useRef<HTMLUListElement>(null);
 
   // 강조 카드가 줄 밖에 있으면 그 카드가 보이게 줄만 민다 (페이지 세로 위치는 건드리지 않는다)
@@ -69,25 +71,36 @@ export default function SeasonHighStrip({ cards, teamByCode, activeKey }: Props)
                 <span className="text-4xl font-black leading-none tracking-tight text-ink">{c.value}</span>
                 {c.shot && <span className="truncate text-caption font-medium text-ink-3">{c.shot}</span>}
               </p>
-              <Link
-                href={`/player/${c.playerNo}`}
-                className="focus-ring group mt-2.5 flex min-h-11 min-w-0 items-center gap-2 rounded-control"
-                title={`${c.nameKo} 선수 페이지`}
-              >
-                <PlayerAvatar photoUrl={c.photoUrl} nameKo={c.nameKo} color={team?.color} size={36} />
+              {/* 사진·이름은 선수 페이지, 팀 줄은 팀 페이지 (2026-10-14) */}
+              <div className="mt-2.5 flex min-h-11 min-w-0 items-center gap-2">
+                {/* deslop-ignore-next-line 19 */}
+                <Link href={`/player/${c.playerNo}?season=${seasonCode}`} tabIndex={-1} aria-hidden className="shrink-0 rounded-full">
+                  <PlayerAvatar photoUrl={c.photoUrl} nameKo={c.nameKo} color={team?.color} size={36} />
+                </Link>
                 <span className="min-w-0">
-                  <span className="block truncate text-body font-semibold leading-tight text-ink underline-offset-2 group-hover:underline">
+                  <Link
+                    href={`/player/${c.playerNo}?season=${seasonCode}`}
+                    className="focus-ring block truncate rounded-md text-body font-semibold leading-tight text-ink underline-offset-2 hover:underline"
+                    title={`${c.nameKo} 선수 페이지`}
+                  >
                     {c.nameKo}
-                  </span>
-                  <span className="flex min-w-0 items-center gap-1 text-caption text-ink-3">
+                  </Link>
+                  <TeamLink code={c.teamCode} season={seasonCode} place="season_high" className="flex min-w-0 items-center gap-1 text-caption text-ink-3">
                     <TeamLogo logoUrl={team?.logoUrl} shortName={team?.shortName ?? c.teamCode} color={team?.color} size={14} />
                     <span className="truncate">{teamShortLabel(team?.shortName ?? c.teamCode)}</span>
-                  </span>
+                  </TeamLink>
                 </span>
-              </Link>
+              </div>
               <p className="mt-2 truncate text-caption text-ink-3">
                 {c.date}
-                {c.opponent ? ` · vs ${teamShortLabel(c.opponent)}` : ""}
+                {c.opponent && (
+                  <>
+                    {" · vs "}
+                    <TeamLink code={c.opponentCode} season={seasonCode} place="season_high">
+                      {teamShortLabel(c.opponent)}
+                    </TeamLink>
+                  </>
+                )}
               </p>
             </li>
           );

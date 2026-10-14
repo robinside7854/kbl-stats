@@ -14,6 +14,7 @@ import FavoriteButton from "./FavoriteButton";
 import CompareButton from "./CompareButton";
 import LikeButton from "./LikeButton";
 import TeamLogo from "./TeamLogo";
+import { TeamLink } from "./EntityLinks";
 import TeamJersey from "./TeamJersey";
 import Link from "next/link";
 import { MILESTONE_STEPS, type Milestone } from "@/lib/records";
@@ -82,14 +83,14 @@ export default function PlayerHero({ entry, seasons, today, badges, milestones =
             배경에 깔던 큰 팀 이름 글자는 사용자 요청으로 없앰) */}
         <div className="relative mx-auto grid max-w-page grid-cols-[minmax(0,1fr)_auto] px-4 sm:min-h-[300px] lg:grid-cols-[fit-content(36rem)_auto] lg:justify-start lg:gap-x-10 xl:grid-cols-[fit-content(30rem)_auto_minmax(0,1fr)] xl:justify-normal">
           <div className="relative z-10 col-start-1 row-start-1 min-w-0 pb-3 pt-5 pr-2 sm:pb-0">
-            <div className="flex items-center gap-2">
+            <TeamLink code={latest?.teamCode} season={latest?.seasonCode} place="player_hero" className="inline-flex min-h-10 items-center gap-2">
               <span className="inline-flex rounded-control bg-white p-1 shadow-card">
                 <TeamLogo logoUrl={team?.logoUrl} shortName={teamName} color={color} size={40} />
               </span>
               <span className="text-sub font-semibold opacity-90 sm:text-body">
                 {latest ? `${seasonShortLabel(latest.seasonLabel)} ${teamShortLabel(teamName)}` : ""}
               </span>
-            </div>
+            </TeamLink>
             {/* deslop-ignore-next-line 11 */}
             <h1 id="player-name" className="mt-3 text-[2rem] font-black leading-[1.1] tracking-tight [overflow-wrap:anywhere] sm:text-5xl lg:text-6xl">
               {entry.nameKo}

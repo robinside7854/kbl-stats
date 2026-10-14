@@ -74,6 +74,7 @@ import {
   type PositionFilter,
 } from "@/lib/roster";
 import Link from "next/link";
+import { PlayerLink, TeamLink } from "./EntityLinks";
 import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
 import ChipRow from "./ChipRow";
 import FilterSheet, { FilterGroup } from "./FilterSheet";
@@ -164,8 +165,10 @@ function CoverCard({
   mode,
   hero,
   change,
+  seasonCode,
 }: {
   change?: RankChange;
+  seasonCode: number;
   entry: LeaderEntry<LeaderPlayer>;
   team?: CardTeam;
   category: LeaderStatKey;
@@ -201,22 +204,26 @@ function CoverCard({
       <div className="relative flex flex-1 items-stretch gap-3">
         <div className={`min-w-0 flex-1 ${wide === "lg" ? "lg:max-w-[22rem] lg:pb-6" : "xl:pb-4"}`}>
           <div className={`flex ${hero ? "items-center gap-4" : "flex-col items-start gap-2 xl:flex-row xl:items-center xl:gap-2.5"}`}>
-            <span className={hideCircle}>
+            {/* 사진도 선수 페이지로 (2026-10-14) — 이름 링크와 같은 곳이라 키보드 순서에서는 뺀다 */}
+            {/* deslop-ignore-next-line 19 */}
+            <PlayerLink id={p.id} season={seasonCode} tabIndex={-1} aria-label={`${p.nameKo} 선수 페이지`} className={`${hideCircle} shrink-0 rounded-full`}>
               <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={color} size={hero ? 88 : 48} className="ring-2 ring-white/70" />
-            </span>
+            </PlayerLink>
             <div className="min-w-0">
               <p className={`flex items-center gap-1.5 font-semibold opacity-85 ${hero ? "text-sub lg:text-body" : "text-caption xl:text-sub"}`}>
                 {entry.rank}위 <RankDelta change={change} onColor />
               </p>
               {/* deslop-ignore-next-line 11 */}
               <h3 className={`font-bold leading-tight break-keep ${hero ? "truncate text-2xl lg:text-5xl lg:leading-[1.1]" : "line-clamp-2 text-base xl:text-xl 2xl:text-2xl"}`} title={p.nameKo}>
-                <Link href={`/player/${p.id}`} className="focus-ring rounded-control underline-offset-4 hover:underline">
+                <Link href={`/player/${p.id}?season=${seasonCode}`} className="focus-ring rounded-control underline-offset-4 hover:underline">
                   {p.nameKo}
                 </Link>
               </h3>
               <p className={`mt-1 flex min-w-0 items-center gap-1.5 opacity-90 ${hero ? "text-body lg:mt-2" : "text-caption xl:text-sub"}`}>
-                <LogoChip team={team} fallback={p.teamShort} size={hero ? 20 : 14} />
-                <span className="truncate">{teamLabel}</span>
+                <TeamLink code={p.teamCode} season={seasonCode} place="leaders_cover" className="flex min-w-0 items-center gap-1.5">
+                  <LogoChip team={team} fallback={p.teamShort} size={hero ? 20 : 14} />
+                  <span className="truncate">{teamLabel}</span>
+                </TeamLink>
                 {hero && (
                   <span className="shrink-0">
                     · {positionLabel(p.position) ? `${positionLabel(p.position)} · ` : ""}
@@ -238,9 +245,9 @@ function CoverCard({
             </span>
           </p>
         </div>
-        <div className={`${showPortrait} shrink-0 self-end`}>
+        <PlayerLink id={p.id} season={seasonCode} tabIndex={-1} aria-label={`${p.nameKo} 선수 페이지`} className={`${showPortrait} shrink-0 self-end rounded-none`}>
           <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={color} variant="portrait" size={hero ? 250 : 190} />
-        </div>
+        </PlayerLink>
       </div>
     </article>
   );
@@ -389,24 +396,29 @@ export default function LeadersView({ seasonCode, seasonLabel, players, teams, s
       cell: (p) => {
         const team = teamByCode.get(p.teamCode);
         return (
-          // 칸 전체(사진·이름·팀)가 선수 페이지 링크 — 누르는 영역 40px 이상 (디자인 점검 C1)
-          <Link
-            href={`/player/${p.id}`}
-            className="focus-ring group flex min-h-10 min-w-0 items-center gap-2 rounded-control"
-            title={`${p.nameKo} 선수 페이지`}
-          >
-            <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={team?.color} size={28} />
+          // 사진·이름은 선수 페이지, 팀 줄은 팀 페이지 (2026-10-14) — 누르는 영역 40px 이상 (디자인 점검 C1)
+          <span className="flex min-h-10 min-w-0 items-center gap-2">
+            {/* deslop-ignore-next-line 19 */}
+            <Link href={`/player/${p.id}?season=${seasonCode}`} tabIndex={-1} aria-hidden className="shrink-0 rounded-full">
+              <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={team?.color} size={28} />
+            </Link>
             <span className="min-w-0">
-              <span className="block max-w-24 truncate font-semibold leading-tight text-ink xl:max-w-36 underline-offset-2 group-hover:underline">
+              <Link
+                href={`/player/${p.id}?season=${seasonCode}`}
+                className="focus-ring block max-w-24 truncate rounded-md font-semibold leading-tight text-ink underline-offset-2 hover:underline xl:max-w-36"
+                title={`${p.nameKo} 선수 페이지`}
+              >
                 {p.nameKo}
-              </span>
+              </Link>
               <span className="flex min-w-0 items-center gap-1 text-caption text-ink-3">
-                <TeamLogo logoUrl={team?.logoUrl} shortName={team?.shortName ?? p.teamShort} color={team?.color} size={16} />
-                <span className="max-w-16 truncate">{teamShortLabel(team?.shortName ?? p.teamShort)}</span>
+                <TeamLink code={p.teamCode} season={seasonCode} place="leaders_table" className="flex min-w-0 items-center gap-1">
+                  <TeamLogo logoUrl={team?.logoUrl} shortName={team?.shortName ?? p.teamShort} color={team?.color} size={16} />
+                  <span className="max-w-16 truncate">{teamShortLabel(team?.shortName ?? p.teamShort)}</span>
+                </TeamLink>
                 <PosBadge p={p} />
               </span>
             </span>
-          </Link>
+          </span>
         );
       },
     },
@@ -586,6 +598,7 @@ export default function LeadersView({ seasonCode, seasonLabel, players, teams, s
                 mode={mode}
                 hero={i === 0}
                 change={coverChanges?.get(e.player.id)}
+                seasonCode={seasonCode}
               />
             ))}
           </div>
@@ -609,7 +622,7 @@ export default function LeadersView({ seasonCode, seasonLabel, players, teams, s
 
       {/* 이 시즌 한 경기 최다 (데이터 있는 시즌만) */}
       {seasonHighs.length > 0 && (
-        <SeasonHighStrip cards={seasonHighs} teamByCode={teamByCode} activeKey={LEADER_CATEGORY_HIGH[category] ?? null} />
+        <SeasonHighStrip cards={seasonHighs} teamByCode={teamByCode} activeKey={LEADER_CATEGORY_HIGH[category] ?? null} seasonCode={seasonCode} />
       )}
 
       {/* 전체 순위: 모바일 행 카드 / PC 표 */}
@@ -714,12 +727,16 @@ export default function LeadersView({ seasonCode, seasonLabel, players, teams, s
               })
             }
             detailFooter={(p) => (
-              <Link
-                href={`/player/${p.id}`}
-                className="focus-ring link-shortcut px-1 text-body"
-              >
-                {p.nameKo} 선수 페이지 <IconChevronRight size={16} />
-              </Link>
+              <span className="flex flex-wrap gap-x-4">
+                <Link href={`/player/${p.id}?season=${seasonCode}`} className="focus-ring link-shortcut px-1 text-body">
+                  {p.nameKo} 선수 페이지 <IconChevronRight size={16} />
+                </Link>
+                {p.teamCode && (
+                  <TeamLink code={p.teamCode} season={seasonCode} place="leaders_row" className="link-shortcut px-1 text-body">
+                    {teamShortLabel(teamByCode.get(p.teamCode)?.shortName ?? p.teamShort)} 팀 페이지 <IconChevronRight size={16} />
+                  </TeamLink>
+                )}
+              </span>
             )}
           />
           {previous && (tableChanges || coverChanges) && (

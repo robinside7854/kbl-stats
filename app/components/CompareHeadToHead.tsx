@@ -11,6 +11,7 @@ import { gradeScore, RADAR_AXES, RADAR_AXIS_LABELS } from "@/lib/metrics";
 import { comparePairColors, ensureMarkContrast, FALLBACK_TEAM_COLOR } from "@/lib/teams";
 import { IconArrowUp } from "./icons";
 import PlayerAvatar from "./PlayerAvatar";
+import { PlayerLink } from "./EntityLinks";
 import type { ThemeColors } from "./useThemeColors";
 
 interface Props {
@@ -107,11 +108,16 @@ function Side({ v, label, color, align }: { v: SeasonCardView; label: string; co
   return (
     <div className={`flex min-w-0 items-center gap-2 ${align === "right" ? "flex-row-reverse text-right" : ""}`}>
       {/* deslop-ignore-next-line 19 */}
-      <span className="inline-flex shrink-0 rounded-full p-0.5" style={{ boxShadow: `0 0 0 2px ${color}` }}>
-        <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={teamColor} size={40} />
-      </span>
+      <PlayerLink id={p.id} season={v.seasonCode} tabIndex={-1} aria-label={`${p.nameKo} 선수 페이지`} className="inline-flex shrink-0 rounded-full">
+        {/* deslop-ignore-next-line 19 */}
+        <span className="inline-flex rounded-full p-0.5" style={{ boxShadow: `0 0 0 2px ${color}` }}>
+          <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={teamColor} size={40} />
+        </span>
+      </PlayerLink>
       <span className="min-w-0">
-        <span className="block truncate text-body font-bold leading-tight text-ink">{p.nameKo}</span>
+        <PlayerLink id={p.id} season={v.seasonCode} className="block truncate text-body font-bold leading-tight text-ink hover:underline">
+          {p.nameKo}
+        </PlayerLink>
         <span className="block truncate text-caption text-ink-3">{label}</span>
       </span>
     </div>

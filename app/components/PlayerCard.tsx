@@ -38,6 +38,7 @@ import { IconInfo } from "./icons";
 import PlayerAvatar from "./PlayerAvatar";
 import Skeleton from "./Skeleton";
 import TeamLogo from "./TeamLogo";
+import { TeamLink } from "./EntityLinks";
 import type { ThemeColors } from "./useThemeColors";
 import { SOURCE_LINE } from "./SourceFooter";
 
@@ -485,6 +486,8 @@ export default function PlayerCard({ view, colors, size = "sm", seriesColor, exp
   const dark = mixHex(color.primary, "#000000", 0.62);
   const mid = mixHex(color.primary, "#000000", 0.3);
   const official = !exportMode;
+  // 통산 카드(시즌 코드 0)는 팀 코드가 "마지막시즌-팀코드" 꼴 (lib/career-cards) — 팀 페이지는 뒤 코드로
+  const teamPageCode = view.seasonCode === 0 ? p.teamCode.split("-").pop() ?? null : p.teamCode;
   const teamShort = team?.shortName ?? p.teamShort;
   const offense = p.offenseType ? offenseTypeDef(p.offenseType).label : null;
 
@@ -511,15 +514,22 @@ export default function PlayerCard({ view, colors, size = "sm", seriesColor, exp
 
       {/* 사진: 오른쪽 아래에 붙여 하단이 카드 경계에 걸치게 */}
       <div className={`absolute bottom-0 ${horizontal ? "right-0" : "right-1"}`}>
-        <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={color} variant="portrait" size={d.photo} official={official} />
+        {nameHref && !exportMode ? (
+          <Link href={nameHref} tabIndex={-1} aria-hidden className="block">
+            <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={color} variant="portrait" size={d.photo} official={official} />
+          </Link>
+        ) : (
+          <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={color} variant="portrait" size={d.photo} official={official} />
+        )}
       </div>
 
       {/* 좌상단: 로고 + 종합 등급 · 시즌 · 유형 */}
       <div className="absolute flex max-w-[60%] flex-col items-start gap-1.5" style={{ left: d.pad + 2, top: d.pad + 2 }}>
         <div className="flex items-center gap-2">
-          <span className="inline-flex rounded-control bg-white p-1 shadow-card">
+          {/* 팀 로고를 누르면 팀 페이지 그 시즌 (2026-10-14, 저장 이미지는 링크 없음) */}
+          <TeamLink code={exportMode ? null : teamPageCode} season={view.seasonCode || null} place="player_card" aria-label={`${teamShort} 팀 페이지`} className="inline-flex rounded-control bg-white p-1 shadow-card hover:no-underline">
             <TeamLogo logoUrl={team?.logoUrl} shortName={teamShort} color={color} size={d.logo} official={official} />
-          </span>
+          </TeamLink>
           <OverallBadge entry={entry} color={color} colors={colors} d={d} />
           {!exportMode && (
             <HelpPopover
@@ -586,7 +596,10 @@ export default function PlayerCard({ view, colors, size = "sm", seriesColor, exp
           )}
         </h2>
         <p className="mt-0.5 truncate font-medium" style={{ opacity: 0.85, fontSize: d.nameEn }}>
-          {p.nameEn} · {p.teamName}
+          {p.nameEn} ·{" "}
+          <TeamLink code={exportMode ? null : teamPageCode} season={view.seasonCode || null} place="player_card" className="pointer-events-auto">
+            {p.teamName}
+          </TeamLink>
         </p>
       </div>
     </div>

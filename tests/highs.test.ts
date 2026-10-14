@@ -201,6 +201,7 @@ const cards = buildSeasonHighCards(
 assert.equal(leaders.fgm!.playerNo, "20");         // 데이터(1위)는 11개 다 계산
 assert.deepEqual(cards.map((c) => c.key), ["pts", "reb"]); // 카드는 HERO_HIGH_KEYS 만 (야투 성공 제외)
 assert.equal(cards[0].opponent, "60");              // 팀 목록에 없으면 코드
+assert.equal(cards[0].opponentCode, "60");          // 팀 페이지 링크용 코드
 assert.equal(cards[1].opponent, "SK");
 assert.equal(cards[0].value, "40");
 assert.equal(cards[0].date, "2025.11.02");
@@ -294,7 +295,7 @@ console.log("highs: 커리어 하이 행 통과");
   );
   assert.deepEqual(cards.map((c) => c.key), ["pts", "reb", "stl"]); // HERO 순서, 세 구분 모두 없는 부문·0 은 빠짐
   assert.deepEqual(cards[0], {
-    key: "pts", label: "득점", value: "46", shot: null, opponent: "정관장", date: "2023.10.21", times: 2,
+    key: "pts", label: "득점", value: "46", shot: null, opponent: "정관장", opponentCode: "70", opponentSeason: 45, date: "2023.10.21", times: 2,
     seasonBest: "23-24", milestone: "club40", playoff: "32", finals: "28",
   });
   assert.equal(cards[1].seasonBest, null); // 1위(20) 보다 낮음

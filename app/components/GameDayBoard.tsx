@@ -11,6 +11,7 @@ import { teamShortLabel } from "@/lib/images";
 import GameCard, { teamInfoOf, type GameTeamInfo } from "./GameCard";
 import { IconChevronRight } from "./icons";
 import TeamLogo from "./TeamLogo";
+import { TeamLink } from "./EntityLinks";
 import StreakText from "./StreakText";
 import { useMember } from "./useLikes";
 
@@ -76,12 +77,16 @@ export default function GameDayBoard({ day, next, seasonCode, teams, streaks = {
                 <li key={g.gmkey} className="tabular flex min-h-10 items-center gap-2 py-1.5 text-sub">
                   <span className="w-12 shrink-0 text-ink-3">{g.start ?? ""}</span>
                   {/* 홈 팀이 늘 왼쪽 (2026-10-05, 경기 카드와 같은 순서) */}
-                  <TeamLogo logoUrl={home.logoUrl} shortName={home.shortName} color={home.color} size={20} />
-                  <span className="min-w-0 truncate font-semibold text-ink">{teamShortLabel(home.shortName)}</span>
+                  <TeamLink code={g.home.teamCode} season={seasonCode} place="home_next" className="flex min-h-10 min-w-0 items-center gap-2">
+                    <TeamLogo logoUrl={home.logoUrl} shortName={home.shortName} color={home.color} size={20} />
+                    <span className="min-w-0 truncate font-semibold text-ink">{teamShortLabel(home.shortName)}</span>
+                  </TeamLink>
                   <StreakText streak={streaks[g.home.teamCode]} />
                   <span className="text-ink-3">vs</span>
-                  <TeamLogo logoUrl={away.logoUrl} shortName={away.shortName} color={away.color} size={20} />
-                  <span className="min-w-0 truncate font-semibold text-ink">{teamShortLabel(away.shortName)}</span>
+                  <TeamLink code={g.away.teamCode} season={seasonCode} place="home_next" className="flex min-h-10 min-w-0 items-center gap-2">
+                    <TeamLogo logoUrl={away.logoUrl} shortName={away.shortName} color={away.color} size={20} />
+                    <span className="min-w-0 truncate font-semibold text-ink">{teamShortLabel(away.shortName)}</span>
+                  </TeamLink>
                   <StreakText streak={streaks[g.away.teamCode]} />
                   {isMine(g) && <span className="shrink-0 text-caption font-semibold text-series-1">내 응원팀</span>}
                   {g.stadium && <span className="ml-auto hidden min-w-0 truncate text-caption text-ink-3 sm:inline md:ml-2">{g.stadium}</span>}

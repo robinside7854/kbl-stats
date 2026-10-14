@@ -26,6 +26,7 @@ import CompareHeadToHead from "./CompareHeadToHead";
 import CompareTable from "./CompareTable";
 import { IconChevronDown, IconChevronRight, IconChevronUp } from "./icons";
 import PlayerSearch from "./PlayerSearch";
+import { PlayerLink } from "./EntityLinks";
 import { useCardView } from "./useSeasonCards";
 import { loadSearchIndex } from "./useSearchIndex";
 import { useThemeColors } from "./useThemeColors";
@@ -119,7 +120,14 @@ export default function CompareView({ seasons, initialA, initialB }: Props) {
         {/* deslop-ignore-next-line 19 */}
         <span aria-hidden className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: series }} />
         선수 {name}
-        {slot && <span className="truncate text-ink-2">· {slot.nameKo}</span>}
+        {slot && (
+          <span className="truncate text-ink-2">
+            ·{" "}
+            <PlayerLink id={slot.id} season={slot.season} className="hover:underline">
+              {slot.nameKo}
+            </PlayerLink>
+          </span>
+        )}
       </h2>
       <PlayerSearch
         className="mt-2 w-full"

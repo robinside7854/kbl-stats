@@ -328,6 +328,9 @@ export interface HighAchievement {
   shot: string | null;
   /** 상대 팀 한글 약칭 (모르면 코드, 없으면 null) */
   opponent: string | null;
+  /** 상대 팀 코드·그 경기 시즌 (팀 페이지 링크, 2026-10-14) */
+  opponentCode: string | null;
+  opponentSeason: number | null;
   /** "2023.10.21" (없으면 "–") */
   date: string;
   /** 달성 횟수 (1회 이상일 때 숫자, 모르면 null) */
@@ -380,6 +383,8 @@ export function careerHighAchievements(
       value: reg ? formatHighValue(reg.value, key) : null,
       shot: reg ? formatHighShot(reg, key) : null,
       opponent: reg?.opponentTeamCode ? (teamName(reg.opponentTeamCode, reg.seasonCode) ?? reg.opponentTeamCode) : null,
+      opponentCode: reg?.opponentTeamCode ?? null,
+      opponentSeason: reg?.seasonCode ?? null,
       date: formatHighDate(reg?.date ?? null),
       times: reg?.times && reg.times > 0 ? reg.times : null,
       seasonBest: best ? seasonShortLabel(best) : null,

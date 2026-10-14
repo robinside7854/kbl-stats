@@ -7,6 +7,7 @@
 // 2026-10-14 사용자 "지난 시즌을 쭉 늘어놓지 말고 과거 실적으로, 기본은 그 시즌 먼저": 경기 띠 → 이번 시즌(없으면 최근·마지막 시즌)
 // 로스터 → 그 시즌 상대 전적 → "역대 실적"(통산 숫자 + 시즌마다 순위·PO 결과 칸, 칸을 누르면 위가 그 시즌으로 — 30시즌 칩 줄은 없앰,
 // 긴 시즌별 성적 표는 접어 둠: GA4 filter_change team history open/close) → 레전드 → 팀 통산 기록 → 수상(처음 8개) → 계보.
+// 시즌 고르기는 머리말에 ‹ 시즌 › (SeasonStepper) — 로스터·상대 전적이 그 시즌으로(같은 filter_change team season).
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { mixHex } from "@/lib/images";
@@ -17,7 +18,7 @@ import FanButton from "./FanButton";
 import PlayerAvatar from "./PlayerAvatar";
 import TeamLogo from "./TeamLogo";
 import TeamGameStrip, { type TeamStripData } from "./TeamGameStrip";
-import { IconArrowRight, IconChevronDown, IconChevronLeft, IconTrophy } from "./icons";
+import { IconArrowRight, IconChevronDown, IconChevronLeft, IconChevronRight, IconTrophy } from "./icons";
 import { trackEvent, trackFilters } from "./track";
 
 const NF = new Intl.NumberFormat("ko-KR");
@@ -57,6 +58,39 @@ function cellClass(r: TeamSeasonRow): string {
   if (r.stage === "runnerUp") return "border border-ink bg-surface-2 text-ink";
   if (r.stage) return "bg-surface-2 text-ink hover:bg-line";
   return "border border-dashed border-line text-ink-3 hover:bg-surface-2";
+}
+
+/** 머리말의 시즌 고르기 (2026-10-14 사용자: 시즌 변경은 중간이 아니라 위쪽에) — ‹ 이전 · 시즌 · 다음 › */
+function SeasonStepper({ rows, season, onChange }: { rows: TeamSeasonRow[]; season: number; onChange: (code: number) => void }) {
+  if (rows.length < 2) return null;
+  // rows 는 최신 먼저
+  const i = rows.findIndex((r) => r.seasonCode === season);
+  const older = i >= 0 && i < rows.length - 1 ? rows[i + 1].seasonCode : null;
+  const newer = i > 0 ? rows[i - 1].seasonCode : null;
+  const btn =
+    "focus-ring flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-md text-ink-2 transition-colors duration-200 hover:bg-surface-2 hover:text-ink disabled:cursor-default disabled:opacity-40";
+  return (
+    <div role="group" aria-label="시즌 고르기" className="inline-flex items-center gap-0.5 rounded-control bg-surface p-0.5 text-ink">
+      <button type="button" className={btn} disabled={older === null} onClick={() => older !== null && onChange(older)} aria-label="이전 시즌">
+        <IconChevronLeft size={20} />
+      </button>
+      <select
+        aria-label="시즌"
+        className="focus-ring h-10 cursor-pointer rounded-md bg-surface px-1 text-base font-bold text-ink tabular"
+        value={season}
+        onChange={(e) => onChange(Number(e.target.value))}
+      >
+        {rows.map((r) => (
+          <option key={r.seasonCode} value={r.seasonCode}>
+            {r.label} 시즌{r.stage === "champion" ? " · 우승" : ""}
+          </option>
+        ))}
+      </select>
+      <button type="button" className={btn} disabled={newer === null} onClick={() => newer !== null && onChange(newer)} aria-label="다음 시즌">
+        <IconChevronRight size={20} />
+      </button>
+    </div>
+  );
 }
 
 /** 수상 기록 처음에 보이는 개수 */
@@ -134,6 +168,7 @@ export default function TeamView({ data, strip = null, h2h = {} }: { data: TeamP
               </p>
             )}
             <div className="mt-3 flex flex-wrap gap-2">
+              <SeasonStepper rows={rows} season={season} onChange={(c) => pickSeason(c)} />
               {data.active && <FanButton teamCode={brand.teamCode} label={brand.name} />}
               {champSeasons.length > 0 && (
                 <span className="inline-flex h-10 items-center gap-1.5 rounded-control px-3 text-sub font-bold" style={{ background: "var(--grade-s)", color: "var(--grade-s-ink)" }}>
@@ -360,14 +395,18 @@ export default function TeamView({ data, strip = null, h2h = {} }: { data: TeamP
               <span className="hidden sm:block">득점 1위</span>
             </li>
             {rows.map((r) => (
-              <li key={r.seasonCode}>
+              <li
+                key={r.seasonCode}
+                className={`grid grid-cols-[3.25rem_1.5rem_minmax(0,1fr)_3rem_3.75rem] items-center gap-2 transition-colors duration-200 hover:bg-surface-2 sm:grid-cols-[4rem_minmax(0,1fr)_6rem_4rem_3.5rem_4.5rem_minmax(0,1fr)] ${
+                  r.seasonCode === season ? "bg-surface-2" : ""
+                }`}
+              >
+                {/* 줄(득점 1위 칸 빼고)을 누르면 위가 그 시즌 · 득점 1위 이름은 선수 페이지 (2026-10-14) */}
                 <button
                   type="button"
                   onClick={() => pickSeason(r.seasonCode, true)}
                   aria-pressed={r.seasonCode === season}
-                  className={`focus-ring-inset grid min-h-12 w-full cursor-pointer grid-cols-[3.25rem_1.5rem_minmax(0,1fr)_3rem_3.75rem] items-center gap-2 py-1.5 text-left text-sub transition-colors duration-200 hover:bg-surface-2 sm:grid-cols-[4rem_minmax(0,1fr)_6rem_4rem_3.5rem_4.5rem_minmax(0,1fr)] ${
-                    r.seasonCode === season ? "bg-surface-2" : ""
-                  }`}
+                  className="focus-ring-inset col-span-5 grid min-h-12 cursor-pointer grid-cols-subgrid items-center py-1.5 text-left text-sub sm:col-span-6"
                 >
                   <span className="font-semibold tabular text-ink">{r.label}</span>
                   <span className="flex min-w-0 items-center gap-1.5 text-ink-2">
@@ -382,10 +421,16 @@ export default function TeamView({ data, strip = null, h2h = {} }: { data: TeamP
                   </span>
                   <span className="hidden text-right tabular text-ink-2 sm:block">{pctText(r.pct)}</span>
                   <span className="text-right">{r.ongoing ? <span className="text-caption text-ink-3">진행 중</span> : <StageChip stage={r.stage} />}</span>
-                  <span className="hidden truncate text-ink-2 sm:block">
-                    {r.topScorer ? `${r.topScorer.name} ${r.topScorer.ppg.toFixed(1)}` : "–"}
-                  </span>
                 </button>
+                <span className="hidden truncate text-sub text-ink-2 sm:block">
+                  {r.topScorer ? (
+                    <Link href={`/player/${r.topScorer.id}?season=${r.seasonCode}`} className="focus-ring rounded-md underline-offset-2 hover:underline">
+                      {r.topScorer.name} {r.topScorer.ppg.toFixed(1)}
+                    </Link>
+                  ) : (
+                    "–"
+                  )}
+                </span>
               </li>
             ))}
           </ul>

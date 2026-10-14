@@ -233,3 +233,22 @@ console.log("games: 팀 순위 통과");
   assert.equal(playerRecentGames(list, "p", 1).length, 1);
   console.log("games: 상대 전적·경기 띠·최근 경기 통과");
 }
+
+// ── 일정 달력 띠 ──
+{
+  const { monthCalendar } = await import("../lib/games");
+  const g = (date: string, h: string, a: string, hs: number | null, as: number | null) => ({
+    gmkey: `${date}${h}`, date, start: null, stadium: null, ended: hs !== null,
+    home: { teamCode: h, name: h, score: hs }, away: { teamCode: a, name: a, score: as }, box: null,
+  });
+  const cal = monthCalendar("2026-10", [g("2026-10-03", "60", "50", 68, 103), g("2026-10-03", "66", "64", 82, 73), g("2026-10-05", "50", "55", null, null)], ["50"]);
+  assert.equal(cal.length, 31);
+  assert.equal(cal[0].weekday, "목"); // 2026-10-01
+  assert.equal(cal[2].games, 2);
+  assert.deepEqual(cal[2].mine, { oppCode: "60", result: "win" }); // LG 원정 승
+  assert.deepEqual(cal[4].mine, { oppCode: "55", result: null }); // 아직 안 끝남
+  assert.equal(cal[3].games, 0);
+  assert.equal(monthCalendar("2027-02", []).length, 28);
+  assert.equal(monthCalendar("x", []).length, 0);
+  console.log("games: 달력 띠 통과");
+}

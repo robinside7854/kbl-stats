@@ -17,6 +17,7 @@ import BoxScore from "./BoxScore";
 import { IconClose, IconExternal, IconPlay } from "./icons";
 import Skeleton from "./Skeleton";
 import TeamLogo from "./TeamLogo";
+import { TeamLink } from "./EntityLinks";
 import { trackEvent } from "./track";
 
 export interface GameTeamInfo {
@@ -53,6 +54,7 @@ export default function GameCard({ game: g, seasonCode, teams, stars = null, loa
   const hasBox = !!g.box || !!loadBox;
   const sides = (["home", "away"] as const).map((k) => ({
     key: k,
+    code: g[k].teamCode,
     info: teamInfoOf(teams, g[k].teamCode, g[k].name),
     score: g[k].score,
     won: win === k,
@@ -84,7 +86,7 @@ export default function GameCard({ game: g, seasonCode, teams, stars = null, loa
       {mine && <p className="mb-1 text-caption font-semibold text-series-1">내 응원팀 경기</p>}
       {/* 스코어보드: 홈(왼쪽) | 점수 | 원정(오른쪽) */}
       <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
-        <TeamSide side={homeSide} />
+        <TeamSide side={homeSide} seasonCode={seasonCode} place={place} />
         <div className="flex flex-col items-center px-1">
           {g.ended ? (
             <p className="flex items-baseline gap-1.5 leading-none" aria-label={`${homeSide.info.shortName} ${homeSide.score ?? "–"}점, ${awaySide.info.shortName} ${awaySide.score ?? "–"}점`}>
@@ -97,7 +99,7 @@ export default function GameCard({ game: g, seasonCode, teams, stars = null, loa
           )}
           <p className="mt-1.5 text-caption text-ink-3">{g.ended ? "종료" : g.start ? "시작" : "예정"}</p>
         </div>
-        <TeamSide side={awaySide} />
+        <TeamSide side={awaySide} seasonCode={seasonCode} place={place} />
       </div>
       {g.stadium && <p className="mt-1 text-center text-caption text-ink-3">{g.stadium}</p>}
       {(starsOf("away").length > 0 || starsOf("home").length > 0) && (
@@ -106,7 +108,9 @@ export default function GameCard({ game: g, seasonCode, teams, stars = null, loa
             const list = starsOf(s.key);
             return list.length > 0 ? (
               <li key={s.key} className="flex min-w-0 gap-1.5">
-                <span className="w-14 shrink-0 truncate pt-0.5 text-caption text-ink-3">{teamShortLabel(s.info.shortName)}</span>
+                <TeamLink code={s.code} season={seasonCode} place={`${place}_card`} className="w-14 shrink-0 truncate pt-0.5 text-caption text-ink-3">
+                  {teamShortLabel(s.info.shortName)}
+                </TeamLink>
                 <ul className="min-w-0 flex-1 space-y-0.5">
                   {list.map((st) => (
                     <li key={st.row.id} className="flex min-w-0 items-baseline gap-1.5">
@@ -280,17 +284,20 @@ function BoxScoreDialog({ title, sub, onClose, children }: { title: string; sub:
 
 interface SideView {
   key: "home" | "away";
+  code: string;
   info: GameTeamInfo;
   score: number | null;
   won: boolean;
 }
 
 /** 스코어보드 한쪽 팀: 로고·이름·HOME/AWAY, 이긴 팀은 "승" 표시 */
-function TeamSide({ side: s }: { side: SideView }) {
+function TeamSide({ side: s, seasonCode, place }: { side: SideView; seasonCode: number; place: string }) {
   return (
     <div className="flex min-w-0 flex-col items-center text-center">
-      <TeamLogo logoUrl={s.info.logoUrl} shortName={s.info.shortName} color={s.info.color} size={36} />
-      <span className={`mt-1 w-full truncate text-body ${s.won ? "font-bold text-ink" : "font-medium text-ink-2"}`}>{s.info.shortName}</span>
+      <TeamLink code={s.code} season={seasonCode} place={`${place}_card`} className="flex w-full min-w-0 flex-col items-center">
+        <TeamLogo logoUrl={s.info.logoUrl} shortName={s.info.shortName} color={s.info.color} size={36} />
+        <span className={`mt-1 w-full truncate text-body ${s.won ? "font-bold text-ink" : "font-medium text-ink-2"}`}>{s.info.shortName}</span>
+      </TeamLink>
       <span className="mt-0.5 flex items-center gap-1 text-caption font-semibold tracking-wide text-ink-3">
         {s.key === "home" ? "HOME" : "AWAY"}
         {s.won && <span className="rounded-sm bg-ink px-1 text-caption font-bold tracking-normal text-bg">승</span>}

@@ -7,39 +7,44 @@ import Link from "next/link";
 import type { AwardItemView, AwardWinnerView, SeasonAwardsView } from "@/lib/awards";
 import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
 import PlayerAvatar from "./PlayerAvatar";
+import { PlayerLink, TeamLink } from "./EntityLinks";
 import { IconTrophy } from "./icons";
 
 const GOLD = { background: "var(--grade-s)", color: "var(--grade-s-ink)" };
 
-/** 이름 + 팀 (링크가 있으면 선수 상세 그 시즌으로) */
-function WinnerName({ w, className = "", stacked = false }: { w: AwardWinnerView; className?: string; stacked?: boolean }) {
-  // stacked: 이름 아래 줄에 팀 — 좁은 카드에서 "아셈 마레이 LG" 가 이름 중간에서 꺾이지 않게
-  const body = stacked ? (
-    <>
-      <span className="block font-bold text-ink">{w.name}</span>
-      <span className="block text-sub text-ink-3 lg:text-body">
-        {w.teamLabel}
-        {w.note && <> · {w.note}</>}
-      </span>
-    </>
-  ) : (
-    <>
-      <span className="font-bold text-ink">{w.name}</span>
-      <span className="text-ink-3"> {w.teamLabel}</span>
-      {w.note && <span className="text-ink-3"> · {w.note}</span>}
-    </>
-  );
-  return w.href ? (
-    <Link href={w.href} className={`focus-ring rounded-md underline-offset-2 hover:underline ${className}`}>
-      {body}
+/** 이름 + 팀 — 이름은 선수 상세 그 시즌, 팀은 팀 페이지 그 시즌 (2026-10-14: 따로 누른다) */
+function WinnerName({ w, season, className = "", stacked = false }: { w: AwardWinnerView; season: number; className?: string; stacked?: boolean }) {
+  const name = w.href ? (
+    <Link href={w.href} className="focus-ring rounded-md font-bold text-ink underline-offset-2 hover:underline">
+      {w.name}
     </Link>
   ) : (
-    <span className={className}>{body}</span>
+    <span className="font-bold text-ink">{w.name}</span>
+  );
+  const team = (
+    <TeamLink code={w.team?.teamCode} season={season} place="awards" className="text-ink-3">
+      {w.teamLabel}
+    </TeamLink>
+  );
+  // stacked: 이름 아래 줄에 팀 — 좁은 카드에서 "아셈 마레이 LG" 가 이름 중간에서 꺾이지 않게
+  return stacked ? (
+    <span className={className}>
+      <span className="block">{name}</span>
+      <span className="block text-sub text-ink-3 lg:text-body">
+        {team}
+        {w.note && <> · {w.note}</>}
+      </span>
+    </span>
+  ) : (
+    <span className={className}>
+      {name} {team}
+      {w.note && <span className="text-ink-3"> · {w.note}</span>}
+    </span>
   );
 }
 
 /** 주요 시상 카드: 상 이름 띠 + 사진 + 이름·팀. 공동 수상은 아래로 쌓는다 */
-function MajorCard({ item }: { item: AwardItemView }) {
+function MajorCard({ item, season }: { item: AwardItemView; season: number }) {
   const gold = item.key === "mvp" || item.key === "finalsMvp";
   return (
     <li className="surface-card flex min-w-0 flex-col rounded-card p-3 lg:p-4">
@@ -53,13 +58,16 @@ function MajorCard({ item }: { item: AwardItemView }) {
       {item.winners.map((w, i) => (
         <div key={`${w.name}-${i}`} className="mt-2.5 flex min-w-0 items-center gap-2.5 lg:mt-3 lg:gap-4">
           {/* PC 는 사진·이름을 크게 (2026-10-06 사용자: 넓은 카드에 작은 글씨만 있다) */}
-          <span className="lg:hidden">
-            <PlayerAvatar photoUrl={w.photoUrl} nameKo={w.name} color={w.team?.color ?? FALLBACK_TEAM_COLOR} size={52} />
-          </span>
-          <span className="hidden lg:inline">
-            <PlayerAvatar photoUrl={w.photoUrl} nameKo={w.name} color={w.team?.color ?? FALLBACK_TEAM_COLOR} size={76} />
-          </span>
-          <WinnerName w={w} stacked className="min-w-0 text-body break-keep lg:text-h2" />
+          {/* deslop-ignore-next-line 19 */}
+          <PlayerLink id={w.playerNo} season={season} tabIndex={-1} aria-label={`${w.name} 선수 페이지`} className="shrink-0 rounded-full">
+            <span className="lg:hidden">
+              <PlayerAvatar photoUrl={w.photoUrl} nameKo={w.name} color={w.team?.color ?? FALLBACK_TEAM_COLOR} size={52} />
+            </span>
+            <span className="hidden lg:inline">
+              <PlayerAvatar photoUrl={w.photoUrl} nameKo={w.name} color={w.team?.color ?? FALLBACK_TEAM_COLOR} size={76} />
+            </span>
+          </PlayerLink>
+          <WinnerName w={w} season={season} stacked className="min-w-0 text-body break-keep lg:text-h2" />
         </div>
       ))}
     </li>
@@ -67,7 +75,7 @@ function MajorCard({ item }: { item: AwardItemView }) {
 }
 
 /** 사진 줄 카드: 베스트5·수비 5걸(한 상의 5명) / 정규리그 시상(상마다 한 칸, 위에 상 이름) */
-function PhotoRow({ title, cells }: { title: string; cells: { caption: string | null; w: AwardWinnerView }[] }) {
+function PhotoRow({ title, cells, season }: { title: string; cells: { caption: string | null; w: AwardWinnerView }[]; season: number }) {
   return (
     <div className="surface-card rounded-card p-3 lg:p-4">
       <p className="text-sub font-bold text-ink lg:text-body">{title}</p>
@@ -84,18 +92,20 @@ function PhotoRow({ title, cells }: { title: string; cells: { caption: string | 
                 <PlayerAvatar photoUrl={w.photoUrl} nameKo={w.name} color={w.team?.color ?? FALLBACK_TEAM_COLOR} size={80} />
               </span>
               <span className="mt-1 w-full truncate text-caption font-semibold text-ink lg:mt-2 lg:text-body">{w.name}</span>
-              <span className="w-full truncate text-caption text-ink-3 lg:text-sub">{w.teamLabel}</span>
             </>
           );
           return (
-            <li key={`${w.name}-${i}`} className="min-w-0">
+            <li key={`${w.name}-${i}`} className="flex min-w-0 flex-col items-center text-center">
               {w.href ? (
-                <Link href={w.href} className="focus-ring flex min-h-10 flex-col items-center rounded-md text-center transition-colors duration-200 hover:bg-surface-2">
+                <Link href={w.href} className="focus-ring flex min-h-10 w-full flex-col items-center rounded-md transition-colors duration-200 hover:bg-surface-2">
                   {inner}
                 </Link>
               ) : (
-                <span className="flex flex-col items-center text-center">{inner}</span>
+                <span className="flex w-full flex-col items-center">{inner}</span>
               )}
+              <TeamLink code={w.team?.teamCode} season={season} place="awards" className="max-w-full truncate text-caption text-ink-3 lg:text-sub">
+                {w.teamLabel}
+              </TeamLink>
             </li>
           );
         })}
@@ -105,7 +115,7 @@ function PhotoRow({ title, cells }: { title: string; cells: { caption: string | 
 }
 
 /** 작은 목록 묶음: "상 이름 — 수상자" 줄 */
-function ListGroup({ label, items }: { label: string; items: AwardItemView[] }) {
+function ListGroup({ label, items, season }: { label: string; items: AwardItemView[]; season: number }) {
   return (
     <div className="surface-card rounded-card p-3">
       <p className="text-sub font-bold text-ink">{label}</p>
@@ -115,7 +125,7 @@ function ListGroup({ label, items }: { label: string; items: AwardItemView[] }) 
             <dt className="text-ink-2">{it.label}</dt>
             <dd className="min-w-0 space-y-0.5">
               {it.winners.map((w, i) => (
-                <WinnerName key={`${w.name}-${i}`} w={w} className="block [overflow-wrap:anywhere]" />
+                <WinnerName key={`${w.name}-${i}`} w={w} season={season} className="block [overflow-wrap:anywhere]" />
               ))}
             </dd>
           </div>
@@ -143,18 +153,32 @@ export default function SeasonAwardsBoard({ view, seasonShort }: { view: SeasonA
           {view.finals && (
             <div className="rounded-card p-3" style={GOLD}>
               <p className="text-caption font-bold">챔피언</p>
-              <p className="mt-0.5 text-h2 font-black">{view.finals.champion}</p>
+              <p className="mt-0.5 text-h2 font-black">
+                <TeamLink code={view.teamCodes[view.finals.champion]} season={view.seasonCode} place="awards">
+                  {view.finals.champion}
+                </TeamLink>
+              </p>
               <p className="text-sub">
-                {view.finals.championRecord} · 준우승 {view.finals.runnerUp}
+                {view.finals.championRecord} · 준우승{" "}
+                <TeamLink code={view.teamCodes[view.finals.runnerUp]} season={view.seasonCode} place="awards">
+                  {view.finals.runnerUp}
+                </TeamLink>
               </p>
             </div>
           )}
           {view.regular && (
             <div className="surface-card rounded-card p-3">
               <p className="text-caption font-bold text-ink-2">정규리그 1위</p>
-              <p className="mt-0.5 text-h2 font-black text-ink">{view.regular.first}</p>
+              <p className="mt-0.5 text-h2 font-black text-ink">
+                <TeamLink code={view.teamCodes[view.regular.first]} season={view.seasonCode} place="awards">
+                  {view.regular.first}
+                </TeamLink>
+              </p>
               <p className="text-sub text-ink-2">
-                {view.regular.firstRecord} · 2위 {view.regular.second}
+                {view.regular.firstRecord} · 2위{" "}
+                <TeamLink code={view.teamCodes[view.regular.second]} season={view.seasonCode} place="awards">
+                  {view.regular.second}
+                </TeamLink>
               </p>
             </div>
           )}
@@ -164,7 +188,7 @@ export default function SeasonAwardsBoard({ view, seasonShort }: { view: SeasonA
       {major && (
         <ul className="mt-3 grid grid-cols-2 gap-2 lg:grid-cols-4">
           {major.items.map((it) => (
-            <MajorCard key={it.key} item={it} />
+            <MajorCard key={it.key} item={it} season={view.seasonCode} />
           ))}
         </ul>
       )}
@@ -173,7 +197,7 @@ export default function SeasonAwardsBoard({ view, seasonShort }: { view: SeasonA
       {(team5 || regular) && (
         <div className="mt-3 grid gap-2">
           {team5?.items.map((it) => (
-            <PhotoRow key={it.key} title={it.label} cells={it.winners.map((w) => ({ caption: null, w }))} />
+            <PhotoRow key={it.key} title={it.label} season={view.seasonCode} cells={it.winners.map((w) => ({ caption: null, w }))} />
           ))}
           {/* 수비 5걸이 공식 표에 "-" 뿐인 시즌(23-24 ~)은 자리를 비우지 않고 안내 한 줄 */}
           {team5?.items.some((it) => it.key === "best5") && !team5.items.some((it) => it.key === "defense5") && (
@@ -185,6 +209,7 @@ export default function SeasonAwardsBoard({ view, seasonShort }: { view: SeasonA
           {regular && (
             <PhotoRow
               title={regular.label}
+              season={view.seasonCode}
               cells={regular.items.flatMap((it) => it.winners.map((w) => ({ caption: it.label, w })))}
             />
           )}
@@ -194,7 +219,7 @@ export default function SeasonAwardsBoard({ view, seasonShort }: { view: SeasonA
       {rest.length > 0 && (
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
           {rest.map((g) => (
-            <ListGroup key={g.group} label={g.label} items={g.items} />
+            <ListGroup key={g.group} label={g.label} items={g.items} season={view.seasonCode} />
           ))}
         </div>
       )}

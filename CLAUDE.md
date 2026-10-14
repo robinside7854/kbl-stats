@@ -330,6 +330,7 @@ kbl-stats/
   | nav_click(menu "로그인"·"내 계정") | | 헤더 계정 버튼 |
   | contact_click | (없음) | 푸터 문의 이메일 누르기 |
   | home_feat_click | kind(career·careerTie·league·milestone), player_no | 홈 "새로 나온 기록" 칸 누르기 ("더 보기"는 filter_change screen=home filter=feats value=more) |
+  | filter_change (일정 달력 띠) | screen=schedule filter=calendar value=mine/all | 일정 달력 띠의 날짜 누르기(그때 보기 범위, 2026-10-14) |
   | filter_change (일정 범위) | screen=schedule filter=scope value=mine/all | 일정 화면 내 응원팀만 / 전체 일정 (로그인 + 응원팀 있는 회원만 보임) |
   | login_prompt_click | place(schedule) | 로그인 안 한 방문자에게 보이는 "로그인하면 ~" 안내의 로그인 링크 |
   | app_install | (없음) | 앱 설치 완료 (브라우저 "앱 설치"·"홈 화면에 추가", `AppInstallTracker`) — 설치한 앱으로 연 방문은 사용자 속성 `display_mode`(standalone/browser) |
@@ -338,7 +339,7 @@ kbl-stats/
   | highlight_open | game_key(gmkey), season_code, place(home/schedule) | 경기 카드 "하이라이트" (유튜브 영상 팝업) |
   | boxscore_open | game_key(gmkey), season_code, place(home/schedule) | 홈 "오늘의 경기"·일정 화면 선수 기록 펼치기 (정렬·보기 전환은 filter_change screen=boxscore sort·view, 일정 달은 screen=schedule month) |
   | compare_open | player_no | 선수 상세 "비교" 버튼 (고른 선수는 search_select mode=compare) |
-  | team_select | team_code, season_code 또는 place(teams) | 팀 순위·모든 팀에서 팀 누르기(→ 팀 페이지) |
+  | team_select | team_code, season_code 또는 place(teams·h2h·h2h_table·home_card·schedule_card·home_next·home_hero·leaders_cover·leaders_table·leaders_row·awards·game_result·player_card·player_hero·career_table·career_row·career_trend·career_high·season_high) | 팀 로고·이름 누르기(→ 팀 페이지, 2026-10-14 전역 — `app/components/EntityLinks TeamLink`) |
   | share_click | method(native/copy), page | 헤더 공유 버튼 (폰은 기기 공유 창, PC 는 주소 복사) |
   | push_enable / push_disable / push_click | result / result / (없음) | 알림함 폰 알림 켜기(on·denied·failed·signed_out) / 끄기(off·failed) / 폰 알림을 눌러 들어옴(?src=push) |
   | notif_open / notif_click | unread / kind | 헤더 알림 종 누르기(그때 새 소식 수) / 알림함 소식 누르기(high·milestone·double·team_result·highlight·player_game·team_streak·team_rank·team_clinch·team_preview·leader_rank·alltime_rank·birthday·award) |
@@ -392,6 +393,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-14 (일정 달력 띠·전역 선수/팀 링크·팀 페이지 시즌 위로): 사용자 "남은 후보 2번 달력 띠, 서비스 전역에서 선수·팀 프로필이나 이름을 누르면 그 페이지로, 팀 페이지 시즌 변경은 상단에". ① 일정 달 칩 아래 `CalendarStrip`(`lib/games monthCalendar`: 1일~말일 칸, 경기 수 점, 오늘 검정, 토·일 색, "내 응원팀" 보기는 상대 로고 + 승 빨강·패 파랑 테두리, 누르면 ?date= 로 그날 스크롤·접힌 지난 경기 펼침, 폰 옆으로 밀기·PC 한 줄) ② 공통 `app/components/EntityLinks`(TeamLink = team_select place 기록·PlayerLink): 경기 카드 팀·팀 약칭, 홈 다음 경기, 팀 간 상대 전적 표 머리, 리더보드 1~3위 카드 사진·팀·PC 표 팀 줄(선수 칸에서 분리)·폰 펼침 "팀 페이지", 홈 표지 사진·팀, 어워즈 사진·팀·챔피언/정규 1위 팀(`lib/awards teamCodeOfName`, view.teamCodes·seasonCode), 54-0 결과 코트 사진·이름·팀·가산점 이름(저장 이미지는 링크 없음), 비교 탭 이름·좌우 비교 사진, 플레이어 카드 팀 로고·팀 이름·(비교 탭) 사진(통산 카드는 "시즌-코드" 뒤 코드), 선수 머리말 팀, 기록표 팀 칸·폰 펼침 "팀 페이지", 추이 범례 팀, 커리어 하이·이 시즌 한 경기 최다 상대 팀(`opponentCode`), 팀 페이지 시즌별 성적 표 득점 1위(줄 버튼에서 분리 — subgrid). 그대로 둔 것: 줄 전체가 선수 링크인 목록 안 팀 글자(기록 목록·검색·즐겨찾기 등), 다른 링크 안(경기 띠·최근 경기 상대), 54-0 고르는 중, 필터 칩 ③ 팀 페이지 머리말에 ‹ 시즌 › (`SeasonStepper`). GA4 team_select place 값 늘어남·filter_change schedule calendar(새 매개변수 없음). 업데이트 소식 글. main 배포.
 - 2026-10-14 (팀 페이지 이번 시즌 먼저): 사용자 "지난 시즌 로스터·시즌별 성적을 쭉 늘어놓지 말고 과거 실적으로, 기본은 그 시즌 먼저" → `TeamView` 순서: 경기 띠 → **이번 시즌 로스터**(지금 팀이 아직 첫 경기 전이면 "최근 시즌" + 안내, 추억의 팀은 "마지막 시즌", 다른 시즌을 보면 "이번 시즌으로" 버튼) → 그 시즌 상대 전적 → **역대 실적**(통산 숫자 + 우승 시즌·최고 정규시즌 `lib/franchise bestRegularSeason` + 시즌마다 순위·PO 결과 칸 — 우승 금색·준우승 테두리·4강/6강 회색·탈락 점선, 칸을 누르면 위가 그 시즌으로) → 레전드 → 팀 통산 기록 → 수상(처음 8개 + 더 보기) → 계보(아래로). 30시즌 칩 줄 삭제, 시즌별 성적 표는 접어 둠. GA4 filter_change team history·awards(새 매개변수 없음). 오늘 업데이트 글에 한 줄. main 배포.
 - 2026-10-14 (상대 전적·팀 경기 띠·선수 최근 경기 — 스포츠 앱 비교 1·3·5): 사용자 "1,3,5 바로 동시 진행". 규칙 `lib/games`(headToHead·headToHeadWins·teamGameStrip(지난 3·다음 2)·playerRecentGames(최근 5, 박스스코어 있는 경기·출전한 경기만)·scheduleDayHref·OppBrand·TeamHeadToHeadLine), 재료 `lib/data`(loadTeamHeadToHead·loadTeamStrip·loadPlayerRecentGames). 화면 ① 팀 화면 "표" 보기 순위 표 아래 `HeadToHeadMatrix`(줄 팀 기준 승-패, 폰은 로고만, StandingsSeason.h2h) + 팀 페이지 로스터 아래 "상대 전적"(시즌 칩을 따름, 평균 득실, 줄 → 상대 팀 페이지) ② 팀 페이지 맨 위 `TeamGameStrip`(지금 팀만, 다음 첫 경기 테두리, 칸 → 그날 일정) ③ 선수 상세 `PlayerRecentGames`(카드 시즌을 따름, 25-26·26-27, 줄 → 그날 일정), 승·패 글자 `StreakText ResultTag`(연승 색과 같음). GA4 새 이벤트 `game_link_click`(game_key·place team_strip/player_recent — 매개변수 이미 등록), team_select place=h2h. 한계: 경기 띠의 "다음 경기"는 빌드 때 기준이라 다음 수집 전까지 늦을 수 있음, 개막이 늦은 팀(SK)은 상대 전적 표에 아직 없음. 업데이트 소식 글. main 배포.
 - 2026-10-14 (스포츠 앱 UX 비교): 사용자 "스포츠 앱이랑 비교". 유아이볼 MCP 에 스포츠 앱은 KBO STATS·레사모 둘뿐(NBA·ESPN·FotMob·쿠팡플레이 없음), 무료 하루 10번을 다 씀 → `docs/sports-ux-review-2026-10-14.md`: 유아이볼 근거 A 팀 간 상대 전적(games.json 전 시즌)·일정 달력 띠 / B 팀 페이지 경기 띠(지난 3·다음 2)·내 팀 모아 보기(새 메뉴 없이 팀 페이지로) + 일반 지식(근거 없음 표시) 선수 최근 5경기(박스스코어 있는 25-26·26-27만)·경기 팝업 팀 비교 막대·쿼터 점수(수집 없음). 추천 순서 상대 전적 → 경기 띠 → 최근 경기. 사용자 결정 대기. 코드 변경 없음(main 배포 안 함 — 다음 배포에 같이).

@@ -31,6 +31,27 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-10-14-calendar-links",
+    date: "2026-10-14",
+    kind: "update",
+    title: "일정 달력이랑 선수·팀 바로 가기",
+    summary: "일정 달력·선수 팀 링크",
+    blocks: [
+      { kind: "h", text: "일정" },
+      { kind: "p", text: "달 칩 아래에 날짜 칸이 생겼어요. 경기 있는 날을 누르면 그날로 바로 내려가요. 내 응원팀 보기에선 칸에 상대 팀 로고랑 승패가 보여요." },
+      { kind: "h", text: "어디서든 누르면 이동" },
+      {
+        kind: "list",
+        items: [
+          "경기 카드, 리더보드, 홈 표지, 어워즈, 54-0 결과에서 선수 사진·이름을 누르면 선수 페이지로 가요",
+          "팀 로고·이름을 누르면 그 시즌 팀 페이지로 가요",
+          "팀 페이지는 맨 위에서 시즌을 바꿀 수 있어요",
+        ],
+      },
+      { kind: "list", items: [{ text: "팀 보기", href: "/teams" }] },
+    ],
+  },
+  {
     slug: "2026-10-14-head-to-head-recent-games",
     date: "2026-10-14",
     kind: "update",
