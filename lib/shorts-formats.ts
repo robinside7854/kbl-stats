@@ -6,7 +6,7 @@
 // 말투는 lib/shorts insightLine 과 같은 반말·이어 말하기. 숫자를 읽는 말(toSpeech)로 바꿀 때 "2개"가 "이개"로 읽히지 않게
 // 작은 개수는 고유어로 적는다(countWords).
 
-import { eunNeun, iGa, nativeCount, particle } from "./shorts";
+import { eunNeun, euroRo, iGa, nativeCount, particle } from "./shorts";
 
 // ─────────────────────────────────────────────
 // 공통
@@ -227,4 +227,104 @@ export function quizQuestionLine(q: QuizPick, i: number): string {
 export function quizAnswerLine(q: QuizPick): string {
   const tail = q.kind === "inside" ? "골밑 지배자" : q.kind === "three" ? "3점 기계" : `경기당 ${q.ppg}점`;
   return `정답은 ${q.team}의 ${q.name}! ${tail}${particle(tail, "이었어", "였어")}.`;
+}
+
+// ─────────────────────────────────────────────
+// D. 순위 뒤집기 (flip, 2026-10-16 사용자: "삼성과 LG 를 합쳐서, 전광판 디자인으로")
+//    작년 순위에서 가장 많이 오른 팀과 가장 많이 떨어진 팀을 한 편에 — 맞대결·선수 셋(오른 팀의 상승 선수, 떨어진 팀의 하락·상승 선수).
+//    숫자는 data/processed(정규시즌 합계·games.json 경기 결과)에서만. 날짜는 읽기("십월")가 어색해 말하지 않는다.
+// ─────────────────────────────────────────────
+
+export interface FlipTeamLine {
+  name: string;
+  prevRank: number;
+  prevW: number;
+  prevL: number;
+  nowRank: number;
+  nowTied: boolean;
+  nowW: number;
+  nowL: number;
+  /** 첫 경기 점수 차(이기면 +) — 개막전 대승 뒤 부진 같은 흐름을 말할 때 */
+  firstMargin: number | null;
+}
+export interface FlipPlayerLine {
+  name: string;
+  prevPpg: number;
+  nowPpg: number;
+  prevMpg: number;
+  nowMpg: number;
+  prevTs: number | null;
+  nowTs: number | null;
+  /** 리그 경기당 득점 상승 순위 (1 = 제일 많이 오름) */
+  riseRank: number | null;
+}
+export interface FlipGameLine {
+  /** 올 시즌 두 팀 몇 번째 맞대결 */
+  meeting: number;
+  upScore: number;
+  downScore: number;
+  star: { name: string; pts: number; up: boolean };
+}
+export interface FlipInput {
+  teamCount: number;
+  up: FlipTeamLine;
+  down: FlipTeamLine;
+  game: FlipGameLine | null;
+  upStar: FlipPlayerLine;
+  downSlump: FlipPlayerLine;
+  downBright: FlipPlayerLine | null;
+}
+export interface FlipLines {
+  cover: string;
+  upTeam: string;
+  clash: string | null;
+  upStar: string;
+  downTeam: string;
+  downSlump: string;
+  downBright: string | null;
+  outro: string;
+}
+
+const prevRankWord = (t: FlipTeamLine, n: number) => (t.prevRank === n ? "꼴찌" : t.prevRank === 1 ? "1위" : `${t.prevRank}위`);
+const recordWords = (w: number, l: number) => (l === 0 && w > 1 ? `${w}전 전승` : `${w}승 ${l}패`);
+const rankWords = (t: FlipTeamLine) => `${t.nowTied ? "공동 " : ""}${t.nowRank}위`;
+/** 17.3 → "17점대" */
+const ppgBand = (v: number) => `${Math.floor(v)}점대`;
+const pctWords = (v: number) => `${Math.round(v)}%`;
+
+export function flipLines(x: FlipInput): FlipLines {
+  const { up, down } = x;
+  const cover = `작년 ${prevRankWord(up, x.teamCount)} ${up.name}${particle(up.name, "이랑", "랑")} 작년 ${prevRankWord(down, x.teamCount)} ${down.name}, 순위표가 완전히 뒤집혔어.`;
+  const upTeam = `${eunNeun(up.name)} 작년에 ${up.prevW}승 ${up.prevL}패였는데, 올해는 ${euroRo(recordWords(up.nowW, up.nowL))} ${rankWords(up)}야.`;
+
+  const s = x.upStar;
+  const minutes = s.nowMpg - s.prevMpg >= 5 ? `출전이 ${Math.round(s.prevMpg)}분에서 ${Math.round(s.nowMpg)}분으로 늘면서 ` : "";
+  const upStar = `그 중심엔 ${up.name}의 ${s.name}. ${minutes}득점도 ${ppgBand(s.prevPpg)}에서 ${ppgBand(s.nowPpg)}로 뛰었어.`;
+
+  let clash: string | null = null;
+  if (x.game) {
+    const g = x.game;
+    const which = g.meeting === 1 ? "올 시즌 첫 맞대결" : `올 시즌 ${ordinalWords(g.meeting)} 맞대결`;
+    const winner = g.upScore > g.downScore ? up.name : down.name;
+    const hi = Math.max(g.upScore, g.downScore), lo = Math.min(g.upScore, g.downScore);
+    const star = g.star.name === s.name ? g.star.name : `${g.star.up ? up.name : down.name}의 ${g.star.name}`;
+    clash = `그리고 ${which}에서도 ${iGa(winner)} 웃었어. ${hi}대 ${lo}, ${star} 혼자 ${g.star.pts}점!`;
+  }
+
+  const opening = down.firstMargin !== null && down.firstMargin >= 15 && down.nowW + down.nowL > 1
+    ? `개막전 ${down.firstMargin}점 차 대승 뒤로 ${adnominal(down.nowW + down.nowL - 1)} 경기 ${down.nowW - 1}승 ${down.nowL}패, 지금 ${rankWords(down)}야.`
+    : `지금 ${euroRo(recordWords(down.nowW, down.nowL))} ${rankWords(down)}야.`;
+  const downTeam = `반대로 ${eunNeun(down.name)} ${opening}`;
+
+  const d = x.downSlump;
+  const ts = d.prevTs !== null && d.nowTs !== null && d.prevTs - d.nowTs >= 5 ? `, 슛 효율도 ${pctWords(d.prevTs)}에서 ${pctWords(d.nowTs)}로 뚝.` : " 떨어졌어.";
+  const downSlump = `특히 ${down.name}의 ${d.name}, 득점이 ${ppgBand(d.prevPpg)}에서 ${ppgBand(d.nowPpg)}로${ts}`;
+
+  const b = x.downBright;
+  const downBright = b
+    ? `그래도 같은 ${down.name}의 ${eunNeun(b.name)} ${ppgBand(b.prevPpg)}에서 ${ppgBand(b.nowPpg)}로, ${b.riseRank === 1 ? "리그에서 득점이 제일 많이 올랐어." : "득점이 확 올랐어."}`
+    : null;
+
+  const outro = `${up.name} 돌풍 계속될까, ${iGa(down.name)} 다시 올라올까? 댓글로 찍어 줘!`;
+  return { cover, upTeam, upStar, clash, downTeam, downSlump, downBright, outro };
 }

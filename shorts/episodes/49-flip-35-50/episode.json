@@ -1,0 +1,255 @@
+{
+  "version": 1,
+  "slug": "49-flip-35-50",
+  "format": "flip",
+  "composition": "Flip",
+  "createdAt": "2026-10-16T14:51:02.658Z",
+  "seasonLabel": "26-27",
+  "prevLabel": "25-26",
+  "asOf": "2026-10-16",
+  "teams": {
+    "up": {
+      "name": "삼성",
+      "prevRank": 10,
+      "prevW": 16,
+      "prevL": 38,
+      "nowRank": 1,
+      "nowTied": false,
+      "nowW": 4,
+      "nowL": 0,
+      "firstMargin": 5,
+      "results": [
+        "W",
+        "W",
+        "W",
+        "W"
+      ],
+      "code": "35",
+      "color": "#0053A6",
+      "secondary": "#A5ACAF",
+      "logoUrl": "https://kbl.or.kr/assets/img/ico/logo/ic-ss.svg"
+    },
+    "down": {
+      "name": "LG",
+      "prevRank": 1,
+      "prevW": 36,
+      "prevL": 18,
+      "nowRank": 5,
+      "nowTied": true,
+      "nowW": 2,
+      "nowL": 3,
+      "firstMargin": 35,
+      "results": [
+        "W",
+        "L",
+        "W",
+        "L",
+        "L"
+      ],
+      "code": "50",
+      "color": "#7A1B33",
+      "secondary": "#C4A15A",
+      "logoUrl": "https://kbl.or.kr/assets/img/ico/logo/ic-lg.svg"
+    }
+  },
+  "game": {
+    "meeting": 1,
+    "date": "2026-10-15",
+    "upScore": 93,
+    "downScore": 86,
+    "star": {
+      "name": "케렘 칸터",
+      "pts": 42,
+      "up": true,
+      "playerNo": "291787",
+      "fg": "18/28"
+    }
+  },
+  "players": [
+    {
+      "role": "upStar",
+      "playerNo": "291787",
+      "name": "케렘 칸터",
+      "nameEn": "",
+      "team": {
+        "code": "35",
+        "name": "삼성",
+        "color": "#0053A6",
+        "secondary": "#A5ACAF",
+        "logoUrl": "https://kbl.or.kr/assets/img/ico/logo/ic-ss.svg"
+      },
+      "photoUrl": "https://kbl.or.kr/files/kbl/players-photo/291787.png",
+      "prevPpg": 17.3,
+      "nowPpg": 25.5,
+      "prevMpg": 23.5,
+      "nowMpg": 37.3,
+      "prevTs": 60.5,
+      "nowTs": 60.3,
+      "riseRank": 2,
+      "games": 4
+    },
+    {
+      "role": "downSlump",
+      "playerNo": "291432",
+      "name": "아셈 마레이",
+      "nameEn": "",
+      "team": {
+        "code": "50",
+        "name": "LG",
+        "color": "#7A1B33",
+        "secondary": "#C4A15A",
+        "logoUrl": "https://kbl.or.kr/assets/img/ico/logo/ic-lg.svg"
+      },
+      "photoUrl": "https://kbl.or.kr/files/kbl/players-photo/291432.png",
+      "prevPpg": 16.4,
+      "nowPpg": 10.5,
+      "prevMpg": 29.4,
+      "nowMpg": 30.8,
+      "prevTs": 54.3,
+      "nowTs": 41.5,
+      "riseRank": 73,
+      "games": 4
+    },
+    {
+      "role": "downBright",
+      "playerNo": "291091",
+      "name": "양홍석",
+      "nameEn": "",
+      "team": {
+        "code": "50",
+        "name": "LG",
+        "color": "#7A1B33",
+        "secondary": "#C4A15A",
+        "logoUrl": "https://kbl.or.kr/assets/img/ico/logo/ic-lg.svg"
+      },
+      "photoUrl": "https://kbl.or.kr/files/kbl/players-photo/291091.png",
+      "prevPpg": 7.8,
+      "nowPpg": 17,
+      "prevMpg": 21.1,
+      "nowMpg": 33,
+      "prevTs": 44.5,
+      "nowTs": 59.9,
+      "riseRank": 1,
+      "games": 5
+    }
+  ],
+  "scenes": [
+    {
+      "id": "cover",
+      "kind": "cover",
+      "caption": "작년 꼴찌 삼성이랑 작년 1위 LG, 순위표가 완전히 뒤집혔어.",
+      "speech": "작년 꼴찌 삼성이랑 작년 일위 LG, 순위표가 완전히 뒤집혔어.",
+      "chunks": [
+        "작년 꼴찌 삼성이랑 작년 1위",
+        "LG,",
+        "순위표가 완전히 뒤집혔어."
+      ]
+    },
+    {
+      "id": "up-team",
+      "kind": "team",
+      "teamCode": "35",
+      "caption": "삼성은 작년에 16승 38패였는데, 올해는 4전 전승으로 1위야.",
+      "speech": "삼성은 작년에 십육승 삼십팔패였는데, 올해는 사전 전승으로 일위야.",
+      "chunks": [
+        "삼성은 작년에 16승",
+        "38패였는데,",
+        "올해는 4전 전승으로 1위야."
+      ]
+    },
+    {
+      "id": "up-star",
+      "kind": "player",
+      "playerNo": "291787",
+      "caption": "그 중심엔 삼성의 케렘 칸터. 출전이 24분에서 37분으로 늘면서 득점도 17점대에서 25점대로 뛰었어.",
+      "speech": "그 중심엔 삼성의 케렘 칸터. 출전이 이십사분에서 삼십칠분으로 늘면서 득점도 십칠점대에서 이십오점대로 뛰었어.",
+      "chunks": [
+        "그 중심엔 삼성의 케렘 칸터.",
+        "출전이 24분에서 37분으로",
+        "늘면서 득점도 17점대에서",
+        "25점대로 뛰었어."
+      ]
+    },
+    {
+      "id": "clash",
+      "kind": "clash",
+      "caption": "그리고 올 시즌 첫 맞대결에서도 삼성이 웃었어. 93대 86, 케렘 칸터 혼자 42점!",
+      "speech": "그리고 올 시즌 첫 맞대결에서도 삼성이 웃었어. 구십삼대 팔십육, 케렘 칸터 혼자 사십이점!",
+      "chunks": [
+        "그리고 올 시즌 첫",
+        "맞대결에서도 삼성이 웃었어.",
+        "93대 86,",
+        "케렘 칸터 혼자 42점!"
+      ]
+    },
+    {
+      "id": "down-team",
+      "kind": "team",
+      "teamCode": "50",
+      "caption": "반대로 LG는 개막전 35점 차 대승 뒤로 네 경기 1승 3패, 지금 공동 5위야.",
+      "speech": "반대로 LG는 개막전 삼십오점 차 대승 뒤로 네 경기 일승 삼패, 지금 공동 오위야.",
+      "chunks": [
+        "반대로 LG는 개막전 35점",
+        "차 대승 뒤로 네 경기 1승",
+        "3패,",
+        "지금 공동 5위야."
+      ]
+    },
+    {
+      "id": "down-slump",
+      "kind": "player",
+      "playerNo": "291432",
+      "caption": "특히 LG의 아셈 마레이, 득점이 16점대에서 10점대로, 슛 효율도 54%에서 42%로 뚝.",
+      "speech": "특히 LG의 아셈 마레이, 득점이 십육점대에서 십점대로, 슛 효율도 오십사 퍼센트에서 사십이 퍼센트로 뚝.",
+      "chunks": [
+        "특히 LG의 아셈 마레이,",
+        "득점이 16점대에서",
+        "10점대로,",
+        "슛 효율도 54%에서 42%로",
+        "뚝."
+      ]
+    },
+    {
+      "id": "down-bright",
+      "kind": "player",
+      "playerNo": "291091",
+      "caption": "그래도 같은 LG의 양홍석은 7점대에서 17점대로, 리그에서 득점이 제일 많이 올랐어.",
+      "speech": "그래도 같은 LG의 양홍석은 칠점대에서 십칠점대로, 리그에서 득점이 제일 많이 올랐어.",
+      "chunks": [
+        "그래도 같은 LG의 양홍석은",
+        "7점대에서 17점대로,",
+        "리그에서 득점이 제일 많이",
+        "올랐어."
+      ]
+    },
+    {
+      "id": "outro",
+      "kind": "outro",
+      "caption": "삼성 돌풍 계속될까, LG가 다시 올라올까? 댓글로 찍어 줘!",
+      "speech": "삼성 돌풍 계속될까, LG가 다시 올라올까? 댓글로 찍어 줘!",
+      "chunks": [
+        "삼성 돌풍 계속될까,",
+        "LG가 다시 올라올까?",
+        "댓글로 찍어 줘!"
+      ]
+    }
+  ],
+  "title": "작년 10위 삼성 vs 작년 1위 LG, 순위표가 뒤집혔다 | 26-27 KBL #KBL #농구 #shorts",
+  "description": "26-27 KBL 시즌 초반(2026.10.16 경기까지), 지난 시즌과 순위가 정반대로 간 두 팀입니다.\n\n· 삼성: 25-26 16승 38패(10위) → 4승 0패(1위)\n· LG: 25-26 36승 18패(1위) → 2승 3패(공동 5위)\n· 맞대결: 삼성 93 - 86 LG, 케렘 칸터 42점\n· 케렘 칸터(삼성) 경기당 17.3점 → 25.5점\n· 아셈 마레이(LG) 경기당 16.4점 → 10.5점\n· 양홍석(LG) 경기당 7.8점 → 17점\n\n삼성 돌풍이 계속될지, LG가 반등할지 댓글로 예상해 주세요!\n\n· 정규리그 기준, 올 시즌은 초반 몇 경기라 표본이 작아요\n· 기록: KBL 공식 홈페이지 · 사진 © KBL 및 각 구단 · 비영리 팬 채널\n· 더 많은 기록: https://kbl-stats-reference.vercel.app",
+  "casual": {
+    "title": "작년 꼴찌가 1위, 작년 1위는…? 삼성 vs LG 근황 #KBL #농구 #shorts",
+    "description": "삼성 16승 38패 → 4승 0패\nLG 36승 18패 → 2승 3패\n맞대결은 93:86, 케렘 칸터 혼자 42점\n\n이 흐름 계속 갈까? 댓글로 찍어 줘\n\n기록: KBL 공식 홈페이지 · 사진 © KBL 및 각 구단 · 비영리 팬 채널\n더 많은 기록: https://kbl-stats-reference.vercel.app"
+  },
+  "tags": [
+    "KBL",
+    "농구",
+    "프로농구",
+    "삼성",
+    "LG",
+    "케렘칸터",
+    "아셈마레이",
+    "양홍석",
+    "순위",
+    "shorts"
+  ]
+}

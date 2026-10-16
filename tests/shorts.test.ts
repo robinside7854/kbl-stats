@@ -202,3 +202,42 @@ import { countWords, ordinalWords, pickMilestones, milestoneLine, pickQuiz, quiz
   assert.equal(quizAnswerLine(q[2]), "정답은 SK의 에이스! 경기당 23.2점이었어.");
 }
 console.log("shorts: 개막전 대기록·퀴즈 통과");
+
+// D. 순위 뒤집기 대사 (2026-10-16 삼성 + LG)
+{
+  const { flipLines } = await import("../lib/shorts-formats");
+  const t = { prevRank: 10, prevW: 16, prevL: 38, nowRank: 1, nowTied: false, nowW: 4, nowL: 0, firstMargin: 5 };
+  const pl = { prevMpg: 23.5, nowMpg: 37.2, prevTs: 60, nowTs: 60, riseRank: 3 };
+  const l = flipLines({
+    teamCount: 10,
+    up: { name: "삼성", ...t },
+    down: { name: "LG", prevRank: 1, prevW: 36, prevL: 18, nowRank: 5, nowTied: true, nowW: 2, nowL: 3, firstMargin: 35 },
+    game: { meeting: 1, upScore: 93, downScore: 86, star: { name: "칸터", pts: 42, up: true } },
+    upStar: { name: "칸터", prevPpg: 17.3, nowPpg: 25.5, ...pl },
+    downSlump: { name: "마레이", prevPpg: 16.4, nowPpg: 10.5, prevMpg: 29, nowMpg: 30, prevTs: 54.3, nowTs: 41.5, riseRank: 90 },
+    downBright: { name: "양홍석", prevPpg: 7.8, nowPpg: 17, prevMpg: 21, nowMpg: 33, prevTs: 44, nowTs: 60, riseRank: 1 },
+  });
+  assert.equal(l.cover, "작년 꼴찌 삼성이랑 작년 1위 LG, 순위표가 완전히 뒤집혔어.");
+  assert.equal(l.upTeam, "삼성은 작년에 16승 38패였는데, 올해는 4전 전승으로 1위야.");
+  assert.equal(l.upStar, "그 중심엔 삼성의 칸터. 출전이 24분에서 37분으로 늘면서 득점도 17점대에서 25점대로 뛰었어.");
+  assert.equal(l.clash, "그리고 올 시즌 첫 맞대결에서도 삼성이 웃었어. 93대 86, 칸터 혼자 42점!");
+  assert.equal(l.downTeam, "반대로 LG는 개막전 35점 차 대승 뒤로 네 경기 1승 3패, 지금 공동 5위야.");
+  assert.equal(l.downSlump, "특히 LG의 마레이, 득점이 16점대에서 10점대로, 슛 효율도 54%에서 42%로 뚝.");
+  assert.match(l.downBright!, /^그래도 같은 LG의 양홍석은 7점대에서 17점대로, 리그에서/);
+  // 진 팀이 이긴 경우·전승 아님
+  const l2 = flipLines({
+    teamCount: 10,
+    up: { name: "삼성", ...t, nowW: 3, nowL: 1 },
+    down: { name: "LG", prevRank: 1, prevW: 36, prevL: 18, nowRank: 5, nowTied: false, nowW: 2, nowL: 3, firstMargin: 2 },
+    game: { meeting: 2, upScore: 80, downScore: 90, star: { name: "굿윈", pts: 34, up: false } },
+    upStar: { name: "칸터", prevPpg: 17.3, nowPpg: 25.5, ...pl, nowMpg: 25 },
+    downSlump: { name: "마레이", prevPpg: 16.4, nowPpg: 15.5, prevMpg: 29, nowMpg: 30, prevTs: 54, nowTs: 52, riseRank: 90 },
+    downBright: null,
+  });
+  assert.equal(l2.upTeam, "삼성은 작년에 16승 38패였는데, 올해는 3승 1패로 1위야.");
+  assert.equal(l2.upStar, "그 중심엔 삼성의 칸터. 득점도 17점대에서 25점대로 뛰었어.");
+  assert.equal(l2.clash, "그리고 올 시즌 두 번째 맞대결에서도 LG가 웃었어. 90대 80, LG의 굿윈 혼자 34점!");
+  assert.equal(l2.downTeam, "반대로 LG는 지금 2승 3패로 5위야.");
+  assert.equal(l2.downSlump, "특히 LG의 마레이, 득점이 16점대에서 15점대로 떨어졌어.");
+}
+console.log("shorts: 순위 뒤집기 통과");

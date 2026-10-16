@@ -2,6 +2,7 @@ import { Composition } from "remotion";
 import { TopScorers } from "./TopScorers";
 import { Milestones } from "./Milestones";
 import { Quiz } from "./Quiz";
+import { Flip } from "./Flip";
 import { FPS, H, W } from "./theme";
 import type { EpisodeProps } from "./types";
 
@@ -16,6 +17,7 @@ export function Root() {
     <>
       <Composition id="TopScorers" component={TopScorers} width={W} height={H} fps={FPS} durationInFrames={30 * FPS} defaultProps={{} as EpisodeProps} calculateMetadata={fromScenes} />
       <Composition id="Milestones" component={Milestones} width={W} height={H} fps={FPS} durationInFrames={30 * FPS} defaultProps={{} as never} calculateMetadata={fromScenes} />
+      <Composition id="Flip" component={Flip} width={W} height={H} fps={FPS} durationInFrames={30 * FPS} defaultProps={{} as never} calculateMetadata={fromScenes} />
       <Composition id="Quiz" component={Quiz} width={W} height={H} fps={FPS} durationInFrames={30 * FPS} defaultProps={{} as never} calculateMetadata={fromScenes} />
     </>
   );
