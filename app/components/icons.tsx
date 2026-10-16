@@ -312,3 +312,64 @@ export function IconBell(p: IconProps) {
     </Svg>
   );
 }
+
+/** 왕관 (정규리그 MVP·외국선수 MVP) */
+export function IconCrown(p: IconProps) {
+  return (
+    <Svg {...p}>
+      <path d="M4 8.5 8 12l4-6 4 6 4-3.5-1.5 9.5h-13Z" />
+      <path d="M6 20.5h12" />
+    </Svg>
+  );
+}
+
+/** 메달 (챔프전 MVP) */
+export function IconMedal(p: IconProps) {
+  return (
+    <Svg {...p}>
+      <path d="M8 3.5 10.5 9M16 3.5 13.5 9" />
+      {/* deslop-ignore-next-line 24 */}
+      <circle cx="12" cy="14.5" r="5" />
+      <path d="m12 12.3.8 1.6 1.7.2-1.25 1.2.3 1.7-1.55-.8-1.55.8.3-1.7-1.25-1.2 1.7-.2Z" />
+    </Svg>
+  );
+}
+
+/** 체크 방패 (최우수 수비상·수비 5걸) */
+export function IconShieldCheck(p: IconProps) {
+  return (
+    <Svg {...p}>
+      <path d="M12 3.5 19 6v5.5c0 4.2-2.9 7.6-7 9-4.1-1.4-7-4.8-7-9V6Z" />
+      <path d="m9 12 2 2 4-4" />
+    </Svg>
+  );
+}
+
+/** 새싹 (신인상) */
+export function IconSprout(p: IconProps) {
+  return (
+    <Svg {...p}>
+      <path d="M12 20.5V11" />
+      <path d="M12 11c0-3.5-2.5-6-6.5-6 0 3.8 2.6 6 6.5 6ZM12 13.5c0-3 2.2-5.5 6.5-5.5 0 3.4-2.4 5.5-6.5 5.5Z" />
+    </Svg>
+  );
+}
+
+/** 번개 (식스맨상) */
+export function IconBolt(p: IconProps) {
+  return (
+    <Svg {...p}>
+      <path d="M13 3.5 5.5 13.5H12l-1 7 7.5-10H12Z" />
+    </Svg>
+  );
+}
+
+/** 오르는 선 (기량 발전상) */
+export function IconTrendUp(p: IconProps) {
+  return (
+    <Svg {...p}>
+      <path d="m4 16.5 5-5 3.5 3.5L20 7.5" />
+      <path d="M14.5 7.5H20V13" />
+    </Svg>
+  );
+}

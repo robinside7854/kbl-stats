@@ -38,7 +38,7 @@ export type GlossaryKey =
   | "race"
   | "eraIndex"
   | "leagueTrends"
-  | "redraft"
+  | "draftClass"
   | "foreignHall"
   | "careerTimeline"
   | "shotHabit"
@@ -349,12 +349,12 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     source: null,
   },
   {
-    key: "redraft",
+    key: "draftClass",
     group: "etc",
-    name: "다시 뽑는다면",
-    short: "그 해 지명된 선수를 KBL 통산 기록으로 다시 줄 세운 순서입니다. 이 사이트 규칙이에요.",
-    note: "오래 꾸준히 뛴 선수가 앞섭니다. KBL 정규시즌에 한 경기도 안 뛴 선수는 기록이 없어 빠집니다.",
-    formula: "통산 득점 + 리바운드 + 어시스트 + 스틸 + 블록 합계가 큰 순 · 같으면 경기 많은 순",
+    name: "드래프트 연도별",
+    short: "그 해 신인 드래프트로 뽑힌 선수들이 KBL 에서 남긴 기록과 받은 우승·상을 모아 봅니다.",
+    note: "우승은 선수마다 정규시즌 소속 팀이 챔프전에서 이긴 시즌을 셉니다. KBL 정규시즌에 한 경기도 안 뛴 선수는 기록이 없어 빠집니다.",
+    formula: "수상 횟수 = 그 해 지명 선수들이 받은 횟수 합 · 순서는 실제 지명 순(라운드 → 순위)",
     source: null,
   },
   {
@@ -436,7 +436,7 @@ export const GLOSSARY_ANCHORS: Record<GlossaryKey, string> = {
   race: "race",
   eraIndex: "era-index",
   leagueTrends: "league-trends",
-  redraft: "redraft",
+  draftClass: "draft-class",
   foreignHall: "foreign-hall",
   careerTimeline: "career-timeline",
   shotHabit: "shot-habit",

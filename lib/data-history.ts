@@ -15,7 +15,7 @@ import {
 import { seasonRangeLabel, seasonShortLabel, teamStints } from "./career";
 import { FALLBACK_TEAM_COLOR } from "./teams";
 import { leagueTrendRow, type LeagueTrendRow } from "./trends";
-import { draftYears, hasDuplicatePicks, pickShort, redraftOrder } from "./draft";
+import { draftClassHonors, draftOrder, draftYears, hasDuplicatePicks, pickShort, type DraftHonorRow } from "./draft";
 import { hallReasons, honorChips, rankForeignSeasons, type HallReason, type HonorChip } from "./hall";
 import { isActiveCareer, seasonBestMinGames, type CareerTotal } from "./records";
 import type { PlayerAward } from "./types";
@@ -27,6 +27,11 @@ import type { PlayerAward } from "./types";
 /** 그 시즌 팀 색 (시즌 파일 teams). 없으면 회색 */
 function teamColorIn(seasonCode: number, teamCode: string): TeamColor {
   return loadSeasonData(seasonCode)?.teams.find((t) => t.teamCode === teamCode)?.color ?? { ...FALLBACK_TEAM_COLOR };
+}
+
+/** 그 시즌 팀 로고 주소 (없으면 null) */
+function teamLogoIn(seasonCode: number, teamCode: string): string | null {
+  return loadSeasonData(seasonCode)?.teams.find((t) => t.teamCode === teamCode)?.logoUrl ?? null;
 }
 
 /** 선수의 마지막 시즌 팀 (색인 seasons 의 끝) */
@@ -99,11 +104,6 @@ export interface DraftPlayerView {
   rpg: number;
   apg: number;
   chips: HonorChip[];
-  /** 다시 뽑기 점수·순서·이동 (lib/draft redraftOrder) */
-  score: number;
-  actual: number;
-  redraft: number;
-  move: number;
 }
 
 export interface DraftYearData {
@@ -112,12 +112,8 @@ export interface DraftYearData {
   players: DraftPlayerView[];
   /** 같은 라운드·순위가 둘씩 있는 해 (드래프트가 두 번 열림) */
   duplicate: boolean;
-  /** 정규리그 MVP 를 받은 선수 수 */
-  mvpCount: number;
-  /** 신인상 받은 선수 이름 (없으면 null) */
-  rookie: { id: string; nameKo: string } | null;
-  /** 아직 3시즌이 안 지난 해 — 다시 뽑기가 이르다는 안내 */
-  early: boolean;
+  /** 그 해 지명 선수들의 우승·수상 합계 (lib/draft draftClassHonors) */
+  honors: DraftHonorRow[];
 }
 
 let draftCache: Map<number, DraftYearData> | null = null;
@@ -150,9 +146,7 @@ export function loadDraftYear(year: number): DraftYearData | null {
       blk: t?.blk ?? 0,
     };
   });
-  const order = redraftOrder(rows);
-  const players: DraftPlayerView[] = order
-    .map(({ row, actual, redraft, move, score }) => {
+  const players: DraftPlayerView[] = draftOrder(rows).map((row) => {
       const { e, t } = row;
       const last = lastStint(e);
       return {
@@ -172,25 +166,13 @@ export function loadDraftYear(year: number): DraftYearData | null {
         rpg: per(row.reb, row.games),
         apg: per(row.ast, row.games),
         chips: honorChips(e.awards, e.championships),
-        score,
-        actual,
-        redraft,
-        move,
       };
-    })
-    .sort((a, b) => a.actual - b.actual);
-  const rookie = entries.find((e) => e.awards?.some((a) => a.key === "rookie"));
-  // 데뷔 시즌부터 끝난 시즌이 몇 개인지 (시즌 코드는 해마다 2씩, 옛 시즌은 1씩 — 선수 있는 시즌 목록 순번으로 센다, 진행 중 시즌은 빼고)
-  const codes = listSeasonsWithPlayers().map((s) => s.seasonCode).filter((c) => !isSeasonOngoing(c));
-  const firstCode = Math.min(...entries.map((e) => e.seasons[0]?.seasonCode ?? latest));
-  const seasonsSince = codes.filter((c) => c >= firstCode).length;
+    });
   const data: DraftYearData = {
     year,
     players,
     duplicate: hasDuplicatePicks(rows),
-    mvpCount: entries.filter((e) => e.awards?.some((a) => a.key === "mvp")).length,
-    rookie: rookie ? { id: rookie.id, nameKo: rookie.nameKo } : null,
-    early: seasonsSince < 3,
+    honors: draftClassHonors(entries),
   };
   draftCache.set(year, data);
   return data;
@@ -200,12 +182,16 @@ export function loadDraftYear(year: number): DraftYearData | null {
 // 외국 선수 명예의 전당 (lib/hall)
 // ─────────────────────────────────────────────
 
-export interface HallStint {
+/** 거쳐 간 팀 하나 (같은 팀에 두 번 이상 있었으면 한 줄로 묶고 구간을 모두 적는다 — 2026-10-16 사용자: 점 대신 로고) */
+export interface HallTeam {
+  teamCode: string;
   teamShort: string;
   color: TeamColor;
-  /** "08-12" */
-  range: string;
+  logoUrl: string | null;
+  /** 그 팀에서 뛴 시즌 수 합 */
   seasons: number;
+  /** ["08-12", "15-16"] */
+  ranges: string[];
 }
 
 export interface HallMemberView {
@@ -223,7 +209,8 @@ export interface HallMemberView {
   apg: number;
   chips: HonorChip[];
   reasons: HallReason[];
-  stints: HallStint[];
+  /** 처음 뛴 순서 */
+  teams: HallTeam[];
   /** 정렬용 (lib/hall sortHall) */
   awards: PlayerAward[];
   championships: number[];
@@ -269,15 +256,25 @@ export function loadForeignHall(): ForeignHallData {
     const reasons = hallReasons({ id: e.id, seasons: t.seasons, games: t.games, points: t.points, awards });
     if (reasons.length === 0) continue;
     const last = lastStint(e);
-    const stints = teamStints(e.seasons.map((s) => ({ teamCode: s.teamCode, seasonLabel: labelOf.get(s.seasonCode) ?? String(s.seasonCode) }))).map((st) => {
+    const teams: HallTeam[] = [];
+    for (const st of teamStints(e.seasons.map((s) => ({ teamCode: s.teamCode, seasonLabel: labelOf.get(s.seasonCode) ?? String(s.seasonCode) })))) {
       const seasonOf = e.seasons.find((s) => s.teamCode === st.teamCode && (labelOf.get(s.seasonCode) ?? "") === st.toLabel);
-      return {
+      const range = seasonRangeLabel(st.fromLabel, st.toLabel);
+      const had = teams.find((t) => t.teamCode === st.teamCode);
+      if (had) {
+        had.seasons += st.seasons;
+        had.ranges.push(range);
+        continue;
+      }
+      teams.push({
+        teamCode: st.teamCode,
         teamShort: seasonOf?.teamShort ?? "",
         color: seasonOf ? teamColorIn(seasonOf.seasonCode, st.teamCode) : { ...FALLBACK_TEAM_COLOR },
-        range: seasonRangeLabel(st.fromLabel, st.toLabel),
+        logoUrl: seasonOf ? teamLogoIn(seasonOf.seasonCode, st.teamCode) : null,
         seasons: st.seasons,
-      };
-    });
+        ranges: [range],
+      });
+    }
     members.push({
       id: e.id,
       nameKo: e.nameKo,
@@ -293,7 +290,7 @@ export function loadForeignHall(): ForeignHallData {
       apg: per(t.ast, t.games),
       chips: honorChips(awards, e.championships),
       reasons,
-      stints,
+      teams,
       awards: [...awards],
       championships: [...(e.championships ?? [])],
     });

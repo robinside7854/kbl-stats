@@ -1,48 +1,38 @@
 "use client";
-// 기록 메뉴 · 드래프트 (/records/draft?year=2015, 2026-10-16): 연도 칩 → 그 해 요약 → "실제 지명순 / 다시 뽑는다면" 전환 → 선수 목록.
+// 기록 메뉴 · 드래프트 (/records/draft?year=2015, 2026-10-16): 연도 칩 → 그 해 요약(1순위 + 우승·수상 합계, 항목마다 아이콘) → 지명 순 선수 목록.
+// 2026-10-16 사용자: "다시 뽑는다면" 순위는 없애고 그 해 우승 횟수·챔프전 MVP 같은 수상 내용을 더 — lib/draft draftClassHonors.
 // 페이지 HTML 에는 처음 연도 하나만 있고, 다른 연도는 /records/draft/{연도}.json 을 받는다(lib/draft draftYearUrl).
-// 다시 뽑기 규칙은 lib/draft redraftOrder (통산 득+리+어+스틸+블록) — 머리말 "기록" 옆 ⓘ 에서 풀이.
-// 선택은 주소 ?year=&order=redraft 에 남긴다. GA4: filter_change screen=records_draft filter=year·order.
+// 선택은 주소 ?year= 에 남긴다. GA4: filter_change screen=records_draft filter=year.
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type { DraftPlayerView, DraftYearData } from "@/lib/data-history";
-import { draftYearFromParam, draftYearUrl, pickLabel } from "@/lib/draft";
+import { draftYearFromParam, draftYearUrl } from "@/lib/draft";
+import AwardIcon from "./AwardIcon";
 import ChipRow from "./ChipRow";
 import PlayerAvatar from "./PlayerAvatar";
-import Segmented from "./Segmented";
 import Skeleton from "./Skeleton";
-import { IconArrowUp } from "./icons";
 import { trackFilters } from "./track";
-
-type Order = "actual" | "redraft";
-const ORDER_OPTIONS: { value: Order; label: string }[] = [
-  { value: "actual", label: "실제 지명순" },
-  { value: "redraft", label: "다시 뽑는다면" },
-];
 
 const NF1 = new Intl.NumberFormat("ko-KR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 const NF0 = new Intl.NumberFormat("ko-KR");
 
 export default function DraftView({ years, initial }: { years: number[]; initial: DraftYearData }) {
   const [year, setYear] = useState(initial.year);
-  const [order, setOrder] = useState<Order>("actual");
   const [loaded, setLoaded] = useState<Record<number, DraftYearData | null>>({ [initial.year]: initial });
 
   useEffect(() => {
     const qs = new URLSearchParams(window.location.search);
     const y = draftYearFromParam(qs.get("year"), years);
     if (qs.get("year") && y !== null) setYear(y);
-    if (qs.get("order") === "redraft") setOrder("redraft");
   }, [years]);
   useEffect(() => {
     const qs = new URLSearchParams(window.location.search);
     if (year !== initial.year) qs.set("year", String(year));
     else qs.delete("year");
-    if (order === "redraft") qs.set("order", "redraft");
-    else qs.delete("order");
+    qs.delete("order");
     const q = qs.toString();
     window.history.replaceState(null, "", `${window.location.pathname}${q ? `?${q}` : ""}`);
-  }, [year, order, initial.year]);
+  }, [year, initial.year]);
 
   const missing = !(year in loaded);
   useEffect(() => {
@@ -60,10 +50,6 @@ export default function DraftView({ years, initial }: { years: number[]; initial
   }, [missing, year]);
 
   const data = loaded[year];
-  const rows = useMemo(() => {
-    if (!data) return [];
-    return order === "redraft" ? [...data.players].sort((a, b) => a.redraft - b.redraft) : data.players;
-  }, [data, order]);
 
   return (
     <>
@@ -97,23 +83,10 @@ export default function DraftView({ years, initial }: { years: number[]; initial
       ) : (
         <>
           <YearSummary data={data} />
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
-            <h2 className="flex items-center gap-1 text-h2 font-bold">
-              {order === "redraft" ? "다시 뽑는다면" : "지명 순서"}
-            </h2>
-            <Segmented
-              label="순서"
-              options={ORDER_OPTIONS}
-              value={order}
-              onChange={(v) => {
-                trackFilters("records_draft", { order: v });
-                setOrder(v);
-              }}
-            />
-          </div>
+          <h2 className="mt-5 text-h2 font-bold">지명 순서</h2>
           <ol className="surface-card tabular mt-2 divide-y divide-line rounded-container">
-            {rows.map((p) => (
-              <DraftRow key={p.id} p={p} order={order} />
+            {data.players.map((p) => (
+              <DraftRow key={p.id} p={p} />
             ))}
           </ol>
           <p className="mt-2 text-caption leading-snug text-ink-3">
@@ -128,26 +101,59 @@ export default function DraftView({ years, initial }: { years: number[]; initial
 
 function YearSummary({ data }: { data: DraftYearData }) {
   const first = data.players[0];
-  const top = [...data.players].sort((a, b) => a.redraft - b.redraft)[0];
-  const facts: { label: string; value: React.ReactNode }[] = [
-    { label: "1순위", value: first ? <PlayerName p={first} /> : "–" },
-    { label: "다시 뽑으면 1순위", value: top ? <PlayerName p={top} /> : "–" },
-    { label: "신인상", value: data.rookie ? <Link href={`/player/${data.rookie.id}`} className="focus-ring rounded-control underline decoration-line underline-offset-4 hover:decoration-ink">{data.rookie.nameKo}</Link> : "없음" },
-    { label: "정규리그 MVP", value: `${data.mvpCount}명` },
-  ];
   return (
     <section aria-label={`${data.year} 드래프트 요약`} className="surface-card mt-3 rounded-container p-4">
-      <p className="text-h2 font-bold">{data.year} 드래프트</p>
-      <p className="mt-0.5 text-sub text-ink-3">{data.players.length}명이 KBL 에서 뛰었어요</p>
-      <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-3 md:grid-cols-4">
-        {facts.map((f) => (
-          <div key={f.label} className="min-w-0">
-            <dt className="text-sub text-ink-3">{f.label}</dt>
-            <dd className="mt-0.5 truncate text-body font-bold text-ink">{f.value}</dd>
-          </div>
-        ))}
-      </dl>
-      {data.early && <p className="mt-3 text-sub text-ink-3">아직 데뷔한 지 얼마 안 된 해라 다시 뽑기 순서는 앞으로 크게 바뀔 수 있어요.</p>}
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <p className="text-h2 font-bold">{data.year} 드래프트</p>
+        <p className="text-sub text-ink-3">
+          {first && (
+            <>
+              1순위 <PlayerName p={first} /> ·{" "}
+            </>
+          )}
+          {data.players.length}명이 KBL 에서 뛰었어요
+        </p>
+      </div>
+      {data.honors.length === 0 ? (
+        <p className="mt-3 text-sub text-ink-2">아직 이 해 선수 중 우승이나 상을 받은 선수가 없어요.</p>
+      ) : (
+        <ul className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {data.honors.map((h) => {
+            const gold = h.key === "champion" || h.key === "mvp" || h.key === "finalsMvp";
+            const names = h.players.slice(0, 3);
+            return (
+              <li key={h.key} className="flex min-w-0 items-start gap-3 rounded-card bg-surface-2 px-3 py-2.5">
+                <span
+                  aria-hidden
+                  // deslop-ignore-next-line 19
+                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${gold ? "bg-[color-mix(in_oklab,var(--grade-s)_28%,transparent)] text-ink" : "bg-surface text-ink-2"}`}
+                >
+                  <AwardIcon award={h.key} size={20} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-baseline gap-1.5">
+                    <span className="text-sub font-semibold text-ink-2">{h.label}</span>
+                    <span className="tabular text-body font-bold text-ink">{h.times}회</span>
+                    {h.players.length > 1 && <span className="text-caption text-ink-3">{h.players.length}명</span>}
+                  </span>
+                  <span className="mt-0.5 block text-caption leading-snug text-ink-2 break-keep">
+                    {names.map((p, i) => (
+                      <span key={p.id}>
+                        {i > 0 && " · "}
+                        <Link href={`/player/${p.id}`} className="focus-ring rounded-sm underline decoration-line underline-offset-4 hover:decoration-ink">
+                          {p.nameKo}
+                        </Link>
+                        {h.players.length > 1 && p.times > 1 && <span className="tabular"> {p.times}</span>}
+                      </span>
+                    ))}
+                    {h.players.length > names.length && ` 외 ${h.players.length - names.length}명`}
+                  </span>
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </section>
   );
 }
@@ -160,42 +166,17 @@ function PlayerName({ p }: { p: DraftPlayerView }) {
   );
 }
 
-/** 실제 → 다시 뽑기 이동 (빨강 오름·파랑 내림 = 리더보드 순위 변동 색) */
-function Move({ move }: { move: number }) {
-  if (move === 0) return <span className="text-caption font-bold text-ink-3">그대로</span>;
-  const up = move > 0;
-  return (
-    <span
-      className={`inline-flex items-center whitespace-nowrap text-caption font-bold ${up ? "text-[var(--div-hot)]" : "text-[var(--div-cold)]"}`}
-      aria-label={`실제보다 ${Math.abs(move)}계단 ${up ? "위" : "아래"}`}
-    >
-      <IconArrowUp size={16} className={`h-3 w-3 ${up ? "" : "rotate-180"}`} aria-hidden />
-      {Math.abs(move)}
-    </span>
-  );
-}
-
-function DraftRow({ p, order }: { p: DraftPlayerView; order: Order }) {
-  const redraft = order === "redraft";
+function DraftRow({ p }: { p: DraftPlayerView }) {
   return (
     <li>
       <Link
         href={`/player/${p.id}`}
         className="focus-ring-inset flex min-h-16 items-center gap-3 px-3 py-2.5 transition-colors duration-200 hover:bg-surface-2"
       >
-        {/* 왼쪽 칸: 실제 지명순이면 "1-3"(라운드-순위), 다시 뽑기면 새 순번 + 이동 */}
+        {/* 왼쪽 칸: "1-3"(라운드-순위) */}
         <span className="flex w-10 shrink-0 flex-col items-center text-center">
-          {redraft ? (
-            <>
-              <span className={`text-body ${p.redraft <= 3 ? "font-black text-ink" : "font-semibold text-ink-2"}`}>{p.redraft}</span>
-              <Move move={p.move} />
-            </>
-          ) : (
-            <>
-              <span className="text-body font-bold text-ink">{p.pickText}</span>
-              <span className="text-caption text-ink-3">순위</span>
-            </>
-          )}
+          <span className="text-body font-bold text-ink">{p.pickText}</span>
+          <span className="text-caption text-ink-3">순위</span>
         </span>
         <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={p.color} size={40} />
         <span className="min-w-0 flex-1">
@@ -204,7 +185,7 @@ function DraftRow({ p, order }: { p: DraftPlayerView; order: Order }) {
             {p.active && <span className="text-caption font-semibold text-ink-3">현역</span>}
           </span>
           <span className="block text-sub leading-snug text-ink-3">
-            {redraft ? `실제 ${pickLabel(p.round, p.pick)}` : p.lastTeam}
+            {p.lastTeam}
             {p.span && ` · ${p.span}`} · {NF0.format(p.games)}경기
           </span>
           {p.chips.length > 0 && (
@@ -212,10 +193,11 @@ function DraftRow({ p, order }: { p: DraftPlayerView; order: Order }) {
               {p.chips.map((c) => (
                 <span
                   key={c.key}
-                  className={`whitespace-nowrap rounded-control border px-1.5 py-0.5 text-caption font-semibold ${
+                  className={`inline-flex items-center gap-1 whitespace-nowrap rounded-control border px-1.5 py-0.5 text-caption font-semibold ${
                     c.gold ? "border-[var(--grade-s)] bg-[color-mix(in_oklab,var(--grade-s)_18%,transparent)] text-ink" : "border-line text-ink-2"
                   }`}
                 >
+                  <AwardIcon award={c.key} />
                   {c.label}
                 </span>
               ))}

@@ -2,7 +2,6 @@
 // 홈 "오늘의 경기" (2026-10-03 사용자 요청: 오늘 경기 기록·맞대결·선수 기록).
 // 끝난 경기가 있는 가장 최근 날짜의 경기 카드(GameCard: 점수·팀·수훈 선수 → "박스스코어 보기" 팝업) + 다음 경기 대진 + 전체 일정 링크.
 // 날짜가 브라우저의 한국 날짜와 같으면 "오늘의 경기", 아니면 "최근 경기". 데이터·계산은 lib/games (서버에서 고른 경기만 받는다).
-// 다음 경기 줄 아래 승부 예측 두 버튼 (2026-10-16, GamePick variant="row" — 로그인 회원에게만).
 // 로그인 회원이 응원팀을 골랐으면 그 팀 경기를 맨 앞에 놓고 "내 응원팀" 표시 (2026-10-08, lib/games myTeamsFirst — 정적 HTML 은 기본 순서).
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -15,7 +14,6 @@ import TeamLogo from "./TeamLogo";
 import { TeamLink } from "./EntityLinks";
 import InfoLink from "./InfoLink";
 import StreakText from "./StreakText";
-import GamePick from "./GamePick";
 import { useMember } from "./useLikes";
 
 export type { GameTeamInfo };
@@ -111,7 +109,6 @@ export default function GameDayBoard({ day, next, seasonCode, teams, streaks = {
                       {Math.round(winProbs[g.gmkey] * 100)} : {100 - Math.round(winProbs[g.gmkey] * 100)}
                     </span>
                   )}
-                  <GamePick game={g} home={home} away={away} place="home" variant="row" className="basis-full pb-1 sm:pl-14" />
                 </li>
               );
             })}

@@ -25,7 +25,7 @@ const TABS: { key: RecordsTab; label: string; short?: string; href: (leadersSeas
 ];
 
 /** 제목 옆 ⓘ 가 풀이하는 용어 (없는 탭은 "역대 통산 순위") */
-const HEADER_TERM: Partial<Record<RecordsTab, GlossaryKey>> = { trends: "leagueTrends", draft: "redraft", foreign: "foreignHall" };
+const HEADER_TERM: Partial<Record<RecordsTab, GlossaryKey>> = { trends: "leagueTrends", draft: "draftClass", foreign: "foreignHall" };
 
 /**
  * scope: 제목 위 범위 한 줄(예: "25-26 KBL 정규시즌"). 없으면 안 그린다.

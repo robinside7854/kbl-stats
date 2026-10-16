@@ -1,14 +1,13 @@
-// 팬 참여 (2026-10-16): 규칙(lib/votes) + 표 SQL(lib/server/votes) — SQL 은 메모리 Postgres(PGlite)로 실제 실행.
+// 팬 참여 (2026-10-16, 승부 예측은 같은 날 폐지): 규칙(lib/votes) + 표 SQL(lib/server/votes) — SQL 은 메모리 Postgres(PGlite)로 실제 실행.
 // tests/account.test.ts 끝에서 불러 npm test 에 같이 돈다 (따로: npx tsx tests/votes.test.ts)
 import assert from "node:assert/strict";
 import { PGlite } from "@electric-sql/pglite";
 import type { GameBoxRow, SeasonGame } from "../lib/types";
 import {
-  buildVoteData, buildVoteWeek, candidateLine, fanMvp, highlightText, voteHighlightOf, hitRateLabel, isGmkey, isPickOpen, isVoteCandidate, parsePickSide, pickLockAt, pickShare,
-  rankPickRows, settledGames, voteMinGames, voteResults, voteWeekKey, voteWeekLabel, weekKeyOfDate, weekStartOf,
+  buildVoteData, buildVoteWeek, candidateLine, fanMvp, highlightText, voteHighlightOf, isVoteCandidate, voteMinGames, voteResults, voteWeekKey, voteWeekLabel, weekKeyOfDate, weekStartOf,
 } from "../lib/votes";
-import { deleteMember, ensureSchema, linkLogin, resolveMemberId, updateProfile, type Query } from "../lib/server/members";
-import { castVote, myPicks, myVotes, pickCounts, pickRanking, setPick, voteTallies } from "../lib/server/votes";
+import { deleteMember, ensureSchema, linkLogin, resolveMemberId, type Query } from "../lib/server/members";
+import { castVote, myVotes, voteTallies } from "../lib/server/votes";
 
 // ── 주 (한국 시간 월~일) ──
 // 2026-10-12(월) 00:00 KST = 10-11 15:00 UTC
@@ -68,9 +67,6 @@ assert.equal(buildVoteWeek(games, "2026-09-28"), null);
 const data = buildVoteData(49, games, () => null, new Date("2026-10-16T00:00:00Z"));
 assert.deepEqual(data.weeks.map((w) => w.week), ["2026-10-12", "2026-10-05"]);
 assert.equal(data.weeks[1].minGames, 1); // 지난주는 한 경기씩
-assert.equal(data.games.length, 5);
-assert.equal(data.games[0].winner, "home");
-assert.equal(data.games[4].winner, null);
 assert.ok(isVoteCandidate(data.weeks, "2026-10-12", "4"));
 assert.ok(!isVoteCandidate(data.weeks, "2026-10-12", "9")); // 출전 0초
 assert.ok(!isVoteCandidate(data.weeks, "2026-10-19", "4")); // 다른 주
@@ -84,38 +80,6 @@ assert.equal(fanMvp(wk, null), null);
 assert.equal(fanMvp(wk, { week: wk.week, counts: {}, total: 0 }), null);
 assert.equal(fanMvp(wk, { week: wk.week, counts: { "1": 1 }, total: 1 })?.candidate.id, "1");
 console.log("votes: 후보·표 결과 통과");
-
-// ── 승부 예측 규칙 ──
-assert.equal(pickLockAt({ date: "2026-10-16", start: "19:00" }).toISOString(), "2026-10-16T10:00:00.000Z");
-assert.equal(pickLockAt({ date: "2026-10-17", start: null }).toISOString(), "2026-10-17T05:00:00.000Z"); // 모르면 14시
-assert.equal(pickLockAt({ date: "2026-10-17", start: "9:30" }).toISOString(), "2026-10-17T00:30:00.000Z");
-const up = { date: "2026-10-16", start: "19:00", ended: false };
-assert.ok(isPickOpen(up, new Date("2026-10-16T09:59:59Z")));
-assert.ok(!isPickOpen(up, new Date("2026-10-16T10:00:00Z"))); // 시작 시각에 마감
-assert.ok(!isPickOpen({ ...up, ended: true }, new Date("2026-10-10T00:00:00Z"))); // 끝난 경기
-assert.equal(parsePickSide("home"), "home");
-assert.equal(parsePickSide("HOME"), null);
-assert.ok(isGmkey("S49G01N12"));
-assert.ok(!isGmkey("S49G01N12;"));
-assert.ok(!isGmkey(12));
-assert.deepEqual(pickShare([3, 1]), { side: "home", pct: 75, total: 4 });
-assert.deepEqual(pickShare([1, 2]), { side: "away", pct: 67, total: 3 });
-assert.equal(pickShare([0, 0]), null);
-assert.equal(pickShare(undefined), null);
-assert.equal(hitRateLabel({ hits: 7, total: 10 }), "70%");
-assert.equal(hitRateLabel({ hits: 0, total: 0 }), "–");
-assert.deepEqual(
-  rankPickRows([
-    { nickname: "a", teamCode: null, hits: 8, total: 10 },
-    { nickname: "b", teamCode: null, hits: 7, total: 10 },
-    { nickname: "c", teamCode: null, hits: 7, total: 10 },
-    { nickname: "d", teamCode: null, hits: 7, total: 12 },
-  ]).map((r) => r.rank),
-  [1, 2, 2, 4],
-);
-const settled = settledGames(data.games);
-assert.equal(settled.gmkeys.length, 4);
-console.log("votes: 승부 예측 규칙 통과");
 
 // ── 표 SQL (PGlite) ──
 {
@@ -136,50 +100,22 @@ console.log("votes: 승부 예측 규칙 통과");
   assert.deepEqual(await myVotes(q, "google:a", ["2026-10-12", "2026-10-05"]), { "2026-10-12": "3", "2026-10-05": "3" });
   assert.deepEqual(await myVotes(q, "google:new", ["2026-10-12"]), {});
 
-  // 승부 예측: 경기마다 한 번, 바꾸면 덮어씀
-  await setPick(q, "google:a", "S49G01N1", "home");
-  await setPick(q, "google:a", "S49G01N2", "away");
-  await setPick(q, "google:a", "S49G01N2", "home"); // 바꾸기 (N2 는 홈 10번 22점 vs 원정 40점 → 원정 승)
-  await setPick(q, "google:b", "S49G01N1", "away");
-  await setPick(q, "google:b", "S48G01N1", "home"); // 다른 시즌
-  assert.deepEqual(await pickCounts(q, "S49G"), { S49G01N1: [1, 1], S49G01N2: [1, 0] });
-  assert.deepEqual(await pickCounts(q, "S49G%"), { S49G01N1: [1, 1], S49G01N2: [1, 0] }); // LIKE 특수 문자는 버림
-  const mine = await myPicks(q, "google:a", "S49G", settled);
-  assert.deepEqual(mine, { picks: { S49G01N1: "home", S49G01N2: "home" }, hits: 1, total: 2 });
-
-  // 순위: 닉네임 회원·채점 minPicks 이상
-  await updateProfile(q, "google:a", { nickname: "에이", teamCodes: ["55"] });
-  await updateProfile(q, "google:c", { nickname: "씨" });
-  await setPick(q, "google:c", "S49G01N1", "home");
-  await setPick(q, "google:c", "S49G01N2", "away");
-  let rk = await pickRanking(q, settled, 2);
-  assert.deepEqual(rk.rows.map((r) => [r.rank, r.nickname, r.hits, r.total, r.teamCode]), [[1, "씨", 2, 2, null], [2, "에이", 1, 2, "55"]]);
-  assert.equal(rk.members, 2);
-  assert.equal((await pickRanking(q, settled)).rows.length, 0); // 기본 10경기 미만
-  assert.equal((await pickRanking(q, { gmkeys: [], winners: [] }, 1)).rows.length, 0);
-  // 닉네임 없는 b(1경기)는 minPicks 1 이어도 순위 밖
-  rk = await pickRanking(q, settled, 1);
-  assert.deepEqual(rk.rows.map((r) => r.nickname), ["씨", "에이"]);
-
-  // 계정 합치기: 표·예측이 옮겨지고 같은 주·같은 경기는 지금 회원 것
+  // 계정 합치기: 표가 옮겨지고 같은 주는 지금 회원 것
   await castVote(q, "naver:a2", "2026-10-12", "1");
   await castVote(q, "naver:a2", "2026-09-28", "7");
-  await setPick(q, "naver:a2", "S49G01N1", "away");
-  await setPick(q, "naver:a2", "S49G01N3", "home");
   assert.deepEqual(await linkLogin(q, "google:a", "naver:a2"), { ok: true, merged: true });
   assert.deepEqual(await myVotes(q, "naver:a2", ["2026-10-12", "2026-09-28"]), { "2026-10-12": "3", "2026-09-28": "7" });
-  const merged = await myPicks(q, "google:a", "S49G", settled);
-  assert.deepEqual(merged.picks, { S49G01N1: "home", S49G01N2: "home", S49G01N3: "home" });
   [cur] = await voteTallies(q, ["2026-10-12"]);
   assert.equal(cur.total, 3); // 합친 쪽 표는 사라짐 (한 사람 한 표)
 
-  // 탈퇴하면 표·예측도 지워진다
+  // 탈퇴하면 표도 지워진다
   const id = await resolveMemberId(q, "google:a");
   await deleteMember(q, "google:a");
   assert.equal((await q("SELECT count(*)::int AS n FROM member_votes WHERE member_id = $1", [id]))[0].n, 0);
-  assert.equal((await q("SELECT count(*)::int AS n FROM member_picks WHERE member_id = $1", [id]))[0].n, 0);
+  // 폐지한 승부 예측 표는 표 준비 때 지운다
+  assert.equal((await q("SELECT count(*)::int AS n FROM information_schema.tables WHERE table_name = 'member_picks'"))[0].n, 0);
   [cur] = await voteTallies(q, ["2026-10-12"]);
   assert.equal(cur.total, 2);
   await db.close();
-  console.log("votes: 표 SQL(한 주 한 표·바꾸기·예측 덮어쓰기·수·적중·순위·합치기·탈퇴) 통과");
+  console.log("votes: 표 SQL(한 주 한 표·바꾸기·합치기·탈퇴) 통과");
 }

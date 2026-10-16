@@ -1,10 +1,9 @@
-// 드래프트 연도별 결과 + "다시 뽑는다면" (기록 메뉴 "드래프트" 탭, /records/draft?year=2015) — 순수 함수만.
+// 드래프트 연도별 결과 + 그 해 지명 선수들의 수상 합계 (기록 메뉴 "드래프트" 탭, /records/draft?year=2015) — 순수 함수만.
 // 재료: 선수 색인의 draft {year, round, pick}(선수 마스터)·수상·우승 + 통산 합계(lib/data loadCareerTotals) → lib/data-history.
-//
-// 다시 뽑기 규칙 (우리 규칙): 통산 정규시즌 득점 + 리바운드 + 어시스트 + 스틸 + 블록 합계가 큰 순.
-// 같으면 경기 많은 순 → 실제 지명 순. 누적 합이라 오래 뛴 선수가 앞선다(전성기 길이도 지명 가치라고 본다).
+// 2026-10-16 사용자: "다시 뽑는다면" 순서는 없애고 그 해의 우승 횟수·챔프전 MVP 같은 수상 내용을 아이콘과 함께.
 // 한계: 선수 색인은 KBL 정규시즌에 한 경기라도 뛴 선수만 있다 → 지명됐지만 못 뛴 선수는 목록에 없다.
-import type { DraftInfo } from "./types";
+import { AWARD_LABELS } from "./career";
+import type { AwardKey, DraftInfo, PlayerAward } from "./types";
 
 export interface DraftPick {
   id: string;
@@ -16,11 +15,6 @@ export interface DraftPick {
   ast: number;
   stl: number;
   blk: number;
-}
-
-/** 다시 뽑기 점수 = 통산 득점 + 리바운드 + 어시스트 + 스틸 + 블록 */
-export function redraftScore(p: Pick<DraftPick, "points" | "reb" | "ast" | "stl" | "blk">): number {
-  return p.points + p.reb + p.ast + p.stl + p.blk;
 }
 
 /** 지명 표기: "1라운드 3순위" (없는 쪽은 뺀다, 둘 다 없으면 "순위 미상") */
@@ -42,26 +36,40 @@ export function draftOrder<T extends Pick<DraftPick, "round" | "pick">>(rows: re
   return [...rows].sort((a, b) => big(a.round) - big(b.round) || big(a.pick) - big(b.pick));
 }
 
-export interface RedraftRow<T> {
-  row: T;
-  /** 실제 지명 순서 (이 목록 안, 1부터) */
-  actual: number;
-  /** 다시 뽑으면 몇 번째 (1부터) */
-  redraft: number;
-  /** 실제 → 다시 뽑기 이동 (+ 면 위로 올라감) */
-  move: number;
-  score: number;
+export interface DraftHonorRow {
+  key: AwardKey | "champion";
+  label: string;
+  /** 그 해 지명 선수들이 받은 횟수 합 (우승은 우승 시즌 수 합) */
+  times: number;
+  /** 받은 선수 (많이 받은 순 → 이름) */
+  players: { id: string; nameKo: string; times: number }[];
 }
 
-/** 다시 뽑기 순서: 점수 큰 순 → 경기 많은 순 → 실제 지명 순 */
-export function redraftOrder<T extends DraftPick>(rows: readonly T[]): RedraftRow<T>[] {
-  const actualOrder = draftOrder(rows);
-  const actualOf = new Map(actualOrder.map((r, i) => [r, i + 1]));
-  const sorted = [...actualOrder].sort((a, b) => redraftScore(b) - redraftScore(a) || b.games - a.games || actualOf.get(a)! - actualOf.get(b)!);
-  return sorted.map((row, i) => {
-    const actual = actualOf.get(row)!;
-    return { row, actual, redraft: i + 1, move: actual - (i + 1), score: redraftScore(row) };
-  });
+/**
+ * 그 해 드래프트 선수들의 수상 합계: 우승 → 정규리그 MVP → 챔프전 MVP → … (lib/career AWARD_LABELS 순서), 받은 것만.
+ * 외국선수 MVP·올스타전 MVP 는 뺀다(드래프트 선수는 국내 선수, 올스타는 이벤트).
+ */
+export function draftClassHonors(
+  entries: readonly { id: string; nameKo: string; awards?: readonly PlayerAward[] | null; championships?: readonly number[] | null }[],
+): DraftHonorRow[] {
+  const defs: { key: AwardKey | "champion"; label: string }[] = [
+    { key: "champion", label: "우승" },
+    ...AWARD_LABELS.filter((d) => d.key !== "foreignMvp" && d.key !== "allStarMvp").map((d) => ({ key: d.key, label: d.label })),
+  ];
+  const out: DraftHonorRow[] = [];
+  for (const d of defs) {
+    const players = entries
+      .map((e) => ({
+        id: e.id,
+        nameKo: e.nameKo,
+        times: d.key === "champion" ? new Set(e.championships ?? []).size : new Set((e.awards ?? []).filter((a) => a.key === d.key).map((a) => a.seasonCode)).size,
+      }))
+      .filter((p) => p.times > 0)
+      .sort((a, b) => b.times - a.times || a.nameKo.localeCompare(b.nameKo, "ko"));
+    if (players.length === 0) continue;
+    out.push({ key: d.key, label: d.label, times: players.reduce((s, p) => s + p.times, 0), players });
+  }
+  return out;
 }
 
 /** 같은 라운드·순위가 둘 이상 있는가 (2012 처럼 한 해 드래프트가 두 번 열린 해) */

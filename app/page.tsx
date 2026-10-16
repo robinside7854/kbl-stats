@@ -17,7 +17,7 @@ import SourceFooter, { formatFetchedAt } from "./components/SourceFooter";
 
 export const metadata: Metadata = shareMetadata({
   title: "KBL - Stats Reference · 이번 시즌",
-  description: "오늘의 경기·부문별 1~3위·선수 카드·리더보드·역대 기록까지, 1997년부터 모든 KBL 선수 기록을 한눈에. 비영리 팬 프로젝트.",
+  description: "오늘의 경기·부문별 1~5위·선수 카드·리더보드·역대 기록까지, 1997년부터 모든 KBL 선수 기록을 한눈에. 비영리 팬 프로젝트.",
   path: "/",
 });
 
@@ -27,10 +27,10 @@ export default function HomePage() {
   const season = shown ? loadSeasonData(shown.seasonCode) : null;
   if (!shown || !season) notFound();
 
-  // 부문별 1~3위: 경기당, 그 시즌 기본 표본 기준 (순위표 기본 화면과 같은 값 — 진행 중 시즌은 팀 경기 절반 이상)
+  // 부문별 1~5위: 경기당, 그 시즌 기본 표본 기준 (순위표 기본 화면과 같은 값 — 진행 중 시즌은 팀 경기 절반 이상)
   const rule = seasonQualify(shown.seasonCode);
   const qualified = filterLeaders(toLeaderPlayers(season), { origin: "all", teamCode: null, rule });
-  const categories = HOME_CATEGORIES.map((key) => ({ key, entries: topLeaders(qualified, key, "perGame", 3) }));
+  const categories = HOME_CATEGORIES.map((key) => ({ key, entries: topLeaders(qualified, key, "perGame", 5) }));
 
   // 오늘 생일 후보: 홈 시즌 명단(= 현역) 중 생년월일이 있는 선수. "오늘" 판정은 브라우저(BirthdayStrip)가 한다
   const teams = toCardTeams(season);

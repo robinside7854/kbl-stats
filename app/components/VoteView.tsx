@@ -1,25 +1,22 @@
 "use client";
-// 팬 참여 화면 (/vote, 2026-10-16): 탭 "팬 MVP" / "승부 예측".
+// 팬 참여 화면 (/vote, 2026-10-16): 이번 주 팬 MVP 투표 (승부 예측 탭은 같은 날 폐지).
 // 팬 MVP: 이번 주(한국 시간 월~일) 후보 = 그 주 뛴 팀마다 한 명, 가장 눈에 띈 기록(득점·리바·어시·3점·스틸+블록 ÷ 문턱) 순(lib/votes, 5~10명).
 //   줄마다 사진·이름·팀·눈에 띈 기록 칩·주간 기록 한 줄·표 막대, 로그인 회원은 "투표"(한 주 한 표, 주 안에서 바꿀 수 있음). 위에 팬 투표 1위 vs 우리 기록 1위, 아래 지난주 팬 MVP.
-// 승부 예측: 내 적중(로그인 회원) + 시즌 순위(닉네임 회원, 채점 10경기 이상, 상위 50) + 예측하러 가기(일정).
-// 요청: 표 수 /api/vote(공개 1분 캐시)는 팬 MVP 탭에서만, 순위 /api/picks/ranking 은 승부 예측 탭에서만, 내 표·예측은 로그인한 적 있는 브라우저만.
-// GA4: vote_cast {player_no}, filter_change screen=vote filter=tab, login_prompt_click {place: vote|pick}.
+// 요청: 표 수 /api/vote(공개 1분 캐시), 내 표는 로그인한 적 있는 브라우저만.
+// GA4: vote_cast {player_no}, login_prompt_click {place: vote}.
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { candidateLine, fanMvp, findVoteWeek, highlightText, hitRateLabel, voteResults, voteWeekKey, voteWeekLabel, type PickRanking, type VoteCandidate, type VoteTally, type VoteWeek } from "@/lib/votes";
+import { candidateLine, fanMvp, findVoteWeek, highlightText, voteResults, voteWeekKey, voteWeekLabel, type VoteCandidate, type VoteTally, type VoteWeek } from "@/lib/votes";
 import type { TeamColor } from "@/lib/types";
 import { teamShortLabel } from "@/lib/images";
 import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
-import ChipRow from "./ChipRow";
-import MemberBadge from "./MemberBadge";
 import PlayerAvatar from "./PlayerAvatar";
 import Skeleton from "./Skeleton";
 import TeamLogo from "./TeamLogo";
 import { IconChevronRight } from "./icons";
-import { trackEvent, trackFilters } from "./track";
+import { trackEvent } from "./track";
 import { useMember } from "./useLikes";
-import { castVote, fetchMyVotes, fetchPickRanking, fetchVoteTallies, participationOn, useMyPickRecord, type VoteTallies } from "./vote-client";
+import { castVote, fetchMyVotes, fetchVoteTallies, participationOn, type VoteTallies } from "./vote-client";
 import { hasSignedInHint } from "./account-client";
 
 interface TeamInfo {
@@ -31,53 +28,27 @@ interface TeamInfo {
 interface Props {
   weeks: VoteWeek[];
   teams: Record<string, TeamInfo>;
-  seasonCode: number;
 }
 
-type Tab = "mvp" | "predict";
-
-export default function VoteView({ weeks, teams, seasonCode }: Props) {
-  const [tab, setTab] = useState<Tab>("mvp");
+export default function VoteView({ weeks, teams }: Props) {
   // 정적 HTML 은 빌드 때 가장 최근 주를 "이번 주"로, 브라우저가 지금 시각으로 다시 고른다
   const [keys, setKeys] = useState<{ cur: string; last: string } | null>(null);
   useEffect(() => {
     const now = new Date();
     setKeys({ cur: voteWeekKey(now), last: voteWeekKey(now, -1) });
-    if (new URLSearchParams(window.location.search).get("tab") === "predict") setTab("predict");
   }, []);
   const on = participationOn();
-
-  function choose(next: Tab) {
-    setTab(next);
-    trackFilters("vote", { tab: next });
-    const url = new URL(window.location.href);
-    if (next === "predict") url.searchParams.set("tab", "predict");
-    else url.searchParams.delete("tab");
-    window.history.replaceState(null, "", url);
-  }
 
   return (
     <main className="mx-auto max-w-5xl px-4 pb-6 pt-5">
       <h1 className="text-h1 font-black">팬 투표</h1>
-      <p className="mt-0.5 text-sub text-ink-3">이번 주 MVP를 뽑고, 경기 승부를 맞혀 보세요.</p>
-      <ChipRow
-        label="보기"
-        className="mt-3"
-        chips={[
-          { value: "mvp", label: "이번 주 MVP" },
-          { value: "predict", label: "승부 예측" },
-        ]}
-        value={tab}
-        onChange={choose}
-      />
+      <p className="mt-0.5 text-sub text-ink-3">이번 주 가장 눈에 띈 선수를 뽑아 보세요.</p>
       {!keys ? (
         <Skeleton className="mt-4 h-96 w-full rounded-container" />
       ) : !on ? (
-        <p className="surface-card mt-3 rounded-container p-4 text-body text-ink-2">로그인 기능을 준비 중이라 투표·예측을 아직 받지 않아요.</p>
-      ) : tab === "mvp" ? (
-        <MvpSection weeks={weeks} teams={teams} keys={keys} />
+        <p className="surface-card mt-3 rounded-container p-4 text-body text-ink-2">로그인 기능을 준비 중이라 투표를 아직 받지 않아요.</p>
       ) : (
-        <PredictSection teams={teams} seasonCode={seasonCode} />
+        <MvpSection weeks={weeks} teams={teams} keys={keys} />
       )}
     </main>
   );
@@ -85,7 +56,7 @@ export default function VoteView({ weeks, teams, seasonCode }: Props) {
 
 const teamOf = (teams: Record<string, TeamInfo>, code: string): TeamInfo => teams[code] ?? { shortName: code, logoUrl: null, color: FALLBACK_TEAM_COLOR };
 
-function LoginPrompt({ place, children }: { place: "vote" | "pick"; children: React.ReactNode }) {
+function LoginPrompt({ place, children }: { place: "vote"; children: React.ReactNode }) {
   return (
     <Link href="/me" className="focus-ring link-shortcut" onClick={() => trackEvent("login_prompt_click", { place })}>
       {children}
@@ -284,99 +255,5 @@ function LastWeek({ week, tally, loading, teams }: { week: VoteWeek; tally: Vote
       <SummaryTile label="팬 투표 1위" teams={teams} c={fan?.candidate ?? null} sub={fan ? `${fan.votes.toLocaleString("ko-KR")}표 · ${fan.pct}%` : "표가 없었어요"} />
       <SummaryTile label="우리 기록 1위" teams={teams} c={statTop} sub={statTop ? highlightText(statTop) : ""} />
     </div>
-  );
-}
-
-function PredictSection({ teams, seasonCode }: { teams: Record<string, TeamInfo>; seasonCode: number }) {
-  const [ranking, setRanking] = useState<PickRanking | "error" | null>(null);
-  const member = useMember();
-  const mine = useMyPickRecord();
-  useEffect(() => {
-    let alive = true;
-    void fetchPickRanking().then((r) => alive && setRanking(r ?? "error"));
-    return () => {
-      alive = false;
-    };
-  }, []);
-
-  return (
-    <section aria-labelledby="pick-title" className="mt-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 id="pick-title" className="text-h2 font-bold">
-          승부 예측 순위
-        </h2>
-        <Link href={`/season/${seasonCode}/schedule`} className="focus-ring link-shortcut">
-          예측하러 가기
-          <IconChevronRight size={16} />
-        </Link>
-      </div>
-      <div className="surface-card mt-3 rounded-container p-3">
-        {member === undefined ? (
-          <Skeleton className="h-10 w-full rounded-card" />
-        ) : member === null ? (
-          <div className="flex min-h-10 flex-wrap items-center justify-between gap-x-3 text-sub text-ink-2">
-            <span>경기 시작 전에 이길 팀을 골라요.</span>
-            <LoginPrompt place="pick">로그인하고 예측하기</LoginPrompt>
-          </div>
-        ) : (
-          <div className="flex min-h-10 flex-wrap items-center justify-between gap-x-3 text-sub">
-            <span className="text-ink-2">
-              내 적중{" "}
-              <b className="text-body text-ink tabular">
-                {mine ? `${mine.hits}/${mine.total}` : "–"}
-              </b>
-              {mine && mine.total > 0 && <span className="ml-1.5 text-ink-3 tabular">{hitRateLabel(mine)}</span>}
-            </span>
-            {!member.nickname && (
-              <Link href="/me" className="focus-ring link-shortcut text-sub">
-                닉네임을 정하면 순위에 올라요
-                <IconChevronRight size={16} />
-              </Link>
-            )}
-          </div>
-        )}
-      </div>
-      <div className="surface-card mt-3 rounded-container p-2">
-        {!ranking ? (
-          <Skeleton className="h-48 w-full rounded-card" />
-        ) : ranking === "error" ? (
-          <p className="p-3 text-body text-ink-2">순위를 불러오지 못했어요. 잠시 뒤 새로고침해 주세요.</p>
-        ) : ranking.rows.length === 0 ? (
-          <div className="p-3">
-            <p className="text-body text-ink-2">아직 순위가 없어요. 끝난 경기 {ranking.minPicks}개 이상 예측하면 올라요.</p>
-            <Link href={`/season/${seasonCode}/schedule`} className="focus-ring link-shortcut">
-              일정에서 예측하기
-              <IconChevronRight size={16} />
-            </Link>
-          </div>
-        ) : (
-          <ol className="divide-y divide-line">
-            {ranking.rows.map((r, i) => {
-              const t = r.teamCode ? teams[r.teamCode] : undefined;
-              return (
-                <li key={`${r.nickname}-${i}`} className="flex min-h-12 items-center justify-between gap-2 px-2 py-2">
-                  <span className="flex min-w-0 items-center gap-2 text-body">
-                    <span className={`w-6 shrink-0 text-right tabular ${r.rank <= 3 ? "font-black text-ink" : "text-sub font-bold text-ink-3"}`}>{r.rank}</span>
-                    <MemberBadge nickname={r.nickname} teamColor={t?.color} teamName={t?.shortName} />
-                  </span>
-                  <span className="shrink-0 text-body tabular">
-                    <b className="text-ink">{r.hits}</b>
-                    <span className="text-ink-3">/{r.total}</span>
-                    <span className="ml-2 text-sub text-ink-2">{hitRateLabel(r)}</span>
-                  </span>
-                </li>
-              );
-            })}
-          </ol>
-        )}
-      </div>
-      {ranking && ranking !== "error" && ranking.members > ranking.rows.length && (
-        <p className="mt-2 text-sub text-ink-3 tabular">참여 {ranking.members.toLocaleString("ko-KR")}명 중 상위 {ranking.rows.length}명</p>
-      )}
-      <ul className="mt-3 space-y-1 text-caption text-ink-3">
-        <li>경기 카드에서 이길 팀을 고르면 돼요. 경기가 시작되면 마감이고, 그 전까지는 바꿀 수 있어요.</li>
-        <li>이번 시즌 끝난 경기 {ranking && ranking !== "error" ? ranking.minPicks : 10}개 이상 예측한, 닉네임을 정한 회원만 순위에 올라요. 적중 수가 같으면 적중률 순이에요.</li>
-      </ul>
-    </section>
   );
 }

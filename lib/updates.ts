@@ -31,15 +31,25 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-10-16-home-top5",
+    date: "2026-10-16",
+    kind: "update",
+    title: "홈 부문별 순위 5위까지",
+    summary: "홈 순위 5위까지 보여요",
+    blocks: [
+      { kind: "p", text: "홈 부문별 순위를 1~3위에서 1~5위로 늘렸어요. 경기당 기록 아래에 몇 경기 뛰었는지도 같이 보여요." },
+      { kind: "list", items: [{ text: "홈에서 보기", href: "/" }] },
+    ],
+  },
+  {
     slug: "2026-10-16-fan-vote",
     date: "2026-10-16",
     kind: "update",
     title: "이번 주 MVP, 이제 팬이 뽑아요",
-    summary: "팬 MVP 투표·승부 예측",
+    summary: "팬 MVP 투표 생겼어요",
     blocks: [
       { kind: "p", text: "로그인하면 한 주에 한 표씩 이번 주 가장 잘한 선수를 뽑을 수 있어요. 주가 끝나기 전엔 바꿔도 돼요. 후보는 팀마다 한 명, 그 주 득점·리바운드·어시스트·3점·스틸+블록 중 가장 눈에 띈 기록을 낸 선수예요." },
-      { kind: "p", text: "아직 안 한 경기 카드에서 이길 팀도 골라 보세요. 경기 시작 전까지 바꿀 수 있고, 닉네임 정하고 10경기 넘게 맞혀 보면 시즌 적중 순위에 올라가요." },
-      { kind: "list", items: [{ text: "팬 MVP 투표하기", href: "/vote" }, { text: "승부 예측하러 가기", href: "/season/49/schedule" }] },
+      { kind: "list", items: [{ text: "팬 MVP 투표하기", href: "/vote" }] },
     ],
   },
   {
@@ -60,14 +70,14 @@ export const UPDATE_POSTS: UpdatePost[] = [
     date: "2026-10-16",
     kind: "update",
     title: "드래프트·외국 선수 전당·리그 변화",
-    summary: "드래프트 다시 뽑기",
+    summary: "드래프트·리그 변화 탭",
     blocks: [
       { kind: "p", text: "기록 메뉴에 탭이 세 개 늘었어요." },
       {
         kind: "list",
         items: [
-          { text: "드래프트: 지금 다시 뽑으면 누가 1순위일까요. 2015년은 3순위 송교창이 1순위로 올라가요", href: "/records/draft" },
-          { text: "외국 선수 전당: MVP·베스트5·오래 뛴 외국 선수 30명, 맨 위는 통산 12,243점 라건아", href: "/records/foreign" },
+          { text: "드래프트: 해마다 뽑힌 선수와 그 해 선수들이 받은 우승·상을 모아 봐요. 양동근이 뽑힌 2004년은 우승 12번, 정규리그 MVP 4번이에요", href: "/records/draft" },
+          { text: "외국 선수 전당: MVP·베스트5·오래 뛴 외국 선수 30명, 맨 위는 통산 12,243점 라건아. 거쳐 간 팀은 로고로 보여 줘요", href: "/records/foreign" },
           { text: "리그 변화: 30년 동안 경기당 팀 득점은 95.5점에서 78.1점으로, 3점 시도 비중은 29.5%에서 40.3%로", href: "/records/trends" },
         ],
       },

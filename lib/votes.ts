@@ -1,9 +1,9 @@
-// 팬 참여 (2026-10-16, 로드맵 1단계 — 로그인 회원만): ① 이번 주 팬 MVP 투표 ② 경기 승부 예측. 순수 함수만.
-// 후보·경기 표는 빌드 때 data/processed/{시즌}/games.json 으로 만들어 public/vote/data.json 에 둔다(scripts/build-votes.ts).
-// 화면은 같은 함수로 정적 HTML 을 만들고, 서버(API)는 그 정적 파일을 한 번 받아 투표·예측이 맞는지 검사한다(lib/server/vote-data.ts).
-// 자유 글은 어디에도 없다 — 선수 번호·홈/원정만 저장.
+// 팬 참여 (2026-10-16, 로드맵 1단계 — 로그인 회원만): 이번 주 팬 MVP 투표. 순수 함수만.
+// (경기 승부 예측은 같은 날 사용자 결정으로 폐지 — 경기 카드가 복잡해져서)
+// 후보는 빌드 때 data/processed/{시즌}/games.json 으로 만들어 public/vote/data.json 에 둔다(scripts/build-votes.ts).
+// 화면은 같은 함수로 정적 HTML 을 만들고, 서버(API)는 그 정적 파일을 한 번 받아 투표가 맞는지 검사한다(lib/server/vote-data.ts).
+// 자유 글은 어디에도 없다 — 선수 번호만 저장.
 import { kstWeekStart } from "./account";
-import { winnerSide } from "./games";
 import type { SeasonGame } from "./types";
 
 const KST_MS = 9 * 3600_000;
@@ -83,24 +83,12 @@ export interface VoteWeek {
   players: VoteCandidate[];
 }
 
-/** 경기 승부 예측용 경기 한 줄 (서버 검사·채점) */
-export interface PickGame {
-  gmkey: string;
-  date: string;
-  start: string | null;
-  home: string;
-  away: string;
-  ended: boolean;
-  winner: PickSide | null;
-}
-
 export interface VoteDataFile {
   version: 1;
   seasonCode: number;
   builtAt: string;
   /** 최근 주부터 */
   weeks: VoteWeek[];
-  games: PickGame[];
 }
 
 const r1 = (n: number) => Math.round(n * 10) / 10;
@@ -187,15 +175,6 @@ export function buildVoteData(seasonCode: number, games: readonly SeasonGame[], 
     seasonCode,
     builtAt: builtAt.toISOString(),
     weeks,
-    games: games.map((g) => ({
-      gmkey: g.gmkey,
-      date: g.date,
-      start: g.start,
-      home: g.home.teamCode,
-      away: g.away.teamCode,
-      ended: g.ended,
-      winner: winnerSide(g),
-    })),
   };
 }
 
@@ -245,81 +224,4 @@ export function voteResults(week: VoteWeek, tally: VoteTally | null): VoteResult
 export function fanMvp(week: VoteWeek, tally: VoteTally | null): VoteResultRow | null {
   const top = voteResults(week, tally)[0];
   return top && top.votes > 0 ? top : null;
-}
-
-// ── 경기 승부 예측 ──
-
-export type PickSide = "home" | "away";
-export const parsePickSide = (v: unknown): PickSide | null => (v === "home" || v === "away" ? v : null);
-export const isGmkey = (v: unknown): v is string => typeof v === "string" && /^S\d{1,3}G\d{2}N\d{1,4}$/.test(v);
-/** 시작 시각을 모르는 경기는 그날 이 시각에 마감 (KBL 주말 낮 경기가 가장 이르다) */
-export const PICK_FALLBACK_START = "14:00";
-/** 시즌 예측 순위에 오르는 최소 채점 경기 수 */
-export const PICK_RANKING_MIN = 10;
-export const PICK_RANKING_LIMIT = 50;
-
-/** 예측 마감 시각 = 경기 시작 (한국 시간) */
-export function pickLockAt(g: { date: string; start: string | null }): Date {
-  const start = g.start && /^\d{1,2}:\d{2}$/.test(g.start) ? g.start.padStart(5, "0") : PICK_FALLBACK_START;
-  return new Date(Date.parse(`${g.date}T${start}:00+09:00`));
-}
-
-/** 아직 예측할 수 있나 (끝나지 않았고 시작 전) */
-export function isPickOpen(g: { date: string; start: string | null; ended: boolean }, now: Date): boolean {
-  return !g.ended && now.getTime() < pickLockAt(g).getTime();
-}
-
-/** 경기마다 [홈, 원정] 예측 수 */
-export type PickCounts = Record<string, [number, number]>;
-
-/** 팬 예측 비율 → 더 많은 쪽과 % (예측이 없으면 null) */
-export function pickShare(c: [number, number] | undefined): { side: PickSide; pct: number; total: number } | null {
-  if (!c) return null;
-  const total = c[0] + c[1];
-  if (total === 0) return null;
-  const side: PickSide = c[0] >= c[1] ? "home" : "away";
-  return { side, pct: Math.round(((side === "home" ? c[0] : c[1]) / total) * 100), total };
-}
-
-/** 채점할 경기 (끝났고 승패가 있는 경기) */
-export function settledGames(games: readonly PickGame[]): { gmkeys: string[]; winners: PickSide[] } {
-  const done = games.filter((g) => g.ended && g.winner);
-  return { gmkeys: done.map((g) => g.gmkey), winners: done.map((g) => g.winner as PickSide) };
-}
-
-export interface PickRecord {
-  hits: number;
-  total: number;
-}
-
-export interface MyPicks extends PickRecord {
-  /** gmkey → 고른 쪽 */
-  picks: Record<string, PickSide>;
-}
-
-/** 적중률 표기 "70%" (채점 0경기면 "–") */
-export const hitRateLabel = (r: PickRecord): string => (r.total > 0 ? `${Math.round((r.hits / r.total) * 100)}%` : "–");
-
-export interface PickRankRow extends PickRecord {
-  rank: number;
-  nickname: string;
-  teamCode: string | null;
-}
-
-export interface PickRanking {
-  rows: PickRankRow[];
-  /** 순위 조건(채점 PICK_RANKING_MIN 경기 이상)을 채운 회원 수 */
-  members: number;
-  minPicks: number;
-}
-
-/** 이미 정렬된 줄에 순위 (적중 수·채점 수가 같으면 같은 순위 — 1,2,2,4) */
-export function rankPickRows(rows: readonly Omit<PickRankRow, "rank">[]): PickRankRow[] {
-  const out: PickRankRow[] = [];
-  rows.forEach((r, i) => {
-    const prev = out[i - 1];
-    const rank = prev && prev.hits === r.hits && prev.total === r.total ? prev.rank : i + 1;
-    out.push({ ...r, rank });
-  });
-  return out;
 }

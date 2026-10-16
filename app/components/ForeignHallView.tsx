@@ -7,9 +7,12 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { ForeignHallData, HallMemberView } from "@/lib/data-history";
 import { HALL_REASON_LABELS, HALL_SORTS, sortHall, type HallSort } from "@/lib/hall";
+import { teamShortLabel } from "@/lib/images";
+import AwardIcon from "./AwardIcon";
 import ChipRow from "./ChipRow";
 import PlayerAvatar from "./PlayerAvatar";
 import Segmented from "./Segmented";
+import TeamLogo from "./TeamLogo";
 import { trackFilters } from "./track";
 
 type View = "hall" | "seasons";
@@ -109,16 +112,18 @@ function HallCard({ m, n }: { m: HallMemberView; n: number }) {
             </span>
           </span>
         </span>
-        {/* 거쳐 간 팀 (연속 구간) */}
-        <span className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-sub text-ink-2">
-          {m.stints.map((s, i) => (
-            <span key={`${s.teamShort}-${i}`} className="inline-flex items-center gap-1.5 whitespace-nowrap">
-              {/* deslop-ignore-next-line 19 */}
-              <span aria-hidden className="h-2.5 w-2.5 shrink-0 rounded-full ring-1 ring-line" style={{ background: s.color.primary }} />
-              {s.teamShort}
-              <span className="tabular text-ink-3">{s.range}</span>
-            </span>
-          ))}
+        {/* 거쳐 간 팀: 로고 + 팀 + 시즌 구간 (같은 팀 두 번이면 한 칸에 구간 둘) */}
+        <span className="mt-3 block">
+          <span className="text-caption font-semibold text-ink-3">거쳐 간 팀 {m.teams.length}</span>
+          <span className="mt-1 flex flex-wrap gap-1.5">
+            {m.teams.map((t) => (
+              <span key={t.teamCode} className="inline-flex min-h-8 items-center gap-1.5 rounded-control border border-line bg-surface px-2 py-1 text-sub">
+                <TeamLogo logoUrl={t.logoUrl} shortName={t.teamShort} color={t.color} size={18} />
+                <span className="whitespace-nowrap font-semibold text-ink">{teamShortLabel(t.teamShort)}</span>
+                <span className="tabular whitespace-nowrap text-caption text-ink-3">{t.ranges.join(" · ")}</span>
+              </span>
+            ))}
+          </span>
         </span>
         <span className="tabular mt-3 grid grid-cols-5 gap-1 text-center">
           {tiles.map((t) => (
@@ -133,10 +138,11 @@ function HallCard({ m, n }: { m: HallMemberView; n: number }) {
             {m.chips.map((c) => (
               <span
                 key={c.key}
-                className={`whitespace-nowrap rounded-control border px-1.5 py-0.5 text-caption font-semibold ${
+                className={`inline-flex items-center gap-1 whitespace-nowrap rounded-control border px-1.5 py-0.5 text-caption font-semibold ${
                   c.gold ? "border-[var(--grade-s)] bg-[color-mix(in_oklab,var(--grade-s)_18%,transparent)] text-ink" : "border-line text-ink-2"
                 }`}
               >
+                <AwardIcon award={c.key} />
                 {c.label}
               </span>
             ))}

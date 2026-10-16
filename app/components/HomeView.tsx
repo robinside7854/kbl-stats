@@ -1,5 +1,5 @@
 // 홈 "KBL 2026-2027 시즌" (옛 제목 "이번 시즌 한눈에") (PLAN.md §2-4, §3 ⑤, §5-4). 서버 컴포넌트 — 계산은 app/page.tsx 가 lib/ 함수로 끝내고 결과만 받는다.
-// 구성(모바일 우선): 개막 전 안내 → 오늘의 경기(GameDayBoard, 2026-10-03 — 응원팀 경기 먼저, 다음 경기 팀 연승·연패) → 새로 나온 기록(RecentFeats, 2026-10-11) → 이번 주 팬 MVP(FanMvpCard, 2026-10-16) → 즐겨찾기(있을 때만) → 히어로(부문 1위 표지, 새로고침마다 부문이 바뀜 — HomeHero) → 오늘 생일 → 부문별 1~3위 카드 줄.
+// 구성(모바일 우선): 개막 전 안내 → 오늘의 경기(GameDayBoard, 2026-10-03 — 응원팀 경기 먼저, 다음 경기 팀 연승·연패) → 새로 나온 기록(RecentFeats, 2026-10-11) → 이번 주 팬 MVP(FanMvpCard, 2026-10-16) → 즐겨찾기(있을 때만) → 히어로(부문 1위 표지, 새로고침마다 부문이 바뀜 — HomeHero) → 오늘 생일 → 부문별 1~5위 카드 줄(2026-10-16 사용자: 5위까지·경기당 기록 옆에 뛴 경기 수).
 // 바로가기·시즌별 목록은 2026-10-01 사용자 요청으로 뺐다(상단 메뉴·시즌 선택과 겹침).
 import Link from "next/link";
 import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
@@ -99,11 +99,11 @@ export default function HomeView({ season, fetchedLabel, asOf = null, upcoming, 
 
       <BirthdayStrip players={birthdays} seasonCode={code} />
 
-      {/* 부문별 1~3위 */}
+      {/* 부문별 1~5위 */}
       <section aria-labelledby="leaders-title" className="mx-auto mt-8 max-w-page px-4">
-        <div className="flex items-baseline justify-between gap-2">
-          <h2 id="leaders-title" className="text-h2 font-bold">
-            부문별 1~3위
+        <div className="flex flex-wrap items-baseline justify-between gap-x-2">
+          <h2 id="leaders-title" className="whitespace-nowrap text-h2 font-bold">
+            부문별 1~5위
           </h2>
           <p className="text-sub text-ink-3">경기당 · {qualifyText}</p>
         </div>
@@ -170,9 +170,12 @@ function LeaderCard({
                       {e.player.position ? ` · ${positionLabel(e.player.position)}` : ""}
                     </span>
                   </span>
-                  <span className={`shrink-0 font-bold tracking-tight text-ink ${e.rank === 1 ? "text-lg" : "text-body"}`}>
-                    {formatStat(e.value, category.key, "perGame")}
-                    <span className="ml-0.5 text-caption font-medium text-ink-3">{unit}</span>
+                  <span className="shrink-0 text-right">
+                    <span className={`block font-bold leading-tight tracking-tight text-ink ${e.rank === 1 ? "text-lg" : "text-body"}`}>
+                      {formatStat(e.value, category.key, "perGame")}
+                      <span className="ml-0.5 text-caption font-medium text-ink-3">{unit}</span>
+                    </span>
+                    <span className="block text-caption leading-tight text-ink-3">{e.player.games}경기</span>
                   </span>
                 </Link>
               </li>

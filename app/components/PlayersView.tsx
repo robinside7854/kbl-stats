@@ -205,7 +205,7 @@ export default function PlayersView({ seasons, latest, initialFile, topBadges, b
       <main className="mx-auto max-w-page px-4 pt-5">
         <h1 className="mb-3 text-h1 font-bold">선수</h1>
 
-        <PlayerSearch size="lg" autoFocusDesktop label="선수 이름으로 찾기" placeholder="선수 이름 (한글·영문, 예: 워니)" className="w-full" />
+        <PlayerSearch size="lg" label="선수 이름으로 찾기" placeholder="선수 이름 (한글·영문, 예: 워니)" className="w-full" />
 
         <section aria-label="필터" className="mt-4">
           <FilterSheet

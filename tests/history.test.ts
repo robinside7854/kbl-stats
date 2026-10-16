@@ -2,7 +2,7 @@
 // 실행: npx tsx tests/history.test.ts
 import assert from "node:assert/strict";
 import { formatTrendValue, LEAGUE_TREND_METRICS, leagueTrendRow, teamGamesOf, trendTakeaway, type LeagueTrendRow, type TrendPlayerLine } from "../lib/trends";
-import { draftOrder, draftYearFromParam, draftYearHref, draftYears, hasDuplicatePicks, pickLabel, pickShort, redraftOrder, redraftScore, type DraftPick } from "../lib/draft";
+import { draftClassHonors, draftOrder, draftYearFromParam, draftYearHref, draftYears, hasDuplicatePicks, pickLabel, pickShort, type DraftPick } from "../lib/draft";
 import { hallReasons, honorChips, majorAwardCount, rankForeignSeasons, sortHall, type HallSortable } from "../lib/hall";
 import type { PlayerAward } from "../lib/types";
 
@@ -56,15 +56,24 @@ console.log("history: 리그 변화 통과");
 
 // ── 드래프트 ──
 const dp = (id: string, round: number | null, pick: number | null, points: number, games = 100): DraftPick => ({ id, round, pick, games, points, reb: 0, ast: 0, stl: 0, blk: 0 });
-assert.equal(redraftScore({ points: 10, reb: 5, ast: 3, stl: 1, blk: 1 }), 20);
 assert.equal(pickLabel(1, 3), "1라운드 3순위");
 assert.equal(pickLabel(null, null), "순위 미상");
 assert.equal(pickShort(2, 6), "2-6");
 assert.equal(pickShort(null, 1), "–");
 assert.deepEqual(draftOrder([dp("c", 2, 1, 0), dp("x", null, null, 0), dp("a", 1, 2, 0), dp("b", 1, 1, 0)]).map((r) => r.id), ["b", "a", "c", "x"]);
-// 다시 뽑기: 점수 큰 순 → 같으면 경기 많은 순 → 실제 순. move = 실제 순서 − 새 순서
-const re = redraftOrder([dp("one", 1, 1, 500), dp("two", 1, 2, 3000), dp("three", 2, 6, 3000, 300), dp("four", 2, 7, 0)]);
-assert.deepEqual(re.map((r) => [r.row.id, r.actual, r.redraft, r.move]), [["three", 3, 1, 2], ["two", 2, 2, 0], ["one", 1, 3, -2], ["four", 4, 4, 0]]);
+// 그 해 수상 합계: 우승 → 정규리그 MVP → 챔프전 MVP … 받은 것만, 같은 시즌 중복은 한 번, 많이 받은 선수 먼저
+const honors = draftClassHonors([
+  { id: "a", nameKo: "가", championships: [11, 13, 13], awards: [{ key: "mvp", seasonCode: 11 }, { key: "finalsMvp", seasonCode: 13 }, { key: "rookie", seasonCode: 9 }] },
+  { id: "b", nameKo: "나", championships: [11], awards: [{ key: "foreignMvp", seasonCode: 11 }, { key: "allStarMvp", seasonCode: 11 }] },
+  { id: "c", nameKo: "다" },
+]);
+assert.deepEqual(honors.map((h) => [h.key, h.times, h.players.map((p) => `${p.nameKo}${p.times}`).join(",")]), [
+  ["champion", 3, "가2,나1"],
+  ["mvp", 1, "가1"],
+  ["finalsMvp", 1, "가1"],
+  ["rookie", 1, "가1"],
+]);
+assert.deepEqual(draftClassHonors([{ id: "c", nameKo: "다" }]), []);
 assert.equal(hasDuplicatePicks([dp("a", 1, 1, 0), dp("b", 1, 1, 0)]), true);
 assert.equal(hasDuplicatePicks([dp("a", 1, 1, 0), dp("b", 1, 2, 0), dp("c", null, null, 0), dp("d", null, null, 0)]), false);
 assert.deepEqual(draftYears([{ draft: { year: 2015, round: 1, pick: 1 } }, { draft: null }, { draft: { year: 2020, round: 1, pick: 1 } }, { draft: { year: 2015, round: 1, pick: 2 } }]), [2020, 2015]);
