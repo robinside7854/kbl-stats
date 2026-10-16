@@ -1353,3 +1353,48 @@ export function topShareLabel(pct: number | null | undefined): string | null {
   if (pct === null || pct === undefined || !Number.isFinite(pct)) return null;
   return `상위 ${Math.max(1, Math.ceil(100 - pct))}%`;
 }
+
+// ─────────────────────────────────────────────
+// 시대 보정 — 리그 평균 대비 (2026-10-16 "우리만의 기능": 97-98 선수와 25-26 선수를 공평하게)
+// 리그 평균 = 그 시즌 표본 기준(rule)을 넘긴 선수들의 시즌 합계 ÷ 그 선수들의 출전 경기 합 — "평균적인 주전급 선수의 한 경기".
+//   (선수마다 경기당 값을 단순 평균하지 않는 이유: 몇 경기 안 뛴 선수 한 명이 평균을 흔들지 않게 경기 수만큼 무게를 준다.)
+// 성공률은 성공 합 ÷ 시도 합(같은 선수들) — 자유투 성공은 KBL 자유투%·시도로 되살린다(ftPct × fta).
+// 지수 = 선수 값 ÷ 리그 평균 × 100 (100 = 리그 평균). 턴오버·파울도 같은 식이라 높을수록 "많다"(좋다는 뜻 아님).
+// 출처: Basketball-Reference 의 리그 평균 대비 지표(TS+ 등 "+" 지표)와 같은 생각 — 계산은 우리 규칙.
+// ─────────────────────────────────────────────
+
+export type LeagueAverages = Record<CardStatKey, number | null>;
+
+export interface LeagueAverageInput {
+  games: number;
+  minutes: number;
+  points: number; reb: number; ast: number; stl: number; blk: number; tov: number; fouls: number;
+  fgm: number; fga: number; tpm: number; tpa: number; fta: number; ftPct: number;
+}
+
+export function leagueAverages(players: readonly LeagueAverageInput[], rule: QualifyRule): LeagueAverages | null {
+  const pool = players.filter((p) => p.games > 0 && isQualified(p, rule));
+  const games = pool.reduce((n, p) => n + p.games, 0);
+  if (games <= 0) return null;
+  const sum = (f: (p: LeagueAverageInput) => number) => pool.reduce((n, p) => n + f(p), 0);
+  const per = (f: (p: LeagueAverageInput) => number) => sum(f) / games;
+  const rate = (made: number, att: number) => (att > 0 ? (made / att) * 100 : null);
+  return {
+    points: per((p) => p.points),
+    reb: per((p) => p.reb),
+    ast: per((p) => p.ast),
+    stl: per((p) => p.stl),
+    blk: per((p) => p.blk),
+    tov: per((p) => p.tov),
+    fouls: per((p) => p.fouls),
+    fgPct: rate(sum((p) => p.fgm), sum((p) => p.fga)),
+    tpPct: rate(sum((p) => p.tpm), sum((p) => p.tpa)),
+    ftPct: rate(sum((p) => (p.ftPct / 100) * p.fta), sum((p) => p.fta)),
+  };
+}
+
+/** 리그 평균 대비 지수 (100 = 평균, 반올림 정수). 값·평균이 없거나 평균이 0 이면 null */
+export function eraIndex(value: number | null, avg: number | null | undefined): number | null {
+  if (value === null || avg === null || avg === undefined || !Number.isFinite(value) || !(avg > 0)) return null;
+  return Math.round((value / avg) * 100);
+}

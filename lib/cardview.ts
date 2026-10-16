@@ -16,6 +16,8 @@ import {
   gradeScore,
   overallWeightNote,
   awardBonusNote,
+  eraIndex,
+  leagueAverages,
   RADAR_AXES,
   RADAR_AXIS_LABELS,
   RADAR_COMPONENTS,
@@ -28,6 +30,7 @@ import {
   type CardStatRank,
   type Grade,
   type GradingContext,
+  type LeagueAverages,
   type RadarAxis,
   type RadarComponentKey,
   type RadarScore,
@@ -83,11 +86,21 @@ export interface SeasonCardView {
   scope: CardScope;
   /** 비교 집단 이름: 전체면 null, 같은 포지션이면 "가드" 등 — 카드에 "가드 중 3위"로 쓴다 */
   groupLabel: string | null;
+  /** 그 시즌 리그 평균 (카드 스탯별, lib/metrics leagueAverages — 비교 탭 "리그 평균 대비"). 통산 카드·선수 0명이면 null */
+  league?: LeagueAverages | null;
 }
 
 // 같은 시즌·같은 집단의 비교 재료는 한 번만 만든다 (선수 페이지 1,329개 빌드·그리드 200명)
 const ctxCache = new WeakMap<SeasonCards, Map<string, CardContext>>();
 const gradingCache = new WeakMap<SeasonCards, GradingContext>();
+const leagueCache = new WeakMap<SeasonCards, LeagueAverages | null>();
+
+/** 시즌 리그 평균 (기본 표본 기준 — 카드 파일 defaults.rule). 통산(시즌 코드 0)은 시대가 섞여 의미가 없어 null */
+export function seasonLeagueAverages(cards: SeasonCards): LeagueAverages | null {
+  if (cards.seasonCode === 0) return null;
+  if (!leagueCache.has(cards)) leagueCache.set(cards, leagueAverages(cards.players, cards.defaults.rule));
+  return leagueCache.get(cards)!;
+}
 
 /** 시즌 등급 재료 (리그 전체 선수 → 국적 집단별). 순위 범위와 관계없이 하나 */
 export function seasonGrading(cards: SeasonCards): GradingContext {
@@ -148,6 +161,7 @@ export function buildSeasonCardView(cards: SeasonCards, playerId: string, scope:
     attemptsLabel: attemptsNote(ctx.thresholds),
     scope: group === "all" ? "all" : "position",
     groupLabel: group === "all" ? null : POSITION_GROUP_LABELS[group],
+    league: seasonLeagueAverages(cards),
   };
 }
 
@@ -290,6 +304,9 @@ export interface CompareRow {
   deltaText: string;
   /** 낮을수록 좋은 지표 (턴오버·파울) — 증감 색·문구에 쓴다 */
   lowerIsBetter: boolean;
+  /** "리그 평균 대비" 보기에서 순위 대신 보이는 원래 값 ("18.2 · 평균 10.0"). 기록 보기는 없음 */
+  aNote?: string;
+  bNote?: string;
 }
 
 const NF1 = new Intl.NumberFormat("ko-KR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
@@ -389,6 +406,37 @@ export function compareCardEntries(a: EntryLike, b: EntryLike): CompareRow[] {
     lowerIsBetter: false,
   });
   return rows;
+}
+
+/**
+ * "리그 평균 대비" 보기 (2026-10-16 시대 보정): 카드 스탯 줄의 값을 그 시즌 리그 평균 대비 지수(100 = 평균, lib/metrics eraIndex)로 바꾼다.
+ * 더 나은 쪽·막대·증감도 지수로(증감 단위 %p). 순위 자리에는 원래 값과 리그 평균. USG%(이미 점유율)·종합 등급 줄은 그대로.
+ * 리그 평균을 모르는 쪽(통산 카드)은 "–".
+ */
+export function eraCompareRows(rows: readonly CompareRow[], la: LeagueAverages | null | undefined, lb: LeagueAverages | null | undefined): CompareRow[] {
+  return rows.map((r) => {
+    if (r.key === "usgPct" || r.key === "overall") return r;
+    const key = r.key;
+    const avgA = la?.[key] ?? null;
+    const avgB = lb?.[key] ?? null;
+    const ia = eraIndex(r.a, avgA);
+    const ib = eraIndex(r.b, avgB);
+    const delta = ia !== null && ib !== null ? ib - ia : null;
+    // 좁은 칸에서 줄이 꺾이지 않게 % 기호는 뺀다 (줄 이름이 이미 "야투율" 등)
+    const note = (v: number | null, avg: number | null) => (v === null || avg === null ? "" : `${formatCardValue(v, false)} · 평균 ${formatCardValue(avg, false)}`);
+    return {
+      ...r,
+      a: ia,
+      b: ib,
+      aText: ia === null ? "–" : `${ia}%`,
+      bText: ib === null ? "–" : `${ib}%`,
+      better: betterOf(ia, ib, r.lowerIsBetter),
+      delta,
+      deltaText: delta === null ? "–" : delta === 0 ? "0%p" : `${delta > 0 ? "+" : "−"}${Math.abs(delta)}%p`,
+      aNote: note(r.a, avgA),
+      bNote: note(r.b, avgB),
+    };
+  });
 }
 
 /**

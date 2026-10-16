@@ -14,6 +14,7 @@ import StandingsTable, { type StandingsSeason } from "./StandingsTable";
 import HeadToHeadMatrix from "./HeadToHeadMatrix";
 import PlayoffOddsBoard, { type OddsTeam } from "./PlayoffOddsBoard";
 import { oddsText, type PlayoffOdds } from "@/lib/predict";
+import type { SeasonPredictionRecord } from "@/lib/data-predict-extra";
 import TeamLogo from "./TeamLogo";
 import StreakText from "./StreakText";
 import { IconHeart, IconMegaphone, IconTrophy } from "./icons";
@@ -32,6 +33,9 @@ export interface TeamsOdds {
   rows: PlayoffOdds[];
   teams: Record<string, OddsTeam>;
   remaining: number;
+  /** 우리 예측 적중 (올 시즌 · 지난 시즌, 2026-10-16) */
+  record?: SeasonPredictionRecord | null;
+  previousRecord?: SeasonPredictionRecord | null;
 }
 
 export default function TeamsIndexView({ teams, seasonCode, seasonShort, records, standings, asOf = null, odds = null }: {
@@ -213,14 +217,14 @@ export default function TeamsIndexView({ teams, seasonCode, seasonShort, records
             <div className="mt-2">
               <StandingsTable season={shownStandings} />
               {odds && odds.seasonCode === shownStandings.seasonCode && (
-                <PlayoffOddsBoard odds={odds.rows} teams={odds.teams} seasonCode={odds.seasonCode} remaining={odds.remaining} asOf={asOf} />
+                <PlayoffOddsBoard odds={odds.rows} teams={odds.teams} seasonCode={odds.seasonCode} remaining={odds.remaining} asOf={asOf} record={odds.record} previousRecord={odds.previousRecord} />
               )}
               <HeadToHeadMatrix season={shownStandings} />
             </div>
           ) : (
             <>
               <ul className="mt-2 grid grid-cols-2 gap-2 md:grid-cols-5">{active.map(card)}</ul>
-              {odds && <PlayoffOddsBoard odds={odds.rows} teams={odds.teams} seasonCode={odds.seasonCode} remaining={odds.remaining} asOf={asOf} />}
+              {odds && <PlayoffOddsBoard odds={odds.rows} teams={odds.teams} seasonCode={odds.seasonCode} remaining={odds.remaining} asOf={asOf} record={odds.record} previousRecord={odds.previousRecord} />}
             </>
           )}
         </>

@@ -26,6 +26,8 @@ import CompareHeadToHead from "./CompareHeadToHead";
 import CompareTable from "./CompareTable";
 import { IconChevronDown, IconChevronRight, IconChevronUp } from "./icons";
 import PlayerSearch from "./PlayerSearch";
+import Segmented from "./Segmented";
+import InfoLink from "./InfoLink";
 import { PlayerLink } from "./EntityLinks";
 import { useCardView } from "./useSeasonCards";
 import { loadSearchIndex } from "./useSearchIndex";
@@ -77,6 +79,8 @@ export default function CompareView({ seasons, initialA, initialB }: Props) {
   const [queryError, setQueryError] = useState(false);
   // 모바일 좌우 비교에서 카드 2장 펼치기
   const [showCards, setShowCards] = useState(false);
+  // 기록 그대로 / 리그 평균 대비 (2026-10-16 시대 보정 — 다른 시즌 선수끼리 공평하게). GA4 filter_change screen=compare filter=era
+  const [era, setEra] = useState<"raw" | "relative">("raw");
   const labelOf = (code: number) =>
     code === CAREER_CODE ? CAREER_LABEL : seasonShortLabel(seasons.find((s) => s.seasonCode === code)?.seasonLabel ?? String(code));
   const hrefOf = (id: string, code: number) => playerHref(id, code === CAREER_CODE ? undefined : code);
@@ -191,6 +195,26 @@ export default function CompareView({ seasons, initialA, initialB }: Props) {
         </p>
       )}
 
+      {both && (
+        <div className="mt-5 flex flex-wrap items-center gap-x-2 gap-y-1">
+          <Segmented
+            label="비교 숫자"
+            options={[
+              { value: "raw", label: "기록" },
+              { value: "relative", label: "리그 평균 대비" },
+            ]}
+            value={era}
+            onChange={(v) => {
+              trackFilters("compare", { era: v });
+              setEra(v);
+            }}
+          />
+          <InfoLink term="eraIndex" />
+          {both[0].seasonCode !== both[1].seasonCode && era === "raw" && both[0].league && both[1].league && (
+            <span className="text-sub text-ink-3">시즌이 다르면 리그 평균 대비가 더 공평해요</span>
+          )}
+        </div>
+      )}
       <div className="mt-5 space-y-6">
         {both && (
           <div className="space-y-2 md:hidden">
@@ -200,6 +224,7 @@ export default function CompareView({ seasons, initialA, initialB }: Props) {
               aLabel={tag(both[0])}
               bLabel={tag(both[1])}
               colors={colors}
+              era={era}
               caption={`${tag(both[0])}와 ${tag(both[1])} 좌우 비교`}
             />
             <button
@@ -236,6 +261,7 @@ export default function CompareView({ seasons, initialA, initialB }: Props) {
             seriesA={colors.series1}
             seriesB={colors.series2}
             showDelta={both[0].entry.player.id === both[1].entry.player.id}
+            era={era}
             caption={`${tag(both[0])}와 ${tag(both[1])} 기록 비교`}
           />
           </div>

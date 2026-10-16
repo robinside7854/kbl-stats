@@ -253,3 +253,52 @@ export function oddsText(p: number, sure: "in" | "out" | null = null): string {
 export function oddsSeed(games: readonly SeasonGame[]): number {
   return games.filter(isDone).length * 7919 + 17;
 }
+
+// ── 우리 예측 적중률 (2026-10-16 "관전 포인트 + 적중률") ──
+// 끝난 경기마다 "그 경기 날짜 전까지 끝난 경기만" 보고 upcomingWinProbs 와 같은 식(teamRatings + 지난 시즌 출발점)으로 홈 승률을 다시 낸다.
+// 50% 보다 높은 쪽이 이기면 적중. 딱 50% 인 경기는 어느 쪽도 고르지 않은 것이라 세지 않는다(홈 이점 때문에 실제로는 거의 없다).
+// 같은 날 경기끼리는 서로의 결과를 모른다고 본다(그날 전까지만).
+
+export interface PredictionPick {
+  /** 경기 전 홈 승률 (0~1, 소수 셋째 자리) */
+  homeProb: number;
+  /** 확률이 높았던 쪽이 이겼나 (50% 면 null) */
+  hit: boolean | null;
+}
+
+export interface PredictionRecord {
+  /** 센 경기 수 (50% 경기 제외) */
+  games: number;
+  hits: number;
+  /** gmkey → 경기 전 예측 */
+  picks: Record<string, PredictionPick>;
+}
+
+export function backtestSeason(games: readonly SeasonGame[], prior: Readonly<Record<string, number>> = {}): PredictionRecord {
+  const done = games.filter(isDone).slice().sort((a, b) => a.date.localeCompare(b.date));
+  const picks: Record<string, PredictionPick> = {};
+  let n = 0;
+  let hits = 0;
+  for (let i = 0; i < done.length; ) {
+    const date = done[i].date;
+    // 날짜 순으로 정렬했으니 앞의 i 경기 = 그날 전까지 끝난 경기
+    const ratings = teamRatings(done.slice(0, i), prior);
+    for (; i < done.length && done[i].date === date; i++) {
+      const g = done[i];
+      const p = Math.round(homeWinProb(ratings, g.home.teamCode, g.away.teamCode) * 1000) / 1000;
+      const homeWon = g.home.score! > g.away.score!;
+      const hit = p === 0.5 ? null : p > 0.5 === homeWon;
+      picks[g.gmkey] = { homeProb: p, hit };
+      if (hit !== null) {
+        n++;
+        if (hit) hits++;
+      }
+    }
+  }
+  return { games: n, hits, picks };
+}
+
+/** "21경기 중 13경기 맞힘 (62%)" */
+export function recordText(r: Pick<PredictionRecord, "games" | "hits">): string {
+  return `${r.games}경기 중 ${r.hits}경기 맞힘 (${r.games > 0 ? Math.round((r.hits / r.games) * 100) : 0}%)`;
+}

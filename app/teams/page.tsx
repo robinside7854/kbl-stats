@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { shareMetadata } from "@/lib/share";
 import { computeStandings, headToHeadWins, notableStreak } from "@/lib/games";
 import { seasonShortLabel } from "@/lib/career";
+import { loadPredictionRecord, loadPreviousPredictionRecord } from "@/lib/data-predict-extra";
 import { dataAsOfLabel, gameTeamInfos, isSeasonOngoing, loadSeasonPredictions, listSeasonsWithPlayers, loadSeasonData, loadSeasonGames, loadTeamIndex, toCardTeams } from "@/lib/data";
 import type { StandingsSeason, StandingTeam } from "@/app/components/StandingsTable";
 import SiteNav from "@/app/components/SiteNav";
@@ -42,7 +43,14 @@ export default function TeamsPage() {
   // 팀 이름·로고는 경기 일정 팀표(아직 경기 없는 팀은 직전 시즌 팀표 — gameTeamInfos)
   const latestTeams = latest ? gameTeamInfos(latest.seasonCode) : {};
   const odds = pred
-    ? { seasonCode: pred.seasonCode, rows: pred.odds, teams: latestTeams, remaining: Object.keys(pred.winProbs).length }
+    ? {
+        seasonCode: pred.seasonCode,
+        rows: pred.odds,
+        teams: latestTeams,
+        remaining: Object.keys(pred.winProbs).length,
+        record: loadPredictionRecord(pred.seasonCode),
+        previousRecord: loadPreviousPredictionRecord(pred.seasonCode),
+      }
     : null;
   return (
     <>

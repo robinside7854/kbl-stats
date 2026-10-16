@@ -34,7 +34,9 @@ export type GlossaryKey =
   | "game54"
   | "rosterStatus"
   | "playoffOdds"
-  | "winProb";
+  | "winProb"
+  | "race"
+  | "eraIndex";
 
 /** 용어 화면의 묶음 (순서 = 화면 순서) */
 export type GlossaryGroup = "stats" | "grades" | "shots" | "etc";
@@ -306,9 +308,28 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     group: "etc",
     name: "경기 승리 확률",
     short: "두 팀 실력 차와 홈 이점으로 계산한 이길 확률입니다. 우리가 계산한 추정이에요.",
-    note: "지난 18시즌을 경기 전 정보만으로 되짚어 보면 확률이 높은 쪽이 63% 이겼습니다. 60%대라고 한 경기는 실제로 68% 이겼어요.",
+    note: "지난 18시즌을 경기 전 정보만으로 되짚어 보면 확률이 높은 쪽이 63% 이겼습니다. 적중률은 끝난 경기마다 그날 전 경기만 보고 다시 계산해 확률이 높았던 쪽이 이긴 비율이에요.",
     formula: "점수 차 예상 = 홈 실력 − 원정 실력 + 홈 이점 1.3점 · 한 경기 점수 차 흔들림 11점으로 이길 확률",
-    brief: "실력 차 + 홈 이점 1.3점으로 계산 · 지난 18시즌 되짚어 보기에서 앞선 팀이 63% 이김",
+    brief: "실력 차 + 홈 이점 1.3점으로 계산 · 적중률 = 끝난 경기를 그날 전 정보만으로 다시 예측해 앞선 팀이 이긴 비율 · 지난 18시즌은 63%",
+    source: null,
+  },
+  {
+    key: "race",
+    group: "etc",
+    name: "레이스",
+    short: "부문 상위 5명이 경기일마다 그날까지 경기당 평균이 어땠는지 그린 선입니다.",
+    note: "3경기를 뛴 날부터 선을 그려요. 1위가 바뀐 횟수는 이 다섯 명 안에서 센 것이고, 박스스코어로 센 값이라 공식 기록과 조금 다를 수 있어요.",
+    formula: "그날까지 합계 ÷ 그날까지 출전 경기",
+    source: null,
+  },
+  {
+    key: "eraIndex",
+    group: "etc",
+    name: "리그 평균 대비",
+    short: "그 시즌 리그 평균을 100으로 놓고 본 숫자입니다. 득점 182%면 그 시즌 평균 선수의 1.8배를 넣었다는 뜻이에요.",
+    note: "시대마다 경기 속도와 득점 수준이 달라서, 다른 시즌 선수끼리는 이 숫자로 보는 게 더 공평합니다. 리그 평균은 그 시즌 표본 기준을 넘긴 선수들의 기록을 모두 더해 경기 수로 나눈 값이에요.",
+    formula: "선수 경기당 기록 ÷ 그 시즌 리그 평균 × 100 · 성공률은 성공 합 ÷ 시도 합으로 낸 리그 평균과 비교",
+    brief: "선수 기록 ÷ 그 시즌 리그 평균 × 100 · 리그 평균 = 표본 기준을 넘긴 선수 기록 합 ÷ 경기 수 합",
     source: null,
   },
 ];
@@ -353,6 +374,8 @@ export const GLOSSARY_ANCHORS: Record<GlossaryKey, string> = {
   rosterStatus: "roster-status",
   playoffOdds: "playoff-odds",
   winProb: "win-prob",
+  race: "race",
+  eraIndex: "era-index",
 };
 
 /** 도움말 팝오버 한 개의 내용 (app/components/HelpPopover — 그 자리에서 뜨는 ⓘ 설명) */

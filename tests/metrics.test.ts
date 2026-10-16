@@ -425,3 +425,26 @@ assert.equal(topShareLabel(null), null);
   assert.equal(m.qualifyPresetsFor(true, ps).length, m.QUALIFY_PRESETS.length + 2);
   console.log("metrics: 진행 중 시즌 기준 통과");
 }
+
+// 시대 보정 — 리그 평균 대비 (2026-10-16)
+{
+  const m = await import("../lib/metrics");
+  const base = { minutes: 300, stl: 0, blk: 0, tov: 0, fouls: 0, fgm: 0, fga: 0, tpm: 0, tpa: 0, fta: 0, ftPct: 0 };
+  const ps = [
+    { ...base, games: 10, points: 200, reb: 50, ast: 30, fgm: 80, fga: 160, fta: 20, ftPct: 80 },
+    { ...base, games: 30, points: 300, reb: 150, ast: 30, fgm: 120, fga: 240, fta: 0, ftPct: 0 },
+    { ...base, games: 2, minutes: 10, points: 100, reb: 0, ast: 0 }, // 표본 미달 — 빠짐
+  ];
+  const lg = m.leagueAverages(ps, { minGames: 10, minMinutes: 100 })!;
+  assert.equal(lg.points, 500 / 40); // 합계 ÷ 경기 합 (선수 평균의 평균이 아님)
+  assert.equal(lg.reb, 5);
+  assert.equal(lg.fgPct, 50);
+  assert.equal(lg.ftPct, 80);
+  assert.equal(lg.tpPct, null); // 3점 시도 없음
+  assert.equal(m.eraIndex(25, lg.points), 200);
+  assert.equal(m.eraIndex(12.5, lg.points), 100);
+  assert.equal(m.eraIndex(null, 10), null);
+  assert.equal(m.eraIndex(5, 0), null);
+  assert.equal(m.leagueAverages([], m.DEFAULT_QUALIFY), null);
+  console.log("metrics: 리그 평균 대비 통과");
+}

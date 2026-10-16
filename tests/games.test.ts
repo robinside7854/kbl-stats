@@ -252,3 +252,90 @@ console.log("games: 팀 순위 통과");
   assert.equal(monthCalendar("x", []).length, 0);
   console.log("games: 달력 띠 통과");
 }
+
+// ── 득점왕 레이스 (lib/race, 2026-10-16) ──
+{
+  const { buildRace, raceSummary, raceTakeaway, raceDrawnDates, RACE_MIN_GAMES, isRaceCategory, raceDateTick } = await import("../lib/race");
+  const row = (id: string, pts: number, sec = 600): GameBoxRow => ({
+    id, nameKo: id === "a" ? "가가" : id === "b" ? "나나" : `선수${id}`, sec, pts, oreb: 0, dreb: 0, reb: 0, ast: 0, stl: 0, blk: 0, tov: 0, pf: 0,
+    fgm: 0, fga: 0, tpm: 0, tpa: 0, ftm: 0, fta: 0,
+  });
+  let k = 0;
+  const day = (date: string, home: GameBoxRow[], away: GameBoxRow[]) => ({
+    gmkey: `R${++k}`, date, start: null, stadium: null, ended: true,
+    home: { teamCode: "10", name: "홈", score: home.reduce((n, r) => n + r.pts, 0) },
+    away: { teamCode: "20", name: "원정", score: away.reduce((n, r) => n + r.pts, 0) + 1 },
+    box: { home, away },
+  });
+  // a: 30, 10, 10, 10, 10 / b: 15 매경기 / c: 2경기만 (표본 미달), 0초 줄은 경기로 안 셈
+  const games = [
+    day("2026-10-03", [row("a", 30), row("c", 40)], [row("b", 15)]),
+    day("2026-10-04", [row("a", 10), row("c", 40)], [row("b", 15), row("z", 0, 0)]),
+    day("2026-10-05", [row("a", 10)], [row("b", 15)]),
+    day("2026-10-06", [row("a", 10)], [row("b", 15)]),
+    day("2026-10-07", [row("a", 10)], [row("b", 15)]),
+  ];
+  const r = buildRace(games, "points", { minGames: 3, minMinutes: 0 })!;
+  assert.deepEqual(r.lines.map((l) => l.id), ["b", "a"]); // c 는 2경기라 빠짐, 지금 b 15.0 > a 14.0
+  assert.equal(r.lines[1].value, 14);
+  assert.equal(r.dates.length, 5);
+  // 3경기 전에는 선이 없다
+  assert.equal(RACE_MIN_GAMES, 3);
+  assert.deepEqual(r.values[1], [null, null, 16.67, 15, 14]);
+  assert.deepEqual(r.values[0], [null, null, 15, 15, 15]);
+  assert.equal(raceDrawnDates(r), 3);
+  // 10-05 a 1위(16.67) → 10-06 동률 15 는 원래 1위(a) 유지 → 10-07 b 1위: 1번 바뀜, 지금 1위 b 1경기일째
+  const sum = raceSummary(r);
+  assert.equal(sum.changes, 1);
+  assert.equal(r.lines[sum.leader!].id, "b");
+  assert.equal(sum.since, "2026-10-07");
+  assert.equal(sum.streakDays, 1);
+  assert.equal(sum.leaders, 2);
+  assert.equal(raceTakeaway(r, sum), "1위가 1번 바뀌었어요 · 지금 1위 나나는 1경기일째");
+  // 처음부터 1위: 받침 있는 이름은 "이"
+  const solo = buildRace(games.slice(0, 3), "points", { minGames: 3, minMinutes: 0 })!;
+  assert.equal(raceTakeaway({ ...solo, lines: [{ ...solo.lines[0], nameKo: "허훈" }, ...solo.lines.slice(1)] }), "허훈이 처음부터 1위를 지키고 있어요");
+  assert.equal(buildRace([], "points", { minGames: 1, minMinutes: 0 }), null);
+  assert.equal(buildRace(games, "points", { minGames: 9, minMinutes: 0 }), null);
+  assert.ok(isRaceCategory("tpm") && !isRaceCategory("fgPct"));
+  assert.equal(raceDateTick("2026-10-03"), "10.3");
+  console.log("games: 득점왕 레이스 통과");
+}
+
+// ── 관전 포인트 (lib/games teamGameAverages·matchupEdge, 2026-10-16) ──
+{
+  const { teamGameAverages, matchupEdge, upcomingMatchups, matchupLine, MATCHUP_MIN_GAMES } = await import("../lib/games");
+  const r = (team: number, extra: Partial<GameBoxRow> = {}): GameBoxRow => ({
+    id: `p${team}`, nameKo: "선수", sec: 600, pts: 80, oreb: 0, dreb: 0, reb: 30, ast: 18, stl: 0, blk: 0, tov: 12, pf: 0,
+    fgm: 0, fga: 0, tpm: 8, tpa: 0, ftm: 0, fta: 0, ...extra,
+  });
+  let k = 0;
+  const g = (h: string, a: string, hr: GameBoxRow, ar: GameBoxRow, ended = true) => ({
+    gmkey: `M${++k}`, date: "2026-10-10", start: null, stadium: null, ended,
+    home: { teamCode: h, name: h, score: ended ? hr.pts : null }, away: { teamCode: a, name: a, score: ended ? ar.pts : null },
+    box: ended ? { home: [hr], away: [ar] } : null,
+  });
+  // A 리바 40 (B 30) — 비율 차 28.6% 로 가장 큼. 턴오버는 A 13 vs B 12 (8%)
+  const games = [1, 2, 3].map(() => g("A", "B", r(1, { reb: 40, tov: 13 }), r(2)));
+  const avg = teamGameAverages(games);
+  assert.equal(avg.A.games, 3);
+  assert.equal(avg.A.reb, 40);
+  const e = matchupEdge(avg.A, avg.B)!;
+  assert.equal(e.key, "reb");
+  assert.equal(e.edge, "home");
+  assert.equal(matchupLine(e, { home: "DB", away: "소노" }), "경기당 리바운드: DB 40.0 vs 소노 30.0");
+  // 턴오버만 다르면 적은 쪽이 앞섬
+  const tg = [1, 2, 3].map(() => g("A", "B", r(1, { tov: 16 }), r(2)));
+  const te = matchupEdge(teamGameAverages(tg).A, teamGameAverages(tg).B)!;
+  assert.equal(te.key, "tov");
+  assert.equal(te.edge, "away");
+  // 경기 수 부족·차이 작으면 없음
+  assert.equal(matchupEdge(teamGameAverages(games.slice(0, MATCHUP_MIN_GAMES - 1)).A, teamGameAverages(games.slice(0, MATCHUP_MIN_GAMES - 1)).B), null);
+  const same = [1, 2, 3].map(() => g("A", "B", r(1, { reb: 31 }), r(2)));
+  assert.equal(matchupEdge(teamGameAverages(same).A, teamGameAverages(same).B), null);
+  // 아직 안 한 경기에만
+  const up = upcomingMatchups([...games, g("B", "A", r(2), r(1), false)], avg);
+  assert.deepEqual(Object.keys(up), [`M${k}`]);
+  assert.equal(up[`M${k}`].edge, "away");
+  console.log("games: 관전 포인트 통과");
+}

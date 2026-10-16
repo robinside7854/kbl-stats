@@ -673,3 +673,110 @@ export function monthCalendar(month: string, games: readonly SeasonGame[], myCod
   }
   return out;
 }
+
+// ─────────────────────────────────────────────
+// 관전 포인트 (2026-10-16 "경기 관전 포인트 + 우리 예측 적중률"): 아직 안 한 경기 카드의 승리 확률 막대 아래 한 줄.
+// 두 팀의 이번 시즌 경기당 팀 기록(박스스코어 선수 합) 중 서로 가장 크게(비율로) 벌어진 하나 — "리바운드 싸움: DB 38.2 vs 소노 33.1".
+// 두 팀 모두 박스스코어 경기가 MATCHUP_MIN_GAMES 이상일 때만, 차이가 MATCHUP_MIN_GAP(평균 대비 비율) 미만이면 안 보인다(우리 규칙).
+// ─────────────────────────────────────────────
+
+export const MATCHUP_MIN_GAMES = 3;
+/** 두 팀 값 차이 ÷ 두 팀 평균 — 5% 아래면 "비슷하다"로 보고 줄을 안 그린다 */
+export const MATCHUP_MIN_GAP = 0.05;
+
+export type MatchupStatKey = "pts" | "reb" | "ast" | "tpm" | "tov";
+export const MATCHUP_STATS: readonly { key: MatchupStatKey; label: string; better: "high" | "low" }[] = [
+  { key: "reb", label: "리바운드", better: "high" },
+  { key: "tpm", label: "3점 성공", better: "high" },
+  { key: "ast", label: "어시스트", better: "high" },
+  { key: "tov", label: "턴오버", better: "low" },
+  { key: "pts", label: "득점", better: "high" },
+];
+
+export interface TeamGameAverages {
+  /** 박스스코어 경기 수 */
+  games: number;
+  pts: number;
+  reb: number;
+  ast: number;
+  tpm: number;
+  tov: number;
+}
+
+/** 팀별 이번 시즌 경기당 기록 (박스스코어 있는 끝난 경기만, 선수 합 — 팀 리바운드 등 개인에 안 잡힌 기록은 빠진다) */
+export function teamGameAverages(games: readonly SeasonGame[]): Record<string, TeamGameAverages> {
+  const sum = new Map<string, TeamGameAverages>();
+  for (const g of games) {
+    if (!g.ended || !g.box) continue;
+    for (const side of ["home", "away"] as const) {
+      const code = g[side].teamCode;
+      if (!code) continue;
+      const s = sum.get(code) ?? { games: 0, pts: 0, reb: 0, ast: 0, tpm: 0, tov: 0 };
+      s.games++;
+      for (const r of g.box[side]) {
+        s.pts += r.pts;
+        s.reb += r.reb;
+        s.ast += r.ast;
+        s.tpm += r.tpm;
+        s.tov += r.tov;
+      }
+      sum.set(code, s);
+    }
+  }
+  const out: Record<string, TeamGameAverages> = {};
+  const r1 = (v: number) => Math.round(v * 10) / 10;
+  for (const [code, s] of sum) {
+    out[code] = { games: s.games, pts: r1(s.pts / s.games), reb: r1(s.reb / s.games), ast: r1(s.ast / s.games), tpm: r1(s.tpm / s.games), tov: r1(s.tov / s.games) };
+  }
+  return out;
+}
+
+export interface MatchupEdge {
+  key: MatchupStatKey;
+  label: string;
+  home: number;
+  away: number;
+  /** 앞선 쪽 (턴오버는 적은 쪽) */
+  edge: "home" | "away";
+}
+
+/** 두 팀 경기당 기록 중 비율로 가장 크게 벌어진 하나. 경기 수 부족·차이가 작으면 null */
+export function matchupEdge(home: TeamGameAverages | undefined, away: TeamGameAverages | undefined): MatchupEdge | null {
+  if (!home || !away || home.games < MATCHUP_MIN_GAMES || away.games < MATCHUP_MIN_GAMES) return null;
+  let best: (MatchupEdge & { gap: number }) | null = null;
+  for (const s of MATCHUP_STATS) {
+    const h = home[s.key];
+    const a = away[s.key];
+    const mean = (h + a) / 2;
+    if (!(mean > 0)) continue;
+    const gap = Math.abs(h - a) / mean;
+    if (gap < MATCHUP_MIN_GAP || h === a) continue;
+    if (!best || gap > best.gap) {
+      const edge = s.better === "high" ? (h > a ? "home" : "away") : h < a ? "home" : "away";
+      best = { key: s.key, label: s.label, home: h, away: a, edge, gap };
+    }
+  }
+  if (!best) return null;
+  const { gap: _gap, ...out } = best;
+  return out;
+}
+
+/** 아직 안 한 경기마다 관전 포인트 (gmkey → 줄 재료) */
+export function upcomingMatchups(games: readonly SeasonGame[], averages: Readonly<Record<string, TeamGameAverages>>): Record<string, MatchupEdge> {
+  const out: Record<string, MatchupEdge> = {};
+  for (const g of games) {
+    if (g.ended) continue;
+    const e = matchupEdge(averages[g.home.teamCode], averages[g.away.teamCode]);
+    if (e) out[g.gmkey] = e;
+  }
+  return out;
+}
+
+/** 가운데 제목 "경기당 리바운드" / "경기당 턴오버(적을수록 좋음)" */
+export const matchupTitle = (e: Pick<MatchupEdge, "key" | "label">) => `경기당 ${e.label}${e.key === "tov" ? "(적을수록 좋음)" : ""}`;
+
+/** "경기당 리바운드: DB 38.2 vs 소노 33.1" (홈 먼저 — 카드와 같은 순서, 화면 읽기용 문장) */
+export function matchupLine(e: MatchupEdge, names: { home: string; away: string }): string {
+  const f = (v: number) => v.toFixed(1);
+  return `${matchupTitle(e)}: ${names.home} ${f(e.home)} vs ${names.away} ${f(e.away)}`;
+}

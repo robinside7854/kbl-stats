@@ -6,7 +6,7 @@
 // 값·순위·우세 쪽은 lib/cardview compareCardEntries, 막대 비율은 compareBarShares — 여기서는 배치만.
 import { useEffect, useRef, useState } from "react";
 import { PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart } from "recharts";
-import { compareBarShares, compareCardEntries, radarGeometry, rankShort, type SeasonCardView } from "@/lib/cardview";
+import { compareBarShares, compareCardEntries, eraCompareRows, radarGeometry, rankShort, type SeasonCardView } from "@/lib/cardview";
 import { gradeScore, RADAR_AXES, RADAR_AXIS_LABELS } from "@/lib/metrics";
 import { comparePairColors, ensureMarkContrast, FALLBACK_TEAM_COLOR } from "@/lib/teams";
 import { IconArrowUp } from "./icons";
@@ -22,6 +22,8 @@ interface Props {
   bLabel: string;
   colors: ThemeColors;
   caption: string;
+  /** "relative" = 리그 평균 대비 지수로 (2026-10-16 시대 보정) */
+  era?: "raw" | "relative";
 }
 
 const RADAR_H = 280;
@@ -124,8 +126,9 @@ function Side({ v, label, color, align }: { v: SeasonCardView; label: string; co
   );
 }
 
-export default function CompareHeadToHead({ a, b, aLabel, bLabel, colors, caption }: Props) {
-  const rows = compareCardEntries(a.entry, b.entry);
+export default function CompareHeadToHead({ a, b, aLabel, bLabel, colors, caption, era = "raw" }: Props) {
+  const base = compareCardEntries(a.entry, b.entry);
+  const rows = era === "relative" ? eraCompareRows(base, a.league, b.league) : base;
   const [ca0, cb0] = comparePairColors(a.team?.color.primary ?? FALLBACK_TEAM_COLOR.primary, b.team?.color.primary ?? FALLBACK_TEAM_COLOR.primary, [
     colors.series1,
     colors.series2,
@@ -169,12 +172,12 @@ export default function CompareHeadToHead({ a, b, aLabel, bLabel, colors, captio
           return (
             <li key={r.key} className={`border-b border-line py-2 last:border-b-0 ${r.key === "overall" ? "bg-surface-2 -mx-3 px-3" : ""}`}>
               <div className="grid grid-cols-[minmax(0,1fr)_5.5rem_minmax(0,1fr)] items-center gap-2">
-                {value(r.aText, rankShort(r.aRank), r.better === "a", "right")}
+                {value(r.aText, r.aNote ?? rankShort(r.aRank), r.better === "a", "right")}
                 <span className="text-center text-sub font-medium leading-tight text-ink-2">
                   {r.label}
                   {r.lowerIsBetter && <span className="block text-caption font-normal text-ink-3">적을수록 좋음</span>}
                 </span>
-                {value(r.bText, rankShort(r.bRank), r.better === "b", "left")}
+                {value(r.bText, r.bNote ?? rankShort(r.bRank), r.better === "b", "left")}
               </div>
               {bars && (
                 <div aria-hidden className="mt-1 grid grid-cols-2 gap-1">
@@ -190,7 +193,11 @@ export default function CompareHeadToHead({ a, b, aLabel, bLabel, colors, captio
           );
         })}
       </ul>
-      <p className="mt-2 text-caption leading-relaxed text-ink-3">순위·등급은 각자 자기 시즌 안에서 매겼습니다. 시즌이 다르면 값보다 순위·등급을 보세요.</p>
+      <p className="mt-2 text-caption leading-relaxed text-ink-3">
+        {era === "relative"
+          ? "100% = 그 시즌 리그 평균. 작은 숫자는 원래 기록과 그 시즌 평균이에요."
+          : "순위·등급은 각자 자기 시즌 안에서 매겼습니다. 시즌이 다르면 값보다 순위·등급을 보세요."}
+      </p>
     </section>
   );
 }

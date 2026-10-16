@@ -392,3 +392,25 @@ import { SCHOOL_ABROAD, schoolGroupOf } from "../lib/roster";
   assert.deepEqual(gridFilterChips(ps3, String), [{ field: "school", label: "연세대" }]);
 }
 console.log("cardview: 출신교 필터 통과");
+
+// ── 리그 평균 대비 (2026-10-16 시대 보정): 카드 보기에 리그 평균, 비교표 지수 줄 ──
+{
+  const { eraCompareRows, seasonLeagueAverages } = await import("../lib/cardview");
+  const view = buildSeasonCardView(cards, "101")!;
+  assert.ok(view.league && view.league.points! > 0);
+  assert.equal(seasonLeagueAverages(cards), view.league); // 같은 시즌은 한 번만 계산
+  const la = { ...view.league!, points: 10, tov: 2 };
+  const lb = { ...view.league!, points: 5, tov: 2 };
+  const er = eraCompareRows(compareCardEntries(va, vb), la, lb);
+  const pr = er.find((r) => r.key === "points")!;
+  assert.equal(pr.aText, "200%"); // 20.0 ÷ 10
+  assert.equal(pr.bText, "360%"); // 18.0 ÷ 5 — 값은 낮아도 시대 기준으로는 B 가 앞섬
+  assert.equal(pr.better, "b");
+  assert.equal(pr.aNote, "20.0 · 평균 10.0");
+  assert.equal(pr.deltaText, "+160%p");
+  // USG%·종합 등급은 그대로
+  assert.deepEqual(er.find((r) => r.key === "overall"), compareCardEntries(va, vb).find((r) => r.key === "overall"));
+  // 리그 평균을 모르면 –
+  assert.equal(eraCompareRows(compareCardEntries(va, vb), null, lb).find((r) => r.key === "points")!.aText, "–");
+  console.log("cardview: 리그 평균 대비 통과");
+}

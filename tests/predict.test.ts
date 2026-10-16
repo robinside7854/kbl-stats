@@ -88,3 +88,32 @@ assert.equal(oddsText(1, "in"), "확정");
 assert.equal(oddsText(0, "out"), "탈락");
 assert.ok(PREDICT.SIMS >= 1000);
 console.log("predict: 능력치·경기 승률·플레이오프 확률·확정/탈락·표기 통과");
+
+// 적중률 (backtestSeason, 2026-10-16): 그날 전 경기만 보고 예측
+{
+  const { backtestSeason, recordText } = await import("../lib/predict");
+  // 첫날: 출발점 없음 → 홈 이점만으로 홈 쪽(>50%) — 홈 A 승 = 적중, 같은 날 홈 C 패 = 빗나감
+  // 둘째 날: A 가 강해졌으니 원정 A 를 고름 → A 승 = 적중
+  const games = [
+    g("2026-11-01", "A", "B", 90, 70),
+    g("2026-11-01", "C", "D", 70, 80),
+    g("2026-11-02", "B", "A", 70, 90),
+    g("2026-11-03", "B", "A", null, null), // 안 끝난 경기는 세지 않음
+  ];
+  const r = backtestSeason(games);
+  assert.equal(r.games, 3);
+  assert.equal(r.hits, 2);
+  const [k1, k2, k3] = games.map((x) => x.gmkey);
+  assert.ok(r.picks[k1].homeProb > 0.5 && r.picks[k1].hit === true);
+  // 같은 날 경기는 서로 결과를 모른다: 둘째 경기도 홈 이점만
+  assert.equal(r.picks[k2].homeProb, r.picks[k1].homeProb);
+  assert.equal(r.picks[k2].hit, false);
+  assert.ok(r.picks[k3].homeProb < 0.5 && r.picks[k3].hit === true);
+  assert.equal(r.picks[games[3].gmkey], undefined);
+  // 출발점이 있으면 첫날부터 반영 (지난 시즌 강팀 D 원정 승 → 적중)
+  const withPrior = backtestSeason(games.slice(1, 2), { D: 8 });
+  assert.equal(withPrior.hits, 1);
+  assert.equal(recordText({ games: 21, hits: 14 }), "21경기 중 14경기 맞힘 (67%)");
+  assert.equal(recordText({ games: 0, hits: 0 }), "0경기 중 0경기 맞힘 (0%)");
+  console.log("predict: 적중률 통과");
+}

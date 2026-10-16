@@ -84,6 +84,8 @@ import PlayerAvatar from "./PlayerAvatar";
 import RecordsHeader from "./RecordsHeader";
 import RowList, { type RowColumn } from "./RowList";
 import SeasonHighStrip from "./SeasonHighStrip";
+import ScoringRace from "./ScoringRace";
+import type { ScoringRaces } from "@/lib/data-race";
 import Segmented from "./Segmented";
 import TeamLogo from "./TeamLogo";
 import { trackEvent, trackFilters } from "./track";
@@ -101,6 +103,8 @@ interface Props {
   asOf?: string | null;
   /** 순위 변동 재료 — 그 전 경기일까지 합계 (lib/data loadLeaderPrevious, 진행 중 시즌만) */
   previous?: { date: string; lines: Record<string, PrevLine> } | null;
+  /** 득점왕 레이스 재료 (lib/data-race, 박스스코어가 있는 시즌만 — 없으면 섹션을 숨긴다) */
+  race?: ScoringRaces | null;
 }
 
 /** 순위 옆 작은 변동 표시 (▲2 · ▼1 · 새로). onColor: 팀 색 카드 위라 글자색 그대로 */
@@ -253,7 +257,7 @@ function CoverCard({
   );
 }
 
-export default function LeadersView({ seasonCode, seasonLabel, players, teams, seasonHighs = [], ongoing = false, asOf = null, previous = null }: Props) {
+export default function LeadersView({ seasonCode, seasonLabel, players, teams, seasonHighs = [], ongoing = false, asOf = null, previous = null, race = null }: Props) {
   const presets = useMemo(() => qualifyPresetsFor(ongoing, players), [ongoing, players]);
   const [state, setState] = useState<LeadersState>(DEFAULT_LEADERS_STATE);
   // 표 정렬 (null 이면 선택한 부문의 "상위" 방향 — 턴오버는 적은 순)
@@ -619,6 +623,9 @@ export default function LeadersView({ seasonCode, seasonLabel, players, teams, s
           </div>
         )}
       </section>
+
+      {/* 레이스: 고른 부문(레이스 부문이 아니면 득점) 상위 5명의 경기당 평균 흐름 (박스스코어 있는 시즌만) */}
+      {race && <ScoringRace data={race} category={category} teams={teamByCode} seasonCode={seasonCode} ongoing={ongoing} />}
 
       {/* 이 시즌 한 경기 최다 (데이터 있는 시즌만) */}
       {seasonHighs.length > 0 && (

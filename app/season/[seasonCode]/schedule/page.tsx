@@ -9,6 +9,7 @@ import { seasonShortLabel } from "@/lib/career";
 import SiteNav from "@/app/components/SiteNav";
 import SourceFooter from "@/app/components/SourceFooter";
 import ScheduleView, { type ScheduleGame } from "@/app/components/ScheduleView";
+import { loadMatchups, loadPastPicks, loadPredictionRecord, loadPreviousPredictionRecord } from "@/lib/data-predict-extra";
 
 export const dynamicParams = false;
 
@@ -35,6 +36,8 @@ export default async function SchedulePage({ params }: { params: Params }) {
   if (!season || season.players.length === 0) notFound();
 
   const all = loadSeasonGames(code);
+  // 우리 예측 적중 (끝난 경기를 그날 전 정보만으로 다시 예측, lib/data-predict-extra — 2026-10-16)
+  const record = loadPredictionRecord(code);
   const games: ScheduleGame[] = all.map((g) => ({
     ...g,
     box: null,
@@ -57,6 +60,10 @@ export default async function SchedulePage({ params }: { params: Params }) {
         teams={gameTeamInfos(code)}
         initialMonth={initialMonth}
         winProbs={loadSeasonPredictions(code)?.winProbs ?? {}}
+        matchups={loadMatchups(code)}
+        pastPicks={loadPastPicks(code)}
+        record={record}
+        previousRecord={record?.ongoing ? loadPreviousPredictionRecord(code) : null}
       />
       <SourceFooter fetchedAt={season.fetchedAt} wide />
     </>
