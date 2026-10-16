@@ -1,6 +1,6 @@
 "use client";
 // 선수 상세 압축 머리말 + 섹션 탭 (2026-10-08 토스 검토 B-6: 토스증권 종목 상세처럼 위에 이름이 작게 고정).
-// 머리말의 이름(#player-name)이 화면 위로 지나가면 맨 위에 고정된다: 사진 작게 · 이름 · 팀 · 즐겨찾기 별 + 탭(카드·추이·슛 차트·기록·커리어 하이).
+// 머리말의 이름(#player-name)이 화면 위로 지나가면 맨 위에 고정된다: 사진 작게 · 이름 · 팀 · 즐겨찾기 별 + 탭(카드·추이·슛 차트·슛 변화·타임라인·기록·커리어 하이).
 // 탭을 누르면 그 섹션 제목으로 스크롤, 스크롤하면 지금 보고 있는 섹션 탭이 파랗게 바뀐다.
 // 섹션은 제목 id 로 찾는다 — 페이지에 없는 섹션(커리어 하이 없는 선수 등)의 탭은 숨긴다.
 // GA4: filter_change screen=player filter=section value=키 (새 매개변수 없음).
@@ -21,6 +21,8 @@ export const PLAYER_SECTION_TABS: SectionTab[] = [
   { key: "card", label: "카드", targetId: "season-cards-title" },
   { key: "trend", label: "추이", targetId: "trend-title" },
   { key: "shots", label: "슛 차트", targetId: "shot-chart-title" },
+  { key: "habit", label: "슛 변화", targetId: "shot-habit-title" },
+  { key: "timeline", label: "타임라인", targetId: "career-timeline-title" },
   { key: "table", label: "기록", targetId: "career-table-title" },
   { key: "highs", label: "커리어 하이", targetId: "career-highs-title" },
 ];

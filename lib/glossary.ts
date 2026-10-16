@@ -34,7 +34,10 @@ export type GlossaryKey =
   | "game54"
   | "rosterStatus"
   | "playoffOdds"
-  | "winProb";
+  | "winProb"
+  | "careerTimeline"
+  | "shotHabit"
+  | "teamBest5";
 
 /** 용어 화면의 묶음 (순서 = 화면 순서) */
 export type GlossaryGroup = "stats" | "grades" | "shots" | "etc";
@@ -311,6 +314,31 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     brief: "실력 차 + 홈 이점 1.3점으로 계산 · 지난 18시즌 되짚어 보기에서 앞선 팀이 63% 이김",
     source: null,
   },
+  {
+    key: "careerTimeline",
+    group: "etc",
+    name: "커리어 타임라인",
+    short: "시즌마다 데뷔·이적·우승·수상·커리어 하이·통산 이정표를 모아 본 줄입니다.",
+    note: "이정표는 정규시즌 통산 합계가 1,000득점·100경기·1,000리바운드·500어시스트·3점슛 100개 단위를 넘은 시즌에 붙습니다. 몇 시즌 기록이 없다가 돌아오면 쉬고 복귀로 보여 줘요.",
+    source: null,
+  },
+  {
+    key: "shotHabit",
+    group: "shots",
+    name: "슛 습관의 변화",
+    short: "시즌마다 던진 슛이 다섯 구역에 얼마씩 나뉘었는지 비중으로 보여 줍니다.",
+    note: "공홈 슛 차트가 있는 06-07 시즌부터, 슛 50개 이상 던진 시즌만 넣습니다. 한 줄 요약은 첫 시즌과 마지막 시즌을 비교해 가장 많이 바뀐 묶음을 골라요.",
+    formula: "구역 비중 = 그 구역 슛 시도 ÷ 그 시즌 전체 슛 시도",
+    source: null,
+  },
+  {
+    key: "teamBest5",
+    group: "etc",
+    name: "올타임 베스트 5",
+    short: "이 팀에서 30경기 이상 뛴 선수 중 다섯 명을 골라 나만의 주전을 짜 봅니다.",
+    note: "선수마다 이 팀에서 종합 점수가 가장 높았던 시즌 하나로 보여 줍니다. 자리는 54-0 게임과 같이 가드 2·포워드 2·센터 1이고 외국 선수는 2명까지예요.",
+    source: null,
+  },
 ];
 
 const BY_KEY = new Map(GLOSSARY.map((e) => [e.key, e]));
@@ -353,6 +381,9 @@ export const GLOSSARY_ANCHORS: Record<GlossaryKey, string> = {
   rosterStatus: "roster-status",
   playoffOdds: "playoff-odds",
   winProb: "win-prob",
+  careerTimeline: "career-timeline",
+  shotHabit: "shot-habit",
+  teamBest5: "team-best-5",
 };
 
 /** 도움말 팝오버 한 개의 내용 (app/components/HelpPopover — 그 자리에서 뜨는 ⓘ 설명) */

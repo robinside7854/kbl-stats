@@ -9,6 +9,7 @@
 // 긴 시즌별 성적 표는 접어 둠: GA4 filter_change team history open/close) → 레전드 → 팀 통산 기록 → 수상(처음 8개) → 계보.
 // 2026-10-16: 이번 시즌 카드에 플레이오프 확률 한 줄(lib/predict, 우리 추정 — ⓘ help_open topic=playoffOdds).
 // 시즌 고르기는 머리말에 ‹ 시즌 › (SeasonStepper) — 로스터·상대 전적이 그 시즌으로(같은 filter_change team season).
+// 2026-10-16: 레전드 아래 "나만의 올타임 베스트 5"(TeamBestFive — 후보는 누를 때 /team-best/{코드}.json, 공유 주소 ?best=).
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { mixHex } from "@/lib/images";
@@ -21,6 +22,7 @@ import FanButton from "./FanButton";
 import PlayerAvatar from "./PlayerAvatar";
 import TeamLogo from "./TeamLogo";
 import TeamGameStrip, { type TeamStripData } from "./TeamGameStrip";
+import TeamBestFive from "./TeamBestFive";
 import { IconArrowRight, IconChevronDown, IconChevronLeft, IconChevronRight, IconTrophy } from "./icons";
 import { trackEvent, trackFilters } from "./track";
 
@@ -501,6 +503,8 @@ export default function TeamView({
             ))}
           </ul>
         </Card>
+
+        <TeamBestFive brand={brand} />
 
         <Card title="팀 통산 기록">
           <p className="mt-1 text-sub text-ink-3">이 팀 소속으로 남긴 정규시즌 기록의 합계</p>
