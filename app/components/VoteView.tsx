@@ -1,13 +1,13 @@
 "use client";
 // 팬 참여 화면 (/vote, 2026-10-16): 탭 "팬 MVP" / "승부 예측".
-// 팬 MVP: 이번 주(한국 시간 월~일) 후보 = 그 주 박스스코어로 기록 점수(경기당 득점+리바+어시) 순(lib/votes). 처음 12명 + 더 보기.
-//   줄마다 사진·이름·팀·주간 기록 한 줄·표 막대, 로그인 회원은 "투표"(한 주 한 표, 주 안에서 바꿀 수 있음). 위에 팬 투표 1위 vs 우리 기록 1위, 아래 지난주 팬 MVP.
+// 팬 MVP: 이번 주(한국 시간 월~일) 후보 = 그 주 뛴 팀마다 한 명, 가장 눈에 띈 기록(득점·리바·어시·3점·스틸+블록 ÷ 문턱) 순(lib/votes, 5~10명).
+//   줄마다 사진·이름·팀·눈에 띈 기록 칩·주간 기록 한 줄·표 막대, 로그인 회원은 "투표"(한 주 한 표, 주 안에서 바꿀 수 있음). 위에 팬 투표 1위 vs 우리 기록 1위, 아래 지난주 팬 MVP.
 // 승부 예측: 내 적중(로그인 회원) + 시즌 순위(닉네임 회원, 채점 10경기 이상, 상위 50) + 예측하러 가기(일정).
 // 요청: 표 수 /api/vote(공개 1분 캐시)는 팬 MVP 탭에서만, 순위 /api/picks/ranking 은 승부 예측 탭에서만, 내 표·예측은 로그인한 적 있는 브라우저만.
-// GA4: vote_cast {player_no}, filter_change screen=vote filter=tab|more, login_prompt_click {place: vote|pick}.
+// GA4: vote_cast {player_no}, filter_change screen=vote filter=tab, login_prompt_click {place: vote|pick}.
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { candidateLine, fanMvp, findVoteWeek, hitRateLabel, voteResults, voteWeekKey, voteWeekLabel, VOTE_SHOW, type PickRanking, type VoteCandidate, type VoteTally, type VoteWeek } from "@/lib/votes";
+import { candidateLine, fanMvp, findVoteWeek, highlightText, hitRateLabel, voteResults, voteWeekKey, voteWeekLabel, type PickRanking, type VoteCandidate, type VoteTally, type VoteWeek } from "@/lib/votes";
 import type { TeamColor } from "@/lib/types";
 import { teamShortLabel } from "@/lib/images";
 import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
@@ -16,7 +16,7 @@ import MemberBadge from "./MemberBadge";
 import PlayerAvatar from "./PlayerAvatar";
 import Skeleton from "./Skeleton";
 import TeamLogo from "./TeamLogo";
-import { IconChevronDown, IconChevronRight } from "./icons";
+import { IconChevronRight } from "./icons";
 import { trackEvent, trackFilters } from "./track";
 import { useMember } from "./useLikes";
 import { castVote, fetchMyVotes, fetchPickRanking, fetchVoteTallies, participationOn, useMyPickRecord, type VoteTallies } from "./vote-client";
@@ -102,7 +102,6 @@ function MvpSection({ weeks, teams, keys }: { weeks: VoteWeek[]; teams: Record<s
   const [tallies, setTallies] = useState<VoteTallies | "error" | null>(null);
   const [mine, setMine] = useState<Record<string, string> | null>(null);
   const [signedIn, setSignedIn] = useState(false);
-  const [more, setMore] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
 
@@ -130,7 +129,7 @@ function MvpSection({ weeks, teams, keys }: { weeks: VoteWeek[]; teams: Record<s
   const results = useMemo(() => (week ? voteResults(week, curTally) : []), [week, curTally]);
   const votesOf = new Map(results.map((r) => [r.candidate.id, r]));
   const myPick = mine?.[curKey] ?? null;
-  const shown = week ? (more ? week.players : week.players.slice(0, VOTE_SHOW)) : [];
+  const shown = week?.players ?? [];
   const fan = week ? fanMvp(week, curTally) : null;
   const statTop = week?.players[0] ?? null;
 
@@ -173,7 +172,7 @@ function MvpSection({ weeks, teams, keys }: { weeks: VoteWeek[]; teams: Record<s
           <>
             <div className="mt-3 grid grid-cols-2 gap-2">
               <SummaryTile label="팬 투표 1위" teams={teams} c={fan?.candidate ?? null} sub={fan ? `${fan.votes.toLocaleString("ko-KR")}표 · ${fan.pct}%` : "아직 표가 없어요"} />
-              <SummaryTile label="우리 기록 1위" teams={teams} c={statTop} sub={statTop ? `경기당 ${statTop.score.toFixed(1)}` : ""} />
+              <SummaryTile label="우리 기록 1위" teams={teams} c={statTop} sub={statTop ? highlightText(statTop) : ""} />
             </div>
             <div className="mt-3 flex min-h-10 flex-wrap items-center justify-between gap-x-3 text-sub text-ink-2">
               {signedIn ? (
@@ -207,7 +206,10 @@ function MvpSection({ weeks, teams, keys }: { weeks: VoteWeek[]; teams: Record<s
                           <span className="hidden sm:inline">{teamShortLabel(t.shortName)}</span>
                         </span>
                       </p>
-                      <p className="truncate text-caption text-ink-2 tabular">{candidateLine(c)}</p>
+                      <p className="flex min-w-0 items-center gap-1.5 text-caption tabular">
+                        <span className="shrink-0 rounded-sm bg-surface-2 px-1.5 py-0.5 font-semibold text-ink">{highlightText(c)}</span>
+                        <span className="truncate text-ink-2">{candidateLine(c)}</span>
+                      </p>
                       {tallies && tallies !== "error" && (
                         <div className="mt-1 flex items-center gap-2">
                           <span className="h-1.5 flex-1 overflow-hidden rounded-sm bg-surface-2">
@@ -237,20 +239,6 @@ function MvpSection({ weeks, teams, keys }: { weeks: VoteWeek[]; teams: Record<s
                 );
               })}
             </ol>
-            {week.players.length > VOTE_SHOW && (
-              <button
-                type="button"
-                aria-expanded={more}
-                onClick={() => {
-                  setMore((m) => !m);
-                  trackFilters("vote", { more: more ? "close" : "open" });
-                }}
-                className="focus-ring mt-2 flex h-10 w-full items-center justify-center gap-1 rounded-control border border-line text-sub font-semibold text-ink-2 transition-colors duration-200 hover:bg-surface-2"
-              >
-                {more ? "접기" : `후보 더 보기 · ${week.players.length - VOTE_SHOW}명`}
-                <IconChevronDown size={16} className={more ? "rotate-180" : ""} />
-              </button>
-            )}
           </>
         )}
       </section>
@@ -266,7 +254,7 @@ function MvpSection({ weeks, teams, keys }: { weeks: VoteWeek[]; teams: Record<s
       )}
 
       <ul className="mt-4 space-y-1 text-caption text-ink-3">
-        <li>후보는 이번 주 {week?.minGames ?? 1}경기 이상 뛴 선수예요. 순서는 경기당 득점·리바운드·어시스트 합(우리 기록 점수)이에요.</li>
+        <li>후보는 이번 주 뛴 팀마다 한 명, 그 주 가장 눈에 띈 기록을 낸 선수예요(경기당 득점 20·리바운드 10·어시스트 7·3점슛 3·스틸+블록 3 대비, 우리 규칙). 이번 주 {week?.minGames ?? 1}경기 이상 뛴 선수 중에서 골라요.</li>
         <li>로그인한 회원만 한 주에 한 표, 일요일 밤까지 바꿀 수 있어요. 표 수는 1분마다 새로 세요.</li>
       </ul>
     </>
@@ -294,7 +282,7 @@ function LastWeek({ week, tally, loading, teams }: { week: VoteWeek; tally: Vote
   return (
     <div className="mt-2 grid grid-cols-2 gap-2">
       <SummaryTile label="팬 투표 1위" teams={teams} c={fan?.candidate ?? null} sub={fan ? `${fan.votes.toLocaleString("ko-KR")}표 · ${fan.pct}%` : "표가 없었어요"} />
-      <SummaryTile label="우리 기록 1위" teams={teams} c={statTop} sub={statTop ? candidateLine(statTop) : ""} />
+      <SummaryTile label="우리 기록 1위" teams={teams} c={statTop} sub={statTop ? highlightText(statTop) : ""} />
     </div>
   );
 }

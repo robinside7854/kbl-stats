@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { PGlite } from "@electric-sql/pglite";
 import type { GameBoxRow, SeasonGame } from "../lib/types";
 import {
-  buildVoteData, buildVoteWeek, candidateLine, fanMvp, hitRateLabel, isGmkey, isPickOpen, isVoteCandidate, parsePickSide, pickLockAt, pickShare,
+  buildVoteData, buildVoteWeek, candidateLine, fanMvp, highlightText, voteHighlightOf, hitRateLabel, isGmkey, isPickOpen, isVoteCandidate, parsePickSide, pickLockAt, pickShare,
   rankPickRows, settledGames, voteMinGames, voteResults, voteWeekKey, voteWeekLabel, weekKeyOfDate, weekStartOf,
 } from "../lib/votes";
 import { deleteMember, ensureSchema, linkLogin, resolveMemberId, updateProfile, type Query } from "../lib/server/members";
@@ -48,11 +48,21 @@ assert.equal(voteMinGames(new Map([["a", 2], ["b", 2], ["c", 1]])), 2);
 assert.equal(voteMinGames(new Map()), 1);
 const wk = buildVoteWeek(games, "2026-10-12", (id) => (id === "1" ? "photo1" : null))!;
 assert.equal(wk.minGames, 2);
-// 3번: (20+22)/2=21, (5+6)/2=5.5, (5+4)/2=4.5 → 31 / 4번: 21, 5, 0 → 26 / 1번: 20, 6, 3.5 → 29.5 / 2번: 11 → 11
-assert.deepEqual(wk.players.map((p) => [p.id, p.score]), [["3", 31], ["1", 29.5], ["4", 26], ["2", 11]]);
-assert.equal(wk.players[1].photoUrl, "photo1");
-assert.equal(wk.players[2].teamCode, "30");
+// 팀마다 한 명, 눈에 띈 정도(경기당 ÷ 문턱 중 가장 큰 값) 순
+// 3번(20팀) 득점 21 → 1.05 / 4번(30팀) 득점 21 → 1.05(나머지 합이 3번보다 작아 뒤) / 1번(10팀) 득점 20 → 1.0, 같은 팀 2번(11점)은 빠짐
+assert.deepEqual(wk.players.map((p) => [p.id, p.score, p.highlight]), [["3", 1.05, "pts"], ["4", 1.05, "pts"], ["1", 1, "pts"]]);
+assert.equal(wk.players[2].photoUrl, "photo1");
+assert.equal(wk.players[1].teamCode, "30");
 assert.equal(candidateLine(wk.players[0]), "2경기 21.0점 5.5리바 4.5어시");
+assert.equal(highlightText(wk.players[0]), "득점 21.0");
+// 득점이 아니어도 눈에 띈 부문으로: 리바 14 → 1.4
+assert.deepEqual(voteHighlightOf({ pts: 8, reb: 14, ast: 2, tpm: 0, stl: 1, blk: 1 }).key, "reb");
+assert.deepEqual(voteHighlightOf({ pts: 6, reb: 3, ast: 2, tpm: 0, stl: 3, blk: 2 }).key, "def");
+// 그 주 1경기만 한 팀도 한 명은 나온다 (가운데값 2경기라 다른 팀은 2경기 이상만)
+const wk2 = buildVoteWeek([...games, game("2026-10-14", "40", "50", [row("5", 8, 14, 2)], [row("6", 5), row("7", 4, 2, 9)])], "2026-10-12")!;
+assert.equal(wk2.minGames, 2);
+assert.deepEqual(wk2.players.map((p) => [p.id, p.highlight]), [["5", "reb"], ["7", "ast"], ["3", "pts"], ["4", "pts"], ["1", "pts"]]);
+assert.equal(new Set(wk2.players.map((p) => p.teamCode)).size, wk2.players.length);
 assert.equal(buildVoteWeek(games, "2026-09-28"), null);
 
 const data = buildVoteData(49, games, () => null, new Date("2026-10-16T00:00:00Z"));
@@ -68,11 +78,11 @@ assert.ok(!isVoteCandidate(data.weeks, "2026-10-12", 4));
 assert.ok(!isVoteCandidate(data.weeks, "2026-10-12", "4' OR 1=1"));
 
 // 표 결과: 표 많은 순, 같으면 기록 순
-const res = voteResults(wk, { week: wk.week, counts: { "4": 3, "2": 3, "1": 1 }, total: 7 });
-assert.deepEqual(res.map((r) => [r.candidate.id, r.votes, r.pct]), [["4", 3, 43], ["2", 3, 43], ["1", 1, 14], ["3", 0, 0]]);
+const res = voteResults(wk, { week: wk.week, counts: { "4": 3, "1": 3, "3": 1 }, total: 7 });
+assert.deepEqual(res.map((r) => [r.candidate.id, r.votes, r.pct]), [["4", 3, 43], ["1", 3, 43], ["3", 1, 14]]);
 assert.equal(fanMvp(wk, null), null);
 assert.equal(fanMvp(wk, { week: wk.week, counts: {}, total: 0 }), null);
-assert.equal(fanMvp(wk, { week: wk.week, counts: { "2": 1 }, total: 1 })?.candidate.id, "2");
+assert.equal(fanMvp(wk, { week: wk.week, counts: { "1": 1 }, total: 1 })?.candidate.id, "1");
 console.log("votes: 후보·표 결과 통과");
 
 // ── 승부 예측 규칙 ──

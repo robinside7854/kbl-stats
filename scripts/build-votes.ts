@@ -1,6 +1,6 @@
 // 팬 참여 정적 파일 만들기 — `npm run build`·`npm run dev` 전에 자동 실행 (package.json prebuild·predev, 2026-10-16).
 // 경기가 있는 가장 최근 시즌의 data/processed/{시즌}/games.json → public/vote/data.json
-// = 최근 4주 팬 MVP 후보(그 주 박스스코어, 기록 점수 순) + 시즌 경기 표(시작 시각·승패). 규칙은 lib/votes.ts.
+// = 최근 4주 팬 MVP 후보(그 주 박스스코어, 팀마다 한 명·눈에 띈 기록 순) + 시즌 경기 표(시작 시각·승패). 규칙은 lib/votes.ts.
 // 서버(API)가 이 파일로 투표·예측이 맞는지 검사한다(lib/server/vote-data.ts). 생성물이라 git 제외.
 import { existsSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";

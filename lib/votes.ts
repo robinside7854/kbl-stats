@@ -40,11 +40,18 @@ export function voteWeekLabel(key: string): string {
 export const isWeekKey = (v: unknown): v is string => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v);
 
 // ── 팬 MVP 후보 ──
+// 2026-10-16 사용자: 득점 순으로 늘어놓으면 득점이 전부처럼 보인다 → 팀마다 한 명씩, 그 주에 가장 눈에 띈 기록을 보인 선수(5~10명).
+// 눈에 띈 정도 = 그 주 경기당 기록 ÷ 문턱(VOTE_HIGHLIGHTS) 중 가장 큰 값. 문턱은 "한 경기에 이 정도면 돋보인다"는 우리 규칙.
 
-/** 화면에 처음 보이는 후보 수 */
-export const VOTE_SHOW = 12;
-/** 파일에 넣는 후보 수 (그 주 최소 경기를 채운 선수 중 기록 점수 순) */
-export const VOTE_FILE_LIMIT = 40;
+/** 후보 부문과 문턱 (경기당) */
+export type VoteHighlight = "pts" | "reb" | "ast" | "tpm" | "def";
+export const VOTE_HIGHLIGHTS: readonly { key: VoteHighlight; label: string; min: number }[] = [
+  { key: "pts", label: "득점", min: 20 },
+  { key: "reb", label: "리바운드", min: 10 },
+  { key: "ast", label: "어시스트", min: 7 },
+  { key: "tpm", label: "3점슛", min: 3 },
+  { key: "def", label: "스틸+블록", min: 3 },
+];
 /** 파일에 넣는 주 수 (최근부터) */
 export const VOTE_FILE_WEEKS = 4;
 
@@ -59,15 +66,20 @@ export interface VoteCandidate {
   pts: number;
   reb: number;
   ast: number;
-  /** 기록 점수 = 경기당 득점 + 리바운드 + 어시스트 (우리 규칙 — 줄 세우기용) */
+  tpm: number;
+  stl: number;
+  blk: number;
+  /** 가장 눈에 띈 부문 */
+  highlight: VoteHighlight;
+  /** 눈에 띈 정도 = 그 부문 경기당 ÷ 문턱 (소수 둘째 자리 — 줄 세우기용) */
   score: number;
 }
 
 export interface VoteWeek {
   week: string;
-  /** 후보가 되는 최소 경기 (voteMinGames — 팀들이 2경기씩 치른 뒤부터 2) */
+  /** 후보가 되는 최소 경기 (voteMinGames — 팀들이 2경기씩 치른 뒤부터 2, 그 주 1경기만 한 팀은 1) */
   minGames: number;
-  /** 기록 점수 순 */
+  /** 팀마다 한 명, 눈에 띈 정도 순 */
   players: VoteCandidate[];
 }
 
@@ -101,9 +113,24 @@ export function voteMinGames(teamGames: ReadonlyMap<string, number>): number {
   return mid >= 2 ? 2 : 1;
 }
 
-/** 한 주 후보 (박스스코어가 있는 끝난 경기만) */
+const highlightValue = (c: Pick<VoteCandidate, "pts" | "reb" | "ast" | "tpm" | "stl" | "blk">, key: VoteHighlight): number =>
+  key === "def" ? c.stl + c.blk : c[key];
+
+/** 가장 눈에 띈 부문과 그 정도, 모든 부문 정도의 합 (같으면 VOTE_HIGHLIGHTS 순서가 먼저) */
+export function voteHighlightOf(c: Pick<VoteCandidate, "pts" | "reb" | "ast" | "tpm" | "stl" | "blk">): { key: VoteHighlight; score: number; sum: number } {
+  let best: { key: VoteHighlight; score: number } = { key: "pts", score: -1 };
+  let sum = 0;
+  for (const h of VOTE_HIGHLIGHTS) {
+    const r = highlightValue(c, h.key) / h.min;
+    sum += r;
+    if (r > best.score) best = { key: h.key, score: r };
+  }
+  return { ...best, sum };
+}
+
+/** 한 주 후보 (박스스코어가 있는 끝난 경기만) — 그 주 뛴 팀마다 한 명 */
 export function buildVoteWeek(games: readonly SeasonGame[], week: string, photoOf: (id: string) => string | null = () => null): VoteWeek | null {
-  type Acc = { id: string; nameKo: string; teamCode: string; lastDate: string; games: number; pts: number; reb: number; ast: number };
+  type Acc = { id: string; nameKo: string; teamCode: string; lastDate: string; games: number; pts: number; reb: number; ast: number; tpm: number; stl: number; blk: number };
   const acc = new Map<string, Acc>();
   const teamGames = new Map<string, number>();
   for (const g of games) {
@@ -112,11 +139,14 @@ export function buildVoteWeek(games: readonly SeasonGame[], week: string, photoO
     for (const side of ["home", "away"] as const) {
       for (const row of g.box[side]) {
         if (row.sec <= 0) continue;
-        const a = acc.get(row.id) ?? { id: row.id, nameKo: row.nameKo, teamCode: g[side].teamCode, lastDate: g.date, games: 0, pts: 0, reb: 0, ast: 0 };
+        const a = acc.get(row.id) ?? { id: row.id, nameKo: row.nameKo, teamCode: g[side].teamCode, lastDate: g.date, games: 0, pts: 0, reb: 0, ast: 0, tpm: 0, stl: 0, blk: 0 };
         a.games += 1;
         a.pts += row.pts;
         a.reb += row.reb;
         a.ast += row.ast;
+        a.tpm += row.tpm;
+        a.stl += row.stl;
+        a.blk += row.blk;
         if (g.date >= a.lastDate) {
           a.lastDate = g.date;
           a.teamCode = g[side].teamCode;
@@ -126,19 +156,22 @@ export function buildVoteWeek(games: readonly SeasonGame[], week: string, photoO
     }
   }
   if (acc.size === 0) return null;
-  const all = [...acc.values()];
   const minGames = voteMinGames(teamGames);
-  const players = all
-    .filter((a) => a.games >= minGames)
-    .map((a) => {
-      const pts = r1(a.pts / a.games);
-      const reb = r1(a.reb / a.games);
-      const ast = r1(a.ast / a.games);
-      return { id: a.id, nameKo: a.nameKo, teamCode: a.teamCode, photoUrl: photoOf(a.id), games: a.games, pts, reb, ast, score: r1(pts + reb + ast), total: a.pts };
-    })
-    .sort((a, b) => b.score - a.score || b.total - a.total || a.nameKo.localeCompare(b.nameKo, "ko"))
-    .slice(0, VOTE_FILE_LIMIT)
-    .map(({ total: _t, ...c }) => c);
+  type Row = VoteCandidate & { sum: number; total: number };
+  const bestOfTeam = new Map<string, Row>();
+  for (const a of acc.values()) {
+    // 그 주 1경기만 한 팀은 1경기로도 후보 (팀마다 한 명은 꼭 나오게)
+    if (a.games < Math.min(minGames, teamGames.get(a.teamCode) ?? 1)) continue;
+    const per = (v: number) => r1(v / a.games);
+    const c = { pts: per(a.pts), reb: per(a.reb), ast: per(a.ast), tpm: per(a.tpm), stl: per(a.stl), blk: per(a.blk) };
+    const h = voteHighlightOf(c);
+    const row: Row = { id: a.id, nameKo: a.nameKo, teamCode: a.teamCode, photoUrl: photoOf(a.id), games: a.games, ...c, highlight: h.key, score: Math.round(h.score * 100) / 100, sum: h.sum, total: a.pts };
+    const cur = bestOfTeam.get(a.teamCode);
+    if (!cur || row.score > cur.score || (row.score === cur.score && (row.sum > cur.sum || (row.sum === cur.sum && row.total > cur.total)))) bestOfTeam.set(a.teamCode, row);
+  }
+  const players = [...bestOfTeam.values()]
+    .sort((a, b) => b.score - a.score || b.sum - a.sum || a.nameKo.localeCompare(b.nameKo, "ko"))
+    .map(({ sum: _s, total: _t, ...c }) => c);
   return { week, minGames, players };
 }
 
@@ -174,6 +207,12 @@ export function isVoteCandidate(weeks: readonly VoteWeek[], key: string, playerN
   return findVoteWeek(weeks, key)?.players.some((p) => p.id === playerNo) ?? false;
 }
 
+/** 눈에 띈 기록 "리바운드 14.0" (스틸+블록은 "스틸+블록 4.0") */
+export function highlightText(c: VoteCandidate): string {
+  const h = VOTE_HIGHLIGHTS.find((x) => x.key === c.highlight) ?? VOTE_HIGHLIGHTS[0];
+  return `${h.label} ${highlightValue(c, h.key).toFixed(1)}`;
+}
+
 /** 기록 한 줄 "3경기 24.3점 9.0리바 5.0어시" */
 export const candidateLine = (c: Pick<VoteCandidate, "games" | "pts" | "reb" | "ast">): string =>
   `${c.games}경기 ${c.pts.toFixed(1)}점 ${c.reb.toFixed(1)}리바 ${c.ast.toFixed(1)}어시`;
@@ -192,7 +231,7 @@ export interface VoteResultRow {
   pct: number;
 }
 
-/** 후보 + 표 → 표 많은 순 (같으면 기록 점수 순 = 후보 순서). 표가 없는 후보도 뒤에 남는다 */
+/** 후보 + 표 → 표 많은 순 (같으면 후보 순서 = 눈에 띈 정도 순). 표가 없는 후보도 뒤에 남는다 */
 export function voteResults(week: VoteWeek, tally: VoteTally | null): VoteResultRow[] {
   const counts = tally?.counts ?? {};
   const total = Object.values(counts).reduce((s, n) => s + n, 0);
