@@ -48,7 +48,7 @@ function loginProviders() {
 
 /** @type {import('next').NextConfig} */
 /** public/ 의 빌드 생성 데이터 파일 (scripts/build-*.ts) */
-const DATA_FILES = ["/records/data/:path*", "/similar/:path*", "/notifications.json", "/search-index.json", "/search-hot.json", "/game/pool.json", "/cards/:path*", "/shots/:path*", "/games/:path*"];
+const DATA_FILES = ["/records/data/:path*", "/records/draft/:file(\\d{4}\\.json)", "/similar/:path*", "/notifications.json", "/search-index.json", "/search-hot.json", "/game/pool.json", "/cards/:path*", "/shots/:path*", "/games/:path*"];
 const DATA_CACHE = [{ key: "Cache-Control", value: "public, max-age=300, stale-while-revalidate=3600" }];
 const IMAGE_CACHE = [{ key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" }];
 

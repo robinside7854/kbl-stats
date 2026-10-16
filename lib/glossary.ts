@@ -36,7 +36,10 @@ export type GlossaryKey =
   | "playoffOdds"
   | "winProb"
   | "race"
-  | "eraIndex";
+  | "eraIndex"
+  | "leagueTrends"
+  | "redraft"
+  | "foreignHall";
 
 /** 용어 화면의 묶음 (순서 = 화면 순서) */
 export type GlossaryGroup = "stats" | "grades" | "shots" | "etc";
@@ -332,6 +335,34 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     brief: "선수 기록 ÷ 그 시즌 리그 평균 × 100 · 리그 평균 = 표본 기준을 넘긴 선수 기록 합 ÷ 경기 수 합",
     source: null,
   },
+  {
+    key: "leagueTrends",
+    group: "etc",
+    name: "리그 변화",
+    short: "시즌마다 모든 선수 기록을 더해서 리그 전체가 어떻게 바뀌었는지 본 값입니다.",
+    note: "선수 기록을 더한 값이라 KBL 공식 팀 기록과 조금 다를 수 있습니다. 평균 키는 지금 등록된 키로 셉니다.",
+    formula: "경기당 팀 득점 = 득점 합 ÷ (끝난 경기 × 2) · 3점 비중 = 3점 시도 ÷ 야투 시도 · 자유투 시도율 = 자유투 시도 ÷ 야투 시도 · 평균 키 = 출전 시간 가중",
+    brief: "득점 합 ÷ (끝난 경기 × 2) · 3점 비중 = 3점 시도 ÷ 야투 시도 · 평균 키 = 출전 시간 가중",
+    source: null,
+  },
+  {
+    key: "redraft",
+    group: "etc",
+    name: "다시 뽑는다면",
+    short: "그 해 지명된 선수를 KBL 통산 기록으로 다시 줄 세운 순서입니다. 이 사이트 규칙이에요.",
+    note: "오래 꾸준히 뛴 선수가 앞섭니다. KBL 정규시즌에 한 경기도 안 뛴 선수는 기록이 없어 빠집니다.",
+    formula: "통산 득점 + 리바운드 + 어시스트 + 스틸 + 블록 합계가 큰 순 · 같으면 경기 많은 순",
+    source: null,
+  },
+  {
+    key: "foreignHall",
+    group: "etc",
+    name: "외국 선수 명예의 전당",
+    short: "KBL을 거쳐 간 외국 선수 가운데 이 사이트 기준을 넘은 선수입니다. KBL 공식 명예의 전당이 아니에요.",
+    note: "아시아쿼터는 다른 제도라 뺐습니다. 시대마다 외국 선수 규정이 달라 기록을 그대로 비교하기는 어렵습니다.",
+    formula: "MVP(정규리그·외국선수·챔프전) 1회 이상, 또는 베스트5 2회 이상, 또는 5시즌 이상 뛰고 통산 5,000점 이상",
+    source: null,
+  },
 ];
 
 const BY_KEY = new Map(GLOSSARY.map((e) => [e.key, e]));
@@ -376,6 +407,9 @@ export const GLOSSARY_ANCHORS: Record<GlossaryKey, string> = {
   winProb: "win-prob",
   race: "race",
   eraIndex: "era-index",
+  leagueTrends: "league-trends",
+  redraft: "redraft",
+  foreignHall: "foreign-hall",
 };
 
 /** 도움말 팝오버 한 개의 내용 (app/components/HelpPopover — 그 자리에서 뜨는 ⓘ 설명) */

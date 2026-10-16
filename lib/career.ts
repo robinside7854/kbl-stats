@@ -5,6 +5,7 @@ import { perGame } from "./metrics";
 import { formatHighDate, formatHighShot, formatHighTimes, formatHighValue, HERO_HIGH_KEYS, highDef } from "./highs";
 import { CLUB_40, CLUB_50 } from "./badges";
 import type { CareerHighs, HighKey, HighRecord, HighsSet, SeasonHighLeader, SeasonHighLeaderKey, AwardKey, PlayerAward, LeaderPlayer, PostseasonLine } from "./types";
+import { draftYearHref } from "./draft";
 
 // ─────────────────────────────────────────────
 // 시즌 표기
@@ -187,11 +188,13 @@ export function trendRows<T extends TrendInput & { seasonCode: number; seasonLab
 export interface ProfileFact {
   label: string;
   value: string;
+  /** 누르면 갈 곳 (드래프트 → 그 해 드래프트 화면, 2026-10-16). 없으면 글자만 */
+  href?: string;
 }
 
 /**
  * 프로필 한 줄씩: 포지션 · 키 · 몸무게 · 등번호 · 드래프트. 값이 없는 항목은 뺀다.
- * 드래프트 표기: "2015 1라운드 3순위" (라운드·순위가 없으면 있는 것만). 등번호는 "0"과 "00"을 구분하려고 문자열 그대로.
+ * 드래프트 표기: "2015 1라운드 3순위" (라운드·순위가 없으면 있는 것만) — 기록 메뉴 드래프트 화면(그 해)으로 가는 href 를 붙인다. 등번호는 "0"과 "00"을 구분하려고 문자열 그대로.
  */
 export function profileFacts(p: {
   positionLabel: string | null;
@@ -209,7 +212,7 @@ export function profileFacts(p: {
     const parts = [`${p.draft.year}`];
     if (p.draft.round) parts.push(`${p.draft.round}라운드`);
     if (p.draft.pick) parts.push(`${p.draft.pick}순위`);
-    out.push({ label: "드래프트", value: parts.join(" ") });
+    out.push({ label: "드래프트", value: parts.join(" "), href: draftYearHref(p.draft.year) });
   }
   return out;
 }

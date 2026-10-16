@@ -200,11 +200,11 @@ assert.deepEqual(
     { label: "키", value: "199cm" },
     { label: "몸무게", value: "118kg" },
     { label: "등번호", value: "#00" },
-    { label: "드래프트", value: "2015 1라운드 3순위" },
+    { label: "드래프트", value: "2015 1라운드 3순위", href: "/records/draft?year=2015" },
   ],
 );
 assert.deepEqual(profileFacts({ positionLabel: null, heightCm: null, weightKg: null, backNumber: null, draft: { year: 1998, round: null, pick: null } }), [
-  { label: "드래프트", value: "1998" },
+  { label: "드래프트", value: "1998", href: "/records/draft?year=1998" },
 ]);
 console.log("player: 프로필 표기 통과");
 

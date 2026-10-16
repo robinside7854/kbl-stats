@@ -18,7 +18,7 @@ import { TeamLink } from "./EntityLinks";
 import TeamJersey from "./TeamJersey";
 import Link from "next/link";
 import { MILESTONE_STEPS, type Milestone } from "@/lib/records";
-import { IconInfo, IconTrophy } from "./icons";
+import { IconChevronRight, IconInfo, IconTrophy } from "./icons";
 import HelpPopover from "./HelpPopover";
 import BadgeRow, { type BadgeItem } from "./BadgeRow";
 
@@ -166,7 +166,17 @@ export default function PlayerHero({ entry, seasons, today, badges, milestones =
                 {facts.map((f) => (
                   <div key={f.label} className="flex items-baseline gap-1">
                     <dt className="opacity-75">{f.label}</dt>
-                    <dd className="min-w-0 font-bold [overflow-wrap:anywhere]">{f.value}</dd>
+                    <dd className="min-w-0 font-bold [overflow-wrap:anywhere]">
+                      {f.href ? (
+                        // 팀 색 띠 위라 파란 link-shortcut 대신 글자색 그대로 + 밑줄·꺾쇠 (누르는 영역은 위아래로 넓혀 40px)
+                        <Link href={f.href} className="focus-ring -my-2.5 inline-flex items-center rounded-control py-2.5 underline decoration-current/50 underline-offset-4 transition-colors duration-200 hover:decoration-current">
+                          {f.value}
+                          <IconChevronRight size={16} aria-hidden />
+                        </Link>
+                      ) : (
+                        f.value
+                      )}
+                    </dd>
                   </div>
                 ))}
               </dl>
