@@ -8,7 +8,7 @@ import { FONT, FPS, SAFE, onDark } from "./theme";
 import { prog, rise, text, useFont } from "./TopScorers";
 import type { EpisodeScene } from "./types";
 
-const K = { bg: "#07080A", panel: "#15171C", yellow: "#FFD400", white: "#FFFFFF", dim: "#8A8F99", line: "#2A2D35" };
+export const K = { bg: "#07080A", panel: "#15171C", yellow: "#FFD400", white: "#FFFFFF", dim: "#8A8F99", line: "#2A2D35" };
 
 interface MPlayer {
   playerNo: string;
@@ -36,9 +36,9 @@ export interface MilestoneProps {
 }
 
 /** 위 띠 — 노란 바탕 검정 글자가 왼쪽으로 흐른다 */
-function Ticker({ label }: { label: string }) {
+export function Ticker({ label, prefix = "KBL OPENING WATCH" }: { label: string; prefix?: string }) {
   const f = useCurrentFrame();
-  const item = `KBL OPENING WATCH  ·  ${label}  ·  `;
+  const item = `${prefix}  ·  ${label}  ·  `;
   return (
     <div style={{ position: "absolute", left: 0, right: 0, top: SAFE.top - 10, height: 64, background: K.yellow, overflow: "hidden" }}>
       <div style={{ whiteSpace: "nowrap", transform: `translateX(${-((f * 3) % 900)}px)`, ...text(34, 900, K.bg, { lineHeight: "64px", letterSpacing: 2 }) }}>
@@ -49,7 +49,7 @@ function Ticker({ label }: { label: string }) {
 }
 
 /** 자막 — 상자 없이 흰 글자 + 검정 외곽선 (앞 포맷의 흰 상자와 다르게) */
-function Sub({ scene }: { scene: EpisodeScene }) {
+export function Sub({ scene }: { scene: EpisodeScene }) {
   const f = useCurrentFrame();
   const t = f / FPS;
   let idx = 0;
@@ -64,22 +64,34 @@ function Sub({ scene }: { scene: EpisodeScene }) {
   );
 }
 
-function Frame({ label, scene, children }: { label: string; scene: EpisodeScene; children: ReactNode }) {
+export function Frame({
+  label,
+  scene,
+  children,
+  prefix,
+  footer = "기록 KBL 공식 홈페이지 · 정규리그 통산 · 사진 © KBL 및 각 구단 · 비영리 팬 채널",
+}: {
+  label: string;
+  scene: EpisodeScene;
+  children: ReactNode;
+  prefix?: string;
+  footer?: string;
+}) {
   return (
     <AbsoluteFill style={{ background: K.bg }}>
       {/* 사선 줄무늬 바탕 */}
       <AbsoluteFill style={{ background: "repeating-linear-gradient(135deg, #0D0F13 0 18px, #07080A 18px 36px)", opacity: 0.9 }} />
-      <Ticker label={label} />
+      <Ticker label={label} prefix={prefix} />
       {children}
       <Sub scene={scene} />
       <div style={{ position: "absolute", left: SAFE.left, top: SAFE.bottom - 4, ...text(20, 500, K.dim) }}>
-        기록 KBL 공식 홈페이지 · 정규리그 통산 · 사진 © KBL 및 각 구단 · 비영리 팬 채널
+        {footer}
       </div>
     </AbsoluteFill>
   );
 }
 
-function PhotoPanel({ p, w, h, style }: { p: MPlayer; w: number; h: number; style?: CSSProperties }) {
+export function PhotoPanel({ p, w, h, style }: { p: Pick<MPlayer, "name" | "photoFile" | "team">; w: number; h: number; style?: CSSProperties }) {
   return (
     <div style={{ position: "relative", width: w, height: h, overflow: "hidden", background: p.team.color, clipPath: "polygon(0 0, 100% 0, 100% 88%, 82% 100%, 0 100%)", ...style }}>
       {p.photoFile ? (
@@ -181,7 +193,7 @@ function MilestoneScene({ props, scene, index }: { props: MilestoneProps; scene:
   );
 }
 
-function Chip({ children, hot }: { children: ReactNode; hot?: boolean }) {
+export function Chip({ children, hot }: { children: ReactNode; hot?: boolean }) {
   return (
     <span style={{ borderRadius: 999, padding: "10px 22px", background: hot ? K.yellow : K.panel, border: `2px solid ${hot ? K.yellow : K.line}`, ...text(32, 900, hot ? K.bg : K.white) }}>
       {children}
