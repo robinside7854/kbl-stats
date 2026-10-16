@@ -3,7 +3,7 @@
 import type { Metadata } from "next";
 import { shareMetadata } from "@/lib/share";
 import { notFound } from "next/navigation";
-import { findPlayerIndexEntry, loadRecentFeats, listAllSeasons, listSeasonsWithPlayers, loadSeasonData, loadSeasonGames, gameTeamInfos, seasonQualify, toCardTeams, toLeaderPlayers } from "@/lib/data";
+import { findPlayerIndexEntry, loadRecentFeats, loadSeasonPredictions, listAllSeasons, listSeasonsWithPlayers, loadSeasonData, loadSeasonGames, gameTeamInfos, seasonQualify, toCardTeams, toLeaderPlayers } from "@/lib/data";
 import { latestGameDay, nextGameDay, seasonProgress, asOfLabel, computeStandings, notableStreak } from "@/lib/games";
 import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
 import type { BirthdayPlayer } from "./components/BirthdayStrip";
@@ -73,6 +73,7 @@ export default function HomePage() {
         gameTeams={gameTeams}
         feats={feats}
         streaks={streaks}
+        winProbs={upcoming ? {} : (loadSeasonPredictions(shown.seasonCode)?.winProbs ?? {})}
         qualifyText={qualifyLabel(rule)}
       />
       <SourceFooter fetchedAt={season.fetchedAt} wide />

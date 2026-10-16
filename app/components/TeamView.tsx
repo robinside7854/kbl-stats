@@ -7,11 +7,14 @@
 // 2026-10-14 사용자 "지난 시즌을 쭉 늘어놓지 말고 과거 실적으로, 기본은 그 시즌 먼저": 경기 띠 → 이번 시즌(없으면 최근·마지막 시즌)
 // 로스터 → 그 시즌 상대 전적 → "역대 실적"(통산 숫자 + 시즌마다 순위·PO 결과 칸, 칸을 누르면 위가 그 시즌으로 — 30시즌 칩 줄은 없앰,
 // 긴 시즌별 성적 표는 접어 둠: GA4 filter_change team history open/close) → 레전드 → 팀 통산 기록 → 수상(처음 8개) → 계보.
+// 2026-10-16: 이번 시즌 카드에 플레이오프 확률 한 줄(lib/predict, 우리 추정 — ⓘ help_open topic=playoffOdds).
 // 시즌 고르기는 머리말에 ‹ 시즌 › (SeasonStepper) — 로스터·상대 전적이 그 시즌으로(같은 filter_change team season).
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { mixHex } from "@/lib/images";
 import type { TeamHeadToHeadLine } from "@/lib/games";
+import { oddsText, type PlayoffOdds } from "@/lib/predict";
+import InfoLink from "./InfoLink";
 import { bestRegularSeason, LEGEND_RULE_TEXT, majorAwardSummary, PLAYOFF_STAGE_LABELS, pctText, type PlayoffStage, type TeamLeaderKey, type TeamPageData, type TeamSeasonRow } from "@/lib/franchise";
 import ChipRow from "./ChipRow";
 import FanButton from "./FanButton";
@@ -96,7 +99,21 @@ function SeasonStepper({ rows, season, onChange }: { rows: TeamSeasonRow[]; seas
 /** 수상 기록 처음에 보이는 개수 */
 const AWARDS_VISIBLE = 8;
 
-export default function TeamView({ data, strip = null, h2h = {} }: { data: TeamPageData; strip?: TeamStripData | null; h2h?: Record<string, TeamHeadToHeadLine[]> }) {
+export default function TeamView({
+  data,
+  strip = null,
+  h2h = {},
+  odds = null,
+  oddsSeason = null,
+}: {
+  data: TeamPageData;
+  strip?: TeamStripData | null;
+  h2h?: Record<string, TeamHeadToHeadLine[]>;
+  /** 이번 시즌 플레이오프 확률 (lib/predict, 지금 팀·진행 중 시즌만) */
+  odds?: PlayoffOdds | null;
+  /** 그 확률의 시즌 "26-27" */
+  oddsSeason?: string | null;
+}) {
   const { brand, totals, rows } = data;
   // 기본 = 가장 최근 시즌 (지금 팀은 이번 시즌, 아직 첫 경기 전이면 지난 시즌 / 추억의 팀은 마지막 시즌)
   const defaultSeason = rows[0]?.seasonCode ?? 0;
@@ -211,6 +228,24 @@ export default function TeamView({ data, strip = null, h2h = {} }: { data: TeamP
               </span>
               {row.regularFirst && <span className="font-semibold text-ink">정규리그 1위</span>}
               <StageChip stage={row.stage} />
+            </div>
+          )}
+          {isDefault && odds && (
+            <div className="tabular mt-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-card bg-surface-2 px-3 py-2">
+              <div className="min-w-0">
+                <p className="flex items-center text-sub text-ink-2">
+                  {notStarted && oddsSeason ? `${oddsSeason} ` : ""}플레이오프 확률
+                  <b className="ml-1.5 text-body text-ink">{oddsText(odds.top6, odds.playoff)}</b>
+                  <InfoLink term="playoffOdds" />
+                </p>
+                <p className="text-caption text-ink-3">
+                  4강 직행 {oddsText(odds.top2)} · 예상 {Math.round(odds.expWins)}승 {Math.round(odds.expLosses)}패 · 우리 추정
+                </p>
+              </div>
+              <Link href="/teams" className="focus-ring link-shortcut shrink-0">
+                모든 팀 확률
+                <IconChevronRight size={16} aria-hidden />
+              </Link>
             </div>
           )}
           {roster.length === 0 ? (

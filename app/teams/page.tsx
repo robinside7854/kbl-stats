@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { shareMetadata } from "@/lib/share";
 import { computeStandings, headToHeadWins, notableStreak } from "@/lib/games";
 import { seasonShortLabel } from "@/lib/career";
-import { dataAsOfLabel, isSeasonOngoing, listSeasonsWithPlayers, loadSeasonData, loadSeasonGames, loadTeamIndex, toCardTeams } from "@/lib/data";
+import { dataAsOfLabel, gameTeamInfos, isSeasonOngoing, loadSeasonPredictions, listSeasonsWithPlayers, loadSeasonData, loadSeasonGames, loadTeamIndex, toCardTeams } from "@/lib/data";
 import type { StandingsSeason, StandingTeam } from "@/app/components/StandingsTable";
 import SiteNav from "@/app/components/SiteNav";
 import SourceFooter from "@/app/components/SourceFooter";
@@ -37,6 +37,13 @@ export default function TeamsPage() {
       ongoing: isSeasonOngoing(s.seasonCode),
     }];
   });
+  // 플레이오프 확률 (진행 중 시즌만, lib/predict — 2026-10-16)
+  const pred = latest ? loadSeasonPredictions(latest.seasonCode) : null;
+  // 팀 이름·로고는 경기 일정 팀표(아직 경기 없는 팀은 직전 시즌 팀표 — gameTeamInfos)
+  const latestTeams = latest ? gameTeamInfos(latest.seasonCode) : {};
+  const odds = pred
+    ? { seasonCode: pred.seasonCode, rows: pred.odds, teams: latestTeams, remaining: Object.keys(pred.winProbs).length }
+    : null;
   return (
     <>
       <SiteNav seasons={seasons} seasonCode={latest?.seasonCode ?? 0} view="team" />
@@ -47,6 +54,7 @@ export default function TeamsPage() {
         records={records}
         standings={standingsSeasons}
         asOf={dataAsOfLabel()}
+        odds={odds}
       />
       <SourceFooter />
     </>

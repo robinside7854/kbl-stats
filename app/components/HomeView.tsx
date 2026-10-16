@@ -51,12 +51,14 @@ interface Props {
   feats?: RecentFeat[];
   /** 팀 코드 → 2경기 이상 연승·연패 (다음 경기 줄에 표시) */
   streaks?: Record<string, { label: string; kind: "W" | "L" }>;
+  /** 아직 안 한 경기 홈 승리 확률 (lib/predict) */
+  winProbs?: Record<string, number>;
 }
 
 /** 순위표 부문 링크 (득점은 기본 부문이라 쿼리 없음 — lib/leaders DEFAULT_CATEGORY) */
 const leadersHref = (code: number, key: LeaderStatKey) => `/season/${code}/leaders${key === "points" ? "" : `?cat=${key}`}`;
 
-export default function HomeView({ season, fetchedLabel, asOf = null, upcoming, categories, teams, qualifyText, birthdays, gameDay = null, nextGameDay = null, gameTeams = {}, progress = null, feats = [], streaks = {} }: Props) {
+export default function HomeView({ season, fetchedLabel, asOf = null, upcoming, categories, teams, qualifyText, birthdays, gameDay = null, nextGameDay = null, gameTeams = {}, progress = null, feats = [], streaks = {}, winProbs = {} }: Props) {
   const teamByCode = new Map(teams.map((t) => [t.teamCode, t]));
   const code = season.seasonCode;
   const short = seasonShortLabel(season.seasonLabel);
@@ -80,7 +82,7 @@ export default function HomeView({ season, fetchedLabel, asOf = null, upcoming, 
         {progress && <SeasonProgressBar progress={progress} className="mt-3 max-w-md" />}
       </div>
 
-      {gameDay && <GameDayBoard day={gameDay} next={nextGameDay} seasonCode={code} teams={gameTeams} streaks={streaks} />}
+      {gameDay && <GameDayBoard day={gameDay} next={nextGameDay} seasonCode={code} teams={gameTeams} streaks={streaks} winProbs={winProbs} />}
 
       {gameDay && <RecentFeats feats={feats} latestDate={gameDay.date} />}
 

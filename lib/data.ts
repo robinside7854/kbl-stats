@@ -51,6 +51,7 @@ import { seasonContext } from "./cardview";
 import { asOfLabel, computeStandings, headToHead, latestGameDay, playerRecentGames, teamGameStrip, type HeadToHeadRecord, type OppBrand, type PlayerRecentGame, type TeamHeadToHeadLine, type TeamStripGame } from "./games";
 import { buildNotifItems, careerHighsFromIndex, careerSumsFromSeasons, featGroups, homeFeatItems, leagueSeasonRecords, type RecentFeat } from "./notifications";
 import { FALLBACK_TEAM_COLOR } from "./teams";
+import { oddsSeed, playoffOdds, priorFromSeason, teamRatings, upcomingWinProbs, type PlayoffOdds } from "./predict";
 import { pickRegularChampions } from "./game-pool";
 import teamLineage from "@/data/codes/team-lineage.json";
 import {
@@ -258,6 +259,38 @@ export function isSeasonOngoing(seasonCode: number): boolean {
 }
 /** 시즌 기본 표본 기준 (진행 중 = 팀 경기 절반 이상(ongoingQualify), 마감 = DEFAULT_QUALIFY) */
 export const seasonQualify = (seasonCode: number) => seasonDefaultQualify(isSeasonOngoing(seasonCode), loadSeasonData(seasonCode)?.players ?? []);
+
+// ── 플레이오프 확률·경기 전 승률 (2026-10-16, 규칙 lib/predict — 우리 추정) ──
+export interface SeasonPredictions {
+  seasonCode: number;
+  /** 6강 확률 순 */
+  odds: PlayoffOdds[];
+  /** 남은 경기 gmkey → 홈 승률 */
+  winProbs: Record<string, number>;
+  /** 끝난 경기 수 (0 이면 지난 시즌 성적만으로 본 값) */
+  gamesPlayed: number;
+}
+const predictCache = new Map<number, SeasonPredictions | null>();
+/** 진행 중 시즌만 (마감 시즌은 null). 출발점 = 바로 전 시즌(선수 있는 시즌 순서) 경기 결과 */
+export function loadSeasonPredictions(seasonCode: number): SeasonPredictions | null {
+  if (predictCache.has(seasonCode)) return predictCache.get(seasonCode)!;
+  let out: SeasonPredictions | null = null;
+  const games = loadSeasonGames(seasonCode);
+  if (isSeasonOngoing(seasonCode) && games.length > 0) {
+    const order = listSeasonsWithPlayers().map((s) => s.seasonCode);
+    const prev = order.find((c) => c < seasonCode);
+    const prior = prev !== undefined ? priorFromSeason(loadSeasonGames(prev)) : {};
+    const ratings = teamRatings(games, prior);
+    out = {
+      seasonCode,
+      odds: playoffOdds(games, ratings, { seed: oddsSeed(games) }),
+      winProbs: upcomingWinProbs(games, ratings),
+      gamesPlayed: games.filter((g) => g.ended).length,
+    };
+  }
+  predictCache.set(seasonCode, out);
+  return out;
+}
 
 export function listSeasonsWithPlayers(): SeasonOption[] {
   const seasons = readJson<SeasonOption[]>("seasons.json");

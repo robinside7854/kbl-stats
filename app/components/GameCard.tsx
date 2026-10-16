@@ -18,6 +18,7 @@ import { IconClose, IconExternal, IconPlay } from "./icons";
 import Skeleton from "./Skeleton";
 import TeamLogo from "./TeamLogo";
 import { TeamLink } from "./EntityLinks";
+import WinProbBar from "./WinProbBar";
 import { trackEvent } from "./track";
 
 export interface GameTeamInfo {
@@ -39,12 +40,14 @@ interface Props {
   place: "home" | "schedule";
   /** 내 응원팀 경기 (홈에서 맨 앞에 올 때 위에 작게 표시, 2026-10-08) */
   mine?: boolean;
+  /** 아직 안 한 경기의 홈 승리 확률 (lib/predict, 0~1 — 우리 추정, 2026-10-16) */
+  homeWinProb?: number | null;
 }
 
 export const teamInfoOf = (teams: Record<string, GameTeamInfo>, code: string, fallback: string): GameTeamInfo =>
   teams[code] ?? { shortName: fallback, logoUrl: null, color: FALLBACK_TEAM_COLOR };
 
-export default function GameCard({ game: g, seasonCode, teams, stars = null, loadBox, place, mine = false }: Props) {
+export default function GameCard({ game: g, seasonCode, teams, stars = null, loadBox, place, mine = false, homeWinProb = null }: Props) {
   const [open, setOpen] = useState(false);
   const [video, setVideo] = useState(false);
   const [box, setBox] = useState<Box | null>(g.box);
@@ -102,6 +105,7 @@ export default function GameCard({ game: g, seasonCode, teams, stars = null, loa
         <TeamSide side={awaySide} seasonCode={seasonCode} place={place} />
       </div>
       {g.stadium && <p className="mt-1 text-center text-caption text-ink-3">{g.stadium}</p>}
+      {!g.ended && homeWinProb !== null && <WinProbBar homeProb={homeWinProb} home={homeSide.info} away={awaySide.info} className="mt-2 border-t border-line pt-2" />}
       {(starsOf("away").length > 0 || starsOf("home").length > 0) && (
         <ul className="mt-2 space-y-1.5 border-t border-line pt-2 text-sub">
           {sides.map((s) => {

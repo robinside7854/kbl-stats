@@ -3,7 +3,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { shareMetadata } from "@/lib/share";
-import { listSeasonsWithPlayers, loadFranchises, loadTeamHeadToHead, loadTeamStrip } from "@/lib/data";
+import { listSeasonsWithPlayers, loadFranchises, loadSeasonPredictions, loadTeamHeadToHead, loadTeamStrip } from "@/lib/data";
 import SiteNav from "@/app/components/SiteNav";
 import SourceFooter from "@/app/components/SourceFooter";
 import TeamView from "@/app/components/TeamView";
@@ -33,10 +33,19 @@ export default async function TeamPage({ params }: { params: Params }) {
   const data = loadFranchises().get(teamCode);
   if (!data) notFound();
   const seasons = listSeasonsWithPlayers();
+  const strip = data.active ? loadTeamStrip(teamCode) : null;
+  // 플레이오프 확률 (지금 팀·진행 중 시즌만, lib/predict — 2026-10-16)
+  const pred = data.active && strip ? loadSeasonPredictions(strip.seasonCode) : null;
   return (
     <>
       <SiteNav seasons={seasons} seasonCode={seasons[0]?.seasonCode ?? 0} view="team" />
-      <TeamView data={data} strip={data.active ? loadTeamStrip(teamCode) : null} h2h={loadTeamHeadToHead(teamCode, data.rows.map((r) => r.seasonCode))} />
+      <TeamView
+        data={data}
+        strip={strip}
+        h2h={loadTeamHeadToHead(teamCode, data.rows.map((r) => r.seasonCode))}
+        odds={pred?.odds.find((o) => o.teamCode === teamCode) ?? null}
+        oddsSeason={pred ? strip?.seasonShort ?? null : null}
+      />
       <SourceFooter />
     </>
   );

@@ -3,7 +3,7 @@
 import type { Metadata } from "next";
 import { shareMetadata } from "@/lib/share";
 import { notFound } from "next/navigation";
-import { gameTeamInfos, listSeasonsWithPlayers, loadSeasonData, loadSeasonGames } from "@/lib/data";
+import { gameTeamInfos, listSeasonsWithPlayers, loadSeasonData, loadSeasonGames, loadSeasonPredictions } from "@/lib/data";
 import { latestGameDay, monthsOf, seasonProgress, teamStandouts } from "@/lib/games";
 import { seasonShortLabel } from "@/lib/career";
 import SiteNav from "@/app/components/SiteNav";
@@ -56,6 +56,7 @@ export default async function SchedulePage({ params }: { params: Params }) {
         progress={seasonProgress(all)}
         teams={gameTeamInfos(code)}
         initialMonth={initialMonth}
+        winProbs={loadSeasonPredictions(code)?.winProbs ?? {}}
       />
       <SourceFooter fetchedAt={season.fetchedAt} wide />
     </>

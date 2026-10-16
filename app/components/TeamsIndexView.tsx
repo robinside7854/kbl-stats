@@ -12,6 +12,8 @@ import ChipRow from "./ChipRow";
 import Segmented from "./Segmented";
 import StandingsTable, { type StandingsSeason } from "./StandingsTable";
 import HeadToHeadMatrix from "./HeadToHeadMatrix";
+import PlayoffOddsBoard, { type OddsTeam } from "./PlayoffOddsBoard";
+import { oddsText, type PlayoffOdds } from "@/lib/predict";
 import TeamLogo from "./TeamLogo";
 import StreakText from "./StreakText";
 import { IconHeart, IconMegaphone, IconTrophy } from "./icons";
@@ -25,7 +27,14 @@ const VIEW_OPTIONS: { value: View; label: string }[] = [
   { value: "table", label: "표" },
 ];
 
-export default function TeamsIndexView({ teams, seasonCode, seasonShort, records, standings, asOf = null }: {
+export interface TeamsOdds {
+  seasonCode: number;
+  rows: PlayoffOdds[];
+  teams: Record<string, OddsTeam>;
+  remaining: number;
+}
+
+export default function TeamsIndexView({ teams, seasonCode, seasonShort, records, standings, asOf = null, odds = null }: {
   teams: TeamIndexEntry[];
   seasonCode: number;
   seasonShort: string;
@@ -34,6 +43,8 @@ export default function TeamsIndexView({ teams, seasonCode, seasonShort, records
   standings: StandingsSeason[];
   /** "10월 7일 경기까지 반영" — 지금 시즌 카드에만 붙인다 */
   asOf?: string | null;
+  /** 진행 중 시즌의 플레이오프 확률 (lib/predict, 2026-10-16) — 마감 시즌이면 null */
+  odds?: TeamsOdds | null;
 }) {
   const counts = useLikeCounts();
   const [tab, setTab] = useState<Tab>("now");
@@ -87,8 +98,10 @@ export default function TeamsIndexView({ teams, seasonCode, seasonShort, records
   }
   const shownStandings = tableSeasons.find((s) => s.seasonCode === tableSeason) ?? tableSeasons[0];
 
+  const oddsBy = useMemo(() => new Map((odds?.rows ?? []).map((o) => [o.teamCode, o])), [odds]);
   const card = (t: TeamIndexEntry) => {
     const rec = t.active ? records[t.brand.teamCode] : undefined;
+    const po = t.active ? oddsBy.get(t.brand.teamCode) : undefined;
     const fans = t.active && counts ? (counts.fans?.[t.brand.teamCode] ?? 0) : undefined;
     return (
       <li key={t.brand.teamCode} className="min-w-0">
@@ -123,6 +136,7 @@ export default function TeamsIndexView({ teams, seasonCode, seasonShort, records
                 : "아직 경기 없음"
               : `${t.spanLabel} · ${t.seasons}시즌`}
           </span>
+          {po && <span className="w-full text-caption font-semibold text-ink-2 tabular">플레이오프 {oddsText(po.top6, po.playoff)}</span>}
           {!t.active && t.successorName && <span className="w-full truncate text-caption text-ink-3">→ {t.successorName}</span>}
           <span className="mt-auto flex items-center justify-center gap-3 pt-2 text-sub font-semibold text-ink tabular">
             <span className={`inline-flex items-center gap-1 ${t.championships > 0 ? "" : "text-ink-3"}`} aria-label={`우승 ${t.championships}회`}>
@@ -198,10 +212,16 @@ export default function TeamsIndexView({ teams, seasonCode, seasonShort, records
           {view === "table" && shownStandings ? (
             <div className="mt-2">
               <StandingsTable season={shownStandings} />
+              {odds && odds.seasonCode === shownStandings.seasonCode && (
+                <PlayoffOddsBoard odds={odds.rows} teams={odds.teams} seasonCode={odds.seasonCode} remaining={odds.remaining} asOf={asOf} />
+              )}
               <HeadToHeadMatrix season={shownStandings} />
             </div>
           ) : (
-          <ul className="mt-2 grid grid-cols-2 gap-2 md:grid-cols-5">{active.map(card)}</ul>
+            <>
+              <ul className="mt-2 grid grid-cols-2 gap-2 md:grid-cols-5">{active.map(card)}</ul>
+              {odds && <PlayoffOddsBoard odds={odds.rows} teams={odds.teams} seasonCode={odds.seasonCode} remaining={odds.remaining} asOf={asOf} />}
+            </>
           )}
         </>
       ) : (

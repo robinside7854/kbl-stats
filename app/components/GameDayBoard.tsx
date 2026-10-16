@@ -12,6 +12,7 @@ import GameCard, { teamInfoOf, type GameTeamInfo } from "./GameCard";
 import { IconChevronRight } from "./icons";
 import TeamLogo from "./TeamLogo";
 import { TeamLink } from "./EntityLinks";
+import InfoLink from "./InfoLink";
 import StreakText from "./StreakText";
 import { useMember } from "./useLikes";
 
@@ -25,9 +26,11 @@ interface Props {
   teams: Record<string, GameTeamInfo>;
   /** 팀 코드 → 지금 2경기 이상 연승·연패 (lib/games notableStreak) — 다음 경기 줄에 */
   streaks?: Record<string, { label: string; kind: "W" | "L" }>;
+  /** 아직 안 한 경기 gmkey → 홈 승리 확률 (lib/predict, 우리 추정 — 2026-10-16). 다음 경기 줄 오른쪽 "61 : 39" */
+  winProbs?: Record<string, number>;
 }
 
-export default function GameDayBoard({ day, next, seasonCode, teams, streaks = {} }: Props) {
+export default function GameDayBoard({ day, next, seasonCode, teams, streaks = {}, winProbs = {} }: Props) {
   const [today, setToday] = useState<string | null>(null);
   useEffect(() => setToday(kstDateString(new Date())), []);
   const isToday = today === day.date;
@@ -68,13 +71,21 @@ export default function GameDayBoard({ day, next, seasonCode, teams, streaks = {
       </ul>
       {next && nextGames.length > 0 && (
         <div className="surface-card mt-3 rounded-container p-3">
-          <p className="text-sub font-bold text-ink">다음 경기 · {gameDayLabel(next.date)}</p>
+          <p className="flex items-center justify-between gap-2 text-sub font-bold text-ink">
+            <span>다음 경기 · {gameDayLabel(next.date)}</span>
+            {nextGames.some((g) => winProbs[g.gmkey] !== undefined) && (
+              <span className="inline-flex shrink-0 items-center text-caption font-medium text-ink-3">
+                승리 확률(홈:원정)
+                <InfoLink term="winProb" compact className="-my-3" />
+              </span>
+            )}
+          </p>
           <ul className="mt-1 divide-y divide-line md:grid md:grid-cols-2 md:gap-x-6 md:divide-y-0 xl:grid-cols-3">
             {nextGames.map((g) => {
               const away = teamInfoOf(teams, g.away.teamCode, g.away.name);
               const home = teamInfoOf(teams, g.home.teamCode, g.home.name);
               return (
-                <li key={g.gmkey} className="tabular flex min-h-10 items-center gap-2 py-1.5 text-sub">
+                <li key={g.gmkey} className="tabular flex min-h-10 flex-wrap items-center gap-x-2 py-1.5 text-sub">
                   <span className="w-12 shrink-0 text-ink-3">{g.start ?? ""}</span>
                   {/* 홈 팀이 늘 왼쪽 (2026-10-05, 경기 카드와 같은 순서) */}
                   <TeamLink code={g.home.teamCode} season={seasonCode} place="home_next" className="flex min-h-10 min-w-0 items-center gap-2">
@@ -90,6 +101,14 @@ export default function GameDayBoard({ day, next, seasonCode, teams, streaks = {
                   <StreakText streak={streaks[g.away.teamCode]} />
                   {isMine(g) && <span className="shrink-0 text-caption font-semibold text-series-1">내 응원팀</span>}
                   {g.stadium && <span className="ml-auto hidden min-w-0 truncate text-caption text-ink-3 sm:inline md:ml-2">{g.stadium}</span>}
+                  {winProbs[g.gmkey] !== undefined && (
+                    <span
+                      className={`shrink-0 text-caption text-ink-2 max-sm:basis-full max-sm:pl-14 ${g.stadium ? "sm:ml-2" : "sm:ml-auto"}`}
+                      aria-label={`승리 확률 ${home.shortName} ${Math.round(winProbs[g.gmkey] * 100)}%, ${away.shortName} ${100 - Math.round(winProbs[g.gmkey] * 100)}% (우리 추정)`}
+                    >
+                      {Math.round(winProbs[g.gmkey] * 100)} : {100 - Math.round(winProbs[g.gmkey] * 100)}
+                    </span>
+                  )}
                 </li>
               );
             })}

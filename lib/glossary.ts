@@ -32,7 +32,9 @@ export type GlossaryKey =
   | "winPct"
   | "prime"
   | "game54"
-  | "rosterStatus";
+  | "rosterStatus"
+  | "playoffOdds"
+  | "winProb";
 
 /** 용어 화면의 묶음 (순서 = 화면 순서) */
 export type GlossaryGroup = "stats" | "grades" | "shots" | "etc";
@@ -289,6 +291,26 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     brief: "현역: 등록 명단에 있음 · 미등록: 명단에 없지만 최근 3시즌 안에 뛰었음 · 은퇴: 명단에 없고 최근 3시즌 기록 없음",
     source: null,
   },
+  {
+    key: "playoffOdds",
+    group: "etc",
+    name: "플레이오프 확률",
+    short: "남은 경기를 1만 번 돌려 보고, 6위 안에 든 비율입니다. KBL 공식 수치가 아니라 우리가 계산한 추정이에요.",
+    note: "팀 실력은 이번 시즌 점수 차로 매기고, 시즌 초에는 지난 시즌 성적을 조금 섞습니다. 동률 순위는 무작위로 가르고, 남은 경기와 상관없이 정해지면 확정·탈락으로 바꿔 보여 줍니다.",
+    formula: "팀 실력 = 평균 상대에게 몇 점 이기는지 · 경기마다 실력 차와 홈 이점(1.3점)으로 승률 · 남은 경기를 1만 번 돌려 6위 안(플레이오프)·2위 안(4강 직행)·1위 비율",
+    brief: "남은 경기를 1만 번 돌려 6위 안에 든 비율 · 팀 실력 = 점수 차, 시즌 초엔 지난 시즌 성적을 섞음",
+    source: null,
+  },
+  {
+    key: "winProb",
+    group: "etc",
+    name: "경기 승리 확률",
+    short: "두 팀 실력 차와 홈 이점으로 계산한 이길 확률입니다. 우리가 계산한 추정이에요.",
+    note: "지난 18시즌을 경기 전 정보만으로 되짚어 보면 확률이 높은 쪽이 63% 이겼습니다. 60%대라고 한 경기는 실제로 68% 이겼어요.",
+    formula: "점수 차 예상 = 홈 실력 − 원정 실력 + 홈 이점 1.3점 · 한 경기 점수 차 흔들림 11점으로 이길 확률",
+    brief: "실력 차 + 홈 이점 1.3점으로 계산 · 지난 18시즌 되짚어 보기에서 앞선 팀이 63% 이김",
+    source: null,
+  },
 ];
 
 const BY_KEY = new Map(GLOSSARY.map((e) => [e.key, e]));
@@ -329,6 +351,8 @@ export const GLOSSARY_ANCHORS: Record<GlossaryKey, string> = {
   prime: "prime",
   game54: "game-54-0",
   rosterStatus: "roster-status",
+  playoffOdds: "playoff-odds",
+  winProb: "win-prob",
 };
 
 /** 도움말 팝오버 한 개의 내용 (app/components/HelpPopover — 그 자리에서 뜨는 ⓘ 설명) */

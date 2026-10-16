@@ -31,6 +31,26 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-10-16-playoff-odds",
+    date: "2026-10-16",
+    kind: "update",
+    title: "플레이오프 확률이랑 경기 승리 확률",
+    summary: "플레이오프 확률 생겼어요",
+    blocks: [
+      { kind: "p", text: "남은 경기를 1만 번 돌려 보고 팀마다 플레이오프에 갈 확률을 계산했어요. 매일 경기가 끝나면 다시 계산해요." },
+      {
+        kind: "list",
+        items: [
+          "팀 화면 아래에 팀별 플레이오프·4강 직행·1위 확률",
+          "팀 페이지 이번 시즌 칸에 우리 팀 확률",
+          "일정이랑 홈 다음 경기에 승리 확률",
+        ],
+      },
+      { kind: "p", text: "KBL 공식 숫자가 아니라 우리가 계산한 추정이에요. 지난 18시즌으로 되짚어 보면 확률이 높은 쪽이 63% 이겼어요. 시즌 초엔 지난 시즌 성적도 조금 섞여요." },
+      { kind: "list", items: [{ text: "팀 화면 보기", href: "/teams" }, { text: "계산 방법", href: "/glossary#playoff-odds" }] },
+    ],
+  },
+  {
     slug: "2026-10-14-calendar-links",
     date: "2026-10-14",
     kind: "update",

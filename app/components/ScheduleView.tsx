@@ -57,6 +57,8 @@ interface Props {
   initialMonth: string | null;
   /** 정규시즌 진행률 (lib/games seasonProgress) */
   progress: SeasonProgress | null;
+  /** 아직 안 한 경기 gmkey → 홈 승리 확률 (lib/predict, 진행 중 시즌만 — 2026-10-16) */
+  winProbs?: Record<string, number>;
 }
 
 type Box = NonNullable<SeasonGame["box"]>;
@@ -77,7 +79,7 @@ function loadDay(seasonCode: number, date: string) {
 const DAY_SPAN: Record<number, string> = { 0: "", 1: "xl:col-span-1", 2: "xl:col-span-2", 3: "xl:col-span-3" };
 const DAY_COLS: Record<number, string> = { 0: "", 1: "xl:grid-cols-1", 2: "xl:grid-cols-2", 3: "xl:grid-cols-3" };
 
-export default function ScheduleView({ seasonCode, seasonShort, games, teams, initialMonth, progress }: Props) {
+export default function ScheduleView({ seasonCode, seasonShort, games, teams, initialMonth, progress, winProbs = {} }: Props) {
   const months = useMemo(() => monthsOf(games), [games]);
   const [month, setMonth] = useState<string | null>(initialMonth);
   const [today, setToday] = useState<string | null>(null);
@@ -251,6 +253,7 @@ export default function ScheduleView({ seasonCode, seasonShort, games, teams, in
                       stars={g.stars}
                       loadBox={g.hasBox ? async () => (await loadDay(seasonCode, g.date))?.[g.gmkey] ?? null : undefined}
                       place="schedule"
+                      homeWinProb={winProbs[g.gmkey] ?? null}
                     />
                   </li>
                 ))}
