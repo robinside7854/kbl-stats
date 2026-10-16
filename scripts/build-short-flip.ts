@@ -110,7 +110,6 @@ const teamInfo = (code: string) => teams.get(code) ?? { code, name: code, color:
 const roleOf = (role: string, pair: { p: Player; q: Player }) => ({
   role,
   playerNo: pair.p.playerNo,
-  name: pair.p.nameKo,
   nameEn: "",
   team: teamInfo(pair.p.teamCode),
   photoUrl: photos.get(pair.p.playerNo) ?? null,
@@ -121,7 +120,7 @@ const players = [roleOf("upStar", upStarPair), roleOf("downSlump", slumpPair), .
 // 맞대결 주인공이 셋 밖이면 사진용으로 더한다
 if (game && !players.some((p) => p.playerNo === game!.star.playerNo)) {
   const sp = now.players.find((p) => p.playerNo === game!.star.playerNo);
-  if (sp) players.push({ role: "star", playerNo: sp.playerNo, name: sp.nameKo, nameEn: "", team: teamInfo(sp.teamCode), photoUrl: photos.get(sp.playerNo) ?? null, ...playerLine({ p: sp, q: prevById.get(sp.playerNo) ?? sp }), games: sp.games });
+  if (sp) players.push({ role: "star", playerNo: sp.playerNo, nameEn: "", team: teamInfo(sp.teamCode), photoUrl: photos.get(sp.playerNo) ?? null, ...playerLine({ p: sp, q: prevById.get(sp.playerNo) ?? sp }), games: sp.games });
 }
 
 const nowLabel = seasonShortLabel(now.seasonLabel);
