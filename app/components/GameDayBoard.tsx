@@ -8,6 +8,7 @@ import { useEffect, useMemo, useState } from "react";
 import { gameDayLabel, myTeamsFirst, teamStandouts, type GameDay } from "@/lib/games";
 import { kstDateString } from "@/lib/home";
 import { teamShortLabel } from "@/lib/images";
+import { ensureMarkContrast } from "@/lib/teams";
 import GameCard, { teamInfoOf, type GameTeamInfo } from "./GameCard";
 import { IconChevronRight } from "./icons";
 import TeamLogo from "./TeamLogo";
@@ -15,6 +16,7 @@ import { TeamLink } from "./EntityLinks";
 import InfoLink from "./InfoLink";
 import StreakText from "./StreakText";
 import { useMember } from "./useLikes";
+import { useThemeColors } from "./useThemeColors";
 
 export type { GameTeamInfo };
 
@@ -26,7 +28,7 @@ interface Props {
   teams: Record<string, GameTeamInfo>;
   /** 팀 코드 → 지금 2경기 이상 연승·연패 (lib/games notableStreak) — 다음 경기 줄에 */
   streaks?: Record<string, { label: string; kind: "W" | "L" }>;
-  /** 아직 안 한 경기 gmkey → 홈 승리 확률 (lib/predict, 우리 추정 — 2026-10-16). 다음 경기 줄 오른쪽 "61 : 39" */
+  /** 아직 안 한 경기 gmkey → 홈 승리 확률 (lib/predict, 우리 추정 — 2026-10-16). 다음 경기 줄 아래 두 팀 색 막대 "61% · 39%" */
   winProbs?: Record<string, number>;
 }
 
@@ -35,6 +37,7 @@ export default function GameDayBoard({ day, next, seasonCode, teams, streaks = {
   useEffect(() => setToday(kstDateString(new Date())), []);
   const isToday = today === day.date;
   const member = useMember();
+  const { surface } = useThemeColors();
   const myCodes = useMemo(() => member?.teamCodes ?? [], [member]);
   const mySet = useMemo(() => new Set(myCodes), [myCodes]);
   const isMine = (g: { home: { teamCode: string }; away: { teamCode: string } }) => mySet.has(g.home.teamCode) || mySet.has(g.away.teamCode);
@@ -71,43 +74,64 @@ export default function GameDayBoard({ day, next, seasonCode, teams, streaks = {
       </ul>
       {next && nextGames.length > 0 && (
         <div className="surface-card mt-3 rounded-container p-3">
-          <p className="flex items-center justify-between gap-2 text-sub font-bold text-ink">
-            <span>다음 경기 · {gameDayLabel(next.date)}</span>
+          <p className="flex flex-wrap items-center justify-between gap-x-2 text-sub font-bold text-ink">
+            <span className="whitespace-nowrap">다음 경기 · {gameDayLabel(next.date)}</span>
             {nextGames.some((g) => winProbs[g.gmkey] !== undefined) && (
               <span className="inline-flex shrink-0 items-center text-caption font-medium text-ink-3">
-                승리 확률(홈:원정)
+                승리 확률 · 우리 추정
                 <InfoLink term="winProb" compact className="-my-3" />
               </span>
             )}
           </p>
+          {/* 한 경기 = 세 줄 (2026-10-16 사용자: 확률·내 응원팀·연승 글자가 어색): 시각·경기장 + 내 응원팀 꼬리표 / 홈 vs 원정(연승 꼬리표) / 확률 막대 */}
           <ul className="mt-1 divide-y divide-line md:grid md:grid-cols-2 md:gap-x-6 md:divide-y-0 xl:grid-cols-3">
             {nextGames.map((g) => {
               const away = teamInfoOf(teams, g.away.teamCode, g.away.name);
               const home = teamInfoOf(teams, g.home.teamCode, g.home.name);
+              const prob = winProbs[g.gmkey];
+              const h = prob === undefined ? null : Math.round(prob * 100);
               return (
-                <li key={g.gmkey} className="tabular flex min-h-10 flex-wrap items-center gap-x-2 py-1.5 text-sub">
-                  <span className="w-12 shrink-0 text-ink-3">{g.start ?? ""}</span>
+                <li key={g.gmkey} className="tabular py-2.5 text-sub">
+                  <p className="flex min-h-5 items-center gap-2 text-caption text-ink-3">
+                    <span className="shrink-0 font-semibold text-ink-2">{g.start ?? "시간 미정"}</span>
+                    {g.stadium && <span className="min-w-0 truncate">{g.stadium}</span>}
+                    {isMine(g) && (
+                      <span className="ml-auto shrink-0 rounded-control bg-[color-mix(in_oklab,var(--series-1)_12%,transparent)] px-1.5 py-0.5 font-bold leading-none text-series-1">
+                        내 응원팀
+                      </span>
+                    )}
+                  </p>
                   {/* 홈 팀이 늘 왼쪽 (2026-10-05, 경기 카드와 같은 순서) */}
-                  <TeamLink code={g.home.teamCode} season={seasonCode} place="home_next" className="flex min-h-10 min-w-0 items-center gap-2">
-                    <TeamLogo logoUrl={home.logoUrl} shortName={home.shortName} color={home.color} size={20} />
-                    <span className="min-w-0 truncate font-semibold text-ink">{teamShortLabel(home.shortName)}</span>
-                  </TeamLink>
-                  <StreakText streak={streaks[g.home.teamCode]} />
-                  <span className="text-ink-3">vs</span>
-                  <TeamLink code={g.away.teamCode} season={seasonCode} place="home_next" className="flex min-h-10 min-w-0 items-center gap-2">
-                    <TeamLogo logoUrl={away.logoUrl} shortName={away.shortName} color={away.color} size={20} />
-                    <span className="min-w-0 truncate font-semibold text-ink">{teamShortLabel(away.shortName)}</span>
-                  </TeamLink>
-                  <StreakText streak={streaks[g.away.teamCode]} />
-                  {isMine(g) && <span className="shrink-0 text-caption font-semibold text-series-1">내 응원팀</span>}
-                  {g.stadium && <span className="ml-auto hidden min-w-0 truncate text-caption text-ink-3 sm:inline md:ml-2">{g.stadium}</span>}
-                  {winProbs[g.gmkey] !== undefined && (
-                    <span
-                      className={`shrink-0 text-caption text-ink-2 max-sm:basis-full max-sm:pl-14 ${g.stadium ? "sm:ml-2" : "sm:ml-auto"}`}
-                      aria-label={`승리 확률 ${home.shortName} ${Math.round(winProbs[g.gmkey] * 100)}%, ${away.shortName} ${100 - Math.round(winProbs[g.gmkey] * 100)}% (우리 추정)`}
+                  <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
+                    <div className="flex min-w-0 items-center gap-1.5">
+                      <TeamLink code={g.home.teamCode} season={seasonCode} place="home_next" className="flex min-h-10 min-w-0 items-center gap-2">
+                        <TeamLogo logoUrl={home.logoUrl} shortName={home.shortName} color={home.color} size={24} />
+                        <span className="min-w-0 truncate font-semibold text-ink">{teamShortLabel(home.shortName)}</span>
+                      </TeamLink>
+                      <StreakText streak={streaks[g.home.teamCode]} pill />
+                    </div>
+                    <span className="text-caption text-ink-3">vs</span>
+                    <div className="flex min-w-0 items-center justify-end gap-1.5">
+                      <StreakText streak={streaks[g.away.teamCode]} pill />
+                      <TeamLink code={g.away.teamCode} season={seasonCode} place="home_next" className="flex min-h-10 min-w-0 items-center gap-2">
+                        <span className="min-w-0 truncate font-semibold text-ink">{teamShortLabel(away.shortName)}</span>
+                        <TeamLogo logoUrl={away.logoUrl} shortName={away.shortName} color={away.color} size={24} />
+                      </TeamLink>
+                    </div>
+                  </div>
+                  {h !== null && (
+                    <div
+                      role="img"
+                      aria-label={`승리 확률 ${home.shortName} ${h}%, ${away.shortName} ${100 - h}% (우리 추정)`}
+                      className="mt-1 flex items-center gap-2 text-caption text-ink-3"
                     >
-                      {Math.round(winProbs[g.gmkey] * 100)} : {100 - Math.round(winProbs[g.gmkey] * 100)}
-                    </span>
+                      <span className={`w-9 shrink-0 ${h >= 50 ? "font-bold text-ink" : ""}`}>{h}%</span>
+                      <span className="flex h-1.5 flex-1 gap-0.5 overflow-hidden rounded-sm">
+                        <span className="h-full" style={{ width: `${h}%`, background: ensureMarkContrast(home.color.primary, surface) }} />
+                        <span className="h-full flex-1" style={{ background: ensureMarkContrast(away.color.primary, surface) }} />
+                      </span>
+                      <span className={`w-9 shrink-0 text-right ${100 - h > 50 ? "font-bold text-ink" : ""}`}>{100 - h}%</span>
+                    </div>
                   )}
                 </li>
               );

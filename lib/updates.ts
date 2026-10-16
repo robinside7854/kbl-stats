@@ -34,10 +34,11 @@ export const UPDATE_POSTS: UpdatePost[] = [
     slug: "2026-10-16-home-top5",
     date: "2026-10-16",
     kind: "update",
-    title: "홈 부문별 순위 5위까지",
+    title: "홈 순위 5위까지, 다음 경기 정리",
     summary: "홈 순위 5위까지 보여요",
     blocks: [
       { kind: "p", text: "홈 부문별 순위를 1~3위에서 1~5위로 늘렸어요. 경기당 기록 아래에 몇 경기 뛰었는지도 같이 보여요." },
+      { kind: "p", text: "다음 경기 줄도 정리했어요. 승리 확률은 두 팀 색 막대로, 연승·연패는 팀 이름 옆 꼬리표로, 내 응원팀 경기는 줄 위쪽에 표시돼요." },
       { kind: "list", items: [{ text: "홈에서 보기", href: "/" }] },
     ],
   },
