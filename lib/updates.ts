@@ -31,6 +31,63 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-10-16-fan-vote",
+    date: "2026-10-16",
+    kind: "update",
+    title: "이번 주 MVP, 이제 팬이 뽑아요",
+    summary: "팬 MVP 투표·승부 예측",
+    blocks: [
+      { kind: "p", text: "로그인하면 한 주에 한 표씩 이번 주 가장 잘한 선수를 뽑을 수 있어요. 주가 끝나기 전엔 바꿔도 돼요. 우리 기록 1위랑 팬 1위가 같은지 나란히 보여 줘요." },
+      { kind: "p", text: "아직 안 한 경기 카드에서 이길 팀도 골라 보세요. 경기 시작 전까지 바꿀 수 있고, 닉네임 정하고 10경기 넘게 맞혀 보면 시즌 적중 순위에 올라가요." },
+      { kind: "list", items: [{ text: "팬 MVP 투표하기", href: "/vote" }, { text: "승부 예측하러 가기", href: "/season/49/schedule" }] },
+    ],
+  },
+  {
+    slug: "2026-10-16-race-era-predict",
+    date: "2026-10-16",
+    kind: "update",
+    title: "득점왕 레이스랑 리그 평균 대비",
+    summary: "득점왕 레이스 생겼어요",
+    blocks: [
+      { kind: "p", text: "기록 시즌별 화면에 득점왕 레이스가 생겼어요. 상위 5명 경기당 평균이 날짜마다 어떻게 움직였는지 선으로 봐요. 리바·어시·스틸·블록·3점도 돼요." },
+      { kind: "p", text: "비교 화면에서 리그 평균 대비를 누르면 시대 차이를 빼고 볼 수 있어요. 97-98 문경은 25.0점은 그 시즌 평균의 245%, 25-26 이정현 18.6점은 251%예요." },
+      { kind: "p", text: "우리 예측이 얼마나 맞았는지도 공개해요. 16일까지 올 시즌 21경기 중 14경기를 맞혔고, 지난 시즌은 61%였어요. 아직 안 한 경기 카드엔 관전 포인트도 한 줄 붙어요." },
+      { kind: "list", items: [{ text: "득점왕 레이스 보기", href: "/season/49/leaders" }, { text: "예측 적중률 보기", href: "/teams" }] },
+    ],
+  },
+  {
+    slug: "2026-10-16-records-draft-foreign-trends",
+    date: "2026-10-16",
+    kind: "update",
+    title: "드래프트·외국 선수 전당·리그 변화",
+    summary: "드래프트 다시 뽑기",
+    blocks: [
+      { kind: "p", text: "기록 메뉴에 탭이 세 개 늘었어요." },
+      {
+        kind: "list",
+        items: [
+          { text: "드래프트: 지금 다시 뽑으면 누가 1순위일까요. 2015년은 3순위 송교창이 1순위로 올라가요", href: "/records/draft" },
+          { text: "외국 선수 전당: MVP·베스트5·오래 뛴 외국 선수 30명, 맨 위는 통산 12,243점 라건아", href: "/records/foreign" },
+          { text: "리그 변화: 30년 동안 경기당 팀 득점은 95.5점에서 78.1점으로, 3점 시도 비중은 29.5%에서 40.3%로", href: "/records/trends" },
+        ],
+      },
+      { kind: "p", text: "선수 페이지의 드래프트 글자를 누르면 그해 드래프트로 가요." },
+    ],
+  },
+  {
+    slug: "2026-10-16-career-timeline",
+    date: "2026-10-16",
+    kind: "update",
+    title: "선수 타임라인이랑 우리 팀 베스트 5",
+    summary: "커리어 타임라인 생겼어요",
+    blocks: [
+      { kind: "p", text: "선수 페이지에 커리어 타임라인이 생겼어요. 데뷔·이적·우승·수상·커리어 하이·통산 이정표를 시즌별로 한 줄씩 봐요." },
+      { kind: "p", text: "슛 습관이 어떻게 바뀌었는지도 나와요. 워니는 골밑·페인트 비중이 86%에서 52%로 줄었고, 이정현은 3점 비중이 40%에서 67%로 늘었어요." },
+      { kind: "p", text: "팀 페이지에서는 그 팀 올타임 베스트 5를 직접 짤 수 있어요. 고르면 코트 그림으로 보여 주고 이미지 저장이랑 링크 공유도 돼요." },
+      { kind: "list", items: [{ text: "양동근 타임라인 보기", href: "/player/210074" }, { text: "DB 베스트 5 짜기", href: "/team/16" }] },
+    ],
+  },
+  {
     slug: "2026-10-16-record-context",
     date: "2026-10-16",
     kind: "update",
