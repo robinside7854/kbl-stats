@@ -15,7 +15,7 @@
 #
 # 에피소드 (렌더할 것만, 공백으로): top5 = 지난 시즌 득점 TOP 5(scripts/build-short.ts), milestones = 개막전 대기록(build-short-milestones.ts),
 #   quiz = 슛 차트 퀴즈(build-short-quiz.ts), flip = 순위 뒤집기(build-short-flip.ts, 전광판). 포맷마다 디자인·컴포지션이 다르다(에피소드 JSON 의 composition)
-# 실행 횟수: 1
+# 실행 횟수: 0
 # 작업: render
 # 에피소드: flip
 name: 숏폼 렌더
