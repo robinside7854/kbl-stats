@@ -16,7 +16,7 @@ import Link from "next/link";
 import type { CardPlayer, TeamColor } from "@/lib/types";
 import { cardFootStats, radarGeometry, rankHeading, rankPhrase, type SeasonCardView } from "@/lib/cardview";
 import { CAREER_CODE } from "@/lib/career-cards";
-import { offenseTypeDef, playerTypeHelp } from "@/lib/glossary";
+import { helpContent, offenseTypeDef, playerTypeHelp } from "@/lib/glossary";
 import { nationalityOf, NATIONALITY_LABELS, positionLabel } from "@/lib/roster";
 import {
   RADAR_AXES,
@@ -29,11 +29,11 @@ import {
   type CardStatEntry,
   type Grade,
   type RadarAxis,
-  type RankTier,
 } from "@/lib/metrics";
-import { mixHex, teamShortLabel } from "@/lib/images";
-import { desaturate, FALLBACK_TEAM_COLOR, gradeTone, readableInk } from "@/lib/teams";
+import { mixHex } from "@/lib/images";
+import { FALLBACK_TEAM_COLOR, gradeTone } from "@/lib/teams";
 import HelpPopover from "./HelpPopover";
+import NoteInfo from "./NoteInfo";
 import { IconInfo } from "./icons";
 import PlayerAvatar from "./PlayerAvatar";
 import Skeleton from "./Skeleton";
@@ -160,14 +160,11 @@ function RankLine({ entry, color, fs, group }: { entry: CardStatEntry; color: Te
       </span>
     );
   }
+  // 4~10위: 꼬리표 상자 없이 굵은 글자만 (2026-10-16 디자인 정리 M2 — 메달은 1~3위만)
   if (tier === "top10") {
-    const tagBg = desaturate(color.primary, 0.2);
     return (
       <span className="inline-flex items-center gap-1" aria-label={rankPhrase(r.rank, r.of, group)}>
-        <span
-          className="rounded px-1.5 py-px font-bold"
-          style={{ fontSize: fs - 1, lineHeight: 1.35, background: tagBg, color: readableInk(tagBg, color.text), boxShadow: "0 0 0 1px var(--rank-pill-ring)" }}
-        >
+        <span className="font-bold text-ink" style={{ fontSize: fs }}>
           {r.rank}위
         </span>
         {of}
@@ -181,24 +178,11 @@ function RankLine({ entry, color, fs, group }: { entry: CardStatEntry; color: Te
   );
 }
 
-/** 1~10위 칸 배경: 팀 색을 표면 색에 옅게 섞는다 (농도는 globals.css --rank-tint, 다크 모드에서 더 진하게) */
-function cellStyle(tier: RankTier, color: TeamColor): React.CSSProperties | undefined {
-  if (!tier) return undefined;
-  const team = desaturate(color.primary, 0.2);
-  return {
-    background: `color-mix(in srgb, ${team} var(--rank-tint), var(--surface))`,
-    borderColor: `color-mix(in srgb, ${team} var(--rank-border), var(--surface))`,
-  };
-}
-
+/** 기록 한 칸 — 칸마다 상자·팀 색 바탕을 두지 않고 숫자만 크게 (2026-10-16 디자인 정리 M2). 순위 강조는 RankLine 이 맡는다 */
 function StatCell({ entry, color, d, roomy, group }: { entry: CardStatEntry; color: TeamColor; d: Dim; roomy: boolean; group: string | null }) {
   const { def, value } = entry;
-  const tier = rankTier(entry.rank.rank);
   return (
-    <div
-      className={`flex min-w-0 flex-col rounded-card border border-line ${roomy ? "px-2.5 py-2" : "px-2 py-1.5"}`}
-      style={cellStyle(tier, color)}
-    >
+    <div className={`flex min-w-0 flex-col ${roomy ? "py-1" : "py-0.5"}`}>
       <span className="truncate font-medium text-ink-2" style={{ fontSize: d.statLabel }}>
         {def.label}
       </span>
@@ -378,7 +362,7 @@ export function PlayerCardSkeleton({ size = "sm", layout = "vertical" }: { size?
   const grid = (
     <div style={{ padding: d.pad }}>
       <Skeleton className="mb-2 h-4 w-32" />
-      <div className={`grid grid-cols-3 ${roomy ? "gap-2" : "gap-1.5"}`}>
+      <div className={`grid grid-cols-3 ${roomy ? "gap-x-3 gap-y-3" : "gap-x-2 gap-y-2"}`}>
         {Array.from({ length: 9 }, (_, i) => (
           <Skeleton key={i} className="rounded-card" style={{ height: cellH }} />
         ))}
@@ -502,16 +486,6 @@ export default function PlayerCard({ view, colors, size = "sm", seriesColor, exp
         color: color.text,
       }}
     >
-      {/* 장식: 팀 약칭 큰 글씨 */}
-      <span
-        aria-hidden
-        // deslop-ignore-next-line 11
-        className="pointer-events-none absolute -right-2 top-1 select-none whitespace-nowrap font-black leading-none tracking-tighter"
-        style={{ opacity: 0.1, fontSize: Math.round((horizontal ? 300 : d.header) * 0.39) }}
-      >
-        {teamShortLabel(teamShort, 5)}
-      </span>
-
       {/* 사진: 오른쪽 아래에 붙여 하단이 카드 경계에 걸치게 */}
       <div className={`absolute bottom-0 ${horizontal ? "right-0" : "right-1"}`}>
         {nameHref && !exportMode ? (
@@ -605,6 +579,8 @@ export default function PlayerCard({ view, colors, size = "sm", seriesColor, exp
     </div>
   );
 
+  const rankRule = `순위: ${seasonShortLabel(seasonLabel)} ${groupLabel ? `${groupLabel} 중 ` : ""}${ruleLabel} ${qualifiedCount}명 중 · 등급: ${gradeLabel} · 턴오버는 적을수록 상위 · 성공률 순위는 경기당 시도가 리그 평균(${attemptsLabel}) 이상인 선수만`;
+
   // ── 메인 스탯 9개 + 시즌 순위 + 파울·출전 줄 ──
   const stats = (
     <div style={{ paddingLeft: d.pad, paddingRight: d.pad, paddingTop: d.pad, paddingBottom: horizontal ? d.pad : 0 }}>
@@ -612,11 +588,13 @@ export default function PlayerCard({ view, colors, size = "sm", seriesColor, exp
         <h3 className="font-bold text-ink" style={{ fontSize: d.statLabel + 1 }}>
           경기당 기록 <span className="font-medium text-ink-3">· {p.games}경기</span>
         </h3>
-        <span className={groupLabel ? "font-semibold text-ink-2" : "text-ink-3"} style={{ fontSize: d.statLabel }}>
+        <span className={`inline-flex items-center ${groupLabel ? "font-semibold text-ink-2" : "text-ink-3"}`} style={{ fontSize: d.statLabel }}>
           {view.seasonCode === CAREER_CODE && !groupLabel ? "통산 순위" : rankHeading(groupLabel)}
+          {/* 순위 기준 문장은 화면에선 ⓘ 안에만 (2026-10-16 디자인 정리 M4), 저장 이미지에는 아래 글로 */}
+          {!exportMode && <NoteInfo title="순위 기준" text={rankRule} />}
         </span>
       </div>
-      <div className={`grid grid-cols-3 ${roomy ? "gap-2" : "gap-1.5"}`}>
+      <div className={`grid grid-cols-3 ${roomy ? "gap-x-3 gap-y-3" : "gap-x-2 gap-y-2"}`}>
         {/* 3×3 격자는 순위 있는 9개만. 파울(ranked: false)은 아래 작은 줄에 출전시간과 함께 (순위 없음) */}
         {entry.stats.filter((s) => s.def.ranked).map((s) => (
           <StatCell key={s.def.key} entry={s} color={color} d={d} roomy={roomy} group={groupLabel} />
@@ -637,6 +615,14 @@ export default function PlayerCard({ view, colors, size = "sm", seriesColor, exp
     </div>
   );
 
+  // 등급 메모: 화면에선 등급 ⓘ 안에 붙이고(2026-10-16 M4), 저장 이미지에만 글로
+  const gradeHelp = helpContent("percentileGrade");
+  const gradeNotes = [
+    overallNote ? `이 선수 종합 등급: ${overallNote}.` : null,
+    awardNote ? `수상 가산: ${awardNote}.` : null,
+    missingComponents.length > 0 ? `${view.seasonCode === CAREER_CODE ? "통산 비교에서 뺀 항목" : "이 시즌 기록이 없어 뺀 항목"}: ${missingComponents.join("·")}.` : null,
+  ].filter((x): x is string => x !== null);
+
   // ── 레이더 + 꼭짓점마다 등급 S~F ──
   // 등급 컷 안내는 화면에서는 ⓘ 팝오버 안에만(상시 문구를 늘리지 않는다), 저장 이미지에는 글로 남긴다.
   const radarBlock = (
@@ -646,25 +632,31 @@ export default function PlayerCard({ view, colors, size = "sm", seriesColor, exp
     >
       <p className="flex flex-wrap items-center gap-1.5 font-semibold text-ink-2" style={{ fontSize: d.statLabel }}>
         등급 기준: {gradeLabel}
-        {!exportMode && <HelpPopover term="percentileGrade" ariaLabel="등급 컷과 계산 방법" className="font-normal" />}
+        {!exportMode && (
+          <HelpPopover
+            content={{ ...gradeHelp, short: [gradeHelp.short, ...gradeNotes].join(" ") }}
+            ariaLabel="등급 컷과 계산 방법"
+            className="font-normal"
+          />
+        )}
         {exportMode && (
           <span className="font-normal text-ink-3">축 S 상위 10% · A 25% · B 45% · C 65% · D 85% · 종합 = 6축 포지션별 가중 평균의 순위 S 상위 5% · A 20% · B 45% · C 70% · D 90%</span>
         )}
       </p>
       <CardRadar entry={entry} color={color} colors={colors} d={d} seriesColor={seriesColor} fixedWidth={exportMode ? CARD_LG_WIDTH - 2 * d.pad : undefined} />
       {/* 포지션별 종합 가중치 (lib/metrics axisWeights): 가드·빅맨만 한 줄, 포워드·포지션 모름은 없음 */}
-      {overallNote && (
+      {exportMode && overallNote && (
         <p className="pb-1 leading-snug text-ink-3" style={{ fontSize: small }}>
           종합 등급: {overallNote}
         </p>
       )}
       {/* 그 시즌 수상 가산점 (lib/metrics AWARD_GRADE_BONUS) */}
-      {awardNote && (
+      {exportMode && awardNote && (
         <p className="pb-1 leading-snug text-ink-3" style={{ fontSize: small }}>
           수상 가산: {awardNote}
         </p>
       )}
-      {missingComponents.length > 0 && (
+      {exportMode && missingComponents.length > 0 && (
         <p className="pb-1 leading-snug text-ink-3" style={{ fontSize: small }}>
           {view.seasonCode === CAREER_CODE ? "통산 비교에서 뺀 항목" : "이 시즌 기록이 없어 뺀 항목"}: {missingComponents.join("·")}
         </p>
@@ -688,19 +680,16 @@ export default function PlayerCard({ view, colors, size = "sm", seriesColor, exp
     </div>
   );
 
-  // ── 기준·출처 (저장 이미지에도 남는다) ──
-  const footer = (
+  // ── 기준·출처: 저장 이미지에만 글로 남긴다 (화면은 ⓘ 와 페이지 아래 출처 — 2026-10-16 디자인 정리 M4) ──
+  const footer = exportMode ? (
     <div
       className={`border-t border-line py-2 leading-snug text-ink-3 ${horizontal ? "col-span-2" : ""}`}
       style={{ paddingLeft: d.pad + 2, paddingRight: d.pad + 2, fontSize: small }}
     >
-      <p>
-        순위: {seasonShortLabel(seasonLabel)} {groupLabel ? `${groupLabel} 중 ` : ""}
-        {ruleLabel} {qualifiedCount}명 중 · 등급: {gradeLabel} · 턴오버는 적을수록 상위 · 성공률 순위는 경기당 시도가 리그 평균({attemptsLabel}) 이상인 선수만
-      </p>
+      <p>{rankRule}</p>
       <p className="mt-1 font-medium text-ink-2">{SOURCE_LINE}</p>
     </div>
-  );
+  ) : null;
 
   if (horizontal) {
     return (

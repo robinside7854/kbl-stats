@@ -9,10 +9,13 @@ export default function FavoriteButton({
   nameKo,
   className = "",
   plain = false,
+  compact = false,
 }: {
   playerId: string;
   nameKo: string;
   className?: string;
+  /** 폰에서는 별 아이콘만 (선수 머리말 버튼 한 줄, 2026-10-16 디자인 정리 M3) */
+  compact?: boolean;
   /** 흰 바탕용 별 아이콘 버튼 (선수 상세 압축 머리말) */
   plain?: boolean;
 }) {
@@ -50,7 +53,7 @@ export default function FavoriteButton({
       } ${className}`}
     >
       <IconStar size={16} filled={on} />
-      {on ? "즐겨찾기됨" : "즐겨찾기"}
+      <span className={compact ? "sr-only sm:not-sr-only" : undefined}>{on ? "즐겨찾기됨" : "즐겨찾기"}</span>
     </button>
   );
 }

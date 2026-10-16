@@ -18,9 +18,11 @@ interface Props {
   /** 이 선수가 뛴 시즌 코드 (오름차순) */
   seasonCodes: number[];
   className?: string;
+  /** 폰에서는 아이콘만 (선수 머리말 버튼 한 줄, 2026-10-16 디자인 정리 M3) */
+  compact?: boolean;
 }
 
-export default function CompareButton({ playerId, nameKo, seasonCodes, className = "" }: Props) {
+export default function CompareButton({ playerId, nameKo, seasonCodes, className = "", compact = false }: Props) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
 
@@ -48,10 +50,11 @@ export default function CompareButton({ playerId, nameKo, seasonCodes, className
           setOpen(true);
         }}
         aria-haspopup="dialog"
+        aria-label={`${nameKo} 다른 선수와 비교`}
         className={`focus-ring inline-flex h-10 shrink-0 cursor-pointer items-center gap-1.5 rounded-control bg-black/25 px-3 text-sub font-bold transition-colors duration-200 hover:bg-black/40 ${className}`}
       >
         <IconCompare size={16} />
-        비교
+        <span className={compact ? "sr-only sm:not-sr-only" : undefined}>비교</span>
       </button>
       {open && (
         <div className="fixed inset-0 z-50 text-ink" role="dialog" aria-modal="true" aria-label={`${nameKo}와 비교할 선수 검색`}>
@@ -69,7 +72,6 @@ export default function CompareButton({ playerId, nameKo, seasonCodes, className
               </button>
             </div>
             <PlayerSearch size="lg" className="mt-2 w-full" onSelect={pick} autoFocusDesktop placeholder="비교할 선수 이름" label="비교할 선수 검색" />
-            <p className="mt-2 text-caption text-ink-3">같은 시즌에 뛰었으면 같은 시즌끼리, 아니면 그 선수의 마지막 시즌과 비교합니다</p>
           </div>
         </div>
       )}

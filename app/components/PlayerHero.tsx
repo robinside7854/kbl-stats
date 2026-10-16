@@ -1,7 +1,7 @@
 // 선수 페이지 머리말 (PLAN.md §2-2 ①, §5-4): 최근 시즌 팀 색 배경 + 큰 세로 사진 + 로고 + 이름·소속·활동 기간,
 // 이름 아래 국적 배지(국내/외국/아시아쿼터)·활동 기간, 프로필 한 줄(포지션·키·몸무게·등번호·드래프트 — 선수 마스터,
 // 나이·국적(국가명)·출신교 — 서버 B 프로필, 없으면 뺌), 우승·MVP 금색 칩, 통산 요약 아래 수상 경력 표(lib/career awardLines),
-// 이름 아래 칭호 배지 줄(lib/badges, 최대 5개 + "+n"), 그 아래 통산 요약 8칸(모바일 4×2, PC 8×1)과 소속 팀 이력. 계산은 lib/metrics careerSummary, 표기는 lib/career.
+// 이름 아래 칭호("칭호 N개" 한 줄로 접힘 — 2026-10-16 디자인 정리 M3, 꼬리표는 수상·현역 상태 합쳐 3개까지), 그 아래 통산 요약 8칸(모바일 4×2, PC 8×1)·프로필 줄과 소속 팀 이력. 계산은 lib/metrics careerSummary, 표기는 lib/career.
 // 머리말 팀 색은 가장 최근 시즌 팀 (카드 영역은 고른 시즌 팀 색을 따로 쓴다).
 import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
 import type { CareerSeason, PlayerIndexEntry, TeamColor } from "@/lib/types";
@@ -55,6 +55,8 @@ export default function PlayerHero({ entry, seasons, today, badges, milestones =
   const facts = [...profileFacts(entry), ...personalFacts(entry, today)];
   // 우승(정규시즌 소속 팀 = 챔프전 우승팀, scripts/champions.ts) + 역대 수상(공홈 역대수상현황, scripts/awards.ts)
   const awards = awardLines(entry.awards, entry.championships, seasons);
+  // 머리말 꼬리표는 3개까지 (2026-10-16 M3): 수상(우승·MVP 금색) 먼저, 현역 상태가 있으면 그 한 칸을 남긴다
+  const heroAwards = awards.filter((a) => a.hero).slice(0, entry.rosterStatus ? 2 : 3);
   // 통산 타일 8칸: 경기 · 경기당 득점·리바운드·어시스트·스틸·블록 · 통산 야투%·3점%(성공 합계 ÷ 시도 합계). 계산은 careerSummary
   const tiles = [
     { label: "통산 경기", value: NF0.format(sum.games), perGame: false, sub: `${NF0.format(sum.wins)}승 ${NF0.format(sum.losses)}패` },
@@ -76,80 +78,31 @@ export default function PlayerHero({ entry, seasons, today, badges, milestones =
         className="relative overflow-hidden"
         style={{ background: `linear-gradient(160deg, ${color.primary} 0%, ${mid} 55%, ${dark} 100%)`, color: color.text }}
       >
-        {/* 배치 (2026-10-03 사용자: 폰에서 글이 길어 띠가 사진보다 훨씬 커 보임):
-            폰 = [이름 묶음 | 사진] 한 줄 + 그 아래 칩·프로필을 띠 전체 폭으로(어두운 바닥 줄 위에 사진이 서 있게)
-            640px 이상 = 예전처럼 왼쪽 글 한 열 + 오른쪽 큰 사진(두 줄에 걸침). DOM 은 하나, 격자 자리만 바꾼다
-            PC(1024px 이상, 2026-10-08 사용자: 글과 사진이 너무 멀다) = 사진은 글 바로 옆. 1280px 이상은 오른쪽 빈자리를 통산 기록 8칸으로 채우고 띠 아래 기록 줄은 숨김.
-            배경에 깔던 큰 팀 이름 글자는 사용자 요청으로 없앰) */}
-        <div className="relative mx-auto grid max-w-page grid-cols-[minmax(0,1fr)_auto] px-4 sm:min-h-[300px] lg:grid-cols-[fit-content(36rem)_auto] lg:justify-start lg:gap-x-10 xl:grid-cols-[fit-content(30rem)_auto_minmax(0,1fr)] xl:justify-normal">
-          <div className="relative z-10 col-start-1 row-start-1 min-w-0 pb-3 pt-5 pr-2 sm:pb-0">
+        {/* 배치: 왼쪽 글 한 열 + 오른쪽 사진(바닥에 붙음). PC(1024px+)는 사진이 글 바로 옆, 1280px 이상은 오른쪽 빈자리에 통산 기록 8칸.
+            2026-10-16 디자인 정리 M3(사용자 결정): 꼬리표는 3개까지(수상 → 현역 상태), 국적·활동 기간은 영문 이름 줄에 글자로,
+            칭호는 "칭호 N개" 한 줄로 접고, 버튼 셋은 폰에서 아이콘만 한 줄. 폰의 진한 바닥 줄은 없애고 프로필은 띠 아래 흰 면으로 */}
+        <div className="relative mx-auto grid max-w-page grid-cols-[minmax(0,1fr)_auto] px-4 lg:grid-cols-[fit-content(36rem)_auto] lg:justify-start lg:gap-x-10 xl:grid-cols-[fit-content(30rem)_auto_minmax(0,1fr)] xl:justify-normal">
+          <div className="relative z-10 min-w-0 pb-4 pr-2 pt-5 sm:pb-6">
             <TeamLink code={latest?.teamCode} season={latest?.seasonCode} place="player_hero" className="inline-flex min-h-10 items-center gap-2">
               <span className="inline-flex rounded-control bg-white p-1 shadow-card">
-                <TeamLogo logoUrl={team?.logoUrl} shortName={teamName} color={color} size={40} />
+                <TeamLogo logoUrl={team?.logoUrl} shortName={teamName} color={color} size={32} />
               </span>
               <span className="text-sub font-semibold opacity-90 sm:text-body">
                 {latest ? `${seasonShortLabel(latest.seasonLabel)} ${teamShortLabel(teamName)}` : ""}
               </span>
             </TeamLink>
             {/* deslop-ignore-next-line 11 */}
-            <h1 id="player-name" className="mt-3 text-[2rem] font-black leading-[1.1] tracking-tight [overflow-wrap:anywhere] sm:text-5xl lg:text-6xl">
+            <h1 id="player-name" className="mt-2 text-[2rem] font-black leading-[1.1] tracking-tight [overflow-wrap:anywhere] sm:text-5xl lg:text-6xl">
               {entry.nameKo}
             </h1>
-            <p className="mt-1 truncate text-sub font-medium opacity-85 sm:text-body">{entry.nameEn}</p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              <LikeButton kind="player" target={entry.id} label={entry.nameKo} compact />
-              <FavoriteButton playerId={entry.id} nameKo={entry.nameKo} />
-              <CompareButton playerId={entry.id} nameKo={entry.nameKo} seasonCodes={seasons.map((s) => s.seasonCode)} />
-            </div>
-            {badges.length > 0 && (
-              <div className="mt-2.5">
-                <BadgeRow badges={badges} teamPrimary={color.primary} />
-              </div>
-            )}
-          </div>
-          <div className="relative col-start-2 row-start-1 -mr-2 self-end sm:row-span-2 sm:mr-4 lg:mr-0">
-            {/* flex 로 감싼다: 인라인이면 글자 기준선 아래 빈칸이 생겨 사진이 바닥 줄에서 떠 보인다 (2026-10-03) */}
-            <span className="flex sm:hidden">
-              <PlayerAvatar photoUrl={entry.photoUrl} nameKo={entry.nameKo} color={color} variant="portrait" size={200} />
-            </span>
-            <span className="hidden sm:flex lg:hidden">
-              <PlayerAvatar photoUrl={entry.photoUrl} nameKo={entry.nameKo} color={color} variant="portrait" size={280} />
-            </span>
-            <span className="hidden lg:flex">
-              <PlayerAvatar photoUrl={entry.photoUrl} nameKo={entry.nameKo} color={color} variant="portrait" size={330} />
-            </span>
-          </div>
-          {/* 칩·프로필: 폰은 띠 전체 폭의 어두운 바닥 줄, 640px 이상은 글 열 아래 */}
-          <div
-            className="relative z-10 col-span-2 row-start-2 -mx-4 bg-[var(--hero-floor)] px-4 pb-4 pt-3 sm:col-span-1 sm:col-start-1 sm:mx-0 sm:bg-transparent sm:px-0 sm:pb-5 sm:pr-2 sm:pt-0"
-            style={{ "--hero-floor": floor } as React.CSSProperties}
-          >
-            <div className="flex flex-wrap gap-1.5 text-sub font-semibold sm:mt-3">
-              <span className="rounded-control px-2 py-0.5" style={{ background: "rgba(255,255,255,0.18)" }}>
-                {NATIONALITY_LABELS[nationalityOf(entry)]}
-              </span>
-              <span className="rounded-control px-2 py-0.5" style={{ background: "rgba(0,0,0,0.25)" }}>
-                {span}
-              </span>
-              {entry.rosterStatus && (
-                // 현역·미등록·은퇴 (KBL 등록 명단 기준, lib/roster rosterStatusOf) — 누르면 기준 설명. 누르는 영역은 위아래로 늘려 40px
-                <HelpPopover
-                  term="rosterStatus"
-                  ariaLabel={`${ROSTER_STATUS_LABELS[entry.rosterStatus]} — 판정 기준 보기`}
-                  className="group -my-2 inline-flex h-10 items-center rounded-control"
-                >
-                  <span
-                    className="inline-flex items-center gap-1 rounded-control px-2 py-0.5 transition-colors duration-200 group-hover:underline group-hover:underline-offset-4"
-                    style={{ background: entry.rosterStatus === "active" ? "rgba(255,255,255,0.18)" : "rgba(0,0,0,0.25)" }}
-                  >
-                    {ROSTER_STATUS_LABELS[entry.rosterStatus]}
-                    <IconInfo size={16} aria-hidden />
-                  </span>
-                </HelpPopover>
-              )}
-              {awards
-                .filter((a) => a.hero)
-                .map((a) => (
+            <p className="mt-1 text-sub font-medium opacity-85 sm:text-body">
+              {entry.nameEn && <span>{entry.nameEn} · </span>}
+              <span className="whitespace-nowrap">{NATIONALITY_LABELS[nationalityOf(entry)]}</span>
+              {span && <span className="whitespace-nowrap"> · {span}</span>}
+            </p>
+            {(heroAwards.length > 0 || entry.rosterStatus) && (
+              <div className="mt-3 flex flex-wrap gap-1.5 text-sub font-semibold">
+                {heroAwards.map((a) => (
                   <span
                     key={a.key}
                     className="inline-flex items-center gap-1 rounded-control px-2 py-0.5"
@@ -160,31 +113,50 @@ export default function PlayerHero({ entry, seasons, today, badges, milestones =
                     {awardChipText(a)}
                   </span>
                 ))}
-            </div>
-            {facts.length > 0 && (
-              <dl className="mt-2.5 flex flex-wrap gap-x-3 gap-y-1 text-sub sm:mt-3 sm:max-w-md sm:text-body">
-                {facts.map((f) => (
-                  <div key={f.label} className="flex items-baseline gap-1">
-                    <dt className="opacity-75">{f.label}</dt>
-                    <dd className="min-w-0 font-bold [overflow-wrap:anywhere]">
-                      {f.href ? (
-                        // 팀 색 띠 위라 파란 link-shortcut 대신 글자색 그대로 + 밑줄·꺾쇠 (누르는 영역은 위아래로 넓혀 40px)
-                        <Link href={f.href} className="focus-ring -my-2.5 inline-flex items-center rounded-control py-2.5 underline decoration-current/50 underline-offset-4 transition-colors duration-200 hover:decoration-current">
-                          {f.value}
-                          <IconChevronRight size={16} aria-hidden />
-                        </Link>
-                      ) : (
-                        f.value
-                      )}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
+                {entry.rosterStatus && (
+                  // 현역·미등록·은퇴 (KBL 등록 명단 기준, lib/roster rosterStatusOf) — 누르면 기준 설명. 누르는 영역은 위아래로 늘려 40px
+                  <HelpPopover
+                    term="rosterStatus"
+                    ariaLabel={`${ROSTER_STATUS_LABELS[entry.rosterStatus]} — 판정 기준 보기`}
+                    className="group -my-2 inline-flex h-10 items-center rounded-control"
+                  >
+                    <span
+                      className="inline-flex items-center gap-1 rounded-control px-2 py-0.5 transition-colors duration-200 group-hover:underline group-hover:underline-offset-4"
+                      style={{ background: "rgba(0,0,0,0.25)" }}
+                    >
+                      {ROSTER_STATUS_LABELS[entry.rosterStatus]}
+                      <IconInfo size={16} aria-hidden />
+                    </span>
+                  </HelpPopover>
+                )}
+              </div>
             )}
+            {badges.length > 0 && (
+              <div className="mt-2.5">
+                <BadgeRow badges={badges} teamPrimary={color.primary} collapsed />
+              </div>
+            )}
+            <div className="mt-3 flex flex-wrap gap-2">
+              <LikeButton kind="player" target={entry.id} label={entry.nameKo} compact />
+              <FavoriteButton playerId={entry.id} nameKo={entry.nameKo} compact />
+              <CompareButton playerId={entry.id} nameKo={entry.nameKo} seasonCodes={seasons.map((s) => s.seasonCode)} compact />
+            </div>
+          </div>
+          <div className="relative -mr-2 self-end sm:mr-4 lg:mr-0">
+            {/* flex 로 감싼다: 인라인이면 글자 기준선 아래 빈칸이 생겨 사진이 바닥에서 떠 보인다 (2026-10-03) */}
+            <span className="flex sm:hidden">
+              <PlayerAvatar photoUrl={entry.photoUrl} nameKo={entry.nameKo} color={color} variant="portrait" size={170} />
+            </span>
+            <span className="hidden sm:flex lg:hidden">
+              <PlayerAvatar photoUrl={entry.photoUrl} nameKo={entry.nameKo} color={color} variant="portrait" size={260} />
+            </span>
+            <span className="hidden lg:flex">
+              <PlayerAvatar photoUrl={entry.photoUrl} nameKo={entry.nameKo} color={color} variant="portrait" size={300} />
+            </span>
           </div>
           {/* 넓은 PC(1280px 이상): 통산 요약 8칸을 띠 오른쪽에 (그보다 좁으면 띠 아래 흰 줄) */}
           <div
-            className="relative z-10 hidden min-w-0 self-center py-6 xl:col-start-3 xl:row-span-2 xl:row-start-1 xl:block"
+            className="relative z-10 hidden min-w-0 self-center py-6 xl:block"
             style={{ "--hero-floor": floor } as React.CSSProperties}
           >
             <dl className="tabular grid grid-cols-4 gap-1.5">
@@ -196,7 +168,6 @@ export default function PlayerHero({ entry, seasons, today, badges, milestones =
                 </div>
               ))}
             </dl>
-            <p className="mt-2 text-caption opacity-75">{careerNote}</p>
           </div>
         </div>
       </div>
@@ -215,7 +186,29 @@ export default function PlayerHero({ entry, seasons, today, badges, milestones =
             </div>
           ))}
         </dl>
-        <p className="mt-1.5 text-caption text-ink-3 xl:hidden">{careerNote}</p>
+        {/* 프로필 (2026-10-16 M3: 띠 안 진한 바닥 줄 → 흰 면). 통산 기록 설명은 ⓘ 안으로(M4) */}
+        <div className="mt-3 flex flex-wrap items-start gap-x-5 gap-y-1">
+          {facts.length > 0 && (
+            <dl className="grid min-w-0 flex-1 grid-cols-1 gap-x-4 gap-y-1 text-sub min-[400px]:grid-cols-2 sm:flex sm:flex-wrap sm:gap-x-5">
+              {facts.map((f) => (
+                <div key={f.label} className="flex min-w-0 items-baseline gap-1.5">
+                  <dt className="shrink-0 text-ink-3">{f.label}</dt>
+                  <dd className="min-w-0 font-semibold text-ink [overflow-wrap:anywhere]">
+                    {f.href ? (
+                      <Link href={f.href} className="focus-ring -my-2.5 inline-flex items-center rounded-control py-2.5 underline decoration-ink-3 underline-offset-4 transition-colors duration-200 hover:decoration-ink">
+                        {f.value}
+                        <IconChevronRight size={16} aria-hidden />
+                      </Link>
+                    ) : (
+                      f.value
+                    )}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          )}
+          <HelpPopover content={{ title: "통산 기록", short: careerNote, formula: null, href: "/glossary" }} ariaLabel="통산 기록 기준 보기" />
+        </div>
 
         {awards.length > 0 && (
           <section aria-labelledby="awards-title" className="mt-4">

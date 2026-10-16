@@ -7,6 +7,7 @@ import { useState } from "react";
 import { BADGE_DEFS, splitBadges, type BadgeKey } from "@/lib/badges";
 import { badgeHref } from "@/lib/glossary";
 import HelpPopover from "./HelpPopover";
+import { IconChevronDown } from "./icons";
 
 const DEF = new Map(BADGE_DEFS.map((d) => [d.key, d]));
 
@@ -26,9 +27,29 @@ export function badgeStyle(teamPrimary: string): React.CSSProperties {
 
 export const BADGE_CHIP = "inline-flex h-7 items-center whitespace-nowrap rounded-control border px-2 text-sub font-semibold";
 
-export default function BadgeRow({ badges, teamPrimary }: { badges: BadgeItem[]; teamPrimary: string }) {
+/** collapsed: 처음엔 "칭호 6개 · 득점왕 ×4 외" 글자 버튼 하나만, 누르면 전부 (선수 머리말 꼬리표 줄이기 — 2026-10-16 디자인 정리 M3) */
+export default function BadgeRow({ badges, teamPrimary, collapsed = false }: { badges: BadgeItem[]; teamPrimary: string; collapsed?: boolean }) {
   const [open, setOpen] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   if (badges.length === 0) return null;
+  if (collapsed && !expanded && badges.length > 1) {
+    return (
+      <button
+        type="button"
+        aria-expanded={false}
+        onClick={() => {
+          setExpanded(true);
+          setOpen(true);
+        }}
+        className="focus-ring -my-2 inline-flex h-10 max-w-full cursor-pointer items-center gap-0.5 rounded-control text-sub font-semibold underline decoration-current/50 underline-offset-4 transition-colors duration-200 hover:decoration-current"
+      >
+        <span className="truncate">
+          칭호 {badges.length}개 · {badges[0].label} 외
+        </span>
+        <IconChevronDown size={16} aria-hidden />
+      </button>
+    );
+  }
   const { shown, hidden } = splitBadges(badges);
   const list = open ? badges : shown;
   const style = badgeStyle(teamPrimary);

@@ -31,6 +31,19 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-10-16-cleaner-look",
+    date: "2026-10-16",
+    kind: "update",
+    title: "화면을 조금 덜어냈어요",
+    summary: "화면 장식을 덜어냈어요",
+    blocks: [
+      { kind: "p", text: "기록 1~3위는 큰 색 상자 대신 목록 하나로 보여요. 배경에 깔리던 큰 숫자와 팀 이름도 뺐어요." },
+      { kind: "p", text: "홈 새로 나온 기록은 한 상자 안에 줄로, 선수 카드 기록 칸은 숫자만 크게 바꿨어요. 1~3위 메달은 그대로예요." },
+      { kind: "p", text: "선수 화면 위쪽 꼬리표는 3개까지만 두고 칭호는 한 줄로 접었어요. 계산 기준 같은 설명은 ⓘ를 누르면 보여요." },
+      { kind: "list", items: [{ text: "기록 화면에서 보기", href: "/season/49/leaders" }, { text: "홈에서 보기", href: "/" }] },
+    ],
+  },
+  {
     slug: "2026-10-16-home-top5",
     date: "2026-10-16",
     kind: "update",

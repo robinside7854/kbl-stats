@@ -5,7 +5,8 @@
 // 시도 기준 미달·기록 없음은 막대 없이 "–".
 import { percentileBarGroups, percentileTone, type SeasonCardView } from "@/lib/cardview";
 import { divergingFill } from "@/lib/teams";
-import InfoLink from "./InfoLink";
+import HelpPopover from "./HelpPopover";
+import { helpContent } from "@/lib/glossary";
 import Skeleton from "./Skeleton";
 import { useMounted } from "./useMedia";
 
@@ -18,7 +19,7 @@ export default function PercentileBars({ view, seasonShort }: { view: SeasonCard
     <section aria-labelledby="pct-bars-title">
       <div className="mb-2 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         <h2 id="pct-bars-title" className="flex items-center gap-1 text-h2 font-bold">
-          세부 능력치 <InfoLink term="radarAxes" className="ml-1" />
+          세부 능력치 <HelpPopover content={{ ...helpContent("radarAxes"), short: `${helpContent("radarAxes").short} TOV%는 낮을수록 높은 백분위, 성공률은 시도가 리그 평균 이상일 때만 매겨요.` }} ariaLabel="세부 능력치 기준 보기" className="ml-1" />
         </h2>
         <span className="text-sub text-ink-3">
           {seasonShort} · {view.gradeLabel} 백분위 · 누적 기록은 경기당
@@ -82,7 +83,6 @@ export default function PercentileBars({ view, seasonShort }: { view: SeasonCard
           <span aria-hidden className="block h-2 w-5 rounded-md" style={{ background: divergingFill(1) }} />
           상위
         </span>
-        <span>TOV%는 낮을수록 높은 백분위 · 성공률은 시도가 리그 평균 이상일 때만</span>
       </p>
     </section>
   );

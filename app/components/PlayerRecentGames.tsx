@@ -70,7 +70,6 @@ export default function PlayerRecentGames({
           </li>
         ))}
       </ul>
-      <p className="mt-2 text-caption text-ink-3">줄을 누르면 그날 경기 일정과 박스스코어로 가요.</p>
     </section>
   );
 }

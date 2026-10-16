@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { formatTrendValue, LEAGUE_TREND_METRICS, trendTakeaway, type LeagueTrendKey, type LeagueTrendRow } from "@/lib/trends";
 import ChipRow from "./ChipRow";
+import NoteInfo from "./NoteInfo";
 import { useThemeColors } from "./useThemeColors";
 import { trackFilters } from "./track";
 
@@ -73,6 +74,7 @@ export default function LeagueTrendsView({ rows }: { rows: LeagueTrendRow[] }) {
       <section aria-labelledby="trend-chart-title" className="surface-card mt-3 rounded-container p-3 sm:p-4">
         <h2 id="trend-chart-title" className="flex items-center gap-1 text-h2 font-bold">
           {metric.title}
+          <NoteInfo title={metric.title} text={`${metric.note}${rows.some((r) => r.ongoing) ? " 빈 점은 진행 중인 시즌이에요." : ""}`} />
         </h2>
         {trendTakeaway(rows, key, false) && <p className="tabular mt-1 text-body text-ink-2">{trendTakeaway(rows, key, false)}</p>}
         <div aria-hidden className="mt-3 h-64 w-full sm:h-80">
@@ -157,10 +159,6 @@ export default function LeagueTrendsView({ rows }: { rows: LeagueTrendRow[] }) {
             </LineChart>
           </ResponsiveContainer>
         </div>
-        <p className="mt-2 text-caption leading-snug text-ink-3">
-          {metric.note}
-          {rows.some((r) => r.ongoing) && " 빈 점은 진행 중인 시즌이에요."}
-        </p>
         <details className="mt-2 group">
           <summary className="focus-ring flex h-10 cursor-pointer items-center rounded-control text-sub font-semibold text-ink-2 transition-colors duration-200 hover:text-ink">
             시즌별 숫자 보기

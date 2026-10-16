@@ -22,7 +22,6 @@ import ChipRow from "./ChipRow";
 import FloatingSeasonBar from "./FloatingSeasonBar";
 import PrimeTag, { seasonChip } from "./PrimeTag";
 import { IconChevronRight } from "./icons";
-import InfoLink from "./InfoLink";
 import { PlayerCardSkeleton } from "./PlayerCard";
 import Segmented from "./Segmented";
 import { useCardView } from "./useSeasonCards";
@@ -199,9 +198,6 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
           <IconChevronRight size={16} />
         </Link>
       </div>
-      <p className="mt-3 text-sub leading-relaxed text-ink-3">
-        등급은 같은 국적 집단 안, 순위는 리그 전체{groupLabel ? "(또는 같은 포지션)" : ""} 기준입니다 <InfoLink term="radarAxes" />. 사진은 모든 시즌에 같은 한 장입니다.
-      </p>
       {/* 경기별 기록 범위 (토스 검토 B-9): 박스스코어가 있는 시즌만, 카드 시즌을 따른다 */}
       {gameRanges?.[season] && (
         <div className="mt-6">

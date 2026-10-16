@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import type { DraftPlayerView, DraftYearData } from "@/lib/data-history";
 import { draftYearFromParam, draftYearUrl } from "@/lib/draft";
 import AwardIcon from "./AwardIcon";
+import NoteInfo from "./NoteInfo";
 import ChipRow from "./ChipRow";
 import PlayerAvatar from "./PlayerAvatar";
 import Skeleton from "./Skeleton";
@@ -83,16 +84,16 @@ export default function DraftView({ years, initial }: { years: number[]; initial
       ) : (
         <>
           <YearSummary data={data} />
-          <h2 className="mt-5 text-h2 font-bold">지명 순서</h2>
+          <h2 className="mt-5 flex items-center text-h2 font-bold">
+            지명 순서
+            <NoteInfo title="지명 순서 목록" text="KBL 정규시즌에 한 경기도 뛰지 않은 지명 선수는 기록이 없어 목록에 없어요." />
+          </h2>
           <ol className="surface-card tabular mt-2 divide-y divide-line rounded-container">
             {data.players.map((p) => (
               <DraftRow key={p.id} p={p} />
             ))}
           </ol>
-          <p className="mt-2 text-caption leading-snug text-ink-3">
-            KBL 정규시즌에 한 경기도 뛰지 않은 지명 선수는 기록이 없어 목록에 없어요.
-            {data.duplicate && " 이 해는 드래프트가 두 번 열려 같은 순위가 둘씩 있어요."}
-          </p>
+          {data.duplicate && <p className="mt-2 text-caption leading-snug text-ink-3">이 해는 드래프트가 두 번 열려 같은 순위가 둘씩 있어요.</p>}
         </>
       )}
     </>

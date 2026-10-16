@@ -16,6 +16,7 @@ import { mixHex } from "@/lib/images";
 import type { TeamHeadToHeadLine } from "@/lib/games";
 import { oddsText, type PlayoffOdds } from "@/lib/predict";
 import InfoLink from "./InfoLink";
+import NoteInfo from "./NoteInfo";
 import { bestRegularSeason, LEGEND_RULE_TEXT, majorAwardSummary, PLAYOFF_STAGE_LABELS, pctText, type PlayoffStage, type TeamLeaderKey, type TeamPageData, type TeamSeasonRow } from "@/lib/franchise";
 import ChipRow from "./ChipRow";
 import FanButton from "./FanButton";
@@ -28,10 +29,14 @@ import { trackEvent, trackFilters } from "./track";
 
 const NF = new Intl.NumberFormat("ko-KR");
 
-function Card({ title, children, id, className = "" }: { title: string; children: React.ReactNode; id?: string; className?: string }) {
+/** note: 제목 옆 ⓘ 안에 넣을 설명 (2026-10-16 디자인 정리 M4 — 카드 아래 상시 설명 대신) */
+function Card({ title, children, id, className = "", note }: { title: string; children: React.ReactNode; id?: string; className?: string; note?: string }) {
   return (
     <section id={id} aria-label={title} className={`surface-card rounded-container p-4 ${className}`}>
-      <h2 className="text-h2 font-bold">{title}</h2>
+      <h2 className="flex items-center text-h2 font-bold">
+        {title}
+        {note && <NoteInfo title={title} text={note} />}
+      </h2>
       {children}
     </section>
   );
@@ -330,7 +335,7 @@ export default function TeamView({
           </Card>
         )}
 
-        <Card title="역대 실적">
+        <Card title="역대 실적" note="정규시즌 승패·순위는 경기 결과로 센 값, 플레이오프 4강·6강은 대진으로 판정한 값이에요. 옛 시즌은 방식이 달라 공식 기록과 다를 수 있어요.">
           <dl className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
             {totalTiles.map(([label, value, sub]) => (
               <div key={label} className="rounded-card bg-surface-2 p-3">
@@ -473,7 +478,6 @@ export default function TeamView({
           </ul>
             </div>
           )}
-          <p className="mt-3 text-caption text-ink-3">정규시즌 승패·순위는 경기 결과로 센 값, 플레이오프 4강·6강은 대진으로 판정한 값입니다(옛 시즌은 방식이 달라 다를 수 있음).</p>
         </Card>
 
         <Card title={data.legends.length > 0 ? `레전드 ${data.legends.length}명` : "가장 오래 뛴 선수"}>

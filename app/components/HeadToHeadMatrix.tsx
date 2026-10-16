@@ -4,6 +4,7 @@
 import type { StandingsSeason } from "./StandingsTable";
 import TeamLogo from "./TeamLogo";
 import { TeamLink } from "./EntityLinks";
+import NoteInfo from "./NoteInfo";
 
 export default function HeadToHeadMatrix({ season }: { season: StandingsSeason }) {
   const { rows, teams, h2h } = season;
@@ -11,8 +12,9 @@ export default function HeadToHeadMatrix({ season }: { season: StandingsSeason }
   const name = (code: string, fallback: string) => teams[code]?.shortName ?? fallback;
   return (
     <section aria-labelledby="h2h-title" className="mt-6">
-      <h2 id="h2h-title" className="text-h2 font-bold">
+      <h2 id="h2h-title" className="flex items-center text-h2 font-bold">
         팀 간 상대 전적
+        <NoteInfo title="상대 전적 읽는 법" text="줄의 팀 기준 승-패예요. 굵은 칸은 그 상대에게 더 많이 이긴 경우예요." />
       </h2>
       <p className="mt-1 text-sub text-ink-3">{season.seasonShort} 정규시즌 · 줄의 팀 기준 승-패</p>
       <div className="surface-card tabular mt-3 rounded-container px-1.5 py-1 sm:px-3">
@@ -67,7 +69,6 @@ export default function HeadToHeadMatrix({ season }: { season: StandingsSeason }
           </tbody>
         </table>
       </div>
-      <p className="mt-2 text-caption text-ink-3">굵은 칸은 그 상대에게 더 많이 이긴 경우예요.</p>
     </section>
   );
 }

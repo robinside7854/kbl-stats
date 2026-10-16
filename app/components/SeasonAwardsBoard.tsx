@@ -146,7 +146,7 @@ export default function SeasonAwardsBoard({ view, seasonShort }: { view: SeasonA
         <IconTrophy size={20} aria-hidden />
         {seasonShort} 어워즈
       </h2>
-      <p className="mt-0.5 text-caption text-ink-3">KBL 공식 시상 · 이름을 누르면 그 시즌 선수 카드</p>
+      <p className="mt-0.5 text-caption text-ink-3">KBL 공식 시상</p>
 
       {(view.finals || view.regular) && (
         <div className="tabular mt-3 grid gap-2 sm:grid-cols-2">

@@ -15,7 +15,6 @@ import {
   courtPoints,
   courtZoneShapes,
   ZONE_HEAT_MIN_ATTEMPTS,
-  ZONE_HEAT_RANGE,
   zoneDiffText,
   zoneHeat,
   zoneRows,
@@ -312,7 +311,6 @@ function ShotChartBody({ file, seasonShort, madeColor, missColor, lineColor, bar
                 <span aria-hidden className="block h-2.5 w-5 rounded-md border border-line" style={{ background: HATCH_CSS }} />
                 시도 {ZONE_HEAT_MIN_ATTEMPTS}개 미만
               </span>
-              <span className="text-ink-3">±{ZONE_HEAT_RANGE}%p 이상이면 가장 진함</span>
             </>
           ) : (
             <>

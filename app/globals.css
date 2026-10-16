@@ -23,6 +23,8 @@
   /* 플레이어 카드 등급 S~F (A·B 는 팀 색이라 토큰 없음). 바탕 / 글자. S 금색은 원래 값에서 채도 20% 낮춤(디자인 점검 B5) */
   --grade-s: #e1b95a;
   --grade-s-ink: #3a2900;
+  /* 금색 글자(흰 바탕 위 4.5:1 이상) — 꼬리표 대신 글자로만 "커리어 하이"를 표시할 때 (2026-10-16 디자인 정리 M2) */
+  --gold-ink: #8a6200;
   --grade-c: #e4e2dc;
   --grade-c-ink: #2f2e2b;
   --grade-d: #d2d1cb;
@@ -68,6 +70,7 @@
     --rank-pill-ring: rgba(255, 255, 255, 0.35);
     --grade-s: #ebcb6f;
     --grade-s-ink: #2e2100;
+    --gold-ink: #ebcb6f;
     --grade-c: #3b3b37;
     --grade-c-ink: #f0efe8;
     --grade-d: #2f2f2c;

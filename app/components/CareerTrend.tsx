@@ -22,6 +22,7 @@ import {
   type TrendRow,
 } from "@/lib/career";
 import { teamShortLabel } from "@/lib/images";
+import NoteInfo from "./NoteInfo";
 import TeamLogo from "./TeamLogo";
 import { TeamLink } from "./EntityLinks";
 import { useThemeColors } from "./useThemeColors";
@@ -160,10 +161,16 @@ export default function CareerTrend({ seasons, allSeasons, fill = false }: Props
       className={`surface-card rounded-container p-3 sm:p-4 ${fill ? "lg:flex lg:min-h-0 lg:flex-1 lg:flex-col" : ""}`}
     >
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-        <h2 id="trend-title" className="text-h2 font-bold">
-          시즌별 추이 <span className="font-medium text-ink-2">· {metric.title}</span>
+        <h2 id="trend-title" className="flex items-center text-h2 font-bold">
+          <span>
+            시즌별 추이 <span className="font-medium text-ink-2">· {metric.title}</span>
+          </span>
+          {/* 설명은 ⓘ 안에만 (2026-10-16 디자인 정리 M4) */}
+          <NoteInfo
+            title="시즌별 추이"
+            text={`${metric.kind === "perGame" ? "경기당 값 = 시즌 누적 ÷ 출전 경기." : "KBL 계산값 그대로."} 출전 경기가 적은 시즌은 값이 튀기도 해요. 점을 누르면 값이 보이고, 정확한 숫자는 아래 시즌별 기록에 있어요.`}
+          />
         </h2>
-        <p className="text-sub text-ink-3">점을 누르면 값이 보입니다</p>
       </div>
 
       <div role="group" aria-label="추이 지표" className="mt-2 flex flex-wrap gap-1.5">
@@ -265,7 +272,7 @@ export default function CareerTrend({ seasons, allSeasons, fill = false }: Props
       </div>
 
       <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sub text-ink-2">
-        <span className="text-ink-3">점 = 그 시즌 팀 로고{legend.length > 1 ? " · 테두리 있는 큰 점 = 이적한 시즌" : ""}</span>
+        <span className="text-ink-3">{legend.length > 1 ? "큰 점 = 이적한 시즌" : "점 = 그 시즌 팀"}</span>
         {legend.map((l) => (
           <TeamLink key={l.team} code={l.code} season={l.season} place="career_trend" className="inline-flex min-h-10 items-center gap-1.5">
             <TeamLogo logoUrl={l.logoUrl} shortName={l.team} color={l.color} size={16} />
@@ -273,12 +280,6 @@ export default function CareerTrend({ seasons, allSeasons, fill = false }: Props
           </TeamLink>
         ))}
       </div>
-      <p className="mt-1 text-caption leading-snug text-ink-3">
-        {metric.kind === "perGame"
-          ? "경기당 값 = 시즌 누적 ÷ 출전 경기."
-          : "KBL 계산값 그대로."}{" "}
-        출전 경기가 적은 시즌은 값이 튀기도 합니다. 정확한 숫자는 아래 시즌별 기록.
-      </p>
     </section>
   );
 }

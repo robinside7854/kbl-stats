@@ -6,6 +6,7 @@
 // - 이미지 저장: 화면 밖에 공식 사진·로고 없는 사본(PlayerCard exportMode)을 그려 PNG로 (useCardSave — KBL 이미지는 CORS 헤더가 없다).
 // - loading: 시즌 데이터를 받는 동안 같은 크기의 스켈레톤 카드(PlayerCardSkeleton)를 보여 준다 (디자인 점검 C3).
 // - pending: 아직 카드 값이 하나도 없는 자리 수 (비교 탭이 공유 주소로 열릴 때) — 스켈레톤만 그린다.
+import { useEffect, useRef, useState } from "react";
 import type { SeasonCardView } from "@/lib/cardview";
 import PlayerCard, { PlayerCardSkeleton, type CardLayout, type CardSize } from "./PlayerCard";
 import { useCardSave } from "./useCardSave";
@@ -39,6 +40,14 @@ export default function CardDeck({ cards, fileName, pending = 0, wideLayout = fa
   const layout: CardLayout = wideLayout && !pair && isLg ? "horizontal" : "vertical";
   const series = [colors.series1, colors.series2];
   const { exportRef, saving, saveError, save } = useCardSave(colors.surface);
+  // 저장이 끝난 뒤에만 한 번 알려 준다 (2026-10-16 디자인 정리 M4: 버튼 옆 상시 설명 → 저장 후 알림)
+  const [saved, setSaved] = useState(false);
+  const wasSaving = useRef(false);
+  useEffect(() => {
+    if (wasSaving.current && !saving && !saveError) setSaved(true);
+    if (saving) setSaved(false);
+    wasSaving.current = saving;
+  }, [saving, saveError]);
   const busy = pending > 0 || cards.some((c) => c.loading);
   // 한 장일 때 가운데 폭 (sm 420px, lg 500px)
   const single = layout === "horizontal" ? "w-full" : "mx-auto w-full max-w-[420px] md:max-w-[500px]";
@@ -79,7 +88,11 @@ export default function CardDeck({ cards, fileName, pending = 0, wideLayout = fa
         >
           {saving ? "저장 중…" : pair ? "카드 두 장 이미지 저장" : "이미지 저장"}
         </button>
-        <p className="text-sub text-ink-3">저장 이미지에는 사진·로고 대신 팀 색과 이니셜이 들어갑니다</p>
+        {saved && (
+          <p role="status" className="text-sub text-ink-2">
+            저장했어요. 이미지에는 사진·로고 대신 팀 색과 이니셜이 들어가요.
+          </p>
+        )}
         {saveError && (
           <p role="alert" className="w-full text-body text-ink-2">
             {saveError}

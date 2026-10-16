@@ -107,19 +107,19 @@ interface Props {
   race?: ScoringRaces | null;
 }
 
-/** 순위 옆 작은 변동 표시 (▲2 · ▼1 · 새로). onColor: 팀 색 카드 위라 글자색 그대로 */
-function RankDelta({ change, onColor = false }: { change?: RankChange; onColor?: boolean }) {
+/** 순위 옆 작은 변동 표시 (▲2 · ▼1 · 새로) */
+function RankDelta({ change }: { change?: RankChange }) {
   if (!change) return null;
   if (change.kind === "new")
     return (
-      <span className={`whitespace-nowrap text-caption font-bold ${onColor ? "" : "text-[var(--div-hot)]"}`} aria-label="새로 10위 안에 들어옴">
+      <span className={`whitespace-nowrap text-caption font-bold text-[var(--div-hot)]`} aria-label="새로 10위 안에 들어옴">
         새로
       </span>
     );
   const up = change.kind === "up";
   return (
     <span
-      className={`inline-flex items-center whitespace-nowrap text-caption font-bold ${onColor ? "" : up ? "text-[var(--div-hot)]" : "text-[var(--div-cold)]"}`}
+      className={`inline-flex items-center whitespace-nowrap text-caption font-bold ${up ? "text-[var(--div-hot)]" : "text-[var(--div-cold)]"}`}
       aria-label={`${change.delta}계단 ${up ? "오름" : "내림"}`}
     >
       <IconArrowUp size={16} className={`h-3 w-3 ${up ? "" : "rotate-180"}`} aria-hidden />
@@ -150,19 +150,9 @@ function PosBadge({ p }: { p: LeaderPlayer }) {
   );
 }
 
-/** 팀 색 배경 위에 올리는 로고 — 로고 색이 배경과 겹치지 않게 흰 칩 위에 */
-function LogoChip({ team, fallback, size }: { team?: CardTeam; fallback: string; size: number }) {
-  return (
-    <span className="inline-flex shrink-0 rounded-control bg-white p-0.5">
-      <TeamLogo logoUrl={team?.logoUrl} shortName={team?.shortName ?? fallback} color={team?.color} size={size} />
-    </span>
-  );
-}
-
-/** 1~3위 표지 카드. 1위는 크게(hero), 2·3위는 반 폭.
- * PC(2026-10-06 사용자: 1위 카드 오른쪽이 비어 있다): 오른쪽에 큰 세로 사진, 이름·숫자를 키운다 —
- * 1위는 1024px 이상, 2·3위는 칸이 넉넉한 1280px 이상에서만(그 아래는 동그라미 사진 그대로). */
-function CoverCard({
+/** 1~3위 한 줄 (2026-10-16 디자인 정리 M1 — 사용자 결정): 팀 색 큰 상자·배경 큰 순위 숫자 대신 흰 목록 하나.
+ * 1위 줄만 크게. 폰은 세로 목록, PC(lg+)는 세 칸 나란히(1위 칸이 넓다) — 큰 세로 사진은 1위 lg·2·3위 xl 부터 칸 오른쪽 아래. */
+function CoverItem({
   entry,
   team,
   category,
@@ -182,78 +172,52 @@ function CoverCard({
   const p = entry.player;
   const color = team?.color ?? FALLBACK_TEAM_COLOR;
   const teamLabel = teamShortLabel(team?.shortName ?? p.teamShort);
-  const lowerIsBetter = LEADER_STATS[category].better === "low";
-  // 큰 사진이 보이는 폭: 1위 lg, 2·3위 xl
-  const wide = hero ? "lg" : "xl";
   const showPortrait = hero ? "hidden lg:block" : "hidden xl:block";
   const hideCircle = hero ? "lg:hidden" : "xl:hidden";
+  const pos = positionLabel(p.position);
   return (
-    <article
-      className={`tabular relative flex flex-col overflow-hidden rounded-container border border-black/10 dark:border-white/15 ${
-        hero ? "col-span-2 p-4 sm:p-5 lg:px-7 lg:pb-0 lg:pt-6" : "p-3 xl:px-5 xl:pb-0 xl:pt-4"
-      }`}
-      style={{ background: color.primary, color: color.text }}
+    <li
+      className={`tabular flex min-w-0 items-center gap-3 lg:items-end ${hero ? "px-4 py-4 sm:px-5 lg:pb-0 lg:pl-6 lg:pt-5" : "px-4 py-3 lg:pb-0 lg:pt-4 xl:pl-5"}`}
       aria-label={`${entry.rank}위 ${p.nameKo} ${teamLabel} ${statTitle(category, mode)} ${formatStat(entry.value, category, mode)}`}
     >
-      {/* 배경의 큰 순위 숫자 (장식) — 오른쪽 끝. PC 1위는 사진을 글 바로 옆에 붙이고 남는 오른쪽을 숫자가 채운다 */}
-      <span
-        aria-hidden
-        className={`pointer-events-none absolute -bottom-4 right-1 select-none font-black leading-none opacity-15 ${
-          hero ? "text-[9rem] lg:right-4 lg:text-[13rem]" : "text-[5.5rem] xl:text-[7rem]"
-        }`}
-      >
-        {entry.rank}
-      </span>
-      {/* flex-1: 1위 카드 높이에 맞춰 늘어난 2·3위 카드도 사진이 바닥에 붙는다 (2026-10-06 사용자: 사진이 잘려 보임) */}
-      <div className="relative flex flex-1 items-stretch gap-3">
-        <div className={`min-w-0 flex-1 ${wide === "lg" ? "lg:max-w-[22rem] lg:pb-6" : "xl:pb-4"}`}>
-          <div className={`flex ${hero ? "items-center gap-4" : "flex-col items-start gap-2 xl:flex-row xl:items-center xl:gap-2.5"}`}>
-            {/* 사진도 선수 페이지로 (2026-10-14) — 이름 링크와 같은 곳이라 키보드 순서에서는 뺀다 */}
-            {/* deslop-ignore-next-line 19 */}
-            <PlayerLink id={p.id} season={seasonCode} tabIndex={-1} aria-label={`${p.nameKo} 선수 페이지`} className={`${hideCircle} shrink-0 rounded-full`}>
-              <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={color} size={hero ? 88 : 48} className="ring-2 ring-white/70" />
-            </PlayerLink>
-            <div className="min-w-0">
-              <p className={`flex items-center gap-1.5 font-semibold opacity-85 ${hero ? "text-sub lg:text-body" : "text-caption xl:text-sub"}`}>
-                {entry.rank}위 <RankDelta change={change} onColor />
-              </p>
-              {/* deslop-ignore-next-line 11 */}
-              <h3 className={`font-bold leading-tight break-keep ${hero ? "truncate text-2xl lg:text-5xl lg:leading-[1.1]" : "line-clamp-2 text-base xl:text-xl 2xl:text-2xl"}`} title={p.nameKo}>
-                <Link href={`/player/${p.id}?season=${seasonCode}`} className="focus-ring rounded-control underline-offset-4 hover:underline">
-                  {p.nameKo}
-                </Link>
-              </h3>
-              <p className={`mt-1 flex min-w-0 items-center gap-1.5 opacity-90 ${hero ? "text-body lg:mt-2" : "text-caption xl:text-sub"}`}>
-                <TeamLink code={p.teamCode} season={seasonCode} place="leaders_cover" className="flex min-w-0 items-center gap-1.5">
-                  <LogoChip team={team} fallback={p.teamShort} size={hero ? 20 : 14} />
-                  <span className="truncate">{teamLabel}</span>
-                </TeamLink>
-                {hero && (
-                  <span className="shrink-0">
-                    · {positionLabel(p.position) ? `${positionLabel(p.position)} · ` : ""}
-                    {NATIONALITY_LABELS[nationalityOf(p)]}
-                  </span>
-                )}
-                {!hero && p.position && <span className="shrink-0">· {p.position}</span>}
-              </p>
-            </div>
-          </div>
-          <p className={`relative ${hero ? "mt-4 lg:mt-6" : "mt-2.5 xl:mt-4"}`}>
-            <span className={`block font-semibold opacity-85 ${hero ? "text-sub lg:text-body" : "text-caption xl:text-sub"}`}>
-              {statTitle(category, mode)}
-              {lowerIsBetter && <span className="whitespace-nowrap"> · 적을수록 상위</span>}
-            </span>
-            {/* deslop-ignore-next-line 11 */}
-            <span className={`block font-bold leading-none tracking-tight ${hero ? "mt-1 text-5xl lg:mt-2 lg:text-7xl" : "mt-0.5 text-3xl xl:mt-1 xl:text-5xl"}`}>
-              {formatStat(entry.value, category, mode)}
-            </span>
-          </p>
-        </div>
-        <PlayerLink id={p.id} season={seasonCode} tabIndex={-1} aria-label={`${p.nameKo} 선수 페이지`} className={`${showPortrait} shrink-0 self-end rounded-none`}>
-          <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={color} variant="portrait" size={hero ? 250 : 190} />
-        </PlayerLink>
+      {/* 사진도 선수 페이지로 (2026-10-14) — 이름 링크와 같은 곳이라 키보드 순서에서는 뺀다 */}
+      {/* deslop-ignore-next-line 19 */}
+      <PlayerLink id={p.id} season={seasonCode} tabIndex={-1} aria-label={`${p.nameKo} 선수 페이지`} className={`${hideCircle} shrink-0 rounded-full`}>
+        <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={color} size={hero ? 64 : 44} />
+      </PlayerLink>
+      <div className={`min-w-0 flex-1 ${hero ? "lg:pb-5" : "lg:pb-4"}`}>
+        <p className="flex items-center gap-1.5 text-caption font-semibold text-ink-2 lg:text-sub">
+          {entry.rank}위 <RankDelta change={change} />
+        </p>
+        {/* deslop-ignore-next-line 11 */}
+        <h3 className={`truncate font-bold leading-tight text-ink ${hero ? "text-xl lg:text-4xl" : "text-body lg:text-xl xl:text-2xl"}`} title={p.nameKo}>
+          <Link href={`/player/${p.id}?season=${seasonCode}`} className="focus-ring rounded-control underline-offset-4 hover:underline">
+            {p.nameKo}
+          </Link>
+        </h3>
+        <p className="mt-0.5 flex min-w-0 items-center gap-1.5 text-caption text-ink-2 lg:mt-1 lg:text-sub">
+          <TeamLink code={p.teamCode} season={seasonCode} place="leaders_cover" className="flex min-w-0 items-center gap-1.5">
+            <TeamLogo logoUrl={team?.logoUrl} shortName={team?.shortName ?? p.teamShort} color={team?.color} size={16} />
+            <span className="truncate">{teamLabel}</span>
+          </TeamLink>
+          {pos && <span className="shrink-0">· {pos}</span>}
+          {hero && <span className="hidden shrink-0 sm:inline">· {NATIONALITY_LABELS[nationalityOf(p)]}</span>}
+        </p>
+        {/* PC: 숫자는 이름 아래 (칸 안 세로 배치) */}
+        {/* deslop-ignore-next-line 11 */}
+        <p className={`mt-3 hidden font-bold leading-none tracking-tight text-ink lg:block ${hero ? "text-6xl" : "text-4xl"}`}>
+          {formatStat(entry.value, category, mode)}
+        </p>
       </div>
-    </article>
+      {/* 폰: 숫자는 오른쪽 끝 */}
+      {/* deslop-ignore-next-line 11 */}
+      <p className={`shrink-0 font-bold leading-none tracking-tight text-ink lg:hidden ${hero ? "text-4xl" : "text-2xl"}`}>
+        {formatStat(entry.value, category, mode)}
+      </p>
+      <PlayerLink id={p.id} season={seasonCode} tabIndex={-1} aria-label={`${p.nameKo} 선수 페이지`} className={`${showPortrait} shrink-0 self-end rounded-none`}>
+        <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={color} variant="portrait" size={hero ? 210 : 150} />
+      </PlayerLink>
+    </li>
   );
 }
 
@@ -589,23 +553,29 @@ export default function LeadersView({ seasonCode, seasonLabel, players, teams, s
         )}
       </section>
 
-      {/* 매거진 표지: 선택 부문 1~3위 */}
+      {/* 선택 부문 1~3위 */}
       <section aria-label={`${statTitle(category, mode)} 1~3위`} className="mt-4">
         {top.length > 0 ? (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {top.map((e, i) => (
-              <CoverCard
-                key={e.player.id}
-                entry={e}
-                team={teamByCode.get(e.player.teamCode)}
-                category={category}
-                mode={mode}
-                hero={i === 0}
-                change={coverChanges?.get(e.player.id)}
-                seasonCode={seasonCode}
-              />
-            ))}
-          </div>
+          <>
+            <p className="text-sub text-ink-2">
+              {statTitle(category, mode)}
+              {LEADER_STATS[category].better === "low" && " · 적을수록 상위"}
+            </p>
+            <ol className="surface-card mt-2 grid divide-y divide-line overflow-hidden rounded-container lg:grid-cols-[1.4fr_1fr_1fr] lg:divide-x lg:divide-y-0">
+              {top.map((e, i) => (
+                <CoverItem
+                  key={e.player.id}
+                  entry={e}
+                  team={teamByCode.get(e.player.teamCode)}
+                  category={category}
+                  mode={mode}
+                  hero={i === 0}
+                  change={coverChanges?.get(e.player.id)}
+                  seasonCode={seasonCode}
+                />
+              ))}
+            </ol>
+          </>
         ) : (
           <div className="surface-card rounded-container px-4 py-8 text-center">
             <p className="text-body font-semibold text-ink">조건에 맞는 선수가 없습니다</p>

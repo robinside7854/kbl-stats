@@ -160,9 +160,6 @@ export default function ScoringRace({ data, category, teams, seasonCode, ongoing
           );
         })}
       </ol>
-      <p className="mt-2 text-caption leading-snug text-ink-3">
-        박스스코어로 센 값이라 공식 기록과 조금 다를 수 있어요. 선은 {RACE_MIN_GAMES}경기를 뛴 날부터 그려요.
-      </p>
     </section>
   );
 }

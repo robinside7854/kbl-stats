@@ -93,9 +93,6 @@ export default function PlayoffOddsBoard({
           })}
         </ul>
       </div>
-      <p className="mt-2 text-caption text-ink-3">
-        플레이오프는 6위 안, 4강 직행은 2위 안이에요. 시즌 초엔 지난 시즌 성적을 조금 섞어서 계산해요.
-      </p>
       <PredictionRecordLine record={record} previous={previousRecord} className="mt-1" />
     </section>
   );

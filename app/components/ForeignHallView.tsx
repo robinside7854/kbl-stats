@@ -9,6 +9,7 @@ import type { ForeignHallData, HallMemberView } from "@/lib/data-history";
 import { HALL_REASON_LABELS, HALL_SORTS, sortHall, type HallSort } from "@/lib/hall";
 import { teamShortLabel } from "@/lib/images";
 import AwardIcon from "./AwardIcon";
+import NoteInfo from "./NoteInfo";
 import ChipRow from "./ChipRow";
 import PlayerAvatar from "./PlayerAvatar";
 import Segmented from "./Segmented";
@@ -157,7 +158,10 @@ function HallCard({ m, n }: { m: HallMemberView; n: number }) {
 function SeasonsList({ data }: { data: ForeignHallData }) {
   return (
     <>
-      <p className="mt-3 text-body text-ink-2">외국 선수 한 시즌 경기당 득점 + 리바운드 + 어시스트 순위</p>
+      <p className="mt-3 flex items-center text-body text-ink-2">
+        외국 선수 한 시즌 경기당 득점 + 리바운드 + 어시스트 순위
+        <NoteInfo title="한 시즌 순위 기준" text="끝난 시즌, 그 시즌 최다 출전의 60% 이상 뛴 선수만이에요. 시대마다 외국 선수 규정(인원·키·출전 쿼터)이 달라 숫자를 그대로 비교하긴 어려워요." />
+      </p>
       <ol className="surface-card tabular mt-2 divide-y divide-line rounded-container">
         {data.seasons.map((s) => (
           <li key={`${s.id}-${s.seasonShort}`}>
@@ -185,9 +189,6 @@ function SeasonsList({ data }: { data: ForeignHallData }) {
           </li>
         ))}
       </ol>
-      <p className="mt-2 text-caption leading-snug text-ink-3">
-        끝난 시즌, 그 시즌 최다 출전의 60% 이상 뛴 선수만. 시대마다 외국 선수 규정(인원·키·출전 쿼터)이 달라 숫자를 그대로 비교하긴 어려워요.
-      </p>
     </>
   );
 }

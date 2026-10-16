@@ -6,6 +6,7 @@ import Link from "next/link";
 import type { TeamColor } from "@/lib/types";
 import { gamesBehindLabel, notableStreak, pctLabel, type StandingRow } from "@/lib/games";
 import TeamLogo from "./TeamLogo";
+import NoteInfo from "./NoteInfo";
 import StreakText from "./StreakText";
 import { trackEvent } from "./track";
 
@@ -53,7 +54,12 @@ export default function StandingsTable({ season }: { season: StandingsSeason }) 
             </colgroup>
             <thead>
               <tr className="border-b border-line text-caption text-ink-3">
-                <th scope="col" className="py-2 text-left font-medium">순위</th>
+                <th scope="col" className="py-2 text-left font-medium">
+                  <span className="inline-flex items-center">
+                    순위
+                    <NoteInfo title="순위 정하는 법" text="승률이 같으면 승 수, 그다음 득실차 순이에요. KBL 공식 동률 규정인 상대 전적은 반영하지 않아요. 최근 5는 채운 점이 승, 빈 점이 패예요." />
+                  </span>
+                </th>
                 <th scope="col" className="py-2 text-left font-medium">팀</th>
                 <td aria-hidden className="hidden lg:table-cell" />
                 <th scope="col" className="py-2 text-right font-medium">승-패</th>
@@ -111,9 +117,6 @@ export default function StandingsTable({ season }: { season: StandingsSeason }) 
             </tbody>
           </table>
         </div>
-      <p className="mt-2 text-caption text-ink-3">
-        승률이 같으면 승 수·득실차 순 (KBL 공식 동률 규정인 상대 전적은 반영하지 않음) · 최근 5: 채운 점 승, 빈 점 패
-      </p>
     </>
   );
 }

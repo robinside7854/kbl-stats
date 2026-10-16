@@ -294,7 +294,6 @@ function ResultBlock({
           {copied ? "복사됨" : "링크 복사"}
         </button>
       </div>
-      <p className="mt-2 text-caption text-ink-3">칸을 누르면 그 선수를 빼고 다시 고를 수 있어요.</p>
       {saveError && <p className="mt-2 text-sub text-ink-2">{saveError}</p>}
       {saving && (
         <div aria-hidden className="pointer-events-none fixed top-0" style={{ left: -10000 }}>
