@@ -5,7 +5,8 @@
 // 14열 표가 카드 폭에 눌리지 않는다). 박스스코어는 카드에 들어 있거나(홈) 누를 때 받아 온다(일정 — /games/{시즌}/{날짜}.json).
 // 하이라이트 영상(2026-10-04, game.highlight = TVING SPORTS 유튜브 영상 번호)이 있으면 "하이라이트" 버튼 → 같은 팝업에 youtube-nocookie 영상.
 // 영상 틀은 팝업을 열 때만 만든다(평소 화면은 유튜브에 요청하지 않음).
-// GA4: boxscore_open {game_key, season_code, place}, highlight_open {game_key, season_code, place}.
+// 경기 승부 예측(2026-10-16, GamePick): 아직 안 한 경기는 승리 확률 아래 두 버튼(로그인 회원), 끝난 경기는 내 예측 적중 한 줄.
+// GA4: boxscore_open {game_key, season_code, place}, highlight_open {game_key, season_code, place}, pick_make {game_key, place}.
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -19,6 +20,7 @@ import Skeleton from "./Skeleton";
 import TeamLogo from "./TeamLogo";
 import { TeamLink } from "./EntityLinks";
 import WinProbBar from "./WinProbBar";
+import GamePick from "./GamePick";
 import { trackEvent } from "./track";
 
 export interface GameTeamInfo {
@@ -111,6 +113,9 @@ export default function GameCard({ game: g, seasonCode, teams, stars = null, loa
       {g.stadium && <p className="mt-1 text-center text-caption text-ink-3">{g.stadium}</p>}
       {!g.ended && homeWinProb !== null && <WinProbBar homeProb={homeWinProb} home={homeSide.info} away={awaySide.info} className="mt-2 border-t border-line pt-2" />}
       {!g.ended && matchup && <MatchupLine edge={matchup} names={{ home: homeSide.info.shortName, away: awaySide.info.shortName }} />}
+      {!g.ended && (
+        <GamePick game={g} home={homeSide.info} away={awaySide.info} place={place} className={homeWinProb !== null ? "mt-2" : "mt-2 border-t border-line pt-2"} />
+      )}
       {(starsOf("away").length > 0 || starsOf("home").length > 0) && (
         <ul className="mt-2 space-y-1.5 border-t border-line pt-2 text-sub">
           {sides.map((s) => {
@@ -139,6 +144,7 @@ export default function GameCard({ game: g, seasonCode, teams, stars = null, loa
           })}
         </ul>
       )}
+      {g.ended && <GamePick game={g} home={homeSide.info} away={awaySide.info} place={place} className="mt-2" />}
       {g.ended && (hasBox || g.highlight) && (
         <>
           <div className={`mt-2 grid gap-2 ${hasBox && g.highlight ? "grid-cols-2" : "grid-cols-1"}`}>

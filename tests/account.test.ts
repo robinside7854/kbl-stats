@@ -381,3 +381,6 @@ console.log("account: 계정 연결·관리자 규칙 통과");
   await db4.close();
   console.log("account: 폰 알림 구독(저장·옮김·끄기·보낸 기록·합치기·탈퇴) 통과");
 }
+
+// 팬 참여(투표·승부 예측, 2026-10-16) — 규칙과 표 SQL 을 같이 돌린다
+await import("./votes.test");

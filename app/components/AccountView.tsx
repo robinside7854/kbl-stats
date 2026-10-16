@@ -286,7 +286,7 @@ function SignedIn({ member, suggested, teams, onChange }: { member: MemberView; 
             </button>
           ) : (
             <div className="w-full rounded-card border border-line p-3">
-              <p className="text-body text-ink">탈퇴하면 닉네임·응원팀·계정의 즐겨찾기·좋아요·54-0 기록이 바로 지워지고 되돌릴 수 없어요. 이 브라우저의 즐겨찾기는 남아요.</p>
+              <p className="text-body text-ink">탈퇴하면 닉네임·응원팀·계정의 즐겨찾기·좋아요·54-0 기록·투표·승부 예측이 바로 지워지고 되돌릴 수 없어요. 이 브라우저의 즐겨찾기는 남아요.</p>
               <div className="mt-2 flex gap-2">
                 <button
                   type="button"

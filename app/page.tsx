@@ -10,6 +10,7 @@ import type { BirthdayPlayer } from "./components/BirthdayStrip";
 import { filterLeaders, topLeaders } from "@/lib/leaders";
 import { qualifyLabel } from "@/lib/metrics";
 import { HOME_CATEGORIES, pickHomeSeason } from "@/lib/home";
+import { buildVoteData } from "@/lib/votes";
 import HomeView from "./components/HomeView";
 import SiteNav from "./components/SiteNav";
 import SourceFooter, { formatFetchedAt } from "./components/SourceFooter";
@@ -56,6 +57,13 @@ export default function HomePage() {
         return s ? [[r.teamCode, s]] : [];
       }));
 
+  // 이번 주 팬 MVP 카드 (2026-10-16): 최근 2주 후보 중 기록 1~3위만 (표 수는 /vote 에서)
+  const voteWeeks = upcoming
+    ? []
+    : buildVoteData(shown.seasonCode, games, (id) => findPlayerIndexEntry(id)?.photoUrl ?? null)
+        .weeks.slice(0, 2)
+        .map((w) => ({ ...w, players: w.players.slice(0, 3) }));
+
   return (
     <>
       <SiteNav seasons={withPlayers} seasonCode={shown.seasonCode} view="home" wide />
@@ -74,6 +82,7 @@ export default function HomePage() {
         feats={feats}
         streaks={streaks}
         winProbs={upcoming ? {} : (loadSeasonPredictions(shown.seasonCode)?.winProbs ?? {})}
+        voteWeeks={voteWeeks}
         qualifyText={qualifyLabel(rule)}
       />
       <SourceFooter fetchedAt={season.fetchedAt} wide />
