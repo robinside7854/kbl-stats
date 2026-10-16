@@ -107,6 +107,11 @@ export default function NotificationsView() {
                         </span>
                         <span className="block text-body font-bold leading-snug text-ink break-keep">{it.title}</span>
                         {it.body && <span className="mt-0.5 block text-sub text-ink-2 break-keep">{it.body}</span>}
+                        {it.feat?.context?.map((c) => (
+                          <span key={c} className="tabular mt-0.5 block text-caption font-semibold text-ink-2 break-keep">
+                            {c}
+                          </span>
+                        ))}
                       </span>
                       <IconChevronRight size={16} className="mt-1.5 shrink-0 text-ink-3" />
                     </Link>

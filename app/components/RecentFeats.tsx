@@ -2,6 +2,7 @@
 // 홈 "새로 나온 기록" (2026-10-11 사용자 결정 A — 즐겨찾기·응원팀과 상관없이 모두에게).
 // 최근 7일 경기에서 나온 커리어 하이·이번 시즌 리그 최다 갱신·통산 득점/출전 이정표를 선수-경기 한 칸으로 (규칙은 알림함과 같은 lib/notifications, 재료는 lib/data loadRecentFeats).
 // 처음엔 FEATS_VISIBLE 칸만, "더 보기"로 전부. 마지막 경기일이 아닌 칸은 날짜를 붙인다.
+// 2026-10-16: 기록마다 맥락 꼬리표 한두 줄(lib/feat-context — 올 시즌 리그 몇 번째·역대 몇 명뿐·이정표 역대 몇 번째).
 // GA4: home_feat_click(kind = 가장 높은 단계 career·careerTie·league·milestone, player_no) · filter_change screen=home filter=feats value=more
 import Link from "next/link";
 import { useState } from "react";
@@ -57,9 +58,17 @@ export default function RecentFeats({ feats, latestDate }: { feats: RecentFeat[]
                 </span>
                 <span className="mt-1 flex flex-col gap-1">
                   {f.lines.map((l, i) => (
-                    <span key={i} className="flex min-w-0 items-center gap-1.5">
-                      <LevelChip level={l.level} />
-                      <span className="tabular truncate text-sub font-semibold text-ink">{l.text}</span>
+                    <span key={i} className="flex min-w-0 flex-col">
+                      <span className="flex min-w-0 items-center gap-1.5">
+                        <LevelChip level={l.level} />
+                        <span className="tabular truncate text-sub font-semibold text-ink">{l.text}</span>
+                      </span>
+                      {/* 맥락 꼬리표 (2026-10-16, lib/feat-context) — "올 시즌 40득점 이상은 리그 2번째" */}
+                      {l.context?.map((c) => (
+                        <span key={c} className="tabular mt-0.5 block text-caption text-ink-2 break-keep">
+                          {c}
+                        </span>
+                      ))}
                     </span>
                   ))}
                 </span>

@@ -31,6 +31,26 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-10-16-record-context",
+    date: "2026-10-16",
+    kind: "update",
+    title: "기록에 얼마나 대단한지 한 줄씩",
+    summary: "기록에 맥락 한 줄",
+    blocks: [
+      { kind: "p", text: "커리어 하이나 통산 기록이 나오면 그게 얼마나 드문 건지 한 줄씩 붙였어요." },
+      {
+        kind: "list",
+        items: [
+          "케렘 칸터 42득점: 올 시즌 리그 첫 42득점 이상, 역대 선수 상위 7%만 해 본 기록",
+          "변준형 11어시스트: 올 시즌 11어시스트 이상은 리그 3번째",
+          "이정현 통산 3점슛 500개: 역대 57번째",
+        ],
+      },
+      { kind: "p", text: "홈 새로 나온 기록이랑 알림함에서 볼 수 있어요. 역대 비교는 국내 선수는 국내 선수끼리 해요." },
+      { kind: "list", items: [{ text: "홈에서 보기", href: "/" }] },
+    ],
+  },
+  {
     slug: "2026-10-16-playoff-odds",
     date: "2026-10-16",
     kind: "update",

@@ -52,6 +52,11 @@ export interface FeatInfo {
   /** 그날 기록 "33득점 · 6어시스트" */
   stat: string;
   name: string;
+  /** 부문 키 (한 경기 기록 = HIGH_KEYS key, 이정표 = 통산 합계 key) 와 값 (한 경기 기록 = 그 경기 값, 이정표 = 넘은 목표) — 맥락 꼬리표 재료 (2026-10-16) */
+  key: string;
+  value: number;
+  /** "올 시즌 40득점 이상은 리그 2번째" 같은 맥락 한두 줄 (lib/feat-context attachFeatContexts 가 붙인다, 없으면 없음) */
+  context?: string[];
 }
 
 /** season = 그 선수의 이번 시즌 최다(알림함), league = 이번 시즌 리그 전체 최고 기록 갱신(홈) */
@@ -316,7 +321,7 @@ export function buildNotifItems(allGames: readonly SeasonGame[], ctx: NotifConte
             title: `${r.nameKo} ${label} ${h.text(v)}`,
             body: `${text} · ${playerStatLine(r)}`,
             href: `/player/${r.id}?season=${ctx.seasonCode}`,
-            feat: { level, text: h.text(v), game: text, won, stat: playerStatLine(r), name: r.nameKo },
+            feat: { level, text: h.text(v), game: text, won, stat: playerStatLine(r), name: r.nameKo, key: h.key, value: v },
           });
         }
         // 통산 이정표 돌파
@@ -337,7 +342,7 @@ export function buildNotifItems(allGames: readonly SeasonGame[], ctx: NotifConte
               title: `${r.nameKo} 통산 ${m.text(NF.format(target))} 달성`,
               body: `${text} · 지금 통산 ${m.text(NF.format(now))}`,
               href: `/player/${r.id}?season=${ctx.seasonCode}`,
-              feat: { level: "milestone", text: `통산 ${m.text(NF.format(target))}`, game: text, won, stat: playerStatLine(r), name: r.nameKo },
+              feat: { level: "milestone", text: `통산 ${m.text(NF.format(target))}`, game: text, won, stat: playerStatLine(r), name: r.nameKo, key: m.key, value: target },
             });
           }
         }
@@ -468,8 +473,8 @@ export interface FeatGroup {
   game: string;
   won: boolean;
   stat: string;
-  /** 단계 높은 것 먼저 */
-  lines: { level: FeatLevel; text: string }[];
+  /** 단계 높은 것 먼저. context = 그 기록의 맥락 꼬리표 (없으면 없음) */
+  lines: { level: FeatLevel; text: string; context?: string[] }[];
 }
 
 /** 홈 한 칸 (featGroups + 사진·팀 색 — lib/data loadRecentFeats) */
@@ -501,7 +506,10 @@ export function featGroups(items: readonly NotifItem[]): FeatGroup[] {
       g = { key, date: it.date, player: it.player, name: it.feat.name, href: it.href, game: it.feat.game, won: it.feat.won, stat: it.feat.stat, lines: [] };
       map.set(key, g);
     }
-    g.lines.push({ level: it.feat.level, text: it.feat.text });
+    // 같은 경기 같은 부문이 커리어 하이·시즌 최다 두 줄이면 꼬리표가 겹친다 — 앞 줄에 있던 건 뺀다
+    const seen = new Set(g.lines.flatMap((l) => l.context ?? []));
+    const context = (it.feat.context ?? []).filter((c) => !seen.has(c));
+    g.lines.push({ level: it.feat.level, text: it.feat.text, ...(context.length ? { context } : {}) });
   }
   const groups = [...map.values()];
   for (const g of groups) g.lines.sort((a, b) => LEVEL_ORDER[a.level] - LEVEL_ORDER[b.level]);
@@ -570,7 +578,7 @@ export function leagueSeasonRecords(allGames: readonly SeasonGame[], ctx: Pick<N
             title: `${r.nameKo} 이번 시즌 최고 ${h.text(r[h.key])}`,
             body: `${text} · ${playerStatLine(r)}`,
             href: `/player/${r.id}?season=${ctx.seasonCode}`,
-            feat: { level: "league", text: h.text(r[h.key]), game: text, won, stat: playerStatLine(r), name: r.nameKo },
+            feat: { level: "league", text: h.text(r[h.key]), game: text, won, stat: playerStatLine(r), name: r.nameKo, key: h.key, value: r[h.key] },
           });
         }
       }

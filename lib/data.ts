@@ -51,6 +51,7 @@ import { seasonContext } from "./cardview";
 import { asOfLabel, computeStandings, headToHead, latestGameDay, playerRecentGames, teamGameStrip, type HeadToHeadRecord, type OppBrand, type PlayerRecentGame, type TeamHeadToHeadLine, type TeamStripGame } from "./games";
 import { buildNotifItems, careerHighsFromIndex, careerSumsFromSeasons, featGroups, homeFeatItems, leagueSeasonRecords, type RecentFeat } from "./notifications";
 import { FALLBACK_TEAM_COLOR } from "./teams";
+import { attachFeatContexts, domesticFromIndex, performancesFromGames } from "./feat-context";
 import { oddsSeed, playoffOdds, priorFromSeason, teamRatings, upcomingWinProbs, type PlayoffOdds } from "./predict";
 import { pickRegularChampions } from "./game-pool";
 import teamLineage from "@/data/codes/team-lineage.json";
@@ -243,7 +244,13 @@ export function loadRecentFeats(seasonCode: number): RecentFeat[] {
     careerSums: careerSumsFromSeasons(seasonFiles),
   };
   // 홈 규칙(2026-10-11): 커리어 하이 + 이번 시즌 리그 최고 갱신 + 통산 득점·출전 이정표만
-  const items = homeFeatItems(buildNotifItems(games, ctx), leagueSeasonRecords(games, ctx));
+  // 맥락 꼬리표(2026-10-16, lib/feat-context): "올 시즌 40득점 이상은 리그 2번째" · "이보다 높이 올라간 국내 선수는 역대 7명"
+  const items = attachFeatContexts(homeFeatItems(buildNotifItems(games, ctx), leagueSeasonRecords(games, ctx)), {
+    performances: performancesFromGames(games),
+    careerHighs: ctx.careerHighs,
+    careerSums: ctx.careerSums as unknown as Record<string, Record<string, number>>,
+    domestic: domesticFromIndex(loadPlayersIndex()),
+  });
   const teamOfPlayer = new Map((season?.players ?? []).map((p) => [p.playerNo, p.teamCode]));
   return featGroups(items).map((g) => {
     const team = teams.find((t) => t.teamCode === teamOfPlayer.get(g.player));

@@ -16,6 +16,7 @@ import {
   type SeenAward,
 } from "../lib/notif-news.js";
 import { SEASON_AWARD_DEFS } from "../lib/awards.js";
+import { attachFeatContexts, domesticFromIndex, performancesFromGames } from "../lib/feat-context.js";
 import { seasonShortLabel } from "../lib/career.js";
 import { awardSeenKey, type AwardSeenState } from "./award-seen.js";
 import type { PlayerIndexEntry, SeasonData, SeasonGamesFile, SeasonOption } from "../lib/types.js";
@@ -97,7 +98,13 @@ export async function buildNotifFeed(now: Date = new Date()): Promise<NotifFeed>
     teamShort: teamShort[p.teamCode] ?? p.teamName,
   }));
   const seen = await readJson<AwardSeenState>(join(process.cwd(), "data", "award-first-seen.json"), {});
-  const base = mergeLeagueRecords(buildNotifItems(games.games, { seasonCode, teamShort, careerHighs, careerSums }), games.games, ctx);
+  // 대기록에 맥락 꼬리표 (2026-10-16, lib/feat-context) — 알림함 소식 아래 한 줄
+  const base = attachFeatContexts(mergeLeagueRecords(buildNotifItems(games.games, { seasonCode, teamShort, careerHighs, careerSums }), games.games, ctx), {
+    performances: performancesFromGames(games.games),
+    careerHighs,
+    careerSums: careerSums as unknown as Record<string, Record<string, number>>,
+    domestic: domesticFromIndex(index),
+  });
   feed.items = sortNotifs([
     ...base,
     ...teamStreakItems(games.games, ctx),
