@@ -1,7 +1,8 @@
 // 선수 페이지 (PLAN.md §2-2, §3 ③): 선수 색인(players-index.json)의 전원을 빌드 때 정적 생성한다.
 // 구성(모바일 우선): 머리말(팀 색·사진·칭호 배지·프로필·나이·국가·출신교·통산 요약 8칸) → 시즌 칩 + 플레이어 카드(순위 범위, PC 는 가로 카드) → 시즌별 추이 + 하이라이트 3개(PC 는 추이 오른쪽 열)
 // → 슛 차트(하프코트 점 + 구역표 + 주 공격 유형, 시즌 칩을 따름 — 최신 시즌은 정적 HTML, 다른 시즌은 /shots/{시즌}/{번호}.json)
-// → 비슷한 시즌(lib/similar, 시즌 칩을 따름) → 시즌별 기록표(리그 1위 굵게) → 커리어 하이(통산 한 경기 최다 업적 카드 7개, 데이터 없으면 숨김).
+// → 비슷한 시즌(lib/similar, 시즌 칩을 따름) → 슛 습관의 변화(시즌별 구역 비중, 2026-10-16) → 커리어 타임라인(2026-10-16)
+// → 시즌별 기록표(리그 1위 굵게) → 커리어 하이(통산 한 경기 최다 업적 카드 7개, 데이터 없으면 숨김).
 // 데이터는 lib/data.ts 가 빌드 시점에 읽어 필요한 필드만 클라이언트 컴포넌트로 넘긴다.
 // 카드: 가장 최근 시즌·전체 범위는 여기서 계산해 정적 HTML에 넣고(lib/cardview), 다른 시즌·범위는 브라우저가 /cards/{코드}.json 으로.
 import type { Metadata } from "next";
@@ -40,6 +41,9 @@ import PlayerSectionNav from "@/app/components/PlayerSectionNav";
 import PlayerSeasonCards from "@/app/components/PlayerSeasonCards";
 import SiteNav from "@/app/components/SiteNav";
 import SourceFooter from "@/app/components/SourceFooter";
+import CareerTimeline from "@/app/components/CareerTimeline";
+import ShotHabit from "@/app/components/ShotHabit";
+import { loadCareerTimeline, loadShotHabits } from "@/lib/data-career-extra";
 
 // 색인에 없는 선수 번호는 404
 export const dynamicParams = false;
@@ -92,6 +96,9 @@ export default async function PlayerPage({ params }: { params: Params }) {
   const badges = loadPlayerBadges(playerNo).map((b) => ({ key: b.key, label: b.label }));
   // 만 나이의 "오늘" = 빌드 시각(한국 시간). 정적 페이지라 매일 데이터 커밋 → 재배포 때 갱신된다
   const today = seoulDateIso(new Date());
+  // 2026-10-16 "우리만의 기능": 슛 습관의 변화(슛 50개+ 시즌이 2개 이상일 때만 보임) · 커리어 타임라인
+  const shotHabits = loadShotHabits(career);
+  const timeline = loadCareerTimeline(career);
 
   return (
     <>
@@ -128,6 +135,16 @@ export default async function PlayerPage({ params }: { params: Params }) {
             trend
           )}
         </div>
+        {shotHabits.length >= 2 && (
+          <div className="mx-auto mt-8 max-w-page px-4">
+            <ShotHabit rows={shotHabits} />
+          </div>
+        )}
+        {timeline.length > 0 && (
+          <div className="mx-auto mt-8 max-w-page px-4">
+            <CareerTimeline rows={timeline} />
+          </div>
+        )}
         <div className="mx-auto mt-8 max-w-page px-4">
           <CareerTable seasons={seasons} playoffSeasons={career.playoffSeasons} />
         </div>
