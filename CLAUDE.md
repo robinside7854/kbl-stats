@@ -335,6 +335,7 @@ kbl-stats/
   | filter_change (팀·좋아요) | screen=team filter=season·leader·history(open/close — 시즌별 성적 표 펼침)·awards(open/close — 수상 더 보기) · screen=likes filter=tab(player/fans) · screen=teams filter=tab(now/past) | 팀 페이지 로스터 시즌·팀 통산 기록 부문 / 좋아요 순위 선수·팀 팬 수 / 모든 팀 지금 팀·추억의 팀 |
   | nav_click(menu "로그인"·"내 계정") | | 헤더 계정 버튼 |
   | contact_click | (없음) | 푸터 문의 이메일 누르기 |
+  | official_link_click | place(boxscore/footer), game_key | KBL 공홈 링크 (박스스코어 창 "KBL 공홈 경기 기록"·푸터 "KBL 공식 홈페이지", 주소는 site.json officialSite — 2026-10-17) |
   | home_feat_click | kind(career·careerTie·league·milestone), player_no | 홈 "새로 나온 기록" 칸 누르기 ("더 보기"는 filter_change screen=home filter=feats value=more) |
   | filter_change (일정 달력 띠) | screen=schedule filter=calendar value=mine/all | 일정 달력 띠의 날짜 누르기(그때 보기 범위, 2026-10-14) |
   | filter_change (일정 범위) | screen=schedule filter=scope value=mine/all | 일정 화면 내 응원팀만 / 전체 일정 (로그인 + 응원팀 있는 회원만 보임) |
@@ -402,6 +403,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-17 (신규 가입 관리자 알림·KBL 공홈 링크): ① 처음 보는 로그인으로 회원이 생기면(계정 연결 제외) 로그인 콜백이 회원을 만들고 `lib/server/admin-notify.ts` 가 관리자(ADMIN_LOGIN_IDS) 계정의 폰 알림 기기로 "새 회원이 가입했어요 · 구글/네이버 · 지금 회원 N명" 푸시(누르면 /admin). **Vercel 환경변수 VAPID_PRIVATE_KEY**(GitHub Secrets 와 같은 값)가 있어야 보냄, 관리자가 알림함에서 폰 알림을 켜 둬야 함. 실패해도 로그인은 그대로 ② KBL 공홈 링크: 박스스코어 창 아래 "KBL 공홈 경기 기록"(kbl.or.kr/game/record/{gmkey} — 서버 C detailUrl 형식, 실제 열림은 사용자 확인), 푸터 "KBL 공식 홈페이지". 주소 site.json officialSite·`lib/official.ts`. 선수 공홈 페이지 주소는 미확인이라 안 넣음. GA4 새 이벤트 official_link_click(place·game_key — place 등록 필요할 수 있음). 업데이트 소식 글. main 배포.
 - 2026-10-17 (홈 정리·즐겨찾기 버튼·팬 MVP 폐지): 사용자 4가지 → ① 홈 부문 1위 표지를 M1 전 큰 띠로 되돌림(`HomeHero` 339bc00b~1 판 + 폰 메타 줄 줄바꿈 정리) ② **팬 MVP 투표 전면 삭제**: /vote·/api/vote·/api/me/vote·VoteView·FanMvpCard·vote-client·lib/votes·lib/server/votes·vote-data·scripts/build-votes·tests/votes, 표 `member_votes` 는 표 준비 때 DROP(계정 합치기 쿼리도 삭제), 54-0 주간 순위의 투표 링크·개인정보 안내(시행일 10-17)·탈퇴 문구·업데이트 글 fan-vote 삭제, 옛 주소 /vote → 홈 redirect ③ 홈 "새로 나온 기록" 칸마다 두 줄(① 이름·팀·날짜 ② 첫 기록·단계·첫 맥락 한 줄, 기록이 더 있으면 "외 N개", 경기 결과 줄 삭제 — 전체는 title) — 360px 6칸 약 780 → 362px ④ 즐겨찾기를 홈에서 빼고 **헤더 별 버튼**(`FavoritesButton`, 있으면 금색 채운 별) → **/favorites**(`FavoritesView` = 옛 FavoritesStrip, 빈 화면은 "선수 찾아보기"). 헤더 버튼 5개를 400px 미만 폭 36px·간격 4px(globals.css `.header-actions`)로 360px 에서도 로고와 한 줄. GA4: nav_click menu=즐겨찾기 place=top·favorite_remove(새 매개변수 없음), vote_cast·vote_open 없어짐. 오늘 업데이트 글을 "홈 정리하고 즐겨찾기 버튼 만들었어요"로 합침. main 배포.
 - 2026-10-17 (경기 승리 확률 전부 삭제): 사용자 "승리 확률은 모두 뺍니다" → 일정 경기 카드 승률 막대(`WinProbBar` 파일 삭제)·박스스코어 팝업 "경기 전 우리 예측"(PastPick)·예측 적중률 줄(`PredictionRecordLine` 삭제, 팀 화면 플레이오프 확률 아래·일정 머리말)·용어 winProb 항목 삭제. `lib/data-predict-extra` 는 관전 포인트(loadMatchups)만. 플레이오프 확률(PlayoffOddsBoard·팀 페이지)은 그대로. 지난 업데이트 글 2개에서 승리 확률·적중률 문구 지움 + 새 글 "경기 승리 확률은 뺐어요"(드래프트 줄바꿈 한 줄 포함). SCOPE 고침. GA4: help_open topic=winProb 없어짐. main 배포.
 - 2026-10-17 (드래프트 줄바꿈·홈 확률 막대 삭제): 사용자 "드래프트 순위가 두 줄로 보여, 여전히 홈 다음 일정에서 승부예측바가 보여" → ① 선수 머리말 프로필을 칸 격자 → 항목 단위 줄바꿈(`PlayerHero`, 20자 이하 값은 한 줄 고정 — "2022 1라운드 1순위") ② 홈 다음 경기 줄에서 승리 확률 막대·머리말 "승리 확률 · 우리 추정" 삭제(`GameDayBoard` winProbs 없앰, 일정 화면 경기 카드 `WinProbBar` 는 그대로). 어제 업데이트 글 문구 고침. GA4 변화 없음. main 배포.

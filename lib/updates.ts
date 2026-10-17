@@ -31,6 +31,18 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-10-17-kbl-official-link",
+    date: "2026-10-17",
+    kind: "update",
+    title: "KBL 공홈으로 바로 갈 수 있어요",
+    summary: "공홈 경기 기록 바로 가기",
+    blocks: [
+      { kind: "p", text: "박스스코어 창 아래 \"KBL 공홈 경기 기록\"을 누르면 공식 홈페이지의 그 경기 기록이 열려요." },
+      { kind: "p", text: "화면 맨 아래에도 KBL 공식 홈페이지 버튼을 달았어요." },
+      { kind: "list", items: [{ text: "경기 일정에서 박스스코어 열기", href: "/season/49/schedule" }] },
+    ],
+  },
+  {
     slug: "2026-10-17-home-tidy",
     date: "2026-10-17",
     kind: "update",

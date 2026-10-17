@@ -525,3 +525,28 @@ export async function prunePushSent(q: Query, days = 21): Promise<void> {
 export async function removePushEndpoint(q: Query, endpoint: string): Promise<void> {
   await q(`DELETE FROM push_subscriptions WHERE endpoint = $1`, [endpoint]);
 }
+
+// ─────────────────────────────────────────────
+// 신규 가입 관리자 알림 (2026-10-17 사용자 요청)
+
+/** 이 로그인 번호가 이미 회원에 붙어 있나 (처음 로그인 판정) */
+export async function loginExists(q: Query, loginId: string): Promise<boolean> {
+  return (await memberOfLogin(q, loginId)) !== null;
+}
+
+/** 전체 회원 수 */
+export async function memberCount(q: Query): Promise<number> {
+  const rows = await q(`SELECT count(*)::int AS n FROM members`);
+  return Number(rows[0]?.n ?? 0);
+}
+
+/** 관리자 로그인 번호가 붙은 회원들의 폰 알림 기기 */
+export async function adminPushSubscriptions(q: Query, adminLoginIds: readonly string[]): Promise<PushSubscriptionRow[]> {
+  if (adminLoginIds.length === 0) return [];
+  const rows = await q(
+    `SELECT DISTINCT s.endpoint, s.p256dh, s.auth FROM push_subscriptions s
+     JOIN member_logins l ON l.member_id = s.member_id WHERE l.login_id = ANY($1::text[])`,
+    [[...adminLoginIds]],
+  );
+  return rows.map((r) => ({ endpoint: String(r.endpoint), p256dh: String(r.p256dh), auth: String(r.auth) }));
+}
