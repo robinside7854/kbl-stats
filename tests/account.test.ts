@@ -382,3 +382,16 @@ console.log("account: 계정 연결·관리자 규칙 통과");
   console.log("account: 폰 알림 구독(저장·옮김·끄기·보낸 기록·합치기·탈퇴) 통과");
 }
 
+
+// 관리자 회원 목록 정렬·쪽 (2026-10-17)
+{
+  const { sortAdminMembers, adminPageCount } = await import("../lib/account");
+  const row = (id: string, c: string, v: string | null) => ({ shortId: id, nickname: null, teamCodes: [], favoriteCount: 0, likeCount: 0, logins: [], createdAt: c, updatedAt: c, lastSeenAt: v });
+  const list = [row("a", "2026-10-01T00:00:00Z", "2026-10-17T00:00:00Z"), row("b", "2026-10-05T00:00:00Z", null), row("c", "2026-10-03T00:00:00Z", "2026-10-10T00:00:00Z")];
+  const joined = sortAdminMembers(list, "joined").map((m) => m.shortId).join("");
+  const visited = sortAdminMembers(list, "visited").map((m) => m.shortId).join("");
+  if (joined !== "bca") throw new Error(`가입 순 ${joined}`);
+  if (visited !== "acb") throw new Error(`최근 방문 순 ${visited}`);
+  if (adminPageCount(0) !== 1 || adminPageCount(10) !== 1 || adminPageCount(11) !== 2) throw new Error("쪽 수");
+  console.log("관리자 정렬·쪽 OK");
+}

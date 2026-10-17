@@ -5,7 +5,7 @@ import { currentLoginId, currentSession } from "@/lib/server/auth";
 import { isAdmin } from "@/lib/server/admin";
 import { getDb } from "@/lib/server/db";
 import { parseNotifOff } from "@/lib/notifications";
-import { deleteMember, getOrCreateMember, updateProfile } from "@/lib/server/members";
+import { deleteMember, getOrCreateMember, touchLastSeen, updateProfile } from "@/lib/server/members";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +24,7 @@ export async function GET() {
   if (!db) return json({ error: "unavailable" }, 503);
   const member = await getOrCreateMember(db, s.id);
   if (await isAdmin(db, s.id)) member.isAdmin = true;
+  await touchLastSeen(db, s.id).catch(() => {});
   // 닉네임을 아직 안 정했을 때만 네이버 별명을 제안으로 (저장은 사용자가 '저장'을 눌러야)
   return json({ member, suggestedNickname: member.nickname ? null : s.suggest, linkResult: s.linkResult });
 }

@@ -1,17 +1,19 @@
 "use client";
-// 관리자 화면 본문 (/admin, 2026-10-04): 요약(회원 수·닉네임·연결·로그인 수단) → 응원팀별 인원 → 회원 목록(닉네임 찾기, 50명씩).
+// 관리자 화면 본문 (/admin, 2026-10-04): 요약(회원 수·닉네임·연결·로그인 수단) → 응원팀별 인원 → 회원 카드 여러 열(닉네임 찾기, 가입·최근 방문 정렬, 10명씩 쪽 나눔 — 2026-10-17)
+// GA4 filter_change screen=admin filter=sort(joined/visited)·page.
 // 관리자가 아니면 내 로그인 번호를 보여 준다 — Vercel 환경변수 ADMIN_LOGIN_IDS 에 넣으면 관리자가 된다.
 // GA4: admin_view (매개변수 없음, 목록을 불러왔을 때)
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { PROVIDER_LABELS, type AdminMemberRow } from "@/lib/account";
+import { ADMIN_PAGE_SIZE, adminPageCount, PROVIDER_LABELS, sortAdminMembers, type AdminMemberRow, type AdminSort } from "@/lib/account";
+import { IconChevronLeft, IconChevronRight } from "./icons";
+import Segmented from "./Segmented";
 import { fetchAdminMembers, type AdminResult } from "./account-client";
 import type { AccountTeam } from "./AccountView";
 import MemberBadge from "./MemberBadge";
 import Skeleton from "./Skeleton";
-import { trackEvent } from "./track";
+import { trackEvent, trackFilters } from "./track";
 
-const PAGE = 50;
 
 function kstDate(iso: string): string {
   const d = new Date(new Date(iso).getTime() + 9 * 3600_000);
@@ -71,7 +73,8 @@ export default function AdminView({ teams }: { teams: AccountTeam[] }) {
 
 function MemberList({ members, teams }: { members: AdminMemberRow[]; teams: AccountTeam[] }) {
   const [query, setQuery] = useState("");
-  const [shown, setShown] = useState(PAGE);
+  const [sort, setSort] = useState<AdminSort>("joined");
+  const [page, setPage] = useState(1);
   const teamOf = useMemo(() => new Map(teams.map((t) => [t.teamCode, t])), [teams]);
 
   const stats = useMemo(() => {
@@ -89,8 +92,16 @@ function MemberList({ members, teams }: { members: AdminMemberRow[]; teams: Acco
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return q ? members.filter((m) => (m.nickname ?? "").toLowerCase().includes(q) || m.shortId.toLowerCase().includes(q)) : members;
-  }, [members, query]);
+    const list = q ? members.filter((m) => (m.nickname ?? "").toLowerCase().includes(q) || m.shortId.toLowerCase().includes(q)) : members;
+    return sortAdminMembers(list, sort);
+  }, [members, query, sort]);
+  const pages = adminPageCount(filtered.length);
+  const current = Math.min(page, pages);
+  const pageRows = filtered.slice((current - 1) * ADMIN_PAGE_SIZE, current * ADMIN_PAGE_SIZE);
+  const goPage = (n: number) => {
+    setPage(Math.max(1, Math.min(pages, n)));
+    trackFilters("admin", { page: String(n) });
+  };
 
   const tiles: [string, number][] = [
     ["전체 회원", stats.total],
@@ -131,80 +142,110 @@ function MemberList({ members, teams }: { members: AdminMemberRow[]; teams: Acco
       )}
 
       <section className="surface-card rounded-container">
-        <div className="p-4 pb-2">
-          <label htmlFor="admin-search" className="text-sub font-semibold text-ink-2">
-            닉네임·번호로 찾기
-          </label>
-          <input
-            id="admin-search"
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              setShown(PAGE);
+        <div className="flex flex-wrap items-end gap-3 p-4 pb-3">
+          <div className="min-w-[14rem] flex-1">
+            <label htmlFor="admin-search" className="text-sub font-semibold text-ink-2">
+              닉네임·번호로 찾기
+            </label>
+            <input
+              id="admin-search"
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setPage(1);
+              }}
+              autoComplete="off"
+              className="focus-ring mt-1 h-11 w-full rounded-control border border-line bg-surface px-3 text-base text-ink"
+            />
+          </div>
+          <Segmented<AdminSort>
+            label="정렬"
+            options={[
+              { value: "joined", label: "가입 순" },
+              { value: "visited", label: "최근 방문 순" },
+            ]}
+            value={sort}
+            onChange={(v) => {
+              setSort(v);
+              setPage(1);
+              trackFilters("admin", { sort: v });
             }}
-            autoComplete="off"
-            className="focus-ring mt-1 h-11 w-full rounded-control border border-line bg-surface px-3 text-base text-ink"
           />
-          <p className="mt-1 text-sub text-ink-3">{filtered.length.toLocaleString("ko-KR")}명 · 새로 가입한 순</p>
         </div>
+        <p className="px-4 pb-3 text-sub text-ink-3">
+          {filtered.length.toLocaleString("ko-KR")}명 · {sort === "joined" ? "새로 가입한 순" : "최근 방문한 순"}
+        </p>
         {filtered.length === 0 ? (
           <p className="px-4 pb-4 text-body text-ink-2">맞는 회원이 없어요.</p>
         ) : (
           <>
-            <div className="hidden grid-cols-[minmax(0,2fr)_minmax(0,1.2fr)_minmax(0,1.2fr)_7rem_6rem_6rem] gap-3 border-b border-line px-4 py-2 text-caption font-semibold text-ink-3 md:grid">
-              <span>닉네임</span>
-              <span>응원팀</span>
-              <span>로그인</span>
-              <span className="text-right">즐겨찾기·좋아요</span>
-              <span className="text-right">가입</span>
-              <span className="text-right">최근 수정</span>
-            </div>
-            <ul className="divide-y divide-line">
-              {filtered.slice(0, shown).map((m) => {
+            <ul className="grid grid-cols-1 gap-3 px-4 pb-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
+              {pageRows.map((m) => {
                 const t = m.teamCodes[0] ? teamOf.get(m.teamCodes[0]) : undefined;
-                const teamNames = m.teamCodes.map((c) => teamOf.get(c)?.name ?? `팀 ${c}`).join(" · ");
+                const firstTeam = m.teamCodes[0] ? (teamOf.get(m.teamCodes[0])?.name ?? `팀 ${m.teamCodes[0]}`) : null;
+                const teamText = firstTeam ? (m.teamCodes.length > 1 ? `${firstTeam} 외 ${m.teamCodes.length - 1}` : firstTeam) : "없음";
+                const rows: [string, string][] = [
+                  ["응원팀", teamText],
+                  ["로그인", m.logins.map((p) => PROVIDER_LABELS[p]).join(" · ") || "없음"],
+                  ["즐겨찾기·좋아요", `${m.favoriteCount} · ${m.likeCount}`],
+                  ["가입", kstDate(m.createdAt)],
+                  ["최근 방문", m.lastSeenAt ? kstDate(m.lastSeenAt) : "기록 없음"],
+                ];
                 return (
-                  <li
-                    key={m.shortId + m.createdAt}
-                    className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1 px-4 py-3 text-sub md:grid-cols-[minmax(0,2fr)_minmax(0,1.2fr)_minmax(0,1.2fr)_7rem_6rem_6rem] md:items-center"
-                  >
-                    <div className="min-w-0 text-body md:order-1">
-                      {m.nickname ? <MemberBadge nickname={m.nickname} teamColor={t?.color} /> : <span className="text-ink-3">닉네임 없음</span>}
-                      <span className="ml-2 text-caption text-ink-3 tabular">#{m.shortId}</span>
+                  <li key={m.shortId + m.createdAt} className="rounded-card border border-line p-3">
+                    <div className="flex items-center justify-between gap-2 whitespace-nowrap">
+                      {m.nickname ? <MemberBadge nickname={m.nickname} teamColor={t?.color} /> : <span className="text-body text-ink-3">닉네임 없음</span>}
+                      <span className="shrink-0 text-caption text-ink-3 tabular">#{m.shortId}</span>
                     </div>
-                    <span className="text-right text-ink-3 tabular md:order-5">
-                      <span className="md:hidden">가입 </span>
-                      {kstDate(m.createdAt)}
-                    </span>
-                    <span className="truncate text-ink-2 md:order-2">{teamNames || "응원팀 없음"}</span>
-                    <span className="text-right text-ink-2 md:order-3 md:text-left">{m.logins.map((p) => PROVIDER_LABELS[p]).join(" · ") || "없음"}</span>
-                    <span className="text-ink-2 tabular md:order-4 md:text-right">
-                      <span className="md:hidden">즐겨찾기 </span>
-                      {m.favoriteCount}
-                      <span className="text-ink-3"> · 좋아요 {m.likeCount}</span>
-                    </span>
-                    <span className="text-right text-ink-3 tabular md:order-6">
-                      <span className="md:hidden">수정 </span>
-                      {kstDate(m.updatedAt)}
-                    </span>
+                    <dl className="mt-2 space-y-1 text-sub">
+                      {rows.map(([k, v]) => (
+                        <div key={k} className="flex items-center justify-between gap-3 whitespace-nowrap">
+                          <dt className="shrink-0 text-ink-3">{k}</dt>
+                          <dd className="tabular text-ink-2" title={k === "응원팀" ? m.teamCodes.map((c) => teamOf.get(c)?.name ?? c).join(" · ") : undefined}>
+                            {v}
+                          </dd>
+                        </div>
+                      ))}
+                    </dl>
                   </li>
                 );
               })}
             </ul>
-            {filtered.length > shown && (
-              <div className="p-4">
-                <button
-                  type="button"
-                  onClick={() => setShown((n) => n + PAGE)}
-                  className="focus-ring h-11 w-full cursor-pointer rounded-control border border-line bg-surface text-body font-semibold text-ink transition-colors duration-200 hover:bg-surface-2"
-                >
-                  더 보기 ({(filtered.length - shown).toLocaleString("ko-KR")}명 남음)
-                </button>
-              </div>
+            {pages > 1 && (
+              <nav aria-label="쪽" className="flex flex-wrap items-center justify-center gap-1 border-t border-line p-3">
+                <PageButton label="이전 쪽" disabled={current <= 1} onClick={() => goPage(current - 1)}>
+                  <IconChevronLeft size={16} />
+                </PageButton>
+                {Array.from({ length: pages }, (_, k) => k + 1).map((n) => (
+                  <PageButton key={n} label={`${n}쪽`} current={n === current} onClick={() => goPage(n)}>
+                    {n}
+                  </PageButton>
+                ))}
+                <PageButton label="다음 쪽" disabled={current >= pages} onClick={() => goPage(current + 1)}>
+                  <IconChevronRight size={16} />
+                </PageButton>
+              </nav>
             )}
           </>
         )}
       </section>
     </div>
+  );
+}
+
+function PageButton({ children, label, current, disabled, onClick }: { children: React.ReactNode; label: string; current?: boolean; disabled?: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      aria-current={current ? "page" : undefined}
+      disabled={disabled}
+      onClick={onClick}
+      className={`focus-ring flex h-10 min-w-10 cursor-pointer items-center justify-center rounded-control px-2 text-body font-semibold tabular transition-colors duration-200 disabled:cursor-default disabled:text-ink-3 ${
+        current ? "bg-ink text-bg" : "text-ink-2 hover:bg-surface-2"
+      }`}
+    >
+      {children}
+    </button>
   );
 }

@@ -209,6 +209,8 @@ export interface AdminMemberRow {
   logins: LoginProvider[];
   createdAt: string;
   updatedAt: string;
+  /** 최근 방문 (기록 시작 전 회원은 null) */
+  lastSeenAt: string | null;
 }
 
 // ── 54-0 내 기록 (2026-10-04 사용자 요청: 로그인한 사람은 54-0 결과를 내 계정에 보관) ─────────
@@ -317,4 +319,21 @@ export interface GameRanking {
   rows: GameRankRow[];
   /** 순위에 오른 회원 수 (위 rows 는 상위 GAME_RANKING_LIMIT 명) */
   members: number;
+}
+
+// ── 관리자 회원 목록 정렬·쪽 나눔 (2026-10-17) ─────────
+export type AdminSort = "joined" | "visited";
+export const ADMIN_PAGE_SIZE = 10;
+
+/** 가입 순(새로 가입한 회원 먼저) / 최근 방문 순(기록 없는 회원은 맨 뒤, 그 안은 가입 순) */
+export function sortAdminMembers(list: readonly AdminMemberRow[], sort: AdminSort): AdminMemberRow[] {
+  const t = (v: string | null) => (v ? Date.parse(v) : -Infinity);
+  return [...list].sort((a, b) =>
+    sort === "visited" ? t(b.lastSeenAt) - t(a.lastSeenAt) || t(b.createdAt) - t(a.createdAt) : t(b.createdAt) - t(a.createdAt),
+  );
+}
+
+/** 쪽 수 (최소 1) */
+export function adminPageCount(total: number, size = ADMIN_PAGE_SIZE): number {
+  return Math.max(1, Math.ceil(total / size));
 }

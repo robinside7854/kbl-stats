@@ -85,6 +85,8 @@ export const SCHEMA_SQL = [
   )`,
   // 알림 종류별 끄기 (2026-10-08) — 끈 묶음 키(lib/notifications NOTIF_GROUPS)
   `ALTER TABLE members ADD COLUMN IF NOT EXISTS notif_off text[] NOT NULL DEFAULT '{}'`,
+  // 최근 방문 (2026-10-17 관리자 회원 목록 정렬) — /api/me GET 때 1시간에 한 번만 적는다(touchLastSeen)
+  `ALTER TABLE members ADD COLUMN IF NOT EXISTS last_seen_at timestamptz`,
   // 팬 MVP 투표(2026-10-16)는 2026-10-17 사용자 결정으로 폐지 — 쌓인 투표 기록도 지운다
   `DROP TABLE IF EXISTS member_votes`,
   // 경기 승부 예측은 같은 날 폐지(사용자 결정) — 하루 동안 쌓인 예측 기록도 지운다
@@ -287,9 +289,10 @@ export async function unlinkLogin(q: Query, currentLoginId: string, provider: Lo
 export async function listMembers(q: Query): Promise<AdminMemberRow[]> {
   const rows = await q(`SELECT m.id, m.nickname, m.team_codes, cardinality(m.favorites) AS fav,
       (SELECT count(*) FROM member_likes k WHERE k.member_id = m.id) AS likes,
-      m.created_at, m.updated_at, array_remove(array_agg(l.provider), NULL) AS logins
+      m.created_at, m.updated_at, m.last_seen_at, array_remove(array_agg(l.provider), NULL) AS logins
     FROM members m LEFT JOIN member_logins l ON l.member_id = m.id
     GROUP BY m.id ORDER BY m.created_at DESC`);
+  const iso = (v: unknown) => (v ? new Date(v as string).toISOString() : null);
   return rows.map((r) => ({
     shortId: String(r.id).replace(/[^A-Za-z0-9]/g, "").slice(-6),
     nickname: (r.nickname as string | null) ?? null,
@@ -299,7 +302,15 @@ export async function listMembers(q: Query): Promise<AdminMemberRow[]> {
     logins: asProviders(r.logins),
     createdAt: new Date(r.created_at as string).toISOString(),
     updatedAt: new Date(r.updated_at as string).toISOString(),
+    lastSeenAt: iso(r.last_seen_at),
   }));
+}
+
+/** 최근 방문 적기 — 같은 회원은 1시간에 한 번만 (DB 쓰기 줄이기) */
+export async function touchLastSeen(q: Query, loginId: string): Promise<void> {
+  const id = await memberOfLogin(q, loginId);
+  if (!id) return;
+  await q(`UPDATE members SET last_seen_at = now() WHERE id = $1 AND (last_seen_at IS NULL OR last_seen_at < now() - interval '1 hour')`, [id]);
 }
 
 export type LikeOutcome = { ok: true; likes: MyLikes } | { ok: false; error: "limit" };

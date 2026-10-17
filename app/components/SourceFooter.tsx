@@ -3,6 +3,7 @@ import Link from "next/link";
 import { officialImagesEnabled } from "@/lib/images";
 import DeveloperContact from "./DeveloperContact";
 import OfficialSiteLink from "./OfficialSiteLink";
+import AdminFooterLink from "./AdminFooterLink";
 import { gaMeasurementId } from "@/lib/analytics";
 
 export const SOURCE_LINE = "기록 출처: KBL 공식 홈페이지 · 비영리 팬 프로젝트";
@@ -37,6 +38,7 @@ export default function SourceFooter({ fetchedAt, wide = false }: { fetchedAt?: 
         업데이트 소식
       </Link>
       <OfficialSiteLink />
+      <AdminFooterLink />
       <p>{SOURCE_LINE}</p>
       {officialImagesEnabled() && <p className="mt-1">{IMAGE_CREDIT_LINE}</p>}
       {gaMeasurementId() && <p className="mt-1">{ANALYTICS_LINE}</p>}
