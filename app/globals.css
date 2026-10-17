@@ -306,3 +306,12 @@ body {
 .scatter-plot :focus {
   outline: none;
 }
+
+/* 헤더 오른쪽 버튼 (2026-10-17 즐겨찾기 버튼 추가): 400px 미만은 폭만 36px 로 — 높이 40px 는 그대로 */
+@media (max-width: 399px) {
+  .header-actions :is(a, button) {
+    width: 2.25rem;
+    min-width: 2.25rem;
+    padding-inline: 0;
+  }
+}

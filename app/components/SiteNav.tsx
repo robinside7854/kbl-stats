@@ -15,6 +15,7 @@ import type { SeasonOption } from "@/lib/types";
 import PlayerSearch from "./PlayerSearch";
 import AccountButton from "./AccountButton";
 import NotificationBell from "./NotificationBell";
+import FavoritesButton from "./FavoritesButton";
 import RandomCardButton from "./RandomCardButton";
 import ShareButton from "./ShareButton";
 import UpdateBanner from "./UpdateBanner";
@@ -22,7 +23,7 @@ import { IconBall, IconCalendar, IconHome, IconLeaders, IconPlayer, IconTeam } f
 import SiteLogo, { SITE_HEADER_NAME } from "./SiteLogo";
 import { trackEvent, trackFilters } from "./track";
 
-export type SiteView = "home" | "players" | "player" | "teams" | "team" | "leaders" | "schedule" | "compare" | "glossary" | "records" | "game" | "privacy" | "me" | "updates" | "notifications" | "vote";
+export type SiteView = "home" | "players" | "player" | "teams" | "team" | "leaders" | "schedule" | "compare" | "glossary" | "records" | "game" | "privacy" | "me" | "updates" | "notifications" | "favorites";
 
 type MenuItem = { views: SiteView[]; label: string; short?: string; icon: (p: { size: 24 }) => React.ReactNode; href: (seasonCode: number) => string };
 const HOME: MenuItem = { views: ["home"], label: "홈", icon: IconHome, href: () => "/" };
@@ -78,7 +79,7 @@ export default function SiteNav({ seasons, seasonCode, view, onSeasonChange, wid
           <Link href="/" className="focus-ring order-1 inline-flex h-10 shrink-0 items-center gap-2 rounded-control text-body font-bold tracking-tight text-ink lg:h-12 lg:gap-2.5 lg:text-h2">
             <SiteLogo heightLg={30} />
             <span className="sr-only">KBL </span>
-            {/* 440px 미만은 이름을 두 줄로 — 오른쪽 버튼 4개(랜덤·공유·알림·계정)가 첫 줄에 같이 들어가게 */}
+            {/* 440px 미만은 이름을 두 줄로 — 오른쪽 버튼 5개(랜덤·공유·즐겨찾기·알림·계정)가 첫 줄에 같이 들어가게 */}
             <span className="max-[439px]:text-sub max-[439px]:leading-[1.1]">
               {SITE_HEADER_NAME.split(" ").map((w, i) => (
                 <span key={w}>
@@ -90,9 +91,11 @@ export default function SiteNav({ seasons, seasonCode, view, onSeasonChange, wid
             </span>
           </Link>
           {/* 랜덤 카드·공유: 모바일은 첫 줄 오른쪽, PC 는 맨 끝 */}
-          <div className="order-2 flex shrink-0 items-center gap-1.5 min-[400px]:gap-2 sm:order-4">
+          {/* 400px 미만은 버튼 폭 36px·간격 4px(globals.css .header-actions) — 다섯 개(랜덤·공유·즐겨찾기·알림·계정)가 로고와 한 줄에 */}
+          <div className="header-actions order-2 flex shrink-0 items-center gap-1 min-[400px]:gap-2 sm:order-4">
             <RandomCardButton />
             <ShareButton />
+            <FavoritesButton active={view === "favorites"} />
             <NotificationBell active={view === "notifications"} />
             <AccountButton active={view === "me"} />
           </div>

@@ -29,7 +29,7 @@ for (const t of texts) {
 }
 
 // 사이트 안 링크는 있는 화면으로
-const ROUTES = ["/", "/players", "/teams", "/records", "/game", "/game/ranking", "/likes", "/privacy", "/me", "/updates", "/glossary", "/notifications", "/vote", "/records/draft", "/records/foreign", "/records/trends", "/compare"];
+const ROUTES = ["/", "/players", "/teams", "/records", "/game", "/game/ranking", "/likes", "/privacy", "/me", "/updates", "/glossary", "/notifications", "/favorites", "/records/draft", "/records/foreign", "/records/trends", "/compare"];
 // 선수·팀·시즌 화면은 번호가 붙은 주소 모양으로 확인
 const ROUTE_PATTERNS = [/^\/player\/\d+$/, /^\/team\/\d+$/, /^\/season\/\d+\/(leaders|schedule)$/];
 for (const p of UPDATE_POSTS)

@@ -3,7 +3,7 @@
 // 순위 = 회원마다 그 주 가장 좋은 판 하나, 닉네임을 정한 회원만, 서버가 다시 계산해 맞춘 기록만 (lib/server/members weeklyGameRanking).
 // 줄마다 다섯 명 미니 카드(사진·종합 등급·이름·시즌·팀, 2026-10-07 사용자 요청) — 라인업 주소를 54-0 후보 풀(/game/pool.json, 게임과 같은 파일)로 풀어서.
 // 풀을 받기 전·못 받으면 이름 글자만. 카드를 누르면 그 선수 그 시즌 페이지.
-// 주소 ?week=last. GA4: filter_change screen=game_ranking filter=week, vote_open place=game_ranking(팬 MVP 투표 링크, 2026-10-16)
+// 주소 ?week=last. GA4: filter_change screen=game_ranking filter=week
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { enabledLoginProviders, weekRangeLabel, type GameRanking, type RankingWeek } from "@/lib/account";
@@ -126,10 +126,6 @@ export default function GameRankingView({ teams }: { teams: AccountTeam[] }) {
           onChange={choose}
         />
         <span className="flex flex-wrap items-center gap-x-3">
-          <Link href="/vote" className="focus-ring link-shortcut" onClick={() => trackEvent("vote_open", { place: "game_ranking" })}>
-            팬 MVP 투표
-            <IconChevronRight size={16} />
-          </Link>
           <Link href="/game" className="focus-ring link-shortcut">
             54-0 하러 가기
             <IconChevronRight size={16} />

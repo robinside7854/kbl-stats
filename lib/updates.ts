@@ -31,14 +31,24 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
-    slug: "2026-10-17-no-win-prob",
+    slug: "2026-10-17-home-tidy",
     date: "2026-10-17",
     kind: "update",
-    title: "경기 승리 확률은 뺐어요",
-    summary: "경기 승리 확률 뺐어요",
+    title: "홈 정리하고 즐겨찾기 버튼 만들었어요",
+    summary: "즐겨찾기는 위쪽 별 버튼",
     blocks: [
-      { kind: "p", text: "홈 다음 경기, 일정 경기 카드, 박스스코어에 있던 경기 승리 확률과 예측 적중률을 뺐어요. 팀 화면의 플레이오프 확률은 그대로예요." },
-      { kind: "p", text: "선수 페이지 프로필에서 드래프트 순위가 두 줄로 꺾이던 것도 고쳤어요." },
+      { kind: "p", text: "즐겨찾기한 선수는 이제 홈 가운데가 아니라 화면 위쪽 별 버튼을 누르면 모아 볼 수 있어요." },
+      {
+        kind: "list",
+        items: [
+          "홈 부문 1위 표지를 다시 크게",
+          "새로 나온 기록은 칸마다 두 줄로 짧게",
+          "경기 승리 확률과 예측 적중률은 뺐어요. 팀 화면 플레이오프 확률은 그대로예요",
+          "팬 MVP 투표는 닫았어요",
+          "선수 프로필의 드래프트 순위가 두 줄로 꺾이던 것도 고쳤어요",
+        ],
+      },
+      { kind: "list", items: [{ text: "즐겨찾기 보기", href: "/favorites" }] },
     ],
   },
   {
@@ -64,17 +74,6 @@ export const UPDATE_POSTS: UpdatePost[] = [
       { kind: "p", text: "홈 부문별 순위를 1~3위에서 1~5위로 늘렸어요. 경기당 기록 아래에 몇 경기 뛰었는지도 같이 보여요." },
       { kind: "p", text: "다음 경기 줄도 정리했어요. 연승·연패는 팀 이름 옆 꼬리표로, 내 응원팀 경기는 줄 위쪽에 표시돼요." },
       { kind: "list", items: [{ text: "홈에서 보기", href: "/" }] },
-    ],
-  },
-  {
-    slug: "2026-10-16-fan-vote",
-    date: "2026-10-16",
-    kind: "update",
-    title: "이번 주 MVP, 이제 팬이 뽑아요",
-    summary: "팬 MVP 투표 생겼어요",
-    blocks: [
-      { kind: "p", text: "로그인하면 한 주에 한 표씩 이번 주 가장 잘한 선수를 뽑을 수 있어요. 주가 끝나기 전엔 바꿔도 돼요. 후보는 팀마다 한 명, 그 주 득점·리바운드·어시스트·3점·스틸+블록 중 가장 눈에 띈 기록을 낸 선수예요." },
-      { kind: "list", items: [{ text: "팬 MVP 투표하기", href: "/vote" }] },
     ],
   },
   {

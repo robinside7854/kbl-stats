@@ -102,6 +102,8 @@ const nextConfig = {
         destination: "/season/:seasonCode/leaders",
         permanent: false,
       },
+      // 팬 MVP 투표(2026-10-16)는 2026-10-17 폐지 — 옛 링크는 홈으로
+      { source: "/vote", destination: "/", permanent: false },
     ];
   },
 };

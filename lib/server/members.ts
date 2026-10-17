@@ -85,15 +85,8 @@ export const SCHEMA_SQL = [
   )`,
   // 알림 종류별 끄기 (2026-10-08) — 끈 묶음 키(lib/notifications NOTIF_GROUPS)
   `ALTER TABLE members ADD COLUMN IF NOT EXISTS notif_off text[] NOT NULL DEFAULT '{}'`,
-  // 팬 참여 (2026-10-16, lib/server/votes.ts): 이번 주 팬 MVP 투표(회원마다 한 주 한 표, 주 안에서 바꿀 수 있음)
-  `CREATE TABLE IF NOT EXISTS member_votes (
-    member_id text NOT NULL REFERENCES members(id) ON DELETE CASCADE,
-    week text NOT NULL,
-    player_no text NOT NULL,
-    updated_at timestamptz NOT NULL DEFAULT now(),
-    PRIMARY KEY (member_id, week)
-  )`,
-  `CREATE INDEX IF NOT EXISTS member_votes_week ON member_votes (week)`,
+  // 팬 MVP 투표(2026-10-16)는 2026-10-17 사용자 결정으로 폐지 — 쌓인 투표 기록도 지운다
+  `DROP TABLE IF EXISTS member_votes`,
   // 경기 승부 예측은 같은 날 폐지(사용자 결정) — 하루 동안 쌓인 예측 기록도 지운다
   `DROP TABLE IF EXISTS member_picks`,
   // 연결 기능 이전 회원(로그인 수단이 하나도 안 적힌 회원): 회원 번호가 곧 로그인 번호
@@ -265,10 +258,6 @@ export async function linkLogin(q: Query, currentLoginId: string, newLoginId: st
   await q(`INSERT INTO member_games (member_id, lineup, wins, rating, bonuses, names, played_at, verified)
     SELECT $1, lineup, wins, rating, bonuses, names, played_at, verified FROM member_games WHERE member_id = $2
     ON CONFLICT (member_id, lineup) DO NOTHING`, [me, owner]);
-  // 팬 MVP 투표도 합친다 (같은 주는 지금 회원 것)
-  await q(`INSERT INTO member_votes (member_id, week, player_no, updated_at)
-    SELECT $1, week, player_no, updated_at FROM member_votes WHERE member_id = $2
-    ON CONFLICT (member_id, week) DO NOTHING`, [me, owner]);
   // 폰 알림 기기·보낸 알림도 옮긴다
   await q(`UPDATE push_subscriptions SET member_id = $1 WHERE member_id = $2`, [me, owner]);
   await q(`INSERT INTO push_sent (member_id, notif_id, sent_at)
