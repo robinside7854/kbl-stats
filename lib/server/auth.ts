@@ -12,10 +12,11 @@ import { getServerSession } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import NaverProvider from "next-auth/providers/naver";
 import site from "@/data/codes/site.json";
-import { enabledLoginProviders, LINK_RESULTS, memberIdOf, type LinkResult } from "@/lib/account";
+import { enabledLoginProviders, LINK_RESULTS, memberIdOf, providerOfMemberId, type LinkResult } from "@/lib/account";
 import { getDb } from "./db";
 import { takeLinkIntent } from "./link";
-import { linkLogin } from "./members";
+import { linkLogin, loginExists, resolveMemberId } from "./members";
+import { notifyAdminsNewMember } from "./admin-notify";
 
 // 운영 배포에서는 로그인 되돌아올 주소를 사이트 주소로 고정한다 (배포마다 바뀌는 VERCEL_URL 을 쓰면 구글·네이버에 등록한 주소와 달라진다)
 if (process.env.VERCEL_ENV === "production" && !process.env.NEXTAUTH_URL) process.env.NEXTAUTH_URL = site.siteUrl;
@@ -74,6 +75,18 @@ export const authOptions: NextAuthOptions = {
           // 못 붙였으면 원래 계정으로 로그인해 둔다 (새 회원이 생기지 않게)
           if (result === "conflict" || result === "failed") token.mid = from;
           token.linkResult = result;
+        } else if (mid) {
+          // 처음 보는 로그인 = 신규 가입 → 회원을 만들고 관리자에게 폰 알림 (2026-10-17). 실패해도 로그인은 그대로
+          try {
+            const db = await getDb();
+            if (db && !(await loginExists(db, mid))) {
+              await resolveMemberId(db, mid);
+              const provider = providerOfMemberId(mid);
+              if (provider) await notifyAdminsNewMember(db, provider);
+            }
+          } catch (e) {
+            console.error("신규 가입 알림 실패", e);
+          }
         }
         const nick = typeof user?.name === "string" ? suggestionFrom(user.name) : null;
         if (account.provider === "naver" && nick) token.suggest = nick;

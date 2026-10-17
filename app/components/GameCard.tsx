@@ -19,6 +19,7 @@ import Skeleton from "./Skeleton";
 import TeamLogo from "./TeamLogo";
 import { TeamLink } from "./EntityLinks";
 import { trackEvent } from "./track";
+import { officialGameUrl } from "@/lib/official";
 
 export interface GameTeamInfo {
   shortName: string;
@@ -204,6 +205,17 @@ export default function GameCard({ game: g, seasonCode, teams, stars = null, loa
               ) : failed ? (
                 <p className="mt-2 text-sub text-ink-3">박스스코어를 불러오지 못했습니다</p>
               ) : null}
+              <p className="mt-3 flex justify-end">
+                <a
+                  href={officialGameUrl(g.gmkey)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => trackEvent("official_link_click", { place: "boxscore", game_key: g.gmkey })}
+                  className="focus-ring link-shortcut gap-1 px-1 text-sub"
+                >
+                  KBL 공홈 경기 기록 <IconExternal size={16} />
+                </a>
+              </p>
             </BoxScoreDialog>
           )}
         </>

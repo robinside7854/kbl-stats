@@ -15,5 +15,10 @@
     "hosting": "Vercel (미국)"
   },
   "tagline": "KBL 기록을 카드·리더보드·역대 기록으로 보는 팬 사이트",
+  "officialSite": {
+    "_comment": "KBL 공홈으로 가는 링크(2026-10-17). gameRecord 는 서버 C 경기 상세의 detailUrl(/game/record/{gmkey}) 형식",
+    "home": "https://kbl.or.kr",
+    "gameRecord": "https://kbl.or.kr/game/record/{gmkey}"
+  },
   "pushPublicKey": "BNGYo45zXLANrgeGsXK7A2wCrVGcpGa2oRdQ09T8QC5LrgqFXvQTkf8dJqi_6Blp_e7ZsZxcHixiyYz1HfPReQ4"
 }
