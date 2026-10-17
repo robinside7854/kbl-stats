@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import { shareMetadata } from "@/lib/share";
 import { computeStandings, headToHeadWins, notableStreak } from "@/lib/games";
 import { seasonShortLabel } from "@/lib/career";
-import { loadPredictionRecord, loadPreviousPredictionRecord } from "@/lib/data-predict-extra";
 import { dataAsOfLabel, gameTeamInfos, isSeasonOngoing, loadSeasonPredictions, listSeasonsWithPlayers, loadSeasonData, loadSeasonGames, loadTeamIndex, toCardTeams } from "@/lib/data";
 import type { StandingsSeason, StandingTeam } from "@/app/components/StandingsTable";
 import SiteNav from "@/app/components/SiteNav";
@@ -48,8 +47,6 @@ export default function TeamsPage() {
         rows: pred.odds,
         teams: latestTeams,
         remaining: Object.keys(pred.winProbs).length,
-        record: loadPredictionRecord(pred.seasonCode),
-        previousRecord: loadPreviousPredictionRecord(pred.seasonCode),
       }
     : null;
   return (

@@ -31,6 +31,17 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-10-17-no-win-prob",
+    date: "2026-10-17",
+    kind: "update",
+    title: "경기 승리 확률은 뺐어요",
+    summary: "경기 승리 확률 뺐어요",
+    blocks: [
+      { kind: "p", text: "홈 다음 경기, 일정 경기 카드, 박스스코어에 있던 경기 승리 확률과 예측 적중률을 뺐어요. 팀 화면의 플레이오프 확률은 그대로예요." },
+      { kind: "p", text: "선수 페이지 프로필에서 드래프트 순위가 두 줄로 꺾이던 것도 고쳤어요." },
+    ],
+  },
+  {
     slug: "2026-10-16-cleaner-look",
     date: "2026-10-16",
     kind: "update",
@@ -51,7 +62,7 @@ export const UPDATE_POSTS: UpdatePost[] = [
     summary: "홈 순위 5위까지 보여요",
     blocks: [
       { kind: "p", text: "홈 부문별 순위를 1~3위에서 1~5위로 늘렸어요. 경기당 기록 아래에 몇 경기 뛰었는지도 같이 보여요." },
-      { kind: "p", text: "다음 경기 줄도 정리했어요. 연승·연패는 팀 이름 옆 꼬리표로, 내 응원팀 경기는 줄 위쪽에 표시돼요. 승리 확률은 홈에서 빼고 일정 화면 경기 카드에서만 보여요." },
+      { kind: "p", text: "다음 경기 줄도 정리했어요. 연승·연패는 팀 이름 옆 꼬리표로, 내 응원팀 경기는 줄 위쪽에 표시돼요." },
       { kind: "list", items: [{ text: "홈에서 보기", href: "/" }] },
     ],
   },
@@ -75,8 +86,8 @@ export const UPDATE_POSTS: UpdatePost[] = [
     blocks: [
       { kind: "p", text: "기록 시즌별 화면에 득점왕 레이스가 생겼어요. 상위 5명 경기당 평균이 날짜마다 어떻게 움직였는지 선으로 봐요. 리바·어시·스틸·블록·3점도 돼요." },
       { kind: "p", text: "비교 화면에서 리그 평균 대비를 누르면 시대 차이를 빼고 볼 수 있어요. 97-98 문경은 25.0점은 그 시즌 평균의 245%, 25-26 이정현 18.6점은 251%예요." },
-      { kind: "p", text: "우리 예측이 얼마나 맞았는지도 공개해요. 16일까지 올 시즌 21경기 중 14경기를 맞혔고, 지난 시즌은 61%였어요. 아직 안 한 경기 카드엔 관전 포인트도 한 줄 붙어요." },
-      { kind: "list", items: [{ text: "득점왕 레이스 보기", href: "/season/49/leaders" }, { text: "예측 적중률 보기", href: "/teams" }] },
+      { kind: "p", text: "아직 안 한 경기 카드엔 관전 포인트가 한 줄 붙어요." },
+      { kind: "list", items: [{ text: "득점왕 레이스 보기", href: "/season/49/leaders" }] },
     ],
   },
   {
@@ -135,7 +146,7 @@ export const UPDATE_POSTS: UpdatePost[] = [
     slug: "2026-10-16-playoff-odds",
     date: "2026-10-16",
     kind: "update",
-    title: "플레이오프 확률이랑 경기 승리 확률",
+    title: "플레이오프 확률이 생겼어요",
     summary: "플레이오프 확률 생겼어요",
     blocks: [
       { kind: "p", text: "남은 경기를 1만 번 돌려 보고 팀마다 플레이오프에 갈 확률을 계산했어요. 매일 경기가 끝나면 다시 계산해요." },
@@ -144,10 +155,9 @@ export const UPDATE_POSTS: UpdatePost[] = [
         items: [
           "팀 화면 아래에 팀별 플레이오프·4강 직행·1위 확률",
           "팀 페이지 이번 시즌 칸에 우리 팀 확률",
-          "일정이랑 홈 다음 경기에 승리 확률",
         ],
       },
-      { kind: "p", text: "KBL 공식 숫자가 아니라 우리가 계산한 추정이에요. 지난 18시즌으로 되짚어 보면 확률이 높은 쪽이 63% 이겼어요. 시즌 초엔 지난 시즌 성적도 조금 섞여요." },
+      { kind: "p", text: "KBL 공식 숫자가 아니라 우리가 계산한 추정이에요. 시즌 초엔 지난 시즌 성적도 조금 섞여요." },
       { kind: "list", items: [{ text: "팀 화면 보기", href: "/teams" }, { text: "계산 방법", href: "/glossary#playoff-odds" }] },
     ],
   },

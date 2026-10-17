@@ -14,8 +14,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { GameBoxRow, SeasonGame } from "@/lib/types";
 import { gameDayLabel, gamesOfTeams, groupByDate, splitPastDays, initialScheduleScope, monthCalendar, monthLabel, monthsOf, pickMonth, type MatchupEdge, type ScheduleScope, type SeasonProgress, type Standout } from "@/lib/games";
-import type { SeasonPredictionRecord } from "@/lib/data-predict-extra";
-import PredictionRecordLine from "./PredictionRecordLine";
 import { enabledLoginProviders } from "@/lib/account";
 import Link from "next/link";
 import Segmented from "./Segmented";
@@ -59,15 +57,8 @@ interface Props {
   initialMonth: string | null;
   /** 정규시즌 진행률 (lib/games seasonProgress) */
   progress: SeasonProgress | null;
-  /** 아직 안 한 경기 gmkey → 홈 승리 확률 (lib/predict, 진행 중 시즌만 — 2026-10-16) */
-  winProbs?: Record<string, number>;
   /** 아직 안 한 경기 gmkey → 관전 포인트 (lib/games, 진행 중 시즌만) */
   matchups?: Record<string, MatchupEdge>;
-  /** 끝난 경기 gmkey → 경기 전 홈 승률 (lib/predict backtestSeason) */
-  pastPicks?: Record<string, number>;
-  /** 우리 예측 적중 (이 시즌 · 지난 시즌) */
-  record?: SeasonPredictionRecord | null;
-  previousRecord?: SeasonPredictionRecord | null;
 }
 
 type Box = NonNullable<SeasonGame["box"]>;
@@ -88,7 +79,7 @@ function loadDay(seasonCode: number, date: string) {
 const DAY_SPAN: Record<number, string> = { 0: "", 1: "xl:col-span-1", 2: "xl:col-span-2", 3: "xl:col-span-3" };
 const DAY_COLS: Record<number, string> = { 0: "", 1: "xl:grid-cols-1", 2: "xl:grid-cols-2", 3: "xl:grid-cols-3" };
 
-export default function ScheduleView({ seasonCode, seasonShort, games, teams, initialMonth, progress, winProbs = {}, matchups = {}, pastPicks = {}, record = null, previousRecord = null }: Props) {
+export default function ScheduleView({ seasonCode, seasonShort, games, teams, initialMonth, progress, matchups = {} }: Props) {
   const months = useMemo(() => monthsOf(games), [games]);
   const [month, setMonth] = useState<string | null>(initialMonth);
   const [today, setToday] = useState<string | null>(null);
@@ -171,7 +162,6 @@ export default function ScheduleView({ seasonCode, seasonShort, games, teams, in
       <h1 className="text-h1 font-black">{seasonShort} 경기 일정</h1>
       <p className="mt-0.5 text-sub text-ink-3">정규시즌 · 끝난 경기는 "박스스코어 보기"</p>
       {progress && <SeasonProgressBar progress={progress} className="mt-3 max-w-md" />}
-      <PredictionRecordLine record={record} previous={previousRecord} className="mt-2" />
       {months.length === 0 ? (
         <p className="surface-card mt-4 rounded-container p-4 text-sub text-ink-3">이 시즌 경기 일정이 없습니다</p>
       ) : (
@@ -263,9 +253,7 @@ export default function ScheduleView({ seasonCode, seasonShort, games, teams, in
                       stars={g.stars}
                       loadBox={g.hasBox ? async () => (await loadDay(seasonCode, g.date))?.[g.gmkey] ?? null : undefined}
                       place="schedule"
-                      homeWinProb={winProbs[g.gmkey] ?? null}
                       matchup={matchups[g.gmkey] ?? null}
-                      pastHomeProb={pastPicks[g.gmkey] ?? null}
                     />
                   </li>
                 ))}

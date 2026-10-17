@@ -71,7 +71,7 @@ export default function GameDayBoard({ day, next, seasonCode, teams, streaks = {
           <p className="flex flex-wrap items-center justify-between gap-x-2 text-sub font-bold text-ink">
             <span className="whitespace-nowrap">다음 경기 · {gameDayLabel(next.date)}</span>
           </p>
-          {/* 한 경기 = 두 줄: 시각·경기장 + 내 응원팀 꼬리표 / 홈 vs 원정(연승 꼬리표). 승리 확률 막대는 2026-10-17 사용자 요청으로 홈에서 뺌(일정 화면 카드에는 남음) */}
+          {/* 한 경기 = 두 줄: 시각·경기장 + 내 응원팀 꼬리표 / 홈 vs 원정(연승 꼬리표). 경기 승리 확률은 2026-10-17 사용자 결정으로 사이트 전체에서 뺌 */}
           <ul className="mt-1 divide-y divide-line md:grid md:grid-cols-2 md:gap-x-6 md:divide-y-0 xl:grid-cols-3">
             {nextGames.map((g) => {
               const away = teamInfoOf(teams, g.away.teamCode, g.away.name);

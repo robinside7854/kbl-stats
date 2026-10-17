@@ -7,8 +7,6 @@ import { oddsText } from "@/lib/predict";
 import { teamShortLabel } from "@/lib/images";
 import type { TeamColor } from "@/lib/types";
 import InfoLink from "./InfoLink";
-import PredictionRecordLine from "./PredictionRecordLine";
-import type { SeasonPredictionRecord } from "@/lib/data-predict-extra";
 import TeamLogo from "./TeamLogo";
 import { TeamLink } from "./EntityLinks";
 
@@ -24,8 +22,6 @@ export default function PlayoffOddsBoard({
   seasonCode,
   remaining,
   asOf = null,
-  record = null,
-  previousRecord = null,
 }: {
   odds: PlayoffOdds[];
   teams: Record<string, OddsTeam>;
@@ -33,9 +29,6 @@ export default function PlayoffOddsBoard({
   /** 남은 경기 수 */
   remaining: number;
   asOf?: string | null;
-  /** 올 시즌 경기 전 예측 적중 (lib/data-predict-extra, 2026-10-16) */
-  record?: SeasonPredictionRecord | null;
-  previousRecord?: SeasonPredictionRecord | null;
 }) {
   if (odds.length === 0) return null;
   return (
@@ -93,7 +86,6 @@ export default function PlayoffOddsBoard({
           })}
         </ul>
       </div>
-      <PredictionRecordLine record={record} previous={previousRecord} className="mt-1" />
     </section>
   );
 }

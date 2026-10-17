@@ -34,7 +34,6 @@ export type GlossaryKey =
   | "game54"
   | "rosterStatus"
   | "playoffOdds"
-  | "winProb"
   | "race"
   | "eraIndex"
   | "leagueTrends"
@@ -310,16 +309,6 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     source: null,
   },
   {
-    key: "winProb",
-    group: "etc",
-    name: "경기 승리 확률",
-    short: "두 팀 실력 차와 홈 이점으로 계산한 이길 확률입니다. 우리가 계산한 추정이에요.",
-    note: "지난 18시즌을 경기 전 정보만으로 되짚어 보면 확률이 높은 쪽이 63% 이겼습니다. 적중률은 끝난 경기마다 그날 전 경기만 보고 다시 계산해 확률이 높았던 쪽이 이긴 비율이에요.",
-    formula: "점수 차 예상 = 홈 실력 − 원정 실력 + 홈 이점 1.3점 · 한 경기 점수 차 흔들림 11점으로 이길 확률",
-    brief: "실력 차 + 홈 이점 1.3점으로 계산 · 적중률 = 끝난 경기를 그날 전 정보만으로 다시 예측해 앞선 팀이 이긴 비율 · 지난 18시즌은 63%",
-    source: null,
-  },
-  {
     key: "race",
     group: "etc",
     name: "레이스",
@@ -432,7 +421,6 @@ export const GLOSSARY_ANCHORS: Record<GlossaryKey, string> = {
   game54: "game-54-0",
   rosterStatus: "roster-status",
   playoffOdds: "playoff-odds",
-  winProb: "win-prob",
   race: "race",
   eraIndex: "era-index",
   leagueTrends: "league-trends",

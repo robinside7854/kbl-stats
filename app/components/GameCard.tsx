@@ -18,7 +18,6 @@ import { IconClose, IconExternal, IconPlay } from "./icons";
 import Skeleton from "./Skeleton";
 import TeamLogo from "./TeamLogo";
 import { TeamLink } from "./EntityLinks";
-import WinProbBar from "./WinProbBar";
 import { trackEvent } from "./track";
 
 export interface GameTeamInfo {
@@ -40,18 +39,14 @@ interface Props {
   place: "home" | "schedule";
   /** 내 응원팀 경기 (홈에서 맨 앞에 올 때 위에 작게 표시, 2026-10-08) */
   mine?: boolean;
-  /** 아직 안 한 경기의 홈 승리 확률 (lib/predict, 0~1 — 우리 추정, 2026-10-16) */
-  homeWinProb?: number | null;
   /** 아직 안 한 경기의 관전 포인트 (lib/games matchupEdge — 두 팀 경기당 기록 중 가장 크게 벌어진 것) */
   matchup?: MatchupEdge | null;
-  /** 끝난 경기의 경기 전 홈 승률 (lib/predict backtestSeason — 박스스코어 팝업에 "경기 전 우리 예측") */
-  pastHomeProb?: number | null;
 }
 
 export const teamInfoOf = (teams: Record<string, GameTeamInfo>, code: string, fallback: string): GameTeamInfo =>
   teams[code] ?? { shortName: fallback, logoUrl: null, color: FALLBACK_TEAM_COLOR };
 
-export default function GameCard({ game: g, seasonCode, teams, stars = null, loadBox, place, mine = false, homeWinProb = null, matchup = null, pastHomeProb = null }: Props) {
+export default function GameCard({ game: g, seasonCode, teams, stars = null, loadBox, place, mine = false, matchup = null }: Props) {
   const [open, setOpen] = useState(false);
   const [video, setVideo] = useState(false);
   const [box, setBox] = useState<Box | null>(g.box);
@@ -109,7 +104,6 @@ export default function GameCard({ game: g, seasonCode, teams, stars = null, loa
         <TeamSide side={awaySide} seasonCode={seasonCode} place={place} />
       </div>
       {g.stadium && <p className="mt-1 text-center text-caption text-ink-3">{g.stadium}</p>}
-      {!g.ended && homeWinProb !== null && <WinProbBar homeProb={homeWinProb} home={homeSide.info} away={awaySide.info} className="mt-2 border-t border-line pt-2" />}
       {!g.ended && matchup && <MatchupLine edge={matchup} names={{ home: homeSide.info.shortName, away: awaySide.info.shortName }} />}
       {(starsOf("away").length > 0 || starsOf("home").length > 0) && (
         <ul className="mt-2 space-y-1.5 border-t border-line pt-2 text-sub">
@@ -199,7 +193,6 @@ export default function GameCard({ game: g, seasonCode, teams, stars = null, loa
             >
               {box ? (
                 <>
-                  {pastHomeProb !== null && <PastPick homeProb={pastHomeProb} game={g} names={{ home: homeSide.info.shortName, away: awaySide.info.shortName }} />}
                   <KeyPoints game={{ ...g, box }} names={{ home: homeSide.info.shortName, away: awaySide.info.shortName }} />
                   <BoxScore
                     seasonCode={seasonCode}
@@ -219,7 +212,7 @@ export default function GameCard({ game: g, seasonCode, teams, stars = null, loa
   );
 }
 
-/** 관전 포인트 한 줄: 홈 값 | "경기당 리바운드 · 관전 포인트" | 원정 값 (승리 확률 막대와 같은 좌우, 앞선 쪽 굵게) */
+/** 관전 포인트 한 줄: 홈 값 | "경기당 리바운드 · 관전 포인트" | 원정 값 (홈 왼쪽·원정 오른쪽, 앞선 쪽 굵게) */
 function MatchupLine({ edge, names }: { edge: MatchupEdge; names: { home: string; away: string } }) {
   const f = (v: number) => v.toFixed(1);
   return (
@@ -228,22 +221,6 @@ function MatchupLine({ edge, names }: { edge: MatchupEdge; names: { home: string
       <span aria-hidden className={edge.edge === "home" ? "font-bold text-ink" : ""}>{f(edge.home)}</span>
       <span aria-hidden className="truncate text-center">관전 포인트 · {matchupTitle(edge)}</span>
       <span aria-hidden className={edge.edge === "away" ? "font-bold text-ink" : ""}>{f(edge.away)}</span>
-    </p>
-  );
-}
-
-/** 끝난 경기의 "경기 전 우리 예측": 확률이 높았던 팀 61% → 맞힘/빗나감 (50% 면 그대로 50%) */
-function PastPick({ homeProb, game, names }: { homeProb: number; game: SeasonGame; names: { home: string; away: string } }) {
-  const fav = homeProb >= 0.5 ? "home" : "away";
-  const p = Math.round((fav === "home" ? homeProb : 1 - homeProb) * 100);
-  const win = winnerSide(game);
-  const hit = homeProb === 0.5 || !win ? null : win === fav;
-  return (
-    <p className="tabular mb-2 flex flex-wrap items-center gap-x-1.5 text-sub text-ink-2">
-      경기 전 우리 예측 <span className="font-semibold text-ink">{names[fav]} {p}%</span>
-      {hit !== null && (
-        <span className={`rounded-sm px-1 text-caption font-bold ${hit ? "bg-ink text-bg" : "border border-line text-ink-2"}`}>{hit ? "적중" : "빗나감"}</span>
-      )}
     </p>
   );
 }
