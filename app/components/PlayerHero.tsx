@@ -186,12 +186,13 @@ export default function PlayerHero({ entry, seasons, today, badges, milestones =
             </div>
           ))}
         </dl>
-        {/* 프로필 (2026-10-16 M3: 띠 안 진한 바닥 줄 → 흰 면). 통산 기록 설명은 ⓘ 안으로(M4) */}
+        {/* 프로필 (2026-10-16 M3: 띠 안 진한 바닥 줄 → 흰 면). 통산 기록 설명은 ⓘ 안으로(M4).
+            2026-10-17: 칸 격자 → 항목 단위 줄바꿈, 짧은 값(드래프트 "2022 1라운드 1순위" 등)은 한 줄로 */}
         <div className="mt-3 flex flex-wrap items-start gap-x-5 gap-y-1">
           {facts.length > 0 && (
-            <dl className="grid min-w-0 flex-1 grid-cols-1 gap-x-4 gap-y-1 text-sub min-[400px]:grid-cols-2 sm:flex sm:flex-wrap sm:gap-x-5">
+            <dl className="flex min-w-0 flex-1 flex-wrap gap-x-5 gap-y-1 text-sub">
               {facts.map((f) => (
-                <div key={f.label} className="flex min-w-0 items-baseline gap-1.5">
+                <div key={f.label} className={`flex min-w-0 items-baseline gap-1.5 ${f.value.length <= 20 ? "whitespace-nowrap" : ""}`}>
                   <dt className="shrink-0 text-ink-3">{f.label}</dt>
                   <dd className="min-w-0 font-semibold text-ink [overflow-wrap:anywhere]">
                     {f.href ? (
