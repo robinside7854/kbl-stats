@@ -1,9 +1,11 @@
 {
-  "at": "2026-10-17T10:51:59.043Z",
+  "at": "2026-10-18T10:52:27.445Z",
   "targets": [
     47,
     49
   ],
   "failed": [],
-  "warnings": []
+  "warnings": [
+    "shots 49: 1건 실패 — 예: S49G01N27: HTTP 500 https://api.kbl.or.kr/match/S49G01N27/match-chart"
+  ]
 }
