@@ -31,6 +31,17 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-10-19-card-boxes-back",
+    date: "2026-10-19",
+    kind: "update",
+    title: "선수 카드 예전 모습으로",
+    summary: "선수 카드 예전 모습으로",
+    blocks: [
+      { kind: "p", text: "선수 카드를 기록마다 칸이 나뉘어 있던 예전 모습으로 되돌렸어요. 1~10위 칸은 팀 색으로 옅게 칠해지고, 순위 기준은 카드 아래에 다시 적혀요." },
+      { kind: "list", items: [{ text: "선수 보러 가기", href: "/players" }] },
+    ],
+  },
+  {
     slug: "2026-10-17-kbl-official-link",
     date: "2026-10-17",
     kind: "update",
