@@ -185,11 +185,11 @@ export default function TeamsIndexView({ teams, seasonCode, seasonShort, records
 
             {leader && (
               <span className="flex min-w-0 items-center gap-2" aria-label={`득점 1위 ${leader.nameKo} 경기당 ${leader.ppg.toFixed(1)}점`}>
-                <PlayerAvatar photoUrl={leader.photoUrl} nameKo={leader.nameKo} color={color} size={36} />
+                <PlayerAvatar photoUrl={leader.photoUrl} nameKo={leader.nameKo} color={color} size={34} />
                 <span className="min-w-0 flex-1 leading-tight">
                   <span className="block truncate text-sub font-semibold text-ink">{leader.nameKo}</span>
-                  <span className="block text-caption text-ink-3">
-                    득점 1위 · <b className="font-bold text-ink">{leader.ppg.toFixed(1)}</b>점
+                  <span className="block whitespace-nowrap text-caption text-ink-3">
+                    득점 1위 <b className="font-bold text-ink">{leader.ppg.toFixed(1)}</b>
                   </span>
                 </span>
               </span>
