@@ -86,12 +86,17 @@ function GradeBadge({ grade, score, team, colors }: { grade: Grade | "-"; score:
   const tone = gradeTone(grade, team?.color ?? FALLBACK_TEAM_COLOR, colors);
   return (
     <span
-      className="tabular inline-flex h-7 items-center justify-center gap-1 rounded-control border-[1.5px] px-1.5 text-base font-black"
+      // 2026-10-21 사용자: 등급·점수를 한눈에 — 등급 큰 글자 + 점수
+      className="tabular inline-flex h-11 shrink-0 items-center justify-center rounded-control border-[1.5px] px-2 font-black leading-none lg:h-12 lg:px-2.5"
       style={{ background: tone.bg, color: tone.ink, borderColor: tone.border }}
       aria-label={`종합 등급 ${grade}${score !== null ? ` ${score}점` : ""}`}
     >
-      {grade}
-      {score !== null && <span className="text-caption font-bold">{score}</span>}
+      <span className="flex items-baseline gap-1">
+        {/* deslop-ignore-next-line 11 */}
+        <span className="text-[26px] lg:text-[30px]">{grade}</span>
+        {/* deslop-ignore-next-line 11 */}
+        {score !== null && <span className="text-[18px] font-extrabold lg:text-[20px]">{score}</span>}
+      </span>
     </span>
   );
 }

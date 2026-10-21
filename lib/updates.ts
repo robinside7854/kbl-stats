@@ -39,6 +39,7 @@ export const UPDATE_POSTS: UpdatePost[] = [
     blocks: [
       { kind: "p", text: "선수 탭 필터에 종합 등급(S~F)과 점수대(90점 이상, 80점대…) 칩이 생겼어요. A급만, 80점대만 골라 볼 수 있어요." },
       { kind: "p", text: "목록 위에서 등급순, 점수순, 득점순으로 순서도 바꿀 수 있어요." },
+      { kind: "p", text: "선수 목록과 선수 카드의 등급·점수 글자도 더 크게 키웠어요." },
       { kind: "list", items: [{ text: "선수 탭 가기", href: "/players" }] },
     ],
   },
