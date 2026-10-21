@@ -330,7 +330,7 @@ function OverallBadge({
     return (
       <span
         className="inline-flex flex-col items-center justify-center rounded-control px-2 text-center font-bold leading-tight"
-        style={{ height: d.logo + 24, background: "rgba(0,0,0,0.3)", fontSize: d.statLabel, boxShadow: "0 0 0 2px rgba(255,255,255,0.6)" }}
+        style={{ height: d.logo + 14, background: "rgba(0,0,0,0.3)", fontSize: d.statLabel, boxShadow: "0 0 0 2px rgba(255,255,255,0.6)" }}
         aria-label="종합 등급: 표본 미달"
       >
         <span style={{ fontSize: d.statLabel - 2, opacity: 0.8 }}>종합</span>
@@ -343,9 +343,9 @@ function OverallBadge({
     <span
       className="inline-flex flex-col items-center justify-center rounded-control"
       style={{
-        // 2026-10-21 사용자: 등급·점수를 더 크게 (로고 + 8 → 로고 + 24)
-        width: d.logo + 24,
-        height: d.logo + 24,
+        // 2026-10-21 사용자: 등급·점수를 크게(로고 + 24) 했더니 이름보다 커서 과함 → 로고 + 14
+        width: d.logo + 14,
+        height: d.logo + 14,
         background: tone.bg,
         color: tone.ink,
         boxShadow: "0 0 0 2px rgba(255,255,255,0.85)",
@@ -356,11 +356,11 @@ function OverallBadge({
       <span className="font-bold leading-none" style={{ fontSize: Math.round(d.statLabel * 0.8), opacity: 0.85 }}>
         종합
       </span>
-      <span className="font-black leading-none" style={{ fontSize: Math.round(d.ovr * 0.85), marginBlock: 2 }}>
+      <span className="font-black leading-none" style={{ fontSize: Math.round(d.ovr * 0.74), marginBlock: 1 }}>
         {entry.overall}
       </span>
       {/* 종합 점수 (1~99) */}
-      <span className="tabular font-extrabold leading-none" style={{ fontSize: Math.round(d.ovr * 0.45) }}>
+      <span className="tabular font-bold leading-none" style={{ fontSize: Math.round(d.ovr * 0.36) }}>
         {gradeScore(entry.overallPct) ?? "–"}
       </span>
     </span>

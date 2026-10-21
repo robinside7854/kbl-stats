@@ -31,6 +31,18 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-10-21-card-redesign",
+    date: "2026-10-21",
+    kind: "update",
+    title: "선수·팀 카드 새 모습",
+    summary: "선수·팀 카드 새 모습",
+    blocks: [
+      { kind: "p", text: "선수 탭 카드에 큰 사진이 들어가고, 팀 로고·등급·포지션을 위쪽 팀 색 띠에 모았어요. 아래엔 경기당 득점·리바·어시가 바로 보여요." },
+      { kind: "p", text: "팀 카드엔 순위를 크게, 득실차와 플레이오프 확률 막대, 팀 득점 1위 선수를 넣었어요." },
+      { kind: "list", items: [{ text: "선수 탭 가기", href: "/players" }, { text: "팀 화면 가기", href: "/teams" }] },
+    ],
+  },
+  {
     slug: "2026-10-21-players-grade-filter",
     date: "2026-10-21",
     kind: "update",
@@ -39,7 +51,6 @@ export const UPDATE_POSTS: UpdatePost[] = [
     blocks: [
       { kind: "p", text: "선수 탭 필터에 종합 등급(S~F)과 점수대(90점 이상, 80점대…) 칩이 생겼어요. A급만, 80점대만 골라 볼 수 있어요." },
       { kind: "p", text: "목록 위에서 등급순, 점수순, 득점순으로 순서도 바꿀 수 있어요." },
-      { kind: "p", text: "선수 목록과 선수 카드의 등급·점수 글자도 더 크게 키웠어요." },
       { kind: "list", items: [{ text: "선수 탭 가기", href: "/players" }] },
     ],
   },

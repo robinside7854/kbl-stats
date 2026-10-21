@@ -455,3 +455,20 @@ import { scoreBandOf, sortGridBy } from "../lib/cardview";
   assert.equal(clearGridFilter(ps4, "scoreBand").scoreBand, null);
   console.log("cardview: 등급·점수대 필터·나열 순서 통과");
 }
+
+// ── 팀 카드 득점 1위·선수 카드 기록 세 칸 (2026-10-21) ──
+import { teamScoringLeaders } from "../lib/cardview";
+{
+  const leaders = teamScoringLeaders(cards);
+  for (const [team, l] of Object.entries(leaders)) {
+    const sameTeam = grid.filter((e) => e.player.teamCode === team && e.qualified);
+    assert.ok(sameTeam.length > 0, team);
+    assert.equal(l.ppg, Math.max(...sameTeam.map((e) => e.ppg)), `${team} 득점 1위`);
+  }
+  // 표본 미달 선수(108)는 득점 1위가 될 수 없다
+  assert.ok(!Object.values(leaders).some((l) => l.id === "108"));
+  const e101 = grid.find((e) => e.player.id === "101")!;
+  assert.equal(e101.rpg, e101.player.reb / e101.player.games);
+  assert.equal(e101.apg, e101.player.ast / e101.player.games);
+  console.log("cardview: 팀 득점 1위·기록 세 칸 통과");
+}

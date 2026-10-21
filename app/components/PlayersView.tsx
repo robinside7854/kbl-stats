@@ -78,60 +78,97 @@ interface Props {
   schools: Record<string, string>;
 }
 
-/** 종합 등급 배지 — 플레이어 카드와 같은 색 규칙(lib/teams gradeTone: S 금색, A·B 팀 색, C 이하 무채색). 글자가 곧 등급 */
+/**
+ * 종합 등급 배지 — 플레이어 카드와 같은 색 규칙(lib/teams gradeTone: S 금색, A·B 팀 색, C 이하 무채색).
+ * 2026-10-21 사용자: 크게 키웠더니 이름보다 커서 과함 → 이름(본문)보다 한 단계 큰 정도로 (등급 18px·점수 13px).
+ */
 function GradeBadge({ grade, score, team, colors }: { grade: Grade | "-"; score: number | null; team?: CardTeam; colors: ThemeColors }) {
   if (grade === "-") {
-    return <span className="rounded-control bg-surface-2 px-1.5 py-0.5 text-caption font-semibold text-ink-2">표본 미달</span>;
+    return <span className="inline-flex h-7 items-center rounded-control bg-surface px-1.5 text-caption font-semibold leading-none text-ink-2">표본 미달</span>;
   }
   const tone = gradeTone(grade, team?.color ?? FALLBACK_TEAM_COLOR, colors);
   return (
     <span
-      // 2026-10-21 사용자: 등급·점수를 한눈에 — 등급 큰 글자 + 점수
-      className="tabular inline-flex h-11 shrink-0 items-center justify-center rounded-control border-[1.5px] px-2 font-black leading-none lg:h-12 lg:px-2.5"
+      className="tabular inline-flex h-7 shrink-0 items-baseline gap-0.5 rounded-control border px-1.5 pt-[5px] font-black leading-none lg:h-8 lg:pt-1.5"
       style={{ background: tone.bg, color: tone.ink, borderColor: tone.border }}
       aria-label={`종합 등급 ${grade}${score !== null ? ` ${score}점` : ""}`}
     >
-      <span className="flex items-baseline gap-1">
-        {/* deslop-ignore-next-line 11 */}
-        <span className="text-[26px] lg:text-[30px]">{grade}</span>
-        {/* deslop-ignore-next-line 11 */}
-        {score !== null && <span className="text-[18px] font-extrabold lg:text-[20px]">{score}</span>}
-      </span>
+      {/* deslop-ignore-next-line 11 */}
+      <span className="text-[18px] lg:text-[19px]">{grade}</span>
+      {/* deslop-ignore-next-line 11 */}
+      {score !== null && <span className="text-[13px] font-bold">{score}</span>}
     </span>
   );
 }
 
+/** 카드 아래 기록 한 칸 */
+function MiniStat({ label, value }: { label: string; value: number }) {
+  return (
+    <span className="flex min-w-0 flex-col items-center gap-0.5 py-1.5">
+      <span className="text-caption leading-none text-ink-3">{label}</span>
+      <span className="text-body font-bold leading-none tracking-tight text-ink">{formatCardValue(value, false)}</span>
+    </span>
+  );
+}
+
+/**
+ * 선수 카드 (2026-10-21 디자인 개편): 위 = 팀 색 옅은 띠(왼쪽 팀 로고·등급·포지션, 오른쪽 큰 세로 사진),
+ * 아래 = 이름·팀·국적 → 칭호 → 경기당 득점·리바·어시 세 칸. 사진·로고·포지션·등급을 먼저 보이게, 빈 곳은 기록으로 채운다.
+ */
 function GridCard({ e, team, seasonCode, colors, badge }: { e: GridEntry; team?: CardTeam; seasonCode: number; colors: ThemeColors; badge?: string }) {
   const p = e.player;
   const pos = positionLabel(p.position);
+  const color = team?.color ?? FALLBACK_TEAM_COLOR;
+  const nat = p.nationality && p.nationality !== "domestic" ? NATIONALITY_LABELS[nationalityOf(p)] : null;
   return (
     <Link
       href={playerHref(p.id, seasonCode)}
-      className="focus-ring surface-card tabular flex h-full min-w-0 flex-col rounded-container p-3 transition-colors duration-200 hover:bg-surface-2"
-      aria-label={`${p.nameKo}, ${team?.shortName ?? p.teamShort}${pos ? `, ${pos}` : ""}${badge ? `, 칭호 ${badge}` : ""}, 종합 등급 ${e.overall === "-" ? "표본 미달" : `${e.overall} ${e.score ?? ""}점`}, 경기당 ${formatCardValue(e.ppg, false)}점`}
+      className="focus-ring surface-card tabular flex h-full min-w-0 flex-col overflow-hidden rounded-container transition-colors duration-200 hover:bg-surface-2"
+      aria-label={`${p.nameKo}, ${team?.shortName ?? p.teamShort}${pos ? `, ${pos}` : ""}${badge ? `, 칭호 ${badge}` : ""}, 종합 등급 ${e.overall === "-" ? "표본 미달" : `${e.overall} ${e.score ?? ""}점`}, 경기당 득점 ${formatCardValue(e.ppg, false)}`}
     >
-      <span className="flex items-start justify-between gap-2">
-        <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={team?.color} size={52} />
-        <GradeBadge grade={e.overall} score={e.score} team={team} colors={colors} />
+      {/* 팀 색 띠: 바탕은 팀 색을 옅게 섞고 아래에 진한 팀 색 선 */}
+      <span
+        className="relative block h-[120px] shrink-0 border-b-[3px] lg:h-[132px]"
+        style={{ background: `color-mix(in srgb, ${color.primary} 15%, var(--surface))`, borderColor: color.primary }}
+      >
+        <span className="absolute bottom-0 right-1 flex">
+          {/* 사진이 없을 때 실루엣·이니셜은 회색으로 (옅은 팀 색 바탕 위) */}
+          <PlayerAvatar photoUrl={p.photoUrl} nameKo={p.nameKo} color={{ ...color, text: "var(--ink-3)" }} variant="portrait" size={112} />
+        </span>
+        <span className="absolute left-2 top-2 flex flex-col items-start gap-1.5">
+          <span className="inline-flex rounded-control bg-white p-1 shadow-card">
+            <TeamLogo logoUrl={team?.logoUrl} shortName={team?.shortName ?? p.teamShort} color={team?.color} size={22} />
+          </span>
+          <GradeBadge grade={e.overall} score={e.score} team={team} colors={colors} />
+          {p.position && (
+            <span
+              className="inline-flex h-6 min-w-6 items-center justify-center rounded-control bg-ink px-1.5 text-caption font-bold leading-none text-bg"
+              title={pos ?? undefined}
+            >
+              {p.position}
+            </span>
+          )}
+        </span>
       </span>
-      <span className="mt-2 line-clamp-2 text-body font-bold leading-tight text-ink break-keep">{p.nameKo}</span>
-      <span className="mt-1 flex min-w-0 items-center gap-1 text-caption text-ink-2">
-        <TeamLogo logoUrl={team?.logoUrl} shortName={team?.shortName ?? p.teamShort} color={team?.color} size={16} />
-        <span className="truncate">
+      <span className="flex min-w-0 flex-1 flex-col px-3 pb-1 pt-2">
+        <span className="truncate text-body font-bold leading-tight text-ink">{p.nameKo}</span>
+        <span className="mt-0.5 truncate text-caption text-ink-2">
           {teamShortLabel(team?.shortName ?? p.teamShort)}
           {pos ? ` · ${pos}` : ""}
+          {nat ? ` · ${nat}` : ""}
         </span>
-      </span>
-      {badge && (
-        <span className="mt-1.5">
-          <span className={`${BADGE_CHIP} h-6 px-1.5 text-caption`} style={badgeStyle(team?.color.primary ?? FALLBACK_TEAM_COLOR.primary)}>
-            {badge}
+        {badge && (
+          <span className="mt-1.5 flex">
+            <span className={`${BADGE_CHIP} h-6 max-w-full truncate px-1.5 text-caption`} style={badgeStyle(color.primary)}>
+              {badge}
+            </span>
           </span>
+        )}
+        <span className="mt-auto grid grid-cols-3 divide-x divide-line border-t border-line pt-0.5" aria-hidden>
+          <MiniStat label="득점" value={e.ppg} />
+          <MiniStat label="리바" value={e.rpg} />
+          <MiniStat label="어시" value={e.apg} />
         </span>
-      )}
-      <span className="mt-auto pt-2 text-caption text-ink-3">
-        경기당 <b className="text-base font-bold tracking-tight text-ink">{formatCardValue(e.ppg, false)}</b>점
-        {p.nationality && p.nationality !== "domestic" && <span className="ml-1 inline-block whitespace-nowrap">· {NATIONALITY_LABELS[nationalityOf(p)]}</span>}
       </span>
     </Link>
   );
@@ -348,15 +385,11 @@ export default function PlayersView({ seasons, latest, initialFile, topBadges, b
             // 다른 시즌을 받는 동안: 그리드 모양 그대로 스켈레톤 (디자인 점검 C3)
             <ul aria-hidden className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
               {Array.from({ length: Math.min(GRID_PAGE_SIZE, Math.max(shown.length, 10)) }, (_, i) => (
-                <li key={i} className="surface-card flex h-[168px] flex-col rounded-container p-3">
-                  <span className="flex items-start justify-between">
-                    {/* deslop-ignore-next-line 19 */}
-                    <Skeleton className="h-[52px] w-[52px] rounded-full" />
-                    <Skeleton className="h-7 w-7" />
-                  </span>
-                  <Skeleton className="mt-2 h-4 w-20" />
-                  <Skeleton className="mt-1.5 h-3.5 w-24" />
-                  <Skeleton className="mt-auto h-4 w-16" />
+                <li key={i} className="surface-card flex h-[232px] flex-col overflow-hidden rounded-container lg:h-[244px]">
+                  <Skeleton className="h-[120px] w-full rounded-none lg:h-[132px]" />
+                  <Skeleton className="mx-3 mt-3 h-4 w-20" />
+                  <Skeleton className="mx-3 mt-1.5 h-3.5 w-24" />
+                  <Skeleton className="mx-3 mb-3 mt-auto h-8" />
                 </li>
               ))}
             </ul>

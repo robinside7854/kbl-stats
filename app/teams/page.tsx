@@ -3,7 +3,8 @@ import type { Metadata } from "next";
 import { shareMetadata } from "@/lib/share";
 import { computeStandings, headToHeadWins, notableStreak } from "@/lib/games";
 import { seasonShortLabel } from "@/lib/career";
-import { dataAsOfLabel, gameTeamInfos, isSeasonOngoing, loadSeasonPredictions, listSeasonsWithPlayers, loadSeasonData, loadSeasonGames, loadTeamIndex, toCardTeams } from "@/lib/data";
+import { dataAsOfLabel, gameTeamInfos, isSeasonOngoing, loadSeasonPredictions, listSeasonsWithPlayers, loadSeasonData, loadSeasonCards, loadSeasonGames, loadTeamIndex, toCardTeams } from "@/lib/data";
+import { teamScoringLeaders } from "@/lib/cardview";
 import type { StandingsSeason, StandingTeam } from "@/app/components/StandingsTable";
 import SiteNav from "@/app/components/SiteNav";
 import SourceFooter from "@/app/components/SourceFooter";
@@ -19,7 +20,7 @@ export default function TeamsPage() {
   const seasons = listSeasonsWithPlayers();
   const latest = seasons[0];
   const standings = latest ? computeStandings(loadSeasonGames(latest.seasonCode)) : [];
-  const records = Object.fromEntries(standings.map((r) => [r.teamCode, { wins: r.wins, losses: r.losses, rank: r.rank, streak: notableStreak(r) }]));
+  const records = Object.fromEntries(standings.map((r) => [r.teamCode, { wins: r.wins, losses: r.losses, rank: r.rank, diff: r.games > 0 ? (r.pointsFor - r.pointsAgainst) / r.games : null, streak: notableStreak(r) }]));
   // "표로 보기": 시즌마다 순위 표 (2026-10-06 — 따로 있던 팀 순위 화면을 여기로 합침, 최신 시즌 먼저)
   const standingsSeasons: StandingsSeason[] = seasons.flatMap((s) => {
     const season = loadSeasonData(s.seasonCode);
@@ -49,6 +50,9 @@ export default function TeamsPage() {
         remaining: Object.keys(pred.winProbs).length,
       }
     : null;
+  // 팀 카드 득점 1위 (이번 시즌 기본 표본 기준, 2026-10-21)
+  const latestCards = latest ? loadSeasonCards(latest.seasonCode) : null;
+  const leaders = latestCards ? teamScoringLeaders(latestCards) : {};
   return (
     <>
       <SiteNav seasons={seasons} seasonCode={latest?.seasonCode ?? 0} view="team" />
@@ -60,6 +64,7 @@ export default function TeamsPage() {
         standings={standingsSeasons}
         asOf={dataAsOfLabel()}
         odds={odds}
+        leaders={leaders}
       />
       <SourceFooter />
     </>

@@ -22,6 +22,7 @@ import {
   RADAR_AXIS_LABELS,
   RADAR_COMPONENTS,
   perGame,
+  isQualified,
   qualifyLabel,
   type CardContext,
   type CardEntryOf,
@@ -193,6 +194,35 @@ export interface GridEntry {
   qualified: boolean;
   /** 경기당 득점 */
   ppg: number;
+  /** 경기당 리바운드·어시스트 (선수 카드 아래 기록 세 칸, 2026-10-21) */
+  rpg: number;
+  apg: number;
+}
+
+/** 팀 카드의 득점 1위 (모든 팀 화면, 2026-10-21) */
+export interface TeamScoringLeader {
+  id: string;
+  nameKo: string;
+  photoUrl: string | null;
+  /** 경기당 득점 */
+  ppg: number;
+}
+
+/**
+ * 팀마다 경기당 득점 1위 — 그 시즌 기본 표본 기준(cards.defaults.rule)을 채운 선수 중에서.
+ * 같으면 누적 득점이 많은 쪽 → 선수 번호. 기준을 채운 선수가 없는 팀은 빠진다.
+ */
+export function teamScoringLeaders(cards: SeasonCards): Record<string, TeamScoringLeader> {
+  const best = new Map<string, CardPlayer>();
+  for (const p of cards.players) {
+    if (!isQualified(p, cards.defaults.rule)) continue;
+    const cur = best.get(p.teamCode);
+    const d = cur ? perGame(p.points, p.games) - perGame(cur.points, cur.games) : 1;
+    if (!cur || d > 0 || (d === 0 && (p.points > cur.points || (p.points === cur.points && p.id < cur.id)))) best.set(p.teamCode, p);
+  }
+  const out: Record<string, TeamScoringLeader> = {};
+  for (const [team, p] of best) out[team] = { id: p.id, nameKo: p.nameKo, photoUrl: p.photoUrl, ppg: perGame(p.points, p.games) };
+  return out;
 }
 
 /** 등급 정렬 순서 (앞이 위) */
@@ -203,7 +233,7 @@ export function buildGridEntries(cards: SeasonCards): GridEntry[] {
   const ctx = seasonContext(cards, "all");
   return cards.players.map((p) => {
     const e = buildCardEntry(p, ctx);
-    return { player: p, overall: e.qualified ? e.overall : "-", score: e.qualified ? gradeScore(e.overallPct) : null, qualified: e.qualified, ppg: perGame(p.points, p.games) };
+    return { player: p, overall: e.qualified ? e.overall : "-", score: e.qualified ? gradeScore(e.overallPct) : null, qualified: e.qualified, ppg: perGame(p.points, p.games), rpg: perGame(p.reb, p.games), apg: perGame(p.ast, p.games) };
   });
 }
 
