@@ -112,7 +112,7 @@ function MiniStat({ label, value }: { label: string; value: number }) {
 }
 
 /**
- * 선수 카드 (2026-10-21 디자인 개편): 위 = 팀 색 옅은 띠(왼쪽 팀 로고·등급·포지션, 오른쪽 큰 세로 사진),
+ * 선수 카드 (2026-10-21 디자인 개편): 위 = 팀 색 옅은 띠(왼쪽 팀 로고·등급·포지션(한글), 오른쪽 큰 세로 사진),
  * 아래 = 이름·팀·국적 → 칭호 → 경기당 득점·리바·어시 세 칸. 사진·로고·포지션·등급을 먼저 보이게, 빈 곳은 기록으로 채운다.
  */
 function GridCard({ e, team, seasonCode, colors, badge }: { e: GridEntry; team?: CardTeam; seasonCode: number; colors: ThemeColors; badge?: string }) {
@@ -140,12 +140,10 @@ function GridCard({ e, team, seasonCode, colors, badge }: { e: GridEntry; team?:
             <TeamLogo logoUrl={team?.logoUrl} shortName={team?.shortName ?? p.teamShort} color={team?.color} size={22} />
           </span>
           <GradeBadge grade={e.overall} score={e.score} team={team} colors={colors} />
-          {p.position && (
-            <span
-              className="inline-flex h-6 min-w-6 items-center justify-center rounded-control bg-ink px-1.5 text-caption font-bold leading-none text-bg"
-              title={pos ?? undefined}
-            >
-              {p.position}
+          {pos && (
+            // 포지션은 한글로 (2026-10-21 사용자: 영어 C·F 는 등급처럼 읽힌다) — 등급 배지와 다른 흰 바탕 테두리 칩
+            <span className="inline-flex h-6 items-center whitespace-nowrap rounded-control border border-line bg-surface px-1.5 text-caption font-semibold leading-none text-ink">
+              {pos}
             </span>
           )}
         </span>
@@ -154,7 +152,6 @@ function GridCard({ e, team, seasonCode, colors, badge }: { e: GridEntry; team?:
         <span className="truncate text-body font-bold leading-tight text-ink">{p.nameKo}</span>
         <span className="mt-0.5 truncate text-caption text-ink-2">
           {teamShortLabel(team?.shortName ?? p.teamShort)}
-          {pos ? ` · ${pos}` : ""}
           {nat ? ` · ${nat}` : ""}
         </span>
         {badge && (
