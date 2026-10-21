@@ -1,11 +1,11 @@
 "use client";
-// 선수 탭 (/players): 큰 검색창 → 필터 버튼(포지션·국적·팀, FilterSheet) → 그 시즌 선수 그리드(작은 카드, 20장씩 "더 보기").
+// 선수 탭 (/players): 큰 검색창 → 필터 버튼(등급·점수대·포지션·국적·팀·출신교·칭호, FilterSheet) → 그 시즌 선수 그리드(작은 카드, 20장씩 "더 보기").
 // 시즌은 상단 SiteNav 시즌 선택만(본문 시즌 칩 없음), 상단 검색은 숨긴다 — 디자인 점검 A2~A5.
 // - 정적 HTML은 최신 시즌으로 그린다(서버가 넣어 준 시즌 카드 파일 initialFile).
 // - 다른 시즌을 고르면 우리 정적 파일 /cards/{코드}.json 을 받아 같은 계산으로 다시 그린다 (useSeasonCards —
 //   KBL 서버가 아니라 우리 public/ 파일이므로 원칙 1 위반 아님).
 // - 종합 등급·정렬·필터는 lib/cardview(buildGridEntries·sortGridEntries·filterGridEntries) — 여기서는 계산하지 않는다.
-// - 상태는 주소 ?season=&pos=&origin=&team=&badge= 에 남긴다. 칭호(badge)는 통산 칭호로 거르기(2026-10-01). 시즌은 상단 SiteNav 의 시즌 선택이 onSeasonChange 로 바꾼다.
+// - 상태는 주소 ?season=&pos=&origin=&team=&badge=&school=&grade=&score=&sort= 에 남긴다. 등급·점수대 칩과 등급순/점수순/득점순(2026-10-21). 칭호(badge)는 통산 칭호로 거르기(2026-10-01). 시즌은 상단 SiteNav 의 시즌 선택이 onSeasonChange 로 바꾼다.
 // - 카드에 칭호 배지 1개(통산 기준 우선순위 1번, 서버가 넘긴 topBadges — lib/badges).
 // - 카드를 누르면 그 선수 상세의 그 시즌 카드로 (/player/번호?season=코드).
 import { useEffect, useMemo, useState } from "react";
@@ -19,10 +19,14 @@ import {
   formatCardValue,
   GRID_PAGE_SIZE,
   gridFilterChips,
+  GRID_GRADES,
+  GRID_SORTS,
   parsePlayersQuery,
   playerHref,
   playersQueryString,
-  sortGridEntries,
+  SCORE_BANDS,
+  scoreBandOf,
+  sortGridBy,
   type GridEntry,
   type PlayersState,
 } from "@/lib/cardview";
@@ -131,7 +135,7 @@ function GridCard({ e, team, seasonCode, colors, badge }: { e: GridEntry; team?:
 export default function PlayersView({ seasons, latest, initialFile, topBadges, badgeKeys, schools }: Props) {
   const colors = useThemeColors();
   const initialCards = useMemo(() => primeSeasonCards(initialFile), [initialFile]);
-  const [state, setState] = useState<PlayersState>({ season: latest, position: "all", origin: "all", teamCode: null, badge: null, school: null });
+  const [state, setState] = useState<PlayersState>({ season: latest, position: "all", origin: "all", teamCode: null, badge: null, school: null, grade: null, scoreBand: null, sort: "grade" });
   const [limit, setLimit] = useState(GRID_PAGE_SIZE);
   const seasonCodes = useMemo(() => seasons.map((s) => s.seasonCode), [seasons]);
 
@@ -152,7 +156,21 @@ export default function PlayersView({ seasons, latest, initialFile, topBadges, b
   // 이 시즌에 없는 팀이면 전체로 본다 (시즌을 바꿨을 때)
   const teamCode = state.teamCode && teamByCode.has(state.teamCode) ? state.teamCode : null;
 
-  const all = useMemo(() => (cards ? sortGridEntries(buildGridEntries(cards)) : []), [cards]);
+  const all = useMemo(() => (cards ? buildGridEntries(cards) : []), [cards]);
+  // 등급·점수대 칩 인원 (이 시즌 전원 기준 — 칭호·출신교 칩과 같다)
+  const gradeCounts = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const e of all) if (e.overall !== "-") m.set(e.overall, (m.get(e.overall) ?? 0) + 1);
+    return m;
+  }, [all]);
+  const bandCounts = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const e of all) {
+      const b = scoreBandOf(e.score);
+      if (b) m.set(b, (m.get(b) ?? 0) + 1);
+    }
+    return m;
+  }, [all]);
   // 칭호 칩: 이 시즌 선수(표본 미달 포함) 가운데 그 칭호를 가진 선수가 있는 것만, BADGE_DEFS 순서. 고른 칭호가 없으면 전체로 본다
   const badgeCounts = useMemo(() => {
     const m = new Map<string, number>();
@@ -177,12 +195,12 @@ export default function PlayersView({ seasons, latest, initialFile, topBadges, b
   const filtered = useMemo(
     () =>
       filterGridEntries(
-        all,
-        { position: state.position, origin: state.origin, teamCode, badge, school },
+        sortGridBy(all, state.sort),
+        { position: state.position, origin: state.origin, teamCode, badge, school, grade: state.grade, scoreBand: state.scoreBand },
         (id) => badgeKeys[id] ?? [],
         (id) => schools[id] ?? null,
       ),
-    [all, state.position, state.origin, teamCode, badge, badgeKeys, school, schools],
+    [all, state.sort, state.position, state.origin, teamCode, badge, badgeKeys, school, schools, state.grade, state.scoreBand],
   );
   const { shown, remaining } = takeFirst(filtered, limit);
   const update = (patch: Partial<PlayersState>) => {
@@ -193,7 +211,7 @@ export default function PlayersView({ seasons, latest, initialFile, topBadges, b
   const headSeason = status === "loading" ? state.season : shownSeason;
   const seasonLabel = seasons.find((s) => s.seasonCode === headSeason)?.seasonLabel ?? String(headSeason);
   const chips = gridFilterChips(
-    { position: state.position, origin: state.origin, teamCode, badge, school },
+    { position: state.position, origin: state.origin, teamCode, badge, school, grade: state.grade, scoreBand: state.scoreBand },
     (c) => teamShortLabel(teamByCode.get(c)?.shortName ?? c),
     (k) => badgeDef(k)?.label ?? k,
   ).map((c) => ({ key: c.field, label: c.label, onClear: () => setState((s) => clearGridFilter(s, c.field)) }));
@@ -210,10 +228,32 @@ export default function PlayersView({ seasons, latest, initialFile, topBadges, b
         <section aria-label="필터" className="mt-4">
           <FilterSheet
             chips={chips}
-            onReset={() => update({ position: "all", origin: "all", teamCode: null, badge: null, school: null })}
+            onReset={() => update({ position: "all", origin: "all", teamCode: null, badge: null, school: null, grade: null, scoreBand: null })}
             resultText={`${filtered.length}명 보기`}
             trailing={`${filtered.length}명`}
           >
+            <FilterGroup label="종합 등급" hint="표본 기준에 못 미친 선수는 등급이 없어 빠집니다">
+              <ChipRow
+                label="종합 등급"
+                chips={[
+                  { value: "", label: "전체" },
+                  ...GRID_GRADES.filter((g) => gradeCounts.has(g)).map((g) => ({ value: g, label: `${g} ${gradeCounts.get(g)}`, aria: `${g}등급 ${gradeCounts.get(g)}명` })),
+                ]}
+                value={state.grade ?? ""}
+                onChange={(v) => update({ grade: (v || null) as PlayersState["grade"] })}
+              />
+            </FilterGroup>
+            <FilterGroup label="종합 점수">
+              <ChipRow
+                label="종합 점수"
+                chips={[
+                  { value: "", label: "전체" },
+                  ...SCORE_BANDS.filter((b) => bandCounts.has(b.value)).map((b) => ({ value: b.value, label: `${b.label} ${bandCounts.get(b.value)}`, aria: `${b.label} ${bandCounts.get(b.value)}명` })),
+                ]}
+                value={state.scoreBand ?? ""}
+                onChange={(v) => update({ scoreBand: (v || null) as PlayersState["scoreBand"] })}
+              />
+            </FilterGroup>
             <FilterGroup label="포지션" hint="GF는 가드, FC는 포워드로 묶습니다">
               <Segmented
                 label="포지션"
@@ -284,9 +324,10 @@ export default function PlayersView({ seasons, latest, initialFile, topBadges, b
             <h2 id="grid-title" className="text-h2 font-bold">
               {seasonShortLabel(seasonLabel)} 시즌 선수 {status !== "loading" && <span className="font-normal text-ink-3">{filtered.length}명</span>}
             </h2>
-            <p className="text-sub text-ink-3">
-              종합 등급 순, 같은 등급은 PER 순 <InfoLink term="percentileGrade" />
-            </p>
+            <div className="flex items-center gap-1">
+              <Segmented label="나열 순서" options={[...GRID_SORTS]} value={state.sort} onChange={(v) => update({ sort: v })} />
+              <InfoLink term="percentileGrade" />
+            </div>
           </div>
           {status === "loading" && (
             <p role="status" className="sr-only">
@@ -325,10 +366,10 @@ export default function PlayersView({ seasons, latest, initialFile, topBadges, b
           ) : (
             <div className="surface-card rounded-container px-4 py-8 text-center">
               <p className="text-body font-semibold text-ink">조건에 맞는 선수가 없습니다</p>
-              <p className="mt-1 text-sub text-ink-2">포지션·국적·팀·출신교·칭호 중 하나를 풀어 보세요.</p>
+              <p className="mt-1 text-sub text-ink-2">등급·점수·포지션·국적·팀 같은 조건을 하나 풀어 보세요.</p>
               <button
                 type="button"
-                onClick={() => update({ position: "all", origin: "all", teamCode: null, badge: null, school: null })}
+                onClick={() => update({ position: "all", origin: "all", teamCode: null, badge: null, school: null, grade: null, scoreBand: null })}
                 className="focus-ring mt-4 h-11 rounded-control border border-line bg-surface px-4 text-body font-semibold text-ink transition-colors duration-200 hover:bg-surface-2"
               >
                 필터 초기화

@@ -31,6 +31,18 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-10-21-players-grade-filter",
+    date: "2026-10-21",
+    kind: "update",
+    title: "선수 탭에서 등급·점수로 골라 봐요",
+    summary: "등급·점수로 선수 고르기",
+    blocks: [
+      { kind: "p", text: "선수 탭 필터에 종합 등급(S~F)과 점수대(90점 이상, 80점대…) 칩이 생겼어요. A급만, 80점대만 골라 볼 수 있어요." },
+      { kind: "p", text: "목록 위에서 등급순, 점수순, 득점순으로 순서도 바꿀 수 있어요." },
+      { kind: "list", items: [{ text: "선수 탭 가기", href: "/players" }] },
+    ],
+  },
+  {
     slug: "2026-10-19-card-boxes-back",
     date: "2026-10-19",
     kind: "update",

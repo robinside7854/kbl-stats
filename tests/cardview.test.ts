@@ -194,11 +194,11 @@ assert.equal(compareHref({ id: "1", seasonCode: 47 }), "/compare?a=1:47"); // �
 
 // ── 선수 탭 주소 ──
 const pctx = { seasons: [45, 47], latest: 47 };
-assert.deepEqual(parsePlayersQuery("", pctx), { season: 47, position: "all", origin: "all", teamCode: null, badge: null, school: null });
-const ps = { season: 45, position: "G" as const, origin: "asia" as const, teamCode: "55", badge: null, school: null };
+assert.deepEqual(parsePlayersQuery("", pctx), { season: 47, position: "all", origin: "all", teamCode: null, badge: null, school: null, grade: null, scoreBand: null, sort: "grade" });
+const ps = { season: 45, position: "G" as const, origin: "asia" as const, teamCode: "55", badge: null, school: null, grade: null, scoreBand: null, sort: "grade" as const };
 assert.equal(playersQueryString(ps, 47), "?season=45&pos=g&origin=asia&team=55");
 assert.deepEqual(parsePlayersQuery(playersQueryString(ps, 47), pctx), ps);
-assert.deepEqual(parsePlayersQuery("?season=13&pos=q&origin=x&team=a", pctx), { season: 47, position: "all", origin: "all", teamCode: null, badge: null, school: null });
+assert.deepEqual(parsePlayersQuery("?season=13&pos=q&origin=x&team=a&grade=z&score=85&sort=x", pctx), { season: 47, position: "all", origin: "all", teamCode: null, badge: null, school: null, grade: null, scoreBand: null, sort: "grade" });
 assert.equal(positionFromParam("c"), "C");
 assert.equal(nationalityFromParam("for"), "foreign");
 
@@ -347,7 +347,7 @@ import { componentValueText, percentileBarGroups, percentileTone } from "../lib/
   assert.deepEqual(ids(filterGridEntries(grid, { position: "all", origin: "all", teamCode: null, badge: "scoringKing" }, of)).sort(), ["101", "104"]);
   assert.deepEqual(ids(filterGridEntries(grid, { position: "C", origin: "all", teamCode: null, badge: "scoringKing" }, of)), ["104"]);
   assert.equal(filterGridEntries(grid, { position: "all", origin: "all", teamCode: null, badge: null }, of).length, grid.length);
-  const ps2 = { season: 45, position: "all" as const, origin: "all" as const, teamCode: null, badge: "scoringKing", school: null };
+  const ps2 = { season: 45, position: "all" as const, origin: "all" as const, teamCode: null, badge: "scoringKing", school: null, sort: "grade" as const };
   assert.equal(playersQueryString(ps2, 47), "?season=45&badge=scoringKing");
   assert.equal(parsePlayersQuery("?badge=scoringKing", { seasons: [45, 47], latest: 47 }).badge, "scoringKing");
   assert.equal(parsePlayersQuery("?badge=<x>", { seasons: [45, 47], latest: 47 }).badge, null);
@@ -385,7 +385,7 @@ import { SCHOOL_ABROAD, schoolGroupOf } from "../lib/roster";
   assert.equal(schoolGroupOf("", false), null);
   const sc: Record<string, string> = { "101": "연세대", "102": "고려대", "104": SCHOOL_ABROAD };
   assert.deepEqual(ids(filterGridEntries(grid, { position: "all", origin: "all", teamCode: null, school: "연세대" }, () => [], (id) => sc[id] ?? null)), ["101"]);
-  const ps3 = { season: 47, position: "all" as const, origin: "all" as const, teamCode: null, badge: null, school: "연세대" };
+  const ps3 = { season: 47, position: "all" as const, origin: "all" as const, teamCode: null, badge: null, school: "연세대", sort: "grade" as const };
   assert.equal(playersQueryString(ps3, 47), "?school=%EC%97%B0%EC%84%B8%EB%8C%80");
   assert.equal(parsePlayersQuery(playersQueryString(ps3, 47), { seasons: [47], latest: 47 }).school, "연세대");
   assert.equal(clearGridFilter(ps3, "school").school, null);
@@ -413,4 +413,45 @@ console.log("cardview: 출신교 필터 통과");
   // 리그 평균을 모르면 –
   assert.equal(eraCompareRows(compareCardEntries(va, vb), null, lb).find((r) => r.key === "points")!.aText, "–");
   console.log("cardview: 리그 평균 대비 통과");
+}
+
+// ── 등급·점수대 필터와 나열 순서 (2026-10-21) ──
+import { scoreBandOf, sortGridBy } from "../lib/cardview";
+{
+  assert.equal(scoreBandOf(null), null);
+  assert.equal(scoreBandOf(99), "90");
+  assert.equal(scoreBandOf(90), "90");
+  assert.equal(scoreBandOf(89), "80");
+  assert.equal(scoreBandOf(80), "80");
+  assert.equal(scoreBandOf(55), "50");
+  assert.equal(scoreBandOf(49), "low");
+  assert.equal(scoreBandOf(1), "low");
+  const base = { position: "all" as const, origin: "all" as const, teamCode: null };
+  for (const g of ["S", "A", "B", "C", "D", "F"] as const) {
+    const l = filterGridEntries(grid, { ...base, grade: g });
+    assert.ok(l.every((e) => e.overall === g), g);
+  }
+  // 등급 칩을 다 더하면 표본 충족 선수 전원 (표본 미달은 어느 등급에도 없다)
+  const qualified = grid.filter((e) => e.qualified).length;
+  assert.equal((["S", "A", "B", "C", "D", "F"] as const).reduce((n, g) => n + filterGridEntries(grid, { ...base, grade: g }).length, 0), qualified);
+  assert.equal((["90", "80", "70", "60", "50", "low"] as const).reduce((n, b) => n + filterGridEntries(grid, { ...base, scoreBand: b }).length, 0), qualified);
+  const e0 = grid[0];
+  const band = scoreBandOf(e0.score)!;
+  assert.ok(filterGridEntries(grid, { ...base, scoreBand: band }).some((e) => e.player.id === e0.player.id));
+  // 점수순: 점수 내림차순, 표본 미달 맨 뒤
+  const byScore = sortGridBy(grid, "score");
+  assert.equal(byScore[byScore.length - 1].player.id, "108");
+  for (let i = 1; i < byScore.length; i++) if (byScore[i].qualified) assert.ok((byScore[i - 1].score ?? 0) >= byScore[i].score!);
+  // 득점순: 표본 충족 선수끼리 경기당 득점 내림차순
+  const byPpg = sortGridBy(grid, "ppg").filter((e) => e.qualified);
+  for (let i = 1; i < byPpg.length; i++) assert.ok(byPpg[i - 1].ppg >= byPpg[i].ppg);
+  assert.equal(sortGridBy(grid, "grade").map((e) => e.player.id).join(), grid.map((e) => e.player.id).join());
+  // 주소
+  const ps4 = { season: 47, ...base, badge: null, school: null, grade: "A" as const, scoreBand: "80" as const, sort: "score" as const };
+  assert.equal(playersQueryString(ps4, 47), "?grade=a&score=80&sort=score");
+  assert.deepEqual(parsePlayersQuery("?grade=a&score=80&sort=score", { seasons: [47], latest: 47 }), ps4);
+  assert.deepEqual(gridFilterChips(ps4, String).map((c) => c.label), ["A등급", "80점대"]);
+  assert.equal(clearGridFilter(ps4, "grade").grade, null);
+  assert.equal(clearGridFilter(ps4, "scoreBand").scoreBand, null);
+  console.log("cardview: 등급·점수대 필터·나열 순서 통과");
 }

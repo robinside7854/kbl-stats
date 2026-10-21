@@ -356,7 +356,8 @@ kbl-stats/
   | nav_click(menu "즐겨찾기", place top) · favorite_remove | (위와 같음) | 헤더 별 버튼 → /favorites, 즐겨찾기 화면에서 별 해제 (2026-10-17. 팬 MVP 투표 vote_cast·vote_open 은 같은 날 폐지) |
   | lineup_start / lineup_complete / lineup_share_link | team_code | 팀 올타임 베스트 5 고르기 시작 / 다섯 명 완성 / 링크 복사 (이미지는 image_save, 포지션 칩 filter_change screen=team_best filter=position) |
   | filter_change (2026-10-16 우리만의 기능) | screen=compare filter=era(raw/relative) · screen=player filter=timeline value=more · screen=records filter=tab value=trends·draft·foreign · screen=records_trends filter=metric · screen=records_draft filter=year · screen=records_foreign filter=view·sort | 비교 리그 평균 대비 / 타임라인 더 보기 / 기록 새 탭. team_select place=career_timeline |
-  | filter_change (역대 기록) | screen=records filter=tab · screen=records_game/records_season/records_awards filter=kind·category·mode·origin·active_only | 역대 기록 하위 탭·경기 구분·부문·합계/경기당·국적·현역만 |
+  | filter_change (선수 탭 등급·점수, 2026-10-21) | screen=players filter=grade(S~F)·scoreBand(90/80/70/60/50/low)·sort(grade/score/ppg) | 선수 탭 등급·점수대 칩, 나열 순서 |
+| filter_change (역대 기록) | screen=records filter=tab · screen=records_game/records_season/records_awards filter=kind·category·mode·origin·active_only | 역대 기록 하위 탭·경기 구분·부문·합계/경기당·국적·현역만 |
 
 ## 업데이트 소식 규칙 (2026-10-05 사용자 지시 — 세션이 바뀌어도 지킨다)
 - **화면에 보이는 기능을 새로 만들거나 바꾸면 같은 커밋에 업데이트 소식 글을 하나 쓴다.** `lib/updates.ts UPDATE_POSTS` **맨 위에** 더한다(slug `YYYY-MM-DD-영어`, date 한국 날짜, kind update/guide, title, summary 20자 이하 — 폰 띠배너 한 줄, blocks). 맨 위 글이 모든 화면 헤더 아래 띠배너(`UpdateBanner`)에 자동으로 뜬다(닫으면 그 브라우저는 다음 새 글까지 숨김)
@@ -403,6 +404,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-21 (선수 탭 등급·점수 필터): 사용자 요청 — 선수 탭 필터 시트 맨 앞에 **종합 등급 칩**(S~F + 그 시즌 인원, `?grade=a`)·**종합 점수대 칩**(90점 이상·80점대·70점대·60점대·50점대·50점 미만, `?score=80`, `lib/cardview SCORE_BANDS·scoreBandOf`), 그리드 머리말에 **나열 순서** 등급순(기본, 등급 → PER)·점수순(점수 → PER)·득점순(경기당 득점 → 점수) (`GRID_SORTS·sortGridBy`, `?sort=score`). 표본 미달은 등급·점수 칩을 고르면 빠지고 정렬은 늘 맨 뒤. GA4 filter_change screen=players filter=grade·scoreBand·sort(새 매개변수 없음). 업데이트 소식 글. main 배포.
 - 2026-10-19 (선수 카드 되돌림): 사용자 "박스를 치운 선수 카드는 전 버전이 더 마음에 든다" → `PlayerCard.tsx` 를 디자인 정리 전(339bc00b~1) 판으로 통째로 되돌림 — 기록 9칸 상자·1~10위 칸 팀 색 바탕·4~10위 팀 색 순위 꼬리표·배경 팀 약칭 큰 글자·카드 아래 순위 기준/출처 글·레이더 아래 종합 등급/수상 가산/뺀 항목 글(화면에도). 이후 이 파일을 고친 커밋이 없어 다른 변경은 잃지 않음. GA4 변화 없음. 업데이트 소식 글 "선수 카드 예전 모습으로". main 배포.
 - 2026-10-17 (관리자 회원 목록 개편): 푸터에 관리자만 보이는 "회원 목록" 버튼(`AdminFooterLink`, /api/me isAdmin). /admin 목록을 카드 여러 열(폰 1·sm 2·lg 3·2xl 5, 칸 글자 한 줄 고정 — 응원팀은 "KCC 외 2")·10명씩 쪽 번호·가입 순/최근 방문 순(`lib/account sortAdminMembers·adminPageCount`), 최근 수정 칸 삭제. 최근 방문 = 새 열 `members.last_seen_at`(/api/me GET 때 1시간에 한 번 `touchLastSeen`, 그 전 회원은 "기록 없음"). 같은 날 VAPID 키 새로 만듦(공개 키 site.json, 비밀 키는 사용자가 GitHub·Vercel 에 넣음, push-check 실행 3 성공). 관리자 전용이라 업데이트 소식 글 없음. main 배포.
 - 2026-10-17 (신규 가입 관리자 알림·KBL 공홈 링크): ① 처음 보는 로그인으로 회원이 생기면(계정 연결 제외) 로그인 콜백이 회원을 만들고 `lib/server/admin-notify.ts` 가 관리자(ADMIN_LOGIN_IDS) 계정의 폰 알림 기기로 "새 회원이 가입했어요 · 구글/네이버 · 지금 회원 N명" 푸시(누르면 /admin). **Vercel 환경변수 VAPID_PRIVATE_KEY**(GitHub Secrets 와 같은 값)가 있어야 보냄, 관리자가 알림함에서 폰 알림을 켜 둬야 함. 실패해도 로그인은 그대로 ② KBL 공홈 링크: 박스스코어 창 아래 "KBL 공홈 경기 기록"(kbl.or.kr/game/record/{gmkey} — 서버 C detailUrl 형식, 실제 열림은 사용자 확인), 푸터 "KBL 공식 홈페이지". 주소 site.json officialSite·`lib/official.ts`. 선수 공홈 페이지 주소는 미확인이라 안 넣음. GA4 새 이벤트 official_link_click(place·game_key — place 등록 필요할 수 있음). 업데이트 소식 글. main 배포.

@@ -222,6 +222,54 @@ export function sortGridEntries(list: readonly GridEntry[]): GridEntry[] {
   );
 }
 
+/** 선수 탭 나열 순서 (2026-10-21): 등급순(기본 — 등급 → PER) · 점수순(종합 점수 1~99) · 득점순(경기당 득점) */
+export type GridSort = "grade" | "score" | "ppg";
+export const GRID_SORTS: readonly { value: GridSort; label: string }[] = [
+  { value: "grade", label: "등급순" },
+  { value: "score", label: "점수순" },
+  { value: "ppg", label: "득점순" },
+];
+
+/**
+ * 나열 순서대로 다시 줄 세운다. 표본 미달(점수 없음)은 늘 맨 뒤.
+ * 점수순: 점수 높은 순 → PER, 득점순: 경기당 득점 → 점수. 같으면 이름순·선수 번호순.
+ */
+export function sortGridBy(list: readonly GridEntry[], by: GridSort): GridEntry[] {
+  if (by === "grade") return sortGridEntries(list);
+  const sc = (e: GridEntry) => e.score ?? -1;
+  return [...list].sort(
+    (a, b) =>
+      Number(!a.qualified) - Number(!b.qualified) ||
+      (by === "score" ? sc(b) - sc(a) || b.player.per - a.player.per : b.ppg - a.ppg || sc(b) - sc(a)) ||
+      a.player.nameKo.localeCompare(b.player.nameKo, "ko") ||
+      a.player.id.localeCompare(b.player.id),
+  );
+}
+
+/** 점수대 칩 (2026-10-21 "80점대만 보기"). 90 = 90점 이상(최고 99), low = 50점 미만 */
+export type ScoreBand = "90" | "80" | "70" | "60" | "50" | "low";
+export const SCORE_BANDS: readonly { value: ScoreBand; label: string }[] = [
+  { value: "90", label: "90점 이상" },
+  { value: "80", label: "80점대" },
+  { value: "70", label: "70점대" },
+  { value: "60", label: "60점대" },
+  { value: "50", label: "50점대" },
+  { value: "low", label: "50점 미만" },
+];
+
+/** 점수 → 점수대. 표본 미달(null)은 어느 점수대에도 없다 */
+export function scoreBandOf(score: number | null): ScoreBand | null {
+  if (score === null) return null;
+  if (score >= 90) return "90";
+  if (score < 50) return "low";
+  return String(Math.floor(score / 10) * 10) as ScoreBand;
+}
+
+export const scoreBandLabel = (b: ScoreBand) => SCORE_BANDS.find((x) => x.value === b)?.label ?? b;
+
+/** 등급 칩 순서 (표본 미달 "-" 은 칩이 없다) */
+export const GRID_GRADES: readonly Grade[] = ["S", "A", "B", "C", "D", "F"];
+
 export interface GridFilter {
   position: PositionFilter;
   origin: NationalityFilter;
@@ -231,6 +279,10 @@ export interface GridFilter {
   badge?: string | null;
   /** 출신교 묶음 이름 (lib/roster schoolGroupOf, 2026-10-02). 없거나 null 이면 전체 */
   school?: string | null;
+  /** 종합 등급 (S~F, 2026-10-21). 없거나 null 이면 전체 — 표본 미달은 고르면 빠진다 */
+  grade?: Grade | null;
+  /** 종합 점수대 (2026-10-21). 없거나 null 이면 전체 */
+  scoreBand?: ScoreBand | null;
 }
 
 /** 선수 탭 그리드 첫 화면 카드 수. "더 보기"를 누를 때마다 이만큼 더 (디자인 점검 A3) */
@@ -254,15 +306,17 @@ export function gridFilterChips(
   if (f.teamCode !== null) out.push({ field: "teamCode", label: teamLabel(f.teamCode) });
   if (f.badge) out.push({ field: "badge", label: badgeLabel(f.badge) });
   if (f.school) out.push({ field: "school", label: f.school });
+  if (f.grade) out.push({ field: "grade", label: `${f.grade}등급` });
+  if (f.scoreBand) out.push({ field: "scoreBand", label: scoreBandLabel(f.scoreBand) });
   return out;
 }
 
 /** 칩의 ✕: 그 항목만 기본값(전체)으로 */
 export function clearGridFilter<T extends GridFilter>(f: T, field: GridFilterField): T {
-  return { ...f, [field]: field === "teamCode" || field === "badge" || field === "school" ? null : "all" };
+  return { ...f, [field]: field === "position" || field === "origin" ? "all" : null };
 }
 
-/** 포지션·국적(lib/roster)·팀·칭호로 거른다. badgesOf: 선수 번호 → 그 선수의 칭호 배지 키 (통산 기준) */
+/** 포지션·국적(lib/roster)·팀·칭호·출신교·등급·점수대로 거른다. badgesOf: 선수 번호 → 그 선수의 칭호 배지 키 (통산 기준) */
 export function filterGridEntries(
   list: readonly GridEntry[],
   f: GridFilter,
@@ -277,7 +331,9 @@ export function filterGridEntries(
       .filter((p) => !f.school || schoolOf(p.id) === f.school)
       .map((p) => p.id),
   );
-  return list.filter((e) => keep.has(e.player.id));
+  return list.filter(
+    (e) => keep.has(e.player.id) && (!f.grade || e.overall === f.grade) && (!f.scoreBand || scoreBandOf(e.score) === f.scoreBand),
+  );
 }
 
 // ─────────────────────────────────────────────
@@ -537,10 +593,12 @@ export const playerHref = (id: string, season?: number) => `/player/${id}${seaso
 /** 선수 탭 상태 */
 export interface PlayersState extends GridFilter {
   season: number;
+  /** 나열 순서 (기본 등급순) */
+  sort: GridSort;
 }
 
 /**
- * 선수 탭 쿼리 ?season=45&pos=g&origin=for&team=55&badge=scoringKing → 상태. 칭호는 형식만 본다(목록에 없는 키면 화면이 버린다). 목록에 없는 시즌이면 latest.
+ * 선수 탭 쿼리 ?season=45&pos=g&origin=for&team=55&badge=scoringKing&grade=a&score=80&sort=score → 상태. 칭호는 형식만 본다(목록에 없는 키면 화면이 버린다). 목록에 없는 시즌이면 latest.
  * 팀은 형식만 본다(시즌마다 팀이 달라 그 시즌 파일을 받은 뒤 화면이 없는 팀을 버린다).
  */
 export function parsePlayersQuery(search: string, ctx: { seasons: readonly number[]; latest: number }): PlayersState {
@@ -549,6 +607,9 @@ export function parsePlayersQuery(search: string, ctx: { seasons: readonly numbe
   const team = qs.get("team");
   const badge = qs.get("badge");
   const school = qs.get("school");
+  const grade = (qs.get("grade") ?? "").toUpperCase();
+  const band = qs.get("score");
+  const sort = qs.get("sort");
   return {
     season: s && DIGITS.test(s) && ctx.seasons.includes(Number(s)) ? Number(s) : ctx.latest,
     position: positionFromParam(qs.get("pos")),
@@ -556,6 +617,9 @@ export function parsePlayersQuery(search: string, ctx: { seasons: readonly numbe
     teamCode: team && DIGITS.test(team) ? team : null,
     badge: badge && /^[a-zA-Z0-9]{1,30}$/.test(badge) ? badge : null,
     school: school && school.length <= 40 ? school : null,
+    grade: (GRID_GRADES as readonly string[]).includes(grade) ? (grade as Grade) : null,
+    scoreBand: SCORE_BANDS.some((b) => b.value === band) ? (band as ScoreBand) : null,
+    sort: GRID_SORTS.some((o) => o.value === sort) ? (sort as GridSort) : "grade",
   };
 }
 
@@ -568,6 +632,9 @@ export function playersQueryString(s: PlayersState, latest: number): string {
   if (s.teamCode) qs.set("team", s.teamCode);
   if (s.badge) qs.set("badge", s.badge);
   if (s.school) qs.set("school", s.school);
+  if (s.grade) qs.set("grade", s.grade.toLowerCase());
+  if (s.scoreBand) qs.set("score", s.scoreBand);
+  if (s.sort !== "grade") qs.set("sort", s.sort);
   const str = qs.toString();
   return str ? `?${str}` : "";
 }
