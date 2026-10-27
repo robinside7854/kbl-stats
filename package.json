@@ -55,7 +55,8 @@
     "test:updates": "tsx tests/updates.test.ts",
     "test:notifications": "tsx tests/notifications.test.ts && tsx tests/notif-news.test.ts",
     "test:cleanup": "tsx tests/vercel-cleanup.test.ts",
-    "vercel:cleanup": "tsx scripts/vercel-cleanup.ts"
+    "vercel:cleanup": "tsx scripts/vercel-cleanup.ts",
+    "ga4": "NODE_USE_ENV_PROXY=1 tsx scripts/ga4-report.ts"
   },
   "engines": {
     "node": ">=20"

@@ -305,6 +305,7 @@ kbl-stats/
 - 매개변수는 개인을 알아볼 수 없는 값만(선수 번호·시즌·화면·부문 이름). 이메일·이름 입력값·검색어 원문은 보내지 않는다
 - 새 매개변수를 만들면 사용자에게 "GA → 관리 → 맞춤 정의"에 등록할 이름을 알려 준다(등록 전 데이터는 보고서에서 안 보임)
 - 검증: 브라우저에서 `window.gtag` 를 가짜 함수로 바꿔 놓고 눌러 보아 이벤트가 나가는지 확인(Playwright `addInitScript`)
+- **GA4 조회(2026-10-27)**: `npm run ga4 -- [--since 2026-10-02] [--only summary,daily,pages,events,sources,devices] [--event nav_click --param menu]` → `scripts/ga4-report.ts`(GA4 Data API, 읽기 전용, 의존성 없이 JWT 서명). 열쇠는 Claude 클라우드 환경 변수 `GA4_PROPERTY_ID`(속성 ID 9자리 숫자)·`GA4_CLIENT_EMAIL`(서비스 계정 kbl-ga-bot@kbl-stats-reference…)·`GA4_PRIVATE_KEY`(JSON 키의 private_key 값, \n 글자 그대로) — 코드·커밋·대화창에 넣지 않는다. 환경 변수는 세션이 시작될 때만 들어온다(넣은 뒤 새 세션)
 - 사용자 속성(2026-10-04, `track.ts setUserProperties`, 헤더 `AccountButton` 이 화면마다 설정): `signed_in`(yes/no)·`support_team`(대표 응원팀 코드 또는 none) · 2026-10-05 `display_mode`(standalone = 설치한 앱으로 열음 / browser, `AppInstallTracker`) — GA 맞춤 정의에 "사용자" 범위로 등록
 - 지금 이벤트 (화면 이름 screen: leaders·players·records·player·trend·shot_chart·compare·home 등)
   | 이벤트 | 매개변수 | 언제 |
@@ -404,6 +405,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-27 (GA4 연결): 사용자 "실제 방문 통계로 어디를 강화할지" → GA4 공식 MCP 연결은 claude.ai 목록에 없음(외부 유료 Supermetrics 만), Vercel Web Analytics 는 꺼져 있음 → GA4 Data API 직접 조회로 결정. 이 작업 환경에서 analyticsdata·oauth2.googleapis.com 접속 됨 확인. 사용자가 구글 클라우드 kbl-stats-reference 프로젝트에 서비스 계정 kbl-ga-bot(GA4 뷰어)을 만들고 환경 변수 3개를 넣음 — 처음에 JSON 키를 대화창에 붙여 그 키(839a1644…)는 삭제·재발급 안내. `scripts/ga4-report.ts`·`npm run ga4`(가짜 키로 서명·토큰 요청이 구글까지 가는 것 확인). 이 세션엔 속성 ID 만 들어와 있어(나머지는 세션 시작 뒤 저장) 실제 조회는 새 세션에서. 화면 변경 없음 → 업데이트 소식 글 없음.
 - 2026-10-21 (선수 카드 포지션 한글): 사용자 "포지션 영어 C·F 가 등급처럼 보일 수 있다" → 선수 탭 카드 띠의 포지션 칩을 한글(가드·포워드·센터·가드-포워드·포워드-센터, `positionLabel`)·흰 바탕 테두리 칩으로(등급 배지는 색 채운 칩), 아래 팀 줄에서 포지션 중복 삭제. 오늘 업데이트 글 문구. main 배포.
 - 2026-10-21 (선수·팀 카드 디자인 개편): 사용자 "이미지·글자 비율 어색, 등급이 글자보다 과하게 큼, 여백 대신 정보, 포지션·등급·팀 로고·선수 프로필 중심 재배치". 스킬 redesign-existing-projects·minimalist-ui·kill-ai-slop. ① 선수 탭 카드(`PlayersView GridCard`): 위 팀 색 옅은 띠(color-mix 15% + 아래 3px 팀 색 선) 왼쪽에 팀 로고(22)·등급 배지(높이 28/PC 32, 등급 18·점수 13px)·포지션 코드 칩(G/GF/F/FC/C), 오른쪽 큰 세로 사진(112px) / 아래 이름·팀·포지션·국적 → 칭호 → 경기당 득점·리바·어시 세 칸(`GridEntry rpg·apg`) ② 팀 카드(`TeamsIndexView`): 팀 색 띠에 로고 40·순위 큰 숫자·팀 이름 / 성적·연승 + 경기당 득실차 → 플레이오프 확률 막대(팀 색) → 득점 1위 사진·이름·경기당 득점(`lib/cardview teamScoringLeaders`, 기본 표본 기준) → 우승·팬 수. 격자 폰 2·sm 3·lg 5열 ③ 플레이어 카드 머리 종합 배지 로고+24 → 로고+14·등급 ovr×0.74·점수 ×0.36. GA4 변화 없음. 업데이트 소식 글(오늘 앞 글의 "더 크게" 문장 삭제). main 배포.
 - 2026-10-21 (등급·점수 크게): 사용자 "선수 목록·카드의 등급과 점수를 더 크게" → 선수 탭 그리드 등급 배지 높이 28 → 44px(PC 48)·등급 26px(PC 30)·점수 18px(PC 20), 플레이어 카드 머리 종합 배지 로고+8 → 로고+24 정사각(폰 카드 64px)·등급 ovr×0.85·점수 ovr×0.45(전엔 작은 글자). 오늘 업데이트 글에 한 줄. GA4 변화 없음. main 배포.
