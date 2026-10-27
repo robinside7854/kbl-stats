@@ -406,6 +406,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-27 (네이버 서치어드바이저 소유 확인): 구글 서치 콘솔 소유 확인 완료(사용자), sitemap 제출 직후 상태 "가져올 수 없음"(제출 직후 흔한 표시 — 며칠 뒤 다시 확인). site.json searchVerification.naver 에 값 → head 에 naver-site-verification 메타. main 배포.
 - 2026-10-27 (구글 서치 콘솔 소유 확인): GA4 방식은 실패 — GA 스크립트가 next/script afterInteractive 라 <head> 가 아니라 body 끝에 붙어서(서치 콘솔은 head 의 GA 코드만 인정). GA 위치는 그대로 두고 HTML 태그 방식으로: site.json searchVerification.google 에 사용자가 준 값 → 모든 페이지 head 에 google-site-verification 메타. main 배포.
 - 2026-10-27 (검색 유입 sitemap·robots): GA4 검토 1번. `app/sitemap.ts`(/sitemap.xml 1,475개 — 고정 화면 16·시즌별 리더보드/일정·팀 20·선수 1,338·업데이트 글, 진행 중 시즌·매일 바뀌는 화면은 lastmod = 기록 마지막 날)·`app/robots.ts`(/api/·/me·/admin·/notifications·/favorites 막음 + sitemap 위치), 규칙 `lib/seo.ts`(buildSitemap·buildRobots·verificationMeta, 테스트는 tests/share.test.ts). 검색 관리 도구 소유 확인 값 칸 site.json `searchVerification.google·naver`(비면 태그 없음) → layout metadata.verification. 사용자 할 일: 구글 서치 콘솔(GA4 로 소유 확인 가능)·네이버 서치어드바이저 등록 + sitemap 제출. 화면 변경 없음 → 업데이트 소식 글 없음. main 배포.
 - 2026-10-27 (GA4 분석): `npm run ga4` 첫 실제 조회 → `docs/ga4-review-2026-10-27.md`. 방문자 1,038·세션 1,930, 10/4 470명 뒤 하루 20~35명 정체, 재방문 주 40~90명. 54-0 이 최대(164명·완주 1,951판) 공유는 0.5%, 홈 박스스코어 361명, 구글 유입 42뿐(sitemap·robots 없음), 비교·즐겨찾기·좋아요·알림함 거의 안 씀. 제안: 검색 유입(sitemap)·54-0 공유·경기 다음 날 재방문. GA 맞춤 정의 wins·display_mode 미등록. 사용자 결정 대기. 화면 변경 없음.
