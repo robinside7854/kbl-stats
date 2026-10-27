@@ -228,6 +228,7 @@ kbl-stats/
 │   ├── game-share.ts    ← 54-0 결과 공유 (2026-10-27, 순수: 라인업 ↔ 주소 칸 lineupToSlug·slugToLineup, 결과 주소 /game/r/{칸}·미리보기 그림 /game/og/{칸}, 공유 글 shareText·권유 문구 shareCta) — 서버 lib/server/game-result.ts loadSharedGameResult(풀로 성적 다시 계산), 화면 app/game/r/[lineup](ISR 하루, noindex)·app/game/og/[lineup](1200×630 PNG, next/og, 글꼴 assets/fonts — next.config outputFileTracingIncludes)
 │   ├── game-pool.ts     ← 54-0 후보 풀 만들기 buildGamePool(시즌 카드 → 시즌 × 팀 × 후보, 표본 충족·포지션 있는 선수, 점수·축·기록 모두 그 시즌) — 빌드 스크립트 전용
 │   ├── shorts.ts        ← 팬 숏폼 규칙 (순수: 득점 출처 4개 scoringBreakdown(공식 2점·3점·자유투 + 2점을 슛 차트 구역 비율로 페인트/미드, 합 = 공식 득점), 선수별 특징 pickCallouts(비중·경기당 1위, MIN_TRAIT_SHARE 20, 균형형 BALANCED_MAX_SHARE 40), 대사 topScorerLine(해요체)·toSpeech·자막 captionChunks·길이 추정·슛 점 솎기)
+│   ├── return-nudge.ts  ← 경기 다음 날 다시 오게 (2026-10-27, 순수: 무엇을 권할지 pickNudgeKind(폰 알림 → 앱 설치 → 아이폰 홈 화면 → 로그인, 할 게 없으면 null)·다시 띄울 때 shouldShowNudge(닫으면 14일, 하면 다시 안 띄움)·문구 NUDGE_TEXT) — 화면 app/components/ReturnNudge(layout, GameCard 박스스코어 닫힘 신호 kbl:boxscore-closed)·install-prompt(beforeinstallprompt 받아 두기, AppInstallTracker)
 │   ├── seo.ts           ← 검색 엔진 안내 (2026-10-27, 순수: buildSitemap(app/sitemap.ts → /sitemap.xml)·buildRobots(app/robots.ts → /robots.txt, 개인 화면 PRIVATE_PATHS 막음)·verificationMeta(site.json searchVerification → layout))
 │   ├── share.ts         ← 공유 미리보기 (SITE_URL = data/codes/site.json siteUrl, shareMetadata = 제목·설명·og·twitter 한 벌 — 페이지마다 이걸로, ogImagePath, GA 화면 이름 sharePageOf). layout 에 metadataBase
 │   ├── account.ts       ← 회원 규칙 (순수: 로그인 회사 parseLoginProviders·enabledLoginProviders, 로그인 번호 memberIdOf("google:…"), 계정 연결 LinkResult·linkResultMessage·canUnlink, 관리자 parseAdminLoginIds·isAdminLogin, 닉네임 validateNickname(2~12자·한글/영문/숫자/_·운영자 사칭 금지), 응원팀 normalizeTeamCode, 즐겨찾기 sanitizeFavorites(상한 300)·mergeFavorites(이 브라우저 순서 먼저))
@@ -325,6 +326,7 @@ kbl-stats/
   | game_spin / game_complete(wins, bonuses: school·prime·champion 쉼표 또는 none) | | 54-0 |
   | game_share | method(native/native_cancel/copy), wins, place(top/bottom, 친구 결과 페이지면 shared_top·shared_bottom) | 54-0 결과 공유 (2026-10-27 — 결과마다 주소 /game/r/{라인업}, 옛 game_share_link 대신) |
   | game_challenge | (없음) | 친구가 보낸 결과 페이지에서 "나도 해 보기" |
+  | return_nudge_show / return_nudge_click / return_nudge_dismiss | kind(push/install/ios_home/login) | 박스스코어를 닫은 직후 뜨는 재방문 권유 카드 (2026-10-27, `ReturnNudge` — 폰 알림 켜기 결과는 push_enable 도 같이) |
   | login_start / login_success / login_error | provider / provider / reason | 로그인 버튼 / 돌아온 직후(/me?login=) / 실패해 돌아옴(/me?error=) |
   | profile_save | team_code(대표 팀, 없으면 none), team_count | 닉네임·응원팀(여러 팀) 저장 |
   | favorites_sync | count | 로그인 직후 이 브라우저·계정 즐겨찾기 합치기 |
@@ -409,6 +411,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-27 (경기 다음 날 재방문 권유): GA4 검토 3번. 홈은 이미 경기·새로 나온 기록이 맨 앞이라 순서는 그대로 두고, 박스스코어 창을 닫은 직후 화면 아래에 작은 카드 `ReturnNudge` 를 한 번(모든 화면, 홈·일정 공통): 로그인 회원은 "폰 알림 켜기"(그 자리에서 켬), 아니면 브라우저가 설치 창을 준비했으면 "앱 설치"(beforeinstallprompt 를 `AppInstallTracker` 가 받아 둠, 브라우저 자체 안내는 그대로), 아이폰 사파리는 홈 화면 추가 안내, 그 밖엔 로그인 권유 — 할 게 없으면(이미 알림 켬·설치한 앱) 안 띄움. 닫으면 14일 뒤에 다시, 하면 다시 안 띄움(localStorage `kbl-stats:return-nudge:v1`, 개인정보 안내 시행일 10-27). GA4 새 이벤트 return_nudge_show·click·dismiss(kind — 이미 등록된 매개변수). 업데이트 소식 글. main 배포.
 - 2026-10-27 (54-0 결과 공유 카드·공유 권유): GA4 검토 2번(완주 1,951판 중 공유 0.5%). 결과마다 자기 주소 `/game/r/{번호-시즌_…}`(처음 열 때 만들어 하루 보관, 검색 제외) + 카톡·X 미리보기 그림 `/game/og/…`(검정 바탕에 금색 성적·다섯 명 팀 색·이름·자리·시즌·경기당 득점). 결과 화면 맨 위 공유 권유 상자 `ShareCta`(성적별 문구 — 전승·48승+·40승+·그 밖, 파란 "결과 공유하기", 폰은 기기 공유 창, PC 는 글+주소 복사 뒤 안내 한 줄), 아래 줄도 "결과 공유하기"가 첫 버튼. 친구 결과 페이지는 "친구 라인업은 N승 M패" + "나도 해 보기"(→ /game). GA4 game_share(method·wins·place)·game_challenge — 옛 game_share_link 없어짐. 업데이트 소식 글. main 배포.
 - 2026-10-27 (네이버 서치어드바이저 소유 확인): 구글 서치 콘솔 소유 확인 완료(사용자), sitemap 제출 직후 상태 "가져올 수 없음"(제출 직후 흔한 표시 — 며칠 뒤 다시 확인). site.json searchVerification.naver 에 값 → head 에 naver-site-verification 메타. main 배포.
 - 2026-10-27 (구글 서치 콘솔 소유 확인): GA4 방식은 실패 — GA 스크립트가 next/script afterInteractive 라 <head> 가 아니라 body 끝에 붙어서(서치 콘솔은 head 의 GA 코드만 인정). GA 위치는 그대로 두고 HTML 태그 방식으로: site.json searchVerification.google 에 사용자가 준 값 → 모든 페이지 head 에 google-site-verification 메타. main 배포.

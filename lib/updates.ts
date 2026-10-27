@@ -31,6 +31,18 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-10-27-next-game-alert",
+    date: "2026-10-27",
+    kind: "update",
+    title: "다음 경기 결과, 폰으로 받아 보세요",
+    summary: "경기 결과 폰 알림 안내",
+    blocks: [
+      { kind: "p", text: "박스스코어를 다 보고 닫으면 아래에 작은 안내가 한 번 떠요. 폰 알림 켜기나 앱 설치 중 지금 할 수 있는 것 하나만 보여 줘요." },
+      { kind: "p", text: "기록은 경기 끝나고 1시간쯤 뒤에 올라와요. 알림을 켜 두면 응원팀이랑 즐겨찾기 선수 소식이 그때 폰으로 와요." },
+      { kind: "list", items: [{ text: "알림함에서 켜기", href: "/notifications" }, { text: "오늘 경기 보러 가기", href: "/" }] },
+    ],
+  },
+  {
     slug: "2026-10-27-game-share",
     date: "2026-10-27",
     kind: "update",

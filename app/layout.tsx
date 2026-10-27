@@ -5,6 +5,7 @@ import { verificationMeta } from "@/lib/seo";
 import site from "../data/codes/site.json";
 import Analytics from "./components/Analytics";
 import AppInstallTracker from "./components/AppInstallTracker";
+import ReturnNudge from "./components/ReturnNudge";
 import { FONT_CDN_ORIGIN, PRETENDARD_CSS_URL } from "./components/webFont";
 import "./globals.css";
 
@@ -48,6 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-dvh">
         {children}
         <AppInstallTracker />
+        <ReturnNudge />
         <Analytics />
       </body>
     </html>

@@ -37,4 +37,23 @@ assert.ok((robots.rules as { disallow: string[] }[])[0].disallow.includes("/me")
 assert.equal(verificationMeta({ google: "", naver: " " }), undefined);
 assert.deepEqual(verificationMeta({ naver: "abc" }), { other: { "naver-site-verification": "abc" } });
 
+// 재방문 권유 (2026-10-27): 무엇을 권할지·다시 띄울 때
+{
+  const { pickNudgeKind, shouldShowNudge, NUDGE_SNOOZE_DAYS } = await import("../lib/return-nudge");
+  const base = { pushSupport: "ok" as const, pushOn: false, signedIn: true, loginEnabled: true, canInstall: true, standalone: false };
+  assert.equal(pickNudgeKind(base), "push"); // 로그인 회원은 폰 알림이 먼저
+  assert.equal(pickNudgeKind({ ...base, pushOn: true }), "install");
+  assert.equal(pickNudgeKind({ ...base, pushOn: true, standalone: true }), null); // 이미 다 했으면 안 띄움
+  assert.equal(pickNudgeKind({ ...base, signedIn: false }), "install"); // 로그인보다 설치가 손이 덜 간다
+  assert.equal(pickNudgeKind({ ...base, signedIn: false, canInstall: false }), "login");
+  assert.equal(pickNudgeKind({ ...base, signedIn: false, canInstall: false, loginEnabled: false }), null);
+  assert.equal(pickNudgeKind({ ...base, pushSupport: "ios-browser", canInstall: false }), "ios_home");
+  const now = Date.UTC(2026, 9, 27);
+  assert.equal(shouldShowNudge(null, now), true);
+  assert.equal(shouldShowNudge("done", now), false);
+  assert.equal(shouldShowNudge(String(now - 86_400_000), now), false);
+  assert.equal(shouldShowNudge(String(now - NUDGE_SNOOZE_DAYS * 86_400_000), now), true);
+  assert.equal(shouldShowNudge("garbage", now), true);
+}
+
 console.log("share: 통과");
