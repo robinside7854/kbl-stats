@@ -257,4 +257,23 @@ if (existsSync(POOL)) {
   assert.deepEqual(pickRegularChampions([{ teamCode: "50", names: ["LG"] }], null), []); // 진행 중 시즌
   console.log("game: 정규리그 1위 통과");
 }
+
+// 결과 공유 (2026-10-27): 주소 칸 ↔ ?l= 값, 권유 글
+{
+  const { lineupToSlug, slugToLineup, shareCta, shareText, gameResultPath, gameResultImagePath } = await import("../lib/game-share");
+  const l = "291085:47,290776:45,255032:12,291488:47,291671:45";
+  const slug = lineupToSlug(l)!;
+  assert.equal(slug, "291085-47_290776-45_255032-12_291488-47_291671-45");
+  assert.equal(slugToLineup(slug), l);
+  assert.equal(lineupToSlug("abc,1:2"), null);
+  assert.equal(slugToLineup("1-2_x"), null);
+  assert.equal(gameResultPath(slug), `/game/r/${slug}`);
+  assert.equal(gameResultImagePath(slug), `/game/og/${slug}`);
+  assert.match(shareText(48), /48승 6패/);
+  assert.match(shareText(54), /전승/);
+  assert.match(shareText(50, true), /50승 4패래요/);
+  assert.match(shareCta(30, true).title, /30승 24패/);
+  assert.notEqual(shareCta(54, false).title, shareCta(20, false).title);
+  console.log("game: 결과 공유 통과");
+}
 console.log("game: 전부 통과");

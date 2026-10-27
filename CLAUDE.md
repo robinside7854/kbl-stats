@@ -225,6 +225,7 @@ kbl-stats/
 │   ├── records.ts       ← 역대 통산 순위 (순수: RECORD_STATS, sumCareerTotals(시즌 합계 → 선수별), rankCareerTotals(합계/경기당 — 경기당은 통산 200경기 이상, 국적 전체/국내/외국인), formatRecord, 현역 isActiveCareer(마지막 시즌 = 기록 있는 최신 시즌) — lib/data loadCareerTotals)
 │   ├── teams.ts         ← 팀 한글 약칭 teamShortNameKo (연고지 지명 목록 HOME_CITIES — 하드코딩 예외, 이유 주석), 팀 색 배정 assignTeamColors(회색 기본값 팀 → 범주형 팔레트, 팀 순서, 순환 금지)·ensureMarkContrast·comparePairColors(OKLab 거리 < 15면 팔레트 1·2번), 핵심 의존도 teamDependency(상위 3명 득점 비중·표본 충족 수)
 │   ├── game.ts          ← 54-0 게임 규칙 (순수: 슬롯 = 시즌 하나 + 팀 3개(GAME_SPIN_TEAMS·teamsOf·spinCandidates), 칸 GAME_SLOTS 가드2·포워드2·센터1(GF·FC 는 두 칸), 외국 선수 GAME_FOREIGN_MAX 2, 슬롯 spin(시즌 반복 가능·고를 선수 있는 팀만)·respinTeam(같은 시즌 새 팀 3개)·respinEra(다른 시즌, 팀 유지), 같은 선수는 시즌이 달라도 한 번만, 전력 teamRating(종합 점수 평균 75% + 6축 최고값 평균 25%)·winProbability(WIN_CURVE 표 보간, 득점 1위만 고르면 전승 약 0.6%·S급 5명 약 22%)·가산점 lineupBonuses(동문 케미 같은 학교 3명+ +1·프라임 타임 프라임 시즌 2명+ +0.5·우승 DNA 정규리그 1위 팀 1명당 +0.25)·simulateSeason(라인업 시드 → 같은 라인업 같은 성적), 공유 ?l=번호:시즌,…)
+│   ├── game-share.ts    ← 54-0 결과 공유 (2026-10-27, 순수: 라인업 ↔ 주소 칸 lineupToSlug·slugToLineup, 결과 주소 /game/r/{칸}·미리보기 그림 /game/og/{칸}, 공유 글 shareText·권유 문구 shareCta) — 서버 lib/server/game-result.ts loadSharedGameResult(풀로 성적 다시 계산), 화면 app/game/r/[lineup](ISR 하루, noindex)·app/game/og/[lineup](1200×630 PNG, next/og, 글꼴 assets/fonts — next.config outputFileTracingIncludes)
 │   ├── game-pool.ts     ← 54-0 후보 풀 만들기 buildGamePool(시즌 카드 → 시즌 × 팀 × 후보, 표본 충족·포지션 있는 선수, 점수·축·기록 모두 그 시즌) — 빌드 스크립트 전용
 │   ├── shorts.ts        ← 팬 숏폼 규칙 (순수: 득점 출처 4개 scoringBreakdown(공식 2점·3점·자유투 + 2점을 슛 차트 구역 비율로 페인트/미드, 합 = 공식 득점), 선수별 특징 pickCallouts(비중·경기당 1위, MIN_TRAIT_SHARE 20, 균형형 BALANCED_MAX_SHARE 40), 대사 topScorerLine(해요체)·toSpeech·자막 captionChunks·길이 추정·슛 점 솎기)
 │   ├── seo.ts           ← 검색 엔진 안내 (2026-10-27, 순수: buildSitemap(app/sitemap.ts → /sitemap.xml)·buildRobots(app/robots.ts → /robots.txt, 개인 화면 PRIVATE_PATHS 막음)·verificationMeta(site.json searchVerification → layout))
@@ -321,7 +322,9 @@ kbl-stats/
   | random_card | player_no, season_code | 랜덤 카드 |
   | image_save | file_name | 카드·54-0 이미지 저장 |
   | favorite_add / favorite_remove | player_no | 즐겨찾기 |
-  | game_spin / game_complete(wins, bonuses: school·prime·champion 쉼표 또는 none) / game_share_link | | 54-0 |
+  | game_spin / game_complete(wins, bonuses: school·prime·champion 쉼표 또는 none) | | 54-0 |
+  | game_share | method(native/native_cancel/copy), wins, place(top/bottom, 친구 결과 페이지면 shared_top·shared_bottom) | 54-0 결과 공유 (2026-10-27 — 결과마다 주소 /game/r/{라인업}, 옛 game_share_link 대신) |
+  | game_challenge | (없음) | 친구가 보낸 결과 페이지에서 "나도 해 보기" |
   | login_start / login_success / login_error | provider / provider / reason | 로그인 버튼 / 돌아온 직후(/me?login=) / 실패해 돌아옴(/me?error=) |
   | profile_save | team_code(대표 팀, 없으면 none), team_count | 닉네임·응원팀(여러 팀) 저장 |
   | favorites_sync | count | 로그인 직후 이 브라우저·계정 즐겨찾기 합치기 |
@@ -406,6 +409,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-27 (54-0 결과 공유 카드·공유 권유): GA4 검토 2번(완주 1,951판 중 공유 0.5%). 결과마다 자기 주소 `/game/r/{번호-시즌_…}`(처음 열 때 만들어 하루 보관, 검색 제외) + 카톡·X 미리보기 그림 `/game/og/…`(검정 바탕에 금색 성적·다섯 명 팀 색·이름·자리·시즌·경기당 득점). 결과 화면 맨 위 공유 권유 상자 `ShareCta`(성적별 문구 — 전승·48승+·40승+·그 밖, 파란 "결과 공유하기", 폰은 기기 공유 창, PC 는 글+주소 복사 뒤 안내 한 줄), 아래 줄도 "결과 공유하기"가 첫 버튼. 친구 결과 페이지는 "친구 라인업은 N승 M패" + "나도 해 보기"(→ /game). GA4 game_share(method·wins·place)·game_challenge — 옛 game_share_link 없어짐. 업데이트 소식 글. main 배포.
 - 2026-10-27 (네이버 서치어드바이저 소유 확인): 구글 서치 콘솔 소유 확인 완료(사용자), sitemap 제출 직후 상태 "가져올 수 없음"(제출 직후 흔한 표시 — 며칠 뒤 다시 확인). site.json searchVerification.naver 에 값 → head 에 naver-site-verification 메타. main 배포.
 - 2026-10-27 (구글 서치 콘솔 소유 확인): GA4 방식은 실패 — GA 스크립트가 next/script afterInteractive 라 <head> 가 아니라 body 끝에 붙어서(서치 콘솔은 head 의 GA 코드만 인정). GA 위치는 그대로 두고 HTML 태그 방식으로: site.json searchVerification.google 에 사용자가 준 값 → 모든 페이지 head 에 google-site-verification 메타. main 배포.
 - 2026-10-27 (검색 유입 sitemap·robots): GA4 검토 1번. `app/sitemap.ts`(/sitemap.xml 1,475개 — 고정 화면 16·시즌별 리더보드/일정·팀 20·선수 1,338·업데이트 글, 진행 중 시즌·매일 바뀌는 화면은 lastmod = 기록 마지막 날)·`app/robots.ts`(/api/·/me·/admin·/notifications·/favorites 막음 + sitemap 위치), 규칙 `lib/seo.ts`(buildSitemap·buildRobots·verificationMeta, 테스트는 tests/share.test.ts). 검색 관리 도구 소유 확인 값 칸 site.json `searchVerification.google·naver`(비면 태그 없음) → layout metadata.verification. 사용자 할 일: 구글 서치 콘솔(GA4 로 소유 확인 가능)·네이버 서치어드바이저 등록 + sitemap 제출. 화면 변경 없음 → 업데이트 소식 글 없음. main 배포.

@@ -31,6 +31,18 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-10-27-game-share",
+    date: "2026-10-27",
+    kind: "update",
+    title: "54-0 결과, 이제 카드로 보내져요",
+    summary: "54-0 결과 공유 카드",
+    blocks: [
+      { kind: "p", text: "54-0 결과 화면 맨 위에 공유 버튼이 생겼어요. 폰에서 누르면 카카오톡 같은 앱으로 바로 보낼 수 있어요." },
+      { kind: "p", text: "보낸 링크엔 내 성적과 다섯 명이 담긴 카드가 같이 떠요. 받은 친구는 같은 결과를 보고 바로 도전할 수 있어요." },
+      { kind: "list", items: [{ text: "54-0 하러 가기", href: "/game" }] },
+    ],
+  },
+  {
     slug: "2026-10-21-card-redesign",
     date: "2026-10-21",
     kind: "update",

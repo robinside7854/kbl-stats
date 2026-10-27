@@ -57,6 +57,8 @@ const nextConfig = {
   reactStrictMode: true,
   // 응답에 "X-Powered-By: Next.js" 를 붙이지 않는다 (쓰는 기술을 굳이 알리지 않게)
   poweredByHeader: false,
+  // 54-0 결과 미리보기 그림(app/game/og)이 서버 함수에서 글꼴 파일을 읽는다 (2026-10-27)
+  outputFileTracingIncludes: { "/game/og/[lineup]": ["./assets/fonts/*.otf"] },
   async headers() {
     return [
       { source: "/:path*", headers: SECURITY_HEADERS },
