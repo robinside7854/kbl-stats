@@ -20,5 +20,10 @@
     "home": "https://kbl.or.kr",
     "gameRecord": "https://kbl.or.kr/game/record/{gmkey}"
   },
+  "searchVerification": {
+    "_comment": "검색 관리 도구 소유 확인 값(2026-10-27). 구글 서치 콘솔·네이버 서치어드바이저가 주는 HTML 태그의 content 값만 넣는다(공개 값). 비어 있으면 태그를 안 넣는다. 구글은 GA4 연결로도 확인할 수 있어 비워 둬도 된다",
+    "google": "",
+    "naver": ""
+  },
   "pushPublicKey": "BKZB-n972PZFMDSNmoYx3H5qGx01sgoWZT4UB8pQMZBKD-UqydA4dxXj2Kur7TrjJgCwoTgPwwpxAOq_FkB-fz0"
 }
