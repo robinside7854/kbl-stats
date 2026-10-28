@@ -3,7 +3,7 @@ name: 문자중계 주소 조사
 on:
   push:
     branches: [claude/probe-relay]
-    paths: [.github/workflows/probe-relay.yml, probe/relay.mjs]
+    paths: [.github/workflows/probe-relay.yml, probe/relay2.mjs]
 permissions:
   contents: write
 jobs:
@@ -14,10 +14,10 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with: { node-version: 22 }
-      - run: node probe/relay.mjs
+      - run: node probe/relay2.mjs
       - name: 커밋
         if: always()
         run: |
           git config user.name "robinside7854"
           git config user.email "252681033+robinside7854@users.noreply.github.com"
-          git add probe/out && git commit -m "조사: 문자중계 결과 저장" && git push
+          git add probe/out2 && git commit -m "조사: 문자중계 2차 결과 저장" && git push
