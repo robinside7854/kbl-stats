@@ -264,6 +264,23 @@ export interface SeasonGame {
   clutch?: ClutchLine[];
 }
 
+/** 플레이오프 경기 하나의 클러치 결과 (data/processed/{시즌}/playoff-clutch.json, 2026-10-28 — 일정·박스스코어가 없어 이것만 저장) */
+export interface PlayoffClutchGame {
+  gmkey: string;
+  date: string;
+  /** 6강·4강 = playoff, 챔프전 = finals */
+  stage: "playoff" | "finals";
+  home: GameSide;
+  away: GameSide;
+  winning?: WinningShot;
+  clutch: ClutchLine[];
+}
+
+export interface PlayoffClutchFile {
+  seasonCode: number;
+  games: PlayoffClutchGame[];
+}
+
 /** 문자중계 동작 (scripts/textcast.ts 가 KBL 동작 코드에서 바꾼다) */
 export type TextCastAction =
   | "made2" | "miss2" | "made3" | "miss3" | "madeDunk" | "missDunk" | "madeFt" | "missFt"

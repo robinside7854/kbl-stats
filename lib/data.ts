@@ -16,6 +16,8 @@ import type {
   SeasonOption,
   SeasonGame,
   SeasonGamesFile,
+  PlayoffClutchFile,
+  PlayoffClutchGame,
   PostseasonFile,
   PostseasonLine,
 } from "./types";
@@ -25,6 +27,7 @@ import { careerHighAchievements, careerHighTabs, playoffLeaderRow, type CareerHi
 import { buildPlayerShotsFile, type PlayerShotsFile, type ShotPoint } from "./shots";
 import {
   GAME_KINDS,
+  clutchListKey,
   isActiveCareer,
   nextMilestones,
   rankAwardCounts,
@@ -53,7 +56,7 @@ import { seasonContext } from "./cardview";
 import { asOfLabel, computeStandings, headToHead, latestGameDay, playerRecentGames, teamGameStrip, type HeadToHeadRecord, type OppBrand, type PlayerRecentGame, type TeamHeadToHeadLine, type TeamStripGame } from "./games";
 import { buildNotifItems, careerHighsFromIndex, careerSumsFromSeasons, featGroups, homeFeatItems, leagueSeasonRecords, type RecentFeat } from "./notifications";
 import { FALLBACK_TEAM_COLOR } from "./teams";
-import { CLUTCH_RECORD_DEFS, clutchRecordValue, collectPlayerClutch, sumClutchTotals, winningLabel, winningLine, type ClutchTotals, type PlayerClutchRaw, type WinningEntry } from "./clutch";
+import { CLUTCH_RECORD_DEFS, clutchFgMinAttempts, clutchRecordValue, collectPlayerClutch, shotInStage, sumClutchTotals, winningLabel, winningLine, type ClutchStage, type ClutchTotals, type PlayerClutchRaw, type WinningEntry } from "./clutch";
 import { attachFeatContexts, domesticFromIndex, performancesFromGames } from "./feat-context";
 import { oddsSeed, playoffOdds, priorFromSeason, teamRatings, upcomingWinProbs, type PlayoffOdds } from "./predict";
 import { pickRegularChampions } from "./game-pool";
@@ -962,22 +965,34 @@ export function loadAwardLists(): RecordListsData {
 }
 
 // ─────────────────────────────────────────────
-// 클러치·위닝샷 (2026-10-28, 규칙은 lib/clutch — 재료는 시즌 games.json 의 winning·clutch)
+// 클러치·위닝샷 (2026-10-28, 규칙은 lib/clutch — 재료는 시즌 games.json·playoff-clutch.json 의 winning·clutch)
 // ─────────────────────────────────────────────
+
+/** 시즌 플레이오프 클러치 (data/processed/{시즌}/playoff-clutch.json). 파일이 없으면 빈 배열 */
+export function loadPlayoffClutch(seasonCode: number): PlayoffClutchGame[] {
+  const file = path.join(String(seasonCode), "playoff-clutch.json");
+  return fs.existsSync(path.join(PROCESSED_DIR, file)) ? (readJson<PlayoffClutchFile>(file).games ?? []) : [];
+}
 
 let clutchCache: Map<string, PlayerClutchRaw> | null = null;
 /** 전 시즌 선수별 클러치 합계·위닝샷 (빌드 때 한 번) */
 export function loadClutchIndex(): Map<string, PlayerClutchRaw> {
   if (clutchCache) return clutchCache;
-  const seasons = listSeasonsWithPlayers().map((s) => ({ seasonCode: s.seasonCode, games: loadSeasonGames(s.seasonCode) }));
+  const seasons = listSeasonsWithPlayers().map((s) => ({
+    seasonCode: s.seasonCode,
+    games: loadSeasonGames(s.seasonCode),
+    playoffGames: loadPlayoffClutch(s.seasonCode),
+  }));
   return (clutchCache = collectPlayerClutch(seasons));
 }
 
-/** 선수 페이지 "클러치" 한 줄 위닝샷 */
+/** 클러치 위닝샷 한 줄 (선수 페이지·기록 탭) */
 export interface ClutchShotRow {
   gmkey: string;
   seasonCode: number;
   seasonShort: string;
+  /** 정규시즌 / 플레이오프(6강·4강) / 챔프전 */
+  stage: ClutchStage;
   date: string;
   label: string;
   line: string;
@@ -988,108 +1003,141 @@ export interface ClutchShotRow {
   oppScore: number;
 }
 
-export interface PlayerClutchView {
+/** 선수 페이지 "클러치" 한 구분 (정규시즌 또는 플레이오프) */
+export interface PlayerClutchStageView {
   career: ClutchTotals;
   /** 최근 시즌 먼저 */
   seasons: { seasonCode: number; seasonShort: string; totals: ClutchTotals }[];
   shots: ClutchShotRow[];
 }
 
-/** 선수 페이지 "클러치" (문자중계가 있는 2006-07 이후 정규시즌 — 클러치 상황에 던진 적이 없으면 null) */
-export function loadPlayerClutch(playerNo: string): PlayerClutchView | null {
-  const raw = loadClutchIndex().get(playerNo);
-  if (!raw || raw.seasons.size === 0) return null;
-  const labels = new Map(listAllSeasons().map((s) => [s.seasonCode, seasonShortLabel(s.seasonLabel)]));
-  const seasons = [...raw.seasons.entries()]
-    .sort((a, b) => b[0] - a[0])
-    .map(([seasonCode, totals]) => ({ seasonCode, seasonShort: labels.get(seasonCode) ?? String(seasonCode), totals }));
-  const shots = raw.shots.map((s) => {
-    const info = gameTeamInfos(s.seasonCode)[s.oppCode];
-    return {
-      gmkey: s.gmkey,
-      seasonCode: s.seasonCode,
-      seasonShort: labels.get(s.seasonCode) ?? String(s.seasonCode),
-      date: s.date,
-      label: winningLabel(s.shot),
-      line: winningLine(s.shot, s.homeCode),
-      buzzer: s.shot.buzzer,
-      opp: info ?? { shortName: teamNameInSeason(s.oppCode, s.seasonCode) ?? s.oppCode, logoUrl: null, color: FALLBACK_TEAM_COLOR },
-      home: s.homeCode === s.teamCode,
-      teamScore: s.teamScore,
-      oppScore: s.oppScore,
-    };
-  });
-  return { career: sumClutchTotals(raw.seasons.values()), seasons, shots };
+/** 선수 페이지 "클러치": 정규시즌 + 플레이오프(6강~챔프전, 없으면 null) */
+export interface PlayerClutchView {
+  regular: PlayerClutchStageView | null;
+  playoff: PlayerClutchStageView | null;
 }
 
-/** 기록 탭 "클러치": 부문(위닝샷·버저비터·클러치 득점·클러치 야투율)별 통산 순위 (국적·현역 필터용으로 넉넉히) */
+function clutchShotRow(s: WinningEntry): ClutchShotRow {
+  const info = gameTeamInfos(s.seasonCode)[s.oppCode];
+  return {
+    gmkey: s.gmkey,
+    seasonCode: s.seasonCode,
+    seasonShort: seasonShortOf(s.seasonCode),
+    stage: s.stage,
+    date: s.date,
+    label: winningLabel(s.shot),
+    line: winningLine(s.shot, s.homeCode),
+    buzzer: s.shot.buzzer,
+    opp: info ?? { shortName: teamNameInSeason(s.oppCode, s.seasonCode) ?? s.oppCode, logoUrl: null, color: FALLBACK_TEAM_COLOR },
+    home: s.homeCode === s.teamCode,
+    teamScore: s.teamScore,
+    oppScore: s.oppScore,
+  };
+}
+
+/** 선수 페이지 "클러치" (문자중계가 있는 2006-07 이후 — 클러치 상황에 던진 적이 없으면 null) */
+export function loadPlayerClutch(playerNo: string): PlayerClutchView | null {
+  const raw = loadClutchIndex().get(playerNo);
+  if (!raw) return null;
+  const stageView = (stage: "regular" | "playoff"): PlayerClutchStageView | null => {
+    const map = raw.stages[stage];
+    if (map.size === 0) return null;
+    const seasons = [...map.entries()].sort((a, b) => b[0] - a[0]).map(([seasonCode, totals]) => ({ seasonCode, seasonShort: seasonShortOf(seasonCode), totals }));
+    return { career: sumClutchTotals(map.values()), seasons, shots: raw.shots.filter((s) => shotInStage(s, stage)).map(clutchShotRow) };
+  };
+  const view = { regular: stageView("regular"), playoff: stageView("playoff") };
+  return view.regular || view.playoff ? view : null;
+}
+
+/** 기록 탭 "클러치" 기간 고르기: 통산 + 문자중계가 있는 시즌 (최신 먼저) */
+export function clutchSeasonOptions(): { seasonCode: number; seasonShort: string }[] {
+  const have = new Set<number>();
+  for (const p of loadClutchIndex().values()) for (const m of Object.values(p.stages)) for (const code of m.keys()) have.add(code);
+  return [...have].sort((a, b) => b - a).map((seasonCode) => ({ seasonCode, seasonShort: seasonShortOf(seasonCode) }));
+}
+
+/**
+ * 기록 탭 "클러치": 구분(정규·플옵·챔프전) × 기간(통산·시즌) × 부문(위닝샷·버저비터·클러치 득점·클러치 야투율) 순위.
+ * 키 = lib/records clutchListKey("regular", "all", "winning") — 국적·현역 필터용으로 넉넉히(unionForFilters). 빌드 때 한 번
+ */
 let clutchListsCache: RecordListsData | null = null;
 export function loadClutchLists(): RecordListsData {
   if (clutchListsCache) return clutchListsCache;
-  const totals = [...loadClutchIndex().entries()].map(([id, p]) => ({ id, t: sumClutchTotals(p.seasons.values()), shots: p.shots }));
+  const index = [...loadClutchIndex().entries()];
   const lists: Record<string, RecordListItem[]> = {};
-  for (const def of CLUTCH_RECORD_DEFS) {
-    const entries = totals.flatMap((x) => {
-      const v = clutchRecordValue(x.t, def.key);
-      return v === null ? [] : [{ ...x, v }];
-    });
-    const rank = (pool: typeof entries, top = RECORD_LIST_TOP) =>
-      withRanks(
-        [...pool].sort((a, b) => b.v - a.v || b.t.games - a.t.games || a.id.localeCompare(b.id)),
-        (r) => (def.key === "fgPct" ? Math.round(r.v * 10) : r.v),
-      ).filter((r) => r.rank <= top);
-    lists[def.key] = unionForFilters(entries, rank, (x) => x.id).map((x) => {
-      const fg = `야투 ${x.t.fgm}/${x.t.fga}`;
-      const sub =
-        def.key === "winning" || def.key === "buzzer"
-          ? (() => {
-              const list = def.key === "buzzer" ? x.shots.filter((s) => s.shot.buzzer) : x.shots;
-              const last = list[0];
-              return last ? `최근 ${seasonShortOf(last.seasonCode)} · ${last.date.slice(5).replace("-", ".")} vs ${teamNameInSeason(last.oppCode, last.seasonCode) ?? last.oppCode}` : "";
-            })()
-          : `클러치 ${x.t.games}경기 · ${fg} · 자유투 ${x.t.ftm}/${x.t.fta}`;
-      return {
-        rank: x.rank,
-        id: x.id,
-        num: def.key === "fgPct" ? Math.round(x.v * 10) : x.v,
-        ...filterMetaOf(x.id),
-        value: def.key === "fgPct" ? x.v.toFixed(1) : String(x.v),
-        unit: def.unit,
-        sub,
-        note: def.key === "winning" && x.t.buzzer > 0 ? `버저비터 ${x.t.buzzer}회` : def.key === "pts" && x.t.winning > 0 ? `위닝샷 ${x.t.winning}회` : null,
-      };
-    });
+  const scopes: (number | "all")[] = ["all", ...clutchSeasonOptions().map((s) => s.seasonCode)];
+  for (const { value: stage } of GAME_KINDS) {
+    for (const scope of scopes) {
+      const totals = index.flatMap(([id, p]) => {
+        const map = p.stages[stage];
+        const t = scope === "all" ? (map.size ? sumClutchTotals(map.values()) : null) : (map.get(scope) ?? null);
+        if (!t) return [];
+        const shots = p.shots.filter((s) => shotInStage(s, stage) && (scope === "all" || s.seasonCode === scope));
+        return [{ id, t, shots }];
+      });
+      const minFga = clutchFgMinAttempts(stage, scope === "all" ? "career" : "season");
+      for (const def of CLUTCH_RECORD_DEFS) {
+        const entries = totals.flatMap((x) => {
+          const v = clutchRecordValue(x.t, def.key, minFga);
+          return v === null ? [] : [{ ...x, v }];
+        });
+        const rankNum = (v: number) => (def.key === "fgPct" ? Math.round(v * 10) : v);
+        const rank = (pool: typeof entries, top = RECORD_LIST_TOP) =>
+          withRanks(
+            [...pool].sort((a, b) => b.v - a.v || b.t.games - a.t.games || a.id.localeCompare(b.id)),
+            (r) => rankNum(r.v),
+          ).filter((r) => r.rank <= top);
+        const list = unionForFilters(entries, rank, (x) => x.id).map((x) => {
+          const fg = `야투 ${x.t.fgm}/${x.t.fga}`;
+          let sub: string;
+          if (def.key === "winning" || def.key === "buzzer") {
+            const last = (def.key === "buzzer" ? x.shots.filter((s) => s.shot.buzzer) : x.shots)[0];
+            sub = last
+              ? `${scope === "all" ? "최근 " : ""}${seasonShortOf(last.seasonCode)} · ${last.date.slice(5).replace("-", ".")} vs ${teamNameInSeason(last.oppCode, last.seasonCode) ?? last.oppCode}`
+              : "";
+          } else {
+            sub = `클러치 ${x.t.games}경기 · ${fg} · 자유투 ${x.t.ftm}/${x.t.fta}`;
+          }
+          return {
+            rank: x.rank,
+            id: x.id,
+            num: rankNum(x.v),
+            ...filterMetaOf(x.id),
+            value: def.key === "fgPct" ? x.v.toFixed(1) : String(x.v),
+            unit: def.unit,
+            sub,
+            note: def.key === "winning" && x.t.buzzer > 0 ? `버저비터 ${x.t.buzzer}회` : def.key === "pts" && x.t.winning > 0 ? `위닝샷 ${x.t.winning}회` : null,
+          };
+        });
+        lists[clutchListKey(stage, scope, def.key)] = list;
+      }
+    }
   }
   return (clutchListsCache = { people: collectPeople(lists), lists });
 }
 
-/** 최근 위닝샷 (모든 선수, 최근 먼저 n개) — 기록 탭 "클러치" 아래 목록 */
-export function loadRecentWinningShots(n = 20): (ClutchShotRow & { id: string; nameKo: string; photoUrl: string | null; color: string })[] {
+/** 위닝샷 목록 (모든 선수, 최근 먼저 n개) — 기록 탭 "클러치" 아래. 구분·기간마다 (키 = clutchListKey(구분, 기간, "shots")) */
+let winningListsCache: Record<string, (ClutchShotRow & { id: string; nameKo: string; photoUrl: string | null; color: string })[]> | null = null;
+export function loadWinningShotLists(n = 20): Record<string, (ClutchShotRow & { id: string; nameKo: string; photoUrl: string | null; color: string })[]> {
+  if (winningListsCache) return winningListsCache;
   const all: { id: string; s: WinningEntry }[] = [];
   for (const [id, p] of loadClutchIndex()) for (const s of p.shots) all.push({ id, s });
   all.sort((a, b) => b.s.date.localeCompare(a.s.date) || b.s.gmkey.localeCompare(a.s.gmkey));
-  return all.slice(0, n).map(({ id, s }) => {
-    const e = findPlayerIndexEntry(id);
-    const person = e ? personOf(e) : { nameKo: s.shot.nameKo, photoUrl: null, color: "#6b7280" };
-    const info = gameTeamInfos(s.seasonCode)[s.oppCode];
-    return {
-      id,
-      nameKo: person.nameKo,
-      photoUrl: person.photoUrl,
-      color: person.color,
-      gmkey: s.gmkey,
-      seasonCode: s.seasonCode,
-      seasonShort: seasonShortOf(s.seasonCode),
-      date: s.date,
-      label: winningLabel(s.shot),
-      line: winningLine(s.shot, s.homeCode),
-      buzzer: s.shot.buzzer,
-      opp: info ?? { shortName: teamNameInSeason(s.oppCode, s.seasonCode) ?? s.oppCode, logoUrl: null, color: FALLBACK_TEAM_COLOR },
-      home: s.homeCode === s.teamCode,
-      teamScore: s.teamScore,
-      oppScore: s.oppScore,
-    };
-  });
+  const out: Record<string, (ClutchShotRow & { id: string; nameKo: string; photoUrl: string | null; color: string })[]> = {};
+  const scopes: (number | "all")[] = ["all", ...clutchSeasonOptions().map((s) => s.seasonCode)];
+  for (const { value: stage } of GAME_KINDS) {
+    for (const scope of scopes) {
+      out[clutchListKey(stage, scope, "shots")] = all
+        .filter(({ s }) => shotInStage(s, stage) && (scope === "all" || s.seasonCode === scope))
+        .slice(0, n)
+        .map(({ id, s }) => {
+          const e = findPlayerIndexEntry(id);
+          const person = e ? personOf(e) : { nameKo: s.shot.nameKo, photoUrl: null, color: "#6b7280" };
+          return { ...clutchShotRow(s), id, nameKo: person.nameKo, photoUrl: person.photoUrl, color: person.color };
+        });
+    }
+  }
+  return (winningListsCache = out);
 }
 
 /** 응원팀 고르기·관리자 화면용 팀 목록 = 선수 기록이 있는 최신 시즌 + 직전 시즌의 팀 (개막 직후 아직 경기를 안 한 팀을 채우려고, 같은 코드는 최신 시즌 값) */

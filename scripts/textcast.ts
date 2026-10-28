@@ -9,7 +9,9 @@
 // 동작 코드(공홈 화면 번들 gameActionCodeList): 201 2점 성공·202 2점 실패·203 자유투 성공·204 자유투 실패·205 3점 성공·206 3점 실패·
 //   207 덩크 성공·208 덩크 실패·009 게임 종료·101/102 교체 … — 성공·실패 개수가 박스스코어와 같은 것을 3경기로 확인(2026-10-28).
 // 수집 범위: 4쿼터 + 연장만 (클러치·위닝샷은 4쿼터·연장 마지막 2분 — 경기당 보통 1회 요청). 4쿼터 시작 점수는 최종 점수에서 거꾸로 뺀다.
-import type { TextCastAction, TextCastEvent } from "../lib/types.js";
+import type { GameSide, TextCastAction, TextCastEvent } from "../lib/types.js";
+import { isEndedGame } from "./shots.js";
+import { toIsoDate } from "./highs.js";
 
 type Raw = Record<string, any>;
 
@@ -86,4 +88,47 @@ export function parseTextCast(raw: unknown): TextCastEvent[] {
     }))
     .filter((e) => Number.isFinite(e.seq) && Number.isFinite(e.remaining) && e.period !== "")
     .sort((a, b) => a.seq - b.seq);
+}
+
+/** 플레이오프 경기 구분 — "03" 6강·4강, "04" 챔피언결정전 (경기 목록 gameCode, 2026-10-28 사용자: 플레이오프 위닝샷도) */
+export const PLAYOFF_GAME_CODES: Readonly<Record<string, "playoff" | "finals">> = { "03": "playoff", "04": "finals" };
+
+export interface PlayoffGame {
+  gmkey: string;
+  /** "2026-04-12" */
+  date: string;
+  /** 6강·4강 = playoff, 챔프전 = finals */
+  stage: "playoff" | "finals";
+  ended: boolean;
+  home: GameSide;
+  away: GameSide;
+}
+
+/**
+ * 경기 목록 → 그 시즌 플레이오프 경기 (날짜·번호 순). 목록에는 같은 기간 다른 대회(짝수 시즌 코드, 예: S48G03N1)도 섞여 있어
+ * seasonCode 가 같은 것만 (gmkey 앞머리가 아니라 항목의 seasonCode — scripts/champions.ts playoffEntries 와 같은 규칙).
+ */
+export function playoffGamesOf(list: unknown, seasonCode: number, today?: string): PlayoffGame[] {
+  const arr = Array.isArray(list) ? list : [];
+  const seen = new Set<string>();
+  const out: PlayoffGame[] = [];
+  const num = (v: unknown) => (v === null || v === undefined || v === "" || Number.isNaN(Number(v)) ? null : Number(v));
+  for (const item of arr as Raw[]) {
+    if (!item || typeof item !== "object" || Number(item.seasonCode) !== seasonCode) continue;
+    const stage = PLAYOFF_GAME_CODES[String(item.gameCode ?? "").trim().padStart(2, "0")];
+    const gmkey = String(item.gmkey ?? "").trim();
+    const date = toIsoDate(item.gameDate);
+    if (!stage || !gmkey || !date || seen.has(gmkey)) continue;
+    seen.add(gmkey);
+    out.push({
+      gmkey,
+      date,
+      stage,
+      ended: isEndedGame(item, today),
+      home: { teamCode: String(item.tcodeH ?? ""), name: String(item.tnameH ?? ""), score: num(item.scoreH) },
+      away: { teamCode: String(item.tcodeA ?? ""), name: String(item.tnameA ?? ""), score: num(item.scoreA) },
+    });
+  }
+  const no = (g: PlayoffGame) => Number(/N(\d+)$/.exec(g.gmkey)?.[1] ?? 0);
+  return out.sort((a, b) => a.date.localeCompare(b.date) || a.stage.localeCompare(b.stage) || no(a) - no(b));
 }

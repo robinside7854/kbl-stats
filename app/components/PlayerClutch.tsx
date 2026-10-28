@@ -1,14 +1,18 @@
 "use client";
 // 선수 상세 "클러치" (2026-10-28 사용자 기준 — lib/clutch): 통산 위닝샷·버저비터·클러치 득점·클러치 야투 4칸
 // → 위닝샷 목록(날짜·상대·상황, 누르면 그날 일정) → 시즌별 클러치 기록(처음 5시즌 + 더 보기).
-// 재료는 문자중계(2006-07 이후 정규시즌)라 그 전 시즌만 뛴 선수는 이 섹션이 없다. 계산은 빌드 때 lib/data loadPlayerClutch.
-// GA4: game_link_click {game_key, place:"player_winning"} · filter_change screen=player filter=clutch value=more · ⓘ help_open topic=clutch·winningShot
+// 2026-10-28: 정규시즌 / 플레이오프(6강~챔프전) 전환 — 둘 다 있을 때만 보인다. 플레이오프 위닝샷은 일정 화면이 없어 KBL 공홈 경기 기록으로.
+// 재료는 문자중계(2006-07 이후)라 그 전 시즌만 뛴 선수는 이 섹션이 없다. 계산은 빌드 때 lib/data loadPlayerClutch.
+// GA4: game_link_click {game_key, place:"player_winning"} · official_link_click {place:"player_winning", game_key} · filter_change screen=player filter=clutch value=more·regular·playoff · ⓘ help_open topic=clutch·winningShot
 import Link from "next/link";
 import { useState } from "react";
 import { clutchFgPct } from "@/lib/clutch";
-import type { PlayerClutchView } from "@/lib/data";
+import type { ClutchShotRow, PlayerClutchView } from "@/lib/data";
 import { scheduleDayHref } from "@/lib/games";
-import { IconChevronDown } from "./icons";
+import { officialGameUrl } from "@/lib/official";
+import { IconChevronDown, IconExternal } from "./icons";
+import { STAGE_LABEL } from "./RecentWinningShots";
+import Segmented from "./Segmented";
 import InfoLink from "./InfoLink";
 import { ResultTag } from "./StreakText";
 import TeamLogo from "./TeamLogo";
@@ -19,8 +23,10 @@ const SEASONS_VISIBLE = 5;
 const pct = (v: number | null) => (v === null ? "–" : `${v.toFixed(1)}%`);
 const dotDate = (d: string) => `${d.slice(2, 4)}.${d.slice(5, 7)}.${d.slice(8, 10)}`;
 
-export default function PlayerClutch({ data }: { data: PlayerClutchView }) {
+export default function PlayerClutch({ data: view }: { data: PlayerClutchView }) {
   const [open, setOpen] = useState(false);
+  const [stage, setStage] = useState<"regular" | "playoff">(view.regular ? "regular" : "playoff");
+  const data = view[stage] ?? view.regular ?? view.playoff!;
   const c = data.career;
   const seasons = open ? data.seasons : data.seasons.slice(0, SEASONS_VISIBLE);
   const tiles = [
@@ -36,7 +42,23 @@ export default function PlayerClutch({ data }: { data: PlayerClutchView }) {
         <h2 id="clutch-title" className="flex items-center gap-1 text-h2 font-bold">
           클러치 <InfoLink term="clutch" />
         </h2>
-        <p className="text-sub text-ink-3">정규시즌 통산</p>
+        {view.regular && view.playoff ? (
+          <Segmented
+            label="경기 구분"
+            options={[
+              { value: "regular", label: "정규시즌" },
+              { value: "playoff", label: "플레이오프" },
+            ]}
+            value={stage}
+            onChange={(v) => {
+              trackFilters("player", { clutch: v });
+              setStage(v);
+              setOpen(false);
+            }}
+          />
+        ) : (
+          <p className="text-sub text-ink-3">{view.regular ? "정규시즌" : "플레이오프"} 통산</p>
+        )}
       </div>
       <dl className="tabular mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
         {tiles.map((t) => (
@@ -60,11 +82,7 @@ export default function PlayerClutch({ data }: { data: PlayerClutchView }) {
           <ul className="tabular mt-1 divide-y divide-line">
             {data.shots.map((s) => (
               <li key={s.gmkey}>
-                <Link
-                  href={scheduleDayHref(s.seasonCode, s.date)}
-                  onClick={() => trackEvent("game_link_click", { game_key: s.gmkey, place: "player_winning" })}
-                  className="focus-ring-inset flex min-h-12 items-center gap-2.5 py-2 transition-colors duration-200 hover:bg-surface-2"
-                >
+                <ShotLink s={s}>
                   <span className="w-16 shrink-0 text-caption text-ink-3">{dotDate(s.date)}</span>
                   <span className="min-w-0 flex-1">
                     <span className="flex min-w-0 items-center gap-1.5 text-sub">
@@ -84,9 +102,12 @@ export default function PlayerClutch({ data }: { data: PlayerClutchView }) {
                         <ResultTag win /> <span className="text-ink-2">{s.teamScore}-{s.oppScore}</span>
                       </span>
                     </span>
-                    <span className="mt-0.5 block truncate text-caption text-ink-2">{s.line}</span>
+                    <span className="mt-0.5 block truncate text-caption text-ink-2">
+                      {s.stage !== "regular" && <span className="font-semibold text-ink">{STAGE_LABEL[s.stage]} · </span>}
+                      {s.line}
+                    </span>
                   </span>
-                </Link>
+                </ShotLink>
               </li>
             ))}
           </ul>
@@ -139,5 +160,28 @@ export default function PlayerClutch({ data }: { data: PlayerClutchView }) {
         </button>
       )}
     </section>
+  );
+}
+
+/** 위닝샷 한 줄 링크: 정규시즌 = 그날 일정, 플레이오프 = KBL 공홈 경기 기록(새 창) */
+function ShotLink({ s, children }: { s: ClutchShotRow; children: React.ReactNode }) {
+  const cls = "focus-ring-inset flex min-h-12 items-center gap-2.5 py-2 transition-colors duration-200 hover:bg-surface-2";
+  if (s.stage === "regular")
+    return (
+      <Link href={scheduleDayHref(s.seasonCode, s.date)} onClick={() => trackEvent("game_link_click", { game_key: s.gmkey, place: "player_winning" })} className={cls}>
+        {children}
+      </Link>
+    );
+  return (
+    <a
+      href={officialGameUrl(s.gmkey)}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={() => trackEvent("official_link_click", { place: "player_winning", game_key: s.gmkey })}
+      className={cls}
+    >
+      {children}
+      <IconExternal size={16} className="shrink-0 text-ink-3" />
+    </a>
   );
 }

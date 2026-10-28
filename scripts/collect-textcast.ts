@@ -10,7 +10,7 @@ import { DATA_DIR, MAX_CONSECUTIVE_FAILURES, REQUEST_INTERVAL_MS, textCastUrl } 
 import { getJson, saveRaw, sleep } from "./http.js";
 import { readGamesList } from "./collect-shots.js";
 import { endedRegularGmkeys, pendingGames } from "./shots.js";
-import { extraQuarters, hasGameEnd, isTextCastResponse, mergeQuarters, quarterOf, TEXTCAST_FIRST_SEASON } from "./textcast.js";
+import { extraQuarters, hasGameEnd, isTextCastResponse, mergeQuarters, playoffGamesOf, quarterOf, TEXTCAST_FIRST_SEASON } from "./textcast.js";
 
 export const textCastDir = (seasonCode: number) => join(DATA_DIR, "raw", "textcast", String(seasonCode));
 
@@ -50,7 +50,7 @@ async function fetchGame(gmkey: string): Promise<unknown[]> {
   return bodies;
 }
 
-/** 한 시즌: 저장된 경기 목록의 끝난 정규시즌 경기 중 raw 없는 것 */
+/** 한 시즌: 저장된 경기 목록의 끝난 정규시즌·플레이오프 경기 중 raw 없는 것 */
 export async function collectSeasonTextCasts(opts: { seasonCode: number; today: string; mode: "daily" | "backfill" }): Promise<TextCastResult> {
   const { seasonCode, today, mode } = opts;
   const tag = `문자중계 ${seasonCode}`;
@@ -61,11 +61,15 @@ export async function collectSeasonTextCasts(opts: { seasonCode: number; today: 
     result.failed.push("경기 목록 없음 (슛 차트 수집이 먼저 받는다)");
     return result;
   }
-  const gmkeys = endedRegularGmkeys(list, seasonCode, today);
+  // 정규시즌 + 플레이오프·챔프전 (2026-10-28 사용자: 플레이오프 위닝샷도)
+  const gmkeys = [
+    ...endedRegularGmkeys(list, seasonCode, today),
+    ...playoffGamesOf(list, seasonCode, today).filter((g) => g.ended).map((g) => g.gmkey),
+  ];
   const todo = pendingGames(gmkeys, await existingTextCastFiles(seasonCode));
   result.games = gmkeys.length;
   result.skipped = gmkeys.length - todo.length;
-  console.log(`[${tag}] 끝난 정규시즌 ${gmkeys.length}경기, 받을 것 ${todo.length}`);
+  console.log(`[${tag}] 끝난 정규시즌·플레이오프 ${gmkeys.length}경기, 받을 것 ${todo.length}`);
 
   let streak = 0;
   for (let i = 0; i < todo.length; i++) {
