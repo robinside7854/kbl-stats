@@ -1,0 +1,15 @@
+404 text/html https://api-stats.kbl.or.kr/api/records/player/general/traditional?seasonCode=49&gameCode=01&sortDataSc=SCORE&sortOrderSc=desc&listCn=200&pageNo=1&ruleCk=0&perCn=0&lastCn=0&partIfList=0&draftNo=0
+  <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"> <html xmlns="http://www.w3.org/1999/xhtml"> <head> <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/> <title>404 - File or directory not found.</title> <style typ
+200 application/json; charset=utf-8 https://api-stats.kbl.or.kr/api/records/player/general/advanced?seasonCode=49&gameCode=01&sortDataSc=SCORE&sortOrderSc=desc&listCn=200&pageNo=1&ruleCk=0&perCn=0&lastCn=0&partIfList=0&draftNo=0
+  {"resultCode":200,"message":"요청이 성공적으로 처리되었습니다.","data":[{"seasonCode":49,"rankNo":1,"playerNo":"291671","kname":"패리스 배스","ename":"Paris Nickolas Bass","teamCode":"06","teamName1":"수원 KT","teamName4":"KT","gameCount":9,"win":3,"lose":6,"playSec":19078.0,"perRt":28.556452458328966,"offrtg":108.006912
+200 application/json; charset=utf-8 https://api-stats.kbl.or.kr/api/records/team/general/traditional?seasonCode=49&gameCode=01&sortDataSc=WIN_A&sortOrderSc=desc&perCn=0&lastCn=0&partIfList=0&draftNo=0
+  {"resultCode":200,"message":"요청이 성공적으로 처리되었습니다.","data":[{"gameCode":null,"seasonCode":49,"rankNo":1,"teamCode":"35","teamName1":"서울 삼성","teamName4":"SAMSUNG","gameCount":8,"gameNo":null,"quarterGu":null,"win":8,"lose":0,"playMin":1600.0,"playSec":96000.0,"winA":100.0,"score":681.0,"fg":184.0,"fgA":
+406 text/html https://api-stats.kbl.or.kr/
+  <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"> <html xmlns="http://www.w3.org/1999/xhtml"> <head> <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/> <title>406 - Client browser does not accept the MIME type of 
+200 text/html https://kbl.or.kr/record/player
+  <!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0"><title>KBL 공식 홈페이지</title><link rel="icon" type="image/svg+xml" href="/assets/img/favicon.svg"><link rel="stylesheet" href="https://kbl-data.sports2i.com/kbl/
+bundle /assets/index-7BTiI5o7.js
+200 text/javascript https://kbl.or.kr/assets/index-7BTiI5o7.js
+  var xw=Object.defineProperty;var lC=o=>{throw TypeError(o)};var pw=(o,$,et)=>$ in o?xw(o,$,{enumerable:!0,configurable:!0,writable:!0,value:et}):o[$]=et;var Pn=(o,$,et)=>pw(o,typeof $!="symbol"?$+"":$,et),X2=(o,$,et)=>$.has(o)||lC("Cannot "+et);var $t=(o,$,et)=>(X2(o,$,"read from private field"),et?
+hosts https://api.kbl.or.kr https://kbl.or.kr http://photo.kbl.or.kr https://stats.kbl.or.kr http://kblstore.kbl.or.kr https://m.fantasy.kbl.or.kr https://fantasy.kbl.or.kr https://youth.kbl.or.kr https://promy.kbl.or.kr https://thunders.kbl.or.kr https://skygunners.kbl.or.kr https://knights.kbl.or.kr https://sakers.kbl.or.kr https://kgc.kbl.or.kr https://egis.kbl.or.kr https://sonicboom.kbl.or.kr https://pegasus.kbl.or.kr https://phoebus.kbl.or.kr
+paths 
