@@ -39,6 +39,8 @@ export default async function SchedulePage({ params }: { params: Params }) {
   const games: ScheduleGame[] = all.map((g) => ({
     ...g,
     box: null,
+    // 클러치 기록은 박스스코어와 함께 날짜 파일로 (scripts/build-games.ts) — 정적 HTML 을 가볍게
+    clutch: undefined,
     hasBox: !!g.box,
     stars: g.box ? { away: teamStandouts(g.box.away), home: teamStandouts(g.box.home) } : null,
   }));

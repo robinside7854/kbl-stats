@@ -2,6 +2,7 @@
 // 역대 기록 하위 탭 세 개의 설정 (부문·목록 키·안내 문구) — 화면 틀은 RecordBoardView. 서버 페이지는 데이터만 넘긴다.
 import { highDef, SEASON_HIGH_LEADER_KEYS } from "@/lib/highs";
 import { gameHighListKey, POSTSEASON_MIN_GAMES, REGULAR_MIN_GAMES_SHARE, SEASON_BEST_STATS, seasonBestListKey, type RecordListsData } from "@/lib/records";
+import { CLUTCH_FG_MIN_ATTEMPTS, CLUTCH_RECORD_DEFS } from "@/lib/clutch";
 import RecordBoardView from "./RecordBoardView";
 
 /** 한 경기 최다 부문 이름 (lib/highs 이름에서 "슛" 을 빼 칩을 짧게) */
@@ -57,6 +58,21 @@ export function AwardRecordsView({ data, categories }: { data: RecordListsData; 
       categories={categories}
       listKey={(_k, cat) => cat}
       note={() => "KBL 역대수상현황 기준. 우승은 그 시즌 정규리그 소속 팀이 챔프전에서 이긴 시즌입니다(시즌 중 이적·출전 여부는 보지 않음)."}
+    />
+  );
+}
+
+/** 클러치 탭 (2026-10-28): 위닝샷·버저비터·클러치 득점·클러치 야투율 통산 순위 */
+export function ClutchRecordsView({ data }: { data: RecordListsData }) {
+  return (
+    <RecordBoardView
+      screen="records_clutch"
+      data={data}
+      categories={CLUTCH_RECORD_DEFS.map((d) => ({ value: d.key, label: d.label }))}
+      listKey={(_k, cat) => cat}
+      note={() =>
+        `정규시즌 4쿼터·연장 남은 2분 미만, 6점 차 이내 기록입니다. 공홈 문자중계가 있는 2006-07 시즌부터 셉니다. 클러치 야투율은 ${CLUTCH_FG_MIN_ATTEMPTS}개 이상 던진 선수만.`
+      }
     />
   );
 }

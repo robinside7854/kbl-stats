@@ -15,6 +15,7 @@ const FIXED_PAGES: [string, number][] = [
   ["/records/game", 0.7],
   ["/records/season", 0.7],
   ["/records/awards", 0.7],
+  ["/records/clutch", 0.6],
   ["/records/draft", 0.6],
   ["/records/trends", 0.5],
   ["/records/foreign", 0.5],

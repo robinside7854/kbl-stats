@@ -21,7 +21,7 @@ import { IconChevronDown, IconChevronRight } from "./icons";
 import { useMember } from "./useLikes";
 import { kstDateString } from "@/lib/home";
 import ChipRow from "./ChipRow";
-import GameCard, { type GameTeamInfo } from "./GameCard";
+import GameCard, { type DayBox, type GameTeamInfo } from "./GameCard";
 import SeasonProgressBar from "./SeasonProgressBar";
 import CalendarStrip from "./CalendarStrip";
 import { trackEvent, trackFilters } from "./track";
@@ -61,14 +61,13 @@ interface Props {
   matchups?: Record<string, MatchupEdge>;
 }
 
-type Box = NonNullable<SeasonGame["box"]>;
-const dayCache = new Map<string, Promise<Record<string, Box> | null>>();
+const dayCache = new Map<string, Promise<Record<string, DayBox> | null>>();
 function loadDay(seasonCode: number, date: string) {
   const key = `${seasonCode}/${date}`;
   let p = dayCache.get(key);
   if (!p) {
     p = fetch(`/games/${key}.json`)
-      .then((r) => (r.ok ? (r.json() as Promise<Record<string, Box>>) : null))
+      .then((r) => (r.ok ? (r.json() as Promise<Record<string, DayBox>>) : null))
       .catch(() => null);
     dayCache.set(key, p);
   }

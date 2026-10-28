@@ -5,15 +5,17 @@
 // 14열 표가 카드 폭에 눌리지 않는다). 박스스코어는 카드에 들어 있거나(홈) 누를 때 받아 온다(일정 — /games/{시즌}/{날짜}.json).
 // 하이라이트 영상(2026-10-04, game.highlight = TVING SPORTS 유튜브 영상 번호)이 있으면 "하이라이트" 버튼 → 같은 팝업에 youtube-nocookie 영상.
 // 영상 틀은 팝업을 열 때만 만든다(평소 화면은 유튜브에 요청하지 않음).
+// 위닝샷·버저비터가 있는 경기는 경기장 아래 한 줄 (lib/clutch, 2026-10-28) — 박스스코어가 없는 옛 시즌도 보인다.
 // GA4: boxscore_open {game_key, season_code, place}, highlight_open {game_key, season_code, place}.
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import type { GameBoxRow, SeasonGame, TeamColor } from "@/lib/types";
+import type { ClutchLine, GameBoxRow, SeasonGame, TeamColor } from "@/lib/types";
+import { winningLine } from "@/lib/clutch";
 import { gameDayLabel, gameKeyPoints, matchupLine, matchupTitle, STANDOUT_LABELS, standoutLine, winnerSide, type MatchupEdge, type Standout } from "@/lib/games";
 import { teamShortLabel } from "@/lib/images";
 import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
-import BoxScore from "./BoxScore";
+import BoxScore, { WinningTag } from "./BoxScore";
 import { IconClose, IconExternal, IconPlay } from "./icons";
 import Skeleton from "./Skeleton";
 import TeamLogo from "./TeamLogo";
@@ -29,6 +31,8 @@ export interface GameTeamInfo {
 }
 
 type Box = NonNullable<SeasonGame["box"]>;
+/** 날짜별 박스스코어 파일 한 경기 (scripts/build-games.ts) — 클러치 기록이 같이 온다 */
+export type DayBox = Box & { clutch?: ClutchLine[] };
 
 interface Props {
   game: SeasonGame;
@@ -37,7 +41,7 @@ interface Props {
   /** 팀별 주요 선수 최대 2명 (lib/games teamStandouts — 일정 화면은 박스스코어 대신 서버가 미리 골라 준다) */
   stars?: { away: Standout[]; home: Standout[] } | null;
   /** 박스스코어를 누를 때 받아 오는 함수 (game.box 가 없을 때) */
-  loadBox?: () => Promise<Box | null>;
+  loadBox?: () => Promise<DayBox | null>;
   place: "home" | "schedule";
   /** 내 응원팀 경기 (홈에서 맨 앞에 올 때 위에 작게 표시, 2026-10-08) */
   mine?: boolean;
@@ -51,7 +55,7 @@ export const teamInfoOf = (teams: Record<string, GameTeamInfo>, code: string, fa
 export default function GameCard({ game: g, seasonCode, teams, stars = null, loadBox, place, mine = false, matchup = null }: Props) {
   const [open, setOpen] = useState(false);
   const [video, setVideo] = useState(false);
-  const [box, setBox] = useState<Box | null>(g.box);
+  const [box, setBox] = useState<DayBox | null>(g.box);
   const [loading, setLoading] = useState(false);
   const [failed, setFailed] = useState(false);
   const win = winnerSide(g);
@@ -106,6 +110,19 @@ export default function GameCard({ game: g, seasonCode, teams, stars = null, loa
         <TeamSide side={awaySide} seasonCode={seasonCode} place={place} />
       </div>
       {g.stadium && <p className="mt-1 text-center text-caption text-ink-3">{g.stadium}</p>}
+      {g.ended && g.winning && (
+        <p className="mt-1.5 flex min-w-0 items-center justify-center gap-1.5 text-caption text-ink-2">
+          <WinningTag shot={g.winning} />
+          {g.winning.id ? (
+            <Link href={`/player/${g.winning.id}?season=${seasonCode}`} className="focus-ring shrink-0 rounded-md font-semibold text-ink underline-offset-2 hover:underline">
+              {g.winning.nameKo}
+            </Link>
+          ) : (
+            <span className="shrink-0 font-semibold text-ink">{g.winning.nameKo}</span>
+          )}
+          <span className="min-w-0 truncate">{winningLine(g.winning, g.home.teamCode)}</span>
+        </p>
+      )}
       {!g.ended && matchup && <MatchupLine edge={matchup} names={{ home: homeSide.info.shortName, away: awaySide.info.shortName }} />}
       {(starsOf("away").length > 0 || starsOf("home").length > 0) && (
         <ul className="mt-2 space-y-1.5 border-t border-line pt-2 text-sub">
@@ -202,7 +219,9 @@ export default function GameCard({ game: g, seasonCode, teams, stars = null, loa
                   <KeyPoints game={{ ...g, box }} names={{ home: homeSide.info.shortName, away: awaySide.info.shortName }} />
                   <BoxScore
                     seasonCode={seasonCode}
-                    sides={sides.map((s) => ({ key: s.key, name: s.info.shortName, rows: box[s.key] }))}
+                    sides={sides.map((s) => ({ key: s.key, name: s.info.shortName, teamCode: s.code, rows: box[s.key] }))}
+                    winning={g.winning ?? null}
+                    clutch={g.clutch ?? box.clutch ?? []}
                   />
                 </>
               ) : loading ? (

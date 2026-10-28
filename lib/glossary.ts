@@ -33,6 +33,8 @@ export type GlossaryKey =
   | "prime"
   | "game54"
   | "rosterStatus"
+  | "clutch"
+  | "winningShot"
   | "playoffOdds"
   | "race"
   | "eraIndex"
@@ -299,6 +301,26 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     source: null,
   },
   {
+    key: "clutch",
+    group: "stats",
+    name: "클러치",
+    short: "4쿼터·연장 남은 2분 미만, 두 팀 점수 차가 6점(2 포제션) 이내일 때 넣은 점수와 던진 슛입니다.",
+    note: "점수 차는 그 슛을 던지기 직전 점수로 봅니다. 공홈 문자중계로 세서 2006-07 시즌 정규시즌부터 있습니다.",
+    formula: "4쿼터·연장 · 남은 시간 1:59 이하 · 직전 점수 차 6점 이내",
+    brief: "4쿼터·연장 남은 2분 미만 · 직전 점수 차 6점 이내",
+    source: null,
+  },
+  {
+    key: "winningShot",
+    group: "stats",
+    name: "위닝샷·버저비터",
+    short: "4쿼터·연장 남은 2분 미만에 동점이나 지던 상황에서 앞서 나가, 그 뒤로 한 번도 따라잡히지 않고 이긴 득점입니다.",
+    note: "남은 0초에 넣고 상대가 아무것도 못 하고 끝나면 버저비터입니다. 문자중계가 초 단위라 0.3초를 남기고 넣은 슛과는 가를 수 없습니다.",
+    formula: "위닝샷: 클러치 시간 · 동점·역전 득점 · 끝까지 리드 유지 · 버저비터: 남은 0초 야투 · 그 뒤 상대 슛·작전시간·리바운드 없음",
+    brief: "남은 2분 미만 동점·역전 득점, 끝까지 리드 · 버저비터 = 남은 0초",
+    source: null,
+  },
+  {
     key: "playoffOdds",
     group: "etc",
     name: "플레이오프 확률",
@@ -420,6 +442,8 @@ export const GLOSSARY_ANCHORS: Record<GlossaryKey, string> = {
   prime: "prime",
   game54: "game-54-0",
   rosterStatus: "roster-status",
+  clutch: "clutch",
+  winningShot: "winning-shot",
   playoffOdds: "playoff-odds",
   race: "race",
   eraIndex: "era-index",

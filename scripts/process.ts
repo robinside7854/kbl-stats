@@ -25,12 +25,14 @@ import { nationalityOf, rosterStatusOf } from "../lib/roster.js";
 import { hasCareerHighs, parseMostGame, todayKst, type ParsedMostGame } from "./highs.js";
 import { buildSeasonGames, parseBoxLog, type BoxLogRow } from "./boxscores.js";
 import { matchHighlights, readSavedFeeds, type FeedEntry } from "./highlights.js";
+import { parseTextCast } from "./textcast.js";
+import { analyzeClutch } from "../lib/clutch.js";
 import { attachShotAttempts, parseGameLog, type GameLogRow } from "./gamelogs.js";
 import { computeSeasonHighLeaders, SHOT_HIGH_KEYS } from "../lib/highs.js";
 import { regularGamesOf } from "./shots.js";
 import { AWARD_SEEN_SEASONS, awardSeenKey, updateAwardSeen, type AwardSeenState } from "./award-seen.js";
 import { leagueZoneAverages, normalizeShot, toShotPoint, zoneSummary, type NormalizedShot } from "../lib/shots.js";
-import type { AwardKey, SeasonAwards, CareerHighs, HighsSet, Player, PlayerIndexEntry, PlayerProfile, PostseasonFile, PostseasonLine, SeasonData, Team, TeamColor } from "../lib/types.js";
+import type { AwardKey, SeasonAwards, CareerHighs, HighsSet, Player, PlayerIndexEntry, PlayerProfile, PostseasonFile, PostseasonLine, SeasonData, SeasonGame, Team, TeamColor } from "../lib/types.js";
 
 type Raw = Record<string, any>;
 
@@ -78,7 +80,72 @@ async function readSeasonPlayoffs(seasonCode: number): Promise<PlayoffEntry[]> {
  * 경기 목록이 없으면 파일을 지운다. 선수 이름은 그 시즌 명단.
  */
 let highlightEntries: FeedEntry[] | undefined;
-async function writeSeasonGames(seasonCode: number, players: readonly { playerNo: string; nameKo: string }[]): Promise<string> {
+/** 이름 비교용 (공백 무시) */
+const nameKey = (s: string) => s.replace(/\s+/g, "");
+
+/**
+ * 문자중계(이름만 있다) → 선수 번호 찾기 (2026-10-28 클러치·위닝샷). 순서: 그 경기 박스스코어(팀+이름) → 그 경기 슛 차트 raw(pcode·pname·tcode)
+ * → 시즌 명단 같은 팀+이름 → 시즌 명단에 하나뿐인 이름. 못 찾으면 null(이름만 보인다).
+ */
+async function clutchIdResolver(
+  seasonCode: number,
+  game: SeasonGame,
+  roster: readonly { playerNo: string; nameKo: string; teamCode: string }[],
+): Promise<(nameKo: string, teamCode: string) => string | null> {
+  const byTeam = new Map<string, string>();
+  for (const k of ["home", "away"] as const) {
+    for (const r of game.box?.[k] ?? []) byTeam.set(`${game[k].teamCode}|${nameKey(r.nameKo)}`, r.id);
+  }
+  try {
+    const chart = JSON.parse(await readFile(join(DATA_DIR, "raw", "shots", String(seasonCode), `${game.gmkey}.json`), "utf8"));
+    for (const p of Array.isArray(chart?.shootLog) ? chart.shootLog : []) {
+      const key = `${String(p?.tcode ?? "")}|${nameKey(String(p?.pname ?? ""))}`;
+      if (p?.pcode && !byTeam.has(key)) byTeam.set(key, String(p.pcode));
+    }
+  } catch {
+    /* 슛 차트가 없으면 시즌 명단으로 */
+  }
+  return (nameKo, teamCode) => {
+    const n = nameKey(nameKo);
+    const hit = byTeam.get(`${teamCode}|${n}`) ?? roster.find((r) => r.teamCode === teamCode && nameKey(r.nameKo) === n)?.playerNo;
+    if (hit) return hit;
+    const same = roster.filter((r) => nameKey(r.nameKo) === n);
+    return same.length === 1 ? same[0].playerNo : null;
+  };
+}
+
+/** 문자중계 raw 가 있는 경기에 위닝샷·클러치 기록을 붙인다. 반환: [분석한 경기 수, 위닝샷 수] */
+async function attachClutch(seasonCode: number, games: SeasonGame[], roster: readonly { playerNo: string; nameKo: string; teamCode: string }[]): Promise<[number, number]> {
+  const dir = join(DATA_DIR, "raw", "textcast", String(seasonCode));
+  const files = new Set(await readdir(dir).catch(() => [] as string[]));
+  let analyzed = 0;
+  let wins = 0;
+  for (const g of games) {
+    if (!g.ended || g.home.score === null || g.away.score === null || !files.has(`${g.gmkey}.json`)) continue;
+    let raw: unknown;
+    try {
+      raw = JSON.parse(await readFile(join(dir, `${g.gmkey}.json`), "utf8"));
+    } catch {
+      continue;
+    }
+    const events = parseTextCast(raw);
+    if (events.length === 0) continue;
+    const r = analyzeClutch(events, { teamCode: g.home.teamCode, score: g.home.score }, { teamCode: g.away.teamCode, score: g.away.score }, await clutchIdResolver(seasonCode, g, roster));
+    if (!r) {
+      console.warn(`  [${seasonCode}] ${g.gmkey} 문자중계 점수가 공식 점수와 맞지 않아 클러치 분석을 건너뜀`);
+      continue;
+    }
+    analyzed++;
+    g.clutch = r.lines;
+    if (r.winning) {
+      g.winning = r.winning;
+      wins++;
+    }
+  }
+  return [analyzed, wins];
+}
+
+async function writeSeasonGames(seasonCode: number, players: readonly { playerNo: string; nameKo: string; teamCode: string }[]): Promise<string> {
   const outFile = join(DATA_DIR, "processed", String(seasonCode), "games.json");
   let list: unknown;
   try {
@@ -106,6 +173,8 @@ async function writeSeasonGames(seasonCode: number, players: readonly { playerNo
     const v = clips.get(g.gmkey);
     if (v) g.highlight = v;
   }
+  // 위닝샷·클러치 (문자중계 4쿼터·연장 — 2026-10-28)
+  const [analyzed, winCount] = await attachClutch(seasonCode, games, players);
   if (games.length === 0) {
     await rm(outFile, { force: true });
     return "";
@@ -113,7 +182,7 @@ async function writeSeasonGames(seasonCode: number, players: readonly { playerNo
   // 한 줄 = 경기 하나 (git diff 가 읽히게)
   await writeFile(outFile, `{"seasonCode":${seasonCode},"games":[\n${games.map((g) => JSON.stringify(g)).join(",\n")}\n]}\n`, "utf8");
   const boxed = games.filter((g) => g.box).length;
-  return `, 경기 ${games.length}${boxed ? `(박스스코어 ${boxed}${clips.size ? `·하이라이트 ${clips.size}` : ""})` : ""}`;
+  return `, 경기 ${games.length}${boxed ? `(박스스코어 ${boxed}${clips.size ? `·하이라이트 ${clips.size}` : ""})` : ""}${analyzed ? `, 문자중계 ${analyzed}경기(위닝샷 ${winCount})` : ""}`;
 }
 
 async function readSeasonHighs(seasonCode: number): Promise<Map<string, ParsedMostGame>> {

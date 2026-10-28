@@ -3,7 +3,8 @@
 // 최근 7일 경기에서 나온 커리어 하이·이번 시즌 리그 최다 갱신·통산 득점/출전 이정표를 선수-경기 한 칸으로 (규칙은 알림함과 같은 lib/notifications, 재료는 lib/data loadRecentFeats).
 // 처음엔 FEATS_VISIBLE 칸만, "더 보기"로 전부. 마지막 경기일이 아닌 칸은 날짜를 붙인다.
 // 2026-10-16: 기록마다 맥락 꼬리표(lib/feat-context — 올 시즌 리그 몇 번째·역대 몇 명뿐·이정표 역대 몇 번째). 2026-10-17: 칸마다 두 줄로 줄임(첫 기록·첫 맥락만, 나머지는 title).
-// GA4: home_feat_click(kind = 가장 높은 단계 career·careerTie·league·milestone, player_no) · filter_change screen=home filter=feats value=more
+// 2026-10-28: 위닝샷·버저비터·결승 자유투도 (lib/clutch, 단계 buzzer·winning·winningFt — 금색)
+// GA4: home_feat_click(kind = 가장 높은 단계 buzzer·winning·winningFt·career·careerTie·league·milestone, player_no) · filter_change screen=home filter=feats value=more
 import Link from "next/link";
 import { useState } from "react";
 import { FEAT_LEVEL_LABEL, type FeatLevel, type RecentFeat } from "@/lib/notifications";
@@ -18,7 +19,7 @@ export const FEATS_VISIBLE = 6;
 
 /** 단계 이름은 꼬리표 상자 없이 색 글자로만 (2026-10-16 디자인 정리 M2) — 커리어 하이 금색, 나머지 회색 */
 function LevelTag({ level }: { level: FeatLevel }) {
-  const gold = level === "career" || level === "careerTie";
+  const gold = level === "career" || level === "careerTie" || level === "buzzer" || level === "winning" || level === "winningFt";
   return (
     <span className={`shrink-0 text-caption font-bold ${gold ? "text-[var(--gold-ink)]" : "text-ink-3"}`}>{FEAT_LEVEL_LABEL[level]}</span>
   );

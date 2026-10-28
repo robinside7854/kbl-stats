@@ -4,6 +4,7 @@
 // 2단계(폰 푸시)도 같은 목록을 쓴다. 순수 함수만.
 import type { GameBoxRow, SeasonGame, TeamColor } from "./types";
 import { MILESTONE_STEPS } from "./records";
+import { winningLabel, winningLine, winningMoment, winningScore } from "./clutch";
 
 export type NotifKind =
   | "high"
@@ -20,7 +21,9 @@ export type NotifKind =
   | "leader_rank"
   | "alltime_rank"
   | "birthday"
-  | "award";
+  | "award"
+  // 2026-10-28 사용자: 위닝샷·버저비터 (lib/clutch)
+  | "winning_shot";
 
 export interface NotifItem {
   /** 고유 번호 (읽음 표시에 쓴다) */
@@ -59,8 +62,8 @@ export interface FeatInfo {
   context?: string[];
 }
 
-/** season = 그 선수의 이번 시즌 최다(알림함), league = 이번 시즌 리그 전체 최고 기록 갱신(홈) */
-export type FeatLevel = "career" | "careerTie" | "league" | "season" | "milestone";
+/** season = 그 선수의 이번 시즌 최다(알림함), league = 이번 시즌 리그 전체 최고 기록 갱신(홈), buzzer·winning·winningFt = 버저비터·위닝샷·결승 자유투 (2026-10-28) */
+export type FeatLevel = "career" | "careerTie" | "league" | "season" | "milestone" | "buzzer" | "winning" | "winningFt";
 
 export interface NotifFeed {
   version: 1;
@@ -78,17 +81,18 @@ const KIND_ORDER: Record<NotifKind, number> = {
   team_preview: 0,
   team_clinch: 1,
   award: 2,
-  high: 3,
-  milestone: 4,
-  alltime_rank: 5,
-  leader_rank: 6,
-  double: 7,
-  team_rank: 8,
-  team_streak: 9,
-  team_result: 10,
-  highlight: 11,
-  birthday: 12,
-  player_game: 13,
+  winning_shot: 3,
+  high: 4,
+  milestone: 5,
+  alltime_rank: 6,
+  leader_rank: 7,
+  double: 8,
+  team_rank: 9,
+  team_streak: 10,
+  team_result: 11,
+  highlight: 12,
+  birthday: 13,
+  player_game: 14,
 };
 
 /** 시즌 하이·커리어 하이로 알릴 부문과 최소 값 (1스틸 "시즌 최다" 같은 소식은 안 보낸다 — 우리 규칙) */
@@ -202,6 +206,7 @@ function scheduleHref(seasonCode: number, date: string) {
  * 최근 경기 → 알림 목록 (모두에게 같은 목록, 날짜 최신 → 같은 날은 대기록 먼저).
  * - 응원팀: 경기 결과(+ 우리 팀 득점 1위), 하이라이트 영상
  * - 즐겨찾기 선수: 그날 기록, 시즌 최다·커리어 하이(타이), 통산 이정표 돌파
+ * - 위닝샷·버저비터 (2026-10-28): 넣은 선수를 즐겨찾기한 사람과 그 팀 응원하는 사람에게
  */
 export function buildNotifItems(allGames: readonly SeasonGame[], ctx: NotifContext, windowDays = NOTIF_WINDOW_DAYS): NotifItem[] {
   const recent = windowGames(allGames, windowDays);
@@ -262,6 +267,34 @@ export function buildNotifItems(allGames: readonly SeasonGame[], ctx: NotifConte
         body: top ? `${top.nameKo} ${playerStatLine(top)}` : g.stadium ?? "",
         href,
       });
+      // 위닝샷은 이긴 팀 쪽에서 한 번 (선수 즐겨찾기 + 그 팀 응원)
+      const w = g.winning;
+      if (w && w.teamCode === me.teamCode) {
+        const label = winningLabel(w);
+        const line = winningLine(w, g.home.teamCode);
+        const winner = rows.find((r) => r.id === w.id);
+        items.push({
+          id: `w:${g.gmkey}:${w.id ?? w.nameKo}`,
+          kind: "winning_shot",
+          date: g.date,
+          teams: [me.teamCode],
+          ...(w.id ? { player: w.id } : {}),
+          title: `${w.nameKo} ${label}`,
+          body: `${text} · ${line}`,
+          href: w.id ? `/player/${w.id}?season=${ctx.seasonCode}` : href,
+          feat: {
+            level: w.buzzer ? "buzzer" : w.kind === "ft" ? "winningFt" : "winning",
+            text: winningMoment(w),
+            context: [winningScore(w, g.home.teamCode)],
+            game: text,
+            won,
+            stat: winner ? playerStatLine(winner) : "",
+            name: w.nameKo,
+            key: "winning",
+            value: 1,
+          },
+        });
+      }
       if (g.highlight) {
         items.push({
           id: `v:${g.gmkey}:${me.teamCode}`,
@@ -404,6 +437,7 @@ export const NOTIF_KIND_LABEL: Record<NotifKind, string> = {
   alltime_rank: "역대 순위",
   birthday: "생일",
   award: "수상",
+  winning_shot: "위닝샷",
 };
 
 // ─────────────────────────────────────────────
@@ -419,7 +453,7 @@ export const NOTIF_GROUPS: { key: NotifGroup; label: string; desc: string; kinds
   { key: "team_news", label: "응원팀 순위·연승", desc: "3연승, 연패 탈출, 1위·6위 안 진입, 플레이오프 확정", kinds: ["team_streak", "team_rank", "team_clinch"] },
   { key: "highlight", label: "하이라이트 영상", desc: "응원팀 경기 하이라이트가 올라오면", kinds: ["highlight"] },
   { key: "player", label: "즐겨찾기 선수 기록", desc: "그 경기 득점·리바운드·어시스트", kinds: ["player_game"] },
-  { key: "record", label: "기록 달성", desc: "더블더블, 커리어 하이, 이번 시즌 최고, 통산 이정표", kinds: ["double", "high", "milestone"] },
+  { key: "record", label: "기록 달성", desc: "위닝샷·버저비터, 더블더블, 커리어 하이, 이번 시즌 최고, 통산 이정표", kinds: ["winning_shot", "double", "high", "milestone"] },
   { key: "rank", label: "선수 순위", desc: "부문 5위 안·1위 진입, 통산 역대 순위 상승", kinds: ["leader_rank", "alltime_rank"] },
   { key: "celebrate", label: "생일·수상", desc: "즐겨찾기 선수 생일, MVP 등 수상", kinds: ["birthday", "award"] },
 ];
@@ -490,9 +524,12 @@ export const FEAT_LEVEL_LABEL: Record<FeatLevel, string> = {
   league: "시즌 최다",
   season: "개인 시즌 최다",
   milestone: "이정표",
+  buzzer: "버저비터",
+  winning: "위닝샷",
+  winningFt: "결승 자유투",
 };
 
-const LEVEL_ORDER: Record<FeatLevel, number> = { career: 0, careerTie: 1, league: 2, milestone: 3, season: 4 };
+const LEVEL_ORDER: Record<FeatLevel, number> = { buzzer: 0, winning: 1, winningFt: 2, career: 3, careerTie: 4, league: 5, milestone: 6, season: 7 };
 
 /** 대기록만 골라 선수-경기로 묶기 → 날짜 최신 → 가장 높은 단계 → 줄 많은 순 */
 export function featGroups(items: readonly NotifItem[]): FeatGroup[] {
@@ -588,10 +625,11 @@ export function leagueSeasonRecords(allGames: readonly SeasonGame[], ctx: Pick<N
   return items;
 }
 
-/** 알림 목록 + 리그 최고 갱신 → 홈에 보일 대기록만 (커리어 하이·리그 시즌 최고·득점/출전 이정표) */
+/** 알림 목록 + 리그 최고 갱신 → 홈에 보일 대기록만 (위닝샷·커리어 하이·리그 시즌 최고·득점/출전 이정표) */
 export function homeFeatItems(items: readonly NotifItem[], league: readonly NotifItem[]): NotifItem[] {
   const keep = items.filter((it) => {
     if (!it.feat) return false;
+    if (it.kind === "winning_shot") return !!it.player;
     if (it.feat.level === "career" || it.feat.level === "careerTie") return true;
     if (it.feat.level === "milestone") return (HOME_MILESTONE_KEYS as readonly string[]).includes(it.id.split(":")[3] ?? "");
     return false;

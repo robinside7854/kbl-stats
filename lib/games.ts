@@ -1,5 +1,6 @@
 // 시즌 경기 규칙 (순수) — 홈 "오늘의 경기"·팀 순위 (2026-10-03 사용자 요청). 재료는 data/processed/{시즌}/games.json (scripts/boxscores.ts).
-import type { GameBoxRow, GameSide, SeasonGame, TeamColor } from "./types";
+import type { GameBoxRow, GameSide, SeasonGame, TeamColor, WinningShot } from "./types";
+import { winningLabel, winningLine } from "./clutch";
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 
@@ -372,14 +373,15 @@ function doubleLine(r: GameBoxRow): string {
   return parts.join(" ");
 }
 
-/** 경기 요점 최대 3줄. names = 팀 약칭. 박스스코어가 없거나 안 끝난 경기는 [] */
+/** 경기 요점 최대 3줄. names = 팀 약칭. 박스스코어가 없거나 안 끝난 경기는 []. 위닝샷이 있으면 맨 앞 (2026-10-28) */
 export function gameKeyPoints(g: SeasonGame, names: Record<BoxSide, string>): string[] {
   const win = winnerSide(g);
   if (!g.box || !win || g.home.score === null || g.away.score === null) return [];
   const out: string[] = [];
   const lose: BoxSide = win === "home" ? "away" : "home";
   const margin = Math.abs(g.home.score - g.away.score);
-  if (margin <= POINT_CLOSE_MARGIN) out.push(`${names[win]} ${margin}점 차 접전 끝에 승리`);
+  if (g.winning) out.push(`${g.winning.nameKo}(${names[win]}) ${winningLabel(g.winning)} · ${winningLine(g.winning, g.home.teamCode)}`);
+  else if (margin <= POINT_CLOSE_MARGIN) out.push(`${names[win]} ${margin}점 차 접전 끝에 승리`);
   else if (margin >= POINT_BLOWOUT_MARGIN) out.push(`${names[win]} ${margin}점 차 대승`);
 
   // 선수 한 명: 트리플더블 → 30점 이상 → 더블더블 (같은 줄에선 득점 많은 선수)
@@ -581,6 +583,8 @@ export interface PlayerRecentGame {
   tpm: number;
   fgm: number;
   fga: number;
+  /** 이 선수가 넣은 위닝샷·버저비터 (2026-10-28, 없으면 필드 없음) */
+  winning?: Pick<WinningShot, "buzzer" | "kind">;
 }
 
 /** 시즌 경기에서 이 선수가 뛴 최근 n 경기 (최근 먼저). 박스스코어가 없는 시즌이면 [] */
@@ -613,6 +617,7 @@ export function playerRecentGames(games: readonly SeasonGame[], playerNo: string
         tpm: r.tpm,
         fgm: r.fgm,
         fga: r.fga,
+        ...(g.winning?.id === playerNo ? { winning: { buzzer: g.winning.buzzer, kind: g.winning.kind } } : {}),
       });
       break;
     }

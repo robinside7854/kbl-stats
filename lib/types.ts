@@ -258,6 +258,64 @@ export interface SeasonGame {
   box: { home: GameBoxRow[]; away: GameBoxRow[] } | null;
   /** 하이라이트 영상 (유튜브 영상 번호, TVING SPORTS 채널 — scripts/highlights.ts). 없으면 필드 없음 */
   highlight?: string;
+  /** 위닝샷 (lib/clutch analyzeClutch — 4쿼터·연장 남은 2분 미만에 이긴 팀이 끝까지 앞서기 시작한 득점). 없으면 필드 없음 */
+  winning?: WinningShot;
+  /** 클러치 상황(4쿼터·연장 남은 2분 미만, 6점 차 이내)에 슛·자유투를 던진 선수 (득점 많은 순). 문자중계를 분석한 경기만 있다(접전이 없으면 빈 배열) */
+  clutch?: ClutchLine[];
+}
+
+/** 문자중계 동작 (scripts/textcast.ts 가 KBL 동작 코드에서 바꾼다) */
+export type TextCastAction =
+  | "made2" | "miss2" | "made3" | "miss3" | "madeDunk" | "missDunk" | "madeFt" | "missFt"
+  | "assist" | "rebound" | "steal" | "turnover" | "foul" | "timeout" | "subIn" | "subOut" | "end" | "other";
+
+/** 문자중계 한 줄 (우리 이름) */
+export interface TextCastEvent {
+  /** 경기 안 순번 */
+  seq: number;
+  /** "Q4" | "X1"(연장) … */
+  period: string;
+  /** 그 쿼터 남은 시간(초 — 문자중계는 초 단위까지만, 0.x 초는 0) */
+  remaining: number;
+  /** 선수 이름 (팀 기록·게임 종료는 "") */
+  nameKo: string;
+  teamCode: string;
+  action: TextCastAction;
+}
+
+/** 위닝샷·클러치 득점의 종류: 2점·3점·덩크·자유투 */
+export type ClutchShotKind = "2" | "3" | "dunk" | "ft";
+
+export interface WinningShot {
+  /** 선수 번호 (이름으로 못 찾으면 null) */
+  id: string | null;
+  nameKo: string;
+  teamCode: string;
+  /** "Q4" | "X1" … */
+  period: string;
+  /** 남은 시간(초) */
+  remaining: number;
+  kind: ClutchShotKind;
+  /** 득점 전·후 점수 [홈, 원정] */
+  before: [number, number];
+  after: [number, number];
+  /** 버저비터 — 남은 0초에 넣었고 그 뒤 상대가 아무것도 못 하고 끝남 (lib/clutch isBuzzerBeater) */
+  buzzer: boolean;
+}
+
+/** 한 경기 클러치 기록 한 줄 (선수 한 명) */
+export interface ClutchLine {
+  id: string | null;
+  nameKo: string;
+  teamCode: string;
+  pts: number;
+  /** 야투(2점·3점·덩크) */
+  fgm: number;
+  fga: number;
+  tpm: number;
+  tpa: number;
+  ftm: number;
+  fta: number;
 }
 
 export interface SeasonGamesFile {

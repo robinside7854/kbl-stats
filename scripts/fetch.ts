@@ -3,10 +3,11 @@
 //       npm run fetch -- 45 47   → 지정 시즌만 (+ 한 경기 최다·프로필 — 대상 시즌은 규칙대로, 지정 시즌과 무관)
 //       npm run fetch:all        → 코드표에 있는 모든 시즌 (한 경기 최다는 받지 않는다 — 과거 전체는 backfill-highs)
 //       --no-highs               → 한 경기 최다·경기별 기록·프로필 건너뜀
-//       --no-shots               → 슛 차트 건너뜀 (fetch:all 도 건너뜀)
+//       --no-shots               → 슛 차트·문자중계 건너뜀 (fetch:all 도 건너뜀)
 //
 // 슛 차트(서버 C, scripts/shots.ts·collect-shots.ts): 같은 대상 시즌의 경기 목록(시즌 전체 달, 약 10회 — 일정 화면용, 2026-10-03)을 다시 받아
 // data/raw/games/{시즌}/list.json 에 저장하고, 끝난 정규시즌 경기 중 raw 가 없는 것만 data/raw/shots/{시즌}/{gmkey}.json (보통 하루 0~5회).
+// 문자중계(서버 C, scripts/textcast.ts·collect-textcast.ts, 2026-10-28): 같은 경기의 4쿼터·연장 → data/raw/textcast/{시즌}/{gmkey}.json (경기당 보통 1회).
 //
 // 한 경기 최다·경기별 기록·프로필 대상(scripts/highs.ts highsTargetSeasons): 현재 시즌 선수만(~200명 × 3회, 1.5초 간격 ≈ 15분).
 // 경기별 기록은 시즌 하이의 3점·자유투 성공에 그 경기 시도 수를 붙이는 데 쓴다 (scripts/gamelogs.ts).
@@ -27,6 +28,7 @@ import { getJson, getText, saveRaw, sleep } from "./http.js";
 import { bundleScriptSrc, extractAwardsData } from "./awards.js";
 import { collectGameLogs, collectHighs, collectProfiles } from "./collect-extras.js";
 import { collectSeasonShots } from "./collect-shots.js";
+import { collectSeasonTextCasts } from "./collect-textcast.js";
 import { highsTargetSeasons, playerNosFromTraditional, todayKst, updateFirstSeen } from "./highs.js";
 import { seasonLabelOf } from "./shots.js";
 import { fetchHighlightSource, hasNewHighlight, readSavedFeeds } from "./highlights.js";
@@ -264,6 +266,20 @@ async function fetchShots(targets: number[], today: string): Promise<Issues> {
   return out;
 }
 
+/**
+ * 현재 시즌 문자중계(4쿼터·연장): 슛 차트가 방금 받은 경기 목록으로 끝난 정규시즌 경기 중 raw 없는 것만 (보통 하루 0~5경기, 경기당 1회).
+ * 클러치·위닝샷 재료(lib/clutch). 몇 경기 실패는 경고(다음 날 다시), 연속 실패로 중단이면 실패.
+ */
+async function fetchTextCasts(targets: number[], today: string): Promise<Issues> {
+  const out: Issues = { failed: [], warnings: [] };
+  console.log(`\n문자중계 대상 시즌: ${targets.join(", ") || "없음"}`);
+  for (const code of targets) {
+    const r = await collectSeasonTextCasts({ seasonCode: code, today, mode: "daily" });
+    noteIssue(out, `textcast ${code}`, r, "건");
+  }
+  return out;
+}
+
 async function fetchSeason(seasonCode: number) {
   const label = SEASON_CODES_FALLBACK[seasonCode] ?? String(seasonCode);
   const results: string[] = [];
@@ -427,6 +443,13 @@ async function main() {
           warnings.push(...r.warnings);
         } catch (e) {
           failed.push(`shots: ${(e as Error).message}`);
+        }
+        // 문자중계는 슛 차트가 받은 경기 목록을 쓴다 — 실패해도 경고만(클러치·위닝샷만 하루 늦어진다)
+        try {
+          const r = await fetchTextCasts(daily.targets, daily.today);
+          warnings.push(...r.failed, ...r.warnings);
+        } catch (e) {
+          warnings.push(`textcast: ${(e as Error).message}`);
         }
       }
     } catch (e) {

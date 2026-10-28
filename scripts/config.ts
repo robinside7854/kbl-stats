@@ -51,6 +51,12 @@ export const AWARDS_PAGE_URL = `${SITE_ORIGIN}/record/award`;
 export const matchListUrl = (fromDate: string, toDate: string) =>
   `${SITE_API}/match/list?${new URLSearchParams({ fromDate, toDate, tcodeList: "all" })}`;
 export const matchChartUrl = (gmkey: string) => `${SITE_API}/match/${encodeURIComponent(gmkey)}/match-chart`;
+/**
+ * 문자중계 GET /match/{gmkey}/text-cast?quarterList=Q4 (2026-10-28 Actions 러너 확인 — 공홈 경기 기록 화면 "문자중계" 탭).
+ * quarterList 를 빼면 마지막 쿼터만 온다. 클러치·위닝샷(4쿼터·연장 마지막 2분)만 쓰므로 4쿼터와 연장만 받는다 — 규칙은 scripts/textcast.ts.
+ */
+export const textCastUrl = (gmkey: string, quarter?: string) =>
+  `${SITE_API}/match/${encodeURIComponent(gmkey)}/text-cast${quarter ? `?${new URLSearchParams({ quarterList: quarter })}` : ""}`;
 
 export const playerHighsUrl = (seasonCode: number | string, playerNo: string) =>
   `${CODES_API}${PLAYER_HIGHS_PATH}/${seasonCode}/${encodeURIComponent(playerNo)}`;

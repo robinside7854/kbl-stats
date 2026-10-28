@@ -2,7 +2,7 @@
 // 구성(모바일 우선): 머리말(팀 색·사진·칭호 배지·프로필·나이·국가·출신교·통산 요약 8칸) → 시즌 칩 + 플레이어 카드(순위 범위, PC 는 가로 카드) → 시즌별 추이 + 하이라이트 3개(PC 는 추이 오른쪽 열)
 // → 슛 차트(하프코트 점 + 구역표 + 주 공격 유형, 시즌 칩을 따름 — 최신 시즌은 정적 HTML, 다른 시즌은 /shots/{시즌}/{번호}.json)
 // → 비슷한 시즌(lib/similar, 시즌 칩을 따름) → 슛 습관의 변화(시즌별 구역 비중, 2026-10-16) → 커리어 타임라인(2026-10-16)
-// → 시즌별 기록표(리그 1위 굵게) → 커리어 하이(통산 한 경기 최다 업적 카드 7개, 데이터 없으면 숨김).
+// → 시즌별 기록표(리그 1위 굵게) → 클러치(위닝샷·클러치 득점, 2026-10-28 — 문자중계가 있는 2006-07 이후만) → 커리어 하이(통산 한 경기 최다 업적 카드 7개, 데이터 없으면 숨김).
 // 데이터는 lib/data.ts 가 빌드 시점에 읽어 필요한 필드만 클라이언트 컴포넌트로 넘긴다.
 // 카드: 가장 최근 시즌·전체 범위는 여기서 계산해 정적 HTML에 넣고(lib/cardview), 다른 시즌·범위는 브라우저가 /cards/{코드}.json 으로.
 import type { Metadata } from "next";
@@ -25,6 +25,7 @@ import {
   loadCareerTotals,
   loadPlayerGameRanges,
   loadPlayerRecentGames,
+  loadPlayerClutch,
 } from "@/lib/data";
 import { activeSpanLabel, seasonShortLabel, seoulDateIso } from "@/lib/career";
 import { teamShortLabel } from "@/lib/images";
@@ -43,6 +44,7 @@ import SiteNav from "@/app/components/SiteNav";
 import SourceFooter from "@/app/components/SourceFooter";
 import CareerTimeline from "@/app/components/CareerTimeline";
 import ShotHabit from "@/app/components/ShotHabit";
+import PlayerClutch from "@/app/components/PlayerClutch";
 import { loadCareerTimeline, loadShotHabits } from "@/lib/data-career-extra";
 
 // 색인에 없는 선수 번호는 404
@@ -99,6 +101,7 @@ export default async function PlayerPage({ params }: { params: Params }) {
   // 2026-10-16 "우리만의 기능": 슛 습관의 변화(슛 50개+ 시즌이 2개 이상일 때만 보임) · 커리어 타임라인
   const shotHabits = loadShotHabits(career);
   const timeline = loadCareerTimeline(career);
+  const clutch = loadPlayerClutch(playerNo);
 
   return (
     <>
@@ -148,6 +151,11 @@ export default async function PlayerPage({ params }: { params: Params }) {
         <div className="mx-auto mt-8 max-w-page px-4">
           <CareerTable seasons={seasons} playoffSeasons={career.playoffSeasons} />
         </div>
+        {clutch && (
+          <div className="mx-auto mt-8 max-w-page px-4">
+            <PlayerClutch data={clutch} />
+          </div>
+        )}
         {achievements.length > 0 && (
           <div className="mx-auto mt-8 max-w-page px-4">
             <CareerHighs items={achievements} teamPrimary={latest.team?.color.primary ?? FALLBACK_TEAM_COLOR.primary} />

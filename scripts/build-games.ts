@@ -1,5 +1,5 @@
 // 날짜별 박스스코어 파일 만들기 — `npm run build`·`npm run dev` 전에 자동 실행 (package.json prebuild·predev, 2026-10-03 일정 화면).
-// data/processed/{시즌}/games.json → public/games/{시즌}/{YYYY-MM-DD}.json = { [gmkey]: { home, away } } (박스스코어 있는 경기만).
+// data/processed/{시즌}/games.json → public/games/{시즌}/{YYYY-MM-DD}.json = { [gmkey]: { home, away, clutch? } } (박스스코어 있는 경기만, clutch = 클러치 기록 2026-10-28).
 // 일정 화면은 경기 목록만 정적 HTML 에 넣고, "선수 기록"을 누르면 그 날짜 파일 하나만 받는다(우리 정적 파일 — KBL 호출 아님).
 // 생성물이므로 git 에 올리지 않는다(.gitignore). processed 가 없으면 빈 폴더만 남기고 끝낸다(빌드 실패 금지).
 import { existsSync } from "node:fs";
@@ -27,7 +27,8 @@ async function main() {
     for (const g of file?.games ?? []) {
       if (!g.box) continue;
       const day = byDate.get(g.date) ?? {};
-      day[g.gmkey] = g.box;
+      // 클러치 기록(lib/clutch)도 같이 — 박스스코어 팝업 아래 "클러치 기록"
+      day[g.gmkey] = g.clutch?.length ? { ...g.box, clutch: g.clutch } : g.box;
       byDate.set(g.date, day);
     }
     if (byDate.size === 0) continue;

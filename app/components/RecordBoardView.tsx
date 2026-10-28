@@ -4,7 +4,7 @@
 // 서버가 부문마다 필터(국내/외국인 × 전체/현역)별 상위 50을 모두 담아 보내고(lib/data unionForFilters), 이 화면은 걸러서 순위만 다시 센다
 // remote 가 있으면(한 경기·한 시즌 최다, 2026-10-12) 페이지에는 처음 목록 하나만 들어 있고 다른 목록은 고를 때 정적 파일로 받는다(lib/records recordListUrl)
 // (lib/records filterRecordList). 선택은 주소 ?kind=&cat=&mode=&origin=&active=1 에 남긴다.
-// GA4: filter_change screen=records_game|records_season|records_awards (kind·category·mode·origin·active_only).
+// GA4: filter_change screen=records_game|records_season|records_awards|records_clutch (kind·category·mode·origin·active_only).
 import InfoLink from "./InfoLink";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -36,7 +36,7 @@ export interface BoardCategory {
 }
 
 interface Props {
-  screen: "records_game" | "records_season" | "records_awards";
+  screen: "records_game" | "records_season" | "records_awards" | "records_clutch";
   data: RecordListsData;
   categories: BoardCategory[];
   /** 경기 구분 칩을 쓰는가 */
