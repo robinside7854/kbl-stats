@@ -212,12 +212,17 @@ export function addClutchLine(t: ClutchTotals, l: ClutchLine): void {
 export const clutchFgPct = (t: Pick<ClutchTotals, "fgm" | "fga">): number | null => (t.fga > 0 ? (t.fgm / t.fga) * 100 : null);
 
 // ─────────────────────────────────────────────
-// 선수별 모으기 (선수 페이지·기록 탭 — 빌드 때 lib/data-clutch 가 전 시즌 games.json 으로)
+// 선수별 모으기 (선수 페이지·기록 탭 — 빌드 때 lib/data 가 전 시즌 games.json·playoff-clutch.json 으로)
 // ─────────────────────────────────────────────
+
+/** 경기 구분: 정규시즌 / 플레이오프(6강~챔프전 전체) / 챔프전 — lib/records GameKind 와 같은 값 */
+export type ClutchStage = "regular" | "playoff" | "finals";
 
 /** 한 선수의 위닝샷 하나 (경기 정보 포함) */
 export interface WinningEntry {
   seasonCode: number;
+  /** 그 경기의 구분 (6강·4강 = playoff, 챔프전 = finals) */
+  stage: ClutchStage;
   gmkey: string;
   date: string;
   shot: WinningShot;
@@ -230,39 +235,55 @@ export interface WinningEntry {
 }
 
 export interface PlayerClutchRaw {
-  /** 시즌 코드 → 합계 */
-  seasons: Map<number, ClutchTotals>;
-  /** 최근 먼저 */
+  /** 구분 → 시즌 코드 → 합계. playoff 는 챔프전까지 합친 값, finals 는 챔프전만 */
+  stages: Record<ClutchStage, Map<number, ClutchTotals>>;
+  /** 최근 먼저 (구분 섞임 — WinningEntry.stage) */
   shots: WinningEntry[];
 }
 
 type ClutchGame = Pick<SeasonGame, "gmkey" | "date" | "home" | "away" | "winning" | "clutch">;
 
+/** 한 시즌 재료: 정규시즌 경기(games.json) + 플레이오프 경기(playoff-clutch.json, 2026-10-28) */
+export interface ClutchSeasonInput {
+  seasonCode: number;
+  games: readonly ClutchGame[];
+  playoffGames?: readonly (ClutchGame & { stage: "playoff" | "finals" })[];
+}
+
 /** 전 시즌 경기 → 선수 번호별 클러치 합계·위닝샷 (이름으로 못 찾은 줄은 뺀다) */
-export function collectPlayerClutch(seasons: readonly { seasonCode: number; games: readonly ClutchGame[] }[]): Map<string, PlayerClutchRaw> {
+export function collectPlayerClutch(seasons: readonly ClutchSeasonInput[]): Map<string, PlayerClutchRaw> {
   const out = new Map<string, PlayerClutchRaw>();
   const of = (id: string) => {
     let p = out.get(id);
-    if (!p) out.set(id, (p = { seasons: new Map(), shots: [] }));
+    if (!p) out.set(id, (p = { stages: { regular: new Map(), playoff: new Map(), finals: new Map() }, shots: [] }));
     return p;
   };
-  const totalsOf = (p: PlayerClutchRaw, code: number) => {
-    let t = p.seasons.get(code);
-    if (!t) p.seasons.set(code, (t = emptyClutchTotals()));
+  const totalsOf = (p: PlayerClutchRaw, stage: ClutchStage, code: number) => {
+    let t = p.stages[stage].get(code);
+    if (!t) p.stages[stage].set(code, (t = emptyClutchTotals()));
     return t;
   };
   for (const s of seasons) {
-    for (const g of s.games) {
-      for (const l of g.clutch ?? []) if (l.id) addClutchLine(totalsOf(of(l.id), s.seasonCode), l);
+    const all: { g: ClutchGame; stage: ClutchStage }[] = [
+      ...s.games.map((g) => ({ g, stage: "regular" as const })),
+      ...(s.playoffGames ?? []).map((g) => ({ g, stage: g.stage })),
+    ];
+    for (const { g, stage } of all) {
+      // 챔프전은 플레이오프 합계에도 들어간다
+      const buckets: ClutchStage[] = stage === "regular" ? ["regular"] : stage === "finals" ? ["playoff", "finals"] : ["playoff"];
+      for (const l of g.clutch ?? []) if (l.id) for (const b of buckets) addClutchLine(totalsOf(of(l.id), b, s.seasonCode), l);
       const w = g.winning;
       if (!w?.id || g.home.score === null || g.away.score === null) continue;
       const p = of(w.id);
-      const t = totalsOf(p, s.seasonCode);
-      t.winning++;
-      if (w.buzzer) t.buzzer++;
+      for (const b of buckets) {
+        const t = totalsOf(p, b, s.seasonCode);
+        t.winning++;
+        if (w.buzzer) t.buzzer++;
+      }
       const mineHome = w.teamCode === g.home.teamCode;
       p.shots.push({
         seasonCode: s.seasonCode,
+        stage,
         gmkey: g.gmkey,
         date: g.date,
         shot: w,
@@ -277,6 +298,10 @@ export function collectPlayerClutch(seasons: readonly { seasonCode: number; game
   for (const p of out.values()) p.shots.sort((a, b) => b.date.localeCompare(a.date) || b.gmkey.localeCompare(a.gmkey));
   return out;
 }
+
+/** 이 구분에 들어가는 위닝샷인가 (플레이오프 = 6강~챔프전) */
+export const shotInStage = (s: Pick<WinningEntry, "stage">, stage: ClutchStage): boolean =>
+  stage === "playoff" ? s.stage !== "regular" : s.stage === stage;
 
 /** 시즌 합계들 → 통산 */
 export function sumClutchTotals(list: Iterable<ClutchTotals>): ClutchTotals {
@@ -298,12 +323,21 @@ export const CLUTCH_RECORD_DEFS: readonly { key: ClutchRecordKey; label: string;
   { key: "fgPct", label: "클러치 야투율", unit: "%" },
 ];
 
-/** 클러치 야투율 순위에 들려면 통산 클러치 야투 시도가 이만큼 (우리 규칙 — 몇 개 던져 100% 가 1위가 되지 않게) */
-export const CLUTCH_FG_MIN_ATTEMPTS = 50;
+/**
+ * 클러치 야투율 순위에 들려면 클러치 야투 시도가 이만큼 (우리 규칙 — 몇 개 던져 100% 가 1위가 되지 않게).
+ * 플레이오프·한 시즌은 경기가 적어 낮춘다 (2026-10-28 사용자: 시즌별·플레이오프도).
+ */
+export const CLUTCH_FG_MIN_ATTEMPTS: Record<ClutchStage, { career: number; season: number }> = {
+  regular: { career: 50, season: 15 },
+  playoff: { career: 15, season: 5 },
+  finals: { career: 8, season: 3 },
+};
 
-/** 부문 값 (순위에 안 드는 선수는 null) */
-export function clutchRecordValue(t: ClutchTotals, key: ClutchRecordKey): number | null {
-  if (key === "fgPct") return t.fga >= CLUTCH_FG_MIN_ATTEMPTS ? clutchFgPct(t) : null;
+export const clutchFgMinAttempts = (stage: ClutchStage, scope: "career" | "season"): number => CLUTCH_FG_MIN_ATTEMPTS[stage][scope];
+
+/** 부문 값 (순위에 안 드는 선수는 null). minFga = 야투율 최소 시도 */
+export function clutchRecordValue(t: ClutchTotals, key: ClutchRecordKey, minFga = CLUTCH_FG_MIN_ATTEMPTS.regular.career): number | null {
+  if (key === "fgPct") return t.fga >= minFga ? clutchFgPct(t) : null;
   const v = t[key];
   return v > 0 ? v : null;
 }

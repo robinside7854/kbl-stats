@@ -31,6 +31,18 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-10-28-clutch-playoff",
+    date: "2026-10-28",
+    kind: "update",
+    title: "플레이오프 위닝샷, 시즌별 클러치 순위",
+    summary: "플레이오프·시즌별 클러치",
+    blocks: [
+      { kind: "p", text: "기록 탭 클러치에서 정규시즌·플레이오프·챔프전을 고를 수 있어요. 기간도 통산 말고 시즌 하나씩 골라 볼 수 있어요." },
+      { kind: "p", text: "선수 페이지 클러치 칸에도 정규시즌·플레이오프 전환이 생겼어요. 플레이오프 기록은 오늘 안에 채워져요." },
+      { kind: "list", items: [{ text: "클러치 순위 보기", href: "/records/clutch" }] },
+    ],
+  },
+  {
     slug: "2026-10-28-clutch",
     date: "2026-10-28",
     kind: "update",

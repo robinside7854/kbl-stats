@@ -25,7 +25,7 @@ import { nationalityOf, rosterStatusOf } from "../lib/roster.js";
 import { hasCareerHighs, parseMostGame, todayKst, type ParsedMostGame } from "./highs.js";
 import { buildSeasonGames, parseBoxLog, type BoxLogRow } from "./boxscores.js";
 import { matchHighlights, readSavedFeeds, type FeedEntry } from "./highlights.js";
-import { parseTextCast } from "./textcast.js";
+import { parseTextCast, playoffGamesOf, type PlayoffGame } from "./textcast.js";
 import { analyzeClutch } from "../lib/clutch.js";
 import { attachShotAttempts, parseGameLog, type GameLogRow } from "./gamelogs.js";
 import { computeSeasonHighLeaders, SHOT_HIGH_KEYS } from "../lib/highs.js";
@@ -89,7 +89,7 @@ const nameKey = (s: string) => s.replace(/\s+/g, "");
  */
 async function clutchIdResolver(
   seasonCode: number,
-  game: SeasonGame,
+  game: Pick<SeasonGame, "gmkey" | "home" | "away"> & { box?: SeasonGame["box"] },
   roster: readonly { playerNo: string; nameKo: string; teamCode: string }[],
 ): Promise<(nameKo: string, teamCode: string) => string | null> {
   const byTeam = new Map<string, string>();
@@ -114,8 +114,12 @@ async function clutchIdResolver(
   };
 }
 
-/** 문자중계 raw 가 있는 경기에 위닝샷·클러치 기록을 붙인다. 반환: [분석한 경기 수, 위닝샷 수] */
-async function attachClutch(seasonCode: number, games: SeasonGame[], roster: readonly { playerNo: string; nameKo: string; teamCode: string }[]): Promise<[number, number]> {
+/** 문자중계 raw 가 있는 경기에 위닝샷·클러치 기록을 붙인다(정규시즌 games.json·플레이오프 공용). 반환: [분석한 경기 수, 위닝샷 수] */
+async function attachClutch(
+  seasonCode: number,
+  games: (Pick<SeasonGame, "gmkey" | "ended" | "home" | "away" | "winning" | "clutch"> & { box?: SeasonGame["box"] })[],
+  roster: readonly { playerNo: string; nameKo: string; teamCode: string }[],
+): Promise<[number, number]> {
   const dir = join(DATA_DIR, "raw", "textcast", String(seasonCode));
   const files = new Set(await readdir(dir).catch(() => [] as string[]));
   let analyzed = 0;
@@ -143,6 +147,30 @@ async function attachClutch(seasonCode: number, games: SeasonGame[], roster: rea
     }
   }
   return [analyzed, wins];
+}
+
+/**
+ * 플레이오프·챔프전 클러치 → data/processed/{시즌}/playoff-clutch.json (2026-10-28 사용자: 플레이오프 위닝샷도).
+ * 플레이오프는 일정·박스스코어 화면이 없어 클러치 결과만 저장한다. 문자중계를 분석한 경기가 없으면 파일을 지운다.
+ */
+async function writePlayoffClutch(seasonCode: number, players: readonly { playerNo: string; nameKo: string; teamCode: string }[]): Promise<string> {
+  const outFile = join(DATA_DIR, "processed", String(seasonCode), "playoff-clutch.json");
+  let list: unknown = null;
+  try {
+    list = JSON.parse(await readFile(join(DATA_DIR, "raw", "games", String(seasonCode), "list.json"), "utf8"));
+  } catch {
+    /* 목록이 없으면 플레이오프도 없음 */
+  }
+  const games: (PlayoffGame & { winning?: SeasonGame["winning"]; clutch?: SeasonGame["clutch"] })[] = playoffGamesOf(list, seasonCode, todayKst());
+  const [analyzed, wins] = await attachClutch(seasonCode, games, players);
+  const done = games.filter((g) => g.clutch !== undefined);
+  if (analyzed === 0) {
+    await rm(outFile, { force: true });
+    return "";
+  }
+  const rows = done.map((g) => JSON.stringify({ gmkey: g.gmkey, date: g.date, stage: g.stage, home: g.home, away: g.away, ...(g.winning ? { winning: g.winning } : {}), clutch: g.clutch }));
+  await writeFile(outFile, `{"seasonCode":${seasonCode},"games":[\n${rows.join(",\n")}\n]}\n`, "utf8");
+  return `, 플레이오프 문자중계 ${analyzed}경기(위닝샷 ${wins})`;
 }
 
 async function writeSeasonGames(seasonCode: number, players: readonly { playerNo: string; nameKo: string; teamCode: string }[]): Promise<string> {
@@ -605,7 +633,7 @@ async function processSeason(seasonCode: number): Promise<SeasonData> {
   } else {
     await rm(shotsFile, { force: true });
   }
-  const gamesNote = await writeSeasonGames(seasonCode, players);
+  const gamesNote = (await writeSeasonGames(seasonCode, players)) + (await writePlayoffClutch(seasonCode, players));
   const cov = Object.entries(out.coverage).filter(([, v]) => v).map(([k]) => k).join(",") || "-";
   const highsNote = (highs.size > 0 ? `, 한 경기 최다 ${highs.size}명` : "") + (shotPlayers > 0 ? `, 슛 차트 ${shotPlayers}명` : "");
   console.log(`[${out.seasonLabel}] ${players.length}명, 팀 ${teams.length}개, coverage: ${cov}${highsNote}${gamesNote} → ${join(outDir, "players.json")}`);

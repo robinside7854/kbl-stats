@@ -192,6 +192,41 @@ const idx = collectPlayerClutch([{ seasonCode: 49, games: [game] }]);
 const p = idx.get("291488")!;
 assert.equal(p.shots.length, 1);
 assert.equal(p.shots[0].oppCode, "60");
-const tot = sumClutchTotals(p.seasons.values());
+const tot = sumClutchTotals(p.stages.regular.values());
 assert.deepEqual([tot.pts, tot.winning, tot.buzzer, tot.games], [5, 1, 1, 1]);
+assert.equal(p.stages.playoff.size, 0);
 console.log("clutch: 알림·홈·선수별 모으기 통과");
+
+// ── 플레이오프 (2026-10-28) ──
+import { playoffGamesOf } from "../scripts/textcast";
+import { clutchFgMinAttempts, clutchRecordValue, shotInStage } from "../lib/clutch";
+import { clutchListKey } from "../lib/records";
+// 같은 기간 다른 대회(짝수 시즌 코드)는 빼고, 03 = 플레이오프·04 = 챔프전
+const po = playoffGamesOf(
+  [
+    { gmkey: "S48G03N1", seasonCode: 48, gameCode: "03", gameDate: "20260318", tcodeH: "1", tcodeA: "2", scoreH: 70, scoreA: 60, isEnded: 1 },
+    { gmkey: "S47G04N1", seasonCode: 47, gameCode: "04", gameDate: "20260505", tcodeH: "60", tcodeA: "66", scoreH: 80, scoreA: 79, isEnded: 1 },
+    { gmkey: "S47G03N2", seasonCode: 47, gameCode: "03", gameDate: "20260412", tcodeH: "16", tcodeA: "50", scoreH: 77, scoreA: 75, isEnded: 1 },
+    { gmkey: "S47G01N9", seasonCode: 47, gameCode: "01", gameDate: "20251101", tcodeH: "16", tcodeA: "50", scoreH: 77, scoreA: 75, isEnded: 1 },
+  ],
+  47,
+  "2026-10-28",
+);
+assert.deepEqual(po.map((g) => [g.gmkey, g.stage, g.date]), [["S47G03N2", "playoff", "2026-04-12"], ["S47G04N1", "finals", "2026-05-05"]]);
+assert.equal(po[1].home.score, 80);
+// 챔프전 위닝샷은 플레이오프·챔프전 둘 다에, 정규시즌엔 안 들어간다
+const finalsGame = { ...game, gmkey: "S47G04N1", date: "2026-05-05", stage: "finals" as const };
+const idx2 = collectPlayerClutch([{ seasonCode: 47, games: [], playoffGames: [finalsGame] }]);
+const p2 = idx2.get("291488")!;
+assert.equal(p2.stages.regular.size, 0);
+assert.equal(p2.stages.playoff.get(47)?.winning, 1);
+assert.equal(p2.stages.finals.get(47)?.buzzer, 1);
+assert.equal(p2.shots[0].stage, "finals");
+assert.equal(shotInStage(p2.shots[0], "playoff"), true);
+assert.equal(shotInStage(p2.shots[0], "regular"), false);
+// 야투율 최소 시도: 시즌·플레이오프는 낮다
+assert.ok(clutchFgMinAttempts("regular", "season") < clutchFgMinAttempts("regular", "career"));
+assert.equal(clutchRecordValue({ ...tot, fgm: 3, fga: 5 }, "fgPct", clutchFgMinAttempts("playoff", "season")), 60);
+assert.equal(clutchRecordValue({ ...tot, fgm: 3, fga: 5 }, "fgPct", clutchFgMinAttempts("regular", "career")), null);
+assert.equal(clutchListKey("playoff", 47, "winning"), "playoff:47:winning");
+console.log("clutch: 플레이오프·시즌 통과");

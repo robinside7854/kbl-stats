@@ -424,7 +424,10 @@ export function recordFilterChips(s: RecordFilterState, modeApplies: boolean): {
 // /records/data/{탭}/{목록}.json(빌드 때 미리 만든 정적 파일, app/records/data/[tab]/[key]/route.ts)을 받는다.
 // ─────────────────────────────────────────────
 
-export type RecordTab = "game" | "season";
+export type RecordTab = "game" | "season" | "clutch";
+
+/** 클러치 탭 목록 키 "구분:기간:부문" — 기간 = "all"(통산) 또는 시즌 코드, 부문 = 순위 부문 또는 "shots"(위닝샷 목록) (2026-10-28) */
+export const clutchListKey = (kind: GameKind, scope: number | "all", cat: string) => `${kind}:${scope}:${cat}`;
 
 /** 목록 키 — 한 경기 "구분:부문", 한 시즌 "구분:부문:단위" (lib/data 가 만드는 키와 같다) */
 export const gameHighListKey = (kind: GameKind, cat: string) => `${kind}:${cat}`;

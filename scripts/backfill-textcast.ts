@@ -1,7 +1,7 @@
 // 문자중계(4쿼터·연장) 백필 — .github/workflows/backfill-textcast.yml 이 시즌마다 부른다 (2026-10-28 클러치·위닝샷).
 // 실행: npm run backfill:textcast -- --count          → 시즌별 끝난 정규시즌 경기 수·아직 raw 없는 수
 //       npm run backfill:textcast -- --list-seasons   → 대상 시즌(경기 목록이 있고 2006-07 이후, 최신 먼저)을 공백으로 출력
-//       npm run backfill:textcast -- --season 47      → 그 시즌 정규시즌 약 270경기 (경기당 보통 1회, 연장 경기는 2~3회)
+//       npm run backfill:textcast -- --season 47      → 그 시즌 정규시즌 약 270경기 + 플레이오프·챔프전 약 20경기 (경기당 보통 1회, 연장 경기는 2~3회)
 // 이어받기: 이미 raw 가 있는 경기는 건너뛴다. 경기 목록은 슛 차트 백필이 받아 둔 것을 쓴다(없는 시즌은 건너뜀).
 // 요청 간격 1.5초, 연속 10회 실패면 그 시즌 중단(종료 코드 1).
 import { readdir } from "node:fs/promises";
@@ -11,7 +11,7 @@ import { readGamesList } from "./collect-shots.js";
 import { collectSeasonTextCasts, existingTextCastFiles } from "./collect-textcast.js";
 import { todayKst } from "./highs.js";
 import { endedRegularGmkeys, pendingGames } from "./shots.js";
-import { TEXTCAST_FIRST_SEASON } from "./textcast.js";
+import { playoffGamesOf, TEXTCAST_FIRST_SEASON } from "./textcast.js";
 
 /** 경기 목록이 있는 시즌(문자중계가 있는 2006-07 이후), 최신 먼저 */
 async function seasonsWithList(): Promise<number[]> {
@@ -36,10 +36,11 @@ async function main() {
     let pending = 0;
     const seasons = await seasonsWithList();
     for (const code of seasons) {
-      const keys = endedRegularGmkeys(await readGamesList(code), code, today);
+      const list = await readGamesList(code);
+      const keys = [...endedRegularGmkeys(list, code, today), ...playoffGamesOf(list, code, today).filter((g) => g.ended).map((g) => g.gmkey)];
       const left = pendingGames(keys, await existingTextCastFiles(code)).length;
       pending += left;
-      console.log(`  시즌 ${code}: 끝난 정규시즌 ${keys.length}경기, 아직 raw 없음 ${left}`);
+      console.log(`  시즌 ${code}: 끝난 정규시즌·플레이오프 ${keys.length}경기, 아직 raw 없음 ${left}`);
     }
     // 연장 경기(약 6%)는 2~3회 — 1.07배로 어림
     console.log(`문자중계 백필: 시즌 ${seasons.length}개, 경기 ${pending} (요청 약 ${Math.round(pending * 1.07)}회) ≈ ${Math.ceil((pending * 1.07 * 1.6) / 60)}분`);

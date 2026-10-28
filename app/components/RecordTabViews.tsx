@@ -2,7 +2,10 @@
 // 역대 기록 하위 탭 세 개의 설정 (부문·목록 키·안내 문구) — 화면 틀은 RecordBoardView. 서버 페이지는 데이터만 넘긴다.
 import { highDef, SEASON_HIGH_LEADER_KEYS } from "@/lib/highs";
 import { gameHighListKey, POSTSEASON_MIN_GAMES, REGULAR_MIN_GAMES_SHARE, SEASON_BEST_STATS, seasonBestListKey, type RecordListsData } from "@/lib/records";
-import { CLUTCH_FG_MIN_ATTEMPTS, CLUTCH_RECORD_DEFS } from "@/lib/clutch";
+import { useCallback, useMemo, useState } from "react";
+import { CLUTCH_RECORD_DEFS, clutchFgMinAttempts } from "@/lib/clutch";
+import { clutchListKey, type GameKind } from "@/lib/records";
+import RecentWinningShots, { type WinningShotRow } from "./RecentWinningShots";
 import RecordBoardView from "./RecordBoardView";
 
 /** 한 경기 최다 부문 이름 (lib/highs 이름에서 "슛" 을 빼 칩을 짧게) */
@@ -62,17 +65,42 @@ export function AwardRecordsView({ data, categories }: { data: RecordListsData; 
   );
 }
 
-/** 클러치 탭 (2026-10-28): 위닝샷·버저비터·클러치 득점·클러치 야투율 통산 순위 */
-export function ClutchRecordsView({ data }: { data: RecordListsData }) {
+/** 클러치 탭 (2026-10-28): 구분(정규·플옵·챔프전) × 기간(통산·시즌) — 위닝샷·버저비터·클러치 득점·클러치 야투율 순위 + 아래 위닝샷 목록 */
+export function ClutchRecordsView({
+  data,
+  seasons,
+  shots,
+}: {
+  data: RecordListsData;
+  seasons: { seasonCode: number; seasonShort: string }[];
+  /** 처음 보이는 위닝샷 목록 (정규시즌 통산) — 다른 구분·기간은 RecentWinningShots 가 받아 온다 */
+  shots: WinningShotRow[];
+}) {
+  const [sel, setSel] = useState<{ kind: GameKind; scope: string }>({ kind: "regular", scope: "all" });
+  const scopes = useMemo(() => [{ value: "all", label: "통산" }, ...seasons.map((s) => ({ value: String(s.seasonCode), label: `${s.seasonShort} 시즌` }))], [seasons]);
+  const onSelect = useCallback((kind: GameKind, scope: string) => setSel({ kind, scope }), []);
   return (
-    <RecordBoardView
-      screen="records_clutch"
-      data={data}
-      categories={CLUTCH_RECORD_DEFS.map((d) => ({ value: d.key, label: d.label }))}
-      listKey={(_k, cat) => cat}
-      note={() =>
-        `정규시즌 4쿼터·연장 남은 2분 미만, 6점 차 이내 기록입니다. 공홈 문자중계가 있는 2006-07 시즌부터 셉니다. 클러치 야투율은 ${CLUTCH_FG_MIN_ATTEMPTS}개 이상 던진 선수만.`
-      }
-    />
+    <>
+      <RecordBoardView
+        screen="records_clutch"
+        data={data}
+        categories={CLUTCH_RECORD_DEFS.map((d) => ({ value: d.key, label: d.label }))}
+        kinds
+        scopes={scopes}
+        remote="clutch"
+        onSelect={onSelect}
+        listKey={(kind, cat, _mode, scope) => clutchListKey(kind, scope === "all" ? "all" : Number(scope), cat)}
+        note={(kind, _mode, scope) =>
+          `${kind === "regular" ? "정규시즌" : kind === "playoff" ? "플레이오프(6강~챔프전)" : "챔프전"} 4쿼터·연장 남은 2분 미만, 6점 차 이내 기록입니다. 공홈 문자중계가 있는 2006-07 시즌부터 셉니다. 클러치 야투율은 ${clutchFgMinAttempts(kind, scope === "all" ? "career" : "season")}개 이상 던진 선수만.`
+        }
+        emptyText={() => "이 기간에는 기록이 없어요."}
+      />
+      <RecentWinningShots
+        key={`${sel.kind}:${sel.scope}`}
+        listKey={clutchListKey(sel.kind, sel.scope === "all" ? "all" : Number(sel.scope), "shots")}
+        initial={sel.kind === "regular" && sel.scope === "all" ? shots : null}
+        title={sel.scope === "all" ? "최근 위닝샷" : `${scopes.find((s) => s.value === sel.scope)?.label ?? ""} 위닝샷`}
+      />
+    </>
   );
 }

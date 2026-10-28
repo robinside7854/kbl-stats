@@ -4,7 +4,8 @@
 // 서버가 부문마다 필터(국내/외국인 × 전체/현역)별 상위 50을 모두 담아 보내고(lib/data unionForFilters), 이 화면은 걸러서 순위만 다시 센다
 // remote 가 있으면(한 경기·한 시즌 최다, 2026-10-12) 페이지에는 처음 목록 하나만 들어 있고 다른 목록은 고를 때 정적 파일로 받는다(lib/records recordListUrl)
 // (lib/records filterRecordList). 선택은 주소 ?kind=&cat=&mode=&origin=&active=1 에 남긴다.
-// GA4: filter_change screen=records_game|records_season|records_awards|records_clutch (kind·category·mode·origin·active_only).
+// scopes 가 있으면(클러치 탭, 2026-10-28) 기간(통산·시즌) 고르기와 경기 구분을 필터 버튼 밖 한 줄에 둔다 — ?season= 으로 남김.
+// GA4: filter_change screen=records_game|records_season|records_awards|records_clutch (kind·category·mode·origin·active_only·season).
 import InfoLink from "./InfoLink";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -45,12 +46,16 @@ interface Props {
   modes?: boolean;
   /** 페이지에 없는 목록은 /records/data/{remote}/… 에서 받는다 */
   remote?: RecordTab;
-  /** 목록 키 만들기 (lib/data 의 키 규칙과 같아야 한다) */
-  listKey: (kind: GameKind, cat: string, mode: RecordMode) => string;
+  /** 목록 키 만들기 (lib/data 의 키 규칙과 같아야 한다). scope = 기간 고르기 값 (scopes 가 없으면 "all") */
+  listKey: (kind: GameKind, cat: string, mode: RecordMode, scope: string) => string;
   /** 목록 아래 안내 (지금 고른 상태에 맞춰) */
-  note: (kind: GameKind, mode: RecordMode) => string;
+  note: (kind: GameKind, mode: RecordMode, scope: string) => string;
   /** 고른 구분에 기록이 하나도 없을 때 문구 */
   emptyText?: (kind: GameKind) => string;
+  /** 기간 고르기 (첫 값이 기본 — 통산). 있으면 경기 구분도 필터 밖 한 줄로 */
+  scopes?: { value: string; label: string }[];
+  /** 구분·기간이 바뀔 때 (부모가 같은 기간의 다른 목록을 맞추려고) */
+  onSelect?: (kind: GameKind, scope: string) => void;
 }
 
 const ORIGIN_OPTIONS: { value: RecordOrigin; label: string }[] = [
@@ -64,8 +69,10 @@ const MODE_OPTIONS: { value: RecordMode; label: string }[] = [
   { value: "perGame", label: "경기당" },
 ];
 
-export default function RecordBoardView({ screen, data, categories, kinds = false, modes = false, remote, listKey, note, emptyText }: Props) {
+export default function RecordBoardView({ screen, data, categories, kinds = false, modes = false, remote, listKey, note, emptyText, scopes, onSelect }: Props) {
   const [kind, setKind] = useState<GameKind>("regular");
+  const [scope, setScope] = useState(scopes?.[0]?.value ?? "all");
+  const inline = !!scopes;
   const [cat, setCat] = useState(categories[0].value);
   const [mode, setMode] = useState<RecordMode>("total");
   const [origin, setOrigin] = useState<RecordOrigin>("all");
@@ -81,7 +88,12 @@ export default function RecordBoardView({ screen, data, categories, kinds = fals
     const o = qs.get("origin");
     if (o === "domestic" || o === "foreign") setOrigin(o);
     if (qs.get("active") === "1") setActiveOnly(true);
-  }, [categories, kinds, modes]);
+    const s = qs.get("season");
+    if (scopes && s && scopes.some((x) => x.value === s)) setScope(s);
+  }, [categories, kinds, modes, scopes]);
+  useEffect(() => {
+    onSelect?.(kind, scope);
+  }, [kind, scope, onSelect]);
   useEffect(() => {
     // 다른 컨트롤의 쿼리(수상 탭 ?season=)는 그대로 두고 이 화면 것만 고친다
     const qs = new URLSearchParams(window.location.search);
@@ -91,13 +103,14 @@ export default function RecordBoardView({ screen, data, categories, kinds = fals
     put("mode", mode !== "total" ? mode : null);
     put("origin", origin !== "all" ? origin : null);
     put("active", activeOnly ? "1" : null);
+    if (scopes) put("season", scope !== scopes[0]?.value ? scope : null);
     const q = qs.toString();
     window.history.replaceState(null, "", `${window.location.pathname}${q ? `?${q}` : ""}`);
-  }, [kind, cat, mode, origin, activeOnly, categories]);
+  }, [kind, cat, mode, origin, activeOnly, categories, scope, scopes]);
 
   const def = categories.find((d) => d.value === cat) ?? categories[0];
   const effMode: RecordMode = modes && def.perGame ? mode : "total";
-  const key = listKey(kind, def.value, effMode);
+  const key = listKey(kind, def.value, effMode, scope);
   // 받아 온 목록 (키 → 목록·선수 정보). 실패한 키는 null
   const [loaded, setLoaded] = useState<Record<string, RecordListsData | null>>({});
   const missing = !!remote && !(key in data.lists) && !(key in loaded);
@@ -131,6 +144,38 @@ export default function RecordBoardView({ screen, data, categories, kinds = fals
 
   return (
     <>
+      {inline && (
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          {kinds && (
+            <Segmented
+              label="경기 구분"
+              options={GAME_KINDS.map((g) => ({ value: g.value, label: g.label }))}
+              value={kind}
+              onChange={(v) => {
+                trackFilters(screen, { kind: v });
+                setKind(v);
+              }}
+            />
+          )}
+          <label className="flex items-center gap-2 text-sub text-ink-2">
+            <span className="shrink-0">기간</span>
+            <select
+              value={scope}
+              onChange={(e) => {
+                trackFilters(screen, { season: e.target.value });
+                setScope(e.target.value);
+              }}
+              className="focus-ring h-10 rounded-control border border-line bg-surface px-3 text-base text-ink"
+            >
+              {scopes!.map((s) => (
+                <option key={s.value} value={s.value}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      )}
       {/* 1차 컨트롤은 부문 칩 한 줄, 경기 구분·합계/경기당·국적·현역만은 필터 버튼 안 (2026-10-06 사용자: 누르는 단계 최대 2번) */}
       <ChipRow
         label="부문 선택"
@@ -144,16 +189,16 @@ export default function RecordBoardView({ screen, data, categories, kinds = fals
       />
       <div className="mt-3">
         <FilterSheet
-          chips={recordFilterChips({ kind, mode, origin, activeOnly }, modes && !!def.perGame).map((c) => ({
+          chips={recordFilterChips({ kind: inline ? "regular" : kind, mode, origin, activeOnly }, modes && !!def.perGame).map((c) => ({
             key: c.field,
             label: c.label,
             onClear: () => reset(c.field),
           }))}
-          onReset={() => (["kind", "mode", "origin", "activeOnly"] as const).forEach(reset)}
+          onReset={() => (inline ? (["mode", "origin", "activeOnly"] as const) : (["kind", "mode", "origin", "activeOnly"] as const)).forEach(reset)}
           resultText={`${items.length}명 보기`}
           trailing={`${items.length}명`}
         >
-          {kinds && (
+          {kinds && !inline && (
             <FilterGroup label="경기 구분">
               <Segmented
                 label="경기 구분"
@@ -245,7 +290,7 @@ export default function RecordBoardView({ screen, data, categories, kinds = fals
           }
         />
         )}
-        <p className="mt-2 text-sub text-ink-3">{note(kind, effMode)}</p>
+        <p className="mt-2 text-sub text-ink-3">{note(kind, effMode, scope)}</p>
       </section>
     </>
   );
