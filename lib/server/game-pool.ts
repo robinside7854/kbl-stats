@@ -23,3 +23,19 @@ export async function loadGamePool(origin: string): Promise<GamePool | null> {
   }
   return pending;
 }
+
+/**
+ * 결과 공유 페이지·미리보기 그림용 (2026-10-27): 빌드한 컴퓨터에 public/game/pool.json 이 있으면 그 파일(로컬·빌드),
+ * 없으면(배포된 서버 함수에는 public 파일이 없다) 사이트 주소에서 받는다.
+ */
+export async function loadGamePoolForPage(siteUrl: string): Promise<GamePool | null> {
+  try {
+    const { readFile } = await import("node:fs/promises");
+    const { join } = await import("node:path");
+    const pool = JSON.parse(await readFile(join(process.cwd(), "public", "game", "pool.json"), "utf8")) as GamePool;
+    if (Array.isArray(pool.eras)) return pool;
+  } catch {
+    // 파일 없음 — 아래에서 받는다
+  }
+  return loadGamePool(siteUrl);
+}

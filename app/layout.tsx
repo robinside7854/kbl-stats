@@ -1,8 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import { splashStartupImages } from "@/lib/splash";
 import { SITE_NAME, SITE_URL, shareMetadata } from "@/lib/share";
+import { verificationMeta } from "@/lib/seo";
+import site from "../data/codes/site.json";
 import Analytics from "./components/Analytics";
 import AppInstallTracker from "./components/AppInstallTracker";
+import ReturnNudge from "./components/ReturnNudge";
 import { FONT_CDN_ORIGIN, PRETENDARD_CSS_URL } from "./components/webFont";
 import "./globals.css";
 
@@ -16,6 +19,8 @@ export const metadata: Metadata = {
     path: "/",
   }),
   applicationName: SITE_NAME,
+  // 구글 서치 콘솔·네이버 서치어드바이저 소유 확인 (2026-10-27, 값은 site.json searchVerification — 비면 없음)
+  verification: verificationMeta(site.searchVerification),
   // 아이폰 "홈 화면에 추가" 를 앱처럼(주소창 없이) 열기 (2026-10-05 앱 설치 — 안드로이드는 app/manifest.ts)
   // 시작 화면 그림은 화면 크기마다 하나 (lib/splash, 그림은 scripts/build-splash.tsx — 2026-10-06 시안 A)
   appleWebApp: { capable: true, title: "KBL 스탯", statusBarStyle: "default", startupImage: splashStartupImages() },
@@ -44,6 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-dvh">
         {children}
         <AppInstallTracker />
+        <ReturnNudge />
         <Analytics />
       </body>
     </html>

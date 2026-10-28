@@ -18,6 +18,7 @@ import { IconClose, IconExternal, IconPlay } from "./icons";
 import Skeleton from "./Skeleton";
 import TeamLogo from "./TeamLogo";
 import { TeamLink } from "./EntityLinks";
+import { BOXSCORE_CLOSED_EVENT } from "./install-prompt";
 import { trackEvent } from "./track";
 import { officialGameUrl } from "@/lib/official";
 
@@ -190,7 +191,11 @@ export default function GameCard({ game: g, seasonCode, teams, stars = null, loa
             <BoxScoreDialog
               title={matchTitle}
               sub={matchSub}
-              onClose={() => setOpen(false)}
+              onClose={() => {
+                setOpen(false);
+                // 다 본 직후 — 다음 경기 결과를 받을 방법을 한 번 권한다 (ReturnNudge, 2026-10-27)
+                window.dispatchEvent(new CustomEvent(BOXSCORE_CLOSED_EVENT, { detail: { seasonCode } }));
+              }}
             >
               {box ? (
                 <>

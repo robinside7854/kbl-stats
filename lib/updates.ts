@@ -31,6 +31,30 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-10-27-next-game-alert",
+    date: "2026-10-27",
+    kind: "update",
+    title: "다음 경기 결과, 폰으로 받아 보세요",
+    summary: "경기 결과 폰 알림 안내",
+    blocks: [
+      { kind: "p", text: "박스스코어를 다 보고 닫으면 아래에 작은 안내가 한 번 떠요. 폰 알림 켜기나 앱 설치 중 지금 할 수 있는 것 하나만 보여 줘요." },
+      { kind: "p", text: "기록은 경기 끝나고 1시간쯤 뒤에 올라와요. 알림을 켜 두면 응원팀이랑 즐겨찾기 선수 소식이 그때 폰으로 와요." },
+      { kind: "list", items: [{ text: "알림함에서 켜기", href: "/notifications" }, { text: "오늘 경기 보러 가기", href: "/" }] },
+    ],
+  },
+  {
+    slug: "2026-10-27-game-share",
+    date: "2026-10-27",
+    kind: "update",
+    title: "54-0 결과, 이제 카드로 보내져요",
+    summary: "54-0 결과 공유 카드",
+    blocks: [
+      { kind: "p", text: "54-0 결과 화면 맨 위에 공유 버튼이 생겼어요. 폰에서 누르면 카카오톡 같은 앱으로 바로 보낼 수 있어요." },
+      { kind: "p", text: "보낸 링크엔 내 성적과 다섯 명이 담긴 카드가 같이 떠요. 받은 친구는 같은 결과를 보고 바로 도전할 수 있어요." },
+      { kind: "list", items: [{ text: "54-0 하러 가기", href: "/game" }] },
+    ],
+  },
+  {
     slug: "2026-10-21-card-redesign",
     date: "2026-10-21",
     kind: "update",
