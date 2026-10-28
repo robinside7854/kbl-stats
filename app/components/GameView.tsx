@@ -3,7 +3,7 @@
 // 순서: 주전 다섯 칸(가드 2·포워드 2·센터 1) → 슬롯머신 두 대(왼쪽 시즌 하나 · 오른쪽 팀 3개, 버튼 하나로 같이 돌고 왼쪽이 먼저 멈춤)
 //   → 세 팀 후보 중 한 명 고르기(그 시즌 기록, 득점순 — 등급·점수는 안 보임) → 다섯 번 → 농구 코트 위 5명 + 54경기 결과·기록.
 // 결과는 주소 ?l= 로 남기고, 공유는 결과마다 주소 /game/r/{라인업}(미리보기 그림 = 그 결과, lib/game-share)으로.
-// 결과 맨 위에 공유 권유 칸(ShareCta, 2026-10-27 — 완주 1,951판 중 공유 0.5%), 이미지 저장은 공식 사진 없는 사본(useCardSave).
+// 결과 맨 위에 공유 권유 칸(ShareCta, 2026-10-27 — 완주 1,951판 중 공유 0.5%), 이미지 저장은 사본(useCardSave, 사진·로고는 우리 주소 중계 — 2026-10-28).
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -22,7 +22,7 @@ import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
 import type { TeamColor } from "@/lib/types";
 import { teamShortLabel } from "@/lib/images";
 import ChipRow from "./ChipRow";
-import { IconChevronDown, IconChevronRight, IconChevronUp, IconShare } from "./icons";
+import { IconChevronDown, IconChevronRight, IconChevronUp, IconLink, IconShare } from "./icons";
 import InfoLink from "./InfoLink";
 import GradeChip from "./GameGradeChip";
 import { COURT_SPOTS, CourtLines } from "./HalfCourt";
@@ -30,6 +30,7 @@ import PlayerAvatar from "./PlayerAvatar";
 import Skeleton from "./Skeleton";
 import TeamLogo from "./TeamLogo";
 import { useCardSave } from "./useCardSave";
+import { ExportImages } from "./useOfficialImage";
 import { trackEvent, trackFilters } from "./track";
 import { enabledLoginProviders } from "@/lib/account";
 import { hasSignedInHint, saveGameRecord, type GameSaveResult } from "./account-client";
@@ -81,6 +82,9 @@ export default function GameView({ sharedLineup }: { sharedLineup?: string } = {
   const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({ key: "ppg", dir: "desc" });
   const [shared, setShared] = useState<Picked[] | null>(null);
   const [copied, setCopied] = useState(false);
+  // 기기 공유 창이 있는 브라우저(주로 폰)만 "결과 공유하기" + "링크 복사" 둘 다, 없으면 "링크 복사" 하나
+  const [canShare, setCanShare] = useState(false);
+  useEffect(() => setCanShare(typeof navigator.share === "function"), []);
   /** 내 기록 저장 (로그인한 사람만, 2026-10-04) — off: 로그인 기능이 꺼진 빌드·공유 결과 */
   const [recordStatus, setRecordStatus] = useState<GameSaveResult | "saving" | "off">("off");
   /** 게임 방법 상자 — 처음엔 접어 두고 "게임 방법 보기" 버튼만 (2026-10-04 사용자 요청) */
@@ -275,14 +279,15 @@ export default function GameView({ sharedLineup }: { sharedLineup?: string } = {
     window.history.replaceState(null, "", window.location.pathname);
   }
 
-  /** 결과 공유: 폰은 기기 공유 창(카톡 등), 없으면 글 + 주소 복사. 주소는 이 결과의 공유 페이지 */
-  async function shareResult(place: "top" | "bottom") {
+  /** 결과 공유. share = 폰 기기 공유 창(카톡 등, 없으면 복사), copy = 글 + 주소 복사(2026-10-28 — 공유 창을 그냥 닫는 경우가 많아 옆에 둠).
+   *  주소는 이 결과의 공유 페이지 */
+  async function shareResult(place: "top" | "bottom", how: "share" | "copy" = "share") {
     if (!picked || !result) return;
     const slug = lineupToSlug(encodeLineupParam(picked.map((p) => p.c)));
     const url = `${window.location.origin}${slug ? gameResultPath(slug) : window.location.pathname + window.location.search}`;
     const text = shareText(result.wins, shared != null);
     const base = { wins: result.wins, place: shared ? `shared_${place}` : place };
-    if (typeof navigator.share === "function") {
+    if (how === "share" && typeof navigator.share === "function") {
       try {
         await navigator.share({ title: `54-0 ${recordLabel(result.wins)}`, text, url });
         trackEvent("game_share", { ...base, method: "native" });
@@ -294,7 +299,7 @@ export default function GameView({ sharedLineup }: { sharedLineup?: string } = {
     }
     try {
       await navigator.clipboard.writeText(`${text}\n${url}`);
-      trackEvent("game_share", { ...base, method: "copy" });
+      trackEvent("game_share", { ...base, method: how === "copy" ? "copy_link" : "copy" });
       setCopied(true);
     } catch {
       window.prompt("이 주소를 복사해 보내 주세요", url);
@@ -335,7 +340,7 @@ export default function GameView({ sharedLineup }: { sharedLineup?: string } = {
           <Skeleton className="h-40 rounded-container" />
         </div>
       ) : picked && result ? (
-        <ResultView picked={picked} result={result} colors={colors} shared={!!shared} copied={copied} recordStatus={recordStatus} onShare={shareResult} onRestart={restart} />
+        <ResultView picked={picked} result={result} colors={colors} shared={!!shared} copied={copied} canShare={canShare} recordStatus={recordStatus} onShare={shareResult} onRestart={restart} />
       ) : (
         <>
           <GameRules
@@ -665,8 +670,9 @@ interface ResultProps {
   colors: ThemeColors;
   shared: boolean;
   copied: boolean;
+  canShare: boolean;
   recordStatus: GameSaveResult | "saving" | "off";
-  onShare: (place: "top" | "bottom") => void;
+  onShare: (place: "top" | "bottom", how?: "share" | "copy") => void;
   onRestart: () => void;
 }
 
@@ -702,63 +708,88 @@ function RecordNotice({ status }: { status: ResultProps["recordStatus"] }) {
 }
 
 /**
- * 결과 맨 위 공유 권유 칸 (2026-10-27): 성적에 맞춘 한 줄 + 큰 "결과 공유하기"(폰은 카톡 등 공유 창).
+ * 결과 맨 위 공유 권유 칸 (2026-10-27): 성적에 맞춘 한 줄 + 큰 "결과 공유하기"(폰은 카톡 등 공유 창) + "링크 복사"(2026-10-28).
  * 친구가 보낸 결과로 들어온 사람에게는 "나도 해 보기"가 먼저.
  */
-function ShareCta({ wins, shared, copied, onShare, onRestart }: { wins: number; shared: boolean; copied: boolean; onShare: () => void; onRestart: () => void }) {
+function ShareCta({ wins, shared, copied, canShare, onShare, onRestart }: { wins: number; shared: boolean; copied: boolean; canShare: boolean; onShare: (how: "share" | "copy") => void; onRestart: () => void }) {
   const cta = shareCta(wins, shared);
   const primary =
     "focus-ring inline-flex h-12 cursor-pointer items-center justify-center gap-2 rounded-control bg-series-1 px-5 text-body font-bold text-white transition-colors duration-200 hover:bg-ink";
   const secondary =
     "focus-ring inline-flex h-12 cursor-pointer items-center justify-center gap-2 rounded-control border border-line bg-surface px-5 text-body font-semibold text-ink transition-colors duration-200 hover:bg-surface-2";
+  const copyLabel = copied ? "복사했어요" : "링크 복사";
   return (
     <div className="surface-card mb-3 rounded-container p-4 sm:flex sm:items-center sm:justify-between sm:gap-6">
       <div className="min-w-0">
         <p className="text-h2 font-bold text-ink">{cta.title}</p>
         <p className="mt-1 text-sub text-ink-2">{cta.body}</p>
       </div>
-      <div className="mt-3 grid shrink-0 gap-2 sm:mt-0 sm:flex">
+      <div className={`mt-3 grid shrink-0 gap-2 sm:mt-0 sm:flex ${shared || canShare ? "grid-cols-2" : ""}`}>
         {shared ? (
           <>
-            <button type="button" onClick={onRestart} className={primary}>
+            <button type="button" onClick={onRestart} className={`${primary} col-span-2`}>
               나도 해 보기
             </button>
-            <button type="button" onClick={onShare} className={secondary}>
-              <IconShare size={20} />
-              {copied ? "복사했어요" : "이 결과 보내기"}
+            {canShare && (
+              <button type="button" onClick={() => onShare("share")} className={secondary}>
+                <IconShare size={20} />
+                보내기
+              </button>
+            )}
+            <button type="button" onClick={() => onShare("copy")} className={`${secondary} ${canShare ? "" : "col-span-2"}`}>
+              <IconLink size={20} />
+              {copyLabel}
             </button>
           </>
         ) : (
-          <button type="button" onClick={onShare} className={primary}>
-            <IconShare size={20} />
-            {copied ? "글과 링크를 복사했어요" : "결과 공유하기"}
-          </button>
+          <>
+            {canShare && (
+              <button type="button" onClick={() => onShare("share")} className={primary}>
+                <IconShare size={20} />
+                결과 공유하기
+              </button>
+            )}
+            <button type="button" onClick={() => onShare("copy")} className={canShare ? secondary : primary}>
+              <IconLink size={20} />
+              {copyLabel}
+            </button>
+          </>
         )}
       </div>
-      <p role="status" aria-live="polite" className={`mt-2 text-caption text-ink-2 sm:hidden ${copied ? "" : "hidden"}`}>
+      <p role="status" aria-live="polite" className={`mt-2 text-caption text-ink-2 ${copied ? "" : "hidden"}`}>
         카카오톡이나 커뮤니티에 붙여 넣으면 결과 카드가 같이 떠요.
       </p>
     </div>
   );
 }
 
-function ResultView({ picked, result, colors, shared, copied, recordStatus, onShare, onRestart }: ResultProps) {
+function ResultView({ picked, result, colors, shared, copied, canShare, recordStatus, onShare, onRestart }: ResultProps) {
   const { exportRef, saving, saveError, save } = useCardSave(colors.surface);
   const fileName = `54-0-${result.wins}-${result.losses}.png`;
   const secondary =
     "focus-ring h-11 cursor-pointer rounded-control border border-line bg-surface text-body font-semibold text-ink transition-colors duration-200 hover:bg-surface-2";
   return (
     <section aria-label="시즌 결과">
-      <ShareCta wins={result.wins} shared={shared} copied={copied} onShare={() => onShare("top")} onRestart={onRestart} />
+      <ShareCta wins={result.wins} shared={shared} copied={copied} canShare={canShare} onShare={(how) => onShare("top", how)} onRestart={onRestart} />
       <ResultCard picked={picked} result={result} colors={colors} official />
-      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+      <div className={`mt-3 grid grid-cols-2 gap-2 ${canShare ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}>
+        {canShare && (
+          <button
+            type="button"
+            onClick={() => onShare("bottom", "share")}
+            className="focus-ring inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-control bg-ink text-body font-bold text-surface transition-colors duration-200 hover:bg-ink-2"
+          >
+            <IconShare size={20} />
+            결과 공유하기
+          </button>
+        )}
         <button
           type="button"
-          onClick={() => onShare("bottom")}
-          className="focus-ring col-span-2 inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-control bg-ink text-body font-bold text-surface transition-colors duration-200 hover:bg-ink-2 sm:col-span-1"
+          onClick={() => onShare("bottom", "copy")}
+          className={canShare ? `${secondary} inline-flex items-center justify-center gap-2` : "focus-ring col-span-2 inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-control bg-ink text-body font-bold text-surface transition-colors duration-200 hover:bg-ink-2 sm:col-span-1"}
         >
-          <IconShare size={20} />
-          {copied ? "복사했어요" : "결과 공유하기"}
+          <IconLink size={20} />
+          {copied ? "복사했어요" : "링크 복사"}
         </button>
         <button type="button" onClick={() => save(fileName)} disabled={saving} className={secondary}>
           {saving ? "저장 중…" : "이미지 저장"}
@@ -770,11 +801,13 @@ function ResultView({ picked, result, colors, shared, copied, recordStatus, onSh
       <RecordNotice status={recordStatus} />
       {saveError && <p className="mt-2 text-sub text-ink-2">{saveError}</p>}
       {saving && (
-        <div aria-hidden className="pointer-events-none fixed top-0" style={{ left: -10000 }}>
-          <div ref={exportRef} className="w-[440px] bg-surface p-3">
-            <ResultCard picked={picked} result={result} colors={colors} official={false} />
+        <ExportImages>
+          <div aria-hidden className="pointer-events-none fixed top-0" style={{ left: -10000 }}>
+            <div ref={exportRef} className="w-[440px] bg-surface p-3">
+              <ResultCard picked={picked} result={result} colors={colors} official={false} />
+            </div>
           </div>
-        </div>
+        </ExportImages>
       )}
     </section>
   );
@@ -782,7 +815,7 @@ function ResultView({ picked, result, colors, shared, copied, recordStatus, onSh
 
 // 코트 그림·다섯 자리는 HalfCourt (팀 올타임 베스트 5 와 같이 쓴다)
 
-/** 결과 카드 (화면·저장 이미지 공용). official=false 면 공식 사진·로고 없이 대체 디자인만 */
+/** 결과 카드 (화면·저장 이미지 공용). official=false 는 저장 사본 — ExportImages 안이라 사진·로고를 중계 주소로 그린다 */
 function ResultCard({ picked, result, colors, official }: { picked: Picked[]; result: SeasonResult; colors: ThemeColors; official: boolean }) {
   const mvp = picked.reduce((b, p) => (p.c.score > b.c.score || (p.c.score === b.c.score && p.c.ppg > b.c.ppg) ? p : b), picked[0]);
   const perfect = result.wins === GAME_SEASON_GAMES;

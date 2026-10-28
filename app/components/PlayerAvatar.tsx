@@ -1,8 +1,8 @@
 "use client";
 // 선수 아바타: 기본은 팀 색 + 이름 첫 글자, 공식 사진이 있으면 위에 얹는다 (PLAN.md §5-2 ③).
 // next/image를 쓰지 않는다 — 외부 사진을 Vercel이 다시 받아 최적화(=복제)하지 않도록 브라우저가 직접 받게 둔다.
-// ⚠️ 이미지 저장(html-to-image) 사본에는 official={false} 로 넣는다 — KBL 서버에 CORS 헤더가 없어 저장이 실패한다.
-//    (혹시 섞여 들어가도 excludeOfficialImages filter 가 <img data-official-image> 를 뺀다)
+// ⚠️ 이미지 저장(html-to-image) 사본에는 official={false} 로 넣고 ExportImages 로 감싼다 — KBL 서버에 CORS 헤더가 없어
+//    원래 주소로는 저장이 실패하므로 우리 주소 중계(/img-proxy)로 받는다(2026-10-28). 감싸지 않으면 대체 디자인만.
 //
 // variant
 // - "circle"  : 목록·선택 상자용 원형 (size = 지름)
@@ -23,7 +23,7 @@ interface Props {
   color?: TeamColor;
   size?: number;
   variant?: "circle" | "portrait";
-  /** false 면 공식 사진을 쓰지 않고 대체 디자인만 (이미지 저장 사본) */
+  /** false 면 화면용 핫링크를 쓰지 않는다 — 이미지 저장 사본(ExportImages 안)은 중계 주소, 그 밖엔 대체 디자인만 */
   official?: boolean;
   className?: string;
 }
@@ -92,10 +92,10 @@ export default function PlayerAvatar({
       {src && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
+          loading="lazy"
           {...imgProps}
           src={src}
           alt={nameKo}
-          loading="lazy"
           decoding="async"
           referrerPolicy="no-referrer"
           width={size}

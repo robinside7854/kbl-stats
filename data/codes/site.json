@@ -25,5 +25,11 @@
     "google": "cmjMRzK9FofGzRN_aUpGMBOGlgz0mHSqrH59B1ozlKU",
     "naver": "4c4cef79f3382f49e4829f49bdb10b5bfe314b97"
   },
+  "imageProxy": {
+    "_comment": "이미지 저장용 사진·로고 중계(2026-10-28). KBL 서버는 CORS 헤더가 없어 브라우저가 공식 사진을 저장 이미지(캔버스)에 그릴 수 없다 → 저장할 때만 우리 주소 path 로 받아 그린다(app/img-proxy). 화면은 계속 원래 주소로 핫링크. allow 밖의 경로는 중계하지 않는다(아무 주소나 대신 받아 주는 통로가 되지 않게)",
+    "origin": "https://kbl.or.kr",
+    "path": "/img-proxy",
+    "allow": ["/files/kbl/players-photo/", "/assets/img/"]
+  },
   "pushPublicKey": "BKZB-n972PZFMDSNmoYx3H5qGx01sgoWZT4UB8pQMZBKD-UqydA4dxXj2Kur7TrjJgCwoTgPwwpxAOq_FkB-fz0"
 }

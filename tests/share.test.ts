@@ -56,4 +56,19 @@ assert.deepEqual(verificationMeta({ naver: "abc" }), { other: { "naver-site-veri
   assert.equal(shouldShowNudge("garbage", now), true);
 }
 
+// 이미지 저장용 중계 주소 (2026-10-28)
+{
+  const { proxiedImageUrl, proxySourceUrl } = await import("../lib/images");
+  const site = (await import("../data/codes/site.json")).default;
+  const o = site.imageProxy.origin;
+  assert.equal(proxiedImageUrl(`${o}/files/kbl/players-photo/290239.png`), "/img-proxy/files/kbl/players-photo/290239.png");
+  assert.equal(proxiedImageUrl(`${o}/assets/img/ico/logo/ic-sk.svg`), "/img-proxy/assets/img/ico/logo/ic-sk.svg");
+  assert.equal(proxiedImageUrl(`${o}/secret/x.png`), null); // 허용 밖 경로
+  assert.equal(proxiedImageUrl("https://example.com/files/kbl/players-photo/1.png"), null); // 다른 사이트
+  assert.equal(proxiedImageUrl(null), null);
+  assert.equal(proxySourceUrl("/files/kbl/players-photo/1.png"), `${o}/files/kbl/players-photo/1.png`);
+  assert.equal(proxySourceUrl("/files/kbl/../../etc"), null); // 상위 폴더 이동 막음
+  assert.equal(proxySourceUrl("/api/x"), null);
+}
+
 console.log("share: 통과");

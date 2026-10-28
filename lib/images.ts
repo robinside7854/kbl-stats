@@ -1,5 +1,26 @@
 // 공식 이미지(선수 사진·팀 로고) 스위치와 대체 디자인용 글자 규칙.
-// 이미지 주소 자체는 scripts/image-urls.ts 가 만들어 processed JSON에 넣는다 — 여기는 주소를 모른다 (원칙 1).
+// 이미지 주소 자체는 scripts/image-urls.ts 가 만들어 processed JSON에 넣는다 (원칙 1). 저장용 중계 주소만 site.json imageProxy 기준으로 바꾼다.
+import site from "../data/codes/site.json";
+
+/**
+ * 이미지 저장용 중계 주소 (2026-10-28): 공식 사진·로고 주소를 우리 사이트 주소(/img-proxy/…)로 바꾼다.
+ * KBL 서버에 CORS 헤더가 없어 원래 주소로는 저장 이미지(캔버스)에 그릴 수 없다. 중계할 수 없는 주소면 null.
+ * 기준 값은 data/codes/site.json imageProxy 한 곳 (원칙 1: 화면에 KBL 주소를 쓰지 않는다)
+ */
+export function proxiedImageUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  const { origin, path, allow } = site.imageProxy;
+  if (!url.startsWith(`${origin}/`)) return null;
+  const rest = url.slice(origin.length);
+  return allow.some((a) => rest.startsWith(a)) ? `${path}${rest}` : null;
+}
+
+/** 중계 경로(…/img-proxy 뒤)가 허용된 원래 경로인지 — app/img-proxy 가 쓴다. 상위 폴더 이동(..)은 막는다 */
+export function proxySourceUrl(rest: string): string | null {
+  const { origin, allow } = site.imageProxy;
+  if (!rest.startsWith("/") || rest.includes("..") || !allow.some((a) => rest.startsWith(a))) return null;
+  return `${origin}${rest}`;
+}
 
 /**
  * 공식 사진·로고를 보여줄지 여부 (PLAN.md §5-2 ④ 끄기 스위치).

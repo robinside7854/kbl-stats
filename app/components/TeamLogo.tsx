@@ -1,6 +1,6 @@
 "use client";
 // 팀 로고: 기본은 팀 색 사각형 + 약칭(최대 3글자), 공식 로고가 있으면 위에 얹는다 (PLAN.md §5-2 ③).
-// next/image를 쓰지 않는다(외부 로고 복제 회피). 이미지 저장(html-to-image) 사본에는 official={false} 로 넣는다(CORS).
+// next/image를 쓰지 않는다(외부 로고 복제 회피). 이미지 저장(html-to-image) 사본에는 official={false} + ExportImages(우리 주소 중계, CORS).
 import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
 import type { TeamColor } from "@/lib/types";
 import { teamMark } from "@/lib/images";
@@ -41,10 +41,10 @@ export default function TeamLogo({ logoUrl, shortName, color = FALLBACK, size = 
       {src && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
+          loading="lazy"
           {...imgProps}
           src={src}
           alt={shortName}
-          loading="lazy"
           decoding="async"
           referrerPolicy="no-referrer"
           width={size}

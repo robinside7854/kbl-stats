@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from "react";
 import type { SeasonCardView } from "@/lib/cardview";
 import PlayerCard, { PlayerCardSkeleton, type CardLayout, type CardSize } from "./PlayerCard";
 import { useCardSave } from "./useCardSave";
+import { ExportImages } from "./useOfficialImage";
 import { useMedia } from "./useMedia";
 import { useThemeColors } from "./useThemeColors";
 
@@ -90,7 +91,7 @@ export default function CardDeck({ cards, fileName, pending = 0, wideLayout = fa
         </button>
         {saved && (
           <p role="status" className="text-sub text-ink-2">
-            저장했어요. 이미지에는 사진·로고 대신 팀 색과 이니셜이 들어가요.
+            저장했어요.
           </p>
         )}
         {saveError && (
@@ -100,15 +101,17 @@ export default function CardDeck({ cards, fileName, pending = 0, wideLayout = fa
         )}
       </div>
 
-      {/* 저장할 때만 화면 밖에 그리는 사본 (공식 이미지 없음) */}
+      {/* 저장할 때만 화면 밖에 그리는 사본 (사진·로고는 우리 주소 중계) */}
       {saving && (
-        <div aria-hidden className="pointer-events-none fixed top-0" style={{ left: -10000 }}>
-          <div ref={exportRef} className="flex items-start gap-3 bg-surface p-3">
-            {cards.map((c, i) => (
-              <PlayerCard key={i} view={c.view} colors={colors} seriesColor={series[i]} exportMode size="lg" />
-            ))}
+        <ExportImages>
+          <div aria-hidden className="pointer-events-none fixed top-0" style={{ left: -10000 }}>
+            <div ref={exportRef} className="flex items-start gap-3 bg-surface p-3">
+              {cards.map((c, i) => (
+                <PlayerCard key={i} view={c.view} colors={colors} seriesColor={series[i]} exportMode size="lg" />
+              ))}
+            </div>
           </div>
-        </div>
+        </ExportImages>
       )}
     </div>
   );

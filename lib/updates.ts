@@ -31,6 +31,18 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-10-28-share-copy-photo",
+    date: "2026-10-28",
+    kind: "update",
+    title: "링크 복사 버튼, 사진 들어간 이미지 저장",
+    summary: "링크 복사·사진 저장",
+    blocks: [
+      { kind: "p", text: "54-0 결과 화면에 링크 복사 버튼을 공유 버튼 옆에 따로 뒀어요. 누르면 글이랑 결과 링크가 같이 복사돼요." },
+      { kind: "p", text: "이미지 저장을 누르면 이제 선수 사진이랑 팀 로고까지 같이 저장돼요. 선수 카드 저장, 팀 베스트 5 저장도 똑같아요." },
+      { kind: "list", items: [{ text: "54-0 하러 가기", href: "/game" }] },
+    ],
+  },
+  {
     slug: "2026-10-28-clutch",
     date: "2026-10-28",
     kind: "update",

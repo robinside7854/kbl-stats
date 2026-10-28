@@ -51,6 +51,7 @@ KBL 공홈은 화면을 그릴 때 아래 두 서버에서 JSON을 받아온다.
 - **리그 로고**: `https://kbl.or.kr/assets/img/logo/logo-kbl.svg` (2026-10-01 Actions 러너 확인 200 image/svg+xml 2.9KB, 아이콘판 `/assets/img/ico/logo/ic-kbl.svg`). 값은 `data/codes/site.json`
 - 현재 팀 로고: `https://kbl.or.kr/assets/img/ico/logo/ic-{teamLogoName}.svg` (정관장만 `/assets/img/logo/logo-jkj.png`), 옛 팀 로고: `.../ico/logo/old/{teamLogoName}e.png`
 - **사진 숨김**: KBL 이 코치가 된 선수 사진을 코치 사진으로 바꿔 둔 경우 `data/codes/photo-overrides.json`의 `hide`에 선수 번호(문자열)를 적는다 → 다음 가공(`npm run process`, 매일 Actions) 때 그 선수 `photoUrl: null`(대체 디자인). 사용자가 번호를 알려 주면 여기에 추가만 하면 된다
+- **이미지 저장용 중계(2026-10-28)**: 저장 PNG 에 사진·로고를 넣으려고 저장 사본만 `/img-proxy/{원래 경로}`(app/img-proxy, 허용 경로·origin 은 site.json `imageProxy`, `lib/images proxiedImageUrl·proxySourceUrl`)로 받는다 — 화면 표시는 계속 핫링크. 사본은 `ExportImages`(useOfficialImage)로 감싸고 official={false}. 이미지 아닌 응답은 404, Vercel 저장 7일. 하나라도 그리지 못하면 사진 없이 다시 저장(useCardSave)
 - 규칙: 레포에 복사하지 않고 핫링크. 주소는 `scripts/process.ts`가 processed JSON에 써 넣고 화면은 그 값만 쓴다(원칙 1). 로드 실패 시 팀 색+이니셜 대체, 환경변수로 전체 끄기 가능해야 함. 하단 출처에 "사진·로고 © KBL 및 각 구단".
 
 ### 코드 체계
@@ -333,7 +334,7 @@ kbl-stats/
   | image_save | file_name | 카드·54-0 이미지 저장 |
   | favorite_add / favorite_remove | player_no | 즐겨찾기 |
   | game_spin / game_complete(wins, bonuses: school·prime·champion 쉼표 또는 none) | | 54-0 |
-  | game_share | method(native/native_cancel/copy), wins, place(top/bottom, 친구 결과 페이지면 shared_top·shared_bottom) | 54-0 결과 공유 (2026-10-27 — 결과마다 주소 /game/r/{라인업}, 옛 game_share_link 대신) |
+  | game_share | method(native/native_cancel/copy/copy_link — copy_link = 2026-10-28 옆 "링크 복사" 버튼), wins, place(top/bottom, 친구 결과 페이지면 shared_top·shared_bottom) | 54-0 결과 공유 (2026-10-27 — 결과마다 주소 /game/r/{라인업}, 옛 game_share_link 대신) |
   | game_challenge | (없음) | 친구가 보낸 결과 페이지에서 "나도 해 보기" |
   | return_nudge_show / return_nudge_click / return_nudge_dismiss | kind(push/install/ios_home/login) | 박스스코어를 닫은 직후 뜨는 재방문 권유 카드 (2026-10-27, `ReturnNudge` — 폰 알림 켜기 결과는 push_enable 도 같이) |
   | login_start / login_success / login_error | provider / provider / reason | 로그인 버튼 / 돌아온 직후(/me?login=) / 실패해 돌아옴(/me?error=) |
@@ -421,6 +422,7 @@ kbl-stats/
 - 요청 간격 없이 반복 호출
 
 ## 세션 로그
+- 2026-10-28 (54-0 링크 복사·사진 든 이미지 저장): 사용자 요청. ① 결과 화면 공유 상자·아래 버튼 줄에 "링크 복사"(글 + 결과 주소, GA game_share method=copy_link) — 폰은 "결과 공유하기" + "링크 복사" 나란히, 기기 공유 창이 없는 PC 는 "링크 복사" 하나. 10/27~28 에펨코리아 유입 때 공유 창을 열고 그냥 닫은 경우 43번(실제 보냄 22번)이라. ② 이미지 저장에 선수 사진·팀 로고가 빠지던 것(KBL 서버 CORS 없음) → 저장 사본만 우리 주소 중계 `/img-proxy`(app/img-proxy route, 허용 경로 site.json imageProxy, 이미지 아니면 404, SVG 는 sandbox CSP, Vercel 7일 저장)로 받아 그림. 54-0 결과·선수 카드·팀 베스트 5 저장 공통(`ExportImages`, 사본 img 는 eager, 사진 다 받을 때까지 최대 6초 기다림, 실패하면 사진 없이 다시 저장). 이 환경은 KBL 차단이라 중계 실제 응답은 운영에서 확인 필요(테스트는 가짜 이미지로: 54-0·선수 카드 저장 PNG 에 사진·로고 들어감, 깨진 로고에도 저장 성공). 업데이트 소식 글. main 배포.
 - 2026-10-28 (클러치·위닝샷·버저비터 구현): 사용자 "0.3초처럼 0초 미만도 구분되나, 제안한 곳 모두, 경기 기록별 선수 이름 옆에도, 클러치 = 남은 2분 미만 6점 차 이내(위닝샷 포함)". 조사 결과 문자중계는 초 단위(0.x 초 없음) → 0초 슛 뒤 상대 공격(슛·작전시간·리바운드)이 있으면 버저비터에서 뺌, 아무것도 없으면 구분 불가(용어 풀이). 수집: 4쿼터·연장만(경기당 보통 1회) 매일 + 백필 워크플로(`backfill-textcast.yml`, 실행 횟수 올려 실행). 판정 lib/clutch, 가공 process → games.json `winning`·`clutch`. 화면: 경기 카드 위닝샷 줄(옛 시즌도) · 박스스코어 이 경기 포인트 첫 줄·이름 옆 금색 번개(이름이 안 잘리게)·클러치 기록 표 · 선수 최근 경기 꼬리표 · 선수 상세 "클러치"(통산 4칸·위닝샷 목록·시즌별, 섹션 탭) · 기록 탭 "클러치"(위닝샷·버저비터·클러치 득점·클러치 야투율 50개+, 최근 위닝샷 20) · 홈 새로 나온 기록·알림(기록 달성 묶음, 이긴 팀 응원 + 선수 즐겨찾기) · 용어 clutch·winningShot · sitemap. 테스트 tests/clutch.test.ts(가짜 경기·실제 3경기·알림). 업데이트 소식 글. main 배포 후 백필 실행.
 - 2026-10-28 (클러치·위닝샷 조사): 사용자 "승부를 결정지은 득점을 한 선수 조명" → 접전 4쿼터 근사안은 보류(사용자). Actions 조사 3회(`claude/probe-relay`)로 공홈 문자중계 `text-cast` 확인 — 쿼터별 `?quarterList=`, 남은 시간·선수·동작 코드, 2006-07부터, 11경기 점수 전부 일치, 공홈 자체 위닝샷 표시는 없음(위 서버 C). 수집·화면은 아직 안 함 — 위닝샷 기준·범위 사용자 결정 대기. 코드 변경 없음.
 - 2026-10-27 (경기 다음 날 재방문 권유): GA4 검토 3번. 홈은 이미 경기·새로 나온 기록이 맨 앞이라 순서는 그대로 두고, 박스스코어 창을 닫은 직후 화면 아래에 작은 카드 `ReturnNudge` 를 한 번(모든 화면, 홈·일정 공통): 로그인 회원은 "폰 알림 켜기"(그 자리에서 켬), 아니면 브라우저가 설치 창을 준비했으면 "앱 설치"(beforeinstallprompt 를 `AppInstallTracker` 가 받아 둠, 브라우저 자체 안내는 그대로), 아이폰 사파리는 홈 화면 추가 안내, 그 밖엔 로그인 권유 — 할 게 없으면(이미 알림 켬·설치한 앱) 안 띄움. 닫으면 14일 뒤에 다시, 하면 다시 안 띄움(localStorage `kbl-stats:return-nudge:v1`, 개인정보 안내 시행일 10-27). GA4 새 이벤트 return_nudge_show·click·dismiss(kind — 이미 등록된 매개변수). 업데이트 소식 글. main 배포.

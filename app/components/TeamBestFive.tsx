@@ -23,6 +23,7 @@ import PlayerAvatar from "./PlayerAvatar";
 import Skeleton from "./Skeleton";
 import { trackEvent, trackFilters } from "./track";
 import { useCardSave } from "./useCardSave";
+import { ExportImages } from "./useOfficialImage";
 import { useThemeColors, type ThemeColors } from "./useThemeColors";
 
 const POS_CHIPS: { value: BestPosChip; label: string }[] = [
@@ -296,11 +297,13 @@ function ResultBlock({
       </div>
       {saveError && <p className="mt-2 text-sub text-ink-2">{saveError}</p>}
       {saving && (
-        <div aria-hidden className="pointer-events-none fixed top-0" style={{ left: -10000 }}>
-          <div ref={exportRef} className="w-[440px] bg-surface p-3">
-            <ResultCard players={players} brand={brand} colors={colors} official={false} />
+        <ExportImages>
+          <div aria-hidden className="pointer-events-none fixed top-0" style={{ left: -10000 }}>
+            <div ref={exportRef} className="w-[440px] bg-surface p-3">
+              <ResultCard players={players} brand={brand} colors={colors} official={false} />
+            </div>
           </div>
-        </div>
+        </ExportImages>
       )}
     </div>
   );
