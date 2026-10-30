@@ -1,0 +1,739 @@
+GET /game/sch/inc_list_1_new.asp?season_gu=046&ym=202602&viewType=1&gun=1
+200 text/html; Charset=utf-8 51757
+
+
+<style>
+ .today_css td{
+    background-color: #F1F1FA !important;
+ }
+</style>
+					<div class="info_table01 type_list">
+                        <table>
+                            <caption>상세 정보</caption>
+                            <colgroup>
+                                <col width="95">
+                                <col width="457">
+                                <col width="132">
+                                <col width="88">
+                                <col>
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th scope="col" class="language" data-kr="일시" data-en="Date">일시</th>
+                                    <th scope="col" class="language" data-kr="대진팀" data-en="Match-up Teams">대진팀</th>
+                                    <th scope="col" class="language" data-kr="장소" data-en="Venue">장소</th>
+                                    <th scope="col" class="language" data-kr="경기시간" data-en="Time">경기시간</th>
+                                    <th scope="col" class="language" data-kr="중계/기록" data-en="Live/Stats">중계/기록</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            
+								<tr id="20260201" >
+									<td>2/1(<span class="language" data-kr="일" data-en="Sun">일</span>)</td>
+									<td>
+										<div class="team_versus">
+											<div class="info_team away">
+												<span class="frame_g"><img src="/static/images/team/teamlogo_07.png?ver=2026" alt="신한은행"></span>
+												<strong class="team_name language" data-kr="신한은행" data-en="SHINHAN BANK">신한은행</strong>
+												<em class="txt_score">43</em>
+                                            </div>
+                                            <span class="txt_vs">vs</span>
+                                            <div class="info_team home">
+                                                <span class="frame_g"><img src="/static/images/team/teamlogo_09.png?ver=2026" alt="하나은행"></span>
+                                                <strong class="team_name language" data-kr="하나은행" data-en="HANA BANK">하나은행</strong>
+                                                <em class="txt_score">76</em>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="language" data-kr="인천도원체육관" data-en="Incheon Dowon Gymnasium">인천도원체육관</td>
+                                    <td>16:00</td>
+                                    <td>
+									
+											<a href="http://datalab.wkbl.or.kr/?id=04601060" target="_blank" class="btn_type1 btn_pink">Data Lab</a>
+									
+											<a href="javascript:;" onClick="goTodayGame('01', 60);" class="btn_type1 language" data-kr="오늘의경기" data-en="Today’s Game">오늘의경기</a>
+									
+										<a href="javascript:;" onClick="goLive('01', 60);" class="btn_type1 language" data-kr="문자중계" data-en="Live Text">문자중계</a>
+									
+										<a href="/game/result.asp?season_gu=046&gun=1&game_type=01&game_no=60&ym=202602&viewType=1" class="btn_type1 language" data-kr="경기기록" data-en="Records">경기기록</a>
+										<a href="/news/photo_view.asp?num=51459" class="btn_type1 language" data-kr="관련포토" data-en="Photo">관련포토</a> <a href="/news/video_list.asp?num=51470" class="btn_type1 language" data-kr="관련영상" data-en="Video">관련영상</a>
+                                    </td>
+								</tr>
+							
+								<tr id="20260202" >
+									<td>2/2(<span class="language" data-kr="월" data-en="Mon">월</span>)</td>
+									<td>
+										<div class="team_versus">
+											<div class="info_team away">
+												<span class="frame_g"><img src="/static/images/team/teamlogo_01.png?ver=2026" alt="KB스타즈"></span>
+												<strong class="team_name language" data-kr="KB스타즈" data-en="KB STARS">KB스타즈</strong>
+												<em class="txt_score">73</em>
+                                            </div>
+                                            <span class="txt_vs">vs</span>
+                                            <div class="info_team home">
+                                                <span class="frame_g"><img src="/static/images/team/teamlogo_11.png?ver=2026" alt="BNK 썸"></span>
+                                                <strong class="team_name language" data-kr="BNK 썸" data-en="BNK SUM">BNK 썸</strong>
+                                                <em class="txt_score">65</em>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="language" data-kr="청주체육관" data-en="Cheongju Gymnasium">청주체육관</td>
+                                    <td>19:00</td>
+                                    <td>
+									
+											<a href="http://datalab.wkbl.or.kr/?id=04601061" target="_blank" class="btn_type1 btn_pink">Data Lab</a>
+									
+											<a href="javascript:;" onClick="goTodayGame('01', 61);" class="btn_type1 language" data-kr="오늘의경기" data-en="Today’s Game">오늘의경기</a>
+									
+										<a href="javascript:;" onClick="goLive('01', 61);" class="btn_type1 language" data-kr="문자중계" data-en="Live Text">문자중계</a>
+									
+										<a href="/game/result.asp?season_gu=046&gun=1&game_type=01&game_no=61&ym=202602&viewType=1" class="btn_type1 language" data-kr="경기기록" data-en="Records">경기기록</a>
+										<a href="/news/photo_view.asp?num=51495" class="btn_type1 language" data-kr="관련포토" data-en="Photo">관련포토</a> <a href="/news/video_list.asp?num=51502" class="btn_type1 language" data-kr="관련영상" data-en="Video">관련영상</a>
+                                    </td>
+								</tr>
+							
+								<tr id="20260204" >
+									<td>2/4(<span class="language" data-kr="수" data-en="Wed">수</span>)</td>
+									<td>
+										<div class="team_versus">
+											<div class="info_team away">
+												<span class="frame_g"><img src="/static/images/team/teamlogo_03.png?ver=2026" alt="삼성생명"></span>
+												<strong class="team_name language" data-kr="삼성생명" data-en="SAMSUNG LIFE">삼성생명</strong>
+												<em class="txt_score">74</em>
+                                            </div>
+                                            <span class="txt_vs">vs</span>
+                                            <div class="info_team home">
+                                                <span class="frame_g"><img src="/static/images/team/teamlogo_09.png?ver=2026" alt="하나은행"></span>
+                                                <strong class="team_name language" data-kr="하나은행" data-en="HANA BANK">하나은행</strong>
+                                                <em class="txt_score">54</em>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="language" data-kr="용인실내체육관" data-en="Yongin Indoor Gymnasium">용인실내체육관</td>
+                                    <td>19:00</td>
+                                    <td>
+									
+											<a href="http://datalab.wkbl.or.kr/?id=04601062" target="_blank" class="btn_type1 btn_pink">Data Lab</a>
+									
+											<a href="javascript:;" onClick="goTodayGame('01', 62);" class="btn_type1 language" data-kr="오늘의경기" data-en="Today’s Game">오늘의경기</a>
+									
+										<a href="javascript:;" onClick="goLive('01', 62);" class="btn_type1 language" data-kr="문자중계" data-en="Live Text">문자중계</a>
+									
+										<a href="/game/result.asp?season_gu=046&gun=1&game_type=01&game_no=62&ym=202602&viewType=1" class="btn_type1 language" data-kr="경기기록" data-en="Records">경기기록</a>
+										<a href="/news/photo_view.asp?num=51536" class="btn_type1 language" data-kr="관련포토" data-en="Photo">관련포토</a> <a href="/news/video_list.asp?num=51558" class="btn_type1 language" data-kr="관련영상" data-en="Video">관련영상</a>
+                                    </td>
+								</tr>
+							
+								<tr id="20260206" >
+									<td>2/6(<span class="language" data-kr="금" data-en="Fri">금</span>)</td>
+									<td>
+										<div class="team_versus">
+											<div class="info_team away">
+												<span class="frame_g"><img src="/static/images/team/teamlogo_01.png?ver=2026" alt="KB스타즈"></span>
+												<strong class="team_name language" data-kr="KB스타즈" data-en="KB STARS">KB스타즈</strong>
+												<em class="txt_score">78</em>
+                                            </div>
+                                            <span class="txt_vs">vs</span>
+                                            <div class="info_team home">
+                                                <span class="frame_g"><img src="/static/images/team/teamlogo_05.png?ver=2026" alt="우리은행"></span>
+                                                <strong class="team_name language" data-kr="우리은행" data-en="WOORI BANK">우리은행</strong>
+                                                <em class="txt_score">71</em>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="language" data-kr="청주체육관" data-en="Cheongju Gymnasium">청주체육관</td>
+                                    <td>19:00</td>
+                                    <td>
+									
+											<a href="http://datalab.wkbl.or.kr/?id=04601063" target="_blank" class="btn_type1 btn_pink">Data Lab</a>
+									
+											<a href="javascript:;" onClick="goTodayGame('01', 63);" class="btn_type1 language" data-kr="오늘의경기" data-en="Today’s Game">오늘의경기</a>
+									
+										<a href="javascript:;" onClick="goLive('01', 63);" class="btn_type1 language" data-kr="문자중계" data-en="Live Text">문자중계</a>
+									
+										<a href="/game/result.asp?season_gu=046&gun=1&game_type=01&game_no=63&ym=202602&viewType=1" class="btn_type1 language" data-kr="경기기록" data-en="Records">경기기록</a>
+										<a href="/news/photo_view.asp?num=51594" class="btn_type1 language" data-kr="관련포토" data-en="Photo">관련포토</a> <a href="/news/video_list.asp?num=51600" class="btn_type1 language" data-kr="관련영상" data-en="Video">관련영상</a>
+                                    </td>
+								</tr>
+							
+								<tr id="20260207" >
+									<td>2/7(<span class="language" data-kr="토" data-en="Sat">토</span>)</td>
+									<td>
+										<div class="team_versus">
+											<div class="info_team away">
+												<span class="frame_g"><img src="/static/images/team/teamlogo_11.png?ver=2026" alt="BNK 썸"></span>
+												<strong class="team_name language" data-kr="BNK 썸" data-en="BNK SUM">BNK 썸</strong>
+												<em class="txt_score">54</em>
+                                            </div>
+                                            <span class="txt_vs">vs</span>
+                                            <div class="info_team home">
+                                                <span class="frame_g"><img src="/static/images/team/teamlogo_09.png?ver=2026" alt="하나은행"></span>
+                                                <strong class="team_name language" data-kr="하나은행" data-en="HANA BANK">하나은행</strong>
+                                                <em class="txt_score">62</em>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="language" data-kr="부산사직실내체육관" data-en="Busan Sajik gymnasium">부산사직실내체육관</td>
+                                    <td>14:00</td>
+                                    <td>
+									
+											<a href="http://datalab.wkbl.or.kr/?id=04601064" target="_blank" class="btn_type1 btn_pink">Data Lab</a>
+									
+											<a href="javascript:;" onClick="goTodayGame('01', 64);" class="btn_type1 language" data-kr="오늘의경기" data-en="Today’s Game">오늘의경기</a>
+									
+										<a href="javascript:;" onClick="goLive('01', 64);" class="btn_type1 language" data-kr="문자중계" data-en="Live Text">문자중계</a>
+									
+										<a href="/game/result.asp?season_gu=046&gun=1&game_type=01&game_no=64&ym=202602&viewType=1" class="btn_type1 language" data-kr="경기기록" data-en="Records">경기기록</a>
+										<a href="/news/photo_view.asp?num=51618" class="btn_type1 language" data-kr="관련포토" data-en="Photo">관련포토</a> <a href="/news/video_list.asp?num=51647" class="btn_type1 language" data-kr="관련영상" data-en="Video">관련영상</a>
+                                    </td>
+								</tr>
+							
+								<tr id="20260207" >
+									<td>2/7(<span class="language" data-kr="토" data-en="Sat">토</span>)</td>
+									<td>
+										<div class="team_versus">
+											<div class="info_team away">
+												<span class="frame_g"><img src="/static/images/team/teamlogo_07.png?ver=2026" alt="신한은행"></span>
+												<strong class="team_name language" data-kr="신한은행" data-en="SHINHAN BANK">신한은행</strong>
+												<em class="txt_score">55</em>
+                                            </div>
+                                            <span class="txt_vs">vs</span>
+                                            <div class="info_team home">
+                                                <span class="frame_g"><img src="/static/images/team/teamlogo_03.png?ver=2026" alt="삼성생명"></span>
+                                                <strong class="team_name language" data-kr="삼성생명" data-en="SAMSUNG LIFE">삼성생명</strong>
+                                                <em class="txt_score">69</em>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="language" data-kr="인천도원체육관" data-en="Incheon Dowon Gymnasium">인천도원체육관</td>
+                                    <td>16:00</td>
+                                    <td>
+									
+											<a href="http://datalab.wkbl.or.kr/?id=04601065" target="_blank" class="btn_type1 btn_pink">Data Lab</a>
+									
+											<a href="javascript:;" onClick="goTodayGame('01', 65);" class="btn_type1 language" data-kr="오늘의경기" data-en="Today’s Game">오늘의경기</a>
+									
+										<a href="javascript:;" onClick="goLive('01', 65);" class="btn_type1 language" data-kr="문자중계" data-en="Live Text">문자중계</a>
+									
+										<a href="/game/result.asp?season_gu=046&gun=1&game_type=01&game_no=65&ym=202602&viewType=1" class="btn_type1 language" data-kr="경기기록" data-en="Records">경기기록</a>
+										<a href="/news/photo_view.asp?num=51625" class="btn_type1 language" data-kr="관련포토" data-en="Photo">관련포토</a> <a href="/news/video_list.asp?num=51648" class="btn_type1 language" data-kr="관련영상" data-en="Video">관련영상</a>
+                                    </td>
+								</tr>
+							
+								<tr id="20260208" >
+									<td>2/8(<span class="language" data-kr="일" data-en="Sun">일</span>)</td>
+									<td>
+										<div class="team_versus">
+											<div class="info_team away">
+												<span class="frame_g"><img src="/static/images/team/teamlogo_11.png?ver=2026" alt="BNK 썸"></span>
+												<strong class="team_name language" data-kr="BNK 썸" data-en="BNK SUM">BNK 썸</strong>
+												<em class="txt_score">57</em>
+                                            </div>
+                                            <span class="txt_vs">vs</span>
+                                            <div class="info_team home">
+                                                <span class="frame_g"><img src="/static/images/team/teamlogo_05.png?ver=2026" alt="우리은행"></span>
+                                                <strong class="team_name language" data-kr="우리은행" data-en="WOORI BANK">우리은행</strong>
+                                                <em class="txt_score">63</em>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="language" data-kr="부산사직실내체육관" data-en="Busan Sajik gymnasium">부산사직실내체육관</td>
+                                    <td>14:00</td>
+                                    <td>
+									
+											<a href="http://datalab.wkbl.or.kr/?id=04601066" target="_blank" class="btn_type1 btn_pink">Data Lab</a>
+									
+											<a href="javascript:;" onClick="goTodayGame('01', 66);" class="btn_type1 language" data-kr="오늘의경기" data-en="Today’s Game">오늘의경기</a>
+									
+										<a href="javascript:;" onClick="goLive('01', 66);" class="btn_type1 language" data-kr="문자중계" data-en="Live Text">문자중계</a>
+									
+										<a href="/game/result.asp?season_gu=046&gun=1&game_type=01&game_no=66&ym=202602&viewType=1" class="btn_type1 language" data-kr="경기기록" data-en="Records">경기기록</a>
+										<a href="/news/photo_view.asp?num=51660" class="btn_type1 language" data-kr="관련포토" data-en="Photo">관련포토</a> <a href="/news/video_list.asp?num=51681" class="btn_type1 language" data-kr="관련영상" data-en="Video">관련영상</a>
+                                    </td>
+								</tr>
+							
+								<tr id="20260209" >
+									<td>2/9(<span class="language" data-kr="월" data-en="Mon">월</span>)</td>
+									<td>
+										<div class="team_versus">
+											<div class="info_team away">
+												<span class="frame_g"><img src="/static/images/team/teamlogo_09.png?ver=2026" alt="하나은행"></span>
+												<strong class="team_name language" data-kr="하나은행" data-en="HANA BANK">하나은행</strong>
+												<em class="txt_score">65</em>
+                                            </div>
+                                            <span class="txt_vs">vs</span>
+                                            <div class="info_team home">
+                                                <span class="frame_g"><img src="/static/images/team/teamlogo_01.png?ver=2026" alt="KB스타즈"></span>
+                                                <strong class="team_name language" data-kr="KB스타즈" data-en="KB STARS">KB스타즈</strong>
+                                                <em class="txt_score">68</em>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="language" data-kr="부천체육관" data-en="Bucheon Gymnasium">부천체육관</td>
+                                    <td>19:00</td>
+                                    <td>
+									
+											<a href="http://datalab.wkbl.or.kr/?id=04601067" target="_blank" class="btn_type1 btn_pink">Data Lab</a>
+									
+											<a href="javascript:;" onClick="goTodayGame('01', 67);" class="btn_type1 language" data-kr="오늘의경기" data-en="Today’s Game">오늘의경기</a>
+									
+										<a href="javascript:;" onClick="goLive('01', 67);" class="btn_type1 language" data-kr="문자중계" data-en="Live Text">문자중계</a>
+									
+										<a href="/game/result.asp?season_gu=046&gun=1&game_type=01&game_no=67&ym=202602&viewType=1" class="btn_type1 language" data-kr="경기기록" data-en="Records">경기기록</a>
+										<a href="/news/photo_view.asp?num=51698" class="btn_type1 language" data-kr="관련포토" data-en="Photo">관련포토</a> <a href="/news/video_list.asp?num=51704" class="btn_type1 language" data-kr="관련영상" data-en="Video">관련영상</a>
+                                    </td>
+								</tr>
+							
+								<tr id="20260211" >
+									<td>2/11(<span class="language" data-kr="수" data-en="Wed">수</span>)</td>
+									<td>
+										<div class="team_versus">
+											<div class="info_team away">
+												<span class="frame_g"><img src="/static/images/team/teamlogo_07.png?ver=2026" alt="신한은행"></span>
+												<strong class="team_name language" data-kr="신한은행" data-en="SHINHAN BANK">신한은행</strong>
+												<em class="txt_score">65</em>
+                                            </div>
+                                            <span class="txt_vs">vs</span>
+                                            <div class="info_team home">
+                                                <span class="frame_g"><img src="/static/images/team/teamlogo_05.png?ver=2026" alt="우리은행"></span>
+                                                <strong class="team_name language" data-kr="우리은행" data-en="WOORI BANK">우리은행</strong>
+                                                <em class="txt_score">69</em>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="language" data-kr="인천도원체육관" data-en="Incheon Dowon Gymnasium">인천도원체육관</td>
+                                    <td>19:00</td>
+                                    <td>
+									
+											<a href="http://datalab.wkbl.or.kr/?id=04601068" target="_blank" class="btn_type1 btn_pink">Data Lab</a>
+									
+											<a href="javascript:;" onClick="goTodayGame('01', 68);" class="btn_type1 language" data-kr="오늘의경기" data-en="Today’s Game">오늘의경기</a>
+									
+										<a href="javascript:;" onClick="goLive('01', 68);" class="btn_type1 language" data-kr="문자중계" data-en="Live Text">문자중계</a>
+									
+										<a href="/game/result.asp?season_gu=046&gun=1&game_type=01&game_no=68&ym=202602&viewType=1" class="btn_type1 language" data-kr="경기기록" data-en="Records">경기기록</a>
+										<a href="/news/photo_view.asp?num=51732" class="btn_type1 language" data-kr="관련포토" data-en="Photo">관련포토</a> <a href="/news/video_list.asp?num=51749" class="btn_type1 language" data-kr="관련영상" data-en="Video">관련영상</a>
+                                    </td>
+								</tr>
+							
+								<tr id="20260213" >
+									<td>2/13(<span class="language" data-kr="금" data-en="Fri">금</span>)</td>
+									<td>
+										<div class="team_versus">
+											<div class="info_team away">
+												<span class="frame_g"><img src="/static/images/team/teamlogo_03.png?ver=2026" alt="삼성생명"></span>
+												<strong class="team_name language" data-kr="삼성생명" data-en="SAMSUNG LIFE">삼성생명</strong>
+												<em class="txt_score">51</em>
+                                            </div>
+                                            <span class="txt_vs">vs</span>
+                                            <div class="info_team home">
+                                                <span class="frame_g"><img src="/static/images/team/teamlogo_11.png?ver=2026" alt="BNK 썸"></span>
+                                                <strong class="team_name language" data-kr="BNK 썸" data-en="BNK SUM">BNK 썸</strong>
+                                                <em class="txt_score">56</em>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="language" data-kr="용인실내체육관" data-en="Yongin Indoor Gymnasium">용인실내체육관</td>
+                                    <td>19:00</td>
+                                    <td>
+									
+											<a href="http://datalab.wkbl.or.kr/?id=04601069" target="_blank" class="btn_type1 btn_pink">Data Lab</a>
+									
+											<a href="javascript:;" onClick="goTodayGame('01', 69);" class="btn_type1 language" data-kr="오늘의경기" data-en="Today’s Game">오늘의경기</a>
+									
+										<a href="javascript:;" onClick="goLive('01', 69);" class="btn_type1 language" data-kr="문자중계" data-en="Live Text">문자중계</a>
+									
+										<a href="/game/result.asp?season_gu=046&gun=1&game_type=01&game_no=69&ym=202602&viewType=1" class="btn_type1 language" data-kr="경기기록" data-en="Records">경기기록</a>
+										<a href="/news/photo_view.asp?num=51775" class="btn_type1 language" data-kr="관련포토" data-en="Photo">관련포토</a> <a href="/news/video_list.asp?num=51785" class="btn_type1 language" data-kr="관련영상" data-en="Video">관련영상</a>
+                                    </td>
+								</tr>
+							
+								<tr id="20260214" >
+									<td>2/14(<span class="language" data-kr="토" data-en="Sat">토</span>)</td>
+									<td>
+										<div class="team_versus">
+											<div class="info_team away">
+												<span class="frame_g"><img src="/static/images/team/teamlogo_05.png?ver=2026" alt="우리은행"></span>
+												<strong class="team_name language" data-kr="우리은행" data-en="WOORI BANK">우리은행</strong>
+												<em class="txt_score">45</em>
+                                            </div>
+                                            <span class="txt_vs">vs</span>
+                                            <div class="info_team home">
+                                                <span class="frame_g"><img src="/static/images/team/teamlogo_09.png?ver=2026" alt="하나은행"></span>
+                                                <strong class="team_name language" data-kr="하나은행" data-en="HANA BANK">하나은행</strong>
+                                                <em class="txt_score">71</em>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="language" data-kr="아산이순신체육관" data-en="Asan Yi Sun-sin Gymnasium">아산이순신체육관</td>
+                                    <td>14:00</td>
+                                    <td>
+									
+											<a href="http://datalab.wkbl.or.kr/?id=04601070" target="_blank" class="btn_type1 btn_pink">Data Lab</a>
+									
+											<a href="javascript:;" onClick="goTodayGame('01', 70);" class="btn_type1 language" data-kr="오늘의경기" data-en="Today’s Game">오늘의경기</a>
+									
+										<a href="javascript:;" onClick="goLive('01', 70);" class="btn_type1 language" data-kr="문자중계" data-en="Live Text">문자중계</a>
+									
+										<a href="/game/result.asp?season_gu=046&gun=1&game_type=01&game_no=70&ym=202602&viewType=1" class="btn_type1 language" data-kr="경기기록" data-en="Records">경기기록</a>
+										<a href="/news/video_list.asp?num=51810" class="btn_type1 language" data-kr="관련영상" data-en="Video">관련영상</a>
+                                    </td>
+								</tr>
+							
+								<tr id="20260214" >
+									<td>2/14(<span class="language" data-kr="토" data-en="Sat">토</span>)</td>
+									<td>
+										<div class="team_versus">
+											<div class="info_team away">
+												<span class="frame_g"><img src="/static/images/team/teamlogo_01.png?ver=2026" alt="KB스타즈"></span>
+												<strong class="team_name language" data-kr="KB스타즈" data-en="KB STARS">KB스타즈</strong>
+												<em class="txt_score">73</em>
+                                            </div>
+                                            <span class="txt_vs">vs</span>
+                                            <div class="info_team home">
+                                                <span class="frame_g"><img src="/static/images/team/teamlogo_07.png?ver=2026" alt="신한은행"></span>
+                                                <strong class="team_name language" data-kr="신한은행" data-en="SHINHAN BANK">신한은행</strong>
+                                                <em class="txt_score">78</em>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="language" data-kr="청주체육관" data-en="Cheongju Gymnasium">청주체육관</td>
+                                    <td>16:00</td>
+                                    <td>
+									
+											<a href="http://datalab.wkbl.or.kr/?id=04601071" target="_blank" class="btn_type1 btn_pink">Data Lab</a>
+									
+											<a href="javascript:;" onClick="goTodayGame('01', 71);" class="btn_type1 language" data-kr="오늘의경기" data-en="Today’s Game">오늘의경기</a>
+									
+										<a href="javascript:;" onClick="goLive('01', 71);" class="btn_type1 language" data-kr="문자중계" data-en="Live Text">문자중계</a>
+									
+										<a href="/game/result.asp?season_gu=046&gun=1&game_type=01&game_no=71&ym=202602&viewType=1" class="btn_type1 language" data-kr="경기기록" data-en="Records">경기기록</a>
+										<a href="/news/photo_view.asp?num=51800" class="btn_type1 language" data-kr="관련포토" data-en="Photo">관련포토</a> <a href="/news/video_list.asp?num=51825" class="btn_type1 language" data-kr="관련영상" data-en="Video">관련영상</a>
+                                    </td>
+								</tr>
+							
+								<tr id="20260215" >
+									<td>2/15(<span class="language" data-kr="일" data-en="Sun">일</span>)</td>
+									<td>
+										<div class="team_versus">
+											<div class="info_team away">
+												<span class="frame_g"><img src="/static/images/team/teamlogo_05.png?ver=2026" alt="우리은행"></span>
+												<strong class="team_name language" data-kr="우리은행" data-en="WOORI BANK">우리은행</strong>
+												<em class="txt_score">56</em>
+                                            </div>
+                                            <span class="txt_vs">vs</span>
+                                            <div class="info_team home">
+                                                <span class="frame_g"><img src="/static/images/team/teamlogo_03.png?ver=2026" alt="삼성생명"></span>
+                                                <strong class="team_name language" data-kr="삼성생명" data-en="SAMSUNG LIFE">삼성생명</strong>
+                                                <em class="txt_score">58</em>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="language" data-kr="아산이순신체육관" data-en="Asan Yi Sun-sin Gymnasium">아산이순신체육관</td>
+                                    <td>16:00</td>
+                                    <td>
+									
+											<a href="http://datalab.wkbl.or.kr/?id=04601072" target="_blank" class="btn_type1 btn_pink">Data Lab</a>
+									
+											<a href="javascript:;" onClick="goTodayGame('01', 72);" class="btn_type1 language" data-kr="오늘의경기" data-en="Today’s Game">오늘의경기</a>
+									
+										<a href="javascript:;" onClick="goLive('01', 72);" class="btn_type1 language" data-kr="문자중계" data-en="Live Text">문자중계</a>
+									
+										<a href="/game/result.asp?season_gu=046&gun=1&game_type=01&game_no=72&ym=202602&viewType=1" class="btn_type1 language" data-kr="경기기록" data-en="Records">경기기록</a>
+										<a href="/news/photo_view.asp?num=51837" class="btn_type1 language" data-kr="관련포토" data-en="Photo">관련포토</a> <a href="/news/video_list.asp?num=51858" class="btn_type1 language" data-kr="관련영상" data-en="Video">관련영상</a>
+                                    </td>
+								</tr>
+							
+								<tr id="20260216" >
+									<td>2/16(<span class="language" data-kr="월" data-en="Mon">월</span>)</td>
+									<td>
+										<div class="team_versus">
+											<div class="info_team away">
+												<span class="frame_g"><img src="/static/images/team/teamlogo_07.png?ver=2026" alt="신한은행"></span>
+												<strong class="team_name language" data-kr="신한은행" data-en="SHINHAN BANK">신한은행</strong>
+												<em class="txt_score">55</em>
+                                            </div>
+                                            <span class="txt_vs">vs</span>
+                                            <div class="info_team home">
+                                                <span class="frame_g"><img src="/static/images/team/teamlogo_11.png?ver=2026" alt="BNK 썸"></span>
+                                                <strong class="team_name language" data-kr="BNK 썸" data-en="BNK SUM">BNK 썸</strong>
+                                                <em class="txt_score">58</em>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="language" data-kr="인천도원체육관" data-en="Incheon Dowon Gymnasium">인천도원체육관</td>
+                                    <td>16:00</td>
+                                    <td>
+									
+											<a href="http://datalab.wkbl.or.kr/?id=04601073" target="_blank" class="btn_type1 btn_pink">Data Lab</a>
+									
+											<a href="javascript:;" onClick="goTodayGame('01', 73);" class="btn_type1 language" data-kr="오늘의경기" data-en="Today’s Game">오늘의경기</a>
+									
+										<a href="javascript:;" onClick="goLive('01', 73);" class="btn_type1 language" data-kr="문자중계" data-en="Live Text">문자중계</a>
+									
+										<a href="/game/result.asp?season_gu=046&gun=1&game_type=01&game_no=73&ym=202602&viewType=1" class="btn_type1 language" data-kr="경기기록" data-en="Records">경기기록</a>
+										<a href="/news/photo_view.asp?num=51871" class="btn_type1 language" data-kr="관련포토" data-en="Photo">관련포토</a> <a href="/news/video_list.asp?num=51884" class="btn_type1 language" data-kr="관련영상" data-en="Video">관련영상</a>
+                                    </td>
+								</tr>
+							
+								<tr id="20260218" >
+									<td>2/18(<span class="language" data-kr="수" data-en="Wed">수</span>)</td>
+									<td>
+										<div class="team_versus">
+											<div class="info_team away">
+												<span class="frame_g"><img src="/static/images/team/teamlogo_03.png?ver=2026" alt="삼성생명"></span>
+												<strong class="team_name language" data-kr="삼성생명" data-en="SAMSUNG LIFE">삼성생명</strong>
+												<em class="txt_score">73</em>
+                                            </div>
+                                            <span class="txt_vs">vs</span>
+                                            <div class="info_team home">
+                                                <span class="frame_g"><img src="/static/images/team/teamlogo_01.png?ver=2026" alt="KB스타즈"></span>
+                                                <strong class="team_name language" data-kr="KB스타즈" data-en="KB STARS">KB스타즈</strong>
+                                                <em class="txt_score">74</em>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="language" data-kr="용인실내체육관" data-en="Yongin Indoor Gymnasium">용인실내체육관</td>
+                                    <td>16:00</td>
+                                    <td>
+									
+											<a href="http://datalab.wkbl.or.kr/?id=04601074" target="_blank" class="btn_type1 btn_pink">Data Lab</a>
+									
+											<a href="javascript:;" onClick="goTodayGame('01', 74);" class="btn_type1 language" data-kr="오늘의경기" data-en="Today’s Game">오늘의경기</a>
+									
+										<a href="javascript:;" onClick="goLive('01', 74);" class="btn_type1 language" data-kr="문자중계" data-en="Live Text">문자중계</a>
+									
+										<a href="/game/result.asp?season_gu=046&gun=1&game_type=01&game_no=74&ym=202602&viewType=1" class="btn_type1 language" data-kr="경기기록" data-en="Records">경기기록</a>
+										<a href="/news/photo_view.asp?num=51909" class="btn_type1 language" data-kr="관련포토" data-en="Photo">관련포토</a> <a href="/news/video_list.asp?num=51913" class="btn_type1 language" data-kr="관련영상" data-en="Video">관련영상</a>
+                                    </td>
+								</tr>
+							
+								<tr id="20260220" >
+									<td>2/20(<span class="language" data-kr="금" data-en="Fri">금</span>)</td>
+									<td>
+										<div class="team_versus">
+											<div class="info_team away">
+												<span class="frame_g"><img src="/static/images/team/teamlogo_09.png?ver=2026" alt="하나은행"></span>
+												<strong class="team_name language" data-kr="하나은행" data-en="HANA BANK">하나은행</strong>
+												<em class="txt_score">37</em>
+                                            </div>
+                                            <span class="txt_vs">vs</span>
+                                            <div class="info_team home">
+                                                <span class="frame_g"><img src="/static/images/team/teamlogo_07.png?ver=2026" alt="신한은행"></span>
+                                                <strong class="team_name language" data-kr="신한은행" data-en="SHINHAN BANK">신한은행</strong>
+                                                <em class="txt_score">52</em>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="language" data-kr="부천체육관" data-en="Bucheon Gymnasium">부천체육관</td>
+                                    <td>19:00</td>
+                                    <td>
+									
+											<a href="http://datalab.wkbl.or.kr/?id=04601075" target="_blank" class="btn_type1 btn_pink">Data Lab</a>
+									
+											<a href="javascript:;" onClick="goTodayGame('01', 75);" class="btn_type1 language" data-kr="오늘의경기" data-en="Today’s Game">오늘의경기</a>
+									
+										<a href="javascript:;" onClick="goLive('01', 75);" class="btn_type1 language" data-kr="문자중계" data-en="Live Text">문자중계</a>
+									
+										<a href="/game/result.asp?season_gu=046&gun=1&game_type=01&game_no=75&ym=202602&viewType=1" class="btn_type1 language" data-kr="경기기록" data-en="Records">경기기록</a>
+										<a href="/news/photo_view.asp?num=51940" class="btn_type1 language" data-kr="관련포토" data-en="Photo">관련포토</a> <a href="/news/video_list.asp?num=51948" class="btn_type1 language" data-kr="관련영상" data-en="Video">관련영상</a>
+                                    </td>
+								</tr>
+							
+								<tr id="20260221" >
+									<td>2/21(<span class="language" data-kr="토" data-en="Sat">토</span>)</td>
+									<td>
+										<div class="team_versus">
+											<div class="info_team away">
+												<span class="frame_g"><img src="/static/images/team/teamlogo_11.png?ver=2026" alt="BNK 썸"></span>
+												<strong class="team_name language" data-kr="BNK 썸" data-en="BNK SUM">BNK 썸</strong>
+												<em class="txt_score">73</em>
+                                            </div>
+                                            <span class="txt_vs">vs</span>
+                                            <div class="info_team home">
+                                                <span class="frame_g"><img src="/static/images/team/teamlogo_03.png?ver=2026" alt="삼성생명"></span>
+                                                <strong class="team_name language" data-kr="삼성생명" data-en="SAMSUNG LIFE">삼성생명</strong>
+                                                <em class="txt_score">76</em>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="language" data-kr="부산사직실내체육관" data-en="Busan Sajik gymnasium">부산사직실내체육관</td>
+                                    <td>14:00</td>
+                                    <td>
+									
+											<a href="http://datalab.wkbl.or.kr/?id=04601076" target="_blank" class="btn_type1 btn_pink">Data Lab</a>
+									
+											<a href="javascript:;" onClick="goTodayGame('01', 76);" class="btn_type1 language" data-kr="오늘의경기" data-en="Today’s Game">오늘의경기</a>
+									
+										<a href="javascript:;" onClick="goLive('01', 76);" class="btn_type1 language" data-kr="문자중계" data-en="Live Text">문자중계</a>
+									
+										<a href="/game/result.asp?season_gu=046&gun=1&game_type=01&game_no=76&ym=202602&viewType=1" class="btn_type1 language" data-kr="경기기록" data-en="Records">경기기록</a>
+										<a href="/news/photo_view.asp?num=51978" class="btn_type1 language" data-kr="관련포토" data-en="Photo">관련포토</a> <a href="/news/video_list.asp?num=52000" class="btn_type1 language" data-kr="관련영상" data-en="Video">관련영상</a>
+                                    </td>
+								</tr>
+							
+								<tr id="20260221" >
+									<td>2/21(<span class="language" data-kr="토" data-en="Sat">토</span>)</td>
+									<td>
+										<div class="team_versus">
+											<div class="info_team away">
+												<span class="frame_g"><img src="/static/images/team/teamlogo_05.png?ver=2026" alt="우리은행"></span>
+												<strong class="team_name language" data-kr="우리은행" data-en="WOORI BANK">우리은행</strong>
+												<em class="txt_score">68</em>
+                                            </div>
+                                            <span class="txt_vs">vs</span>
+                                            <div class="info_team home">
+                                                <span class="frame_g"><img src="/static/images/team/teamlogo_01.png?ver=2026" alt="KB스타즈"></span>
+                                                <strong class="team_name language" data-kr="KB스타즈" data-en="KB STARS">KB스타즈</strong>
+                                                <em class="txt_score">70</em>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="language" data-kr="아산이순신체육관" data-en="Asan Yi Sun-sin Gymnasium">아산이순신체육관</td>
+                                    <td>16:00</td>
+                                    <td>
+									
+											<a href="http://datalab.wkbl.or.kr/?id=04601077" target="_blank" class="btn_type1 btn_pink">Data Lab</a>
+									
+											<a href="javascript:;" onClick="goTodayGame('01', 77);" class="btn_type1 language" data-kr="오늘의경기" data-en="Today’s Game">오늘의경기</a>
+									
+										<a href="javascript:;" onClick="goLive('01', 77);" class="btn_type1 language" data-kr="문자중계" data-en="Live Text">문자중계</a>
+									
+										<a href="/game/result.asp?season_gu=046&gun=1&game_type=01&game_no=77&ym=202602&viewType=1" class="btn_type1 language" data-kr="경기기록" data-en="Records">경기기록</a>
+										<a href="/news/photo_view.asp?num=51992" class="btn_type1 language" data-kr="관련포토" data-en="Photo">관련포토</a> <a href="/news/video_list.asp?num=52005" class="btn_type1 language" data-kr="관련영상" data-en="Video">관련영상</a>
+                                    </td>
+								</tr>
+							
+								<tr id="20260222" >
+									<td>2/22(<span class="language" data-kr="일" data-en="Sun">일</span>)</td>
+									<td>
+										<div class="team_versus">
+											<div class="info_team away">
+												<span class="frame_g"><img src="/static/images/team/teamlogo_11.png?ver=2026" alt="BNK 썸"></span>
+												<strong class="team_name language" data-kr="BNK 썸" data-en="BNK SUM">BNK 썸</strong>
+												<em class="txt_score">68</em>
+                                            </div>
+                                            <span class="txt_vs">vs</span>
+                                            <div class="info_team home">
+                                                <span class="frame_g"><img src="/static/images/team/teamlogo_07.png?ver=2026" alt="신한은행"></span>
+                                                <strong class="team_name language" data-kr="신한은행" data-en="SHINHAN BANK">신한은행</strong>
+                                                <em class="txt_score">71</em>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="language" data-kr="부산사직실내체육관" data-en="Busan Sajik gymnasium">부산사직실내체육관</td>
+                                    <td>14:00</td>
+                                    <td>
+									
+											<a href="http://datalab.wkbl.or.kr/?id=04601078" target="_blank" class="btn_type1 btn_pink">Data Lab</a>
+									
+											<a href="javascript:;" onClick="goTodayGame('01', 78);" class="btn_type1 language" data-kr="오늘의경기" data-en="Today’s Game">오늘의경기</a>
+									
+										<a href="javascript:;" onClick="goLive('01', 78);" class="btn_type1 language" data-kr="문자중계" data-en="Live Text">문자중계</a>
+									
+										<a href="/game/result.asp?season_gu=046&gun=1&game_type=01&game_no=78&ym=202602&viewType=1" class="btn_type1 language" data-kr="경기기록" data-en="Records">경기기록</a>
+										<a href="/news/photo_view.asp?num=52011" class="btn_type1 language" data-kr="관련포토" data-en="Photo">관련포토</a> <a href="/news/video_list.asp?num=52034" class="btn_type1 language" data-kr="관련영상" data-en="Video">관련영상</a>
+                                    </td>
+								</tr>
+							
+								<tr id="20260223" >
+									<td>2/23(<span class="language" data-kr="월" data-en="Mon">월</span>)</td>
+									<td>
+										<div class="team_versus">
+											<div class="info_team away">
+												<span class="frame_g"><img src="/static/images/team/teamlogo_01.png?ver=2026" alt="KB스타즈"></span>
+												<strong class="team_name language" data-kr="KB스타즈" data-en="KB STARS">KB스타즈</strong>
+												<em class="txt_score">72</em>
+                                            </div>
+                                            <span class="txt_vs">vs</span>
+                                            <div class="info_team home">
+                                                <span class="frame_g"><img src="/static/images/team/teamlogo_09.png?ver=2026" alt="하나은행"></span>
+                                                <strong class="team_name language" data-kr="하나은행" data-en="HANA BANK">하나은행</strong>
+                                                <em class="txt_score">61</em>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="language" data-kr="청주체육관" data-en="Cheongju Gymnasium">청주체육관</td>
+                                    <td>19:00</td>
+                                    <td>
+									
+											<a href="http://datalab.wkbl.or.kr/?id=04601079" target="_blank" class="btn_type1 btn_pink">Data Lab</a>
+									
+											<a href="javascript:;" onClick="goTodayGame('01', 79);" class="btn_type1 language" data-kr="오늘의경기" data-en="Today’s Game">오늘의경기</a>
+									
+										<a href="javascript:;" onClick="goLive('01', 79);" class="btn_type1 language" data-kr="문자중계" data-en="Live Text">문자중계</a>
+									
+										<a href="/game/result.asp?season_gu=046&gun=1&game_type=01&game_no=79&ym=202602&viewType=1" class="btn_type1 language" data-kr="경기기록" data-en="Records">경기기록</a>
+										<a href="/news/photo_view.asp?num=52055" class="btn_type1 language" data-kr="관련포토" data-en="Photo">관련포토</a> <a href="/news/video_list.asp?num=52072" class="btn_type1 language" data-kr="관련영상" data-en="Video">관련영상</a>
+                                    </td>
+								</tr>
+							
+								<tr id="20260225" >
+									<td>2/25(<span class="language" data-kr="수" data-en="Wed">수</span>)</td>
+									<td>
+										<div class="team_versus">
+											<div class="info_team away">
+												<span class="frame_g"><img src="/static/images/team/teamlogo_05.png?ver=2026" alt="우리은행"></span>
+												<strong class="team_name language" data-kr="우리은행" data-en="WOORI BANK">우리은행</strong>
+												<em class="txt_score">56</em>
+                                            </div>
+                                            <span class="txt_vs">vs</span>
+                                            <div class="info_team home">
+                                                <span class="frame_g"><img src="/static/images/team/teamlogo_11.png?ver=2026" alt="BNK 썸"></span>
+                                                <strong class="team_name language" data-kr="BNK 썸" data-en="BNK SUM">BNK 썸</strong>
+                                                <em class="txt_score">66</em>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="language" data-kr="아산이순신체육관" data-en="Asan Yi Sun-sin Gymnasium">아산이순신체육관</td>
+                                    <td>19:00</td>
+                                    <td>
+									
+											<a href="http://datalab.wkbl.or.kr/?id=04601080" target="_blank" class="btn_type1 btn_pink">Data Lab</a>
+									
+											<a href="javascript:;" onClick="goTodayGame('01', 80);" class="btn_type1 language" data-kr="오늘의경기" data-en="Today’s Game">오늘의경기</a>
+									
+										<a href="javascript:;" onClick="goLive('01', 80);" class="btn_type1 language" data-kr="문자중계" data-en="Live Text">문자중계</a>
+									
+										<a href="/game/result.asp?season_gu=046&gun=1&game_type=01&game_no=80&ym=202602&viewType=1" class="btn_type1 language" data-kr="경기기록" data-en="Records">경기기록</a>
+										<a href="/news/photo_view.asp?num=52104" class="btn_type1 language" data-kr="관련포토" data-en="Photo">관련포토</a> <a href="/news/video_list.asp?num=52116" class="btn_type1 language" data-kr="관련영상" data-en="Video">관련영상</a>
+                                    </td>
+								</tr>
+							
+								<tr id="20260227" >
+									<td>2/27(<span class="language" data-kr="금" data-en="Fri">금</span>)</td>
+									<td>
+										<div class="team_versus">
+											<div class="info_team away">
+												<span class="frame_g"><img src="/static/images/team/teamlogo_03.png?ver=2026" alt="삼성생명"></span>
+												<strong class="team_name language" data-kr="삼성생명" data-en="SAMSUNG LIFE">삼성생명</strong>
+												<em class="txt_score">59</em>
+                                            </div>
+                                            <span class="txt_vs">vs</span>
+                                            <div class="info_team home">
+                                                <span class="frame_g"><img src="/static/images/team/teamlogo_07.png?ver=2026" alt="신한은행"></span>
+                                                <strong class="team_name language" data-kr="신한은행" data-en="SHINHAN BANK">신한은행</strong>
+                                                <em class="txt_score">50</em>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="language" data-kr="용인실내체육관" data-en="Yongin Indoor Gymnasium">용인실내체육관</td>
+                                    <td>19:00</td>
+                                    <td>
+									
+											<a href="http://datalab.wkbl.or.kr/?id=04601081" target="_blank" class="btn_type1 btn_pink">Data Lab</a>
+									
+											<a href="javascript:;" onClick="goTodayGame('01', 81);" class="btn_type1 language" data-kr="오늘의경기" data-en="Today’s Game">오늘의경기</a>
+									
+										<a href="javascript:;" onClick="goLive('01', 81);" class="btn_type1 language" data-kr="문자중계" data-en="Live Text">문자중계</a>
+									
+										<a href="/game/result.asp?season_gu=046&gun=1&game_type=01&game_no=81&ym=202602&viewType=1" class="btn_type1 language" data-kr="경기기록" data-en="Records">경기기록</a>
+										<a href="/news/photo_view.asp?num=52134" class="btn_type1 language" data-kr="관련포토" data-en="Photo">관련포토</a> <a href="/news/video_list.asp?num=52144" class="btn_type1 language" data-kr="관련영상" data-en="Video">관련영상</a>
+                                    </td>
+								</tr>
+							
+                            </tbody>
+                        </table>
+                        <p class="txt_notice language" data-kr="* 방송국 사정으로 인하여 경기시간이 변경될 수 있음을 알려드립니다." data-en="* We would like to inform you that the game time may be changed due to the circumstances of the broadcasting station.">* 방송국 사정으로 인하여 경기시간이 변경될 수 있음을 알려드립니다.</p>
+                    </div>
+

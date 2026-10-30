@@ -1,0 +1,153 @@
+POST /player/ajax/ajax_detail_personal.asp {"season_gu":"046","player_no":"095937"}
+200 text/html 5745
+
+
+               <h3 id="playerDetail" class="screen_out2">개인최고기록</h3>
+               <div class="info_table01 type_record">
+                    <table>
+                        <caption>상세 정보 테이블</caption>
+                        <colgroup>
+                            <col style="width:16%">
+                            <col style="width:42%">
+                            <col style="width:42%">
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th scope="col"></th>
+                                <th scope="col" class="language" data-kr="시즌 최고기록" data-en="Season High">시즌 최고기록</th>
+                                <th scope="col" class="language" data-kr="통산최고기록" data-en="Career High">통산최고기록</th>
+                            </tr>
+                        </thead>
+						<tbody>
+                        
+							<tr>
+                                <th class="language" data-kr="득점" data-en="Points">득점</th>
+                                <td class="td_record">
+								
+                                </td>
+                                <td class="td_record">
+								
+                            </tr>
+						
+							<tr>
+                                <th class="language" data-kr="2점슛 성공" data-en="2-Point Field Goals Made">2점슛 성공</th>
+                                <td class="td_record">
+								
+                                </td>
+                                <td class="td_record">
+								
+                            </tr>
+						
+							<tr>
+                                <th class="language" data-kr="2점슛 시도" data-en="2-Point Field Goals Attempted">2점슛 시도</th>
+                                <td class="td_record">
+								
+                                </td>
+                                <td class="td_record">
+								
+                            </tr>
+						
+							<tr>
+                                <th class="language" data-kr="3점슛 성공" data-en="3-Point Field Goals Made">3점슛 성공</th>
+                                <td class="td_record">
+								
+                                </td>
+                                <td class="td_record">
+								
+                            </tr>
+						
+							<tr>
+                                <th class="language" data-kr="3점슛 시도" data-en="3-Point Field Goals Attempted">3점슛 시도</th>
+                                <td class="td_record">
+								
+                                </td>
+                                <td class="td_record">
+								
+                            </tr>
+						
+							<tr>
+                                <th class="language" data-kr="자유투 성공" data-en="Free Throws Made">자유투 성공</th>
+                                <td class="td_record">
+								
+                                </td>
+                                <td class="td_record">
+								
+                            </tr>
+						
+							<tr>
+                                <th class="language" data-kr="자유투 시도" data-en="Free Throws Attempted">자유투 시도</th>
+                                <td class="td_record">
+								
+                                </td>
+                                <td class="td_record">
+								
+                            </tr>
+						
+							<tr>
+                                <th class="language" data-kr="공격 리바운드" data-en="Offensive Rebounds">공격 리바운드</th>
+                                <td class="td_record">
+								
+                                </td>
+                                <td class="td_record">
+								
+                            </tr>
+						
+							<tr>
+                                <th class="language" data-kr="수비 리바운드" data-en="Defensive Rebounds">수비 리바운드</th>
+                                <td class="td_record">
+								
+                                </td>
+                                <td class="td_record">
+								
+                            </tr>
+						
+							<tr>
+                                <th class="language" data-kr="총 리바운드" data-en="Total Rebounds">총 리바운드</th>
+                                <td class="td_record">
+								
+                                </td>
+                                <td class="td_record">
+								
+                            </tr>
+						
+							<tr>
+                                <th class="language" data-kr="어시스트" data-en="Assists">어시스트</th>
+                                <td class="td_record">
+								
+                                </td>
+                                <td class="td_record">
+								
+                            </tr>
+						
+							<tr>
+                                <th class="language" data-kr="스틸" data-en="Steals">스틸</th>
+                                <td class="td_record">
+								
+                                </td>
+                                <td class="td_record">
+								
+                            </tr>
+						
+							<tr>
+                                <th class="language" data-kr="블록슛" data-en="Block shot">블록슛</th>
+                                <td class="td_record">
+								
+                                </td>
+                                <td class="td_record">
+								
+                            </tr>
+						
+							<tr>
+                                <th class="language" data-kr="출전시간" data-en="Minutes Played">출전시간</th>
+                                <td class="td_record">
+								
+                                </td>
+                                <td class="td_record">
+								
+                            </tr>
+						
+                        </tbody>
+                    </table>
+                </div>
+                <!--// info_table01 -->
+

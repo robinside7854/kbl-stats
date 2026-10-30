@@ -1,0 +1,903 @@
+POST /live11/realtime2.asp {"season_gu0":"046","game_type0":"01","game_no0":"1","season_gu":"046","game_type":"01","game_no":"1"}
+200 text/html; Charset=utf-8 29685
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ko" lang="ko">
+<head>
+ <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+ <title>[Let's play Basketball]</title>
+ <link rel="stylesheet" type="text/css" href="css/common.css?ver=0.4" />
+ <script type="text/javascript">
+ <!--
+		function goPage(){
+			var f = document.goform;
+			realLive();
+			return;
+		}
+		function goLive(){
+			var f = document.goform;
+			realLive2();
+			return;
+		}
+
+		function goView(part){
+			if(part=="container"){
+				document.all["container"].style.display = "";
+				document.all["container2"].style.display = "none";
+				document.getElementById('tab_main').onmouseout = "images/tab_main_on.gif";
+				document.getElementById('tab_play').src = "images/tab_play.gif";
+
+			}else{
+				document.all["container"].style.display = "none";
+				document.all["container2"].style.display = "";
+				document.getElementById('tab_main').src = "images/tab_main.gif";
+				document.getElementById('tab_play').onmouseout = "images/tab_play_on.gif";
+			}
+		}
+
+		function quarterbtn(n,q) {
+			var f = document.pHistory;
+			for(var i = 1; i < 10; i++) {
+				qclass = document.getElementById('quarter_button'+i);
+				if ( n == i ) {
+					qclass.className = "on";
+					f.quarter_gu0.value = q;
+					f.seq0.value = 0;
+
+					goHistoryView();
+				} else {
+					qclass.className = "";
+				}
+			}
+		}
+ //-->
+ </script>
+ <style type="text/css">
+	body {height:853px;}
+ </style>
+</head>
+<body oncontextmenu="return false" ondragstart="return false" onselectstart="return false"> 
+<!-- header -->
+<div id="header">
+	<!-- team01 -->
+	<dl class="top_team">
+		<dd>
+			<p><span id='home_score3'></span><span id='home_score2'></span><span id='home_score1'></span></p>
+		</dd>
+		<dt class="language"
+		    data-kr="<img src='images/teamlogo_11.gif?ver=0.1' alt='BNK 썸' />"
+		    data-en="<img src='images/teamlogo_11_en.gif?ver=0.1' alt='BNK SUM' />">
+		    <img src='images/teamlogo_11.gif?ver=0.1' alt='BNK 썸' />
+		</dt>
+	</dl>
+	<!-- //team01 -->
+	<!-- gameinfo -->
+	<div class="gameinfo">
+		<div class="game_date">
+			<span class="language" data-kr="날짜" data-en="Date">날짜</span> : <em>2025.11.16</em>
+            <span class="language" data-kr="경기시간" data-en="Time">경기시간</span> : <em>14:25</em>
+            <span class="language" data-kr="장소" data-en="Venue">장소</span> : <em class="language" data-kr="부산사직실내체육관" data-en="Busan Sajik gymnasium">부산사직실내체육관</em>
+		</div>
+		<!-- scoeboard -->
+		<div class="scoeboard">
+			<table cellspacing="0" summary="team,1쿼터,2쿼터.3쿼터,4쿼터,연장,합계" class="tbltype_score">
+			<caption>스코어보드</caption>
+			<colgroup>
+				<col width="95" /><col width="50" /><col width="50" /><col width="50" /><col width="50" /><col width="50" /><col width="52" />
+			</colgroup>
+			<thead>
+			<tr>
+				<th><img src="images/sb_team.png" alt="TEAM" /></th>
+				<th><img src="images/sb_1q.png" alt="1Q" /></th>
+				<th><img src="images/sb_2q.png" alt="2Q" /></th>
+				<th><img src="images/sb_3q.png" alt="3Q" /></th>
+				<th><img src="images/sb_4q.png" alt="4Q" /></th>
+				<th><img src="images/sb_eq.png" alt="EQ" /></th>
+				<th><img src="images/sb_tot.png" alt="TOTAL" /></th>
+			</tr>
+			</thead>
+			<tbody>
+			<tr>
+				<td class="language" data-kr="BNK 썸" data-en="BNK SUM">BNK 썸</td>
+				<td><span id="team1_score1"></span></td>
+				<td><span id="team1_score2"></span></td>
+				<td><span id="team1_score3"></span></td>
+				<td><span id="team1_score4"></span></td>
+				<td><span id="team1_score5"></span></td>
+				<td><span id="team1_score6"></span></td>
+			</tr>
+			<tr>
+				<td class="language" data-kr="신한은행" data-en="SHINHAN BANK">신한은행</td>
+				<td><span id="team2_score1"></span></td>
+				<td><span id="team2_score2"></span></td>
+				<td><span id="team2_score3"></span></td>
+				<td><span id="team2_score4"></span></td>
+				<td><span id="team2_score5"></span></td>
+				<td><span id="team2_score6"></span></td>
+			</tr>
+			</tbody>
+			</table>
+		</div>
+		<!-- //scoeboard -->
+		<!-- foulsboard -->
+		<div class="foulsboard">
+			<table cellspacing="0" summary="파울,풀타임,20초" class="tbltype_fouls">
+			<caption>팀파울시간</caption>
+			<colgroup>
+				<col width="40" /><col width="82" /><col width="39" />
+			</colgroup>
+			<tbody>
+			<tr>
+				<td><span id="team1_foul"></span></td>
+				<th><img src="images/fb_fouls.png" alt="FOULS" /></th>
+				<td><span id="team2_foul"></span></td>
+			</tr>
+			<tr>
+				<td><span id="team1_timef"></span></td>
+				<th><img src="images/fb_fulltime.png" alt="FULL TIME" /></th>
+				<td><span id="team2_timef"></span></td>
+			</tr>
+			<tr>
+				<td><span id="team1_time20"></span></td>
+				<th><img src="images/fb_20time.png" alt="20 TIME" /></th>
+				<td><span id="team2_time20"></span></td>
+			</tr>
+			</tbody>
+			</table>
+		</div>
+		<!-- //foulsboard -->
+		<!-- menutab -->
+		<div class="menutab">
+			<ul class="menulist">
+				<li><a href="#" onClick="goPage()"><img id="tab_main" src="images/tab_main_on.gif" onMouseOver="this.src='images/tab_main_on.gif'" onMouseOut="this.src='images/tab_main.gif'" alt="MAIIN" /></a></li>
+				<li><a href="#" onClick="goLive()"><img id="tab_play" src="images/tab_play.gif" onMouseOver="this.src='images/tab_play_on.gif'" onMouseOut="this.src='images/tab_play.gif'" alt="PLAY BY PLAY" /></a></li>
+			</ul>
+		</div>
+		<!-- //menutab -->
+	</div>
+	<!-- //gameinfo -->
+	<!-- team02 -->
+	<dl class="top_team">
+		<dd>
+			<p><span id='away_score1'></span><span id='away_score2'></span><span id='away_score3'></span></p>
+		</dd>
+		<dt class="language"
+            data-kr="<img src='images/teamlogo_07.gif?ver=0.1' alt='신한은행' />"
+            data-en="<img src='images/teamlogo_07_en.gif?ver=0.1' alt='SHINHAN BANK' />">
+            <img src='images/teamlogo_07.gif' alt='신한은행' />
+        </dt>
+	</dl>
+	<!-- //team02 -->
+</div>
+<!-- //header -->
+<!-- container -->
+<div id="container">
+	<!-- playerlistA -->
+	<div class="playerlist">
+		<table cellspacing="0" summary="배번,이름,득점,파을" class="tbltype_player">
+		<caption>팀선수리스트</caption>
+		<colgroup>
+			<col width="36" /><col width="82" /><col width="35" /><col width="75" />
+		</colgroup>
+		<thead>
+		<tr class="tc_11"><!-- 팀코드별로 tc_01처럼 네이밍되었어요 -->
+			<th class="language" data-kr="배번" data-en="No">배번</th>
+			<th class="language" data-kr="이름" data-en="Name">이름</th>
+			<th class="language" data-kr="득점" data-en="PTS">득점</th>
+			<th class="last language" data-kr="파을" data-en="foul">파을</th>
+		</tr>
+		</thead>
+		<tbody>
+	
+		<tr class="start">
+			<td><span id="Left_0_1"></span></td>
+			<td class="name"><span id="Left_0_2" class="language" data-kr="" data-en=""></span></td>
+			<td><span class="point"><span id="Left_0_3"></span></span></td>
+			<td class="last">
+				<ul class="foulslist">
+					<li id="Left_0_4_1"></li>
+					<li id="Left_0_4_2"></li>
+					<li id="Left_0_4_3"></li>
+					<li id="Left_0_4_4"></li>
+					<li id="Left_0_4_5"></li>
+				</ul>
+			</td>
+		</tr>
+	
+		<tr class="start">
+			<td><span id="Left_1_1"></span></td>
+			<td class="name"><span id="Left_1_2" class="language" data-kr="" data-en=""></span></td>
+			<td><span class="point"><span id="Left_1_3"></span></span></td>
+			<td class="last">
+				<ul class="foulslist">
+					<li id="Left_1_4_1"></li>
+					<li id="Left_1_4_2"></li>
+					<li id="Left_1_4_3"></li>
+					<li id="Left_1_4_4"></li>
+					<li id="Left_1_4_5"></li>
+				</ul>
+			</td>
+		</tr>
+	
+		<tr class="start">
+			<td><span id="Left_2_1"></span></td>
+			<td class="name"><span id="Left_2_2" class="language" data-kr="" data-en=""></span></td>
+			<td><span class="point"><span id="Left_2_3"></span></span></td>
+			<td class="last">
+				<ul class="foulslist">
+					<li id="Left_2_4_1"></li>
+					<li id="Left_2_4_2"></li>
+					<li id="Left_2_4_3"></li>
+					<li id="Left_2_4_4"></li>
+					<li id="Left_2_4_5"></li>
+				</ul>
+			</td>
+		</tr>
+	
+		<tr class="start">
+			<td><span id="Left_3_1"></span></td>
+			<td class="name"><span id="Left_3_2" class="language" data-kr="" data-en=""></span></td>
+			<td><span class="point"><span id="Left_3_3"></span></span></td>
+			<td class="last">
+				<ul class="foulslist">
+					<li id="Left_3_4_1"></li>
+					<li id="Left_3_4_2"></li>
+					<li id="Left_3_4_3"></li>
+					<li id="Left_3_4_4"></li>
+					<li id="Left_3_4_5"></li>
+				</ul>
+			</td>
+		</tr>
+	
+		<tr class="start">
+			<td><span id="Left_4_1"></span></td>
+			<td class="name"><span id="Left_4_2" class="language" data-kr="" data-en=""></span></td>
+			<td><span class="point"><span id="Left_4_3"></span></span></td>
+			<td class="last">
+				<ul class="foulslist">
+					<li id="Left_4_4_1"></li>
+					<li id="Left_4_4_2"></li>
+					<li id="Left_4_4_3"></li>
+					<li id="Left_4_4_4"></li>
+					<li id="Left_4_4_5"></li>
+				</ul>
+			</td>
+		</tr>
+	
+		<tr>
+			<td><span id="Left_5_1"></span></td>
+			<td class="name"><span id="Left_5_2" class="language" data-kr="" data-en=""></span></td>
+			<td><span id="Left_5_3"></span></td>
+			<td class="last">
+				<ul class="foulslist">
+					<li id="Left_5_4_1"></li>
+					<li id="Left_5_4_2"></li>
+					<li id="Left_5_4_3"></li>
+					<li id="Left_5_4_4"></li>
+					<li id="Left_5_4_5"></li>
+				</ul>
+			</td>
+		</tr>
+	
+		<tr>
+			<td><span id="Left_6_1"></span></td>
+			<td class="name"><span id="Left_6_2" class="language" data-kr="" data-en=""></span></td>
+			<td><span id="Left_6_3"></span></td>
+			<td class="last">
+				<ul class="foulslist">
+					<li id="Left_6_4_1"></li>
+					<li id="Left_6_4_2"></li>
+					<li id="Left_6_4_3"></li>
+					<li id="Left_6_4_4"></li>
+					<li id="Left_6_4_5"></li>
+				</ul>
+			</td>
+		</tr>
+	
+		<tr>
+			<td><span id="Left_7_1"></span></td>
+			<td class="name"><span id="Left_7_2" class="language" data-kr="" data-en=""></span></td>
+			<td><span id="Left_7_3"></span></td>
+			<td class="last">
+				<ul class="foulslist">
+					<li id="Left_7_4_1"></li>
+					<li id="Left_7_4_2"></li>
+					<li id="Left_7_4_3"></li>
+					<li id="Left_7_4_4"></li>
+					<li id="Left_7_4_5"></li>
+				</ul>
+			</td>
+		</tr>
+	
+		<tr>
+			<td><span id="Left_8_1"></span></td>
+			<td class="name"><span id="Left_8_2" class="language" data-kr="" data-en=""></span></td>
+			<td><span id="Left_8_3"></span></td>
+			<td class="last">
+				<ul class="foulslist">
+					<li id="Left_8_4_1"></li>
+					<li id="Left_8_4_2"></li>
+					<li id="Left_8_4_3"></li>
+					<li id="Left_8_4_4"></li>
+					<li id="Left_8_4_5"></li>
+				</ul>
+			</td>
+		</tr>
+	
+		<tr>
+			<td><span id="Left_9_1"></span></td>
+			<td class="name"><span id="Left_9_2" class="language" data-kr="" data-en=""></span></td>
+			<td><span id="Left_9_3"></span></td>
+			<td class="last">
+				<ul class="foulslist">
+					<li id="Left_9_4_1"></li>
+					<li id="Left_9_4_2"></li>
+					<li id="Left_9_4_3"></li>
+					<li id="Left_9_4_4"></li>
+					<li id="Left_9_4_5"></li>
+				</ul>
+			</td>
+		</tr>
+	
+		<tr>
+			<td><span id="Left_10_1"></span></td>
+			<td class="name"><span id="Left_10_2" class="language" data-kr="" data-en=""></span></td>
+			<td><span id="Left_10_3"></span></td>
+			<td class="last">
+				<ul class="foulslist">
+					<li id="Left_10_4_1"></li>
+					<li id="Left_10_4_2"></li>
+					<li id="Left_10_4_3"></li>
+					<li id="Left_10_4_4"></li>
+					<li id="Left_10_4_5"></li>
+				</ul>
+			</td>
+		</tr>
+	
+		<tr>
+			<td><span id="Left_11_1"></span></td>
+			<td class="name"><span id="Left_11_2" class="language" data-kr="" data-en=""></span></td>
+			<td><span id="Left_11_3"></span></td>
+			<td class="last">
+				<ul class="foulslist">
+					<li id="Left_11_4_1"></li>
+					<li id="Left_11_4_2"></li>
+					<li id="Left_11_4_3"></li>
+					<li id="Left_11_4_4"></li>
+					<li id="Left_11_4_5"></li>
+				</ul>
+			</td>
+		</tr>
+	
+		<tr>
+			<td><span id="Left_12_1"></span></td>
+			<td class="name"><span id="Left_12_2" class="language" data-kr="" data-en=""></span></td>
+			<td><span id="Left_12_3"></span></td>
+			<td class="last">
+				<ul class="foulslist">
+					<li id="Left_12_4_1"></li>
+					<li id="Left_12_4_2"></li>
+					<li id="Left_12_4_3"></li>
+					<li id="Left_12_4_4"></li>
+					<li id="Left_12_4_5"></li>
+				</ul>
+			</td>
+		</tr>
+	
+		<tr>
+			<td><span id="Left_13_1"></span></td>
+			<td class="name"><span id="Left_13_2" class="language" data-kr="" data-en=""></span></td>
+			<td><span id="Left_13_3"></span></td>
+			<td class="last">
+				<ul class="foulslist">
+					<li id="Left_13_4_1"></li>
+					<li id="Left_13_4_2"></li>
+					<li id="Left_13_4_3"></li>
+					<li id="Left_13_4_4"></li>
+					<li id="Left_13_4_5"></li>
+				</ul>
+			</td>
+		</tr>
+	
+		<tr>
+			<td><span id="Left_14_1"></span></td>
+			<td class="name"><span id="Left_14_2" class="language" data-kr="" data-en=""></span></td>
+			<td><span id="Left_14_3"></span></td>
+			<td class="last">
+				<ul class="foulslist">
+					<li id="Left_14_4_1"></li>
+					<li id="Left_14_4_2"></li>
+					<li id="Left_14_4_3"></li>
+					<li id="Left_14_4_4"></li>
+					<li id="Left_14_4_5"></li>
+				</ul>
+			</td>
+		</tr>
+	
+		</tbody>
+		</table>
+	</div>
+	<!-- //playerlistA -->
+	<!-- CourtLeaderBoard -->
+	<div class="courtbard">
+		<!-- court -->
+		<div class="court">
+			<dl class="cologo">
+				<dt><img src="images/cologo_11.png" alt="" /></dt><!-- 팀로고 변경 -->
+				<dd><img src="images/cologo_07.png" alt="" /></dd>
+			</dl>
+			<!-- playerposition -->
+			<ul class="plpo_left">
+				<li class="pl01"><span id="txtTeamPosition2"></span></li>
+				<li class="pl02"><span id="txtTeamPosition4"></span></li>
+				<li class="pl03"><span id="txtTeamPosition1"></span></li>
+				<li class="pl04"><span id="txtTeamPosition5"></span></li>
+				<li class="pl05"><span id="txtTeamPosition3"></span></li>
+			</ul>
+			<ul class="plpo_right">
+				<li class="pr01"><span id="txtTeamPosition7"></span></li>
+				<li class="pr02"><span id="txtTeamPosition9"></span></li>
+				<li class="pr03"><span id="txtTeamPosition6"></span></li>
+				<li class="pr04"><span id="txtTeamPosition10"></span></li>
+				<li class="pr05"><span id="txtTeamPosition8"></span></li>
+			</ul>
+			<!-- //playerposition -->
+		</div>
+		<!-- //court -->
+		<!-- leaderboard -->
+		<div class="leaderboard">
+			<h4 class="board_tit"><img src="images/title_leaderboard.gif" alt="LEADER BOARD" /></h4>
+			<table cellspacing="0" summary="선수,항목,선수" class="tbltype_leader">
+			<caption>선수순위</caption>
+			<colgroup>
+				<col width="179" /><col width="100" /><col width="179" />
+			</colgroup>
+			<tbody>
+			<tr>
+				<td>
+					<dl class="top_player">
+						<dd><span id="left_top1_1"></span><br /><span id="left_top1_2" class="score"></span></dd>
+						<dt><span id="left_top1_3"><img src="images/noimg_player.jpg" width="46" height="60" class="imgline" alt="" /></span></dt>
+					</dl>
+				</td>
+				<th class="language" data-kr="득점" data-en="PTS" style="font-size:13px;font-family:'Pretendard',Arial, Helvetica, sans-serif">득점</th>
+				<td>
+					<dl class="top_player">
+						<dt><span id="right_top1_3"><img src="images/noimg_player.jpg" width="46" height="60" class="imgline" alt="" /></span></dt>
+						<dd><span id="right_top1_1"></span><br /><span id="right_top1_2" class="score"></span></dd>
+					</dl>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<dl class="top_player">
+						<dd><span id="left_top2_1"></span><br /><span id="left_top2_2" class="score"></span></dd>
+						<dt><span id="left_top2_3"><img src="images/noimg_player.jpg" width="46" height="60" class="imgline" alt="" /></span></dt>
+					</dl>
+				</td>
+				<th class="language" data-kr="리바운드" data-en="Rebound" style="font-size:13px;font-family:'Pretendard',Arial, Helvetica, sans-serif">리바운드</th>
+				<td>
+					<dl class="top_player">
+						<dt><span id="right_top2_3"><img src="images/noimg_player.jpg" width="46" height="60" class="imgline" alt="" /></span></dt>
+						<dd><span id="right_top2_1"></span><br /><span id="right_top2_2" class="score"></span></dd>
+					</dl>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<dl class="top_player">
+						<dd><span id="left_top3_1"></span><br /><span id="left_top3_2" class="score"></span></dd>
+						<dt><span id="left_top3_3"><img src="images/noimg_player.jpg" width="46" height="60" class="imgline" alt="" /></span></dt>
+					</dl>
+				</td>
+				<th class="language" data-kr="어시스트" data-en="Assist" style="font-size:13px;font-family:'Pretendard',Arial, Helvetica, sans-serif">어시스트</th>
+				<td>
+					<dl class="top_player">
+						<dt><span id="right_top3_3"><img src="images/noimg_player.jpg" width="46" height="60" class="imgline" alt="" /></span></dt>
+						<dd><span id="right_top3_1"></span><br /><span id="right_top3_2" class="score"></span></dd>
+					</dl>
+				</td>
+			</tr>
+			</tbody>
+			</table>
+		</div>
+		<!-- //leaderboard -->
+	</div>
+	<!-- //CourtLeaderBoard -->
+	<!-- playerlistB -->
+	<div class="playerlist">
+		<table cellspacing="0" summary="배번,이름,득점,파을" class="tbltype_player">
+		<caption>팀선수리스트</caption>
+		<colgroup>
+			<col width="36" /><col width="82" /><col width="35" /><col width="75" />
+		</colgroup>
+		<thead>
+		<tr class="tc_07">
+            <th class="language" data-kr="배번" data-en="No">배번</th>
+			<th class="language" data-kr="이름" data-en="Name">이름</th>
+			<th class="language" data-kr="득점" data-en="PTS">득점</th>
+			<th class="last language" data-kr="파을" data-en="foul">파을</th>
+		</tr>
+		</thead>
+		<tbody>
+	
+		<tr class="start"><!-- 스타팅5명의 배경색적용 -->
+			<td><span id="Right_0_1"></span></td>
+			<td class="name"><span id="Right_0_2" class="language" data-kr="" data-en=""></span></td>
+			<td><span class="point"><span id="Right_0_3"></span></span></td>
+			<td class="last">
+				<ul class="foulslist">
+					<li id="Right_0_4_1"></li>
+					<li id="Right_0_4_2"></li>
+					<li id="Right_0_4_3"></li>
+					<li id="Right_0_4_4"></li>
+					<li id="Right_0_4_5"></li>
+				</ul>
+			</td>
+		</tr>
+	
+		<tr class="start"><!-- 스타팅5명의 배경색적용 -->
+			<td><span id="Right_1_1"></span></td>
+			<td class="name"><span id="Right_1_2" class="language" data-kr="" data-en=""></span></td>
+			<td><span class="point"><span id="Right_1_3"></span></span></td>
+			<td class="last">
+				<ul class="foulslist">
+					<li id="Right_1_4_1"></li>
+					<li id="Right_1_4_2"></li>
+					<li id="Right_1_4_3"></li>
+					<li id="Right_1_4_4"></li>
+					<li id="Right_1_4_5"></li>
+				</ul>
+			</td>
+		</tr>
+	
+		<tr class="start"><!-- 스타팅5명의 배경색적용 -->
+			<td><span id="Right_2_1"></span></td>
+			<td class="name"><span id="Right_2_2" class="language" data-kr="" data-en=""></span></td>
+			<td><span class="point"><span id="Right_2_3"></span></span></td>
+			<td class="last">
+				<ul class="foulslist">
+					<li id="Right_2_4_1"></li>
+					<li id="Right_2_4_2"></li>
+					<li id="Right_2_4_3"></li>
+					<li id="Right_2_4_4"></li>
+					<li id="Right_2_4_5"></li>
+				</ul>
+			</td>
+		</tr>
+	
+		<tr class="start"><!-- 스타팅5명의 배경색적용 -->
+			<td><span id="Right_3_1"></span></td>
+			<td class="name"><span id="Right_3_2" class="language" data-kr="" data-en=""></span></td>
+			<td><span class="point"><span id="Right_3_3"></span></span></td>
+			<td class="last">
+				<ul class="foulslist">
+					<li id="Right_3_4_1"></li>
+					<li id="Right_3_4_2"></li>
+					<li id="Right_3_4_3"></li>
+					<li id="Right_3_4_4"></li>
+					<li id="Right_3_4_5"></li>
+				</ul>
+			</td>
+		</tr>
+	
+		<tr class="start"><!-- 스타팅5명의 배경색적용 -->
+			<td><span id="Right_4_1"></span></td>
+			<td class="name"><span id="Right_4_2" class="language" data-kr="" data-en=""></span></td>
+			<td><span class="point"><span id="Right_4_3"></span></span></td>
+			<td class="last">
+				<ul class="foulslist">
+					<li id="Right_4_4_1"></li>
+					<li id="Right_4_4_2"></li>
+					<li id="Right_4_4_3"></li>
+					<li id="Right_4_4_4"></li>
+					<li id="Right_4_4_5"></li>
+				</ul>
+			</td>
+		</tr>
+	
+		<tr>
+			<td><span id="Right_5_1"></span></td>
+			<td class="name"><span id="Right_5_2" class="language" data-kr="" data-en=""></span></td>
+			<td><span id="Right_5_3"></span></td>
+			<td class="last">
+				<ul class="foulslist">
+					<li id="Right_5_4_1"></li>
+					<li id="Right_5_4_2"></li>
+					<li id="Right_5_4_3"></li>
+					<li id="Right_5_4_4"></li>
+					<li id="Right_5_4_5"></li>
+				</ul>
+			</td>
+		</tr>
+	
+		<tr>
+			<td><span id="Right_6_1"></span></td>
+			<td class="name"><span id="Right_6_2" class="language" data-kr="" data-en=""></span></td>
+			<td><span id="Right_6_3"></span></td>
+			<td class="last">
+				<ul class="foulslist">
+					<li id="Right_6_4_1"></li>
+					<li id="Right_6_4_2"></li>
+					<li id="Right_6_4_3"></li>
+					<li id="Right_6_4_4"></li>
+					<li id="Right_6_4_5"></li>
+				</ul>
+			</td>
+		</tr>
+	
+		<tr>
+			<td><span id="Right_7_1"></span></td>
+			<td class="name"><span id="Right_7_2" class="language" data-kr="" data-en=""></span></td>
+			<td><span id="Right_7_3"></span></td>
+			<td class="last">
+				<ul class="foulslist">
+					<li id="Right_7_4_1"></li>
+					<li id="Right_7_4_2"></li>
+					<li id="Right_7_4_3"></li>
+					<li id="Right_7_4_4"></li>
+					<li id="Right_7_4_5"></li>
+				</ul>
+			</td>
+		</tr>
+	
+		<tr>
+			<td><span id="Right_8_1"></span></td>
+			<td class="name"><span id="Right_8_2" class="language" data-kr="" data-en=""></span></td>
+			<td><span id="Right_8_3"></span></td>
+			<td class="last">
+				<ul class="foulslist">
+					<li id="Right_8_4_1"></li>
+					<li id="Right_8_4_2"></li>
+					<li id="Right_8_4_3"></li>
+					<li id="Right_8_4_4"></li>
+					<li id="Right_8_4_5"></li>
+				</ul>
+			</td>
+		</tr>
+	
+		<tr>
+			<td><span id="Right_9_1"></span></td>
+			<td class="name"><span id="Right_9_2" class="language" data-kr="" data-en=""></span></td>
+			<td><span id="Right_9_3"></span></td>
+			<td class="last">
+				<ul class="foulslist">
+					<li id="Right_9_4_1"></li>
+					<li id="Right_9_4_2"></li>
+					<li id="Right_9_4_3"></li>
+					<li id="Right_9_4_4"></li>
+					<li id="Right_9_4_5"></li>
+				</ul>
+			</td>
+		</tr>
+	
+		<tr>
+			<td><span id="Right_10_1"></span></td>
+			<td class="name"><span id="Right_10_2" class="language" data-kr="" data-en=""></span></td>
+			<td><span id="Right_10_3"></span></td>
+			<td class="last">
+				<ul class="foulslist">
+					<li id="Right_10_4_1"></li>
+					<li id="Right_10_4_2"></li>
+					<li id="Right_10_4_3"></li>
+					<li id="Right_10_4_4"></li>
+					<li id="Right_10_4_5"></li>
+				</ul>
+			</td>
+		</tr>
+	
+		<tr>
+			<td><span id="Right_11_1"></span></td>
+			<td class="name"><span id="Right_11_2" class="language" data-kr="" data-en=""></span></td>
+			<td><span id="Right_11_3"></span></td>
+			<td class="last">
+				<ul class="foulslist">
+					<li id="Right_11_4_1"></li>
+					<li id="Right_11_4_2"></li>
+					<li id="Right_11_4_3"></li>
+					<li id="Right_11_4_4"></li>
+					<li id="Right_11_4_5"></li>
+				</ul>
+			</td>
+		</tr>
+	
+		<tr>
+			<td><span id="Right_12_1"></span></td>
+			<td class="name"><span id="Right_12_2" class="language" data-kr="" data-en=""></span></td>
+			<td><span id="Right_12_3"></span></td>
+			<td class="last">
+				<ul class="foulslist">
+					<li id="Right_12_4_1"></li>
+					<li id="Right_12_4_2"></li>
+					<li id="Right_12_4_3"></li>
+					<li id="Right_12_4_4"></li>
+					<li id="Right_12_4_5"></li>
+				</ul>
+			</td>
+		</tr>
+	
+		<tr>
+			<td><span id="Right_13_1"></span></td>
+			<td class="name"><span id="Right_13_2" class="language" data-kr="" data-en=""></span></td>
+			<td><span id="Right_13_3"></span></td>
+			<td class="last">
+				<ul class="foulslist">
+					<li id="Right_13_4_1"></li>
+					<li id="Right_13_4_2"></li>
+					<li id="Right_13_4_3"></li>
+					<li id="Right_13_4_4"></li>
+					<li id="Right_13_4_5"></li>
+				</ul>
+			</td>
+		</tr>
+	
+		<tr>
+			<td><span id="Right_14_1"></span></td>
+			<td class="name"><span id="Right_14_2" class="language" data-kr="" data-en=""></span></td>
+			<td><span id="Right_14_3"></span></td>
+			<td class="last">
+				<ul class="foulslist">
+					<li id="Right_14_4_1"></li>
+					<li id="Right_14_4_2"></li>
+					<li id="Right_14_4_3"></li>
+					<li id="Right_14_4_4"></li>
+					<li id="Right_14_4_5"></li>
+				</ul>
+			</td>
+		</tr>
+	
+		</tbody>
+		</table>
+	</div>
+	<!-- //playerlistB -->
+</div>
+<!-- //container -->
+
+<div id="container2" style="display:none">
+	<!-- quatertab -->
+	<div class="quatertab">
+		<ul class="quaterlist">
+			<li id="quarter_button1" class="on"><a href="#" onClick="quarterbtn(1,'H');" class="language" data-kr="현재" data-en="Now[Q4]">현재</a></li>
+			<li id="quarter_button2"><a href="#" onClick="quarterbtn(2,'Q1');" class="language" data-kr="1쿼터" data-en="1Q">1쿼터</a></li>
+			<li id="quarter_button3"><a href="#" onClick="quarterbtn(3,'Q2');" class="language" data-kr="2쿼터" data-en="2Q">2쿼터</a></li>
+			<li id="quarter_button4"><a href="#" onClick="quarterbtn(4,'Q3');" class="language" data-kr="3쿼터" data-en="3Q">3쿼터</a></li>
+			<li id="quarter_button5"><a href="#" onClick="quarterbtn(5,'Q4');" class="language" data-kr="4쿼터" data-en="4Q">4쿼터</a></li>
+			<li id="quarter_button6"><a href="#" onClick="quarterbtn(6,'X1');" class="language" data-kr="연장1" data-en="Over1">연장1</a></li>
+			<li id="quarter_button7"><a href="#" onClick="quarterbtn(7,'X2');" class="language" data-kr="연장2" data-en="Over2">연장2</a></li>
+			<li id="quarter_button8"><a href="#" onClick="quarterbtn(8,'X3');" class="language" data-kr="연장3" data-en="Over3">연장3</a></li>
+			<li id="quarter_button9"><a href="#" onClick="quarterbtn(9,'X4');" class="language" data-kr="연장4" data-en="Over4">연장4</a></li>
+		</ul>
+		<div class="btn_refresh"><!--<a href="#"><img src="images/btn_refresh.gif" alt="새로고침" /></a>--></div>
+	</div>
+	<!-- //quatertab -->
+	<!-- quatertxt -->
+	<div id="playHistory" class="qtxtbox">
+		<table id="playHistoryTable" cellspacing="0" summary="팀기록,스코어,시간,스코어,팀기록" class="tbltype_play">
+		<caption>경기상세플레이</caption>
+		<colgroup>
+			<col width="40%" /><col width="6%" /><col width="8%" /><col width="6%" /><col width="40%" />
+		</colgroup>
+		<thead>
+		<tr>
+			<th></th>
+			<th class="ts_11">Score</th><!-- 팀코드따라 변경 -->
+			<th class="ts_time">Time</th>
+			<th class="ts_07">Score</th><!-- 팀코드따라 변경 -->
+			<th></th>
+		</tr>
+		</thead>
+		<tbody>
+		</tbody>
+		</table>
+	</div>
+	<!-- //quatertxt -->
+</div>
+<!-- //container2 -->
+
+
+<script type="text/javascript" language="javascript" src="./common/xml2json.js"></script>
+<script type="text/javascript" language="javascript" src="./common/prototype.js"></script>
+<script type="text/javascript" language="javascript" src="./common/livePlayer_12.js?10302026113959"></script>
+<script type="text/javascript" language="javascript" src="./common/livePlayer_sms_12.js?10302026113959"></script>
+
+
+<input type="hidden" id="appsLiveTime" value="15">
+
+
+<form id="form" name="pHistory">
+<input type="hidden" id="LTPlayer" name="LTPlayer" value="1" >
+<input type="hidden" name="quarter_gu0" value="H" >
+<input type="hidden" name="seq0" value="0" >
+<input type="hidden" name="big" value="0" >
+</form>
+
+<form id="form" name="goform" method="post" target="goLiveVote">
+	<input type="hidden" name="season_gu" value="046">
+	<input type="hidden" name="game_code" value="01">
+	<input type="hidden" name="game_no" value="1">
+	<input type="hidden" name="team_1" value="11">
+	<input type="hidden" name="team_2" value="07">
+</form>
+
+<script type="text/javascript" >
+
+	var home_team = "11";
+	var away_team = "07";
+	var order_desc = "desc";
+	var season_gu0 = "046";
+	var game_type0 = "01";
+	var game_no0 = "1";
+
+</script>
+
+<form name="frm" method="post" action="realtime2.asp">
+	<input type="hidden" name="season_gu0">
+	<input type="hidden" name="game_type0">
+	<input type="hidden" name="game_no0">
+	<input type="hidden" name="game_re">
+</form>
+
+<script type="text/javascript" >
+	goPage();
+</script>
+
+<script>
+
+    /////////////////////////////////////////////language change start///////////////////////////////////////////
+    window.onload = function(){
+        let now_lang = localStorage.getItem("lang");
+        if(!now_lang) now_lang = "kr";
+
+        function language_change(now_lang){
+            for(i=0;i < document.getElementsByClassName('language').length; i++){
+                var txt = document.getElementsByClassName('language')[i];
+                txt.innerHTML = txt.getAttribute("data-"+now_lang);
+            }
+        }
+
+        language_change(now_lang);
+    }
+    /////////////////////////////////////////////language change end ///////////////////////////////////////////
+
+    // $(function() {
+    //
+    //     let now_lang = localStorage.getItem("lang");
+    //     if(!now_lang) now_lang = "kr";
+    //
+    //     $('.lang_change').on('click', function(e){
+    //         now_lang = (now_lang == "kr") ? "en" : "kr";
+    //         localStorage.setItem("lang", now_lang);
+    //
+    //         language_icon_change(now_lang);
+    //     });
+    //
+    //     function language_icon_change(now_lang){
+    //         // if( now_lang == 'en' ){
+    //         //     $('.lang_change').addClass('active');
+    //         //     $('.lang_change_text').html("English");
+    //         // }else{
+    //         //     $('.lang_change').removeClass('active');
+    //         //     $('.lang_change_text').html("Korea");
+    //         // }
+    //         setTimeout(()=>{ language_change(now_lang); }, 500);
+    //     }
+    //
+    //     function language_change(now_lang){
+    //         for(i=0;i < $(".language").length; i++){
+    //             if($($('.language')[i]).attr('placeholder') !== undefined){ //placeholder change
+    //                 $($('.language')[i]).attr('placeholder', $($('.language')[i]).attr("data-"+now_lang));
+    //             }else{ //text change
+    //                 $($('.language')[i]).html($($('.language')[i]).attr("data-"+now_lang));
+    //             }
+    //         }
+    //     }
+    //
+    //     language_icon_change(now_lang);
+    //     /////////////////////////////////////////////language change end ///////////////////////////////////////////
+    // });
+
+</script>
+
+</body>
+</html>

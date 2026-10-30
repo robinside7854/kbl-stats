@@ -1,0 +1,146 @@
+GET https://www.wkbl.or.kr/game/inc_player_record.asp?season_gu=047&season_name=2026-2027&game_type=01&part=point&part_name=%EB%93%9D%EC%A0%90&part_name_en=Points
+
+200
+
+
+         <div class="inner_cont">
+				<h3 class="title_tank">2026-2027<span class="language" data-kr=" 시즌 주요부문 1위" data-en=" Season Leaders by Category">시즌 주요부문 1위</span></h3>
+				<ul class="game_list_rank player_season_rank">
+				
+                </ul>
+
+
+                <div class="sort_block">
+                    <div class="opt_box">
+                        <button class="btn_opt">
+                            <em><span id="span_season_name">2026-2027</span> <span class="language" data-kr="시즌" data-en="season">시즌</span></em>
+                        </button>
+                        <div class="wrap_opt">
+                            <ul class="list_opt">
+								
+									<li><a href="javascript:play_record_season('046','2025-2026');" data-toggle="play_record_season" data-season="046" data-season_name="2025-2026" id="season_href_046">2025-2026</a></li>
+								
+									<li><a href="javascript:play_record_season('045','2024-2025');" data-toggle="play_record_season" data-season="045" data-season_name="2024-2025" id="season_href_045">2024-2025</a></li>
+								
+									<li><a href="javascript:play_record_season('044','2023-2024');" data-toggle="play_record_season" data-season="044" data-season_name="2023-2024" id="season_href_044">2023-2024</a></li>
+								
+									<li><a href="javascript:play_record_season('043','2022-2023');" data-toggle="play_record_season" data-season="043" data-season_name="2022-2023" id="season_href_043">2022-2023</a></li>
+								
+									<li><a href="javascript:play_record_season('042','2021-2022');" data-toggle="play_record_season" data-season="042" data-season_name="2021-2022" id="season_href_042">2021-2022</a></li>
+								
+									<li><a href="javascript:play_record_season('041','2020-2021');" data-toggle="play_record_season" data-season="041" data-season_name="2020-2021" id="season_href_041">2020-2021</a></li>
+								
+									<li><a href="javascript:play_record_season('040','2019-2020');" data-toggle="play_record_season" data-season="040" data-season_name="2019-2020" id="season_href_040">2019-2020</a></li>
+								
+									<li><a href="javascript:play_record_season('039','2018-2019');" data-toggle="play_record_season" data-season="039" data-season_name="2018-2019" id="season_href_039">2018-2019</a></li>
+								
+									<li><a href="javascript:play_record_season('038','2017-2018');" data-toggle="play_record_season" data-season="038" data-season_name="2017-2018" id="season_href_038">2017-2018</a></li>
+								
+									<li><a href="javascript:play_record_season('037','2016-2017');" data-toggle="play_record_season" data-season="037" data-season_name="2016-2017" id="season_href_037">2016-2017</a></li>
+								
+									<li><a href="javascript:play_record_season('036','2015-2016');" data-toggle="play_record_season" data-season="036" data-season_name="2015-2016" id="season_href_036">2015-2016</a></li>
+								
+									<li><a href="javascript:play_record_season('035','2014-2015');" data-toggle="play_record_season" data-season="035" data-season_name="2014-2015" id="season_href_035">2014-2015</a></li>
+								
+									<li><a href="javascript:play_record_season('034','2013-2014');" data-toggle="play_record_season" data-season="034" data-season_name="2013-2014" id="season_href_034">2013-2014</a></li>
+								
+									<li><a href="javascript:play_record_season('033','2012-2013');" data-toggle="play_record_season" data-season="033" data-season_name="2012-2013" id="season_href_033">2012-2013</a></li>
+								
+									<li><a href="javascript:play_record_season('032','2011-2012');" data-toggle="play_record_season" data-season="032" data-season_name="2011-2012" id="season_href_032">2011-2012</a></li>
+								
+									<li><a href="javascript:play_record_season('031','2010-2011');" data-toggle="play_record_season" data-season="031" data-season_name="2010-2011" id="season_href_031">2010-2011</a></li>
+								
+									<li><a href="javascript:play_record_season('029','2009-2010');" data-toggle="play_record_season" data-season="029" data-season_name="2009-2010" id="season_href_029">2009-2010</a></li>
+								
+									<li><a href="javascript:play_record_season('027','2008-2009');" data-toggle="play_record_season" data-season="027" data-season_name="2008-2009" id="season_href_027">2008-2009</a></li>
+								
+									<li><a href="javascript:play_record_season('025','2007-2008');" data-toggle="play_record_season" data-season="025" data-season_name="2007-2008" id="season_href_025">2007-2008</a></li>
+								
+									<li><a href="javascript:play_record_season('023','2007겨울');" data-toggle="play_record_season" data-season="023" data-season_name="2007겨울" id="season_href_023">2007겨울</a></li>
+								
+									<li><a href="javascript:play_record_season('021','2006여름');" data-toggle="play_record_season" data-season="021" data-season_name="2006여름" id="season_href_021">2006여름</a></li>
+								
+									<li><a href="javascript:play_record_season('020','2006겨울');" data-toggle="play_record_season" data-season="020" data-season_name="2006겨울" id="season_href_020">2006겨울</a></li>
+								
+									<li><a href="javascript:play_record_season('019','2005여름');" data-toggle="play_record_season" data-season="019" data-season_name="2005여름" id="season_href_019">2005여름</a></li>
+								
+									<li><a href="javascript:play_record_season('017','2005겨울');" data-toggle="play_record_season" data-season="017" data-season_name="2005겨울" id="season_href_017">2005겨울</a></li>
+								
+									<li><a href="javascript:play_record_season('015','2004겨울');" data-toggle="play_record_season" data-season="015" data-season_name="2004겨울" id="season_href_015">2004겨울</a></li>
+								
+									<li><a href="javascript:play_record_season('013','2003여름');" data-toggle="play_record_season" data-season="013" data-season_name="2003여름" id="season_href_013">2003여름</a></li>
+								
+                            </ul>
+                            <button class="btn_close">닫기 X</button>
+                        </div>
+                    </div>
+
+                    <!--// opt_box -->
+                     <div class="opt_box">
+                        <button class="btn_opt">
+                            <em><span id="span_part_name" class="language" data-kr="득점" data-en="Points">득점</span></em>
+                        </button>
+                        <div class="wrap_opt">
+                            <ul class="list_opt">
+							
+                                <li><a href="javascript:play_record_part('point','득점','Points');" class="play_record_part language" data-toggle="play_record_part" data-part="point" data-part_name="득점" id="part_href_point" data-kr="득점" data-en="Points">득점</a></li>
+							
+                                <li><a href="javascript:play_record_part('field','2점성공','2-Point Field Goals Made');" class="play_record_part language" data-toggle="play_record_part" data-part="field" data-part_name="2점성공" id="part_href_field" data-kr="2점성공" data-en="2-Point Field Goals Made">2점성공</a></li>
+							
+                                <li><a href="javascript:play_record_part('fieldp','2점성공률','2-Point FG%');" class="play_record_part language" data-toggle="play_record_part" data-part="fieldp" data-part_name="2점성공률" id="part_href_fieldp" data-kr="2점성공률" data-en="2-Point FG%">2점성공률</a></li>
+							
+                                <li><a href="javascript:play_record_part('threep','3점성공','3-Point Field Goals Made');" class="play_record_part language" data-toggle="play_record_part" data-part="threep" data-part_name="3점성공" id="part_href_threep" data-kr="3점성공" data-en="3-Point Field Goals Made">3점성공</a></li>
+							
+                                <li><a href="javascript:play_record_part('threepp','3점성공률','3-Point FG%');" class="play_record_part language" data-toggle="play_record_part" data-part="threepp" data-part_name="3점성공률" id="part_href_threepp" data-kr="3점성공률" data-en="3-Point FG%">3점성공률</a></li>
+							
+                                <li><a href="javascript:play_record_part('free','자유투성공','Free Throws Made');" class="play_record_part language" data-toggle="play_record_part" data-part="free" data-part_name="자유투성공" id="part_href_free" data-kr="자유투성공" data-en="Free Throws Made">자유투성공</a></li>
+							
+                                <li><a href="javascript:play_record_part('freep','자유투성공률','Free Throw %');" class="play_record_part language" data-toggle="play_record_part" data-part="freep" data-part_name="자유투성공률" id="part_href_freep" data-kr="자유투성공률" data-en="Free Throw %">자유투성공률</a></li>
+							
+                                <li><a href="javascript:play_record_part('rebound','리바운드','Rebounds');" class="play_record_part language" data-toggle="play_record_part" data-part="rebound" data-part_name="리바운드" id="part_href_rebound" data-kr="리바운드" data-en="Rebounds">리바운드</a></li>
+							
+                                <li><a href="javascript:play_record_part('assist','어시스트','Assists');" class="play_record_part language" data-toggle="play_record_part" data-part="assist" data-part_name="어시스트" id="part_href_assist" data-kr="어시스트" data-en="Assists">어시스트</a></li>
+							
+                                <li><a href="javascript:play_record_part('steal','스틸','Steals');" class="play_record_part language" data-toggle="play_record_part" data-part="steal" data-part_name="스틸" id="part_href_steal" data-kr="스틸" data-en="Steals">스틸</a></li>
+							
+                                <li><a href="javascript:play_record_part('block','블록슛','Block shots');" class="play_record_part language" data-toggle="play_record_part" data-part="block" data-part_name="블록슛" id="part_href_block" data-kr="블록슛" data-en="Block shots">블록슛</a></li>
+							
+                                <li><a href="javascript:play_record_part('gooddef','굿수비','Good Defense');" class="play_record_part language" data-toggle="play_record_part" data-part="gooddef" data-part_name="굿수비" id="part_href_gooddef" data-kr="굿수비" data-en="Good Defense">굿수비</a></li>
+							
+                                <li><a href="javascript:play_record_part('minute','출전시간','Minutes Played');" class="play_record_part language" data-toggle="play_record_part" data-part="minute" data-part_name="출전시간" id="part_href_minute" data-kr="출전시간" data-en="Minutes Played">출전시간</a></li>
+							
+                                <li><a href="javascript:play_record_part('eff','공헌도','Contribution');" class="play_record_part language" data-toggle="play_record_part" data-part="eff" data-part_name="공헌도" id="part_href_eff" data-kr="공헌도" data-en="Contribution">공헌도</a></li>
+							
+                            </ul>
+                            <button class="btn_close language" data-kr="닫기 X" data-en="close X">닫기 X</button>
+                        </div>
+                    </div>
+                    <!--// opt_box -->
+                </div>
+
+				<div id="result_play_record" class="info_table01">
+					<table>
+					<caption>득점 부분 순위 상세 정보</caption>
+
+					
+					<colgroup>
+						<col style='width:10%'><col style='width:18%'><col style='width:17%'><col style='width:9%'><col style='width:9%'><col style='width:9%'><col style='width:9%'><col style='width:10%'>
+						<col>
+					</colgroup>
+					<thead>
+						<tr class="language" data-kr="<th scope='col'>순위</th><th scope='col'>선수</th><th scope='col'>소속구단</th><th scope='col'>출전경기</th><th scope='col'>3점슛</th><th scope='col'>2점슛</th><th scope='col'>자유투</th><th scope='col'>총득점</th><th scope='col'>평균득점</th>" data-en="<th scope='col'>Ranking</th><th scope='col'>Player</th><th scope='col'>Team</th><th scope='col'>appearance<br>match</th><th scope='col'>3-Point</th><th scope='col'>2-Point</th><th scope='col'>Free Throws</th><th scope='col'>Total score</th><th scope='col'>Average score</th>">
+							<th scope='col'>순위</th><th scope='col'>선수</th><th scope='col'>소속구단</th><th scope='col'>출전경기</th><th scope='col'>3점슛</th><th scope='col'>2점슛</th><th scope='col'>자유투</th><th scope='col'>총득점</th><th scope='col'>평균득점</th>
+						</tr>
+					</thead>
+					<tbody>
+
+					
+							<tr><td colspan="9" style="c" height="50">해당 데이터가 존재하지 않습니다.</td></tr>
+					
+						</tbody>
+                    </table>
+                </div>
+
+                <!--// 상세 데이터 목록 -->
+
+			</div>

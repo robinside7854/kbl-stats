@@ -1,0 +1,281 @@
+GET /game/ajax/ajax_player_record.asp?season_gu=046&part=rebound
+200 text/html 8439
+
+
+
+<table>
+	<caption>부분 순위 상세 정보</caption>
+
+	<colgroup>
+		<col style='width:10%'><col style='width:18%'><col style='width:17%'><col style='width:7%'><col style='width:8%'><col style='width:8%'><col style='width:8%'><col style='width:8%'><col style='width:8%'><col style='width:8%'>
+		<col>
+	</colgroup>
+
+	<thead>
+		<tr class="language" data-kr="<th scope='col'>순위</th><th scope='col'>선수</th><th scope='col'>소속구단</th><th scope='col'>G</th><th scope='col'>OFF</th><th scope='col'>ORPG</th><th scope='col'>DEF</th><th scope='col'>DRPG</th><th scope='col'>TOT</th><th scope='col'>RPG</th>" data-en="<th scope='col'>Ranking</th><th scope='col'>Player</th><th scope='col'>Team</th><th scope='col'>G</th><th scope='col'>OFF</th><th scope='col'>ORPG</th><th scope='col'>DEF</th><th scope='col'>DRPG</th><th scope='col'>TOT</th><th scope='col'>RPG</th>">
+		<th scope='col'>순위</th><th scope='col'>선수</th><th scope='col'>소속구단</th><th scope='col'>G</th><th scope='col'>OFF</th><th scope='col'>ORPG</th><th scope='col'>DEF</th><th scope='col'>DRPG</th><th scope='col'>TOT</th><th scope='col'>RPG</th>
+		</tr>
+	</thead>
+
+	<tbody>
+	
+			<tr>
+				<td>1</td>
+				<td><a href="/player/detail.asp?pno=095104" class="link_detail language" data-kr="김단비" data-en="KIM DAN BI">김단비</a></td>
+				<td class="language" data-kr="우리은행" data-en="WOORI BANK">우리은행</td>
+				<td>30</td>
+				<td>94</td>
+				<td>3.13</td>
+				<td>240</td>
+				<td>8.00</td>
+				<td>334</td>
+				<td>11.13</td>
+			</tr>
+	
+			<tr>
+				<td>2</td>
+				<td><a href="/player/detail.asp?pno=095533" class="link_detail language" data-kr="박지수" data-en="PARK JI SU">박지수</a></td>
+				<td class="language" data-kr="KB스타즈" data-en="KB STARS">KB스타즈</td>
+				<td>24</td>
+				<td>93</td>
+				<td>3.88</td>
+				<td>149</td>
+				<td>6.21</td>
+				<td>242</td>
+				<td>10.08</td>
+			</tr>
+	
+			<tr>
+				<td>3</td>
+				<td><a href="/player/detail.asp?pno=095499" class="link_detail language" data-kr="진안" data-en="JIN AN">진안</a></td>
+				<td class="language" data-kr="하나은행" data-en="HANA BANK">하나은행</td>
+				<td>30</td>
+				<td>86</td>
+				<td>2.87</td>
+				<td>193</td>
+				<td>6.43</td>
+				<td>279</td>
+				<td>9.30</td>
+			</tr>
+	
+			<tr>
+				<td>4</td>
+				<td><a href="/player/detail.asp?pno=095248" class="link_detail language" data-kr="김소니아" data-en="KIM SONIA">김소니아</a></td>
+				<td class="language" data-kr="BNK 썸" data-en="BNK SUM">BNK 썸</td>
+				<td>30</td>
+				<td>85</td>
+				<td>2.83</td>
+				<td>188</td>
+				<td>6.27</td>
+				<td>273</td>
+				<td>9.10</td>
+			</tr>
+	
+			<tr>
+				<td>5</td>
+				<td><a href="/player/detail.asp?pno=095778" class="link_detail language" data-kr="이해란" data-en="LEE HAE RAN">이해란</a></td>
+				<td class="language" data-kr="삼성생명" data-en="SAMSUNG LIFE">삼성생명</td>
+				<td>30</td>
+				<td>62</td>
+				<td>2.07</td>
+				<td>166</td>
+				<td>5.53</td>
+				<td>228</td>
+				<td>7.60</td>
+			</tr>
+	
+			<tr>
+				<td>6</td>
+				<td><a href="/player/detail.asp?pno=095263" class="link_detail language" data-kr="강이슬" data-en="KANG LEE SEUL">강이슬</a></td>
+				<td class="language" data-kr="KB스타즈" data-en="KB STARS">KB스타즈</td>
+				<td>29</td>
+				<td>47</td>
+				<td>1.62</td>
+				<td>143</td>
+				<td>4.93</td>
+				<td>190</td>
+				<td>6.55</td>
+			</tr>
+	
+			<tr>
+				<td>7</td>
+				<td><a href="/player/detail.asp?pno=095186" class="link_detail language" data-kr="박혜진" data-en="PARK HYE JIN">박혜진</a></td>
+				<td class="language" data-kr="BNK 썸" data-en="BNK SUM">BNK 썸</td>
+				<td>30</td>
+				<td>51</td>
+				<td>1.70</td>
+				<td>144</td>
+				<td>4.80</td>
+				<td>195</td>
+				<td>6.50</td>
+			</tr>
+	
+			<tr>
+				<td>8</td>
+				<td><a href="/player/detail.asp?pno=095703" class="link_detail language" data-kr="이명관" data-en="LEE MYUNG KUWAN">이명관</a></td>
+				<td class="language" data-kr="우리은행" data-en="WOORI BANK">우리은행</td>
+				<td>23</td>
+				<td>31</td>
+				<td>1.35</td>
+				<td>114</td>
+				<td>4.96</td>
+				<td>145</td>
+				<td>6.30</td>
+			</tr>
+	
+			<tr>
+				<td>9</td>
+				<td><a href="/player/detail.asp?pno=095912" class="link_detail language" data-kr="이이지마 사키" data-en="IIJIMA S.">이이지마 사키</a></td>
+				<td class="language" data-kr="하나은행" data-en="HANA BANK">하나은행</td>
+				<td>29</td>
+				<td>65</td>
+				<td>2.24</td>
+				<td>117</td>
+				<td>4.03</td>
+				<td>182</td>
+				<td>6.28</td>
+			</tr>
+	
+			<tr>
+				<td>10</td>
+				<td><a href="/player/detail.asp?pno=095972" class="link_detail language" data-kr="홍유순" data-en="HONG YU SOON">홍유순</a></td>
+				<td class="language" data-kr="신한은행" data-en="SHINHAN BANK">신한은행</td>
+				<td>30</td>
+				<td>83</td>
+				<td>2.77</td>
+				<td>99</td>
+				<td>3.30</td>
+				<td>182</td>
+				<td>6.07</td>
+			</tr>
+	
+			<tr>
+				<td>11</td>
+				<td><a href="/player/detail.asp?pno=095482" class="link_detail language" data-kr="김진영" data-en="KIM JIN YOUNG">김진영</a></td>
+				<td class="language" data-kr="신한은행" data-en="SHINHAN BANK">신한은행</td>
+				<td>29</td>
+				<td>44</td>
+				<td>1.52</td>
+				<td>119</td>
+				<td>4.10</td>
+				<td>163</td>
+				<td>5.62</td>
+			</tr>
+	
+			<tr>
+				<td>12</td>
+				<td><a href="/player/detail.asp?pno=096029" class="link_detail language" data-kr="미마 루이" data-en="MIMA R.">미마 루이</a></td>
+				<td class="language" data-kr="신한은행" data-en="SHINHAN BANK">신한은행</td>
+				<td>27</td>
+				<td>53</td>
+				<td>1.96</td>
+				<td>91</td>
+				<td>3.37</td>
+				<td>144</td>
+				<td>5.33</td>
+			</tr>
+	
+			<tr>
+				<td>13</td>
+				<td><a href="/player/detail.asp?pno=095261" class="link_detail language" data-kr="최이샘" data-en="CHOI I SAEM">최이샘</a></td>
+				<td class="language" data-kr="신한은행" data-en="SHINHAN BANK">신한은행</td>
+				<td>29</td>
+				<td>36</td>
+				<td>1.24</td>
+				<td>114</td>
+				<td>3.93</td>
+				<td>150</td>
+				<td>5.17</td>
+			</tr>
+	
+			<tr>
+				<td>14</td>
+				<td><a href="/player/detail.asp?pno=095633" class="link_detail language" data-kr="신이슬" data-en="SHIN LEE SEUL">신이슬</a></td>
+				<td class="language" data-kr="신한은행" data-en="SHINHAN BANK">신한은행</td>
+				<td>30</td>
+				<td>48</td>
+				<td>1.60</td>
+				<td>106</td>
+				<td>3.53</td>
+				<td>154</td>
+				<td>5.13</td>
+			</tr>
+	
+			<tr>
+				<td>15</td>
+				<td><a href="/player/detail.asp?pno=095503" class="link_detail language" data-kr="김지영" data-en="KIM JI YOUNG">김지영</a></td>
+				<td class="language" data-kr="신한은행" data-en="SHINHAN BANK">신한은행</td>
+				<td>21</td>
+				<td>33</td>
+				<td>1.57</td>
+				<td>63</td>
+				<td>3.00</td>
+				<td>96</td>
+				<td>4.57</td>
+			</tr>
+	
+			<tr>
+				<td>-</td>
+				<td><a href="/player/detail.asp?pno=095713" class="link_detail language" data-kr="강유림" data-en="KANG YOO LIM">강유림</a></td>
+				<td class="language" data-kr="삼성생명" data-en="SAMSUNG LIFE">삼성생명</td>
+				<td>30</td>
+				<td>53</td>
+				<td>1.77</td>
+				<td>84</td>
+				<td>2.80</td>
+				<td>137</td>
+				<td>4.57</td>
+			</tr>
+	
+			<tr>
+				<td>17</td>
+				<td><a href="/player/detail.asp?pno=095041" class="link_detail language" data-kr="김정은" data-en="KIM JUNG EUN">김정은</a></td>
+				<td class="language" data-kr="하나은행" data-en="HANA BANK">하나은행</td>
+				<td>30</td>
+				<td>21</td>
+				<td>0.70</td>
+				<td>115</td>
+				<td>3.83</td>
+				<td>136</td>
+				<td>4.53</td>
+			</tr>
+	
+			<tr>
+				<td>18</td>
+				<td><a href="/player/detail.asp?pno=095710" class="link_detail language" data-kr="허예은" data-en="HEO YE EUN">허예은</a></td>
+				<td class="language" data-kr="KB스타즈" data-en="KB STARS">KB스타즈</td>
+				<td>30</td>
+				<td>26</td>
+				<td>0.87</td>
+				<td>106</td>
+				<td>3.53</td>
+				<td>132</td>
+				<td>4.40</td>
+			</tr>
+	
+			<tr>
+				<td>19</td>
+				<td><a href="/player/detail.asp?pno=095715" class="link_detail language" data-kr="정예림" data-en="JUNG YE RIM">정예림</a></td>
+				<td class="language" data-kr="하나은행" data-en="HANA BANK">하나은행</td>
+				<td>29</td>
+				<td>65</td>
+				<td>2.24</td>
+				<td>61</td>
+				<td>2.10</td>
+				<td>126</td>
+				<td>4.34</td>
+			</tr>
+	
+			<tr>
+				<td>20</td>
+				<td><a href="/player/detail.asp?pno=095999" class="link_detail language" data-kr="송윤하" data-en="SONG YUN HA">송윤하</a></td>
+				<td class="language" data-kr="KB스타즈" data-en="KB STARS">KB스타즈</td>
+				<td>30</td>
+				<td>53</td>
+				<td>1.77</td>
+				<td>71</td>
+				<td>2.37</td>
+				<td>124</td>
+				<td>4.13</td>
+			</tr>
+	

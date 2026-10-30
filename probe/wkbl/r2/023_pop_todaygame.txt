@@ -1,0 +1,38 @@
+POST /game/pop_todaygame.asp {"season_gu0":"046","game_type0":"01","game_no0":"1","season_gu":"046","game_type":"01","game_no":"1"}
+200 text/html 1149
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ko" lang="ko">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Let's play Basketball!!</title>
+<link rel="stylesheet" href="/static/css/style.css?ver=0.2" type="text/css">
+<style type="text/css">
+.title_area {padding:12px 0;margin-bottom:16px;background:#0d2f6b;text-align:center;}
+.title_area .title_page {font-size:24px;font-weight:400;color:#fff;}
+</style>
+</head>
+<body>
+              
+<section>
+	<div id="cMain" class="game_schedule">
+	<div class="title_area">
+		<strong class="title_page">오늘의 경기</strong>
+	</div>
+
+
+	<!-- 컨텐츠 -->
+	<div id="pop_contents" style="text-align:center;">
+	
+		<img src="http://www.wkbl.or.kr/upfiles/todaygame/20251116 001.jpg" width="750" />
+		<img src="http://www.wkbl.or.kr/upfiles/todaygame/20251116 002.jpg" width="750" />
+		<img src="http://www.wkbl.or.kr/upfiles/todaygame/20251116 003.jpg" width="750" />
+	
+	</div>
+</section>
+<!-- //컨텐츠 -->
+</div>
+</body>
+</html>

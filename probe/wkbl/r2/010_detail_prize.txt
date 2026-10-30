@@ -1,0 +1,27 @@
+POST /player/ajax/ajax_detail_prize.asp {"season_gu":"046","player_no":"095937"}
+200 text/html 955
+
+
+    <h3 id="playerDetail" class="screen_out2">시상내역</h3>
+	<h4 class="tit_area language" data-kr="선수시상내역" data-en="Player Awards">선수시상내역</h4>
+	<div class="info_table01 type_record">
+		<table>
+			<caption>상세 정보 테이블</caption>
+			<colgroup>
+				<col style="width:20%">
+				<col style="width:20%">
+				<col style="width:20%">
+				<col style="width:20%">
+				<col style="width:20%">
+				<col>
+			</colgroup>
+			<thead>
+				<tr>
+					<th scope="col" class="th_help language" title="시즌" data-kr="시즌" data-en="Season">시즌</th>
+					<th scope="col" class="th_help language" title="소속구단" data-kr="소속구단" data-en="Team">소속구단</th>
+					<th scope="col" class="th_help language" title="구분" data-kr="구분" data-en="Type">구분</th>
+					<th scope="col" class="th_help language" title="항목" data-kr="항목" data-en="Award">항목</th>
+					<th scope="col" class="th_help language" title="내용" data-kr="내용" data-en="Detail">내용</th>
+				</tr>
+			</thead>
+			<tbody>
