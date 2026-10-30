@@ -1,0 +1,44 @@
+document	GET	200	text/html; Charset=utf-8	https://www.wkbl.or.kr/game/sch/schedule1.asp?season_gu=046&ym=202511		52217
+script	GET	200	application/javascript	https://www.wkbl.or.kr/static/js/common_wkbl.js		7177
+script	GET	200	application/javascript	https://www.wkbl.or.kr/static/js/lib/script.js		113433
+script	GET	200	application/javascript	https://www.wkbl.or.kr/game/sch/common_schedule.js		1000
+script	GET	200	application/javascript	https://www.wkbl.or.kr/static/js/ui_24.js?ver=2.2		15798
+xhr	GET	200	text/html; Charset=utf-8	https://www.wkbl.or.kr/game/sch/inc_list_1_new.asp?season_gu=046&ym=202511&viewType=1&gun=1		31328
+xhr	GET	200	text/html; Charset=utf-8	https://www.wkbl.or.kr/game/sch/inc_list_1_new_check.asp?season_gu=046&ym=202511&viewType=1&gun=1		0
+document	POST	200	text/html; Charset=utf-8	https://www.wkbl.or.kr/live11/realtime2.asp	season_gu0=046&game_type0=01&game_no0=1	29685
+script	GET	200	application/javascript	https://www.wkbl.or.kr/live11/common/livePlayer_12.js?10302026114319		33716
+script	GET	200	application/javascript	https://www.wkbl.or.kr/live11/common/livePlayer_sms_12.js?10302026114319		8576
+script	GET	200	application/javascript	https://www.wkbl.or.kr/live11/common/xml2json.js		6803
+script	GET	200	application/javascript	https://www.wkbl.or.kr/live11/common/prototype.js		29188
+xhr	GET	200	text/xml; Charset=utf-8	https://www.wkbl.or.kr/live11/path_live_player.asp?ckey=046|01|1|		8053
+document	GET	302		https://datalab.wkbl.or.kr/		0
+document	GET	200	text/html;charset=UTF-8	https://datalab.wkbl.or.kr/teamAnalysis?id=04701001		290805
+script	GET	200	application/javascript	https://datalab.wkbl.or.kr/js/smartwkbl.charts.js?ver=1.92		186643
+script	GET	200	application/javascript	https://datalab.wkbl.or.kr/js/smartwkbl.js?ver=1.92		24265
+script	GET	200	application/javascript	https://datalab.wkbl.or.kr/js/smartwkbl.records.js?ver=1.92		52695
+script	GET	200	application/javascript	https://datalab.wkbl.or.kr/js/mgwsp.js?ver=1.92		7823
+script	GET	200	application/javascript	https://datalab.wkbl.or.kr/js/clappr.min.js?ver=1.92		463624
+script	GET	200	application/javascript	https://datalab.wkbl.or.kr/js/Chart.min.js?ver=1.92		159638
+script	GET	200	application/javascript	https://datalab.wkbl.or.kr/js/smartwkbl.js?ver=1.92		24265
+script	GET	200	application/javascript	https://datalab.wkbl.or.kr/js/smartwkbl.charts.js?ver=1.92		186643
+script	GET	200	application/javascript	https://datalab.wkbl.or.kr/js/smartwkbl.records.js?ver=1.92		52695
+script	GET	200	application/javascript	https://datalab.wkbl.or.kr/js/mgwsp.js?ver=1.92		7823
+script	GET	200	application/javascript	https://datalab.wkbl.or.kr/js/clappr.min.js?ver=1.92		463624
+script	GET	200	application/javascript	https://datalab.wkbl.or.kr/js/Chart.min.js?ver=1.92		159638
+document	GET	200	text/html;charset=UTF-8	https://datalab.wkbl.or.kr/teamAnalysis?id=04701001		290805
+script	GET	200	application/javascript	https://datalab.wkbl.or.kr/js/smartwkbl.js?ver=1.92		24265
+script	GET	200	application/javascript	https://datalab.wkbl.or.kr/js/smartwkbl.charts.js?ver=1.92		186643
+script	GET	200	application/javascript	https://datalab.wkbl.or.kr/js/smartwkbl.records.js?ver=1.92		52695
+script	GET	200	application/javascript	https://datalab.wkbl.or.kr/js/mgwsp.js?ver=1.92		7823
+script	GET	200	application/javascript	https://datalab.wkbl.or.kr/js/clappr.min.js?ver=1.92		463624
+document	GET	200	text/html;charset=UTF-8	https://datalab.wkbl.or.kr/playerAnalysis?id=04701001		284999
+xhr	GET	200	application/json;charset=UTF-8	https://datalab.wkbl.or.kr/playerAnalysis/search?gameID=04701001&startSeasonCode=046&endSeasonCode=046		18747
+script	GET	200	application/javascript	https://datalab.wkbl.or.kr/js/smartwkbl.js?ver=1.92		24265
+script	GET	200	application/javascript	https://datalab.wkbl.or.kr/js/smartwkbl.charts.js?ver=1.92		186643
+script	GET	200	application/javascript	https://datalab.wkbl.or.kr/js/smartwkbl.records.js?ver=1.92		52695
+script	GET	200	application/javascript	https://datalab.wkbl.or.kr/js/mgwsp.js?ver=1.92		7823
+script	GET	200	application/javascript	https://datalab.wkbl.or.kr/js/clappr.min.js?ver=1.92		463624
+script	GET	200	application/javascript	https://datalab.wkbl.or.kr/js/Chart.min.js?ver=1.92		159638
+document	GET	200	text/html;charset=UTF-8	https://datalab.wkbl.or.kr/positionAnalysis?id=04701001		291303
+script	GET	200	application/javascript	https://datalab.wkbl.or.kr/js/chartjs-plugin-datalabels.min.js?ver=1.92		8836
+xhr	GET	200	application/json;charset=UTF-8	https://datalab.wkbl.or.kr/positionAnalysis/search?gameID=04701001&startSeasonCode=046&endSeasonCode=046		4422

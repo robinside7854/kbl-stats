@@ -1,0 +1,722 @@
+GET https://www.wkbl.or.kr/live11/common/livePlayer_12.js 
+200 application/javascript 33716
+
+
+//-------------------- mContentLoader.js
+var net = new Object();
+var TeamPlayer = new Array();
+var ti=0,tj=0;
+var pview = "";
+
+
+net.READY_STATE_UNINITIALIZED= 0;
+net.READY_STATE_LOADING      = 1;
+net.READY_STATE_LOADED       = 2;
+net.READY_STATE_INTERACTIVE  = 3;
+net.READY_STATE_COMPLETE     = 4;
+
+net.ContentLoader = function( component, url, method, requestParams ) {
+   this.component     = component;
+   this.url           = url;
+   this.requestParams = requestParams;
+   this.method        = method;
+}
+
+net.ContentLoader.prototype = {
+
+   getTransport: function() {
+      var transport;
+      if ( window.XMLHttpRequest )
+         transport = new XMLHttpRequest();
+      else if ( window.ActiveXObject ) {
+         try {
+            transport = new ActiveXObject('Msxml2.XMLHTTP');
+         }
+         catch(err) {
+            transport = new ActiveXObject('Microsoft.XMLHTTP');
+         }
+      }
+
+      return transport;
+   },
+
+   sendRequest: function() {
+      //if ( window.netscape && window.netscape.security.PrivilegeManager.enablePrivilege)
+      //   netscape.security.PrivilegeManager.enablePrivilege('UniversalBrowserRead');
+
+      var requestParams = []
+      for ( var i = 0 ; i < arguments.length ;  i++ )
+         requestParams.push(arguments[i]);
+
+      var oThis = this;
+      var request = this.getTransport();
+
+
+      request.open( this.method, this.url, true );
+
+
+      request.setRequestHeader( 'Content-Type', 'application/x-www-form-urlencoded');
+
+      request.onreadystatechange = function() { oThis.handleAjaxResponse(request) };
+      request.send( this.queryString(requestParams) );
+
+  },
+
+  queryString: function(args) {
+
+     var requestParams = [];
+     for ( var i = 0 ; i < this.requestParams.length ; i++ )
+        requestParams.push(this.requestParams[i]);
+     for ( var j = 0 ; j < args.length ; j++ )
+        requestParams.push(args[j]);
+
+     var queryString = "";
+     if ( requestParams && requestParams.length > 0 ) {
+        for ( var i = 0 ; i < requestParams.length ; i++ )
+           queryString += requestParams[i] + '&';
+        queryString = queryString.substring(0, queryString.length-1);
+     }
+     return queryString;
+  },
+
+	handleAjaxResponse: function(request) {
+		if ( request.readyState == net.READY_STATE_COMPLETE ) {
+			if ( this.isSuccess(request) ){
+				if(this.component.viewty>0 && (this.component.team_ha=="home" || this.component.team_ha=="away")){
+					this.component.ajaxUpdate_view(request,this.component.viewty,this.component.team_ha);
+				}else{
+					this.component.ajaxUpdate(request);
+				}
+			}else{
+				this.component.handleError(request);
+			}
+
+		}
+
+	},
+
+	isSuccess: function(request) {
+
+		return  request.status == 0 
+			|| (request.status >= 200 && request.status < 300);
+	}
+
+};
+
+
+//-------------------- mNewTeamLive.js
+function NewTeamLive( viewty, team_ha, masterId, url, options ) {
+	this.viewty   = viewty;
+	this.team_ha  = team_ha;
+	this.master   = document.getElementById(masterId);
+	this.options  = options;
+
+	this.ajaxHelper = new net.ContentLoader( this, url, "GET", options.requestParameters || [] );
+
+	this.initializeBehavior();
+}
+
+NewTeamLive.prototype = {
+
+	initializeBehavior: function() {
+		var oThis = this;
+
+		if(this.viewty==true) oThis.masterLiveViewChanged();
+		else if(this.viewty>=0) oThis.masterLiveViewChanged();
+	},
+
+	masterLiveViewChanged: function() {
+		var query = this.master.value;
+		this.ajaxHelper.sendRequest( 'query=' + query );
+	},
+
+	ajaxUpdate:  function(request) {
+		try {
+			this.createOptions(request.responseXML.documentElement);
+		} catch(e) {
+			return; // 오류 발생시 처리
+		}
+
+	},
+	ajaxUpdate_view:  function(request,tPlayer_no,tPlayer_team) {
+		try {
+			this.viewty     = tPlayer_no;
+			this.team_ha     = tPlayer_team;
+			this.createView(request.responseXML.documentElement);
+		} catch(e) {
+			return; // 오류 발생시 처리
+		}
+
+
+	},
+	createOptions: function(ajaxResponse) {
+		var entries = ajaxResponse.getElementsByTagName('player');
+		var entries2 = ajaxResponse.getElementsByTagName('team');
+		var entries3 = ajaxResponse.getElementsByTagName('ftt');
+
+		var temp, temp_nm;
+		var team_code, a_s, kname, pos, back_num, foul_tot, score, od_r;
+
+		var j = 0;
+
+		//goView("container");
+
+		var code_team = new Array();
+		code_team["01"] = "KB스타즈";
+		code_team["02"] = "금호생명";
+		code_team["03"] = "삼성생명";
+		code_team["04"] = "신세계";
+		code_team["05"] = "우리은행";
+		code_team["07"] = "신한은행";
+		code_team["08"] = "KDB생명";
+		code_team["09"] = "하나";
+		code_team["10"] = "OK저축";
+
+		let now_lang = localStorage.getItem("lang");	//국문 영문 값
+		if (!now_lang) now_lang = "kr";
+
+		for (var i = 0; i < entries.length; i++) {
+
+			team_code = this.getElementContent(entries[i], 'team_code');
+			kname = this.getElementContent(entries[i], 'kname');
+			ename = this.getElementContent(entries[i], 'ename');
+			pos = this.getElementContent(entries[i], 'pos');
+			back_num = this.getElementContent(entries[i], 'back_num');
+			foul_tot = this.getElementContent(entries[i], 'foul_tot');
+			score = this.getElementContent(entries[i], 'score');
+			player_no = this.getElementContent(entries[i], 'player_no');
+
+
+			if (i == 0 || temp == team_code) {
+				document.getElementById("Left_" + i + "_1").innerHTML = back_num;
+
+				//국문 - 영문 추가 : 좌측선수 리스트
+				if (now_lang == "kr") {
+					document.getElementById("Left_" + i + "_2").innerHTML = kname;
+				} else {
+					document.getElementById("Left_" + i + "_2").innerHTML = ename;
+				}
+
+				document.getElementById("Left_" + i + "_3").innerHTML = score;
+
+
+				//if(i==0 && score>0){
+				//document.getElementById("left_top1_1").innerHTML = kname;
+				//document.getElementById("left_top1_2").innerHTML = score;
+				//document.getElementById("left_top1_3").innerHTML = "<img src='/static/images/player/pimg/"+code_team[team_code]+"_"+kname+"_s.jpg' width='46' height='60'>";
+				//}
+
+				if (i < 5) {
+					//국문 - 영문 추가 : 농구코트 좌측 선수
+					if (now_lang == "kr") {
+						document.getElementById("txtTeamPosition" + (i + 1)).innerHTML = kname;
+					} else {
+						document.getElementById("txtTeamPosition" + (i + 1)).innerHTML = ename;
+					}
+
+
+					for (var k = 1; k <= 5; k++) {
+						if (k <= foul_tot) {
+							document.getElementById("Left_" + i + "_4_" + k).className = "fs";
+						} else {
+							document.getElementById("Left_" + i + "_4_" + k).className = "";
+						}
+					}
+				} else {
+					for (var k = 1; k <= 5; k++) {
+						if (k <= foul_tot) {
+							document.getElementById("Left_" + i + "_4_" + k).className = "fn";
+						} else {
+							document.getElementById("Left_" + i + "_4_" + k).className = "";
+						}
+					}
+				}
+				if (i == 0) temp = team_code;
+			} else {
+				document.getElementById("Right_" + j + "_1").innerHTML = back_num;
+
+				//국문 - 영문 추가 : 우측 선수 리스트
+				if (now_lang == "kr") {
+					document.getElementById("Right_" + j + "_2").innerHTML = kname;
+				} else {
+					document.getElementById("Right_" + j + "_2").innerHTML = ename;
+				}
+
+				document.getElementById("Right_" + j + "_3").innerHTML = score;
+
+
+				//if(j==0 && score>0){
+				//document.getElementById("right_top1_1").innerHTML = kname;
+				//document.getElementById("right_top1_2").innerHTML = score;
+				//document.getElementById("right_top1_3").innerHTML = "<img src='/static/images/player/pimg/"+code_team[team_code]+"_"+kname+"_s.jpg' width='46' height='60'>";
+				//}
+
+				if (j < 5) {
+					//국문 - 영문 추가 : 농구코트 우측 선수
+					if (now_lang == "kr") {
+						document.getElementById("txtTeamPosition" + (j + 6)).innerHTML = kname;
+					} else {
+						document.getElementById("txtTeamPosition" + (j + 6)).innerHTML = ename;
+					}
+
+
+					for (var k = 1; k <= 5; k++) {
+						if (k <= foul_tot) {
+							document.getElementById("Right_" + j + "_4_" + k).className = "fs";
+						} else {
+							document.getElementById("Right_" + j + "_4_" + k).className = "";
+						}
+					}
+				} else {
+					for (var k = 1; k <= 5; k++) {
+						if (k <= foul_tot) {
+							document.getElementById("Right_" + j + "_4_" + k).className = "fn";
+						} else {
+							document.getElementById("Right_" + j + "_4_" + k).className = "";
+						}
+					}
+				}
+
+				j++;
+			}
+		}
+
+		var temp, temp_nm;
+		var team_code, a_s, kname, pos, back_num, foul_tot, score, od_r;
+
+		var home_qu1 = 0, home_qu2 = 0, home_qu3 = 0, home_qu4 = 0, home_qu5 = 0, home_qu6 = 0, home_qu7 = 0,
+			home_qu8 = 0;
+		var away_qu1 = 0, away_qu2 = 0, away_qu3 = 0, away_qu4 = 0, away_qu5 = 0, away_qu6 = 0, away_qu7 = 0,
+			away_qu8 = 0;
+		home_qu1 = this.getElementContent(entries2[0], 'home_qu1');
+		home_qu2 = this.getElementContent(entries2[0], 'home_qu2');
+		home_qu3 = this.getElementContent(entries2[0], 'home_qu3');
+		home_qu4 = this.getElementContent(entries2[0], 'home_qu4');
+		home_qu5 = this.getElementContent(entries2[0], 'home_qu5');
+		home_qu6 = this.getElementContent(entries2[0], 'home_qu6');
+		home_qu7 = this.getElementContent(entries2[0], 'home_qu7');
+		home_qu8 = this.getElementContent(entries2[0], 'home_qu8');
+		away_qu1 = this.getElementContent(entries2[0], 'away_qu1');
+		away_qu2 = this.getElementContent(entries2[0], 'away_qu2');
+		away_qu3 = this.getElementContent(entries2[0], 'away_qu3');
+		away_qu4 = this.getElementContent(entries2[0], 'away_qu4');
+		away_qu5 = this.getElementContent(entries2[0], 'away_qu5');
+		away_qu6 = this.getElementContent(entries2[0], 'away_qu6');
+		away_qu7 = this.getElementContent(entries2[0], 'away_qu7');
+		away_qu8 = this.getElementContent(entries2[0], 'away_qu8');
+
+		var hScore = this.createScore1(home_qu1, home_qu2, home_qu3, home_qu4, home_qu5, home_qu6, home_qu7, home_qu8, away_qu1, away_qu2, away_qu3, away_qu4, away_qu5, away_qu6, away_qu7, away_qu8);
+
+		//팀별 총점수
+		var hScore0
+		hScore0 = hScore.split('|');
+		this.createTScore(hScore0[0], hScore0[1]);
+
+		//상단 파울,작전
+		document.getElementById("team1_foul").innerHTML = this.getElementContent(entries3[0], 'team1_foul');
+		document.getElementById("team2_foul").innerHTML = this.getElementContent(entries3[0], 'team2_foul');
+		document.getElementById("team1_timef").innerHTML = this.getElementContent(entries3[0], 'team1_timef');
+		document.getElementById("team2_timef").innerHTML = this.getElementContent(entries3[0], 'team2_timef');
+		document.getElementById("team1_time20").innerHTML = this.getElementContent(entries3[0], 'team1_time20');
+		document.getElementById("team2_time20").innerHTML = this.getElementContent(entries3[0], 'team2_time20');
+
+		//득점 리바운드, 어시스트 top
+		// document.getElementById("left_top1_1").innerHTML = this.getElementContent(entries3[0], 'left_top1_1');
+		// document.getElementById("left_top1_2").innerHTML = this.getElementContent(entries3[0], 'left_top1_2');
+		// document.getElementById("left_top1_3").innerHTML = "<img src='/static/images/player/pimg/" + this.getElementContent(entries3[0], 'left_top1_3') + "_" + this.getElementContent(entries3[0], 'left_top1_1') + "_s.jpg?ver=3.0' width='46' height='60'>";
+		// document.getElementById("right_top1_1").innerHTML = this.getElementContent(entries3[0], 'right_top1_1');
+		// document.getElementById("right_top1_2").innerHTML = this.getElementContent(entries3[0], 'right_top1_2');
+		// document.getElementById("right_top1_3").innerHTML = "<img src='/static/images/player/pimg/" + this.getElementContent(entries3[0], 'right_top1_3') + "_" + this.getElementContent(entries3[0], 'right_top1_1') + "_s.jpg?ver=3.0' width='46' height='60'>";
+		//
+		// document.getElementById("left_top2_1").innerHTML = this.getElementContent(entries3[0], 'left_top2_1');
+		// document.getElementById("left_top2_2").innerHTML = this.getElementContent(entries3[0], 'left_top2_2');
+		// document.getElementById("left_top2_3").innerHTML = "<img src='/static/images/player/pimg/" + this.getElementContent(entries3[0], 'left_top2_3') + "_" + this.getElementContent(entries3[0], 'left_top2_1') + "_s.jpg?ver=3.0' width='46' height='60'>";
+		// document.getElementById("right_top2_1").innerHTML = this.getElementContent(entries3[0], 'right_top2_1');
+		// document.getElementById("right_top2_2").innerHTML = this.getElementContent(entries3[0], 'right_top2_2');
+		// document.getElementById("right_top2_3").innerHTML = "<img src='/static/images/player/pimg/" + this.getElementContent(entries3[0], 'right_top2_3') + "_" + this.getElementContent(entries3[0], 'right_top2_1') + "_s.jpg?ver=3.0' width='46' height='60'>";
+		//
+		// document.getElementById("left_top3_1").innerHTML = this.getElementContent(entries3[0], 'left_top3_1');
+		// document.getElementById("left_top3_2").innerHTML = this.getElementContent(entries3[0], 'left_top3_2');
+		// document.getElementById("left_top3_3").innerHTML = "<img src='/static/images/player/pimg/" + this.getElementContent(entries3[0], 'left_top3_3') + "_" + this.getElementContent(entries3[0], 'left_top3_1') + "_s.jpg?ver=3.0' width='46' height='60'>";
+		// document.getElementById("right_top3_1").innerHTML = this.getElementContent(entries3[0], 'right_top3_1');
+		// document.getElementById("right_top3_2").innerHTML = this.getElementContent(entries3[0], 'right_top3_2');
+		// document.getElementById("right_top3_3").innerHTML = "<img src='/static/images/player/pimg/" + this.getElementContent(entries3[0], 'right_top3_3') + "_" + this.getElementContent(entries3[0], 'right_top3_1') + "_s.jpg?ver=3.0' width='46' height='60'>";
+
+		//중앙 하단 - 득점 리바운드, 어시스트 top - new
+		if (now_lang == "kr") {
+            if(this.getElementContent(entries3[0], 'left_top1_2_new') != 0) {
+                document.getElementById("left_top1_1").innerHTML = this.getElementContent(entries3[0], 'left_top1_1_new');
+                document.getElementById("left_top1_2").innerHTML = this.getElementContent(entries3[0], 'left_top1_2_new');
+            }
+            if(this.getElementContent(entries3[0], 'left_top2_2_new') != 0) {
+                document.getElementById("left_top2_1").innerHTML = this.getElementContent(entries3[0], 'left_top2_1_new');
+                document.getElementById("left_top2_2").innerHTML = this.getElementContent(entries3[0], 'left_top2_2_new');
+            }
+            if(this.getElementContent(entries3[0], 'left_top3_2_new') != 0) {
+                document.getElementById("left_top3_1").innerHTML = this.getElementContent(entries3[0], 'left_top3_1_new');
+                document.getElementById("left_top3_2").innerHTML = this.getElementContent(entries3[0], 'left_top3_2_new');
+            }
+
+            if(this.getElementContent(entries3[0], 'right_top1_2_new') != 0) {
+                document.getElementById("right_top1_1").innerHTML = this.getElementContent(entries3[0], 'right_top1_1_new');
+                document.getElementById("right_top1_2").innerHTML = this.getElementContent(entries3[0], 'right_top1_2_new');
+            }
+            if(this.getElementContent(entries3[0], 'right_top2_2_new') != 0) {
+                document.getElementById("right_top2_1").innerHTML = this.getElementContent(entries3[0], 'right_top2_1_new');
+                document.getElementById("right_top2_2").innerHTML = this.getElementContent(entries3[0], 'right_top2_2_new');
+            }
+            if(this.getElementContent(entries3[0], 'right_top3_2_new') != 0) {
+                document.getElementById("right_top3_1").innerHTML = this.getElementContent(entries3[0], 'right_top3_1_new');
+                document.getElementById("right_top3_2").innerHTML = this.getElementContent(entries3[0], 'right_top3_2_new');
+            }
+		} else {
+            if(this.getElementContent(entries3[0], 'left_top1_2_new') != 0) {
+                document.getElementById("left_top1_1").innerHTML = this.getElementContent(entries3[0], 'left_top1_4_new');
+                document.getElementById("left_top1_2").innerHTML = this.getElementContent(entries3[0], 'left_top1_2_new');
+            }
+            if(this.getElementContent(entries3[0], 'left_top2_2_new') != 0) {
+                document.getElementById("left_top2_1").innerHTML = this.getElementContent(entries3[0], 'left_top2_4_new');
+                document.getElementById("left_top2_2").innerHTML = this.getElementContent(entries3[0], 'left_top2_2_new');
+            }
+            if(this.getElementContent(entries3[0], 'left_top3_2_new') != 0) {
+                document.getElementById("left_top3_1").innerHTML = this.getElementContent(entries3[0], 'left_top3_4_new');
+                document.getElementById("left_top3_2").innerHTML = this.getElementContent(entries3[0], 'left_top3_2_new');
+            }
+
+            if(this.getElementContent(entries3[0], 'right_top1_2_new') != 0) {
+                document.getElementById("right_top1_1").innerHTML = this.getElementContent(entries3[0], 'right_top1_4_new');
+                document.getElementById("right_top1_2").innerHTML = this.getElementContent(entries3[0], 'right_top1_2_new');
+            }
+            if(this.getElementContent(entries3[0], 'right_top2_2_new') != 0) {
+                document.getElementById("right_top2_1").innerHTML = this.getElementContent(entries3[0], 'right_top2_4_new');
+                document.getElementById("right_top2_2").innerHTML = this.getElementContent(entries3[0], 'right_top2_2_new');
+            }
+            if(this.getElementContent(entries3[0], 'right_top3_2_new') != 0) {
+                document.getElementById("right_top3_1").innerHTML = this.getElementContent(entries3[0], 'right_top3_4_new');
+                document.getElementById("right_top3_2").innerHTML = this.getElementContent(entries3[0], 'right_top3_2_new');
+            }
+		}
+
+        // if(this.getElementContent(entries3[0], 'left_top1_2_new') != '0') {
+        //     document.getElementById("left_top1_2").innerHTML = this.getElementContent(entries3[0], 'left_top1_2_new');
+        // }
+        // if(this.getElementContent(entries3[0], 'left_top2_2_new') != '0') {
+        //     document.getElementById("left_top2_2").innerHTML = this.getElementContent(entries3[0], 'left_top2_2_new');
+        // }
+        // if(this.getElementContent(entries3[0], 'left_top3_2_new') != '0') {
+        //     document.getElementById("left_top3_2").innerHTML = this.getElementContent(entries3[0], 'left_top3_2_new');
+        // }
+        //
+        // if(this.getElementContent(entries3[0], 'right_top1_2_new') != '0') {
+        //     document.getElementById("right_top1_2").innerHTML = this.getElementContent(entries3[0], 'right_top1_2_new');
+        // }
+        // if(this.getElementContent(entries3[0], 'right_top2_2_new') != '0') {
+        //     document.getElementById("right_top2_2").innerHTML = this.getElementContent(entries3[0], 'right_top2_2_new');
+        // }
+        // if(this.getElementContent(entries3[0], 'right_top3_2_new') != '0') {
+        //     document.getElementById("right_top3_2").innerHTML = this.getElementContent(entries3[0], 'right_top3_2_new');
+        // }
+
+		
+		//중앙 하단 - 득점 리바운드, 어시스트 top 선수 사진 이미지 - new
+		var seasonChecck = season_gu0.slice(-2, season_gu0.length);
+
+		if (parseInt(seasonChecck) > 50){ // 046 시즌 : 46 > 50
+			// 046 시즌부터  팀코드 + 선수코드    => ex) /static/images/player/pimg/09_095830_s.jpg?ver=3.0
+			document.getElementById("left_top1_3").innerHTML = "<img src='/static/images/player/pimg/" + this.getElementContent(entries3[0], 'left_top1_3_new') + "_" + this.getElementContent(entries3[0], 'left_top1_5_new') + "_s.jpg?ver=3.0' width='46' height='60' onerror=\"this.src='images/noimg_player.jpg'\">";
+			document.getElementById("left_top2_3").innerHTML = "<img src='/static/images/player/pimg/" + this.getElementContent(entries3[0], 'left_top2_3_new') + "_" + this.getElementContent(entries3[0], 'left_top2_5_new') + "_s.jpg?ver=3.0' width='46' height='60' onerror=\"this.src='images/noimg_player.jpg'\">";
+			document.getElementById("left_top3_3").innerHTML = "<img src='/static/images/player/pimg/" + this.getElementContent(entries3[0], 'left_top3_3_new') + "_" + this.getElementContent(entries3[0], 'left_top3_5_new') + "_s.jpg?ver=3.0' width='46' height='60' onerror=\"this.src='images/noimg_player.jpg'\">";
+			document.getElementById("right_top1_3").innerHTML = "<img src='/static/images/player/pimg/" + this.getElementContent(entries3[0], 'right_top1_3_new') + "_" + this.getElementContent(entries3[0], 'right_top1_5_new') + "_s.jpg?ver=3.0' width='46' height='60' onerror=\"this.src='images/noimg_player.jpg'\">";
+			document.getElementById("right_top2_3").innerHTML = "<img src='/static/images/player/pimg/" + this.getElementContent(entries3[0], 'right_top2_3_new') + "_" + this.getElementContent(entries3[0], 'right_top2_5_new') + "_s.jpg?ver=3.0' width='46' height='60' onerror=\"this.src='images/noimg_player.jpg'\">";
+			document.getElementById("right_top3_3").innerHTML = "<img src='/static/images/player/pimg/" + this.getElementContent(entries3[0], 'right_top3_3_new') + "_" + this.getElementContent(entries3[0], 'right_top3_5_new') + "_s.jpg?ver=3.0' width='46' height='60' onerror=\"this.src='images/noimg_player.jpg'\">";
+		}else {
+			// 기존 스타일   팀명 + 선수명       => ex) /static/images/player/pimg/하나은행_고서연_s.jpg?ver=3.0
+			document.getElementById("left_top1_3").innerHTML = "<img src='/static/images/player/pimg/" + this.getElementContent(entries3[0], 'left_top1_3') + "_" + this.getElementContent(entries3[0], 'left_top1_1') + "_s.jpg?ver=3.0' width='46' height='60' onerror=\"this.src='images/noimg_player.jpg'\">";
+			document.getElementById("left_top2_3").innerHTML = "<img src='/static/images/player/pimg/" + this.getElementContent(entries3[0], 'left_top2_3') + "_" + this.getElementContent(entries3[0], 'left_top2_1') + "_s.jpg?ver=3.0' width='46' height='60' onerror=\"this.src='images/noimg_player.jpg'\">";
+			document.getElementById("left_top3_3").innerHTML = "<img src='/static/images/player/pimg/" + this.getElementContent(entries3[0], 'left_top3_3') + "_" + this.getElementContent(entries3[0], 'left_top3_1') + "_s.jpg?ver=3.0' width='46' height='60' onerror=\"this.src='images/noimg_player.jpg'\">";
+			document.getElementById("right_top1_3").innerHTML = "<img src='/static/images/player/pimg/" + this.getElementContent(entries3[0], 'right_top1_3') + "_" + this.getElementContent(entries3[0], 'right_top1_1') + "_s.jpg?ver=3.0' width='46' height='60' onerror=\"this.src='images/noimg_player.jpg'\">";
+			document.getElementById("right_top2_3").innerHTML = "<img src='/static/images/player/pimg/" + this.getElementContent(entries3[0], 'right_top2_3') + "_" + this.getElementContent(entries3[0], 'right_top2_1') + "_s.jpg?ver=3.0' width='46' height='60' onerror=\"this.src='images/noimg_player.jpg'\">";
+			document.getElementById("right_top3_3").innerHTML = "<img src='/static/images/player/pimg/" + this.getElementContent(entries3[0], 'right_top3_3') + "_" + this.getElementContent(entries3[0], 'right_top3_1') + "_s.jpg?ver=3.0' width='46' height='60' onerror=\"this.src='images/noimg_player.jpg'\">";
+		}
+
+		return;
+	},
+
+
+	createScore1: function(home_qu1,home_qu2,home_qu3,home_qu4,home_qu5,home_qu6,home_qu7,home_qu8,away_qu1,away_qu2,away_qu3,away_qu4,away_qu5,away_qu6,away_qu7,away_qu8) {
+
+		var team_sum, team_sum2;
+
+		var hq1, hq2, hq3, hq4, hx1, hx2, hx3, hx4, hxt;
+		var aq1, aq2, aq3, aq4, ax1, ax2, ax3, ax4, axt;
+
+		hq1 = parseInt(home_qu1);
+		hq2 = parseInt(home_qu2);
+		hq3 = parseInt(home_qu3);
+		hq4 = parseInt(home_qu4);
+		hx1 = parseInt(home_qu5);
+		hx2 = parseInt(home_qu6);
+		hx3 = parseInt(home_qu7);
+		hx4 = parseInt(home_qu8);
+
+		if (hq2>0) hq2 = hq2 - parseInt(home_qu1);
+		if (hq3>0) hq3 = hq3 - parseInt(home_qu2);
+		if (hq4>0) hq4 = hq4 - parseInt(home_qu3);
+		if (hx1>0) hx1 = hx1 - parseInt(home_qu4);
+		if (hx2>0) hx2 = hx2 - parseInt(home_qu5);
+		if (hx3>0) hx3 = hx3 - parseInt(home_qu6);
+		if (hx4>0) hx4 = hx4 - parseInt(home_qu7);
+
+		hxt = hx1+hx2+hx3+hx4;
+		team_sum = hq1+hq2+hq3+hq4+hxt;
+
+		document.getElementById("team1_score1").innerHTML = hq1;
+		document.getElementById("team1_score2").innerHTML = hq2;
+		document.getElementById("team1_score3").innerHTML = hq3;
+		document.getElementById("team1_score4").innerHTML = hq4;
+		document.getElementById("team1_score5").innerHTML = hxt;
+		document.getElementById("team1_score5").innerHTML = hxt;
+		document.getElementById("team1_score6").innerHTML = team_sum;
+
+		aq1 = parseInt(away_qu1);
+		aq2 = parseInt(away_qu2);
+		aq3 = parseInt(away_qu3);
+		aq4 = parseInt(away_qu4);
+		ax1 = parseInt(away_qu5);
+		ax2 = parseInt(away_qu6);
+		ax3 = parseInt(away_qu7);
+		ax4 = parseInt(away_qu8);
+
+		if (aq2>0) aq2 = aq2 - parseInt(away_qu1);
+		if (aq3>0) aq3 = aq3 - parseInt(away_qu2);
+		if (aq4>0) aq4 = aq4 - parseInt(away_qu3);
+		if (ax1>0) ax1 = ax1 - parseInt(away_qu4);
+		if (ax2>0) ax2 = ax2 - parseInt(away_qu5);
+		if (ax3>0) ax3 = ax3 - parseInt(away_qu6);
+		if (ax4>0) ax4 = ax4 - parseInt(away_qu7);
+
+		axt = ax1+ax2+ax3+ax4;
+		team_sum2 = aq1+aq2+aq3+aq4+axt;
+
+		document.getElementById("team2_score1").innerHTML = aq1;
+		document.getElementById("team2_score2").innerHTML = aq2;
+		document.getElementById("team2_score3").innerHTML = aq3;
+		document.getElementById("team2_score4").innerHTML = aq4;
+		document.getElementById("team2_score5").innerHTML = axt;
+		document.getElementById("team2_score6").innerHTML = team_sum2;
+
+		return team_sum+"|"+team_sum2;
+
+	},
+
+	createTScore: function(team_sum,team_sum2) {
+
+			var rec_amt = String(team_sum);
+			var Lg = rec_amt.length;
+			if(Lg==1){
+				document.getElementById("home_score1").innerHTML = "<img src='/live11/images/p0"+rec_amt+".png' alt='"+rec_amt+"' />";
+			}else if(Lg==2){
+				var a1=rec_amt.substring(1,2);
+				var a2=rec_amt.substring(0,1);
+				document.getElementById("home_score1").innerHTML = "<img src='/live11/images/p0"+a1+".png' alt='"+a1+"' />";
+				document.getElementById("home_score2").innerHTML = "<img src='/live11/images/p0"+a2+".png' alt='"+a2+"' />";
+			}else if(Lg==3){
+				var a1=rec_amt.substring(2,3);
+				var a2=rec_amt.substring(1,2);
+				var a3=rec_amt.substring(0,1);
+				document.getElementById("home_score1").innerHTML = "<img src='/live11/images/p0"+a1+".png' alt='"+a1+"' />";
+				document.getElementById("home_score2").innerHTML = "<img src='/live11/images/p0"+a2+".png' alt='"+a2+"' />";
+				document.getElementById("home_score3").innerHTML = "<img src='/live11/images/p0"+a3+".png' alt='"+a3+"' />";
+			}else{
+				document.getElementById("home_score1").innerHTML = "<img src='/live11/images/p00.png' alt='0' />";
+			}
+
+			var rec_amt = String(team_sum2);
+			var Lg = rec_amt.length;
+			if(Lg==1){
+				document.getElementById("away_score1").innerHTML = "<img src='/live11/images/p0"+rec_amt+".png' alt='"+rec_amt+"' />";
+			}else if(Lg==2){
+				var a1=rec_amt.substring(1,2);
+				var a2=rec_amt.substring(0,1);
+				document.getElementById("away_score2").innerHTML = "<img src='/live11/images/p0"+a1+".png' alt='"+a1+"' />";
+				document.getElementById("away_score1").innerHTML = "<img src='/live11/images/p0"+a2+".png' alt='"+a2+"' />";
+			}else if(Lg==3){
+				var a1=rec_amt.substring(2,3);
+				var a2=rec_amt.substring(1,2);
+				var a3=rec_amt.substring(0,1);
+				document.getElementById("away_score3").innerHTML = "<img src='/live11/images/p0"+a1+".png' alt='"+a1+"' />";
+				document.getElementById("away_score2").innerHTML = "<img src='/live11/images/p0"+a2+".png' alt='"+a2+"' />";
+				document.getElementById("away_score1").innerHTML = "<img src='/live11/images/p0"+a3+".png' alt='"+a3+"' />";
+			}else{
+				document.getElementById("away_score1").innerHTML = "<img src='/live11/images/p00.png' alt='0' />";
+			}
+
+	},
+
+
+	createView: function(ajaxResponse) {
+
+		var entries = ajaxResponse.getElementsByTagName('player');
+
+		var temp,temp_nm;
+		var team_code,quarter_gu,kname,pos,back_num,foul_tot,score,od_r;
+		var a_s,fg,fg_a,threep,threep_a,ft,ft_a,s_t,play_min,play_sec,p_height,p_weight;
+		var photo_name,fg_p,threep_p,ft_p,rb_p,as_p,st_p,score_p,play_time,season_code,player_no;
+		var tPlayer_no,tPlayer_team;
+		tPlayer_no = this.viewty;
+		tPlayer_team = this.team_ha;
+
+		var j = 0;
+		for ( var i = 0 ; i < entries.length ; i++ ) {
+			player_no =  this.getElementContent(entries[i],'player_no');
+
+			if(tPlayer_no==player_no){
+				team_code = this.getElementContent(entries[i],'team_code');
+				quarter_gu = this.getElementContent(entries[i],'quarter_gu');
+				kname =  this.getElementContent(entries[i],'kname');
+				pos =  this.getElementContent(entries[i],'pos');
+				back_num =  this.getElementContent(entries[i],'back_num');
+				foul_tot =  this.getElementContent(entries[i],'foul_tot');
+				score =  this.getElementContent(entries[i],'score');
+				od_r =  this.getElementContent(entries[i],'od_r');
+				a_s =  this.getElementContent(entries[i],'a_s');
+				fg =  this.getElementContent(entries[i],'fg');
+				fg_a =  this.getElementContent(entries[i],'fg_a');
+				threep =  this.getElementContent(entries[i],'threep');
+				threep_a =  this.getElementContent(entries[i],'threep_a');
+				ft =  this.getElementContent(entries[i],'ft');
+				ft_a =  this.getElementContent(entries[i],'ft_a');
+				s_t =  this.getElementContent(entries[i],'s_t');
+				play_min =  this.getElementContent(entries[i],'play_min');
+				play_sec =  this.getElementContent(entries[i],'play_sec');
+				p_height =  this.getElementContent(entries[i],'p_height');
+				p_weight =  this.getElementContent(entries[i],'p_weight');
+
+				photo_name =  this.getElementContent(entries[i],'photo_name');
+				fg_p =  this.getElementContent(entries[i],'fg_p');
+				threep_p =  this.getElementContent(entries[i],'threep_p');
+				ft_p =  this.getElementContent(entries[i],'ft_p');
+				rb_p =  this.getElementContent(entries[i],'rb_p');
+				as_p =  this.getElementContent(entries[i],'as_p');
+				st_p =  this.getElementContent(entries[i],'st_p');
+				score_p =  this.getElementContent(entries[i],'score_p');
+				play_time =  this.getElementContent(entries[i],'play_time');
+				season_code =  this.getElementContent(entries[i],'season_code');
+
+				// 득점
+				document.getElementById(tPlayer_team+"_P_score").innerHTML = score;
+				document.getElementById(tPlayer_team+"_PT_score").innerHTML = score_p;
+				//2점
+				document.getElementById(tPlayer_team+"_P_fg_a").innerHTML = fg+"/"+fg_a;
+				document.getElementById(tPlayer_team+"_PT_fg_a").innerHTML = fg_p+"%";
+				//3점
+				document.getElementById(tPlayer_team+"_P_threep_a").innerHTML = threep+"/"+threep_a;
+				document.getElementById(tPlayer_team+"_PT_threep_a").innerHTML = threep_p+"%";
+				//자유투
+				document.getElementById(tPlayer_team+"_P_ft_a").innerHTML = ft+"/"+ft_a;
+				document.getElementById(tPlayer_team+"_PT_ft_a").innerHTML = ft_p+"%";
+				//리바운드
+				document.getElementById(tPlayer_team+"_P_od_r").innerHTML = od_r;
+				document.getElementById(tPlayer_team+"_PT_od_r").innerHTML = rb_p;
+				//어시스트
+				document.getElementById(tPlayer_team+"_P_a_s").innerHTML = a_s;
+				document.getElementById(tPlayer_team+"_PT_a_s").innerHTML = as_p;
+				//스틸
+				document.getElementById(tPlayer_team+"_P_s_t").innerHTML = s_t;
+				document.getElementById(tPlayer_team+"_PT_s_t").innerHTML = st_p;
+				//출전시간
+				document.getElementById(tPlayer_team+"_P_play_min").innerHTML = play_min+":"+play_sec;
+				document.getElementById(tPlayer_team+"_PT_play_min").innerHTML = play_time;
+
+				var pimg = photo_name;
+				document.getElementById(tPlayer_team+"_P_img").innerHTML = "<img src="+pimg+" onerror=\"this.src='/images/board/blank.gif';\" width=\"57\" height=\"64\">";
+
+				document.getElementById(tPlayer_team+"_P_name").innerHTML = "<font color='#9B6AFF'><b>"+kname+"</b></font>";
+
+				if(pos=="C") var pos_nm = "센터";
+				else if(pos=="F") var pos_nm = "포워드";
+				else if(pos=="G") var pos_nm = "가드";
+				else  var pos_nm = "";
+
+				document.getElementById(tPlayer_team+"_P_pos").innerHTML = back_num+"번-"+pos_nm;
+				document.getElementById(tPlayer_team+"_P_p_height").innerHTML = "키:"+p_height+" 체중:"+p_weight+"kg";
+				document.getElementById(tPlayer_team+"_teamPlayerView").style.display='';
+
+			}
+		}
+		return;
+	},
+	handleError: function(request) {
+		if ( this.options.errorHandler )
+			this.options.errorHandler(request);
+	},
+
+	getElementContent: function(element,tagName) {
+		var childElement = element.getElementsByTagName(tagName)[0];
+		return childElement.text != undefined ? childElement.text : childElement.textContent;
+	}
+
+};
+
+
+function injectComponentBehaviors(viewty) {
+
+	//db불러오기
+	//var url = "/live/live_player.asp?home_team="+home_team+"&away_team="+away_team+"&order_desc="+order_desc+"&season_gu0="+season_gu0+"&game_type0="+game_type0+"&game_no0="+game_no0+"";
+
+	//cache직접
+	//var url = "http://cache2.kbl.or.kr/live_player.php?ckey="+home_team+"|"+away_team+"|"+order_desc+"|"+season_gu0+"|"+game_type0+"|"+game_no0+"";
+
+	//cache path
+	var url = "/live11/path_live_player.asp?ckey="+season_gu0+"|"+game_type0+"|"+game_no0+"|"; //|지우지말것, 키가같음
+
+	//window.open(url);
+
+	var newTeamLiveView = {};
+	new NewTeamLive( viewty,true,'LTPlayer',
+					url ,
+					 newTeamLiveView );
+}
+
+
+function teamPlayerView(player_no,team) {
+
+	//alert("선수정보입니다.");
+
+	if(player_no!=pview){
+		var url = "live/live_player_view.asp?season_gu0="+season_gu0+"&game_type0="+game_type0+"&game_no0="+game_no0+"&playerNo="+player_no;
+		//window.open(url);
+		
+		var newTeamLiveView = {};
+		new NewTeamLive( player_no,team,'LTPlayer',
+						url ,
+						 newTeamLiveView );
+		pview = player_no;
+	}
+}
+
+var st1, st2;
+function realLive(){//실시간 선수정보
+	clearTimeout(st2);
+	goView("container");
+	injectComponentBehaviors(true);
+	//goHistoryView();
+
+	appsLiveTime = document.getElementById('appsLiveTime').value;
+	//console.log('main=='+appsLiveTime);
+
+	//st1 = setTimeout("realLive()", 15 * 1000);
+	st1 = setTimeout("realLive()", appsLiveTime * 1000);
+}
+
+function realLive2(){//실시간 문자중계
+	if(st1) clearTimeout(st1);
+	injectComponentBehaviors(true);
+	goHistoryView();
+
+	appsLiveTime = document.getElementById('appsLiveTime').value;
+	//console.log('play=='+appsLiveTime);
+	
+	//st2 = setTimeout("realLive2()", 15 * 1000);
+	st2 = setTimeout("realLive2()", appsLiveTime * 1000);
+}

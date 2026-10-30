@@ -1,0 +1,106 @@
+POST https://www.wkbl.or.kr/game/ajax/ajax_game_result_3.asp {"season_gu":"046","game_type":"01","game_no":"1","ym":""}
+200 text/html 3994
+
+
+	<script type="text/javascript">
+	<!--
+		//alert("경기 결과 데이터가 없습니다.");
+		//history.back();
+	//-->
+	</script>
+
+				<script src="/static/js/lib/isotope.pkgd.min.js"></script>
+				<script src="/static/js/lib/imagesloaded.pkgd.min.js"></script>
+
+				<h3 id="gameDetail" class="screen_out2">포토</h3>
+                <ul class="list_photo">
+					
+						<li class="grid-item"><a href="/news/photo_view.asp?num=49437"><img src="/upfiles/news/1(64).jpg
+"></a></li>
+					
+						<li class="grid-item"><a href="/news/photo_view.asp?num=49437"><img src="/upfiles/news/HSL_0021(40).jpg
+"></a></li>
+					
+						<li class="grid-item"><a href="/news/photo_view.asp?num=49437"><img src="/upfiles/news/HSL_0024(42).jpg
+"></a></li>
+					
+						<li class="grid-item"><a href="/news/photo_view.asp?num=49437"><img src="/upfiles/news/HSL_0027(42).jpg
+"></a></li>
+					
+						<li class="grid-item"><a href="/news/photo_view.asp?num=49437"><img src="/upfiles/news/HSL_0029(52).jpg
+"></a></li>
+					
+						<li class="grid-item"><a href="/news/photo_view.asp?num=49437"><img src="/upfiles/news/HSL_0152(47).jpg
+"></a></li>
+					
+                </ul>
+
+				<div class="list_more_block">
+                    <a href="/news/photo_view.asp?num=49437" class="btn_type3 language" data-kr="포토 더 보러가기" data-en="More Photos">포토 더 보러가기</a>
+                </div>
+
+
+				<script type="text/javascript">
+				<!--
+				function pageIsotope(){
+					var grid = document.querySelector('.list_photo');
+
+					var iso = new Isotope( grid, {
+						itemSelector: '.grid-item',
+						percentPosition: true
+					});
+
+					imagesLoaded( grid ).on( 'progress', function() {
+						// layout Isotope after each image loads
+						iso.layout();
+					});
+				}
+
+				$(window).load(function() {
+					pageIsotope();
+				});
+				//-->
+
+                $(function() {
+                    /////////////////////////////////////////////language change start///////////////////////////////////////////
+                    let now_lang = localStorage.getItem("lang");
+                    if(!now_lang) now_lang = "kr";
+                
+                    $('.lang_change').on('click', function(e){
+                        now_lang = (now_lang == "kr") ? "en" : "kr";
+                        localStorage.setItem("lang", now_lang);
+                
+                        language_icon_change(now_lang);
+                        
+                        // 차트 reload
+                        donutChart();
+                        datatableChart();
+                    });
+                
+                    function language_icon_change(now_lang){
+                        // if( now_lang == 'en' ){
+                        //     $('.lang_change').addClass('active');
+                        //     $('.lang_change_text').html("English");
+                        // }else{
+                        //     $('.lang_change').removeClass('active');
+                        //     $('.lang_change_text').html("Korea");
+                        // }
+                
+                        language_change(now_lang);
+                    }
+                
+                    function language_change(now_lang){
+                        for(i=0;i < $(".language").length; i++){
+                            if($($('.language')[i]).attr('placeholder') !== undefined){ //placeholder change
+                            $($('.language')[i]).attr('placeholder', $($('.language')[i]).attr("data-"+now_lang));
+                            }else{ //text change
+                                $($('.language')[i]).html($($('.language')[i]).attr("data-"+now_lang));
+                            }
+                        }
+                    }
+                
+                    language_icon_change(now_lang);
+                    /////////////////////////////////////////////language change end ///////////////////////////////////////////
+                });
+				</script>
+

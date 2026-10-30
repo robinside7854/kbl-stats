@@ -1,0 +1,364 @@
+GET https://www.wkbl.or.kr/live11/common/livePlayer_sms_12.js 
+200 application/javascript 8576
+
+var _ja_browser = getBrowser(); // 브라우져
+var lps = new Object();  //실시간라이브문자
+var ti=0,tj=0;
+var historyBig=0;
+
+lps.READY_STATE_UNINITIALIZED= 0;
+lps.READY_STATE_LOADING      = 1;
+lps.READY_STATE_LOADED       = 2;
+lps.READY_STATE_INTERACTIVE  = 3;
+lps.READY_STATE_COMPLETE     = 4;
+
+
+lps.ContentXmlLoader = function( component, url, method, requestParams ) {
+   this.component     = component;
+   this.xml           = url;
+   this.requestParams = requestParams;
+   this.method        = method;
+}
+
+lps.ContentXmlLoader.prototype = {
+
+
+	xmlDoc: function() {
+		var objXml;
+
+		switch (_ja_browser) {
+			case "0" :
+			case "1" :
+				objXml = this.CreateXmlDocument();
+				objXml.async = false;
+				objXml.load(this.xml);
+
+				//this.handleAjaxResponse(objXml);
+				return objXml.documentElement;
+			break;
+			default :
+				objXml = this.CreateXmlHttpRequest();
+				objXml.open("GET",this.xml,false);
+				objXml.send(null);
+				//this.handleAjaxResponse(objXml.responseXML);
+
+				return objXml.responseXML.documentElement;
+			break;
+		}
+
+	return null;
+	},
+	CreateXmlDocument: function () {
+
+		if (document.implementation && document.implementation.createDocument) {
+			if(_ja_browser=="0"){ // ie 9 
+				try {
+					return new ActiveXObject("Msxml2.DOMDocument");
+				}
+				catch (e) {
+					return new ActiveXObject("Msxml.DOMDocument");
+				}
+			}else{
+				return document.implementation.createDocument("","",null);
+			}
+
+		} else if (typeof ActiveXObject != "undefined") {
+			try {
+				return new ActiveXObject("Msxml2.DOMDocument");
+			}
+			catch (e) {
+				return new ActiveXObject("Msxml.DOMDocument");
+			}
+		}
+		return null;
+	},
+	CreateXmlHttpRequest: function () {
+		if (window.ActiveXObject) {
+			try {
+				return new ActiveXObject("Microsoft.XMLHTTP");	
+			} catch (e) {
+				return new ActiveXObject("Msxml.XMLHTTP");
+			}
+		}
+		else if (window.XMLHttpRequest) { return new XMLHttpRequest(); }
+		else { return null; }
+	},
+	handleAjaxResponse: function(request) {
+
+alert(request.status);
+		if ( request.readyState == net.READY_STATE_COMPLETE ) {
+
+			if ( this.isSuccess(request) ) return;
+			else this.component.handleError(request);
+		}
+
+	},
+	isSuccess: function(request) {
+
+		return  request.status == 0 
+			|| (request.status >= 200 && request.status < 300);
+	}
+
+};
+
+/**
+* @ func getBrowser() { return int }
+* @brief 인터넷 브라우져를 int 리턴한다.
+*/
+function getBrowser() {
+	// 0 : MSIE , 1 : Firefox , 2 : Safari , 3 : Chrome , 4 : Opera , 5 : Netscape
+	var browser = ["MSIE","Firefox","Safari","Chrome","Opera","Netscape"];
+	var agent = navigator.userAgent;
+
+	for (var i in browser) {
+		if (agent.indexOf(browser[i]) != -1) { return i; }
+	}
+
+	return null;
+}
+
+function goHistoryLive(viewty, masterId, url, options){
+
+	this.seqno		= viewty;
+	this.master		= document.getElementById(masterId);
+	this.options    = options;
+	this.ajaxHisHelper = new lps.ContentXmlLoader( this, url, "GET", options.requestParameters || [] );
+
+	this.goHistoryLiveStart(masterId);
+}
+goHistoryLive.prototype = {
+
+	goHistoryLiveStart: function(masterId) {
+
+		var dom = this.ajaxHisHelper.xmlDoc();
+
+		try {
+			var json = xml2json(dom," ");
+		}
+		catch(err) {
+			return;
+		}
+
+		objHistory = eval("("+json+")");
+
+		if(masterId == "goComparisonView"){
+			this.comparisonLiveView(objHistory);
+		}else if(masterId == "goRecordView"){
+			this.recordLiveView(objHistory);
+		}else{
+			this.hiistoryLiveView(objHistory);
+		}
+
+	},
+
+	hiistoryLiveView: function(ajaxObj){
+		
+		var htmlId  = this.master;
+		if(this.seqno==0){
+			if(htmlId.rows.length>1){
+				for (k=htmlId.rows.length-1; k >= 0 ; k--){
+					htmlId.deleteRow(k);  //노드를 삭제 한다.
+				}
+			}
+		}
+
+		var f = document.pHistory;
+		var quarter_gu0 = f.quarter_gu0.value
+
+		var obj = ajaxObj.playHistory;
+
+		var objLen;
+		var phGb =  new Array();
+		var pNode,phGb1,phGb2,j=0,seqno,seqTmp;
+
+		try {
+			objLen = obj.playhistory.length;
+		}
+		catch(err) {
+			return;
+		}
+
+		var nq;
+		goView("container2");
+
+		for ( var i = objLen-1 ; i >= 0  ; i-- ) {
+			seqno = i;
+			if(!obj.playhistory[i]) return;
+
+			phGb = obj.playhistory[i].split('|');
+
+
+			if(phGb.length!=6) return;
+
+			if(phGb[1]==1){
+				phGb1 = phGb[2];
+				phGb2 = "&nbsp;";
+			}else if(phGb[1]==2){
+				phGb1 = "&nbsp;";
+				phGb2 = phGb[2];
+			}else{
+				phGb1 = phGb[2];
+				phGb2 = phGb[2];
+			}
+
+			this.hiistoryLiveViewWrite(phGb1,phGb2,phGb[3],phGb[4],phGb[5],seqno);
+			if(i>seqTmp) document.getElementById(pHistoryTable+seqno).scrollIntoView() ;			
+			//document.pHistory.seq0.value = seqno;
+			nq = phGb[0];
+		}
+		if(quarter_gu0=="H"){
+			let now_lang2 = localStorage.getItem("lang");
+			if(!now_lang2) now_lang2 = "kr";
+
+			if(now_lang2 == "kr") {
+				document.getElementById("quarter_button1").innerHTML = "<a href=\"#\" onclick=\"quarterbtn(1,'H');\">현재["+nq+"]</a>";
+			}else{
+				document.getElementById("quarter_button1").innerHTML = "<a href=\"#\" onclick=\"quarterbtn(1,'H');\">NOW["+nq+"]</a>";
+			}
+
+		}
+	},
+
+	hiistoryLiveViewWrite: function(phGb1,phGb2,phGb3,phGb4,phGb5,seqno){
+
+		oRow = document.createElement('tr');         
+		oCel0 = document.createElement('td');
+		oCel1 = document.createElement('td');
+		oCel2 = document.createElement('td');
+		oCel3 = document.createElement('td');
+		oCel4 = document.createElement('td');
+
+		oCel0.className='txt_l';
+		oCel1.className='txt_tc'+document.goform.team_1.value;
+		oCel2.className='time';
+		oCel3.className='txt_tc'+document.goform.team_2.value;
+		oCel4.className='txt_r';
+
+		oRow.appendChild(oCel0);
+		oRow.appendChild(oCel1);
+		oRow.appendChild(oCel2);
+		oRow.appendChild(oCel3);
+		oRow.appendChild(oCel4);
+
+		oCel0.innerHTML=phGb1;
+		oCel1.innerHTML=phGb3;
+		oCel2.innerHTML="<div id="+pHistoryTable+seqno+">"+phGb5+"</div>";
+		oCel3.innerHTML=phGb4;
+		oCel4.innerHTML=phGb2;
+
+		//this.master.children(0).appendChild(oRow); //수정
+		this.master.getElementsByTagName("TBODY")[0].appendChild(oRow);
+	},
+
+	comparisonLiveView: function(ajaxObj){
+
+
+			var obj = ajaxObj.playComparison;
+
+			var objLen;
+			var phGb =  new Array();
+			var phGb2 =  new Array();
+			var win;
+			phGb = obj.comparison.split('|');
+
+			for ( var j=0 ; j<phGb.length ; j++ ){
+
+				if(j<6){
+					phGb2 = phGb[j].split('^');
+					win = phGb2[0] +"승 "+ phGb2[1] + "패";
+
+					document.getElementById("win_"+j).innerHTML = win;
+				}else{
+
+					document.getElementById("win_"+j).innerHTML = phGb[j];
+				}
+			}
+
+			
+	},
+
+	recordLiveView: function(ajaxObj){
+
+
+			var obj = ajaxObj.playRecord;
+
+			var objLen;
+			var phGb =  new Array();
+			var phGb2 =  new Array();
+			var win;
+			phGb = obj.record.split('|');
+
+			for ( var j=0 ; j<phGb.length ; j++ ){
+
+					document.getElementById("record_"+j).innerHTML = phGb[j];
+			}
+
+			
+	},
+
+	handleError: function(request) {
+		if ( this.options.errorHandler )
+			this.options.errorHandler(request);
+	},
+	getElementContent: function(element,tagName) {
+		var childElement = element.getElementsByTagName(tagName)[0];
+		return childElement.text != undefined ? childElement.text : childElement.textContent;
+	}
+};
+
+function goHistoryView(){
+	var f = document.pHistory;
+	var quarter_gu0 = f.quarter_gu0.value;
+	var seq0 = f.seq0.value;
+
+	pHistoryTable = "playHistoryTable";
+	// db
+	//var url = "/live/live_player_sms2.asp?season_gu0="+season_gu0+"&game_type0="+game_type0+"&game_no0="+game_no0+"&quarter_gu0="+quarter_gu0+"&seq0="+seq0+"&home_team="+home_team+"";
+
+	// cache
+	//var url = "http://cache1.pndcom.com/wkbl_live_sms_allNEW.php?ckey="+season_gu0+"|"+game_type0+"|"+game_no0+"";
+
+	// path
+	var url = "/live11/path_live_sms.asp?season_gu0="+season_gu0+"&game_type0="+game_type0+"&game_no0="+game_no0+"&quarter_gu0="+quarter_gu0+"&seq0="+seq0+"";
+
+	// file
+	//var url = "/upfiles/xml/live"+season_gu0+game_type0+game_no0+quarter_gu0+seq0+home_team+".asp";
+
+	//window.open(url);
+
+	var goHistoryLiveView = {};
+	new goHistoryLive(	seq0,pHistoryTable,
+						url ,
+						goHistoryLiveView 
+					);
+}
+
+function goComparisonView(){
+
+
+	pHistoryTable = "goComparisonView";
+
+	var url = "/live/live_player_comparison.asp?season_gu0="+season_gu0+"&game_type0="+game_type0+"&team_code="+home_team+"&away_code="+away_team+"";
+
+//window.open(url);
+	var goHistoryLiveView = {};
+	new goHistoryLive(	season_gu0,pHistoryTable,
+						url ,
+						goHistoryLiveView 
+					);
+}
+
+function goRecordView(){
+
+
+	pHistoryTable = "goRecordView";
+
+	var url = "/live/live_player_record.asp?season_gu0="+season_gu0+"&game_type0="+game_type0+"&game_no0="+game_no0+"&team_code="+home_team+"&away_code="+away_team+"";
+
+	//window.open(url);
+	var goHistoryLiveView = {};
+	new goHistoryLive(	season_gu0,pHistoryTable,
+						url ,
+						goHistoryLiveView 
+					);
+}

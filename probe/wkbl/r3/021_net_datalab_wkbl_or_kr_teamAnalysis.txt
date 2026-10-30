@@ -1,0 +1,4000 @@
+GET https://datalab.wkbl.or.kr/teamAnalysis?id=04701001
+
+200 text/html;charset=UTF-8
+
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<title>WKBL 데이터랩</title>
+<meta name="subject" content="DataLab">
+<meta name="title" content="DataLab">
+<meta name="keywords" content="DataLab">
+<!--<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests"/>-->
+
+	<meta name="viewport" content="width=1140, maximum-scale=1">
+	<link type="text/css" rel="stylesheet" href="../css/layout.css?ver=1.92" />
+	<link rel="stylesheet" href="../css/style_added.css?ver=1.92">
+	<link type="text/css" rel="stylesheet" href="../css/style_added_rev02.css?ver=1.92"/>
+
+<link rel="stylesheet" href="/webjars/jquery-ui/1.12.1/themes/base/jquery-ui.css?ver=1.92">
+
+<script type="text/javascript" src="../js/smartwkbl.js?ver=1.92"></script>
+<script type="text/javascript" src="../js/smartwkbl.charts.js?ver=1.92"></script>
+<script type="text/javascript" src="./js/smartwkbl.records.js?ver=1.92"></script>
+
+<script src="/webjars/Jquery/3.2.1/dist/jquery.min.js?ver=1.92"></script>
+<script src="/webjars/jquery-ui/1.12.1/jquery-ui.min.js?ver=1.92"></script>
+<script src="/webjars/jquery-ui-touch-punch/0.2.3/jquery.ui.touch-punch.min.js?ver=1.92"></script>
+
+<script type="text/javascript" src="../js/mgwsp.js?ver=1.92"></script>
+<script type="text/javascript" src="../js/clappr.min.js?ver=1.92"></script>
+<!-- <script type="text/javascript" src="./js/clappr.js?ver=1.92"></script> -->
+
+<script type="text/javascript">
+	$(document).ready(function() {
+		
+		$(document).on("closed.zf.reveal", "#previewModal", function () {
+			// 프리뷰 Modal 을 닫을때 내용 제거 (동영상이 계속 플레이 되는것 방지)
+			//$("#previewModal").empty();
+			$("#previewWrap").empty();
+		});
+		
+	});
+	
+</script>
+
+	
+	<script src="js/Chart.min.js?ver=1.92"></script>
+	<script src="js/jquery.tablesorter.min.js?ver=1.92"></script>
+	<script>
+	
+    
+    window.onscroll = function() {scrollFunction()};
+    function scrollFunction() {
+        if ($(window).scrollTop() > 10 || $(window).scrollTop() > 10) {
+            document.getElementById("goToTop").style.display = "block";
+        } else {
+            document.getElementById("goToTop").style.display = "none";
+        }
+    }
+
+    // When the user clicks on the button, scroll to the top of the document
+    function topFunction() {
+        $('html,body').animate({ scrollTop: 0 }, 'slow');
+        
+//        document.body.scrollTop = 0; // For Safari
+//        document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
+//        document.animate('slow');
+    }  
+	</script>
+</head>
+
+<body>
+
+<div id="header" style="border-bottom: 1px solid black;" onclick="$('#calendar-bg').hide();">
+
+	<div>
+	
+				
+		<h1><a href="./"><img src="../img/logo.png" alt="WKBL 데이터랩" /></a></h1>
+		<button style="cursor:pointer;"  onclick="window.open('https://www.wkbl.or.kr/')"  >WKBL</button>
+	</div>
+	
+</div>
+
+
+
+<div id="modal-preview">
+	<div class="pop-wrap">
+		<div class="large reveal revealFix" id="previewModal" data-reveal data-multiple-opened="true" data-reset-on-close="true">
+			<div class="modalContent">
+				<div id="previewTitle">
+				</div>
+				<div id="previewWrap">
+				</div>
+			</div>
+		</div>
+		<div id="noti_copy_link">
+			<i class="complete"></i>
+			URL 복사가 완료되었습니다.
+		</div>
+	</div>
+</div>
+
+<!-- <div id="select-player-bg">
+선수 선택 Modal의 Background
+</div> -->
+
+<div id="pop_warring" class="pop_warring">
+</div>
+
+<div id="pop_complete" class="pop_complete">
+</div>
+
+
+<div id="wrap"> 
+	<div id="container">
+		<div id="aside">
+		
+<script>
+$( function() {
+    $( "#datepicker" ).datepicker({
+      showOn: "button",
+      buttonImage: "../img/icon_calendar.png",
+      buttonImageOnly: true,
+      buttonText: " ",
+      dateFormat: "yymmdd",
+      dayNamesMin: [ "Sun", "Mon", "Thu", "Wed", "Tuh", "Fri", "Sat" ],
+      monthNames: [ ".01", ".02", ".03", ".04", ".05", ".06", ".07", ".08", ".09", ".10", ".11", ".12"],
+      showMonthAfterYear: true,
+      showOtherMonths: true,
+      onSelect: function(dataText) {
+    	  	searchGameList(dataText);
+      },
+      defaultDate: '20261101',
+      beforeShow: function(input, inst) {
+    	  	$("#calendar-bg").show();
+    	  	
+    	  	$("#ui-datepicker-div").appendTo('#container');
+        setTimeout(function () {
+        		inst.dpDiv.css({
+               top: 158,
+               left: 0
+            });
+        }, 0);
+      },
+    	  beforeShowDay: function (date) {
+    		  	var year = pad(date.getFullYear());
+    		  	var month = pad(date.getMonth() + 1);
+    		  	var day = pad(date.getDate());
+    		  	var date = year + month + day;
+    		  	
+    		  	/*
+    		  	* 게시 완료, 전력 분석 데이터가 있을 경우 클릭이 가능하며, 디폴트 페이지는 경기 정보
+    		  	* 게시가 완료되지 않았지만, 전력 분석 데이터는 있을 경우(경기전) 클릭이 가능하며, 디폴트 페이지는 전력 분석
+    		  	*/
+    		  	if (date == '20070106') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070107') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070108') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070109') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070110') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070112') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070113') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070114') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070115') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070116') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070117') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070119') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070120') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070121') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070122') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070123') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070124') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070126') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070127') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070128') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070129') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070130') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070201') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070202') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070203') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070204') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070205') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070206') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070207') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070208') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070210') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070211') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070212') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070213') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070214') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070215') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070222') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070223') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070224') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070225') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070226') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070227') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070228') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070301') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070303') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070304') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070305') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070307') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070308') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070309') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070310') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070311') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070312') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070313') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070314') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070315') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070317') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070318') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070319') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070322') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070323') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070324') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070325') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070327') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070329') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070331') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070402') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070404') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20070405') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071027') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071028') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071029') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071030') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071031') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071101') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071102') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071103') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071104') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071105') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071107') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071108') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071109') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071110') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071111') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071112') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071114') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071115') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071116') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071117') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071118') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071119') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071121') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071122') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071123') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071124') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071125') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071126') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071128') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071129') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071201') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071202') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071203') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071205') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071206') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071207') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071208') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071209') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071210') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071211') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071213') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071214') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071215') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071216') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071217') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071220') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071221') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071222') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071224') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071225') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071226') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071227') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071228') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071229') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071230') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20071231') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080102') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080103') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080104') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080107') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080109') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080110') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080111') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080112') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080113') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080114') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080116') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080117') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080118') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080119') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080120') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080121') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080123') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080124') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080126') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080127') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080128') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080130') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080131') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080201') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080202') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080203') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080204') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080208') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080209') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080210') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080211') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080213') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080214') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080216') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080217') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080218') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080220') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080221') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080222') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080223') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080224') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080225') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080227') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080228') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080229') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080301') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080302') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080303') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080307') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080308') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080309') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080310') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080311') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080312') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080314') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080319') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080321') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20080323') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081003') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081004') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081005') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081006') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081008') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081009') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081010') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081011') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081012') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081013') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081015') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081016') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081017') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081018') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081019') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081020') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081022') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081023') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081024') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081025') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081026') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081027') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081029') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081030') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081031') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081101') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081102') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081103') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081105') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081106') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081108') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081109') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081110') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081112') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081113') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081114') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081115') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081116') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081117') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081119') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081120') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081121') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081122') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081123') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081124') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081126') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081127') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081128') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081129') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081130') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081201') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081203') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081204') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081205') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081206') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081207') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081208') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081210') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081211') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081212') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081214') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081215') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081217') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081218') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081219') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081220') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081221') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081222') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081224') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081225') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081226') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081227') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081228') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081229') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20081230') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090105') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090106') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090107') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090108') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090110') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090111') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090112') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090114') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090115') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090116') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090117') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090118') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090119') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090121') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090122') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090123') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090128') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090129') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090130') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090131') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090201') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090202') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090204') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090205') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090206') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090207') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090208') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090209') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090211') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090212') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090214') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090215') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090216') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090218') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090219') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090220') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090221') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090222') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090223') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090225') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090226') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090227') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090228') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090301') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090302') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090306') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090307') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090308') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090309') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090310') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090311') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090313') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090318') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090320') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20090322') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091010') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091011') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091012') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091014') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091015') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091016') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091017') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091018') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091019') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091021') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091022') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091023') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091024') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091025') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091026') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091028') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091029') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091030') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091031') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091101') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091102') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091104') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091105') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091106') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091107') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091108') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091109') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091111') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091112') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091113') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091115') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091116') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091118') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091119') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091120') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091121') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091122') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091123') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091125') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091126') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091127') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091128') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091129') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091130') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091202') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091204') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091205') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091206') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091207') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091209') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091210') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091211') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091212') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091213') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091214') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091216') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091217') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091219') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091220') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091221') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091228') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091230') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20091231') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100102') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100103') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100104') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100106') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100107') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100108') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100109') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100110') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100111') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100113') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100114') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100115') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100117') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100118') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100122') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100123') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100124') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100125') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100128') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100129') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100130') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100131') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100201') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100203') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100204') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100206') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100207') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100208') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100210') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100211') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100212') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100213') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100215') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100217') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100218') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100219') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100220') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100221') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100222') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100224') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100226') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100227') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100228') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100301') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100303') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100304') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100305') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100306') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100307') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100308') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100310') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100311') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100313') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100314') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100315') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100319') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100320') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100321') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100322') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100323') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100324') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100331') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100402') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100404') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20100406') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101012') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101013') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101014') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101015') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101016') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101017') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101018') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101019') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101020') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101021') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101022') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101023') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101024') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101025') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101026') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101030') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101031') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101101') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101103') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101104') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101105') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101106') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101107') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101108') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101201') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101202') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101203') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101204') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101205') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101206') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101208') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101209') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101210') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101211') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101212') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101213') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101215') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101216') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101217') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101218') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101219') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101220') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101222') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101223') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101224') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101225') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101226') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101227') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101229') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101230') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20101231') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110102') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110103') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110105') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110106') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110107') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110108') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110109') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110110') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110111') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110112') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110113') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110114') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110115') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110116') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110117') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110119') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110121') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110122') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110123') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110124') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110127') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110128') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110204') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110205') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110206') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110207') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110209') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110210') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110211') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110212') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110213') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110214') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110216') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110217') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110218') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110219') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110220') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110221') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110223') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110224') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110225') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110226') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110227') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110228') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110302') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110303') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110304') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110305') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110306') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110307') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110309') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110310') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110316') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110317') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110318') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110319') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110320') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110321') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110323') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110328') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110330') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20110401') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111014') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111015') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111016') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111017') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111019') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111020') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111021') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111022') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111023') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111024') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111026') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111027') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111028') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111029') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111030') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111031') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111102') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111103') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111104') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111105') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111107') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111109') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111110') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111111') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111112') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111113') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111114') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111115') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111116') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111117') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111118') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111119') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111120') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111121') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111123') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111124') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111125') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111126') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111127') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111128') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111130') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111201') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111202') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111203') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111204') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111205') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111207') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111208') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111209') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111210') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111211') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111212') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111214') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111215') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111216') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111217') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111218') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111219') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111221') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111222') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111223') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111224') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111225') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111226') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111228') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111229') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111230') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20111231') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120102') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120104') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120105') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120106') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120107') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120108') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120109') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120118') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120119') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120120') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120121') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120125') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120126') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120127') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120128') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120129') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120130') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120201') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120202') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120203') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120204') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120205') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120206') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120208') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120209') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120210') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120211') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120212') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120213') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120215') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120216') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120217') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120218') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120219') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120220') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120222') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120223') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120224') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120225') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120226') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120227') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120229') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120301') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120302') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120303') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120304') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120305') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120307') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120308') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120309') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120310') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120311') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120314') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120315') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120316') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120317') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120318') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120319') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120320') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120321') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120326') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120328') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20120330') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121012') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121013') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121014') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121018') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121019') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121020') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121021') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121022') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121025') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121026') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121027') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121028') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121029') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121031') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121101') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121102') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121103') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121104') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121105') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121108') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121109') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121110') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121111') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121112') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121115') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121116') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121117') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121118') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121119') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121122') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121123') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121124') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121125') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121126') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121129') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121130') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121201') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121202') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121203') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121205') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121206') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121207') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121208') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121209') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121210') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121212') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121213') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121215') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121216') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121217') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121220') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121221') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121222') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121223') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121224') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121226') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121227') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121229') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121230') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20121231') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20130103') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20130104') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20130105') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20130106') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20130107') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20130124') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20130125') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20130126') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20130127') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20130128') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20130131') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20130201') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20130202') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20130203') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20130204') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20130207') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20130208') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20130209') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20130210') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20130211') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20130214') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20130215') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20130216') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20130217') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20130218') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20130221') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20130222') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20130223') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20130224') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20130225') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20130302') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20130303') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20130308') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20130309') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20130311') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20130315') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20130317') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20130319') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131110') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131111') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131113') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131114') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131115') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131116') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131117') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131118') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131120') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131121') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131122') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131123') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131124') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131125') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131127') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131128') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131129') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131130') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131201') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131202') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131204') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131205') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131206') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131207') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131208') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131209') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131211') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131212') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131213') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131214') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131215') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131216') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131218') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131219') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131220') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131221') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131222') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131223') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131225') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131226') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131227') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131228') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131229') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20131230') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140101') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140102') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140108') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140109') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140110') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140111') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140112') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140113') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140115') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140116') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140117') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140118') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140119') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140120') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140122') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140123') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140124') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140125') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140126') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140127') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140128') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140129') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140201') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140202') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140203') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140205') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140206') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140207') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140208') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140209') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140210') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140212') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140213') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140214') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140215') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140216') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140217') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140219') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140220') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140221') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140222') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140223') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140224') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140226') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140227') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140228') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140301') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140302') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140303') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140305') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140306') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140307') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140308') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140309') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140310') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140312') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140313') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140314') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140315') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140316') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140317') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140320') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140322') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140325') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140326') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140328') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20140329') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141101') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141102') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141103') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141104') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141105') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141106') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141108') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141109') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141110') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141112') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141113') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141114') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141115') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141116') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141117') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141119') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141120') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141121') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141122') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141123') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141124') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141126') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141127') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141128') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141129') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141130') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141201') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141203') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141204') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141205') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141206') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141207') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141208') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141210') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141211') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141212') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141213') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141214') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141215') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141217') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141218') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141219') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141220') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141221') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141222') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141224') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141225') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141226') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141227') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141228') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141229') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20141231') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150101') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150102') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150103') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150104') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150105') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150107') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150108') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150109') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150110') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150111') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150112') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150114') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150121') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150122') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150123') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150124') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150125') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150126') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150128') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150129') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150130') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150131') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150201') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150202') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150204') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150205') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150206') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150207') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150208') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150209') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150211') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150212') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150213') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150214') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150215') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150216') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150220') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150221') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150222') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150223') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150225') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150226') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150227') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150228') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150301') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150302') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150304') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150305') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150306') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150307') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150308') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150309') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150310') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150315') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150317') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150322') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150323') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150326') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20150327') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151031') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151101') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151102') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151104') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151105') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151106') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151107') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151109') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151110') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151111') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151112') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151113') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151114') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151115') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151116') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151118') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151119') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151120') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151121') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151122') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151123') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151125') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151126') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151127') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151128') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151129') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151130') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151202') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151203') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151204') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151205') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151206') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151207') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151209') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151210') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151211') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151212') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151213') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151214') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151216') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151217') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151218') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151219') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151220') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151221') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151223') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151224') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151225') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151226') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151227') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151228') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151230') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20151231') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160101') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160102') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160103') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160104') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160106') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160107') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160108') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160109') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160110') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160111') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160113') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160114') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160120') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160121') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160122') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160123') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160124') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160125') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160127') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160128') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160129') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160130') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160131') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160201') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160203') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160204') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160205') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160206') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160207') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160210') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160211') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160212') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160213') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160214') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160215') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160217') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160218') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160219') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160220') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160221') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160222') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160224') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160225') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160226') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160227') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160228') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160229') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160302') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160303') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160304') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160305') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160306') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160310') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160312') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160313') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160316') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160317') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20160320') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161029') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161030') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161031') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161102') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161103') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161104') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161105') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161106') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161107') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161109') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161110') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161111') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161112') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161113') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161114') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161116') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161117') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161118') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161119') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161120') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161121') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161123') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161124') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161125') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161126') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161127') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161128') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161130') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161201') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161202') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161203') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161204') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161205') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161207') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161208') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161209') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161210') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161211') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161212') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161214') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161215') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161216') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161217') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161218') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161219') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161221') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161222') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161223') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161224') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161225') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161226') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161228') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161229') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161230') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20161231') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170101') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170102') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170104') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170105') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170106') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170107') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170108') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170109') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170111') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170112') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170118') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170119') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170120') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170121') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170122') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170123') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170125') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170126') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170127') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170130') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170201') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170202') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170203') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170204') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170205') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170206') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170208') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170209') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170210') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170211') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170212') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170213') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170215') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170216') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170217') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170218') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170219') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170220') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170222') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170223') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170224') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170225') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170226') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170227') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170301') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170302') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170303') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170304') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170305') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170306') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170310') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170312') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170316') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170318') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	if (date == '20170320') {
+                    return [false, 'has-game not-published'];
+              }
+    		  	  if (date == '20171028') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171029') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171030') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171101') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171102') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171103') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171104') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171105') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171106') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171108') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171109') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171110') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171111') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171112') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171113') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171115') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171116') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171117') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171118') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171119') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171120') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171122') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171123') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171124') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171125') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171126') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171127') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171129') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171130') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171201') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171202') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171203') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171204') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171206') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171207') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171208') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171209') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171210') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171211') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171213') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171214') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171215') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171216') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171217') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171218') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171220') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171227') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171228') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171229') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171230') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20171231') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20180101') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20180103') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '20180104') {
+                  return [true, 'has-game published canUseAnalysis'];
+              }
+    		  	  if (date == '

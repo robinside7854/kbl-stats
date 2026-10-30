@@ -1,0 +1,36 @@
+POST https://www.wkbl.or.kr/player/ajax/ajax_detail_draft.asp {"season_gu":"046","player_no":"095104"}
+200 text/html 1021
+
+
+               <h3 id="playerDetail" class="screen_out2">개인최고기록</h3>
+               <div class="info_table01 type_record">
+                    <table>
+                        <caption>상세 정보 테이블</caption>
+                        <colgroup>
+                            <col style="width:35%">
+                            <col style="width:20%">
+                            <col style="width:20%">
+                            <col style="width:25%">
+                        </colgroup>
+                        <thead>
+                            <tr>
+								<th>DRAFT NAME</th>
+								<th>ROUND</th>
+								<th>PICK</th>
+								<th>TEAM</th>
+							</tr>
+                        </thead>
+                        <tbody>
+						
+							<tr>
+								<td>2008 WKBL 신입선수 선발회</td>
+								<td>1</td>
+								<td>2</td>
+								<td>금호생명 레드윙스</td>
+							</tr>
+						
+                        </tbody>
+                    </table>
+                </div>
+                <!--// info_table01 -->
+

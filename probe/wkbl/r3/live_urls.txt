@@ -1,0 +1,45 @@
+ :
+				objXml = this.CreateXmlDocument();
+				objXml.async = false;
+				objXml.load(this.xml);
+
+				//this.handleAjaxResponse(objXml);
+				return objXml.documentElement;
+			break;
+			default :
+				objXml = this.CreateXmlHttpRequest();
+				objXml.open(
+,this.xml,false);
+				objXml.send(null);
+				//this.handleAjaxResponse(objXml.responseXML);
+
+				return objXml.responseXML.documentElement;
+			break;
+		}
+
+	return null;
+	},
+	CreateXmlDocument: function () {
+
+		if (document.implementation && document.implementation.createDocument) {
+			if(_ja_browser==
+, options.requestParameters || [] );
+
+	this.goHistoryLiveStart(masterId);
+}
+goHistoryLive.prototype = {
+
+	goHistoryLiveStart: function(masterId) {
+
+		var dom = this.ajaxHisHelper.xmlDoc();
+
+		try {
+			var json = xml2json(dom,
+/live/live_player_sms2.asp?season_gu0=
+/live11/path_live_sms.asp?season_gu0=
+.asp
+/live/live_player_comparison.asp?season_gu0=
+/live/live_player_record.asp?season_gu0=
+/live/live_player.asp?home_team=
+/live11/path_live_player.asp?ckey=
+live/live_player_view.asp?season_gu0=

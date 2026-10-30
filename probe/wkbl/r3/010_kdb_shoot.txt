@@ -1,0 +1,313 @@
+POST https://www.wkbl.or.kr/player/ajax/ajax_detail_shoot.asp {"season_gu":"046","player_no":"095104"}
+200 text/html 10779
+
+
+
+			<div class="chart_shooting">
+				<div class="title_container">
+					<h4 class="tit_area">2026-2027 <span class="language" data-kr="시즌" data-en="Season">시즌</span></h4>
+                    <div class="filter_block">
+                        <div class="opt_item ico2_comm">
+                            <label class="lab_select" for="st_game_date"><span id="st_game_date_txt" class="language" data-kr="경기일 전체" data-en="All Game Day">경기일 전체</span></label>
+							<select class="opt_select" name="st_game_date" id="st_game_date" onChange="fnShooting(1, this.value, '');">
+								<option value="" class="language" data-kr="경기일 전체" data-en="All Game Day">경기일 전체</option>
+								
+							</select>
+						</div>
+                        <div class="opt_item ico2_comm">
+                            <label class="lab_select" for="st_other_team"><span id="st_other_team_txt" class="language" data-kr="상대팀 전체" data-en="Select Team">상대팀 전체</span></label>
+							<select class="opt_select" name="st_other_team" id="st_other_team" onChange="fnShooting(2, '', this.value);">
+								<option value="," class="language" data-kr="상대팀 전체" data-en="Select Team">상대팀 전체</option>
+								
+									<option value="03,삼성생명" class="language" data-kr="삼성생명" data-en="SAMSUNG LIFE">삼성생명</option>
+								
+									<option value="07,신한은행" class="language" data-kr="신한은행" data-en="SHINHAN BANK">신한은행</option>
+								
+									<option value="05,우리은행" class="language" data-kr="우리은행" data-en="WOORI BANK">우리은행</option>
+								
+									<option value="09,하나은행" class="language" data-kr="하나은행" data-en="HANA BANK">하나은행</option>
+								
+									<option value="11,BNK 썸" class="language" data-kr="BNK 썸" data-en="BNK SUM">BNK 썸</option>
+								
+									<option value="01,KB스타즈" class="language" data-kr="KB스타즈" data-en="KB STARS">KB스타즈</option>
+								
+							</select>
+                        </div>
+                    </div>
+				</div>
+                <div class="row_group col_shooting">
+                    <div class="col">
+                        <div class="info_table01">
+                            <table>
+                                <caption>상세 정보</caption>
+                                <colgroup>
+                                    <col width="16%">
+                                    <col width="10%">
+                                    <col width="12%">
+                                    <col width="15.5%">
+                                    <col width="8.5%">
+                                    <col width="*">
+                                    <col width="17%">
+                                </colgroup>
+                                <thead>
+                                    <tr>
+                                        <th scope="col" class="language" data-kr="선수명" data-en="Name">선수명</th>
+                                        <th scope="col" class="language" data-kr="쿼터" data-en="Quarter">쿼터</th>
+                                        <th scope="col" class="language" data-kr="시간" data-en="Time">시간</th>
+										<th scope="col" colspan="2" class="language" data-kr="액션" data-en="Action">액션</th>
+                                        <th scope="col" class="language" data-kr="경기일" data-en="Date">경기일</th>
+                                        <th scope="col" class="language" data-kr="상대팀" data-en="Opposing<br>Team">상대팀</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="result_1">
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="court_container">
+                            <div class="inner">
+                                <div class="wrap_court">
+                                    <!-- <span class="shooting_mark success" style="top:0;left:0;" data-target="shootPoint1"></span>
+                                    <span class="shooting_mark fail" style="top:0;left:580px;" data-target="shootPoint2"></span>-->
+                                </div>
+                            </div>
+                            <div class="desc_block">
+                                <i class="icon success"></i> <span>슛성공</span>
+                                <i class="icon fail"></i> <span>슛실패</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+			</div>
+
+
+<input type="hidden" id="court_txt">
+<input type="hidden" id="convert_txt">
+<input type="hidden" id="sf_txt">
+
+
+<script>
+$(function() {
+	fnShooting(1, "", ",");		// 처음 로딩할 때 최근 경기일자
+	$("#st_game_date").val("").attr("selected", "selected");	
+});
+
+// 경기일, 팀 Select
+function fnShooting(gbn, date, team) {
+	var player_no = "095104";
+
+	if(gbn == 1) {
+		var date = date;	
+		var team_Arr = $("#st_other_team").val().split(",");	// 경기일 전체
+		
+	} else {
+		var date = $("#st_game_date").val();		// 팀 전체
+		var team_Arr = team.split(",");
+	}
+
+	var team = team_Arr[0];
+	var team_name = team_Arr[1];
+
+	if(date == "") var date_txt = "경기일 전체"; else var date_txt = date;
+	$("#st_game_date_txt").html(date_txt);
+
+	if(team_name == "") var team_txt = "상대팀 전체"; else var team_txt = team_name;
+	$("#st_other_team_txt").html(team_txt);
+
+
+     //language change
+    let now_lang_sch = localStorage.getItem("lang");
+    if(!now_lang_sch) now_lang_sch = "kr";
+    if(now_lang_sch == "kr"){
+        $("#st_other_team_txt").text($("#st_other_team").find("option:selected").data("kr"));
+    }else{
+        $("#st_other_team_txt").text($("#st_other_team").find("option:selected").data("en"));
+    }
+
+
+	$.ajax({
+		type : "post",
+		url : "/player/ajax/ajax_shooting.asp",
+		dataType : "text",
+		timeout : 15000,
+		cache : false,
+		data : { "st_player_no" : player_no, "st_game_date" : date, "st_other_team" : team },
+		success : function(result) {
+			//console.log(result);
+
+			result_Arr = result.split("|++|");
+
+			var result1 = result_Arr[0];		// 데이터 표
+			var court_txt = result_Arr[1];		// 좌표
+			var convert_txt = result_Arr[2];	// 좌표
+			var sf_txt = result_Arr[3];			// 성공, 실패
+
+			if(result) {
+				$("#result_1").empty().append(result1);		// 표
+		
+				$(".wrap_court").empty();		// 코트 분포도 초기화
+
+				if(court_txt == "") $("#court_txt").val(""); else $("#court_txt").val(court_txt);
+				if(convert_txt == "") $("#convert_txt").val(""); else $("#convert_txt").val(convert_txt);
+				if(sf_txt == "") $("#sf_txt").val(""); else $("#sf_txt").val(sf_txt);
+
+				var court_Arr = court_txt.split(",");
+				var convert_Arr = convert_txt.split(",");
+				var sf_Arr = sf_txt.split(",");
+
+				var court_len = court_Arr.length;
+
+				//console.log("len : ", court_len + " / ", court_txt);
+
+				for(sd = 1; sd < court_len; sd++) {
+					var court = court_Arr[sd];
+					var convert = convert_Arr[sd];
+					var sf = sf_Arr[sd];
+
+					//console.log(court, convert, sd, sf);
+
+					shootData(court, convert, sd, sf);
+				}
+
+                //language change
+                let now_lang_sch = localStorage.getItem("lang");
+                if(!now_lang_sch) now_lang_sch = "kr";
+
+                for(i=0;i < $(".language").length; i++){
+                    $($('.language')[i]).html($($('.language')[i]).attr("data-"+now_lang_sch));
+                }
+
+
+				setTimeout(function() {
+					uiShootChart();
+				}, 500);
+			}
+		},
+		error : function(e) {
+			//alert(request.responseText + "\n" + error);
+		}
+	});
+}
+
+
+
+function shootData(coordinateX, coordinateY, order, type){ //X좌표, Y좌표, 순서, 슛성공여부(0 - 성공, 1 - 실패)
+	coordinateX = Number(coordinateX);
+	coordinateY = Number(coordinateY);
+
+	if (coordinateX <= 520){
+		coordinateX = coordinateX - 260;
+	} else if (coordinateX <= 750){
+		coordinateX = coordinateX - 230;
+	} else if (coordinateX <= 900){
+		coordinateX = coordinateX - 190;
+	} else if (coordinateX <= 1000){
+		coordinateX = coordinateX - 170;
+	} else if (coordinateX <= 1160){
+		coordinateX = coordinateX - 150;
+	} else if (coordinateX <= 1540){
+		coordinateX = coordinateX - 120;
+	} else if(coordinateX <= 1990){
+		coordinateX = coordinateX - 86;
+	} else if(coordinateX <= 2140){
+		coordinateX = coordinateX - 43;
+	}
+
+	if (coordinateY <= 900){
+		coordinateY = coordinateY - 50;	
+	} else {
+		coordinateY = coordinateY + 30;	
+	}
+
+	var wrapCourt = '.wrap_court',
+		pointX = coordinateX * 0.205673,
+		pointY = coordinateY * 0.236842,
+		pointType;
+
+	pointX = Math.round(pointX);
+	pointY = Math.round(pointY);
+
+	if(type == '0'){
+		pointType = "success";
+	} else if (type == '1'){
+		pointType = "fail";
+	}
+
+	$(wrapCourt).append('<span class="shooting_mark ' + pointType + '" style="top:' + pointY + 'px;left:' + pointX + 'px;" data-target="shootPoint' + order + '"></span>');
+}
+
+function uiShootChart(){
+	var shootMark = '.shooting_mark',
+		shootRow = '.chart_shooting .info_table01 tr';
+
+	$(shootMark).mouseover(function(){
+		var $dataTarget = $(this).attr('data-target'),
+			$targetOffsetTop = $('#'+$dataTarget).offset().top - 50;
+		$('#'+$dataTarget).addClass('on');
+
+		if ($(window).scrollTop() > 956){
+
+			if($targetOffsetTop > $(document).height()-1100){
+
+				$('body, html').animate({
+					scrollTop: $(document).height()-1085 + 'px'
+				}, 0);
+				
+			} else {
+				
+				$('body, html').animate({
+					scrollTop: $targetOffsetTop + 'px'
+				}, 0);
+			}
+			
+		}
+	});
+
+	$(shootMark).click(function(){
+		var $dataTarget = $(this).attr('data-target'),
+			$targetOffsetTop = $('#'+$dataTarget).offset().top - 50;
+		$('#'+$dataTarget).addClass('on');
+		if ($(window).scrollTop() < 956){
+			$('body, html').animate({
+				scrollTop: $targetOffsetTop + 'px'
+			}, 1000);
+		}
+		
+	});
+
+	$(shootMark).mouseleave(function(){
+		var $dataTarget = $(this).attr('data-target');
+		$('#'+$dataTarget).removeClass('on');
+	});
+
+	$(shootRow).mouseover(function(){
+		var $pointTarget = $(this).attr('id');
+		$('.shooting_mark[data-target="'+$pointTarget+'"]').addClass('on');
+	});
+	$(shootRow).mouseleave(function(){
+		var $pointTarget = $(this).attr('id');
+		$('.shooting_mark[data-target="'+$pointTarget+'"]').removeClass('on');
+	});
+
+	$(window).on("scroll",function(){
+		var $court = $('.court_container'),
+			offset = $court.offset();
+		 if ($(window).scrollTop() > 956){
+			$court.addClass('fixed');
+
+			if($(window).scrollTop() > $(document).height()-1085){
+				$court.addClass('fixed_bottom');
+			} else {
+				$court.removeClass('fixed_bottom');
+			}
+		} else {
+			$court.removeClass('fixed');
+		}
+	});
+}
+
+uiShootChart();
+</script>
+
