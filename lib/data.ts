@@ -47,7 +47,11 @@ import {
   type SeasonBestKey,
 } from "./records";
 import { buildSeasonHighCards, formatHighDate, formatHighShot, formatHighTimes, SEASON_HIGH_LEADER_KEYS, type SeasonHighCard } from "./highs";
-import { AWARD_LABELS, gameRanges, seasonShortLabel, type GameRangeSet, type PlayerGameLine } from "./career";
+import { AWARD_LABELS, gameRanges, seasonRangeLabel, seasonShortLabel, type GameRangeSet, type PlayerGameLine } from "./career";
+import {
+  attachRebResiduals, formatProfileRank, PROFILE_CAREER_MIN_GAMES, PROFILE_CAREER_MIN_TPA, PROFILE_RANK_DEFS, profileListKey, profileRankSub, rankProfile,
+  seasonMinTpa, seasonOpeningDate, teamPathOf, type ProfileRankInput,
+} from "./profile-ranks";
 import { nationalityOf, schoolGroupOf } from "./roster";
 import { findSimilar, toAxisVector, type SimilarEntry, type SimilarVector } from "./similar";
 import { pickPrimeSeasons, primeCandidatesOf, type PrimeCandidate } from "./prime";
@@ -316,7 +320,7 @@ const photoOf = (playerNo: string) => findPlayerIndexEntry(playerNo)?.photoUrl ?
 
 /** 화면에 넘길 최소 필드만 추린다 (규칙은 lib/convert.ts). 사진 주소는 선수 색인(players-index.json)에서 playerNo로 찾는다 */
 export function toCardPlayers(season: SeasonData): CardPlayer[] {
-  return convertCardPlayers(season, photoOf);
+  return convertCardPlayers(season, photoOf, (no) => findPlayerIndexEntry(no)?.birthday ?? null);
 }
 
 /** 순위표에 넘길 최소 필드만 추린다 (Player 전체를 클라이언트로 보내지 않는다) */
@@ -1319,4 +1323,103 @@ export function loadTeamIndex(): TeamIndexEntry[] {
       successorName: successor?.brand.name ?? null,
     };
   }).sort((a, b) => Number(b.active) - Number(a.active) || a.order - b.order);
+}
+
+/**
+ * 기록 탭 "프로필" (2026-10-30, 규칙 lib/profile-ranks): 기간(역대 전체 · 시즌마다) × 부문 12개.
+ * 시즌 기간 = 그 시즌 정규시즌에 뛴 선수(팀·시즌 수는 그 시즌까지), 역대 = 색인 전원. 키 대비 기록의 표본은 시즌 = 그 시즌 기본 기준(seasonQualify), 역대 = 통산 200경기.
+ * 빌드 때 페이지 하나 + 목록 파일(app/records/data/profile)이 같이 부르므로 한 번만 계산한다.
+ */
+let profileListsCache: RecordListsData | null = null;
+export function loadProfileRankLists(): RecordListsData {
+  if (profileListsCache) return profileListsCache;
+  const successor = (teamLineage as { successor: Record<string, string> }).successor;
+  const index = loadPlayersIndex();
+  const seasons = listSeasonsWithPlayers().map((s) => s.seasonCode).sort((a, b) => a - b);
+  const labelOf = new Map(listAllSeasons().map((s) => [s.seasonCode, s.seasonLabel]));
+  // 선수 → 시즌 → 그 시즌 기록 (키 대비 기록·역대 합계 재료)
+  const statOf = new Map<string, Map<number, { games: number; minutes: number; reb: number; blk: number; tpm: number; tpa: number }>>();
+  const maxGames = new Map<number, number>();
+  for (const code of seasons) {
+    const season = loadSeasonData(code);
+    for (const p of season?.players ?? []) {
+      if (!statOf.has(p.playerNo)) statOf.set(p.playerNo, new Map());
+      statOf.get(p.playerNo)!.set(code, { games: p.games, minutes: p.minutes, reb: p.reb, blk: p.blk, tpm: p.tpm ?? 0, tpa: p.tpa });
+      maxGames.set(code, Math.max(maxGames.get(code) ?? 0, p.games));
+    }
+  }
+  const inputFor = (e: PlayerIndexEntry, upTo: number | "all"): ProfileRankInput | null => {
+    const played = e.seasons.filter((s) => s.games > 0 && (upTo === "all" || s.seasonCode <= upTo));
+    if (played.length === 0) return null;
+    const first = played[0];
+    const last = played[played.length - 1];
+    const path = teamPathOf(played.map((s) => s.teamCode), successor);
+    const meta = filterMetaOf(e.id);
+    const lastLabel = labelOf.get(last.seasonCode) ?? "";
+    const firstLabel = labelOf.get(first.seasonCode) ?? "";
+    let stat: ProfileRankInput["stat"] = null;
+    let minTpa = PROFILE_CAREER_MIN_TPA;
+    const rows = statOf.get(e.id);
+    if (upTo === "all") {
+      const sum = { games: 0, reb: 0, blk: 0, tpm: 0, tpa: 0 };
+      for (const r of rows?.values() ?? []) {
+        sum.games += r.games;
+        sum.reb += r.reb;
+        sum.blk += r.blk;
+        sum.tpm += r.tpm;
+        sum.tpa += r.tpa;
+      }
+      if (sum.games >= PROFILE_CAREER_MIN_GAMES) stat = sum;
+    } else {
+      const r = rows?.get(upTo);
+      if (r && isQualified(r, seasonQualify(upTo))) stat = { games: r.games, reb: r.reb, blk: r.blk, tpm: r.tpm, tpa: r.tpa };
+      minTpa = seasonMinTpa(maxGames.get(upTo) ?? 0);
+    }
+    return {
+      id: e.id,
+      origin: meta.origin,
+      heightCm: e.heightCm ?? null,
+      weightKg: e.weightKg ?? null,
+      birthday: e.birthday ?? null,
+      oldOn: seasonOpeningDate(lastLabel),
+      youngOn: seasonOpeningDate(upTo === "all" ? firstLabel : lastLabel),
+      seasons: played.length,
+      teams: path.teams,
+      teamPath: path.stints.map((i) => played[i].teamShort),
+      positionLabel: e.positionLabel ?? null,
+      teamShort: last.teamShort,
+      span: seasonRangeLabel(firstLabel, lastLabel),
+      stat,
+      minTpa,
+    };
+  };
+  const lists: Record<string, RecordListItem[]> = {};
+  const scopes: (number | "all")[] = ["all", ...seasons];
+  for (const scope of scopes) {
+    // 시즌 기간 = 그 시즌에 뛴 선수만 (마지막 뛴 시즌 = 그 시즌)
+    const pool = attachRebResiduals(
+      index.flatMap((e) => {
+        if (scope !== "all" && !e.seasons.some((s) => s.seasonCode === scope && s.games > 0)) return [];
+        const x = inputFor(e, scope);
+        return x ? [x] : [];
+      }),
+    );
+    for (const def of PROFILE_RANK_DEFS) {
+      const rank = (p: ProfileRankInput[], top = RECORD_LIST_TOP) => withRanks(rankProfile(p, def.key), (r) => r.num).filter((r) => r.rank <= top);
+      lists[profileListKey(scope, def.key)] = unionForFilters(pool, rank, (x) => x.id).map((x) => {
+        const f = formatProfileRank(x, def.key, x.value);
+        return {
+          rank: x.rank,
+          id: x.id,
+          num: x.num,
+          ...filterMetaOf(x.id),
+          value: f.value,
+          unit: def.unit,
+          sub: profileRankSub(x, def.key),
+          note: f.note,
+        };
+      });
+    }
+  }
+  return (profileListsCache = { people: collectPeople(lists), lists });
 }

@@ -1,8 +1,8 @@
 "use client";
 // "기록" 메뉴 머리말 + 탭 한 줄 (2026-10-06 사용자 결정: 리더보드와 역대 기록을 한 메뉴로 — 탭 안에 탭을 두지 않는다).
 // 시즌별(시즌 리더보드 /season/{코드}/leaders) · 통산(/records) · 한 경기 최다 · 한 시즌 최다 · 수상(/records/awards, 시즌 어워즈 + 수상 횟수).
-// 2026-10-16 탭 셋 추가: 리그 변화(/records/trends) · 드래프트(/records/draft) · 외국 선수 명예의 전당(/records/foreign). 2026-10-28 클러치(/records/clutch).
-// 탭이 여덟 개라 폰에서는 이 줄만 옆으로 밀린다(페이지는 밀리지 않음) — 지금 탭이 처음부터 보이게 줄을 그 탭까지 옮겨 둔다.
+// 2026-10-16 탭 셋 추가: 리그 변화(/records/trends) · 드래프트(/records/draft) · 외국 선수 명예의 전당(/records/foreign). 2026-10-28 클러치(/records/clutch). 2026-10-30 프로필(/records/profile — 키·몸무게·나이 순위, 키 대비 기록).
+// 탭이 열 개라 폰에서는 이 줄만 옆으로 밀린다(페이지는 밀리지 않음) — 지금 탭이 처음부터 보이게 줄을 그 탭까지 옮겨 둔다.
 // 탭은 각자 주소라 링크로 옮긴다. GA4: filter_change screen=records filter=tab.
 import Link from "next/link";
 import { useEffect, useRef } from "react";
@@ -10,7 +10,7 @@ import type { GlossaryKey } from "@/lib/glossary";
 import InfoLink from "./InfoLink";
 import { trackFilters } from "./track";
 
-export type RecordsTab = "leaders" | "career" | "game" | "season" | "clutch" | "awards" | "trends" | "draft" | "foreign";
+export type RecordsTab = "leaders" | "career" | "game" | "season" | "clutch" | "awards" | "trends" | "draft" | "foreign" | "profile";
 
 // short: 폰(640px 미만)에서 줄인 이름 (탭이 많아 폰에서는 줄이 옆으로 밀린다)
 const TABS: { key: RecordsTab; label: string; short?: string; href: (leadersSeason: number) => string }[] = [
@@ -22,11 +22,12 @@ const TABS: { key: RecordsTab; label: string; short?: string; href: (leadersSeas
   { key: "awards", label: "수상", href: () => "/records/awards" },
   { key: "draft", label: "드래프트", href: () => "/records/draft" },
   { key: "foreign", label: "외국 선수 전당", short: "외국 선수", href: () => "/records/foreign" },
+  { key: "profile", label: "프로필", href: () => "/records/profile" },
   { key: "trends", label: "리그 변화", href: () => "/records/trends" },
 ];
 
 /** 제목 옆 ⓘ 가 풀이하는 용어 (없는 탭은 "역대 통산 순위") */
-const HEADER_TERM: Partial<Record<RecordsTab, GlossaryKey>> = { trends: "leagueTrends", draft: "draftClass", foreign: "foreignHall", clutch: "clutch" };
+const HEADER_TERM: Partial<Record<RecordsTab, GlossaryKey>> = { trends: "leagueTrends", draft: "draftClass", foreign: "foreignHall", clutch: "clutch", profile: "profileRanks" };
 
 /**
  * scope: 제목 위 범위 한 줄(예: "25-26 KBL 정규시즌"). 없으면 안 그린다.

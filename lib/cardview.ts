@@ -252,21 +252,36 @@ export function sortGridEntries(list: readonly GridEntry[]): GridEntry[] {
   );
 }
 
-/** 선수 탭 나열 순서 (2026-10-21): 등급순(기본 — 등급 → PER) · 점수순(종합 점수 1~99) · 득점순(경기당 득점) */
-export type GridSort = "grade" | "score" | "ppg";
+/** 선수 탭 나열 순서 (2026-10-21): 등급순(기본 — 등급 → PER) · 점수순(종합 점수 1~99) · 득점순(경기당 득점)
+ *  + 2026-10-30 키순(큰 순) · 나이순(많은 순, 생년월일) */
+export type GridSort = "grade" | "score" | "ppg" | "height" | "age";
 export const GRID_SORTS: readonly { value: GridSort; label: string }[] = [
   { value: "grade", label: "등급순" },
   { value: "score", label: "점수순" },
   { value: "ppg", label: "득점순" },
+  { value: "height", label: "키순" },
+  { value: "age", label: "나이순" },
 ];
 
 /**
  * 나열 순서대로 다시 줄 세운다. 표본 미달(점수 없음)은 늘 맨 뒤.
  * 점수순: 점수 높은 순 → PER, 득점순: 경기당 득점 → 점수. 같으면 이름순·선수 번호순.
+ * 키순(큰 순)·나이순(생년월일 이른 순)은 표본과 상관없이 줄 세우고, 키·생년월일이 없는 선수만 맨 뒤 (같으면 점수 → 이름).
  */
 export function sortGridBy(list: readonly GridEntry[], by: GridSort): GridEntry[] {
   if (by === "grade") return sortGridEntries(list);
   const sc = (e: GridEntry) => e.score ?? -1;
+  if (by === "height" || by === "age") {
+    const has = (e: GridEntry) => (by === "height" ? !!e.player.heightCm : !!e.player.birthday);
+    return [...list].sort(
+      (a, b) =>
+        Number(!has(a)) - Number(!has(b)) ||
+        (by === "height" ? (b.player.heightCm ?? 0) - (a.player.heightCm ?? 0) : (a.player.birthday ?? "").localeCompare(b.player.birthday ?? "")) ||
+        sc(b) - sc(a) ||
+        a.player.nameKo.localeCompare(b.player.nameKo, "ko") ||
+        a.player.id.localeCompare(b.player.id),
+    );
+  }
   return [...list].sort(
     (a, b) =>
       Number(!a.qualified) - Number(!b.qualified) ||

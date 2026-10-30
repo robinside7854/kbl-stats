@@ -29,15 +29,17 @@ for (const t of texts) {
 }
 
 // 사이트 안 링크는 있는 화면으로
-const ROUTES = ["/", "/players", "/teams", "/records", "/game", "/game/ranking", "/likes", "/privacy", "/me", "/updates", "/glossary", "/notifications", "/favorites", "/records/draft", "/records/foreign", "/records/trends", "/records/clutch", "/compare"];
+const ROUTES = ["/", "/players", "/teams", "/records", "/game", "/game/ranking", "/likes", "/privacy", "/me", "/updates", "/glossary", "/notifications", "/favorites", "/records/draft", "/records/foreign", "/records/trends", "/records/clutch", "/records/profile", "/compare"];
 // 선수·팀·시즌 화면은 번호가 붙은 주소 모양으로 확인
 const ROUTE_PATTERNS = [/^\/player\/\d+$/, /^\/team\/\d+$/, /^\/season\/\d+\/(leaders|schedule)$/];
 for (const p of UPDATE_POSTS)
   for (const b of p.blocks) {
     if (b.kind !== "list" && b.kind !== "steps") continue;
     for (const it of b.items) {
-      const href = itemHref(it);
-      if (!href) continue;
+      const full = itemHref(it);
+      if (!full) continue;
+      // 쿼리(?sort=height 등)는 떼고 화면 주소만 본다
+      const href = full.split("?")[0];
       const anchor = href.startsWith("/glossary#") && Object.values(GLOSSARY_ANCHORS).includes(href.slice("/glossary#".length));
       const ok = ROUTES.includes(href) || ROUTE_PATTERNS.some((r) => r.test(href)) || anchor || (href.startsWith("/updates/") && !!postBySlug(href.slice("/updates/".length)));
       assert.ok(ok, `${p.slug}: 없는 주소 ${href}`);

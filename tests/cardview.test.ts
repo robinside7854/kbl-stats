@@ -472,3 +472,17 @@ import { teamScoringLeaders } from "../lib/cardview";
   assert.equal(e101.apg, e101.player.ast / e101.player.games);
   console.log("cardview: 팀 득점 1위·기록 세 칸 통과");
 }
+
+// ── 키순·나이순 (2026-10-30) ──
+{
+  const withProfile = grid.map((e, i) => ({ ...e, player: { ...e.player, heightCm: i === 0 ? null : 180 + (i % 7) * 4, birthday: i === 1 ? null : `19${90 + (i % 9)}-0${1 + (i % 8)}-15` } }));
+  const byH = sortGridBy(withProfile, "height");
+  assert.equal(byH[byH.length - 1].player.id, withProfile[0].player.id, "키 없는 선수는 맨 뒤");
+  for (let i = 1; i < byH.length - 1; i++) assert.ok((byH[i - 1].player.heightCm ?? 0) >= (byH[i].player.heightCm ?? 0));
+  const byA = sortGridBy(withProfile, "age");
+  assert.equal(byA[byA.length - 1].player.id, withProfile[1].player.id, "생년월일 없는 선수는 맨 뒤");
+  for (let i = 1; i < byA.length - 1; i++) assert.ok(byA[i - 1].player.birthday! <= byA[i].player.birthday!, "나이 많은 순");
+  assert.equal(parsePlayersQuery("?sort=height", { seasons: [47], latest: 47 }).sort, "height");
+  assert.equal(parsePlayersQuery("?sort=age", { seasons: [47], latest: 47 }).sort, "age");
+  console.log("cardview: 키순·나이순 통과");
+}

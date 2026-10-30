@@ -16,7 +16,8 @@ export function koShortOf(season: SeasonData): (p: { teamCode: string; teamShort
  * 플레이어 카드용 최소 필드(메인 스탯 + 레이더 6축 구성 요소). PIE 는 넘기지 않는다.
  * 옛 processed 파일(프로필·파울 필드 없음)이어도 깨지지 않게 ?? 로 기본값을 둔다.
  */
-export function toCardPlayers(season: SeasonData, photoOf: PhotoLookup = () => null): CardPlayer[] {
+/** birthdayOf: 선수 번호 → 생년월일 (선수 색인 — 시즌 파일엔 없다). 안 넘기면 null */
+export function toCardPlayers(season: SeasonData, photoOf: PhotoLookup = () => null, birthdayOf: PhotoLookup = () => null): CardPlayer[] {
   const koShort = koShortOf(season);
   // 그 시즌 수상 (선수 번호 → 상 키) — 등급 가산점 재료 (lib/metrics AWARD_GRADE_BONUS)
   const awardsOf = new Map<string, string[]>();
@@ -74,6 +75,8 @@ export function toCardPlayers(season: SeasonData, photoOf: PhotoLookup = () => n
     // 주 공격 유형 (슛 구역 비중) — 카드 유형 라벨 옆 작은 칩. 슛 데이터 없는 시즌·선수는 null
     offenseType: p.shotZones?.offenseType ?? null,
     awards: [...new Set(awardsOf.get(p.playerNo) ?? [])].join(","),
+    heightCm: p.heightCm ?? null,
+    birthday: birthdayOf(p.playerNo),
   }));
 }
 

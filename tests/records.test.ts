@@ -118,3 +118,59 @@ console.log("records: 통과");
   assert.deepEqual(pickRecordList(data, "없음"), { people: {}, lists: { 없음: [] } });
   console.log("records: 목록 나눠 받기 통과");
 }
+
+// ── 프로필 탭 (2026-10-30): 키·몸무게·나이·시즌·구단 + 키 대비 기록 ──
+import {
+  ageInDays, attachRebResiduals, bmiOf, formatProfileRank, franchiseRootOf, linearFit, profileRankSub, profileRankValue, rankProfile,
+  seasonMinTpa, seasonOpeningDate, teamPathOf, yearsOf, type ProfileRankInput,
+} from "../lib/profile-ranks";
+{
+  assert.equal(seasonOpeningDate("2025-2026"), "2025-10-01");
+  assert.equal(seasonOpeningDate("1997"), "1997-02-01");
+  assert.equal(seasonOpeningDate("엉뚱"), null);
+  assert.equal(yearsOf(ageInDays("1985-08-05", "2026-10-01")!), 41);
+  assert.equal(yearsOf(ageInDays("1985-10-02", "2026-10-01")!), 40, "생일 전날이면 한 살 적게");
+  assert.equal(ageInDays("2030-01-01", "2026-10-01"), null);
+  assert.equal(bmiOf(199, 118), 29.8);
+  assert.equal(bmiOf(null, 118), null);
+  // 매각 구단은 한 팀: SBS(40) → KT&G(70)
+  const succ = { "40": "70", "45": "60" };
+  assert.equal(franchiseRootOf("40", succ), "70");
+  assert.equal(franchiseRootOf("55", succ), "55");
+  const path = teamPathOf(["40", "70", "55", "70", "45"], succ);
+  assert.deepEqual(path, { stints: [0, 2, 3, 4], teams: 3 }, "같은 구단으로 돌아오면 칸은 새로, 구단 수는 그대로");
+  assert.equal(seasonMinTpa(54), 32);
+  assert.equal(seasonMinTpa(8), 10);
+  const fit = linearFit([{ x: 1, y: 3 }, { x: 2, y: 5 }, { x: 3, y: 7 }])!;
+  assert.ok(Math.abs(fit.a - 1) < 1e-9 && Math.abs(fit.b - 2) < 1e-9);
+  assert.equal(linearFit([{ x: 1, y: 1 }, { x: 1, y: 2 }]), null);
+
+  const mk = (id: string, h: number | null, reb: number, o: "domestic" | "foreign" = "domestic", extra: Partial<ProfileRankInput> = {}): ProfileRankInput => ({
+    id, origin: o, heightCm: h, weightKg: 90, birthday: "1995-01-01", oldOn: "2025-10-01", youngOn: "2025-10-01",
+    seasons: 3, teams: 1, teamPath: ["SK"], positionLabel: "가드", teamShort: "SK", span: "23-26",
+    stat: { games: 10, reb, blk: 2, tpm: 20, tpa: 50 }, minTpa: 32, ...extra,
+  });
+  const pool = attachRebResiduals([mk("a", 180, 30), mk("b", 190, 50), mk("c", 200, 70), mk("d", 185, 60), mk("e", 195, 40), mk("f", 205, 150, "foreign")]);
+  // 국내 다섯 명 직선 위의 d(185cm 경기당 6개)가 같은 키 평균보다 많다 / 외국인은 한 명뿐이라 셈하지 않음
+  const ranked = rankProfile(pool, "rebOverHeight");
+  assert.equal(ranked[0].id, "d");
+  assert.ok(!ranked.some((r) => r.id === "f"));
+  // 단신(185cm 이하)·장신(200cm 이상)
+  assert.deepEqual(rankProfile(pool, "smallReb").map((r) => r.id), ["d", "a"]);
+  assert.deepEqual(rankProfile(pool, "bigTp").map((r) => r.id).sort(), ["c", "f"]);
+  assert.equal(profileRankValue(mk("g", 205, 10, "domestic", { stat: { games: 10, reb: 10, blk: 0, tpm: 5, tpa: 20 } }), "bigTp"), null, "시도가 적으면 빠짐");
+  // 키 작은 순: 작은 쪽이 위, 같은 키는 같은 순위 재료(num 같음)
+  const short = rankProfile([mk("x", 180, 1), mk("y", 175, 1), mk("z", 175, 1, "domestic", { seasons: 9 }), mk("n", null, 1)], "short");
+  assert.deepEqual(short.map((r) => r.id), ["z", "y", "x"]);
+  assert.equal(short[0].num, short[1].num);
+  // 최연소: 생일이 늦을수록 위
+  const young = rankProfile([mk("p", 190, 1, "domestic", { birthday: "2006-11-01" }), mk("q", 190, 1, "domestic", { birthday: "2007-05-03" })], "young");
+  assert.equal(young[0].id, "q");
+  assert.equal(formatProfileRank(young[0], "young", young[0].value).value, "18");
+  assert.equal(formatProfileRank(mk("r", 200, 1), "rebOverHeight", -0.04).value, "0.0");
+  assert.equal(formatProfileRank(mk("r", 200, 1), "rebOverHeight", -1.26).value, "-1.3");
+  assert.equal(formatProfileRank(mk("r", 200, 1), "rebOverHeight", 9.06).value, "+9.1");
+  assert.equal(profileRankSub(mk("s", 182, 38), "smallReb"), "가드 · SK · 182cm · 10경기");
+  assert.equal(profileRankSub(mk("t", 182, 1, "domestic", { teamPath: ["KCC", "SK"] }), "teams"), "KCC → SK");
+  console.log("records: 프로필 순위 통과");
+}

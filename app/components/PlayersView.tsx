@@ -28,6 +28,7 @@ import {
   scoreBandOf,
   sortGridBy,
   type GridEntry,
+  type GridSort,
   type PlayersState,
 } from "@/lib/cardview";
 import { seasonShortLabel } from "@/lib/career";
@@ -115,7 +116,7 @@ function MiniStat({ label, value }: { label: string; value: number }) {
  * 선수 카드 (2026-10-21 디자인 개편): 위 = 팀 색 옅은 띠(왼쪽 팀 로고·등급·포지션(한글), 오른쪽 큰 세로 사진),
  * 아래 = 이름·팀·국적 → 칭호 → 경기당 득점·리바·어시 세 칸. 사진·로고·포지션·등급을 먼저 보이게, 빈 곳은 기록으로 채운다.
  */
-function GridCard({ e, team, seasonCode, colors, badge }: { e: GridEntry; team?: CardTeam; seasonCode: number; colors: ThemeColors; badge?: string }) {
+function GridCard({ e, team, seasonCode, colors, badge, sort }: { e: GridEntry; team?: CardTeam; seasonCode: number; colors: ThemeColors; badge?: string; sort: GridSort }) {
   const p = e.player;
   const pos = positionLabel(p.position);
   const color = team?.color ?? FALLBACK_TEAM_COLOR;
@@ -153,6 +154,9 @@ function GridCard({ e, team, seasonCode, colors, badge }: { e: GridEntry; team?:
         <span className="mt-0.5 truncate text-caption text-ink-2">
           {teamShortLabel(team?.shortName ?? p.teamShort)}
           {nat ? ` · ${nat}` : ""}
+          {/* 키순·나이순이면 그 값 (2026-10-30) */}
+          {sort === "height" && p.heightCm ? ` · ${p.heightCm}cm` : ""}
+          {sort === "age" && p.birthday ? ` · ${p.birthday.slice(0, 4)}년생` : ""}
         </span>
         {badge && (
           <span className="mt-1.5 flex">
@@ -363,7 +367,8 @@ export default function PlayersView({ seasons, latest, initialFile, topBadges, b
             <h2 id="grid-title" className="text-h2 font-bold">
               {seasonShortLabel(seasonLabel)} 시즌 선수 {status !== "loading" && <span className="font-normal text-ink-3">{filtered.length}명</span>}
             </h2>
-            <div className="flex items-center gap-1">
+            {/* 나열 순서가 다섯 개라(2026-10-30 키순·나이순) 폰에서는 제목 아래 한 줄 — 넘치면 이 줄만 옆으로 민다 */}
+            <div className="-mx-4 flex w-[calc(100%+2rem)] items-center gap-1 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:w-auto sm:px-0 [&_button]:shrink-0 [&_button]:whitespace-nowrap">
               <Segmented label="나열 순서" options={[...GRID_SORTS]} value={state.sort} onChange={(v) => update({ sort: v })} />
               <InfoLink term="percentileGrade" />
             </div>
@@ -394,7 +399,7 @@ export default function PlayersView({ seasons, latest, initialFile, topBadges, b
             <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
               {shown.map((e) => (
                 <li key={e.player.id} className="min-w-0">
-                  <GridCard e={e} team={teamByCode.get(e.player.teamCode)} seasonCode={shownSeason} colors={colors} badge={badge ? badgeDef(badge)?.label : topBadges[e.player.id]} />
+                  <GridCard e={e} team={teamByCode.get(e.player.teamCode)} seasonCode={shownSeason} colors={colors} badge={badge ? badgeDef(badge)?.label : topBadges[e.player.id]} sort={state.sort} />
                 </li>
               ))}
             </ul>

@@ -31,6 +31,19 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-10-30-profile-ranks",
+    date: "2026-10-30",
+    kind: "update",
+    title: "키·나이로 줄 세우는 프로필 순위",
+    summary: "키·나이 순위 생김",
+    blocks: [
+      { kind: "p", text: "기록 메뉴에 프로필 탭이 생겼어요. 키, 몸무게, 체격, 나이, 뛴 시즌, 거친 구단으로 선수를 줄 세워 봐요. 시즌마다 볼 수도 있고 역대 전체로 볼 수도 있어요." },
+      { kind: "p", text: "키에 비해 남다른 기록도 모았어요. 185cm 이하 선수의 리바운드랑 블록, 200cm 이상 선수의 3점 성공률, 같은 키 평균보다 리바운드를 몇 개 더 잡는지까지요." },
+      { kind: "p", text: "선수 탭 나열 순서에도 키순, 나이순을 더했어요." },
+      { kind: "list", items: [{ text: "프로필 순위 보기", href: "/records/profile" }, { text: "선수 키순으로 보기", href: "/players?sort=height" }] },
+    ],
+  },
+  {
     slug: "2026-10-30-winning-shot-rule",
     date: "2026-10-30",
     kind: "update",

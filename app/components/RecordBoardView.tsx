@@ -5,7 +5,7 @@
 // remote 가 있으면(한 경기·한 시즌 최다, 2026-10-12) 페이지에는 처음 목록 하나만 들어 있고 다른 목록은 고를 때 정적 파일로 받는다(lib/records recordListUrl)
 // (lib/records filterRecordList). 선택은 주소 ?kind=&cat=&mode=&origin=&active=1 에 남긴다.
 // scopes 가 있으면(클러치 탭, 2026-10-28) 기간(통산·시즌) 고르기와 경기 구분을 필터 버튼 밖 한 줄에 둔다 — ?season= 으로 남김.
-// GA4: filter_change screen=records_game|records_season|records_awards|records_clutch (kind·category·mode·origin·active_only·season).
+// GA4: filter_change screen=records_game|records_season|records_awards|records_clutch|records_profile (kind·category·mode·origin·active_only·season).
 import InfoLink from "./InfoLink";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -37,7 +37,7 @@ export interface BoardCategory {
 }
 
 interface Props {
-  screen: "records_game" | "records_season" | "records_awards" | "records_clutch";
+  screen: "records_game" | "records_season" | "records_awards" | "records_clutch" | "records_profile";
   data: RecordListsData;
   categories: BoardCategory[];
   /** 경기 구분 칩을 쓰는가 */
@@ -49,11 +49,13 @@ interface Props {
   /** 목록 키 만들기 (lib/data 의 키 규칙과 같아야 한다). scope = 기간 고르기 값 (scopes 가 없으면 "all") */
   listKey: (kind: GameKind, cat: string, mode: RecordMode, scope: string) => string;
   /** 목록 아래 안내 (지금 고른 상태에 맞춰) */
-  note: (kind: GameKind, mode: RecordMode, scope: string) => string;
+  note: (kind: GameKind, mode: RecordMode, scope: string, cat: string) => string;
   /** 고른 구분에 기록이 하나도 없을 때 문구 */
   emptyText?: (kind: GameKind) => string;
   /** 기간 고르기 (첫 값이 기본 — 통산). 있으면 경기 구분도 필터 밖 한 줄로 */
   scopes?: { value: string; label: string }[];
+  /** 처음 고른 기간 (없으면 scopes 첫 값) — 프로필 탭은 최신 시즌 */
+  defaultScope?: string;
   /** 구분·기간이 바뀔 때 (부모가 같은 기간의 다른 목록을 맞추려고) */
   onSelect?: (kind: GameKind, scope: string) => void;
 }
@@ -69,9 +71,10 @@ const MODE_OPTIONS: { value: RecordMode; label: string }[] = [
   { value: "perGame", label: "경기당" },
 ];
 
-export default function RecordBoardView({ screen, data, categories, kinds = false, modes = false, remote, listKey, note, emptyText, scopes, onSelect }: Props) {
+export default function RecordBoardView({ screen, data, categories, kinds = false, modes = false, remote, listKey, note, emptyText, scopes, defaultScope, onSelect }: Props) {
   const [kind, setKind] = useState<GameKind>("regular");
-  const [scope, setScope] = useState(scopes?.[0]?.value ?? "all");
+  const [scope, setScope] = useState(defaultScope ?? scopes?.[0]?.value ?? "all");
+  const baseScope = defaultScope ?? scopes?.[0]?.value;
   const inline = !!scopes;
   const [cat, setCat] = useState(categories[0].value);
   const [mode, setMode] = useState<RecordMode>("total");
@@ -103,10 +106,10 @@ export default function RecordBoardView({ screen, data, categories, kinds = fals
     put("mode", mode !== "total" ? mode : null);
     put("origin", origin !== "all" ? origin : null);
     put("active", activeOnly ? "1" : null);
-    if (scopes) put("season", scope !== scopes[0]?.value ? scope : null);
+    if (scopes) put("season", scope !== baseScope ? scope : null);
     const q = qs.toString();
     window.history.replaceState(null, "", `${window.location.pathname}${q ? `?${q}` : ""}`);
-  }, [kind, cat, mode, origin, activeOnly, categories, scope, scopes]);
+  }, [kind, cat, mode, origin, activeOnly, categories, scope, scopes, baseScope]);
 
   const def = categories.find((d) => d.value === cat) ?? categories[0];
   const effMode: RecordMode = modes && def.perGame ? mode : "total";
@@ -290,7 +293,7 @@ export default function RecordBoardView({ screen, data, categories, kinds = fals
           }
         />
         )}
-        <p className="mt-2 text-sub text-ink-3">{note(kind, effMode, scope)}</p>
+        <p className="mt-2 text-sub text-ink-3">{note(kind, effMode, scope, def.value)}</p>
       </section>
     </>
   );

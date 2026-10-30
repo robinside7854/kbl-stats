@@ -468,6 +468,9 @@ export interface CardPlayer {
   offenseType?: OffenseTypeKey | null;
   /** 그 시즌 수상 (쉼표로 이은 SeasonAwardKey — 등급 가산점 lib/metrics AWARD_GRADE_BONUS). 없으면 "". 옛 카드 파일엔 없음 */
   awards?: string;
+  /** 키(cm)·생년월일 "1994-01-31" — 선수 탭 키순·나이순 (2026-10-30). 없으면 null. 옛 카드 파일엔 없음 */
+  heightCm?: number | null;
+  birthday?: string | null;
 }
 
 /** 화면으로 넘기는 팀 정보 (로고·색만) */

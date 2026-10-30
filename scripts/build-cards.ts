@@ -25,6 +25,7 @@ async function main() {
   const seasons = await readJson<SeasonOption[]>(join(PROCESSED, "seasons.json"), []);
   const index = await readJson<PlayerIndexEntry[]>(join(PROCESSED, "players-index.json"), []);
   const photo = new Map(index.map((e) => [e.id, e.photoUrl]));
+  const birthday = new Map(index.map((e) => [e.id, e.birthday ?? null]));
 
   // 지난 생성물(없어진 시즌)이 남지 않게 매번 비우고 다시 만든다
   await rm(OUT, { recursive: true, force: true });
@@ -44,7 +45,7 @@ async function main() {
   for (const s of seasons) {
     const season = loaded.get(s.seasonCode);
     if (!season) continue;
-    const players = toCardPlayers(season, (no) => photo.get(no) ?? null);
+    const players = toCardPlayers(season, (no) => photo.get(no) ?? null, (no) => birthday.get(no) ?? null);
     const file = encodeSeasonCards(
       { seasonCode: season.seasonCode, seasonLabel: season.seasonLabel, coverage: season.coverage, teams: toCardTeams(season) },
       players,

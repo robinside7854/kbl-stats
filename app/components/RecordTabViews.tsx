@@ -7,6 +7,7 @@ import { CLUTCH_RECORD_DEFS, clutchFgMinAttempts } from "@/lib/clutch";
 import { clutchListKey, type GameKind } from "@/lib/records";
 import RecentWinningShots, { type WinningShotRow } from "./RecentWinningShots";
 import RecordBoardView from "./RecordBoardView";
+import { PROFILE_RANK_DEFS, profileListKey, profileRankNote, type ProfileRankKey } from "@/lib/profile-ranks";
 
 /** 한 경기 최다 부문 이름 (lib/highs 이름에서 "슛" 을 빼 칩을 짧게) */
 const GAME_CATEGORIES = SEASON_HIGH_LEADER_KEYS.map((k) => ({ value: k, label: highDef(k).label.replace("슛 ", " ") }));
@@ -102,5 +103,23 @@ export function ClutchRecordsView({
         title={sel.scope === "all" ? "최근 위닝샷" : `${scopes.find((s) => s.value === sel.scope)?.label ?? ""} 위닝샷`}
       />
     </>
+  );
+}
+
+/** 프로필 탭 (2026-10-30): 기간(시즌·역대 전체) × 부문(키·몸무게·체격·나이·뛴 시즌·거친 구단 + 키 대비 기록). 처음 기간 = 최신 시즌 */
+export function ProfileRecordsView({ data, seasons }: { data: RecordListsData; seasons: { seasonCode: number; seasonShort: string }[] }) {
+  const scopes = useMemo(() => [{ value: "all", label: "역대 전체" }, ...seasons.map((s) => ({ value: String(s.seasonCode), label: `${s.seasonShort} 시즌` }))], [seasons]);
+  return (
+    <RecordBoardView
+      screen="records_profile"
+      data={data}
+      categories={PROFILE_RANK_DEFS.map((d) => ({ value: d.key, label: d.label }))}
+      scopes={scopes}
+      defaultScope={seasons[0] ? String(seasons[0].seasonCode) : "all"}
+      remote="profile"
+      listKey={(_kind, cat, _mode, scope) => profileListKey(scope === "all" ? "all" : Number(scope), cat)}
+      note={(_kind, _mode, scope, cat) => profileRankNote(cat as ProfileRankKey, scope === "all" ? "all" : "season")}
+      emptyText={() => "이 기간에는 해당하는 선수가 없어요."}
+    />
   );
 }

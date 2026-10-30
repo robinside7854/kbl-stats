@@ -26,7 +26,7 @@ export const CARD_FIELDS = [
   "fga", "tpa", "fta", "fgPct", "tpPct", "ftPct",
   "fgm", "twoPa", "twoPPct", "tpm", "oreb", "dreb", "goodDef", "deflections", "screenAst", "plusMinus", "midA", "midM",
   "per", "usgPct", "rebPct", "astPct", "tsPct", "efgPct", "tovPct", "astTo",
-  "offenseType", "awards",
+  "offenseType", "awards", "heightCm", "birthday",
 ] as const satisfies readonly (keyof CardPlayer)[];
 
 type CardCell = string | number | boolean | null;
@@ -101,7 +101,7 @@ export function encodeSeasonCards(
 export function decodeSeasonCards(file: SeasonCardsFile): SeasonCards {
   if (file.v !== CARDS_FILE_VERSION) throw new Error(`카드 파일 버전 ${file.v} ≠ ${CARDS_FILE_VERSION}`);
   const idx = new Map(file.fields.map((f, i) => [f, i]));
-  const NULLABLE = new Set<string>(["position", "positionGroup", "nationality", "photoUrl", "offenseType"]);
+  const NULLABLE = new Set<string>(["position", "positionGroup", "nationality", "photoUrl", "offenseType", "heightCm", "birthday"]);
   const STRING = new Set<string>(["id", "nameKo", "nameEn", "teamName", "teamShort", "teamCode", "awards"]);
   const players = file.rows.map((row) => {
     const o: Record<string, CardCell> = {};

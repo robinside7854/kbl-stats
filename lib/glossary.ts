@@ -41,6 +41,7 @@ export type GlossaryKey =
   | "leagueTrends"
   | "draftClass"
   | "foreignHall"
+  | "profileRanks"
   | "careerTimeline"
   | "shotHabit"
   | "teamBest5";
@@ -378,6 +379,16 @@ export const GLOSSARY: readonly GlossaryEntry[] = [
     source: null,
   },
   {
+    key: "profileRanks",
+    group: "etc",
+    name: "프로필 순위",
+    short: "키·몸무게·나이·뛴 시즌·거친 구단으로 선수를 줄 세우고, 키에 비해 남다른 기록도 모아 봅니다.",
+    note: "키·몸무게는 KBL 선수 등록 정보의 지금 값이라 옛 시즌에도 같은 값을 씁니다. 키 대비 리바운드는 국내 선수는 국내끼리, 외국인은 외국인끼리 같은 키 평균과 비교해요.",
+    formula: "BMI = 몸무게(kg) ÷ 키(m)² · 키 대비 리바운드 = 경기당 리바운드 − 같은 키 평균(키 → 리바운드 직선) · 단신 185cm 이하 · 장신 200cm 이상",
+    brief: "키 대비 리바운드 = 경기당 리바운드 − 같은 키 평균",
+    source: null,
+  },
+  {
     key: "careerTimeline",
     group: "etc",
     name: "커리어 타임라인",
@@ -450,6 +461,7 @@ export const GLOSSARY_ANCHORS: Record<GlossaryKey, string> = {
   leagueTrends: "league-trends",
   draftClass: "draft-class",
   foreignHall: "foreign-hall",
+  profileRanks: "profile-ranks",
   careerTimeline: "career-timeline",
   shotHabit: "shot-habit",
   teamBest5: "team-best-5",
