@@ -258,7 +258,7 @@ export interface SeasonGame {
   box: { home: GameBoxRow[]; away: GameBoxRow[] } | null;
   /** 하이라이트 영상 (유튜브 영상 번호, TVING SPORTS 채널 — scripts/highlights.ts). 없으면 필드 없음 */
   highlight?: string;
-  /** 위닝샷 (lib/clutch analyzeClutch — 4쿼터·연장 남은 2분 미만에 이긴 팀이 끝까지 앞서기 시작한 득점). 없으면 필드 없음 */
+  /** 위닝샷 (lib/clutch analyzeClutch — 4쿼터·연장 남은 2분 미만에 이긴 팀이 앞서 나간 득점이고 그 뒤 득점 없이 경기가 끝남). 없으면 필드 없음 */
   winning?: WinningShot;
   /** 클러치 상황(4쿼터·연장 남은 2분 미만, 6점 차 이내)에 슛·자유투를 던진 선수 (득점 많은 순). 문자중계를 분석한 경기만 있다(접전이 없으면 빈 배열) */
   clutch?: ClutchLine[];

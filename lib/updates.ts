@@ -31,6 +31,18 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-10-30-winning-shot-rule",
+    date: "2026-10-30",
+    kind: "update",
+    title: "위닝샷 기준을 더 엄격하게 바꿨어요",
+    summary: "위닝샷 기준 바뀜",
+    blocks: [
+      { kind: "p", text: "이제 그 득점을 끝으로 경기가 끝나야 위닝샷이에요. 앞서 나간 뒤에 어느 팀이든 점수가 또 나면 위닝샷으로 치지 않아요. 같은 선수가 바로 이어 넣은 앤드원이나 두 번째 자유투만 괜찮아요." },
+      { kind: "p", text: "그래서 역대 위닝샷이 정규시즌 897개에서 404개로, 플레이오프 55개에서 26개로 줄었어요. 버저비터는 그대로예요. 클러치 득점은 바뀌지 않았어요." },
+      { kind: "list", items: [{ text: "역대 위닝샷 순위 보기", href: "/records/clutch" }] },
+    ],
+  },
+  {
     slug: "2026-10-28-share-copy-photo",
     date: "2026-10-28",
     kind: "update",
@@ -61,7 +73,7 @@ export const UPDATE_POSTS: UpdatePost[] = [
     title: "위닝샷·버저비터·클러치 기록 생겼어요",
     summary: "위닝샷·클러치 기록",
     blocks: [
-      { kind: "p", text: "4쿼터나 연장 남은 2분 안에 동점이나 역전 득점을 넣고 끝까지 이기면 위닝샷이에요. 0초에 넣고 상대가 아무것도 못 하고 끝나면 버저비터로 따로 적어요." },
+      { kind: "p", text: "4쿼터나 연장 남은 2분 안에 동점이나 역전 득점을 넣고, 그 득점을 끝으로 경기가 끝나면 위닝샷이에요. 0초에 넣고 상대가 아무것도 못 하고 끝나면 버저비터로 따로 적어요." },
       { kind: "p", text: "남은 2분 안, 6점 차 이내에서 넣은 점수는 클러치 기록으로 모았어요. 경기 카드랑 박스스코어엔 위닝샷 넣은 선수 이름 옆에 표시가 붙고, 선수 페이지엔 클러치 칸이 생겼어요." },
       { kind: "p", text: "공홈 문자중계로 세서 2006-07 시즌부터 있어요. 지난 시즌들 기록은 차례로 채우는 중이에요." },
       { kind: "list", items: [{ text: "역대 위닝샷 순위 보기", href: "/records/clutch" }, { text: "오늘 경기 보러 가기", href: "/" }] },

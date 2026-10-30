@@ -136,12 +136,31 @@ const g6 = [
   E("Q4", 2, A, "made2", "B"),    // 동점 → 연장
   E("Q4", 0, "", "end"),
   E("X1", 100, H, "made3", "C"),  // 연장 1:40 앞섬 (클러치 시간)
-  E("X1", 50, A, "made2", "D"),
+  E("X1", 50, A, "miss2", "D"),
   E("X1", 0, "", "end"),
 ];
-const r6 = analyzeClutch(g6, { teamCode: H, score: 100 }, { teamCode: A, score: 99 }, ids)!;
+const r6 = analyzeClutch(g6, { teamCode: H, score: 100 }, { teamCode: A, score: 97 }, ids)!;
 assert.equal(r6.winning?.nameKo, "C");
 assert.equal(r6.winning?.period, "X1");
+// 2026-10-29 사용자 기준: 그 득점을 끝으로 경기가 끝나야 한다 — 뒤에 상대가 넣으면(리드는 그대로여도) 위닝샷 없음
+seq = 0;
+const g7 = [E("Q4", 30, A, "made2", "B"), E("Q4", 20, H, "made3", "C"), E("Q4", 5, A, "made2", "D"), E("Q4", 0, "", "end")];
+assert.equal(analyzeClutch(g7, { teamCode: H, score: 83 }, { teamCode: A, score: 82 }, ids)!.winning, null);
+// 이긴 팀이 뒤에 더 넣어도(자유투로 점수 차를 벌려도) 위닝샷 없음
+seq = 0;
+const g8 = [E("Q4", 30, A, "made2", "B"), E("Q4", 20, H, "made3", "C"), E("Q4", 5, H, "madeFt", "A"), E("Q4", 0, "", "end")];
+assert.equal(analyzeClutch(g8, { teamCode: H, score: 84 }, { teamCode: A, score: 82 }, ids)!.winning, null); // 80-82 → 83-82 → 84-82
+// 같은 선수가 같은 시각에 이어 넣은 자유투(앤드원·두 번째 자유투)는 같은 공격이라 괜찮다 — 위닝샷은 앞서 나간 득점
+seq = 0;
+const g9 = [E("Q4", 30, A, "made2", "B"), E("Q4", 8, H, "made2", "C"), E("Q4", 8, A, "foul", "B"), E("Q4", 8, H, "madeFt", "C"), E("Q4", 0, "", "end")];
+const r9 = analyzeClutch(g9, { teamCode: H, score: 82 }, { teamCode: A, score: 80 }, ids)!; // 79-78 → 79-80 → 81-80 → 82-80
+assert.equal(r9.winning?.nameKo, "C");
+assert.equal(r9.winning?.kind, "2");
+assert.deepEqual(r9.winning?.after, [81, 80]);
+// 다른 선수의 자유투면 같은 공격이 아니다
+seq = 0;
+const g10 = [E("Q4", 30, A, "made2", "B"), E("Q4", 8, H, "made2", "C"), E("Q4", 8, H, "madeFt", "A"), E("Q4", 0, "", "end")];
+assert.equal(analyzeClutch(g10, { teamCode: H, score: 82 }, { teamCode: A, score: 80 }, ids)!.winning, null);
 // 점수가 안 맞으면(빠진 기록) null
 assert.equal(analyzeClutch(g6, { teamCode: H, score: 2 }, { teamCode: A, score: 99 }, ids), null);
 assert.equal(analyzeClutch([], { teamCode: H, score: 2 }, { teamCode: A, score: 1 }, ids), null);

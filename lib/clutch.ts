@@ -2,8 +2,9 @@
 //
 // 클러치 상황: 4쿼터·연장, 남은 시간 2분 미만(1:59 부터), 득점(시도) 직전 두 팀 점수 차 6점 이내(2 포제션).
 //   그때 던진 야투·자유투와 넣은 점수를 선수별로 센다 (클러치 득점·클러치 야투).
-// 위닝샷: 이긴 팀이 마지막으로 동점·역전에서 앞서 나간 득점(그 뒤로 한 번도 동점·역전을 허용하지 않음)이
-//   클러치 시간(4쿼터·연장 남은 2분 미만)에 나온 것. 직전 점수는 동점이거나 지고 있었으므로 클러치 상황에 늘 들어간다.
+// 위닝샷: 이긴 팀이 동점·지는 상황에서 앞서 나간 득점이고, 그 득점을 끝으로 경기가 끝난 것(2026-10-29 사용자 기준 —
+//   뒤에 어느 팀이든 득점이 나오면 위닝샷이 아니다. 같은 선수가 같은 시각에 이어 넣은 자유투(앤드원·두 번째 자유투)만 예외)
+//   + 클러치 시간(4쿼터·연장 남은 2분 미만)에 나온 것. 직전 점수는 동점이거나 지고 있었으므로 클러치 상황에 늘 들어간다.
 //   자유투로 앞서 나갔으면 "결승 자유투"로 표시한다(종류 ft).
 // 버저비터: 위닝샷 중 야투이고, 남은 시간 0초에 넣었고, 그 뒤 상대 팀이 슛·작전시간·턴오버를 하지 못했고 리바운드도 없이 끝난 것.
 //   문자중계는 초 단위까지만 적혀 0.3초 같은 시각도 "0초"로 온다 → 0.x 초를 남기고 넣은 슛 가운데
@@ -94,6 +95,11 @@ export interface ClutchAnalysis {
 
 const normName = (s: string) => s.replace(/\s+/g, "");
 
+/** 위닝샷 뒤에 와도 되는 득점: 같은 선수가 같은 시각(같은 쿼터·같은 남은 초)에 넣은 자유투 — 앤드원·자유투 두 개 중 두 번째 */
+function isSamePlayFt(shot: TextCastEvent, e: TextCastEvent): boolean {
+  return e.action === "madeFt" && e.teamCode === shot.teamCode && normName(e.nameKo) === normName(shot.nameKo) && e.period === shot.period && e.remaining === shot.remaining;
+}
+
 /**
  * 4쿼터·연장 문자중계 + 최종 점수 → 위닝샷·선수별 클러치 기록.
  * 4쿼터 시작 점수 = 최종 점수 − 받은 쿼터 득점. 음수가 되거나(빠진 기록) 비기거나 이벤트가 없으면 null.
@@ -152,7 +158,7 @@ export function analyzeClutch(
     const leadBefore = lead();
     score[s as 0 | 1] += made.pts;
     if (s === win && leadBefore <= 0 && lead() > 0) cand = { index, before };
-    else if (lead() <= 0) cand = null;
+    else if (cand && !isSamePlayFt(events[(cand as { index: number }).index], e)) cand = null;
   });
 
   let winning: WinningShot | null = null;
