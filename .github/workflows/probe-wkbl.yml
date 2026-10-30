@@ -18,7 +18,7 @@ jobs:
         continue-on-error: true
         run: |
           mkdir -p /tmp/pw && cd /tmp/pw && npm init -y >/dev/null && npm i playwright@1.49.1 >/dev/null && npx playwright install --with-deps chromium >/dev/null
-          cp "$GITHUB_WORKSPACE/probe/wkbl2.mjs" /tmp/pw/ && OUT_DIR="$GITHUB_WORKSPACE/probe/wkbl/r3" node /tmp/pw/wkbl2.mjs
+          cp "$GITHUB_WORKSPACE/probe/wkbl2.mjs" /tmp/pw/ && OUT_DIR="$GITHUB_WORKSPACE/probe/wkbl/r4" node /tmp/pw/wkbl2.mjs
       - name: 커밋
         if: always()
         run: |
