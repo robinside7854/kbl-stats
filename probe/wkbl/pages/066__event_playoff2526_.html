@@ -1,0 +1,370 @@
+<!-- https://www.wkbl.or.kr/event/playoff2526/ -->
+
+<!doctype html>
+<html lang="ko">
+<head>
+	<meta charset="utf-8">
+	<title>BNK금융 2025~2026 여자프로농구 플레이오프 안내</title>
+	<meta name="viewport" content="user-scalable=no, width=device-width">
+    <link rel="stylesheet" href="/common/css/event.css" type="text/css">
+	<link rel="stylesheet" href="./static/css/style.css" type="text/css">
+	<!--[if lt IE 9]>
+	<script src="./static/js/lib/html5shiv.min.js"></script>
+	<script src="./static/js/lib/respond.js"></script>
+	<![endif]-->
+</head>
+<body>
+<div id="wrapper">
+	<div id="contents">
+            <!--상단비주얼-->
+            <!-- 2023-11-13 연도별 링크 이동 select 추가 -->
+            <div class="yearly">
+    <label id="kindTxt" class="lab_select">년도 선택</label>
+    <select id="selectbox" onchange="linkChange()">
+        <option value="" style="display:none;">년도 선택</option>
+        <option value="2223">2022-2023</option>
+        <option value="2122">2021-2022</option>
+    </select>
+</div>
+
+<script type="text/javascript">
+        let selectOption = document.querySelector('#selectbox');
+        
+        function linkChange(){
+        let selectValue = selectOption.options[selectOption.selectedIndex].value;
+            location.href = `https://www.wkbl.or.kr/event/playoff${selectValue}/`;
+        }
+</script>
+            <div class="canvas_wrap">
+                <div class="inner">
+                    <script src="./static/js/media-shader.js"></script>
+                    <media-shader
+                        width="100%" 
+                        height="100%"
+                        fragment-shader='#version 300 es
+                            precision highp float;
+                            out vec4 glFragColor;
+                            uniform vec2 u_resolution;
+                            uniform float u_time;
+                            uniform vec4 u_background;
+                            uniform vec3 u_color;
+                            uniform float u_speed;
+                            uniform float u_detail;
+                            mat2 m(float a) {
+                                float c=cos(a), s=sin(a);
+                                return mat2(c,-s,s,c);
+                            }
+                            #ifndef FNC_RGB2LUMA
+                            #define FNC_RGB2LUMA
+                            float rgb2luma(in vec3 color) {
+                                return dot(color, vec3(0.299, 0.587, 0.114));
+                            }
+                            float rgb2luma(in vec4 color) {
+                                return rgb2luma(color.rgb);
+                            }
+                            #endif
+                            #ifndef FNC_LUMA
+                            #define FNC_LUMA
+                            float luma(float v) { return v; }
+                            float luma(in vec3 v) { return rgb2luma(v); }
+                            float luma(in vec4 v) { return rgb2luma(v.rgb); }
+                            #endif
+                            float map(vec3 p) {
+                                float t = u_time * u_speed;
+                                p.xz *= m(t * 0.4);p.xy*= m(t * 0.1);
+                                vec3 q = p * 2.0 + t;
+                                return length(p+vec3(sin((t*u_speed) * 0.1))) * log(length(p) + 0.9) + cos(q.x + sin(q.z + cos(q.y))) * 0.5 - 1.0;
+                            }
+                            void main() {
+                                vec2 a = gl_FragCoord.xy / u_resolution.x - vec2(0.5, 0.5);
+                                vec3 cl = vec3(0.0);
+                                float d = 2.5;
+                                for (float i = 0.; i <= (1. + 20. * u_detail); i++) {
+                                    vec3 p = vec3(0, 0, 4.0) + normalize(vec3(a, -1.0)) * d;
+                                    float rz = map(p);
+                                    float f =  clamp((rz - map(p + 0.1)) * 0.5, -0.1, 1.0);
+                                    vec3 l = vec3(0.1, 0.3, 0.4) + vec3(5.0, 2.5, 3.0) * f;
+                                    cl = cl * l + smoothstep(2.5, 0.0, rz) * 0.6 * l;
+                                    d += min(rz, 1.0);
+                                }
+                                vec4 color = vec4(min(u_color, cl),1.0);
+                                color.r = max(u_background.r,color.r);
+                                color.g = max(u_background.g,color.g);
+                                color.b = max(u_background.b,color.b);
+                                glFragColor = color;
+                            }'
+                        uniforms='{"u_background":[0.0784313725490196,0.11764705882352941,0.18823529411764706,1],"u_color":[1,0,0],"u_speed":1,"u_detail":0.314}'>
+                    </media-shader>
+                </div>
+            </div>
+
+            <section class="visual">
+                <div class="title">
+                    <img src="./static/images/visual_title_playoff.png" alt="BNK금융 2025-2026 여자프로농구 플레이오프 2026.04.08(수) ~ 2026.04.17(금)">
+                </div>
+                <div class="logo_wrap">
+                    <ul class="logo">
+                        <li><img src="/static/images/team/teamlogo_01.png" alt="KB스타즈"></li>
+                        <li><img src="/static/images/team/teamlogo_05.png" alt="우리은행"></li>
+                    </ul>
+                    <ul class="logo">
+                        <li><img src="/static/images/team/teamlogo_09.png" alt="하나은행"></li>
+                        <li><img src="/static/images/team/teamlogo_03.png" alt="삼성생명"></li>
+                    </ul>
+                </div>
+            </section>
+            <!--//상단비주얼-->
+
+            <!--플레이오프 컨텐츠영역-->
+            <section class="content">
+                <div class="cont_inner">
+                    <h1><img src="./static/images/title_playoff.png" alt="BNK금융 2025-2026 여자프로농구 경기일정"></h1>
+                    <div class="list">
+                        <ul>
+        
+                            <li class="end">
+                                <div class="group">
+                                    <!--왼쪽 팀명-->
+                                    <div class="team team_left">
+                                        <div class="img"><img src="/static/images/team/teamlogo_01.png" alt=""></div>
+                                        <p class="name">KB스타즈</p>
+                                    </div>
+                                    <!--경기 정보-->
+                                    <div class="info">
+                                        <!--결과:WIN-->
+                                        <div class="score score_left win">
+                                            <span class='result'>W</span><span class='number'>73</span>
+                                        </div>
+                                        <div class="schedule">
+                                            <p>04.08(수)&nbsp;18:59 </p>
+                                            <p class="place">청주체육관</p>
+                                            <div class="btns">
+                                                <a href='/game/result.asp?season_gu=046&gun=1&game_type=03&game_no=1&ym=202604'>경기기록</a> <a class='line' href='/news/photo_view.asp?num=52778'>경기사진</a>
+                                            </div>
+                                        </div>
+                                        <!--결과:LOSE-->
+                                        <div class="score score_right ">
+                                            <span class='number'>46</span><span class='result'>L</span>
+                                        </div>
+                                    </div>
+                                    <!--오른쪽 팀명-->
+                                    <div class="team team_right">
+                                        <p class="name">우리은행</p>
+                                        <div class="img"><img src="/static/images/team/teamlogo_05.png" alt=""></div>
+                                    </div>
+                                </div>
+                            </li>
+        
+                            <li class="end">
+                                <div class="group">
+                                    <!--왼쪽 팀명-->
+                                    <div class="team team_left">
+                                        <div class="img"><img src="/static/images/team/teamlogo_09.png" alt=""></div>
+                                        <p class="name">하나은행</p>
+                                    </div>
+                                    <!--경기 정보-->
+                                    <div class="info">
+                                        <!--결과:WIN-->
+                                        <div class="score score_left win">
+                                            <span class='result'>W</span><span class='number'>61</span>
+                                        </div>
+                                        <div class="schedule">
+                                            <p>04.09(목)&nbsp;19:00 </p>
+                                            <p class="place">부천체육관</p>
+                                            <div class="btns">
+                                                <a href='/game/result.asp?season_gu=046&gun=1&game_type=03&game_no=2&ym=202604'>경기기록</a> <a class='line' href='/news/photo_view.asp?num=52798'>경기사진</a>
+                                            </div>
+                                        </div>
+                                        <!--결과:LOSE-->
+                                        <div class="score score_right ">
+                                            <span class='number'>56</span><span class='result'>L</span>
+                                        </div>
+                                    </div>
+                                    <!--오른쪽 팀명-->
+                                    <div class="team team_right">
+                                        <p class="name">삼성생명</p>
+                                        <div class="img"><img src="/static/images/team/teamlogo_03.png" alt=""></div>
+                                    </div>
+                                </div>
+                            </li>
+        
+                            <li class="end">
+                                <div class="group">
+                                    <!--왼쪽 팀명-->
+                                    <div class="team team_left">
+                                        <div class="img"><img src="/static/images/team/teamlogo_01.png" alt=""></div>
+                                        <p class="name">KB스타즈</p>
+                                    </div>
+                                    <!--경기 정보-->
+                                    <div class="info">
+                                        <!--결과:WIN-->
+                                        <div class="score score_left win">
+                                            <span class='result'>W</span><span class='number'>78</span>
+                                        </div>
+                                        <div class="schedule">
+                                            <p>04.10(금)&nbsp;19:00 </p>
+                                            <p class="place">청주체육관</p>
+                                            <div class="btns">
+                                                <a href='/game/result.asp?season_gu=046&gun=1&game_type=03&game_no=3&ym=202604'>경기기록</a> <a class='line' href='/news/photo_view.asp?num=52845'>경기사진</a>
+                                            </div>
+                                        </div>
+                                        <!--결과:LOSE-->
+                                        <div class="score score_right ">
+                                            <span class='number'>54</span><span class='result'>L</span>
+                                        </div>
+                                    </div>
+                                    <!--오른쪽 팀명-->
+                                    <div class="team team_right">
+                                        <p class="name">우리은행</p>
+                                        <div class="img"><img src="/static/images/team/teamlogo_05.png" alt=""></div>
+                                    </div>
+                                </div>
+                            </li>
+        
+                            <li class="end">
+                                <div class="group">
+                                    <!--왼쪽 팀명-->
+                                    <div class="team team_left">
+                                        <div class="img"><img src="/static/images/team/teamlogo_09.png" alt=""></div>
+                                        <p class="name">하나은행</p>
+                                    </div>
+                                    <!--경기 정보-->
+                                    <div class="info">
+                                        <!--결과:WIN-->
+                                        <div class="score score_left ">
+                                            <span class='result'>L</span><span class='number'>74</span>
+                                        </div>
+                                        <div class="schedule">
+                                            <p>04.11(토)&nbsp;16:00 </p>
+                                            <p class="place">부천체육관</p>
+                                            <div class="btns">
+                                                <a href='/game/result.asp?season_gu=046&gun=1&game_type=03&game_no=4&ym=202604'>경기기록</a> <a class='line' href='/news/photo_view.asp?num=52858'>경기사진</a>
+                                            </div>
+                                        </div>
+                                        <!--결과:LOSE-->
+                                        <div class="score score_right win">
+                                            <span class='number'>83</span><span class='result'>W</span>
+                                        </div>
+                                    </div>
+                                    <!--오른쪽 팀명-->
+                                    <div class="team team_right">
+                                        <p class="name">삼성생명</p>
+                                        <div class="img"><img src="/static/images/team/teamlogo_03.png" alt=""></div>
+                                    </div>
+                                </div>
+                            </li>
+        
+                            <li class="end">
+                                <div class="group">
+                                    <!--왼쪽 팀명-->
+                                    <div class="team team_left">
+                                        <div class="img"><img src="/static/images/team/teamlogo_05.png" alt=""></div>
+                                        <p class="name">우리은행</p>
+                                    </div>
+                                    <!--경기 정보-->
+                                    <div class="info">
+                                        <!--결과:WIN-->
+                                        <div class="score score_left ">
+                                            <span class='result'>L</span><span class='number'>55</span>
+                                        </div>
+                                        <div class="schedule">
+                                            <p>04.12(일)&nbsp;16:00 </p>
+                                            <p class="place">아산이순신체육관</p>
+                                            <div class="btns">
+                                                <a href='/game/result.asp?season_gu=046&gun=1&game_type=03&game_no=5&ym=202604'>경기기록</a> <a class='line' href='/news/photo_view.asp?num=52895'>경기사진</a>
+                                            </div>
+                                        </div>
+                                        <!--결과:LOSE-->
+                                        <div class="score score_right win">
+                                            <span class='number'>81</span><span class='result'>W</span>
+                                        </div>
+                                    </div>
+                                    <!--오른쪽 팀명-->
+                                    <div class="team team_right">
+                                        <p class="name">KB스타즈</p>
+                                        <div class="img"><img src="/static/images/team/teamlogo_01.png" alt=""></div>
+                                    </div>
+                                </div>
+                            </li>
+        
+                            <li class="end">
+                                <div class="group">
+                                    <!--왼쪽 팀명-->
+                                    <div class="team team_left">
+                                        <div class="img"><img src="/static/images/team/teamlogo_03.png" alt=""></div>
+                                        <p class="name">삼성생명</p>
+                                    </div>
+                                    <!--경기 정보-->
+                                    <div class="info">
+                                        <!--결과:WIN-->
+                                        <div class="score score_left win">
+                                            <span class='result'>W</span><span class='number'>70</span>
+                                        </div>
+                                        <div class="schedule">
+                                            <p>04.13(월)&nbsp;19:00 </p>
+                                            <p class="place">용인실내체육관</p>
+                                            <div class="btns">
+                                                <a href='/game/result.asp?season_gu=046&gun=1&game_type=03&game_no=6&ym=202604'>경기기록</a> <a class='line' href='/news/photo_view.asp?num=52925'>경기사진</a>
+                                            </div>
+                                        </div>
+                                        <!--결과:LOSE-->
+                                        <div class="score score_right ">
+                                            <span class='number'>68</span><span class='result'>L</span>
+                                        </div>
+                                    </div>
+                                    <!--오른쪽 팀명-->
+                                    <div class="team team_right">
+                                        <p class="name">하나은행</p>
+                                        <div class="img"><img src="/static/images/team/teamlogo_09.png" alt=""></div>
+                                    </div>
+                                </div>
+                            </li>
+        
+                            <li class="end">
+                                <div class="group">
+                                    <!--왼쪽 팀명-->
+                                    <div class="team team_left">
+                                        <div class="img"><img src="/static/images/team/teamlogo_03.png" alt=""></div>
+                                        <p class="name">삼성생명</p>
+                                    </div>
+                                    <!--경기 정보-->
+                                    <div class="info">
+                                        <!--결과:WIN-->
+                                        <div class="score score_left win">
+                                            <span class='result'>W</span><span class='number'>58</span>
+                                        </div>
+                                        <div class="schedule">
+                                            <p>04.15(수)&nbsp;19:00 </p>
+                                            <p class="place">용인실내체육관</p>
+                                            <div class="btns">
+                                                <a href='/game/result.asp?season_gu=046&gun=1&game_type=03&game_no=8&ym=202604'>경기기록</a> <a class='line' href='/news/photo_view.asp?num=52955'>경기사진</a>
+                                            </div>
+                                        </div>
+                                        <!--결과:LOSE-->
+                                        <div class="score score_right ">
+                                            <span class='number'>53</span><span class='result'>L</span>
+                                        </div>
+                                    </div>
+                                    <!--오른쪽 팀명-->
+                                    <div class="team team_right">
+                                        <p class="name">하나은행</p>
+                                        <div class="img"><img src="/static/images/team/teamlogo_09.png" alt=""></div>
+                                    </div>
+                                </div>
+                            </li>
+        
+                        </ul>
+                    </div>
+                    <div class="btn">
+                        <a href="https://www.wkbl.or.kr/main" class="link_wkbl">
+                            WKBL 홈페이지 바로가기
+                        </a>
+                    </div>
+                    <p class="copyright">COPYRIGHT ⓒ 2024 WOMEN'S KOREAN BASKETBALL LEAGUE. ALL RIGHTS RESERVED.</p>
+                </div>
+            </section>
+            <!--//플레이오프 컨텐츠영역-->
+	</div>
+</div>
+</body>
+</html>

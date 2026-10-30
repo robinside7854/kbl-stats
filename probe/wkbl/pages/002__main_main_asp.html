@@ -1,0 +1,1721 @@
+<!-- https://www.wkbl.or.kr/main/main.asp -->
+
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>WKBL</title>
+
+<!--[if lt IE 9]>
+<link rel="stylesheet" href="/static/css/ie.css">
+<script src="/static/js/lib/html5shiv.min.js"></script>
+<script src="/static/js/lib/respond.js"></script>
+<![endif]-->
+
+<!--불필요한 파일 제거-->
+<!--<link rel="stylesheet" href="/static/css/owl.carousel.css" type="text/css">-->
+<!--<link rel="stylesheet" href="/static/css/owl.theme.default.css" type="text/css">-->
+<!--<link rel="stylesheet" href="/static/css/animate.min.css" type="text/css">-->
+<!--불필요한 파일 제거-->
+
+<link rel="stylesheet" href="/static/css/style_20.css?ver=1.1" type="text/css">
+
+<!--2022ver css 추가-->
+<link rel="stylesheet" href="/static/css/slick.css" type="text/css">
+<link rel="stylesheet" href="/static/css/main_22.css" type="text/css">
+<!--2022ver css 추가-->
+
+<script src="../static/js/lib/script.js"></script>
+<!--<script src="/static/js/lib/nSlider.js"></script>-->
+<!--<script src="/static/js/lib/owl.carousel.js"></script>-->
+<script src="/static/js/lib/instafeed.js"></script>
+<script src="/static/js/common_wkbl.js"></script>
+
+</head>
+
+<body>
+    <div id="pageIndex">
+        <a href="#contents" class="shortcut_g">본문내용보기</a>
+        <a href="#pageGnb" class="shortcut_g">메뉴바로가기</a>
+    </div>
+
+    <div id="wrap" class="v2026">
+        <header id="header" class="is_brn_none">
+            <div class="nav_wrapper">
+                <div class="top_navigation">
+                    <div class="inner_nav">
+                        <h1 id="pageLogo" class="site_logo">
+                            <a href="/main"><img src="/static/images/common/head_logo_22.png" alt="WKBL"></a>
+                        </h1>
+                        <nav id="pageGnb" class="gnb_comm">
+                            <h2 class="screen_out">주요메뉴</h2>
+                            <ul class="list_menu">
+                                <li class="depth1 nav0"><a href="/about/greetings.asp" >WKBL</a></li>
+                                <li class="depth1 nav1"><a href="/news/hotfocus_list.asp" class="language" data-kr="뉴스" data-en="News">뉴스</a></li>
+                                <li class="depth1 nav2"><a href="/game/sch/schedule1.asp" class="language" data-kr="일정/기록" data-en="Schedule<br>Records">일정/기록</a></li>
+                                <li class="depth1 nav3"><a href="/team/teaminfo.asp" class="language" data-kr="팀" data-en="Teams">팀</a></li>
+                                <li class="depth1 nav4"><a href="/player/player_list.asp" class="language" data-kr="선수" data-en="Players">선수</a></li>
+                                <li class="depth1 nav5"><a href="/history/league.asp" class="language" data-kr="히스토리" data-en="History">히스토리</a></li>
+                                <li class="depth1 nav6"><a href="javascropt:void(0);" class="language" data-kr="이벤트" data-en="Events">이벤트</a></li>
+                                <li class="depth1 nav7"><a href="/fan/character.asp" class="language" data-kr="팬" data-en="Fan">팬</a></li>
+                                <li class="depth1 nav8"><a href="/ticket/ticketing.asp" class="language" data-kr="티켓" data-en="Tickets">티켓</a></li>
+                            </ul>
+                        </nav>
+                        
+
+                        <!--// nav_wrapper -->
+
+                        <div class="util_wrapper top_social_wrap">
+                            <div class="inner_util">
+                                <ul class="list_util">
+                                    <li><a href="javascript:void(0);" class="lang_change language btn_detail" data-kr="<img src='/static/images/main/icon_global_v2026.svg' title='EN'>EN" data-en="<img src='/static/images/main/icon_global_v2026.svg' title='KR'>KR"><img src='/static/images/main/icon_global_v2026.svg' title="EN">EN</a></li>
+                                    <li>
+                                        <a href="/member/login_v2.asp" class="btn_detail language" data-kr="<img src='/static/images/main/icon_login_v2026.svg' title='로그인'>로그인" data-en="<img src='/static/images/main/icon_login_v2026.svg' title='Sign in'>Sign in">
+                                            <img src='/static/images/main/icon_login_v2026.svg' title='로그인'>로그인
+                                        </a>
+                                    </li>
+                                
+                                    <!-- <li><a href="/member/join/join_native.asp" class="btn_detail language" data-kr="회원가입" data-en="Sign up">회원가입</a></li> -->
+                                
+                                    <li><button type="button" class="btn_search btn_detail language" data-kr="<img src='/static/images/main/icon_search_v2026.svg' title='선수'>선수" data-en="<img src='/static/images/main/icon_search_v2026.svg' title='Player'>Player"><img src='/static/images/main/icon_search_v2026.svg' title='선수'>선수</button></li>
+                                </ul>
+                            </div>
+                            
+
+                            <script type="text/javascript">
+                                $(function() {
+                                    $("#btn_header_search").click(function(e) {
+                                        e.preventDefault();
+
+                                        var search_team = TrimStr($("#search_team").val());
+                                        var search_word = TrimStr($("#search_word").val());
+
+                                        location.href = "/player/search_result.asp?search_team=" + encodeURI(search_team) + "&search_word=" + encodeURI(search_word)
+                                    });
+                                });
+
+                                function goCommonSearch() {
+                                    if (event.keyCode == 13) $("#btn_header_search").click();
+                                }
+                            </script>
+
+                            <div class="wrap_search">
+                                <div class="inner_search">
+                                    <div class="opt_item ico2_comm" style="display:none;">
+                                        <label id="header_label_team" class="lab_select language" for="search_team" data-kr="팀전체" data-en="All">팀전체</label>
+                                        <select class="opt_select" name="search_team" id="search_team">
+                                    <option value="" selected class="language" data-kr="팀전체" data-en="All">팀전체</option>
+                                    
+                                    <option value="03" class="language" data-kr="삼성생명" data-en="Samsung life">삼성생명</option>
+                                    
+                                    <option value="07" class="language" data-kr="신한은행" data-en="Shinhan Bank">신한은행</option>
+                                    
+                                    <option value="05" class="language" data-kr="우리은행" data-en="Woori Bank">우리은행</option>
+                                    
+                                    <option value="09" class="language" data-kr="하나은행" data-en="Hana Bank">하나은행</option>
+                                    
+                                    <option value="11" class="language" data-kr="BNK 썸" data-en="BNK SUM">BNK 썸</option>
+                                    
+                                    <option value="01" class="language" data-kr="KB스타즈" data-en="KB stars">KB스타즈</option>
+                                    
+                                </select>
+                                    </div>
+                                    <span class="inp_text">
+                                <label for="search_word" class="screen_out">검색어 입력</label>
+                                <input type="text" name="search_word" id="search_word" class="tf_text" onKeyDown="javascript:if(event.keyCode == 13) { goCommonSearch(); }">
+                                </span>
+                                    <button type="button" id="btn_header_search" class="btn_search language" data-kr="선수검색" data-en="Player Search">선수검색</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--// inner_nav -->
+                <div class="sub_menu">
+                    <div class="inner_menu">
+                        <ul class="sub0" rel="0">
+                            <li><a href="/about/greetings.asp" class="language" data-kr="소개" data-en="Introduce">소개</a></li>
+                            <li><a href="/about/history.asp" class="language" data-kr="연혁" data-en="History">연혁</a></li>
+                            <li><a href="/about/organization.asp" class="language" data-kr="조직도" data-en="Organization">조직도</a></li>
+                            <li><a href="/about/rule_wkbl.asp" class="language" data-kr="규정" data-en="Regulation">규정</a></li>
+                            <li><a href="/about/manage_system.asp" class="language" data-kr="운영제도" data-en="Operating<br>system">운영제도</a></li>
+                            <li><a href="/about/manage_process.asp" class="language" data-kr="운영방식" data-en="Procedure">운영방식</a></li>
+                            <li><a href="/about/game_rule.asp" class="language" data-kr="경기규칙" data-en="Rule">경기규칙</a></li>
+                            <li><a href="/about/dictionary.asp" class="language" data-kr="농구용어" data-en="Terms">농구용어</a></li>
+                            <li><a href="/about/link.asp" class="language" data-kr="관련사이트" data-en="Related site">관련사이트</a></li>
+                        </ul>
+                        <ul class="sub1" rel="1">
+                            <li><a href="/news/hotfocus_list.asp" class="language" data-kr="보도자료" data-en="Press release">보도자료</a></li>
+                            <li><a href="/news/notice_list.asp" class="language" data-kr="공지사항" data-en="Notice">공지사항</a></li>
+                            <li><a href="/news/news_list.asp" class="language" data-kr="뉴스" data-en="News">뉴스</a></li>
+                            <li><a href="/news/video_list.asp" class="language" data-kr="영상" data-en="Video">영상</a></li>
+                            <li><a href="/news/photo_list.asp" class="language" data-kr="포토" data-en="Photo">포토</a></li>
+                            <li><a href="/news/teamstory_list.asp" class="language" data-kr="6개구단소식" data-en="News from 6<br>teams">6개구단소식</a></li>
+                        </ul>
+                        <ul class="sub2" rel="2">
+                            <li><a href="/game/sch/schedule1.asp" class="language" data-kr="경기일정" data-en="Schedule">경기일정</a></li>
+                            <!-- <li><a href="/game/sch/schedule1.asp" class="language" data-kr="경기일정" data-en="Schedule">경기일정</a></li> -->
+                            <li><a href="/game/team_rank.asp" class="language" data-kr="팀순위" data-en="Team<br>Rankings">팀순위</a></li>
+                            <li><a href="/game/player_record.asp" class="language" data-kr="부문별 선수순위" data-en="Player Standings<br>by Category">부문별 선수순위</a></li>
+                            <li><a href="/game/part_team_rank.asp" class="language" data-kr="부문별 팀순위" data-en="Team Standings<br>by Category">부문별 팀순위</a></li>
+                            <li><a href="/game/team_total_record.asp" class="language" data-kr="팀종합기록" data-en="Overall<br>Records">팀종합기록</a></li>
+                            <li><a href="/game/report.asp" class="language" data-kr="승/패 리포트" data-en="W/L Reports">승/패 리포트</a></li>
+                            <li><a href="/game/today_mvp.asp" class="language" data-kr="오늘의 MVP" data-en="Today’s MVP">오늘의 MVP</a></li>
+                        </ul>
+                        <ul class="sub3" rel="3">
+                            <li><a href="/team/teaminfo.asp" class="language" data-kr="삼성생명" data-en="Samsung life">삼성생명</a></li>
+                            <li><a href="/team/teaminfo.asp?team_code=07" class="language" data-kr="신한은행" data-en="Shinhan Bank">신한은행</a></li>
+                            <li><a href="/team/teaminfo.asp?team_code=05" class="language" data-kr="우리은행" data-en="Woori Bank">우리은행</a></li>
+                            <li><a href="/team/teaminfo.asp?team_code=09" class="language" data-kr="하나은행" data-en="Hana Bank">하나은행</a></li>
+                            <li><a href="/team/teaminfo.asp?team_code=11" class="language" data-kr="BNK썸" data-en="BNK SUM">BNK썸</a></li>
+                            <li><a href="/team/teaminfo.asp?team_code=01" class="language" data-kr="KB스타즈" data-en="KB stars">KB스타즈</a></li>
+                        </ul>
+                        <ul class="sub4" rel="4">
+                            <li><a href="/player/player_list.asp" class="language" data-kr="선수색인" data-en="Player index">선수색인</a></li>
+                            <li><a href="/player/trade_info.asp" class="language" data-kr="이적현황" data-en="Transfer status">이적현황</a></li>
+                            <li><a href="/player/wkbl_hotline.asp">HOTLINE</a></li>
+                        </ul>
+                        <ul class="sub5" rel="5">
+                            <li><a href="/history/league.asp" class="language" data-kr="역대리그" data-en="League">역대리그</a></li>
+                            <li><a href="/history/prev_director.asp" class="language" data-kr="역대총재" data-en="President">역대총재</a></li>
+                            <li><a href="/history/major_team.asp" class="language" data-kr="역대주요기록" data-en="Key Records">역대주요기록</a></li>
+                            <li><a href="/history/awards.asp" class="language" data-kr="역대부문별수상자" data-en="All-time winners">역대부문별수상자</a></li>
+                            <li><a href="/history/draft.asp" class="language" data-kr="역대드래프트" data-en="Draft">역대드래프트</a></li>
+                            <li><a href="/history/fa_result.asp" class="language" data-kr="역대 FA" data-en="FA">역대 FA</a></li>
+                            <li><a href="/history/crowd.asp" class="language" data-kr="역대관중현황" data-en="Attendance<br>status">역대관중현황</a></li>
+                            <li><a href="/event/20th/index.asp" class="language" data-kr="GREAT 12<br/>(20주년 기념)" data-en="GREAT 12<br>(20th Anniversary)">GREAT 12<br/>(20주년 기념)</a></li>
+                        </ul>
+                        <ul class="sub6" rel="6">
+                            <li><a href="/event/parksj2026/about_01.asp" class="language" data-kr="박신자컵" data-en="Park Shin-Ja<br>Cup">박신자컵</a></li>
+                            <li><a href="/event/triplejam2026/about_01.asp" class="language" data-kr="트리플잼" data-en="Triple Jam">트리플잼</a></li>
+                            <li><a href="/allstar/2025/" class="language" data-kr="올스타전" data-en="All star">올스타전</a></li>
+                            <li><a href="/event/playoff2526/" class="language" data-kr="플레이오프<br/>챔프전" data-en="Playoffs<br>Championship">플레이오프<br/>챔프전</a></li>
+                            <li><a href="/event/futures2627/about_01.asp" class="language" data-kr="퓨처스리그" data-en="Futures league">퓨처스리그</a></li>
+                            <!-- <li><a href="/event/asian2022/about_01.asp" class="language" data-kr="국제대회" data-en="International<br>league">국제대회</a></li> -->
+                        </ul>
+                        <ul class="sub7" rel="7">
+                            <li><a href="/fan/character.asp" class="language" data-kr="캐릭터" data-en="Character">캐릭터</a></li>
+                            <li><a href="/fan/music.asp" class="language" data-kr="플레이리스트" data-en="WKBL PLAYLIST">플레이리스트</a></li>
+                            <li><a href="/fan/magazine.asp" class="language" data-kr="화보" data-en="Magazine">화보</a></li>
+                            <li><a href="/fan/wallpaper.asp" class="language" data-kr="월페이퍼" data-en="Wall paper">월페이퍼</a></li>
+                            <li><a href="/fan/season_paper.asp" class="language" data-kr="배경화면" data-en="Background<br>image">배경화면</a></li>
+                            <li><a href="/fan/board_list.asp" class="language" data-kr="자유게시판" data-en="Community">자유게시판</a></li>
+                            <li><a href="/fan/faq.asp" class="language" data-kr="자주하는질문" data-en="FAQ">자주하는질문</a></li>
+                            <li><a href="/fan/sns.asp" class="language">SNS</a></li>
+                            <li><a href="/ticket/event.asp" class="language" data-kr="이벤트" data-en="Event">이벤트</a></li>
+                        </ul>
+                        <ul class="sub8" rel="8">
+                            <li>&nbsp;</li>
+                        </ul>
+                    </div>
+                    <img src="/static/images/main/menu_banner.png" alt="통통튀는 우크블즈">
+                </div>
+            </div>
+
+            <!-- <div class="season_nav">
+                <div class="inner_season">
+                    <div class="title">
+                        <p class="name">정규리그</p>
+                    </div>
+                    <div class="game_status">
+                        <div class="info active">
+                            <div class="txt_info">
+                                <p class="time">14:30</p>
+                                <p class="status">진행중</p>
+                            </div>
+                            <div class="versus">
+                                <div class="thumb_img">
+                                    <img src="/static/images/team/teamlogo_01.png" alt="KB스타즈">
+                                </div>
+                                <p class="vs">vs</p>
+                                <div class="thumb_img">
+                                    <img src="/static/images/team/teamlogo_03.png" alt="삼성생명">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="info">
+                            <div class="txt_info">
+                                <p class="time">19:00</p>
+                                <p class="status">예정</p>
+                            </div>
+                            <div class="versus">
+                                <div class="thumb_img">
+                                    <img src="/static/images/team/teamlogo_01.png" alt="KB스타즈">
+                                </div>
+                                <p class="vs">vs</p>
+                                <div class="thumb_img">
+                                    <img src="/static/images/team/teamlogo_03.png" alt="삼성생명">
+                                </div>
+                            </div>
+                            
+                            <a href="" class="ticket_btn">티켓예매</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="main_aside_dday">
+                    <div class="top">
+                        <div class="dday_tit">
+                            <span class="tag">D-DAY</span>
+                            <span class="standard">26.07.29</span>
+                        </div>
+                        <p class="tit">26 퓨쳐스리그</p>
+                    </div>
+
+                    <div class="bottom">
+                        <div class="dday">
+                            <span>D</span>
+                            <span class="sign">-</span>
+                            <span class="num">130</span>
+                        </div>
+                    </div>
+                </div>
+            </div> -->
+        </header>
+    <div id="contents">
+        <h2 class="screen_out">본문내용</h2>
+		<div id="cMain" class="main_content">
+            <!-- 메인배너 -->
+            <section class="main_visual_slider">
+                <ul class="main_top_slider">
+                
+                    <li>
+                        
+                            <a href="https://www.wkbl.or.kr/news/photo_view.asp?num=55091" class='thumb_img' class="thumb_img">
+                                <img src="/upfiles/popup/mbanner_2627_magazine(1).png" alt="">
+                                <!--최적화 이미지사이즈 1920*430-->
+                            </a>
+                        
+                    </li>
+                
+                    <li>
+                        
+                            <a href="https://www.wkbl.or.kr/fan/character.asp" class='thumb_img' class="thumb_img">
+                                <img src="/upfiles/popup/mbanner_2627_character.png" alt="">
+                                <!--최적화 이미지사이즈 1920*430-->
+                            </a>
+                        
+                    </li>
+                
+                </ul>
+            </section>
+            <!-- // 메인배너 -->
+
+            <!--경기일정-->
+            <section class="main_game_schedule">
+                <div class="cont_inner">
+                    <div class="top_title t_space">
+                        <h2 class="cont_title"><a href="https://www.wkbl.or.kr/game/sch/schedule1.asp" target="_self">경기일정</a></h2>
+                        <img src="/static/images/main_20/season_title_logo_2223.png?ver=0.2" alt="신한은행 SOL 2022~2023 여자프로농구">
+                    </div>
+                    <div class="schedule_wrap">
+
+                        <div class="match_wrap">
+                            <div class="info t_space">
+                                <span class="date">2026.11.01</span>
+                                <span class="etc">Cheongju Gymnasium&nbsp;16:00</span>
+                            </div>
+                            <div class="team_vs">
+                                <div class="team home">
+                                    <div class="thumb_img">
+                                        <img src="/static/images/team/teamlogo_01.png" alt="KB스타즈">
+                                    </div>
+                                    <p class="tname">KB스타즈</p>
+                                </div>
+                                <div class="center">
+
+                                    <!--경기전-->
+                                    <p class="vs">VS</p>
+
+                                </div>
+                                <div class="team away">
+                                    <div class="thumb_img">
+                                        <img src="/static/images/team/teamlogo_11.png" alt="BNK 썸">
+                                    </div>
+                                    <p class="tname">BNK 썸</p>
+                                </div>
+                            </div>
+
+                            <!--경기전(티켓예매오픈)-->
+                            <div class="btn_wrap ticket">
+                                <a href="/ticket/ticketing.asp" class="btn">티켓예매</a>
+                                <!-- a href="javascript:void(0);" class="btn">안내사항</a -->
+                            </div>
+
+                            <!--경기전(티켓예매미오픈)-->
+                            <!--<div class="btn_wrap cast">
+                                <a href="javascript:void(0);" class="btn">KBS N SPORTS, MBC SPORT+</a>
+                            </div>-->
+
+
+
+
+
+                        </div>
+
+                        <div class="match_wrap">
+                            <div class="info t_space">
+                                <span class="date">2026.11.02</span>
+                                <span class="etc">Yongin Indoor Gymnasium&nbsp;19:00</span>
+                            </div>
+                            <div class="team_vs">
+                                <div class="team home">
+                                    <div class="thumb_img">
+                                        <img src="/static/images/team/teamlogo_03.png" alt="삼성생명">
+                                    </div>
+                                    <p class="tname">삼성생명</p>
+                                </div>
+                                <div class="center">
+
+                                    <!--경기전-->
+                                    <p class="vs">VS</p>
+
+                                </div>
+                                <div class="team away">
+                                    <div class="thumb_img">
+                                        <img src="/static/images/team/teamlogo_09.png" alt="하나은행">
+                                    </div>
+                                    <p class="tname">하나은행</p>
+                                </div>
+                            </div>
+
+                            <!--경기전(티켓예매오픈)-->
+                            <div class="btn_wrap ticket">
+                                <a href="/ticket/ticketing.asp" class="btn">티켓예매</a>
+                                <!-- a href="javascript:void(0);" class="btn">안내사항</a -->
+                            </div>
+
+                            <!--경기전(티켓예매미오픈)-->
+                            <!--<div class="btn_wrap cast">
+                                <a href="javascript:void(0);" class="btn">KBS N SPORTS, MBC SPORT+</a>
+                            </div>-->
+
+
+
+
+
+                        </div>
+
+                        <div class="match_wrap">
+                            <div class="info t_space">
+                                <span class="date">2026.11.04</span>
+                                <span class="etc">Incheon Dowon Gymnasium&nbsp;19:00</span>
+                            </div>
+                            <div class="team_vs">
+                                <div class="team home">
+                                    <div class="thumb_img">
+                                        <img src="/static/images/team/teamlogo_07.png" alt="신한은행">
+                                    </div>
+                                    <p class="tname">신한은행</p>
+                                </div>
+                                <div class="center">
+
+                                    <!--경기전-->
+                                    <p class="vs">VS</p>
+
+                                </div>
+                                <div class="team away">
+                                    <div class="thumb_img">
+                                        <img src="/static/images/team/teamlogo_05.png" alt="우리은행">
+                                    </div>
+                                    <p class="tname">우리은행</p>
+                                </div>
+                            </div>
+
+                            <!--경기전(티켓예매오픈)-->
+                            <div class="btn_wrap ticket">
+                                <a href="/ticket/ticketing.asp" class="btn">티켓예매</a>
+                                <!-- a href="javascript:void(0);" class="btn">안내사항</a -->
+                            </div>
+
+                            <!--경기전(티켓예매미오픈)-->
+                            <!--<div class="btn_wrap cast">
+                                <a href="javascript:void(0);" class="btn">KBS N SPORTS, MBC SPORT+</a>
+                            </div>-->
+
+
+
+
+
+                        </div>
+
+                        <div class="match_wrap">
+                            <div class="info t_space">
+                                <span class="date">2026.11.06</span>
+                                <span class="etc">Bucheon Gymnasium&nbsp;19:00</span>
+                            </div>
+                            <div class="team_vs">
+                                <div class="team home">
+                                    <div class="thumb_img">
+                                        <img src="/static/images/team/teamlogo_09.png" alt="하나은행">
+                                    </div>
+                                    <p class="tname">하나은행</p>
+                                </div>
+                                <div class="center">
+
+                                    <!--경기전-->
+                                    <p class="vs">VS</p>
+
+                                </div>
+                                <div class="team away">
+                                    <div class="thumb_img">
+                                        <img src="/static/images/team/teamlogo_01.png" alt="KB스타즈">
+                                    </div>
+                                    <p class="tname">KB스타즈</p>
+                                </div>
+                            </div>
+
+                            <!--경기전(티켓예매오픈)-->
+                            <div class="btn_wrap ticket">
+                                <a href="/ticket/ticketing.asp" class="btn">티켓예매</a>
+                                <!-- a href="javascript:void(0);" class="btn">안내사항</a -->
+                            </div>
+
+                            <!--경기전(티켓예매미오픈)-->
+                            <!--<div class="btn_wrap cast">
+                                <a href="javascript:void(0);" class="btn">KBS N SPORTS, MBC SPORT+</a>
+                            </div>-->
+
+
+
+
+
+                        </div>
+
+                        <div class="match_wrap">
+                            <div class="info t_space">
+                                <span class="date">2026.11.07</span>
+                                <span class="etc">Busan Sajik gymnasium&nbsp;14:00</span>
+                            </div>
+                            <div class="team_vs">
+                                <div class="team home">
+                                    <div class="thumb_img">
+                                        <img src="/static/images/team/teamlogo_11.png" alt="BNK 썸">
+                                    </div>
+                                    <p class="tname">BNK 썸</p>
+                                </div>
+                                <div class="center">
+
+                                    <!--경기전-->
+                                    <p class="vs">VS</p>
+
+                                </div>
+                                <div class="team away">
+                                    <div class="thumb_img">
+                                        <img src="/static/images/team/teamlogo_07.png" alt="신한은행">
+                                    </div>
+                                    <p class="tname">신한은행</p>
+                                </div>
+                            </div>
+
+                            <!--경기전(티켓예매오픈)-->
+                            <div class="btn_wrap ticket">
+                                <a href="/ticket/ticketing.asp" class="btn">티켓예매</a>
+                                <!-- a href="javascript:void(0);" class="btn">안내사항</a -->
+                            </div>
+
+                            <!--경기전(티켓예매미오픈)-->
+                            <!--<div class="btn_wrap cast">
+                                <a href="javascript:void(0);" class="btn">KBS N SPORTS, MBC SPORT+</a>
+                            </div>-->
+
+
+
+
+
+                        </div>
+
+
+                    </div>
+                </div>
+            </section>
+            <!--//경기일정-->
+
+            <!--팀 순위 / 부문별 선수 순위-->
+            <section class="main_ranking">
+                <div class="cont_inner t_space">
+                    <!--팀순위-->
+                    <div class="team_ranking">
+                        <h2 class="cont_title"><a href="https://www.wkbl.or.kr/game/team_rank.asp"target="_blank">팀 순위</a></h2>
+                        <table>
+                            <caption>팀 순위</caption>
+                            <colgroup>
+                                <col>
+                                <col>
+                                <col>
+                                <col>
+                                <col>
+                                <col>
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>순위</th>
+                                    <th>팀명</th>
+                                    <th>경기수</th>
+                                    <th>승</th>
+                                    <th>패</th>
+                                    <th>승률</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                            <tr>
+                                <td>1</td>
+                                <td>
+                                    <div class="thumb_img">
+                                        <img src="/static/images/team/teamlogo_05.png" alt="우리은행">
+                                    </div>
+                                    <p class="tname">우리은행</p>
+                                </td>
+                                <td>30</td>
+                                <td>25</td>
+                                <td>5</td>
+                                <td>83.3%</td>
+                            </tr>
+
+                            <tr>
+                                <td>2</td>
+                                <td>
+                                    <div class="thumb_img">
+                                        <img src="/static/images/team/teamlogo_11.png" alt="BNK 썸">
+                                    </div>
+                                    <p class="tname">BNK 썸</p>
+                                </td>
+                                <td>30</td>
+                                <td>17</td>
+                                <td>13</td>
+                                <td>56.7%</td>
+                            </tr>
+
+                            <tr>
+                                <td>3</td>
+                                <td>
+                                    <div class="thumb_img">
+                                        <img src="/static/images/team/teamlogo_03.png" alt="삼성생명">
+                                    </div>
+                                    <p class="tname">삼성생명</p>
+                                </td>
+                                <td>30</td>
+                                <td>16</td>
+                                <td>14</td>
+                                <td>53.3%</td>
+                            </tr>
+
+                            <tr>
+                                <td>4</td>
+                                <td>
+                                    <div class="thumb_img">
+                                        <img src="/static/images/team/teamlogo_07.png" alt="신한은행">
+                                    </div>
+                                    <p class="tname">신한은행</p>
+                                </td>
+                                <td>30</td>
+                                <td>16</td>
+                                <td>14</td>
+                                <td>53.3%</td>
+                            </tr>
+
+                            <tr>
+                                <td>5</td>
+                                <td>
+                                    <div class="thumb_img">
+                                        <img src="/static/images/team/teamlogo_01.png" alt="KB스타즈">
+                                    </div>
+                                    <p class="tname">KB스타즈</p>
+                                </td>
+                                <td>30</td>
+                                <td>10</td>
+                                <td>20</td>
+                                <td>33.3%</td>
+                            </tr>
+
+                            <tr>
+                                <td>6</td>
+                                <td>
+                                    <div class="thumb_img">
+                                        <img src="/static/images/team/teamlogo_09.png" alt="하나은행">
+                                    </div>
+                                    <p class="tname">하나은행</p>
+                                </td>
+                                <td>30</td>
+                                <td>6</td>
+                                <td>24</td>
+                                <td>20.0%</td>
+                            </tr>
+
+                            </tbody>
+                        </table>
+                    </div>
+                    <!--//팀순위-->
+
+                    <!--선수 순위-->
+                    <div class="player_ranking">
+                        <h2 class="cont_title"><a href="https://www.wkbl.or.kr/game/player_record.asp" target="_self">부문별 선수 순위</a></h2>
+                        
+                        <!-- 기록 확인 후 아래 준비중 이미지 삭제 및 player_slider 스타일 제거 -->
+                        <div><img src="/static/images/main/ready.png" alt="경기 종료 후 기록을 확인할 수 있습니다."></div>
+                        
+                        <ul class="player_slider" style="display:none;">
+                            <!--데이터 생성전-->
+                            <li><div class="loading"></div></li>
+                        </ul>
+                    </div>
+                    <!--//선수 순위-->
+                </div>
+            </section>
+            <!--//팀 순위 / 부문별 선수 순위-->
+
+            <!--wkbl 소식 / 배너 / 선수 생일-->
+            <section class="main_wkbl_news">
+                <div class="cont_inner">
+                    <h2 class="cont_title">WKBL 소식</h2>
+                    <!--wkbl 소식 / 배너-->
+                    <div class="t_space">
+                        <!--wkbl 소식-->
+                        <div class="notice_list">
+                            <div class="notice_wrap">
+                                <ul class="tab_menu">
+                                    <li class="active">
+                                        <button>보도자료</button>
+                                    </li>
+                                    <li>
+                                        <button>뉴스</button>
+                                    </li>
+                                    <li>
+                                        <button>공지사항</button>
+                                    </li>
+                                </ul>
+                                <div class="tab_contents">
+                                    <ul class="list_content">
+                                        
+                                        <li>
+                                            <a href="/news/hotfocus_view.asp?num=55265" class="t_space">
+                                                <p class="eli">2026-2027 여자프로농구 11월 21일(토) 경기 시간 변경</p>
+                                                <p class="date">2026-10-29</p>
+                                            </a>
+                                        </li>
+                                        
+                                        <li>
+                                            <a href="/news/hotfocus_view.asp?num=55184" class="t_space">
+                                                <p class="eli">신한은행 노구치 사쿠라,  올 시즌 가장 기대되는 아시아쿼터 선수 1위</p>
+                                                <p class="date">2026-10-26</p>
+                                            </a>
+                                        </li>
+                                        
+                                        <li>
+                                            <a href="/news/hotfocus_view.asp?num=55183" class="t_space">
+                                                <p class="eli">WKBL 2026-2027 여자프로농구, 총 9개 채널서 생중계</p>
+                                                <p class="date">2026-10-26</p>
+                                            </a>
+                                        </li>
+                                        
+                                        <li>
+                                            <a href="/news/hotfocus_view.asp?num=55127" class="t_space">
+                                                <p class="eli">WKBL, 5인 5색 신규 캐릭터 ‘우크블즈’ 전격 출시</p>
+                                                <p class="date">2026-10-22</p>
+                                            </a>
+                                        </li>
+                                        
+                                        <li>
+                                            <a href="/news/hotfocus_view.asp?num=55093" class="t_space">
+                                                <p class="eli">WKBL 대표 6인의 폭발적 매력,  새 시즌 슬로건 ‘시너지(SHE:ENERGY)’로 출발 알린다.</p>
+                                                <p class="date">2026-10-20</p>
+                                            </a>
+                                        </li>
+                                        
+                                        <li>
+                                            <a href="/news/hotfocus_view.asp?num=55042" class="t_space">
+                                                <p class="eli">WKBL, 2026 유소녀 농구클럽 리그전 개최</p>
+                                                <p class="date">2026-10-15</p>
+                                            </a>
+                                        </li>
+                                        
+                                    </ul>
+                                    <ul class="list_content">
+                                        
+                                        <li>
+                                            <a href="https://m.sports.naver.com/basketball/article/025/0003561434" class="t_space" target="_blank">
+                                                <p class="eli">사령탑은 남자셋여자셋, 확 달라진 아시아쿼터… 여자프로농구 내달 1일 개막</p>
+                                                <p class="date">2026-10-29</p>
+                                            </a>
+                                        </li>
+                                        
+                                        <li>
+                                            <a href="https://m.sports.naver.com/basketball/article/047/0002533923" class="t_space" target="_blank">
+                                                <p class="eli">''이상범 매직'' 하나은행, ''신구조화''로 우승 도전</p>
+                                                <p class="date">2026-10-29</p>
+                                            </a>
+                                        </li>
+                                        
+                                        <li>
+                                            <a href="https://m.sports.naver.com/basketball/article/065/0000303652" class="t_space" target="_blank">
+                                                <p class="eli">KB스타즈, 홈 개막전서 우승 기념 메달 선착순 증정</p>
+                                                <p class="date">2026-10-29</p>
+                                            </a>
+                                        </li>
+                                        
+                                        <li>
+                                            <a href="https://m.sports.naver.com/basketball/article/065/0000303593" class="t_space" target="_blank">
+                                                <p class="eli">[WKBL 개막 D-4] 주목할 아시아쿼터? 단연 사쿠라… 무시할 수 없는 하나은행 ‘경력직 듀오’</p>
+                                                <p class="date">2026-10-28</p>
+                                            </a>
+                                        </li>
+                                        
+                                        <li>
+                                            <a href="https://m.sports.naver.com/basketball/article/351/0000089008" class="t_space" target="_blank">
+                                                <p class="eli">[WKBL 개막 미디어데이] WKBL 첫 ''Z 세대'' 주장 정예림, 젊은 주장의 장점은?</p>
+                                                <p class="date">2026-10-28</p>
+                                            </a>
+                                        </li>
+                                        
+                                        <li>
+                                            <a href="https://m.sports.naver.com/basketball/article/468/0001276001" class="t_space" target="_blank">
+                                                <p class="eli">어서 와, ‘여성 사령탑 3인 시대’는 처음이지? BNK 박정은 감독 “예전엔 외로웠는데…승승장구하셨으면</p>
+                                                <p class="date">2026-10-28</p>
+                                            </a>
+                                        </li>
+                                        
+                                    </ul>
+                                    <ul class="list_content">
+                                        
+                                        <li>
+                                            <a href="/news/notice_view.asp?num=55286" class="t_space">
+                                                <p class="eli">2026~2027시즌 개막기념 팬 설문조사 이벤트 당첨자 명단</p>
+                                                <p class="date">2026-10-30</p>
+                                            </a>
+                                        </li>
+                                        
+                                        <li>
+                                            <a href="/news/notice_view.asp?num=55285" class="t_space">
+                                                <p class="eli">11월 21일(토) KB스타즈 vs 신한은행 경기 시간 변경 안내</p>
+                                                <p class="date">2026-10-30</p>
+                                            </a>
+                                        </li>
+                                        
+                                        <li>
+                                            <a href="/news/notice_view.asp?num=55264" class="t_space">
+                                                <p class="eli">[WKBL 티켓 예매 취소 수수료 변경 안내]</p>
+                                                <p class="date">2026-10-29</p>
+                                            </a>
+                                        </li>
+                                        
+                                        <li>
+                                            <a href="/news/notice_view.asp?num=55246" class="t_space">
+                                                <p class="eli">2026년 11월 첫째주 중계일정</p>
+                                                <p class="date">2026-10-28</p>
+                                            </a>
+                                        </li>
+                                        
+                                        <li>
+                                            <a href="/news/notice_view.asp?num=55012" class="t_space">
+                                                <p class="eli">WKBL 홍보마케팅팀 사원 공개 채용 안내</p>
+                                                <p class="date">2026-10-13</p>
+                                            </a>
+                                        </li>
+                                        
+                                        <li>
+                                            <a href="/news/notice_view.asp?num=54577" class="t_space">
+                                                <p class="eli">WKBL 2026~2027 여자프로농구 경기일정 안내</p>
+                                                <p class="date">2026-09-30</p>
+                                            </a>
+                                        </li>
+                                        
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <!--//wkbl 소식-->
+
+                        <!--배너-->
+                        <div class="news_banner">
+                            <ul class="banner_slider">
+
+                                <li>
+                                    <a href="https://www.wkbl.or.kr/fan/wallpaper.asp" class="thumb_img" target="_blank">
+                                        <img src="/upfiles/relation_site/202611@320psd.jpg" alt="banner01">
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a href="https://www.wkbl.or.kr/ticket/ticketing.asp" class="thumb_img" target="_blank">
+                                        <img src="/upfiles/relation_site/851887573_18111288662336809_3177428412068083496_n.png" alt="banner01">
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a href="https://www.wkbl.or.kr/ticket/ticketing.asp" class="thumb_img" target="_blank">
+                                        <img src="/upfiles/relation_site/2627_hana_membership.png" alt="banner01">
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a href="https://www.wkbl.or.kr/ticket/ticketing.asp" class="thumb_img" target="_blank">
+                                        <img src="/upfiles/relation_site/851331092_18287910934288205_5819838819329112727_n.jpg" alt="banner01">
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a href="http://datalab.wkbl.or.kr/" class="thumb_img" target="_blank">
+                                        <img src="/upfiles/relation_site/2627_datalab.png" alt="banner01">
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a href="https://www.tiktok.com/@wkbl_official?lang=ko-KR" class="thumb_img" target="_blank">
+                                        <img src="/upfiles/relation_site/2627_tiktok.png" alt="banner01">
+                                    </a>
+                                </li>
+
+                            </ul>
+                        </div>
+                        <!--//배너-->
+                    </div>
+                    <!--//wkbl 소식 / 배너-->
+
+                    <!--주요일정 & 선수생일-->
+                    <div class="player_birth">
+                        <h2 class="cont_title">주요일정 & 선수생일</h2>
+                        <div class="birth_wrap">
+                            <ul class="birth_slider">
+                            
+                            <li>
+                                <span class="date">10.01</span>
+                                <p class="text eli">후지모토 마코 선수 생일 <span></span></p>
+                                <div class="thumb_img">
+                                    <img src="/static/images/team/teamlogo_05.png" alt="우리은행">
+                                </div>
+                            </li>
+                            
+                            <li>
+                                <span class="date">10.06</span>
+                                <p class="text eli">허유정 선수 생일 <span></span></p>
+                                <div class="thumb_img">
+                                    <img src="/static/images/team/teamlogo_07.png" alt="신한은행">
+                                </div>
+                            </li>
+                            
+                            <li>
+                                <span class="date">10.10</span>
+                                <p class="text eli">김솔 선수 생일 <span></span></p>
+                                <div class="thumb_img">
+                                    <img src="/static/images/team/teamlogo_05.png" alt="우리은행">
+                                </div>
+                            </li>
+                            
+                            <li>
+                                <span class="date">10.14</span>
+                                <p class="text eli">심성영 선수 생일 <span></span></p>
+                                <div class="thumb_img">
+                                    <img src="/static/images/team/teamlogo_05.png" alt="우리은행">
+                                </div>
+                            </li>
+                            
+                            <li>
+                                <span class="date">10.19</span>
+                                <p class="text eli">변소정 선수 생일 <span></span></p>
+                                <div class="thumb_img">
+                                    <img src="/static/images/team/teamlogo_11.png" alt="BNK썸">
+                                </div>
+                            </li>
+                            
+                            <li>
+                                <span class="date">10.19</span>
+                                <p class="text eli">이예나 선수 생일 <span></span></p>
+                                <div class="thumb_img">
+                                    <img src="/static/images/team/teamlogo_03.png" alt="삼성생명">
+                                </div>
+                            </li>
+                            
+                            <li>
+                                <span class="date">10.31</span>
+                                <p class="text eli">최예원 선수 생일 <span></span></p>
+                                <div class="thumb_img">
+                                    <img src="/static/images/team/teamlogo_05.png" alt="우리은행">
+                                </div>
+                            </li>
+                            
+                        </ul>
+                        </div>
+                    </div>
+                    <!--//주요일정 & 선수생일-->
+                </div>
+            </section>
+            <!--//wkbl 소식 / 배너-->
+
+            <!-- WKBL PHOTO & VIDEO -->
+            <section class="main_gallery">
+                <div class="cont_inner">
+                    <h3 class="cont_title">WKBL PHOTO & VIDEO</h3>
+                    <div class="gallery_wrap">
+                        <div class="photo_wrap">
+                            <ul>
+                                <!-- pro_image 추출 -->
+                                
+                                <li>
+                                    <a href="/news/photo_view.asp?num=55237" class="link_detail">
+                                        <div class="thumb_img"><img src="https://www.wkbl.or.kr/upfiles/news/1_32.jpg" alt="261027 KB스타뱅킹 2026-2027 여자프로농구 개막 미디어데이"></div>
+                                        <div class="desc">
+                                            <p class="title">
+                                                <span class="eli">261027 KB스타뱅킹 2026-2027 여자프로농구 개막 미디어데이</span>
+                                            </p>
+                                        </div>
+                                    </a>
+                                </li>
+                                
+                                <li>
+                                    <a href="/news/photo_view.asp?num=55168" class="link_detail">
+                                        <div class="thumb_img"><img src="https://www.wkbl.or.kr/upfiles/news/hyunsoolee_.jpg" alt="261025 WKBL 유소녀 농구클럽 3차 리그전"></div>
+                                        <div class="desc">
+                                            <p class="title">
+                                                <span class="eli">261025 WKBL 유소녀 농구클럽 3차 리그전</span>
+                                            </p>
+                                        </div>
+                                    </a>
+                                </li>
+                                
+                                <li>
+                                    <a href="/news/photo_view.asp?num=55091" class="link_detail">
+                                        <div class="thumb_img"><img src="https://www.wkbl.or.kr/upfiles/news/20261020_001.jpg" alt="2026~2027시즌 ''시너지(SHE:ENERGY)'' 디지털 화보사진"></div>
+                                        <div class="desc">
+                                            <p class="title">
+                                                <span class="eli">2026~2027시즌 '시너지(SHE:ENERGY)' 디지털 화보사진</span>
+                                            </p>
+                                        </div>
+                                    </a>
+                                </li>
+                                
+                                <li>
+                                    <a href="/news/photo_view.asp?num=55072" class="link_detail">
+                                        <div class="thumb_img"><img src="https://www.wkbl.or.kr/upfiles/news/HP_BHN00664_1.jpg" alt="261018 WKBL 유소녀 농구클럽 2차 리그전"></div>
+                                        <div class="desc">
+                                            <p class="title">
+                                                <span class="eli">261018 WKBL 유소녀 농구클럽 2차 리그전</span>
+                                            </p>
+                                        </div>
+                                    </a>
+                                </li>
+                                
+                            </ul>
+                        </div>
+                        <div class="video_wrap">
+                            
+                                <div class="video">
+                                    <div class="iframe">
+                                        <iframe src="https://www.youtube.com/embed/IodjP5yKyhA" frameborder="no" scrolling="no" marginwidth="0" marginheight="0" title="동영상" allowfullscreen></iframe>
+                                    </div>
+                                </div>
+                                <!-- <div class="col">
+                                    <iframe src="https://www.youtube.com/embed/aVBYmjmJY_I" frameborder="no" scrolling="no" marginwidth="0" marginheight="0" title="동영상" frameborder="0" allowfullscreen></iframe>
+                                </div> -->
+
+                                
+                                <div class="video">
+                                    <div class="iframe">
+                                        <iframe src="https://www.youtube.com/embed/xwIGTeqKUHQ" frameborder="no" scrolling="no" marginwidth="0" marginheight="0" title="동영상" allowfullscreen></iframe>
+                                    </div>
+                                </div>
+                                <!-- <div class="col">
+                                    <iframe src="https://www.youtube.com/embed/aVBYmjmJY_I" frameborder="no" scrolling="no" marginwidth="0" marginheight="0" title="동영상" frameborder="0" allowfullscreen></iframe>
+                                </div> -->
+
+                                
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!--//WKBL PHOTO & VIDEO-->
+
+            <!--6개구단 소식-->
+            <section class="main_team_news">
+                <div class="cont_inner">
+                    <ul class="nav_slider">
+                        <!--6개 고정-->
+                        <li>
+                            <a href="javascript:;" class="thumb_img">
+                                <img src="/static/images/team/teamlogo_03.png" alt="삼성생명 블루밍스">
+                            </a>
+                        </li>
+                        <li>
+                            <a href="javascript:;" class="thumb_img">
+                                <img src="/static/images/team/teamlogo_07.png" alt="신한은행 에스버드">
+                            </a>
+                        </li>
+                        <li>
+                            <a href="javascript:;" class="thumb_img">
+                                <img src="/static/images/team/teamlogo_05.png" alt="우리은행 위비">
+                            </a>
+                        </li>
+                        <li>
+                            <a href="javascript:;" class="thumb_img">
+                                <img src="/static/images/team/teamlogo_09.png" alt="하나은행">
+                            </a>
+                        </li>
+                        <li>
+                            <a href="javascript:;" class="thumb_img">
+                                <img src="/static/images/team/teamlogo_11.png" alt="BNK캐피탈">
+                            </a>
+                        </li>
+                        <li>
+                            <a href="javascript:;" class="thumb_img">
+                                <img src="/static/images/team/teamlogo_01.png" alt="KB스타즈">
+                            </a>
+                        </li>
+                        <!--6개 고정-->
+                    </ul>
+                    <ul class="team_slider">
+                        
+                        <li>
+                            <ul class="team_news_list">
+                                
+                                    <li>
+                                        <a href="/news/teamstory_view.asp?num=55256">
+                                            <div class="thumb_img">
+                                                <img src="/upfiles/teamstory/26102904.jpg">
+                                            </div>
+                                            <div class="tag c03">삼성생명</div>
+                                            <div class="title eli-2">블밍 버전 배드왔다..ㄷㄷ</div>
+                                        </a>
+                                    </li>
+                                
+                                    <li>
+                                        <a href="/news/teamstory_view.asp?num=55215">
+                                            <div class="thumb_img">
+                                                <img src="/upfiles/teamstory/002(10850).jpg">
+                                            </div>
+                                            <div class="tag c03">삼성생명</div>
+                                            <div class="title eli-2">미디어데이 끝</div>
+                                        </a>
+                                    </li>
+                                
+                                    <li>
+                                        <a href="/news/teamstory_view.asp?num=55213">
+                                            <div class="thumb_img">
+                                                <img src="/upfiles/teamstory/26102720.jpg">
+                                            </div>
+                                            <div class="tag c03">삼성생명</div>
+                                            <div class="title eli-2">쏘 밷...</div>
+                                        </a>
+                                    </li>
+                                
+                                    <li>
+                                        <a href="/news/teamstory_view.asp?num=55212">
+                                            <div class="thumb_img">
+                                                <img src="/upfiles/teamstory/26102719.jpg">
+                                            </div>
+                                            <div class="tag c03">삼성생명</div>
+                                            <div class="title eli-2">미뎌데이 입장 N초 전</div>
+                                        </a>
+                                    </li>
+                                
+                            </ul>
+                        </li>
+                        
+                        <li>
+                            <ul class="team_news_list">
+                                
+                                    <li>
+                                        <a href="/news/teamstory_view.asp?num=55268">
+                                            <div class="thumb_img">
+                                                <img src="/upfiles/teamstory/26102915.jpg">
+                                            </div>
+                                            <div class="tag c07">신한은행</div>
+                                            <div class="title eli-2">26-27시즌의 시작을 알리는  WKBL 미디어데이!</div>
+                                        </a>
+                                    </li>
+                                
+                                    <li>
+                                        <a href="/news/teamstory_view.asp?num=55252">
+                                            <div class="thumb_img">
+                                                <img src="/upfiles/teamstory/002(10869).jpg">
+                                            </div>
+                                            <div class="tag c07">신한은행</div>
+                                            <div class="title eli-2">2026-2027 S-BIRDS TICKET OPEN</div>
+                                        </a>
+                                    </li>
+                                
+                                    <li>
+                                        <a href="/news/teamstory_view.asp?num=55219">
+                                            <div class="thumb_img">
+                                                <img src="/upfiles/teamstory/002(10854).jpg">
+                                            </div>
+                                            <div class="tag c07">신한은행</div>
+                                            <div class="title eli-2">신.한.의.반.란 보여드리겠습니다</div>
+                                        </a>
+                                    </li>
+                                
+                                    <li>
+                                        <a href="/news/teamstory_view.asp?num=55218">
+                                            <div class="thumb_img">
+                                                <img src="/upfiles/teamstory/002(10853).jpg">
+                                            </div>
+                                            <div class="tag c07">신한은행</div>
+                                            <div class="title eli-2">모두 주목 하루가 얼마나 대단하냐면요~ (자랑x2)</div>
+                                        </a>
+                                    </li>
+                                
+                            </ul>
+                        </li>
+                        
+                        <li>
+                            <ul class="team_news_list">
+                                
+                                    <li>
+                                        <a href="/news/teamstory_view.asp?num=55269">
+                                            <div class="thumb_img">
+                                                <img src="/upfiles/teamstory/26102916.jpg">
+                                            </div>
+                                            <div class="tag c05">우리은행</div>
+                                            <div class="title eli-2">마코의 휴식날 하루는 이렇습니다..</div>
+                                        </a>
+                                    </li>
+                                
+                                    <li>
+                                        <a href="/news/teamstory_view.asp?num=55254">
+                                            <div class="thumb_img">
+                                                <img src="/upfiles/teamstory/002(10871).jpg">
+                                            </div>
+                                            <div class="tag c05">우리은행</div>
+                                            <div class="title eli-2">유행에 민감한 우리 언니들의 요청으로 인해..</div>
+                                        </a>
+                                    </li>
+                                
+                                    <li>
+                                        <a href="/news/teamstory_view.asp?num=55224">
+                                            <div class="thumb_img">
+                                                <img src="/upfiles/teamstory/002(10859).jpg">
+                                            </div>
+                                            <div class="tag c05">우리은행</div>
+                                            <div class="title eli-2">당황함과 비례하는 감독님의 말 속도</div>
+                                        </a>
+                                    </li>
+                                
+                                    <li>
+                                        <a href="/news/teamstory_view.asp?num=55223">
+                                            <div class="thumb_img">
+                                                <img src="/upfiles/teamstory/002(10858).jpg">
+                                            </div>
+                                            <div class="tag c05">우리은행</div>
+                                            <div class="title eli-2">미디어데이 완!</div>
+                                        </a>
+                                    </li>
+                                
+                            </ul>
+                        </li>
+                        
+                        <li>
+                            <ul class="team_news_list">
+                                
+                                    <li>
+                                        <a href="/news/teamstory_view.asp?num=55283">
+                                            <div class="thumb_img">
+                                                <img src="/upfiles/teamstory/002(10880).jpg">
+                                            </div>
+                                            <div class="tag c09">하나은행</div>
+                                            <div class="title eli-2">먹던 간식도, 하던 연습도 잠깐 STOP!</div>
+                                        </a>
+                                    </li>
+                                
+                                    <li>
+                                        <a href="/news/teamstory_view.asp?num=55261">
+                                            <div class="thumb_img">
+                                                <img src="/upfiles/teamstory/26102909.jpg">
+                                            </div>
+                                            <div class="tag c09">하나은행</div>
+                                            <div class="title eli-2">YOUTUBE NEW VIDEO</div>
+                                        </a>
+                                    </li>
+                                
+                                    <li>
+                                        <a href="/news/teamstory_view.asp?num=55255">
+                                            <div class="thumb_img">
+                                                <img src="/upfiles/teamstory/002(10872).jpg">
+                                            </div>
+                                            <div class="tag c09">하나은행</div>
+                                            <div class="title eli-2">26-27시즌 하나은행 여자농구단 응원단 라인업 공개</div>
+                                        </a>
+                                    </li>
+                                
+                                    <li>
+                                        <a href="/news/teamstory_view.asp?num=55226">
+                                            <div class="thumb_img">
+                                                <img src="/upfiles/teamstory/002(10861).jpg">
+                                            </div>
+                                            <div class="tag c09">하나은행</div>
+                                            <div class="title eli-2">설렘 가득했던 2026-2027 WKBL 미디어데이 나들이</div>
+                                        </a>
+                                    </li>
+                                
+                            </ul>
+                        </li>
+                        
+                        <li>
+                            <ul class="team_news_list">
+                                
+                                    <li>
+                                        <a href="/news/teamstory_view.asp?num=55282">
+                                            <div class="thumb_img">
+                                                <img src="/upfiles/teamstory/002(10879).jpg">
+                                            </div>
+                                            <div class="tag c11">BNK 썸</div>
+                                            <div class="title eli-2">BNK 썸 여자프로농구단 유튜브 업로드!</div>
+                                        </a>
+                                    </li>
+                                
+                                    <li>
+                                        <a href="/news/teamstory_view.asp?num=55274">
+                                            <div class="thumb_img">
+                                                <img src="/upfiles/teamstory/26102921.jpg">
+                                            </div>
+                                            <div class="tag c11">BNK 썸</div>
+                                            <div class="title eli-2">카드 할인 혜택 안내</div>
+                                        </a>
+                                    </li>
+                                
+                                    <li>
+                                        <a href="/news/teamstory_view.asp?num=55263">
+                                            <div class="thumb_img">
+                                                <img src="/upfiles/teamstory/26102911.jpg">
+                                            </div>
+                                            <div class="tag c11">BNK 썸</div>
+                                            <div class="title eli-2">NO.9 최이샘</div>
+                                        </a>
+                                    </li>
+                                
+                                    <li>
+                                        <a href="/news/teamstory_view.asp?num=55262">
+                                            <div class="thumb_img">
+                                                <img src="/upfiles/teamstory/26102910.jpg">
+                                            </div>
+                                            <div class="tag c11">BNK 썸</div>
+                                            <div class="title eli-2">개막까지 D-3</div>
+                                        </a>
+                                    </li>
+                                
+                            </ul>
+                        </li>
+                        
+                        <li>
+                            <ul class="team_news_list">
+                                
+                                    <li>
+                                        <a href="/news/teamstory_view.asp?num=55281">
+                                            <div class="thumb_img">
+                                                <img src="/upfiles/teamstory/002(10878).jpg">
+                                            </div>
+                                            <div class="tag c01">KB스타즈</div>
+                                            <div class="title eli-2">[KB STARS x HARRYPHOTO x PLAC]</div>
+                                        </a>
+                                    </li>
+                                
+                                    <li>
+                                        <a href="/news/teamstory_view.asp?num=55280">
+                                            <div class="thumb_img">
+                                                <img src="/upfiles/teamstory/002(10877).jpg">
+                                            </div>
+                                            <div class="tag c01">KB스타즈</div>
+                                            <div class="title eli-2">[KB STARS x HARRYPHOTO x PLAC]</div>
+                                        </a>
+                                    </li>
+                                
+                                    <li>
+                                        <a href="/news/teamstory_view.asp?num=55279">
+                                            <div class="thumb_img">
+                                                <img src="/upfiles/teamstory/002(10876).jpg">
+                                            </div>
+                                            <div class="tag c01">KB스타즈</div>
+                                            <div class="title eli-2">[KB STARS x HARRYPHOTO x PLAC]</div>
+                                        </a>
+                                    </li>
+                                
+                                    <li>
+                                        <a href="/news/teamstory_view.asp?num=55278">
+                                            <div class="thumb_img">
+                                                <img src="/upfiles/teamstory/002(10875).jpg">
+                                            </div>
+                                            <div class="tag c01">KB스타즈</div>
+                                            <div class="title eli-2">[KB STARS x HARRYPHOTO x PLAC]</div>
+                                        </a>
+                                    </li>
+                                
+                            </ul>
+                        </li>
+                        
+                    </ul>
+                </div>
+            </section>
+            <!--//6개구단 소식-->
+
+            <!--WKBL SNS-->
+            <section class="main_sns_list">
+                <div class="cont_inner">
+                    <div class="top_title t_space">
+                        <h2 class="cont_title">WKBL SNS</h2>
+                        <ul class="sns_icon">
+                            <li>
+                                <a href="https://www.facebook.com/f.WKBL/" target="_blank">
+                                    <img src="/static/images/main/icon_sns_facebook.png" alt="facebook">
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://www.instagram.com/wkbl_official/" target="_blank">
+                                    <img src="/static/images/main/icon_sns_instargram.png" alt="instargram">
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://www.youtube.com/channel/UCLyyt15iUOMUQovmJVde1Zg" target="_blank">
+                                    <img src="/static/images/main/icon_sns_youtube.png" alt="youtube">
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://www.tiktok.com/@wkbl_official?lang=ko-KR" target="_blank">
+                                    <img src="/static/images/main/icon_sns_tictok.png" alt="tictok">
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <ul class="sns_img_list">
+                    </ul>
+                </div>
+            </section>
+            <!--//WKBL SNS-->
+
+            <!--후원사-->
+            <section class="main_sponsor">
+                <div class="cont_inner">
+                    <h2 class="cont_title">WKBL 후원사</h2>
+                    <div class="t_space">
+                        <div class="video">
+                            <div class="iframe">
+                                <iframe src="https://www.youtube.com/embed/rjz4ja2Yy68" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                            </div>
+                        </div>
+                        <ul class="sponsor_wrap">
+                            <li><a href="https://www.shinhan.com/index.jsp" target="_blank"><img src="/static/images/main/sponsor06.png?ver=0.2" alt="신한은행"></a></li>
+                            <li><a href="https://www.moltenkorea.co.kr/" target="_blank"><img src="/static/images/main/sponsor03.png?ver=0.2" alt="몰텐"></a></li>
+                            <li><a href="http://www.kspo.or.kr/" target="_blank"><img src="/static/images/main/sponsor01.png" alt="국민체육진흥공단"></a></li>
+                            <li><a href="http://www.mcst.go.kr/" target="_blank"><img src="/static/images/main/sponsor02.png" alt="문화체육관광부"></a></li>
+                            <li><a href="http://pocarisweat.co.kr/" target="_blank"><img src="/static/images/main/sponsor04.png" alt="포카리스웨트"></a></li>
+                            <li><a href="http://www.vexxsports.com/" target="_blank"><img src="/static/images/main/sponsor05.png" alt="브이엑스"></a></li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+            <!--//후원사-->
+        </div>
+    </div>
+
+	<footer id="footer">
+        <h2 class="screen_out">WKBL 소속 구단</h2>
+        <ul class="list_team">
+            <li><a href="http://www.samsungblueminx.com/" class="link_team" target="_blank"><img src="/static/images/team/teamlogo_03.png" alt="삼성생명 블루밍스"><p class="tname">삼성생명</p></a></li>
+            <li><a href="http://www.sbirds.com/" class="link_team" target="_blank"><img src="/static/images/team/teamlogo_07.png" alt="신한은행 에스버드"><p class="tname">신한은행</p></a></li>
+            <li><a href="https://wooriwon.wooribank.com/basketball/main/bridge.php" class="link_team" target="_blank"><img src="/static/images/team/teamlogo_05.png" alt="우리은행 위비"><p class="tname">우리은행</p></a></li>
+			<li><a href="http://www.hanafnbasketball.com/main/mainPage.do" class="link_team" target="_blank"><img src="/static/images/team/teamlogo_09.png" alt="하나은행"><p class="tname">하나원큐</p></a></li>
+            <li><a href="http://bnksumbasket.com" class="link_team" target="_blank"><img src="/static/images/team/teamlogo_11.png" alt="BNK캐피탈"><p class="tname">BNK 썸</p></a></li>
+            <li><a href="http://www.kbstars.co.kr" class="link_team" target="_blank"><img src="/static/images/team/teamlogo_01.png" alt="KB스타즈"><p class="tname">KB 스타즈</p></a></li>
+        </ul>
+        <h2 class="screen_out">WKBL 사이트 정보</h2>
+        <div class="wrap_fnb">
+            <ul class="list_fnb">
+                <li><a href="/etc/privacy.asp" class="link_fnb">개인정보취급방침</a></li>
+                <li><a href="/etc/terms.asp" class="link_fnb">이용약관</a></li>
+                <li><a href="/etc/contact_us.asp" class="link_fnb">CONTACT US</a></li>
+                <li><a href="javascript:MM_openBrWindow('/etc/paycheck4.asp', 'reporterChk', 'scrollbars=no, width=400, height=300');" class="link_fnb">기자 프로그램</a></li>
+                <li><a href="http://photo.wkbl.or.kr" class="link_fnb" target="_blank">WKBL 포토</a></li>
+				<li><a href="http://datalab.wkbl.or.kr" class="link_fnb" target="_blank">데이터랩</a></li>
+            </ul>
+        </div>
+        <div class="wrap_footer">
+            <div class="inner_footer">
+                <div class="footer_logo"><img src="/static/images/common/footer_logo.png" alt="WKBL 로고"></div>
+                <p class="txt_site">
+                    WKBL 소속 6개 구단의 팀로고, 마스코트, 엠블럼과 WKBL 소속선수의 사진, 초상, 영상, 캐릭터 등을 무단으로 사용할 경우 상표법 및 저작권법에 의해 금지됩니다.<br>
+                    본 웹사이트에 게시된 이메일 주소와 전자우편 수집 프로그램이나 그밖의 기술적 장치를 이용하여 무단으로 수집되는 것을 거부하며, 이를 위반시 정보통신망법에 의해 형사처벌됨을 유념하시기 바랍니다.
+                </p>
+                <div class="info_site">
+                    <address class="txt_addr">서울특별시 강서구 공항대로 355 (등촌동)</address>
+                    <span class="txt_tel">TEL : 02-752-7493</span>
+                </div>
+                <small class="copyright">COPYRIGHT ⓒ 2017 WOMEN'S KOREAN BASKETBALL LEAGUE. ALL RIGHTS RESERVED.</small>
+            </div>
+        </div>
+    </footer>
+</div>
+
+
+<div id="layerVod" class="wrap_layer">
+    <div class="layer_container">
+        <div class="middle_block">
+            <div class="inner_layer">
+                <div class="frame_vod"></div>
+                <button type="button" class="btn_close">레이어 닫기</button>
+            </div>
+        </div>
+    </div>
+    <div class="dimmed_block"></div>
+</div>
+
+<!--2022 추가 ver-->
+<script type="text/javascript" src="/static/js/jquery-migrate-1.2.1.min.js"></script>
+<script type="text/javascript" src="/static/js/slick.min.js"></script>
+<script>
+    $(function(){
+        /*메인비주얼*/
+        $('.main_top_slider').on('init', function (event, slick) {
+            if (slick.slideCount < 2) {
+                $('.main_top_slider .slick-dots').css('display','none');
+            }
+        }).slick({
+            autoplay: true,
+            autoplaySpeed: 3500,
+            pauseOnHover: false,
+            fade: true,
+            speed: 1000,
+            infinite: true,
+            slidesToShow: 1,
+            slidesToScroll: 1,
+            arrows: false,
+            dots: true
+        });
+
+        /*WKBL 소식*/
+        $('.notice_list .tab_contents').slick({
+            autoplay: true,
+            autoplaySpeed: 3500,
+            pauseOnHover: true,
+            speed: 1000,
+            infinite: true,
+            slidesToShow: 1,
+            slidesToScroll: 1,
+            arrows: false,
+            asNavFor: '.notice_list .tab_menu'
+        });
+        $('.notice_list .tab_menu').slick({
+            autoplay: false,
+            infinite: false,
+            slidesToShow: 3,
+            slidesToScroll: 3,
+            asNavFor: '.notice_list .tab_contents',
+            focusOnSelect: true
+        });
+        /*WKBL 소식 배너*/
+        $('.banner_slider').on('init', function (event, slick) {
+               if (slick.slideCount < 2) {
+                   $('.banner_slider .slick-dots').css('display','none');
+               }
+           }).slick({
+            autoplay: true,
+            autoplaySpeed: 3500,
+            pauseOnHover: false,
+            fade: true,
+            speed: 1000,
+            infinite: true,
+            slidesToShow: 1,
+            slidesToScroll: 1,
+            arrows: false,
+            dots: true
+        });
+        /*주요일정 & 선수생일*/
+        $('.birth_slider').slick({
+            autoplay: true,
+            autoplaySpeed: 3500,
+            pauseOnHover: true,
+            speed: 1000,
+            infinite: true,
+            slidesToShow: 3,
+            slidesToScroll: 1,
+            arrows: true,
+            dots: false
+        });
+        /*6개 구단소식*/
+        $('.team_slider').slick({
+            autoplay: true,
+            autoplaySpeed: 3500,
+            pauseOnHover: true,
+            fade: true,
+            speed: 1000,
+            infinite: true,
+            slidesToShow: 1,
+            slidesToScroll: 1,
+            arrows: false,
+            asNavFor: '.nav_slider'
+        });
+        $('.nav_slider').slick({
+            autoplay: false,
+            infinite: false,
+            slidesToShow: 6,
+            slidesToScroll: 6,
+            asNavFor: '.team_slider',
+            focusOnSelect: true
+        });
+
+
+        $.get('/sns/', function(obj) {
+            if( obj.data === undefined ){
+                console.log("인스타 가져오기 실패!!!");
+                return false;
+            } else {
+                var data = obj.data;
+                if( data.length > 0 ) {
+                    var tmp_array = [];
+                    for (var i = 0; i < 5; i++) {
+                        temp = '<li> '+
+                               '    <a href="' + data[i].permalink + '" target="_blank" class="thumb_img">'+
+                               '        <img src="' + data[i].thumb + '" >'+
+                               '    </a>'+
+                               ' </li>';
+                        tmp_array.push(temp)
+                    }
+                    $('.sns_img_list').append(tmp_array.join(''));
+
+                }
+            }
+        },'json');
+
+        $.get('./2022_main_player_record.asp', 
+            function(data, textStatus, xhr) {
+            $('.player_slider').empty().append(data);
+            $('.player_slider').slick({
+                autoplay: true,
+                pauseOnHover: true,
+                autoplaySpeed: 3500,
+                speed : 500,
+                infinite: true,
+                slidesToShow: 3,
+                slidesToScroll: 1,
+                arrows: true,
+                dots: false
+            });
+        });
+    });
+</script>
+<!--2022 추가 버전-->
+
+<script type="text/javascript">
+
+/*
+	window.fbAsyncInit = function() {
+		FB.init({
+			appId      : '1638844749680023',
+			cookie     : true,
+			xfbml      : true,
+			version    : 'v2.2'
+		});
+	};
+
+	// Load the SDK asynchronously
+	(function(d, s, id) {
+		var js, fjs = d.getElementsByTagName(s)[0];
+		if (d.getElementById(id)) return;
+		js = d.createElement(s); js.id = id;
+		js.src = "//connect.facebook.net/ko_KR/sdk.js";
+		fjs.parentNode.insertBefore(js, fjs);
+	}(document, 'script', 'facebook-jssdk'));
+*/
+
+// 실시간 영상 중계
+function onStnPop() {
+	window.open("http://www.onstn.com/main/onair.php", "onStnPop", "width=900px, height=600px");
+}
+
+// 실시간 문자 중계
+function goLive() {
+	var f = document.gr;
+	Open_Win('', 'live', 930, 700, 'no');
+	f.target = "live";
+	f.submit();
+}
+
+function goLive0() {
+	var f = document.gr0;
+	Open_Win('', 'live0', 930, 700, 'no');
+	f.target = "live0";
+	f.submit();
+}
+
+function goLive1() {
+	var f = document.gr1;
+	Open_Win('', 'live1', 930, 700, 'no');
+	f.target = "live1";
+	f.submit();
+}
+
+function goLive2() {
+	var f = document.gr2;
+	Open_Win('', 'live2', 930, 700, 'no');
+	f.target = "live2";
+	f.submit();
+}
+
+function goLive3() {
+	var f = document.gr3;
+	Open_Win('', 'live3', 930, 700, 'no');
+	f.target = "live3";
+	f.submit();
+}
+
+function goLive4() {
+	var f = document.gr4;
+	Open_Win('', 'live4', 930, 700, 'no');
+	f.target = "live4";
+	f.submit();
+}
+
+function goLive5() {
+	var f = document.gr5;
+	Open_Win('', 'live5', 930, 700, 'no');
+	f.target = "live5";
+	f.submit();
+}
+
+function fnWishSeason() {
+	window.open("/wish_court/season3.asp", "wish_season");
+}
+
+function setCookie( name, value, expiredays ){
+  var todayDate = new Date();
+  todayDate.setDate( todayDate.getDate() + expiredays );
+  document.cookie = name + "=" + escape( value ) + "; path=/; expires=" + todayDate.toGMTString() + ";"
+}
+
+function getCookie(name) {
+  var index = document.cookie.indexOf(name + "=");
+  if (index == -1) return null;
+  index = document.cookie.indexOf("=", index) + 1;
+  var endstr = document.cookie.indexOf(";", index);
+  if (endstr == -1) endstr = document.cookie.length;
+  return unescape(document.cookie.substring(index, endstr));
+}
+
+///POPUP 팝업입니다.
+function openWindow() {
+    //  if(getCookie('pop211211') !='done'){
+    //   window.open('/popup/211211.html','pop211211','left=0,top=0,width=400,height=551,scrollbars=no');
+    //   }
+}
+
+//팝업창 띄우기
+openWindow();
+
+// 기자 프로그램
+function MM_openBrWindow(theURL,winName, features) { //v2.0
+    window.open(theURL, winName, features);
+}
+</script>
+<script src="../static/js/ui_20.js?ver=2.1"></script>
+<script>
+$(function() {
+
+});
+
+
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-55620765-1', 'auto');
+  ga('send', 'pageview');
+</script>
+</body>
+</html>

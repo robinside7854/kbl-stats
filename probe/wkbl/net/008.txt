@@ -1,0 +1,60 @@
+POST https://www.wkbl.or.kr/main/data/2026_main_sch.asp
+
+
+
+                            <li>
+                                <div class='cont'>
+                                    <div class='game_info'>
+                                        <!-- 상단 경기 일정 / 장소 -->
+                                        <div class='date'>
+                                            <span class='language' data-kr='2026.11.01(일)' data-en='01.Nov.2026(Sun)'>2026.11.01(일)</span>
+                                            <span class='bar'></span>
+                                            <span class='language' data-kr='청주' data-en='Cheongju'>청주</span>
+                                        </div>
+                                        <!-- 팀 정보 -->
+                                        <div class='teams'>
+                                            <!-- home -->
+                                            <div class='inner'>
+                                                <div>
+                                                    <!-- 팀 로고 -->
+                                                    <div class='thumb_img'>
+                                                        <img src='/static/images/team/teamlogo_01.png' alt='KB스타즈'>
+                                                    </div>
+                                                    <!-- 팀 이름 -->
+                                                    <p class='name eli language' data-kr='KB스타즈' data-en='KB STARS'>KB스타즈</p>
+                                                </div>
+                                                <!-- 스코어 : 승리시 win -->
+                                                <p class='score '></p>
+                                            </div>
+                                            <!-- away -->
+                                            <div class='inner'>
+                                                <div>
+                                                    <!-- 팀 로고 -->
+                                                    <div class='thumb_img'>
+                                                        <img src='/static/images/team/teamlogo_11.png' alt='BNK 썸'>
+                                                    </div>
+                                                    <!-- 팀 이름 -->
+                                                    <p class='name eli language' data-kr='BNK 썸' data-en='BNK SUM'>BNK 썸</p>
+                                                </div>
+                                                <!-- 스코어 승리시 win -->
+                                                <p class='score '></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                    
+                                    <div class='game_eng'> <a href='javascript:void(0);' class='btn_popup language' data-popup='main_info' data-tcode='01' data-popup='main_info' data-kr='안내사항' data-en='Info'>안내사항</a>
+                                  <a href='/ticket/ticketing.asp' class='bg_point language' data-kr='티켓예매' data-en='Tickets'>티켓예매</a>                                                                   
+                                    </div>
+                                </div>
+                                <!-- 경기 명칭 -->
+                                <p class='game_name language' data-kr='1 ROUND 정규리그' data-en='1 ROUND Regular League'>1 ROUND 정규리그</p>
+                            </li>
+                            
+                            <li>
+                                <div class='cont'>
+                                    <div class='game_info'>
+                                        <!-- 상단 경기 일정 / 장소 -->
+                                        <div class='date'>
+                                            <span class='language' data-kr='2026.11.02(월)' data-en='02.Nov.2026(Mon)'>2026.11.02(월)</span>
+                                            <span class='bar'></span>
+    

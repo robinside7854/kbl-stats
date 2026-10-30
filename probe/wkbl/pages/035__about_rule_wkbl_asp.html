@@ -1,0 +1,1220 @@
+<!-- https://www.wkbl.or.kr/about/rule_wkbl.asp -->
+
+
+
+
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta property="og:image" content="https://www.wkbl.or.kr/static/images/wkbl_link_thum.jpg">
+<meta property="og:image:width" content="800">
+<meta property="og:image:height" content="400">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:alt" content="WKBL, 한국여자농구연맹, 여자농구연맹, 여자프로농구">
+<meta property="og:description" content="WKBL, 한국여자농구연맹, 여자농구연맹, 여자프로농구">
+<title>WKBL</title>
+<!-- <meta name="viewport" content="user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, width=device-width"> -->
+<link rel="stylesheet" href="/static/css/style_26.css?ver=0.1" type="text/css">
+<script src="/static/js/lib/script.js"></script>
+<script src="/static/js/common_wkbl.js"></script>
+
+<!--[if lt IE 9]>
+<link rel="stylesheet" href="/static/css/ie.css">
+<script src="/static/js/lib/html5shiv.min.js"></script>
+<script src="/static/js/lib/respond.js"></script>
+<![endif]-->
+</head>
+
+<body>
+    <div id="pageIndex">
+        <a href="#contents" class="shortcut_g">본문내용보기</a>
+        <a href="#pageGnb" class="shortcut_g">메뉴바로가기</a>
+    </div>
+
+    <div id="wrap" class="v2026">
+        <header id="header" class="is_brn_none">
+            <div class="nav_wrapper">
+                <div class="top_navigation">
+                    <div class="inner_nav">
+                        <h1 id="pageLogo" class="site_logo">
+                            <a href="/main"><img src="/static/images/common/head_logo_22.png" alt="WKBL"></a>
+                        </h1>
+                        <nav id="pageGnb" class="gnb_comm">
+                            <h2 class="screen_out">주요메뉴</h2>
+                            <ul class="list_menu">
+                                <li class="depth1 nav0"><a href="/about/greetings.asp" >WKBL</a></li>
+                                <li class="depth1 nav1"><a href="/news/hotfocus_list.asp" class="language" data-kr="뉴스" data-en="News">뉴스</a></li>
+                                <li class="depth1 nav2"><a href="/game/sch/schedule1.asp" class="language" data-kr="일정/기록" data-en="Schedule<br>Records">일정/기록</a></li>
+                                <li class="depth1 nav3"><a href="/team/teaminfo.asp" class="language" data-kr="팀" data-en="Teams">팀</a></li>
+                                <li class="depth1 nav4"><a href="/player/player_list.asp" class="language" data-kr="선수" data-en="Players">선수</a></li>
+                                <li class="depth1 nav5"><a href="/history/league.asp" class="language" data-kr="히스토리" data-en="History">히스토리</a></li>
+                                <li class="depth1 nav6"><a href="javascropt:void(0);" class="language" data-kr="이벤트" data-en="Events">이벤트</a></li>
+                                <li class="depth1 nav7"><a href="/fan/character.asp" class="language" data-kr="팬" data-en="Fan">팬</a></li>
+                                <li class="depth1 nav8"><a href="/ticket/ticketing.asp" class="language" data-kr="티켓" data-en="Tickets">티켓</a></li>
+                            </ul>
+                        </nav>
+                        
+
+                        <!--// nav_wrapper -->
+
+                        <div class="util_wrapper top_social_wrap">
+                            <div class="inner_util">
+                                <ul class="list_util">
+                                    <li><a href="javascript:void(0);" class="lang_change language btn_detail" data-kr="<img src='/static/images/main/icon_global_v2026.svg' title='EN'>EN" data-en="<img src='/static/images/main/icon_global_v2026.svg' title='KR'>KR"><img src='/static/images/main/icon_global_v2026.svg' title="EN">EN</a></li>
+                                    <li>
+                                        <a href="/member/login_v2.asp" class="btn_detail language" data-kr="<img src='/static/images/main/icon_login_v2026.svg' title='로그인'>로그인" data-en="<img src='/static/images/main/icon_login_v2026.svg' title='Sign in'>Sign in">
+                                            <img src='/static/images/main/icon_login_v2026.svg' title='로그인'>로그인
+                                        </a>
+                                    </li>
+                                
+                                    <!-- <li><a href="/member/join/join_native.asp" class="btn_detail language" data-kr="회원가입" data-en="Sign up">회원가입</a></li> -->
+                                
+                                    <li><button type="button" class="btn_search btn_detail language" data-kr="<img src='/static/images/main/icon_search_v2026.svg' title='선수'>선수" data-en="<img src='/static/images/main/icon_search_v2026.svg' title='Player'>Player"><img src='/static/images/main/icon_search_v2026.svg' title='선수'>선수</button></li>
+                                </ul>
+                            </div>
+                            
+
+                            <script type="text/javascript">
+                                $(function() {
+                                    $("#btn_header_search").click(function(e) {
+                                        e.preventDefault();
+
+                                        var search_team = TrimStr($("#search_team").val());
+                                        var search_word = TrimStr($("#search_word").val());
+
+                                        location.href = "/player/search_result.asp?search_team=" + encodeURI(search_team) + "&search_word=" + encodeURI(search_word)
+                                    });
+                                });
+
+                                function goCommonSearch() {
+                                    if (event.keyCode == 13) $("#btn_header_search").click();
+                                }
+                            </script>
+
+                            <div class="wrap_search">
+                                <div class="inner_search">
+                                    <div class="opt_item ico2_comm" style="display:none;">
+                                        <label id="header_label_team" class="lab_select language" for="search_team" data-kr="팀전체" data-en="All">팀전체</label>
+                                        <select class="opt_select" name="search_team" id="search_team">
+                                    <option value="" selected class="language" data-kr="팀전체" data-en="All">팀전체</option>
+                                    
+                                    <option value="03" class="language" data-kr="삼성생명" data-en="Samsung life">삼성생명</option>
+                                    
+                                    <option value="07" class="language" data-kr="신한은행" data-en="Shinhan Bank">신한은행</option>
+                                    
+                                    <option value="05" class="language" data-kr="우리은행" data-en="Woori Bank">우리은행</option>
+                                    
+                                    <option value="09" class="language" data-kr="하나은행" data-en="Hana Bank">하나은행</option>
+                                    
+                                    <option value="11" class="language" data-kr="BNK 썸" data-en="BNK SUM">BNK 썸</option>
+                                    
+                                    <option value="01" class="language" data-kr="KB스타즈" data-en="KB stars">KB스타즈</option>
+                                    
+                                </select>
+                                    </div>
+                                    <span class="inp_text">
+                                <label for="search_word" class="screen_out">검색어 입력</label>
+                                <input type="text" name="search_word" id="search_word" class="tf_text" onKeyDown="javascript:if(event.keyCode == 13) { goCommonSearch(); }">
+                                </span>
+                                    <button type="button" id="btn_header_search" class="btn_search language" data-kr="선수검색" data-en="Player Search">선수검색</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--// inner_nav -->
+                <div class="sub_menu">
+                    <div class="inner_menu">
+                        <ul class="sub0" rel="0">
+                            <li><a href="/about/greetings.asp" class="language" data-kr="소개" data-en="Introduce">소개</a></li>
+                            <li><a href="/about/history.asp" class="language" data-kr="연혁" data-en="History">연혁</a></li>
+                            <li><a href="/about/organization.asp" class="language" data-kr="조직도" data-en="Organization">조직도</a></li>
+                            <li><a href="/about/rule_wkbl.asp" class="language" data-kr="규정" data-en="Regulation">규정</a></li>
+                            <li><a href="/about/manage_system.asp" class="language" data-kr="운영제도" data-en="Operating<br>system">운영제도</a></li>
+                            <li><a href="/about/manage_process.asp" class="language" data-kr="운영방식" data-en="Procedure">운영방식</a></li>
+                            <li><a href="/about/game_rule.asp" class="language" data-kr="경기규칙" data-en="Rule">경기규칙</a></li>
+                            <li><a href="/about/dictionary.asp" class="language" data-kr="농구용어" data-en="Terms">농구용어</a></li>
+                            <li><a href="/about/link.asp" class="language" data-kr="관련사이트" data-en="Related site">관련사이트</a></li>
+                        </ul>
+                        <ul class="sub1" rel="1">
+                            <li><a href="/news/hotfocus_list.asp" class="language" data-kr="보도자료" data-en="Press release">보도자료</a></li>
+                            <li><a href="/news/notice_list.asp" class="language" data-kr="공지사항" data-en="Notice">공지사항</a></li>
+                            <li><a href="/news/news_list.asp" class="language" data-kr="뉴스" data-en="News">뉴스</a></li>
+                            <li><a href="/news/video_list.asp" class="language" data-kr="영상" data-en="Video">영상</a></li>
+                            <li><a href="/news/photo_list.asp" class="language" data-kr="포토" data-en="Photo">포토</a></li>
+                            <li><a href="/news/teamstory_list.asp" class="language" data-kr="6개구단소식" data-en="News from 6<br>teams">6개구단소식</a></li>
+                        </ul>
+                        <ul class="sub2" rel="2">
+                            <li><a href="/game/sch/schedule1.asp" class="language" data-kr="경기일정" data-en="Schedule">경기일정</a></li>
+                            <!-- <li><a href="/game/sch/schedule1.asp" class="language" data-kr="경기일정" data-en="Schedule">경기일정</a></li> -->
+                            <li><a href="/game/team_rank.asp" class="language" data-kr="팀순위" data-en="Team<br>Rankings">팀순위</a></li>
+                            <li><a href="/game/player_record.asp" class="language" data-kr="부문별 선수순위" data-en="Player Standings<br>by Category">부문별 선수순위</a></li>
+                            <li><a href="/game/part_team_rank.asp" class="language" data-kr="부문별 팀순위" data-en="Team Standings<br>by Category">부문별 팀순위</a></li>
+                            <li><a href="/game/team_total_record.asp" class="language" data-kr="팀종합기록" data-en="Overall<br>Records">팀종합기록</a></li>
+                            <li><a href="/game/report.asp" class="language" data-kr="승/패 리포트" data-en="W/L Reports">승/패 리포트</a></li>
+                            <li><a href="/game/today_mvp.asp" class="language" data-kr="오늘의 MVP" data-en="Today’s MVP">오늘의 MVP</a></li>
+                        </ul>
+                        <ul class="sub3" rel="3">
+                            <li><a href="/team/teaminfo.asp" class="language" data-kr="삼성생명" data-en="Samsung life">삼성생명</a></li>
+                            <li><a href="/team/teaminfo.asp?team_code=07" class="language" data-kr="신한은행" data-en="Shinhan Bank">신한은행</a></li>
+                            <li><a href="/team/teaminfo.asp?team_code=05" class="language" data-kr="우리은행" data-en="Woori Bank">우리은행</a></li>
+                            <li><a href="/team/teaminfo.asp?team_code=09" class="language" data-kr="하나은행" data-en="Hana Bank">하나은행</a></li>
+                            <li><a href="/team/teaminfo.asp?team_code=11" class="language" data-kr="BNK썸" data-en="BNK SUM">BNK썸</a></li>
+                            <li><a href="/team/teaminfo.asp?team_code=01" class="language" data-kr="KB스타즈" data-en="KB stars">KB스타즈</a></li>
+                        </ul>
+                        <ul class="sub4" rel="4">
+                            <li><a href="/player/player_list.asp" class="language" data-kr="선수색인" data-en="Player index">선수색인</a></li>
+                            <li><a href="/player/trade_info.asp" class="language" data-kr="이적현황" data-en="Transfer status">이적현황</a></li>
+                            <li><a href="/player/wkbl_hotline.asp">HOTLINE</a></li>
+                        </ul>
+                        <ul class="sub5" rel="5">
+                            <li><a href="/history/league.asp" class="language" data-kr="역대리그" data-en="League">역대리그</a></li>
+                            <li><a href="/history/prev_director.asp" class="language" data-kr="역대총재" data-en="President">역대총재</a></li>
+                            <li><a href="/history/major_team.asp" class="language" data-kr="역대주요기록" data-en="Key Records">역대주요기록</a></li>
+                            <li><a href="/history/awards.asp" class="language" data-kr="역대부문별수상자" data-en="All-time winners">역대부문별수상자</a></li>
+                            <li><a href="/history/draft.asp" class="language" data-kr="역대드래프트" data-en="Draft">역대드래프트</a></li>
+                            <li><a href="/history/fa_result.asp" class="language" data-kr="역대 FA" data-en="FA">역대 FA</a></li>
+                            <li><a href="/history/crowd.asp" class="language" data-kr="역대관중현황" data-en="Attendance<br>status">역대관중현황</a></li>
+                            <li><a href="/event/20th/index.asp" class="language" data-kr="GREAT 12<br/>(20주년 기념)" data-en="GREAT 12<br>(20th Anniversary)">GREAT 12<br/>(20주년 기념)</a></li>
+                        </ul>
+                        <ul class="sub6" rel="6">
+                            <li><a href="/event/parksj2026/about_01.asp" class="language" data-kr="박신자컵" data-en="Park Shin-Ja<br>Cup">박신자컵</a></li>
+                            <li><a href="/event/triplejam2026/about_01.asp" class="language" data-kr="트리플잼" data-en="Triple Jam">트리플잼</a></li>
+                            <li><a href="/allstar/2025/" class="language" data-kr="올스타전" data-en="All star">올스타전</a></li>
+                            <li><a href="/event/playoff2526/" class="language" data-kr="플레이오프<br/>챔프전" data-en="Playoffs<br>Championship">플레이오프<br/>챔프전</a></li>
+                            <li><a href="/event/futures2627/about_01.asp" class="language" data-kr="퓨처스리그" data-en="Futures league">퓨처스리그</a></li>
+                            <!-- <li><a href="/event/asian2022/about_01.asp" class="language" data-kr="국제대회" data-en="International<br>league">국제대회</a></li> -->
+                        </ul>
+                        <ul class="sub7" rel="7">
+                            <li><a href="/fan/character.asp" class="language" data-kr="캐릭터" data-en="Character">캐릭터</a></li>
+                            <li><a href="/fan/music.asp" class="language" data-kr="플레이리스트" data-en="WKBL PLAYLIST">플레이리스트</a></li>
+                            <li><a href="/fan/magazine.asp" class="language" data-kr="화보" data-en="Magazine">화보</a></li>
+                            <li><a href="/fan/wallpaper.asp" class="language" data-kr="월페이퍼" data-en="Wall paper">월페이퍼</a></li>
+                            <li><a href="/fan/season_paper.asp" class="language" data-kr="배경화면" data-en="Background<br>image">배경화면</a></li>
+                            <li><a href="/fan/board_list.asp" class="language" data-kr="자유게시판" data-en="Community">자유게시판</a></li>
+                            <li><a href="/fan/faq.asp" class="language" data-kr="자주하는질문" data-en="FAQ">자주하는질문</a></li>
+                            <li><a href="/fan/sns.asp" class="language">SNS</a></li>
+                            <li><a href="/ticket/event.asp" class="language" data-kr="이벤트" data-en="Event">이벤트</a></li>
+                        </ul>
+                        <ul class="sub8" rel="8">
+                            <li>&nbsp;</li>
+                        </ul>
+                    </div>
+                    <img src="/static/images/main/menu_banner.png" alt="통통튀는 우크블즈">
+                </div>
+            </div>
+
+            <!-- <div class="season_nav">
+                <div class="inner_season">
+                    <div class="title">
+                        <p class="name">정규리그</p>
+                    </div>
+                    <div class="game_status">
+                        <div class="info active">
+                            <div class="txt_info">
+                                <p class="time">14:30</p>
+                                <p class="status">진행중</p>
+                            </div>
+                            <div class="versus">
+                                <div class="thumb_img">
+                                    <img src="/static/images/team/teamlogo_01.png" alt="KB스타즈">
+                                </div>
+                                <p class="vs">vs</p>
+                                <div class="thumb_img">
+                                    <img src="/static/images/team/teamlogo_03.png" alt="삼성생명">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="info">
+                            <div class="txt_info">
+                                <p class="time">19:00</p>
+                                <p class="status">예정</p>
+                            </div>
+                            <div class="versus">
+                                <div class="thumb_img">
+                                    <img src="/static/images/team/teamlogo_01.png" alt="KB스타즈">
+                                </div>
+                                <p class="vs">vs</p>
+                                <div class="thumb_img">
+                                    <img src="/static/images/team/teamlogo_03.png" alt="삼성생명">
+                                </div>
+                            </div>
+                            
+                            <a href="" class="ticket_btn">티켓예매</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="main_aside_dday">
+                    <div class="top">
+                        <div class="dday_tit">
+                            <span class="tag">D-DAY</span>
+                            <span class="standard">26.07.29</span>
+                        </div>
+                        <p class="tit">26 퓨쳐스리그</p>
+                    </div>
+
+                    <div class="bottom">
+                        <div class="dday">
+                            <span>D</span>
+                            <span class="sign">-</span>
+                            <span class="num">130</span>
+                        </div>
+                    </div>
+                </div>
+            </div> -->
+        </header>
+<section id="contents">
+			<div class="breadcrumb_block">
+            <ul class="list_breadcrumb">
+                <li class="home"><a href="/main/">HOME</a></li>
+                <li class="depth1"><a href="/about/greetings.asp" id="depthTxt">WKBL</a>
+                    <ul class="sub_menu" id="depth1">
+                        <li><a href="/about/greetings.asp" class="active" id="b_wkbl">WKBL</a></li>
+                        <li><a href="/news/hotfocus_list.asp" id="b_news" class="language" data-kr="뉴스" data-en="News">뉴스</a></li>
+                        <li><a href="/game/sch/schedule1.asp" id="b_game" class="language" data-kr="일정/기록" data-en="Schedule/Records">일정/기록</a></li>
+                        <li><a href="/team/teaminfo.asp" id="b_team" class="language" data-kr="팀" data-en="Teams">팀</a></li>
+						<li><a href="/player/player_list.asp" id="b_player" class="language" data-kr="선수" data-en="Players">선수</a></li>
+						<li><a href="/history/league.asp" id="b_history" class="language" data-kr="히스토리" data-en="History">히스토리</a></li>
+                        <li><a href="/fan/board_list.asp" id="b_fan" class="language" data-kr="팬" data-en="Fan">팬</a></li>
+						<li><a href="/ticket/ticketing.asp" id="b_ticket" class="language" data-kr="티켓" data-en="Tickets">티켓</a></li>
+                    </ul>
+                </li>
+
+
+				
+
+
+				<li class="depth1" id="depth2"><a href="/about/rule_wkbl.asp" class="language" data-kr="규정" data-en="Regulation">규정</a>
+                    <ul class="sub_menu">
+                        <li><a href="/about/greetings.asp" class='language' data-kr="소개" data-en="Introduce">소개</a></li>
+                        <li><a href="/about/history.asp" class='language' data-kr="연혁" data-en="History">연혁</a></li>
+                        <li><a href="/about/organization.asp" class='language' data-kr="조직도" data-en="Organization">조직도</a></li>
+                        <li><a href="/about/rule_wkbl.asp" class='active language' data-kr="규정" data-en="Regulation">규정</a></li>
+                        <li><a href="/about/manage_system.asp" class='language' data-kr="운영제도" data-en="Operating system">운영제도</a></li>
+                        <li><a href="/about/manage_process.asp" class='language' data-kr="운영방식" data-en="Procedure">운영방식</a></li>
+                        <li><a href="/about/game_rule.asp" class='language' data-kr="경기규칙" data-en="Rule">경기규칙</a></li>
+                        <li><a href="/about/dictionary.asp" class='language' data-kr="농구용어" data-en="Terms">농구용어</a></li>
+                    </ul>
+				</li>
+			</ul>
+		</div>
+
+	<div id="cMain" class="page_about">
+		<div class="inner_cont">
+			<h2 class="screen_out">규약</h2>
+
+			<!--
+                <img src="/static/images/about/bg_rule_season.jpg" alt="하나은행 2019-2020 여자프로농구 경기규칙은 추후 업데이트 예정입니다.">
+				-->
+
+			<div class="tab_block">
+				<ul class="tab_list">
+					<li><a href="/about/rule_wkbl.asp" class="link_tab on language" data-kr="규약" data-en="Rule & Bylaws">규약</a></li>
+					<li><a href="/about/rule_fa.asp" class="link_tab language" data-kr="FA규정" data-en="FA Regulations">FA규정</a></li>
+					<li><a href="/about/rule_entry.asp" class="link_tab language" data-kr="선수등록규정" data-en="Player Register Regulations">선수등록규정</a></li>
+				</ul>
+			</div>
+			<!--// tab_block -->
+			<h2 class="title_rule"><i class="ico_comm rule_book"></i>2026~2027시즌 한국여자농구연맹 규약</h2>
+			<div class="policy_container">
+				<div class="inner_info">
+					<h3 class="stitle_first">제1장 총칙</h3>
+					<h5>제1조(목적)</h5>
+					<p>이 규약은 한국여자농구연맹(이하 ‘WKBL’이라 한다.)의 정관 시행에 관하여 필요한 사항을 규정함을 목적으로 한다.</p>
+					<h5>제2조(준수의무)</h5>
+					<p>WKBL회원과 임직원 및 회원 소속 모든 구성원은 이 규약과 이 규약에 의하여 제정된 제규정을 준수할 의무가 있다.</p>
+
+					<h3 class="stitle">제2장 조직</h3>
+
+					<h4>제1절 총재</h4>
+					<h5>제3조(총재의 권한) </h5>
+					<p>총재는 WKBL운영에 관한 다음의 권한을 갖는다. <br>
+						1. WKBL 전체의 이익을 도모하기 위한 WKBL회원과 임직원 그리고 소속 모든 구성원에 대한 지도 감독 <br>
+						2. 구단 및 개인의 분쟁해결의 최종 결정 <br>
+						3. WKBL정관과 규약을 위반했을 경우의 재결 및 제재 <br>
+						4. 각 위원회의 회의 소집 요구</p>
+
+					<h4>제2절 집행위원회</h4>
+
+					<h5>제4조(구성) </h5>
+					<p>① 집행위원회는 15인 이내로 구성한다.<br>
+						② 집행위원회의 위원은 이사회의 동의를 받아 총재가 위촉한다. 다만 총재는 각 구단에서 추천한 자를 우선적으로 위촉하여야 한다.</p>
+
+					<h5>제5조(소집)</h5>
+					<p>
+						① 집행위원회는 WKBL사무총장이 의장이 되며 필요에 따라 의장이 소집한다. <br>
+						② 의장이 유고시에는 이사회에서 미리 정한 순서에 따른 이사가 의장이 된다. <br>
+						③ 집행위원회를 소집하고자 할 때에는 각 위원에게 7일 전에 통지하여야 한다. 다만 긴급을 요하는 경우에는 예외로 한다.
+					</p>
+					<h5>제6조(권한)</h5>
+					<p>집행위원회는 WKBL의 업무집행에 관한 사항과 이사회에서 위임된 사항을 심의 결정한다.</p>
+
+					<h5>제7조(의결방법) </h5>
+					<p>① 집행위원회는 재적위원 3분의 2이상의 출석으로 개의하고 출석위원 과반수의 찬성으로 의결한다.<br>
+						② 총재의 사전 승인을 얻은 자는 집행위원회에 대리인으로 출석하여 의결권을 행사할 수 있다.</p>
+
+					<h5>제8조(의사록) </h5>
+					<p>집행위원회의 의사에 관하여는 의사록을 작성하여야 한다.</p>
+
+					<h5>제9조(업무집행)</h5>
+					<p>집행위원회의 업무는 WKBL사무국이 담당한다.</p>
+
+					<h4>제3절 기타 위원회</h4>
+					<h5>제10조(전문위원회)</h5>
+					<p>
+						① WKBL정관 규정에 따라 이사회와 총재의 자문에 응할 각종 전문위원회를 설치한다.<br>
+						② 전문위원회의 운영에 관한 규정은 이사회에서 별도로 정한다.
+					</p>
+
+					<h5>제11조(특별위원회) </h5>
+					<p>WKBL은 필요에 따라 이사회의 승인을 받아 특별위원회를 설치할 수 있으며 특별위원회 운영에 관하여는 이사회에서 별도로 정한다.</p>
+
+					<h5>제12조(회무) </h5>
+					<p>각종 위원회의 의사에 관한 업무는 사무국에서 담당한다.</p>
+
+					<h4>제4절 사무국</h4>
+					<h5>제13조(사무국의 설치)</h5>
+					<p>WKBL의 총회, 이사회 등의 의사 업무를 처리하고, 총재의 업무 집행을 보좌하며, WKBL 운영에 관한 모든 업무를 집행하기 위하여 전임직원으로 구성된 사무국을 설치한다.
+					</p>
+
+					<h5>제14조(사무국의 운영)</h5>
+					<p>사무국의 운영을 위하여 「사무국 운영 규정」및「사무국 운영 세칙」을 이사회의 승인을 받아 제정ㆍ시행한다.</p>
+
+					<h3 class="stitle">제3장 회 원</h3>
+
+					<h5>제15조(회원의 자격) </h5>
+					<p>WKBL회원의 자격은 다음과 같다.<br>
+						1. 농구단 운영을 설립 목적으로 하는 독립법인 또는 지방자치단체. 다만 회원이 독립법인이 아닌 경우 총재의 승인을 얻어 일정기간 자격요건의 구비를 유보할 수 있다.<br>
+						2. 회원은 WKBL 공식경기를 거행할 수 있는 농구전용 실내체육관을 소유할 것. 다만 타인 소유의 실내체육관을 확보하였을 경우 총재의 승인을 얻어 일정기간 자격요건 구비를
+						유보할 수 있다.<br>
+						3. 이 규약에서 정한 일정한 수준 이상의 선수를 보유할 것</p>
+
+					<h5>제16조(가입금 및 회비)</h5>
+					<p> ① 회원은 매년 연회비 3억원을 납입하여야 한다.<br>
+						② 신규회원이 되고자 하는 자는 가입금 10억원을 납입하여야 한다.<br>
+						③ 회원인 구단을 인수하여 새로이 회원이 되고자 하는 구단은 가입금 외 총회에서 정한 특별기금을 납입하여야 한다.<br>
+						④ 제1항의 연회비는 이사회의 결의로, 제2항의 가입금은 총회의 결의로 각 변경할 수 있다.</p>
+
+					<h5>제17조(회원의 본거지) </h5>
+					<p>① 회원인 구단(이하 ‘구단’이라 함)은 이사회의 승인을 받아 특정도시를 본거지로 정하여 지역을 대표하며, 지역사회의 농구보급과 진흥에 힘쓴다.<br>
+						② 구단의 본거지는 원칙적으로 변경할 수 없다. 다만, 특별한 사유로 본거지 변경이 필요한 경우 변경 사유를 기재하여 서면으로 총재에게 신청하여야 하며, 총재는 이사회의
+						승인을 얻어 변경할 수 있다.</p>
+
+					<h5>제18조(구단의 권익)</h5>
+					<p>① 구단은 본거지 도시를 포함한 일정지역을 활동구역으로 한다.<br>
+						② 구단은 활동구역 내에서 농구와 관련된 각종 행사를 주최 주관할 권리를 가지며 타 구단으로부터 침해받지 아니한다.<br>
+						③ 구단은 WKBL이 주최한 공식ㆍ비공식 경기와 농구와 관련된 행사로 발생한 수입금을 이사회가 정하는 바에 따라 분배 받는다.</p>
+
+					<h5>제19조(재무제표 등의 제출) </h5>
+					<p>① 구단은 매 회계연도 종료 후 2개월 이내에 다음의 서류를 총재에게 제출하여야 한다.<br>
+						1. 대차대조표<br>
+						2. 손익계산서<br>
+						3. 주최 주관한 경기 및 각종 행사 등의 수입 지출 명세서<br>
+						4. 일반관리비 명세서<br>
+						② 총재는 필요하다고 판단되는 경우 전항의 서류 외에 재무 관계 서류의 제출을 요구할 수 있다.</p>
+
+					<h5>제20조(구단의 변경) </h5>
+					<p>① 구단을 양도ㆍ양수하거나 구단주를 변경하고자 하는 자는 공식경기 개시 전에 신청을 하여 총회의 승인을 받아야 한다. 다만, 특별한 사유가 있는 경우에는 총재가 신청기한을
+						조정할 수 있다.<br>
+						② 구단을 양도하려는 자는 다음 각호의 서류를 총재에게 제출하여야 한다.<br>
+						1. 양도승인신청서<br>
+						2. 양도ㆍ양수 합의서<br>
+						3. 기타 총재가 요구하는 서류<br>
+						③ 구단을 양수하고자 하는 자는 다음 각호의 서류를 총재에게 제출하여야 한다.<br>
+						1. 양수법인의 재무제표<br>
+						2. 운영계획서<br>
+						3. 기타 총재가 요구하는 서류</p>
+
+					<h5>제21조(주주의 변경) </h5>
+					<p>① 회원은 매 회계연도 종료 시의 주주 명부를 총재에게 제출하여야 한다.<br>
+						② 총 발행주식의 5%를 초과하는 주주의 변경은 이사회에서, 총 발행주식의 10%를 초과하는 주주의 변경은 총회에서 사전 승인을 받아야 한다.<br>
+						③ 회원으로부터 주주변경 신청이 있을 때에는 총재는 15일 이내에 이사회와 총회를 소집하여 이를 심의하여야 하며 20일 이내에 그 결과를 통지하여야 한다.</p>
+
+					<h5>제22조(주식소유의 금지 등) </h5>
+					<p>구단의 임직원 그리고 소속 모든 구성원은 직접 또는 간접적으로 다음 각호의 행위를 할 수 없다.<br>
+						1. 타 구단의 주식을 보유하는 행위.<br>
+						2. 타 구단의 임직원 그리고 소속 모든 구성원 간의 금품수수, 금전 대차, 의무부담 행위</p>
+
+					<h5>제23조(본거지의 활동 지역) </h5>
+					<p>① 구단의 명칭, 본거지, 활동지역은 다음과 같다. </p>
+					<!-- 표 -->
+					<table cellspacing="0" summary="WKBL팀" class="tbltype_rule_team">
+						<colgroup>
+							<col width="25%">
+							<col width="25%">
+							<col width="25%">
+							<col width="25%">
+						</colgroup>
+						<tbody>
+							<tr>
+								<th>법인명</th>
+								<th>팀명칭</th>
+								<th>본거지</th>
+								<th>활동지역</th>
+							</tr>
+							<tr>
+								<td>KB국민은행</td>
+								<td>KB스타즈</td>
+								<td>청주</td>
+								<td></td>
+							</tr>
+							<tr>
+								<td>BNK캐피탈</td>
+								<td>썸</td>
+								<td>부산</td>
+								<td></td>
+							</tr>
+							<tr>
+								<td>제일기획</td>
+								<td>블루밍스</td>
+								<td>용인</td>
+								<td></td>
+							</tr>
+							<tr>
+								<td>하나은행</td>
+								<td>하나은행</td>
+								<td>부천</td>
+								<td></td>
+							</tr>
+							<tr>
+								<td>신한은행</td>
+								<td>에스버드</td>
+								<td>인천</td>
+								<td></td>
+							</tr>
+							<tr>
+								<td class="last">우리은행</td>
+								<td class="last">원</td>
+								<td class="last">아산</td>
+								<td class="last"></td>
+							</tr>
+						</tbody>
+					</table>
+					<!-- //표 -->
+
+					<p>② 구단의 팀 명칭은 원칙적으로 변경할 수 없다. 다만, 정당한 사유가 있을 때에는 이사회의 승인을 받아 변경할 수 있다.</p>
+
+					<h3 class="stitle">제4장 경기</h3>
+					<h4>제1절 경기장</h4>
+
+					<h5>제24조(경기장의 확보)</h5>
+					<p>구단은 다음의 요건을 구비한 실내 체육관을 확보하여야 하며 본거지 구단(이하 ‘홈팀’이라 한다)은 최적의 상태에서 홈경기를 실시할 수 있도록 관리 유지할 책임이 있다.<br>
+						1. 국제농구연맹(이하 ‘FIBA’라 한다.) 규칙에서 정한 농구코트를 설치할 것<br>
+						2. 2,000명 이상의 관중을 수용할 것<br>
+						3. 실내 체육관 내부에 평균 1,500룩스 이상의 조명도를 유지할 것</p>
+
+					<h5>제25조(경기장의 설비 및 부대시설) </h5>
+					<p>경기장 설비 및 부대시설은 시즌 별 대회운영요령에서 정하는 바에 따른다.</p>
+
+					<h5>제26조(광고판의 설치) </h5>
+					<p>① 홈팀은 경기장내에 총재가 지정한 위치에 광고판을 설치할 수 있는 공간을 확보, 제공하여야 한다.
+						② 전항의 광고판 이외의 광고물 등을 설치할 경우에는 사전에 총재의 승인을 받아야 한다.</p>
+
+					<h5>제27조(기타 광고행위의 제한)</h5>
+					<p>WKBL은 경기장 내외에서 공식 후원업체 이외의 광고행위를 홈팀과 협의하여 결정한다. </p>
+
+					<h5>제28조(경기장 검사) </h5>
+					<p>① 경기장은 경기 운영 위원회의 검사를 받아야 한다. <br>
+						② 전항의 검사는 집행위원회가 제정한 ‘경기장 검사 요령’에 의하여 실시한다.</p>
+
+					<h4>제2절 공식 경기</h4>
+					<h5>제29조(공식 경기)</h5>
+					<p>① WKBL의 공식경기는 다음과 같다.<br>
+						1. 정규경기<br>
+						2. 올스타 경기<br>
+						3. 플레이오프 경기<br>
+						② WKBL의 공식경기는 각 구단 연고지 경기장에서 실시한다. 다만, 총재의 사전 승인을 얻은 경우에는 타 경기장에서 실시할 수 있다.</p>
+
+					<h5>제30조(참가 의무 등)</h5>
+					<p>구단은 WKBL 공식경기에 반드시 참가하여야 한다. 다만 대한민국농구협회(이하 ‘KBA’라 한다.)가 주최하는 농구 경기에는 이사회의 승인을 얻어 참가할 수 있다. </p>
+
+					<h5>제31조(최강 선수의 기용) </h5>
+					<p>구단은 공식 경기에 임할 때에는 최강의 선수를 기용하여 최선의 경기를 하도록 하여야 한다.</p>
+
+					<h5>제32조(부정행위 등 금지) </h5>
+					<p>구단의 임원, 선수, 감독, 코치 기타 구단 관계자는 직접 또는 간접적으로 경기 결과에 영향을 미칠 어떠한 부정행위도 할 수 없다.</p>
+
+					<h5>제33조(공식 경기의 주최 주관) </h5>
+					<p>① 공식경기는 WKBL이 주최 및 주관한다. <br>
+						② WKBL 공식경기 중 중립 경기는 WKBL이 직접 주관한다.</p>
+
+					<h5>제34조(경기규칙)</h5>
+					<p>공식경기의 경기규칙에 관하여 이사회의 승인을 얻어 「WKBL 규칙」을 별도로 제정 실시한다. </p>
+
+					<h5>제35조(구단조직) </h5>
+					<p>구단 조직에 관하여 이사회에서 「WKBL 농구단 조직규정」을 별도로 정한다.</p>
+					<h5>제36조(공식 경기 출전선수) </h5>
+					<p>공식 경기는 WKBL 선수등록규정에 의하여 등록된 자만이 참가할 수 있다. </p>
+					<h5>제37조(책임) </h5>
+					<p>① 홈팀은 경기 중 모든 안전 관리 및 질서 유지의 책임을 진다.<br>
+						② WKBL은 공식 경기를 촬영한 VIDEO를 제작하여 보관하여야 한다. <br>
+						③ 홈팀은 원정팀 구단의 요청이 있을 경우 훈련을 위하여 경기장 시간을 배정하여야 한다.</p>
+					<h5>제38조(선수의 건강관리) </h5>
+					<p>① 구단은 전속 팀 닥터를 두어야 하며 당해 구단의 책임 하에 선수의 건강을 관리하여야 한다.<br>
+						② 팀 닥터는 경기 또는 훈련 중 선수가 중증에 속하는 부상을 입었을 경우에는 「선수 상해 보고서」를 총재에게 제출하여야 한다. 총재는 선수보호차원에서 해당 부상 선수에
+						대하여 활동 제한을 명할 수 있다.</p>
+					<h5>제39조(공식경기 개최 기간) </h5>
+					<p>WKBL의 공식 경기는 원칙적으로 10월부터 다음해 4월까지로 한다. 다만, 특별한 사정이 있는 경우 이사회 승인을 얻어 변경할 수 있다.</p>
+					<h5>제40조(정규 경기일정) </h5>
+					<p>① 정규 경기의 일정은 다음 각 호의 사항을 고려하여 이사회에서 결정한다. <br>
+						1. 개막전은 타이틀스폰서팀과 무작위 선정된 팀 양 팀 간에 경기로 개최된다.<br>
+						② 정규 경기 개시 시간은 평일 오후 7시, 주말 및 공휴일 오후 6시로 한다. 다만, 특별한 사정이 있을 경우 총재가 변경할 수 있다.</p>
+					<h5>제41조(플레이오프 등 경기일정) </h5>
+					<p>① 플레이오프 등 경기 일정은 이사회에서 결정한다.<br>
+						② 플레이오프 5전 3선승제의 경기 장소는 정규리그 순위에 따라 선순위구단의 홈경기장에서 1, 2, 5차전을 치르고 후순위구단의 경기장에서 3, 4차전을 치른다.<br>
+						③ 챔피언결정전 5전 3선승제의 경기 장소는 정규리그 순위에 따라 선순위 구단의 홈 경기장에서 1, 2, 5차전을 치르고 후순위 구단의 경기장에서 3, 4차전을 치른다.</p>
+					<h5>제42조(경기일정의 준수) </h5>
+					<p>구단은 WKBL이 작성한 개최 일시 및 장소 등 공식 경기 일정을 준수하여야 한다.</p>
+					<h5>제43조(경기일정의 변경) </h5>
+					<p>WKBL은 사전에 구단과 협의를 거쳐 공식 경기일정을 변경할 수 있다.</p>
+					<h5>제44조(합동 개최의 금지) </h5>
+					<p>공식 경기는 원칙적으로 같은 날 같은 장소에서 2경기 이상을 개최할 수 없다. 다만, 중립경기의 경우 예외로 한다.</p>
+					<h5>제45조(경기 감독관) </h5>
+					<p>① 경기 운영위원은 총재가 위촉한다. <br>
+						② 경기 운영위원은 각 공식 경기장에 파견되어 다음의 직무를 수행한다.<br>
+						1. 경기 개시 120분 전에 현장에 도착하여 경기장을 점검한다.
+						2. 경기 종료 후 24시간 이내에 「경기 운영 보고서」를 총재에게 제출한다.<br>
+						3. 경기 중 경기의 중단, 폭력 행위, 임원 선수의 퇴장 등 경기장 질서에 중대한 사태가 발생하였을 때에는 「사고 발생 긴급 보고서」를 총재에게 즉시 제출하여야 한다.
+					</p>
+					<h5>제46조(경기 중지 결정) </h5>
+					<p>경기 운영 위원은 주심, 양 팀 대표자와 협의를 거쳐 경기 중지를 결정할 수 있다. 경기 중지를 결정하였을 때에는 경기 운영위원과 경기관리책임자는 「경기 중지 보고서」를
+						총재에게 즉시 제출하여야 한다. </p>
+					<h5>제47조(재경기) </h5>
+					<p>① 공식경기에 있어 천재지변, 교통 장애, 정전, 경기진행이 현저히 곤란한 전염병 사태, 기타 불가항력에 의하여 경기 개최가 불가능하거나 중지되었을 경우에 한하여 재경기를 할 수 있다.<br>
+						② 재경기 여부 및 일정은 총재가 결정한다.<br>
+					③ 재경기를 하지 않을 경우 구단 및 선수 개인의 경기기록 인정에 대해서는 이사회에서 정하는 바에 따른다.
+					</p>
+					<h5>제48조(승패 결정) </h5>
+					<p>공식 경기에서 양 팀 중 어느 팀의 귀책사유로 경기 개최불능 또는 중지가 되었을 경우에는 그 귀책사유를 공정하게 가려 총재가 재경기 없이 승패를 결정할 수 있다. </p>
+					<h5>제49조(경기 관리인) </h5>
+					<p>① WKBL 경기 관리인은 총재의 위임을 받아 경기 관리의 직무를 대행한다.<br>
+						② 경기 관리인은 경기 결과, 전적과 팀 및 개인 통계 자료가 수록된 소정의 「경기 결과 보고서」와 「경기 통계 자료」를 총재에게 제출하여야 한다.</p>
+					<h5>제50조(경기 집행 요령) </h5>
+					<p>공식 경기의 운영 및 방식에 관하여는 총재가 「대회운영요령」을 별도로 정한다.</p>
+					<h5>제51조(안전보장) </h5>
+					<p>WKBL과 홈팀은 공식 비공식 경기 중 원정팀, 심판원 등 관계자에 대한 안전을 보장하여야 한다. </p>
+					<h4>제3절 비공식 경기</h4>
+					<h5>제52조(비공식 경기) </h5>
+					<p>구단은 공식 경기 기간 중 비공식 경기를 개최 또는 참가 할 수 없다. 다만, 공식경기 기간 이외에는 총재에게 사전 통보 후 이를 개최 또는 참가할 수 있다.</p>
+					<h5>제53조(비공식 경기의 구분) </h5>
+					<p>① 비공식 경기는 다음과 같이 구분한다.<br>
+						1. 시범경기<br>
+						2. 국제친선경기<br>
+						3. 자선경기<br>
+						4. 은퇴경기 <br>
+						② 전항의 비공식 경기를 개최 하고자 할 때에는 WKBL 소정의 ‘비공식 경기 개최 신청서’를 총재에게 제출하여야 하며 총재의 승인을 받아야 한다.<br>
+						③ 제2항의 신청서는 원칙적으로 경기 개최일 2개월 전에 제출하여야 한다. </p>
+					<h5>제54조(외국 원정 경기) </h5>
+					<p>구단은 외국에서 개최되는 각종 국제경기에 총재의 사전 승인을 받아 참가 할 수 있다.</p>
+					<h5>제55조(흥행 참가 금지) </h5>
+					<p>구단의 선수, 감독, 코치는 WKBL과 사전협의 없이는 WKBL 이외에 제3자가 주최하는 경기 또는 관련 행사에 참가할 수 없다. </p>
+					<h4>제4절 대표팀 경기</h4>
+					<h5>제56조(경기참가) </h5>
+					<p>① 구단의 선수 및 코칭 스텝이 참가하는 대표팀 경기는 올림픽, 세계농구 선수권대회, 아시안게임, 아시아 농구선수권 대회, 동아시아 대회, 기타 국가대표 운영위원회에서
+						인정하는 대회의 예선 및 본선을 모두 포함한다.<br>
+						② 전항 이외의 경기 참가는 이사회에서 정하는 바에 따른다.</p>
+					<h5>제57조(참가의무) </h5>
+					<p>① 구단은 소속 선수 및 코칭스태프가 제56조에서 정하는 경기의 한국대표로 선발되었을 때에는 해당 선수 및 코칭스태프를 파견하여야 한다.<br>
+						② WKBL은 정당한 사유 없이 전항의 대표팀 소집에 불응한 경우 해당 선수, 코칭스태프 및 구단에 대하여 이사회에서 정하는 WKBL 상벌규정에 의하여 제재를 가할 수
+						있다. </p>
+					<h5>제58조(대회, 훈련일정, 선수소집 및 통보) </h5>
+					<p>① WKBL 매년도 말에 제56조에서 정한 경기의 익년도 대회 일정을 사전 고지한다. <br>
+						② 대회 참가를 위한 훈련기간 및 소집일은 당해 대회 개최 3개월 이전 구단에 고지하도록 한다. <br>
+						③ 훈련기간은 50일 이내로 하며, 다만, 올림픽과 아시안게임의 경우 대한체육회가 정하는 바에 따른다.<br>
+						➃ WKBL은 선수소집일 14일전까지 대표선수를 서면통보하고, 구단은 공시일로부터 7일 이내에 선수의 참가여부를 WKBL에 서면 통보하여야 한다. <br>
+						➄ 해당 선수가 부상 등 합당한 사유로 인하여 소집에 응할 수 없는 경우 WKBL의 승인을 득하여야 한다. <br>
+						⑥ WKBL의 승인을 득한 소집불참 선수는 대표팀 소집기간 동안 소속팀의 공식, 비공식경기에 출전할 수 없다.</p>
+					<h5>제59조(지원 및 포상) </h5>
+					<p>대표팀 지원 및 포상에 관한 사항은 이사회에서 별도로 정한다.</p>
+					<h4>제5절 경기의 수지</h4>
+					<h5>제60조(공식 경기 수입금) </h5>
+					<p>① WKBL이 주관하는 공식 경기의 입장료 수입은 구단에 귀속된다.<br>
+						② 전항의 수입은 WKBL 경기 개최에 소요되는 경기장 사용료 및 광고 선전비 등으로 사용된다. </p>
+					<h5>제61조(비공식 경기의 수입금) </h5>
+					<p>WKBL이 주최하는 비공식 경기의 순익(총수입 중 소요 비용을 공제한 금액)의 배분은 WKBL과 구단이 사전 협의하여 결정한다.</p>
+					<h4>제6절 홍보</h4>
+					<h5>제62조(홍보 자료) </h5>
+					<p>① 구단은 정규 시즌 개막 30일 전에 다음 각 호의 각종 홍보자료가 수록된 구단 소개 책자를 총재에게 제출하여야 한다.<br>
+						1. 구단의 연혁<br>
+						2. 등록 선수 및 임직원 명단 <br>
+						3. 시즌별 구단 전적<br>
+						4. 시즌별 선수 경기 통계 자료<br>
+						5. 훈련 캠프 정보 <br>
+						6. 기타 총재가 요구하는 사항 <br>
+						② 전항의 구단 소개 책자에는 선수, 감독 및 코치의 신장, 체중, 포지션, 생년월일, 출신학교, 학력, 경기 기록 등 경력 사항이 상세히 기록되어야 한다.</p>
+					<h5>제63조(가이드 북) </h5>
+					<p>WKBL은 방송, 신문, 잡지, 인터넷을 위한 홍보의 기초 정보 자료로서 제62조의 각종 자료를 수록한 가이드북을 발간한다.</p>
+					<h5>제64조(뉴스레터) </h5>
+					<p>WKBL은 경기결과 홍보 자료를 편집하여 신문, 방송, 잡지를 위하여 주간 뉴스 레터를 발간 배부한다.</p>
+					<h5>제65조(기자 회견) </h5>
+					<p>WKBL 기자단이 경기 종료 후 경기장 또는 기자회견실에서 선수나 코칭스태프에 대하여 공식 기자 회견을 요청한 경우 해당 선수나 및 코칭스태프는 반드시 기자 회견에 응하여야 한다.</p>
+					<h4>제7절 표창</h4>
+					<h5>제66조(표창) </h5>
+					<p>① WKBL은 WKBL 및 구단 소속 모든 구성원과 WKBL의 발전에 공헌한 자 등에게 표창을 실시할 수 있다.<br>
+						② 표창 대상, 표창 방식 등에 관하여는 대회운영요령에 정한 바에 따른다.</p>
+
+					<h3 class="stitle">제5장 선수</h3>
+					<h4>제1절 총칙</h4>
+					<h5>제67조(성실의무) </h5>
+					<p>① 선수는 WKBL 정관 규약 그리고 제규정을 준수 하여야 하며, 구단과 체결한 계약을 성실히 이행하여야 한다.<br>
+						② 선수는 모든 경기에서 최대의 능력을 발휘하여야 하며 항상 최적의 건강 상태를 유지하여 경기력 향상을 위하여 노력하여야 한다.</p>
+					<h5>제68조(이행 의무) </h5>
+					<p>선수는 다음 각 사항을 이행할 의무가 있다.<br>
+						1. WKBL과 구단이 지정한 경기의 참가 <br>
+						2. WKBL과 구단이 지정한 연수의 참가 <br>
+						3. 구단이 계획한 단체 훈련의 참가<br>
+						4. WKBL과 구단이 지정한 농구와 관련된 각종 행사의 참가 <br>
+						5. WKBL과 구단이 기획한 농구 보급을 위한 광고의 출연 및 홍보활동 참가<br>
+						6. WKBL과 구단이 지정한 병원에서의 건강 진단 <br>
+						7. 구단이 지정한 광고활동 <br>
+						8. 타 직업 종사에 대한 구단의 동의 <br>
+						9. 공식 행사 시 WKBL과 구단이 지정한 교통편과 숙소의 이용<br>
+						10. 기타 WKBL과 구단이 필요하다고 인정한 사항</p>
+					<h5>제69조(금지 사항) </h5>
+					<p>➀ 선수는 다음 각 호의 행위를 하여서는 안 된다. <br>
+						1. WKBL과 구단을 비방하는 행위 <br>
+						2. 구단의 기술적 기밀에 속하는 사항의 외부 누설 행위 <br>
+						3. WKBL 및 구단과 사전협의를 하지 않은 광고 활동 행위 <br>
+						4. 구단과 사전협의 없는 제3자와의 농구 또는 타 스포츠와 관련된 계약의 체결 <br>
+						5. 구단과 사전협의 없이 제3자가 주최하는 농구 또는 타 스포츠 경기의 참가<br>
+						6. 불법적인 약물의 사용<br>
+						7. 경기결과에 영향을 미치는 부정행위<br>
+						8. 불법 도박 및 불법 스포츠 배팅 등 기타 WKBL 농구경기와 관련한 사행행위<br>
+						9. 폭언, 폭행 및 성희롱, 성추행, 성폭행 행위<br>
+						10. 과거에 발생한 학교폭력, 인권침해 등 행위와 관련하여 선수 신분 획득 이후에 피해자 및 관계자에 대한 회유, 협박, 조롱 및 기타 부적절한 대응으로 사회적 물의를 일으킨 경우<br>
+						11. 기타 사회적으로 물의를 일으키는 등으로 WKBL 또는 구단의 품위를 손상시키거나 기타 WKBL 또는 구단의 설립목적 및 이익에 반하는 행위<br>
+						➁ 전항 제7호의 부정행위라 함은 다음 각호의 행위를 말한다.<br>
+						1. 소속구단의 경기에 있어 고의적인 패배를 기도하거나 승리을 위한 최선의 노력을 태만히 하는 등 패배행위를 했을 경우<br>
+						2. 전호의 패배행위를 타인과 내통했을 경우<br>
+						3. 경기에 이기기 위해서 행한 역할 또는 행했다고 보는 역할에 대한 보수로서 타구단 선수, 감독, 코치에게 금품 등을 증여하거나 증여하기로 약속하는 행위<br>
+						4. 경기에 이기기 위한 역할을 한 자, 또는 했다고 보는 자가 그 역할에 대한 보수로서 금품을 요구하거나 수령했을 경우<br>
+						5. 고의적으로 경기의 승패를 조작한 행동을 취한 심판 또는 행동을 했다고 보는 심판에게 그 보수로서 금품 등을 증여하거나 그 같은 요구를 했을 경우<br>
+						6. 소속 구단이 직접 관여하는 경기에 대해 내기(도박)를 하는 경우<br>
+						➂ 전 제1항 제8호의 사행행위라 함은 다음 각호의 행위를 의미한다.<br>
+						1. 도박 상습자와 내통하여 그들에게 향응을 제공하거나 그들로부터 향응을 제공받는 행위<br>
+						2. 소속 구단이 관여하지 않는 경기 또는 출장하지 않은 경기에 대해 내기(도박)를 하는 행위</p>
+					<h5>제70조(비용 부담과 용구 사용) </h5>
+					<p>① 구단의 필요에 의한 선수의 공식 행사 참가 경비는 구단이 부담한다.<br>
+						② 선수의 경기 훈련에 필요한 공동 용구는 구단이 공급하며 유니폼 등 개인 장비는 구단이 선수에게 대여 한다. </p>
+					<h5>제71조(질병 상해) </h5>
+					<p>① 선수가 질병 또는 상해를 입었을 때에는 즉시 구단에 통지하여야 하며 구단의 지시를 따라야 한다.<br>
+						② 구단은 선수가 훈련 및 경기와 관련하여 상해를 입었을 경우 그 치료를 위하여 적절한 조치를 취하여야 한다.</p>
+					<h5>제72조(선수 계약) </h5>
+					<p>① 구단과 선수는 이사회가 제정한 ‘WKBL 선수계약서’에 의하여 계약을 체결하여야 한다.<br>
+						② 구단은 고교 및 대학 신입선수 연봉의 100%를 WKBL발전지원금으로 납부하여야 한다.<br>
+						③ 구단은 신입선수 선발회 참가자 중에서 수련선수 선발을 하여야 하며, 이후 6개월 이내에 등록선수로의 계약을 체결한 경우 선수연봉의 100%를, 1년 이내에 계약을 체결한
+						경우 50%를 WKBL에 납부한다. </p>
+					<h5>제73조(특약 사항) </h5>
+					<p>선수계약서는 계약 당사자 간의 합의에 따라 변경할 수 없다. 다만, WKBL 규약과 선수계약서의 조항에 위배되지 않는 범위 내에서 당사자 간의 합의에 따라 보험가입 등 계약
+						조항을 추가할 수 있다.</p>
+					<h5>제74조(선수계약서 제출) </h5>
+					<p>① 구단은 선수와 계약 체결 시 계약서 사본을 총재에게 제출하여야 한다.<br>
+						② 총재는 전항의 계약 사실을 즉시 공시하여야 하며, 공시 절차가 끝났을 때 비로소 선수 계약의 효력이 발생하며 WKBL에 선수등록을 할 수 있다.<br>
+						③ WKBL은 구단의 사전 동의가 없으면 전항의 계약서 사본을 제 3자에게 공개할 수 없다. 다만 연봉, 계약 기간에 대해서는 예외로 한다.</p>
+					<h5>제75조(선수 등록) </h5>
+					<p>구단은 선수와 계약을 체결한 후 이사회가 제정한 ‘선수 등록 규정’에서 정한 바에 따라 선수등록을 하여야 한다.</p>
+					<h5>제76조(대리인 등) </h5>
+					<p>구단의 선수 계약에 관하여는 변호사, 법정대리인 이외의 어떠한 사람도 대리인의 역할을 담당할 수 없으며 직ㆍ간접적으로 계약 협의에 관여할 수 없다. </p>
+					<h5>제77조(미성년자) </h5>
+					<p>선수가 계약 체결 시 미성년자일 경우에는 계약 체결에 있어 법정 대리인의 동의를 얻어야 한다.</p>
+					<h5>제78조(선수의 초상 등의 사용) </h5>
+					<p>① 선수는 농구 활동 중의 사진, 초상, 영상, 캐릭터 등이 방송, 보도에 사용되는데 대해 어떠한 권리도 갖지 않는다. 또한 WKBL 사업에 사용하는 선수의 사진, 이름,
+						서명, 초상, 영상, 캐릭터 등의 소유권은 선수계약기간 중에 WKBL에 귀속된다. 단, WKBL의 사업보호를 위해 계약종료 후 1년간 WKBL은 선수 초상 등이 부착된
+						재고상품의 판매권을 갖는다.<br>
+						② 선수는 WKBL 또는 구단의 지시가 있을 경우 농구의 보급 및 광고 선전에 사용될 소재 제작(사진 촬영, 필름, VIDEO 촬영, 인터뷰, 녹음 등)에 유상으로 응하는
+						것으로 한다.<br>
+						③ 선수는 대가를 지급 받는 방송 및 각종 행사의 출연과 신문, 잡지 및 인터넷 기사 게재 그리고 모든 광고 활동에 대하여 구단과 사전협의하여야 하며, 총재에게 서면으로
+						통지하여야 한다.<br>
+						④ 제1항의 WKBL사업과 제3항의 출연 등으로 발생한 대가의 분배는 이사회가 별도로 정한다.</p>
+					<h4>제2절 선수의 정의 </h4>
+					<h5>제79조(등록 선수)</h5>
+					<p>① 등록 선수는 구단과 선수계약을 체결하고 이사회가 제정한 ‘선수 등록 규정’에 따라 등록된 선수를 말한다. <br>
+						② 구단의 연도별 등록선수는 국내선수의 경우 최소 13명으로 하며, 외국인 선수를 포함하여 등록 선수만이 대회에 출전할 수 있다.</p>
+					<h5>제80조(출전 선수) </h5>
+					<p>출전 선수는 구단이 등록한 선수 중 매 경기 전 제출된 12명 이상의 선수를 말한다.</p>
+					<h5>제81조(신입 선수) </h5>
+					<p>신입 선수는 어떠한 구단에도 지명되거나 선수 계약을 체결한 사실이 없는 선수로서 총재가 자격을 인정하여 신입 선수로 공시된 선수를 말한다. </p>
+					<h5>제82조(자유계약 선수) </h5>
+					<p>자유계약 선수는 각호의 1에 해당하는 선수로서 총재가 자유계약 선수로 공시한 선수를 말한다.<br>
+						1. 선수계약이 만료되어 자유계약선수가 된 경우<br>
+						2. 임의해지 선수로서 구단의 승낙을 받아 선수계약이 해지되어 자유계약 선수가 된 선수<br>
+						3. 웨이버선수로서 선수의 승낙을 받아 선수계약이 해지되어 자유계약선수가 된 경우<br>
+						4. WKBL 신입선수 선발회에 참가하여 지명된 신입선수 중 신체검사 시 질병 등으로 인하여 WKBL 자문의로부터 상당기간 선수생활이 어렵다는 진단을 받아 구단이 계약을
+						포기한 선수</p>
+					<h5>제83조(웨이버 선수) </h5>
+					<p>① 웨이버 선수는 구단이 소속 선수와 선수계약의 해약을 원하거나 타 구단에 양도 의사가 있어 그 명단을 WKBL에 서면으로 제출하여 총재가 웨이버 선수로 공시한 선수를
+						말한다. <br>
+						② 웨이버 선수가 구단에 의한 선수 계약 해약을 승낙할 경우 자유계약 선수가 된다. <br>
+						③ 구단은 웨이버 선수의 계약기간이 남아 있을 경우 당해 시즌에는 계약된 연봉 전액을 지급하여야 하며 이후에는 연봉조정협의를 거쳐야 한다.</p>
+					<h5>제84조(임의해지 선수) </h5>
+					<p> ① 임의해지 선수는 선수가 계약 기간 중 특별한 사유로 선수 활동을 계속 할 수 없어 소속 구단에 계약 해지를 서면으로 신청하고 구단이 임의해지 선수로 승낙하여
+						총재가 이를 공시한 선수를 말한다.<br>
+						② 임의해지 선수는 공시일부터 당해 시즌 등록선수 정원에서 제외되며,선수 계약은 정지된다.<br>
+						③ 임의해지 선수가 선수 복귀를 원하는 경우 임의해지 공시일로부터 1년이 경과하여야 하며, 임의해지 당시의 소속 구단으로 복귀만이 인정된다.<br>
+						④ WKBL은 매 시즌 선수 등록 시점에 임의해지 선수의 복귀 의사를 확인하고, 임의해지 공시일로부터 3년 경과 시 은퇴선수로 공시한다.</p>
+					<h5>제85조(자격정지 선수)</h5>
+					<p>자격정지 선수는 WKBL 규약 또는 선수계약서 위반으로 총재의 징계에 의하여 유기, 무기, 또는 제명 처분을 받은 선수로 총재가 자격 정지 선수로 공시한 선수를 말한다.
+					</p>
+
+
+
+
+					<h5>제86조(은퇴 선수) </h5>
+					<p>① 은퇴 선수는 선수 본인이 선수생활을 종료하고자하는 경우로서 선수계약이 만료된 후 재계약 의사가 없거나, 계약 기간 중 일신상의 사유로 선수계약 해지를 구단에 신청하여
+						구단이 이를 승낙하고 그 명단을 WKBL에 서면으로 제출하여 총재가 은퇴선수로 공시한 선수를 말한다.<br>
+						② 계약기간 중 은퇴한 선수가 선수복귀를 원하는 경우 은퇴공시일로부터 1년이 경과하여야 하며, 은퇴 당시의 소속 구단으로 복귀하여야 한다. 다만, 은퇴 당시 소속 구단의
+						동의가 있을 경우 또는 공시 후 5년이 경과한 경우 타 구단으로 선발회를 통한 복귀가 가능하며, 지명구단의 선발회 선순위 지명권도 유지된다.</p>
+					<h5>제87조(이적선수)</h5>
+					<p>이적선수는 구단 간 계약에 의하거나 구단과 선수 간 계약에 의하여 타 구단으로 이적한 선수를 말한다.</p>
+					<h5>제88조(수련 선수) </h5>
+					<p>① 수련선수는 WKBL 신입선수 선발회에 참가하였으나 지명되지 않은 선수 또는 총재가 승인하는 자 중 수련선수로 등록한 선수를 말한다. <br>
+						② 국내선수 중 결원이 생겨 정원에 미달된 경우 총재의 승인을 받아 수련선수를 선수로 등록할 수 있다.<br>
+						③ 수련선수의 선발 및 관리에 관한 사항은 WKBL 선수등록규정에 따른다.</p>
+
+
+
+
+					<h5>제89조(외국국적동포선수) </h5>
+					<p>① 외국국적동포선수는 외국 국적을 가진 해외 활동자로서 부모 중 최소 1인이 현재 한국 국적을 가지고 있거나, 과거 한국국적을 가졌던 선수로 대한민국농구협회에 등록된 적이
+						없는 선수를 말한다.<br>
+						② 외국국적동포선수는 WKBL 신입선수 선발회를 통하여 구단에 입단할 수 있다.<br>
+						③ 제1항에 의한 외국국적동포선수는 국내선수와 동일한 지위를 갖는다.</p>
+					<h5>제90조(외국인 선수) </h5>
+					<p>외국인 선수는 대한민국 국적을 보유하지 않고, 외국국적동포선수로 분류되지 않은 선수로서 WKBL 외국인 선수등록규정에 의하여 등록한 선수를 말한다.</p>
+					<h5>제91조(귀화 선수) </h5>
+					<p>귀화 선수는 제102조의 규정에 의한 외국선수가 대한민국 귀화 절차에 따라 국적을 취득한 선수를 말한다.</p>
+
+
+
+					<h4>제3절 선수의 보수</h4>
+					<h5>제92조(샐러리캡) </h5>
+					<p>① 샐러리캡은 구단이 당해 시즌 WKBL 선수등록규정에서 정한 등록기간에 국내선수 및 이에 준하는 선수(귀화선수)에게 지급하기로 한 보수 연봉의 상한선을 말한다.<br>
+						② 샐러리캡은 매 회계연도 개시 전 이사회에서 정하는 바에 따른다.<br>
+						③ 구단은 샐러리캡 범위 내에서 예산을 편성하여야 한다. <br>
+						④ 구단은 선수와 체결한 선수 계약서에 기재된 보수 외에 어떠한 명목의 금전 또는 물품 등을 지급하여서는 아니 된다. <br>
+						⑤ 구단과 선수는 선수계약서에 의하여 1년 또는 다년으로 연봉 계약을 체결한다.<br>
+						⑥ 제96조에 의하여 선급금으로 지급된 금액은 계약 기간 중 균등 배분하여 샐러리캡을 적용한다.<br>
+						⑦ 등록기일 외에 등록한 선수에 대하여는 지급된 금액을 기준으로 샐러리캡을 적용한다.<br>
+						⑧ 신입선수의 당해 연도 연봉에 대하여는 샐러리캡을 적용하지 아니 한다. <br>
+						⑨ 선수의 이적으로 인하여 샐러리캡이 초과된 부분은 샐러리캡을 적용하지 아니 한다.</p>
+					<h5>제93조(우승, 준우승시 보너스의 한도) </h5>
+					<p>① 구단이 정규리그, 챔프전 및 컵대회 등 WKBL이 주관하는 대회 우승 및 준우승시 선수에게 지급하는 보너스 금액은 WKBL이 구단에 지급하는 상금액수의 400%를
+						초과하여서는 아니 된다.<br>
+						② 전항의 금액은 샐러리캡 산정에 포함하지 아니한다.</p>
+					<h5>제94조(수당의 한도) </h5>
+					<p>① 구단은 매 회계연도 개시 전 이사회에서 정하는 한도를 초과하여 수당을 지급하여서는 아니 된다.<br>
+						② 전항의 수당에는 연맹기록상, 주장수당, 장도금은 포함되지 아니한다.<br>
+						③ 제1항의 금액은 샐러리캡 산정에 포함하지 아니한다.</p>
+					<h5>제95조(선수연봉의 상한) </h5>
+					<p>선수의 1인의 최고 연봉 상한은 이사회에서 정하는 바에 따른다. </p>
+					<h5>제96조(자료제출의무) </h5>
+					<p>구단은 매년 6월말까지 구단의 선수에 대한 연간 지급내역을 증빙할 수 있는 각호의 자료를 제출하여야 한다. <br>
+						1. 선수 분기별 원천징수 영수증<br>
+						2. 종합소득신고서<br>
+						3. 구단의 연간지급 내역서<br>
+						4. 기타 총재가 필요하다고 인정하여 요구하는 서류 (수당 계약서 등)</p>
+					<h5>제97조(선급금) </h5>
+					<p>구단은 그 소속 선수에 대하여 당해 연도 연봉 범위 내에서 일정 금액을 선급할 수 있다.</p>
+					<h4>제4절 신입선수 선발</h4>
+					<h5>제98조(국내 신입선수 선발제도)</h5>
+					<p>WKBL의 신입선수 선발은 신입선수 선발제도(이하 ‘선발회’라 한다.)를 통하여 선발한다.</p>
+					<h5>제99조(선수 자격) </h5>
+					<p>① 국내 신입선수가 되고자 하는 자는 대한민국 국적자로서 다음 각호의 자격이 있는 자를 말한다. <br>
+						1. 고교 졸업 예정 선수 및 고교 졸업 선수 <br>
+						2. 대학 졸업 예정 선수 <br>
+						3. 대학 재학 중인 선수(단, 고교졸업시 신입선수 선발회 당시 대학진학 예정자 명단에 포함된 선수는 2년이 경과해야 함)<br>
+						4. 실업팀 소속 선수 <br>
+						5. 1호 내지 4호와 같은 대한민국농구협회에 등록된 선수가 아닌 고교졸업예정자 및 고교졸업자로서 신입선수 선발에 신청한 자(단, 고교졸업시 대한민국농구협회에 등록된 선수로
+						신입선수 선발회에 참가할 수 있었으나 부득이한 사유 없이 참가하지 아니한 자는 2년이 경과해야 함)<br>
+						6. 고교졸업 또는 동등 이상의 자격을 갖춘 자로서 해외에서 농구선수로 활동하다 귀국하여 신입선수 선발에 신청한자<br>
+						② 국내신입선수 선발회에 선발된 자는 WKBL에서 지정하는 병원의 신체검사를 받아야한다.<br>
+						③ 신입선수 선발회에 참가하는 대학 및 실업 소속 선수는 해당팀 장의 이적 동의가 있어야 하며 WKBL에 서면으로 제출해야한다. </p>
+					<h5>제100조(외국인 선수의 자격)</h5>
+					<p>국내 일류급에 해당하는 외국 국적 소유자로서 우리나라 농구 발전에 기여할 수 있다고 인정되는 다음 각 호의 자격이 있는 자를 말한다. <br>
+						1. 고교 졸업자 예정자<br>
+						2. 고교 졸업자 또는 그 이상의 학력을 소지한 자</p>
+					<h5>제101조(자격 제한)</h5>
+					<p>① WKBL 선수의 전력 가운데 학교, 직장, 체육단체 등에서 규칙을 위반하여 중징계에 해당하는 처분을 받은 사실이 있는 자 및 허위 서류를 제출하는 자는 WKBL 이사회에서 그 자격을 제한할 수 있다.
+						다만, WKBL 규약 시행 전에 처벌을 받은 선수는 예외로 한다.<br>
+						② 아마추어 선수 활동 시 발생한 입학(입시) 비리로 법적 처벌을 받은 자는 WKBL 선수 자격을 박탈한다. </p>
+					<h5>제102조(선발회의 방법)</h5>
+					<p>① 선발회는 전년도 정규리그 및 포스트시즌 최종성적에 따라 2개군으로 분류하여 그룹별 확률 추첨을 통하여 1라운드 선발 순위를 정한다. <br>
+						② 2라운드의 각 구단의 선수 선발은 1라운드의 역순으로 한다. <br>
+						③ 3, 4라운드부터는 1, 2라운드와 동일한 방식에 의한다. </p>
+					<h5>제103조(외국인 선수)</h5>
+					<p>외국인 선수의 선발방법, 시기, 계약 등에 관하여는 이사회가 별도로 정한다.</p>
+					<h5>제104조(외국국적동포선수)</h5>
+					<p>외국국적동포 선수의 선발방법, 시기, 계약 등에 관하여는 이사회가 별도로 정한다.</p>
+					<h5>제105조(구단의 위험 부담)</h5>
+					<p>선발회에 의하여 지명된 선수의 자격에 하자가 있어 실격이 되거나 해당 선수가 입단을 거부할 경우에 발생하는 불이익은 해당 구단이 부담한다. </p>
+					<h5>제106조(입단거부 선수) </h5>
+					<p>선발회에 의하여 구단에 지명된 신입 선수가 입단을 거부할 경우 5년간 WKBL 선수가 될 자격을 상실한다. </p>
+					<h5>제107조(선발회 대상 선수 공시) </h5>
+					<p>총재는 매년 시즌 시작 전까지 국내의 선발회 대상 선수를 공시한다. </p>
+
+					<h5>제108조(선발회 시기) </h5>
+					<p>① 선발회는 매년 총재가 지정한 일자에 실시한다.<br>
+						② 총재는 선발회 일자 2주전까지 각 구단에 선발회 일정 등을 통보 한다.</p>
+					<h5>제109조(신입 선수의 계약기간 및 계약금액)</h5>
+					<p>➀ 선발회 의하여 지명된 선수 중 1라운드에서 선발된 선수의 선수계약체결 시 계약기간은 5년으로 하며, 2라운드 이후의 선발 선수의 계약 기간은 1년 또는 다년으로
+						한다.<br>
+						➁ 선수계약체결 전까지 구단과 신입선수는 WKBL 신입선수계약을 체결하며, 계약금은 이사회에서 정하는 WKBL 선수최저연봉을 계약기간으로 환산한 금액으로 한다.</p>
+					<h4>제5절 이 적</h4>
+					<h5>제110조(이적 선수)</h5>
+					<p>선수는 다음 각 호에 해당하는 경우 타 구단으로 이적할 수 있다. <br>
+						1. 선수 계약이 만료되어 자유 계약 선수가 된 경우. <br>
+						2. 임의해지 선수로서 구단의 승낙을 받아 선수 계약이 해제되어 자유 계약 선수가 된 경우. <br>
+						3. 웨이버 선수로서 타 구단에 의하여 지명된 경우 <br>
+						4. 구단 간의 계약에 의하여 선수의 양도ㆍ양수 계약이 성립된 경우.<br>
+						5. 자유계약선수의 계약에 따른 보상으로 지명된 경우</p>
+					<h5>제111조(재계약 체결)</h5>
+					<p>구단은 소속선수와 재계약 체결 시 당해 연도 5월 31일까지 선수와 구단의 서명이 기재된 계약서의 사본을 WKBL에 제출한다. 타 구단은 위 기간 까지 해당선수 이적에 관하여
+						직ㆍ간접적으로 일체의 접촉을 금지한다.</p>
+					<h5>제112조(이적 협상) </h5>
+					<p>① 재계약 체결에 실패한 경우 선수는 당해 연도 5월 31까지 원 소속구단을 제외한 타 구단과 이적에 관하여 협상이 가능하다. 이 기간 중 선수와 계약을 체결한 구단은 즉시
+						연맹에 계약서 사본을 제출한다.<br>
+						② 선수가 전항의 기간 중에 선수계약체결에 실패한 경우 해당 구단은 그 명단을 WKBL에 서면으로 제출하며 총재는 해당 선수를 자유 계약 선수로 공시한다. </p>
+					<h5>제113조(자유교섭권)</h5>
+					<p>제108조 제2호의 규정에 따라 총재에 의하여 자유계약 선수로 공시된 때에는 해당 선수는 타 구단과 이적에 관하여 자유로이 교섭할 권리를 갖는다.</p>
+					<h5>제114조(웨이버 선수의 양도) </h5>
+					<p>웨이버 선수로 공시된 선수에 대하여 수개의 타 구단으로부터 웨이버 선수 양수 신청이 있을 때에는 전 대회 성적순위를 기준으로 하위 구단 순으로 지명 우선권을 부여한다.
+					</p>
+					<h5>제115조(선수의 양도ㆍ양수)</h5>
+					<p>구단은 매 시즌 최종 2라운드 시작 전까지 구단 간의 합의에 따라 선수의 양도ㆍ양수 계약을 체결하고 WKBL에 양도ㆍ양수계약서를 제출하여야하며 해당 선수의 권리 의무를
+						양도ㆍ양수함으로서 이적이 허용된다.</p>
+					<h5>제116조(자유계약선수 이적에 관한 특례)</h5>
+					<p>자유계약 선수 중 일정한 요건을 갖춘 자의 이적에 관하여는 WKBL 보상FA 규정에서 정하는 바에 따른다.</p>
+					<h5>제117조(선수의 임대)</h5>
+					<p>① 구단은 매 시즌 최종 2라운드 시작 전까지 구단 간의 합의에 따라 선수의 임대 계약을 체결하고 해당 선수의 권리 의무를 양도ㆍ양수할 수 있다. <br>
+						② 선수는 최소 1개 시즌을 활동 하여야 원 소속구단으로 복귀가 가능하다.</p>
+
+					<h3 class="stitle">제6장 감독과 코치</h3>
+					<h5>제118조(자격) </h5>
+					<p>① 감독과 코치는 체육 지도자로서 고결한 인격과 전문 지식을 겸비한 자이어야 한다. <br>
+						② 감독과 코치의 자격제한에 관하여는 제100조를 준용한다. </p>
+					<h5>제119조(성실 의무 등) </h5>
+					<p>감독과 코치의 성실 의무 등에 관하여는 제67조 및 제69조를 준용한다. </p>
+					<h5>제120조(계약) </h5>
+					<p>① 구단이 감독, 코치와 계약을 체결한 때에는 계약서 사본을 총재에게 제출하여야 한다. <br>
+						② 감독과 코치는 계약 기간 중 타 구단과 계약을 체결할 수 없다. <br>
+						③ 감독과 코치의 등록과 관련된 사항에 관하여 이사회에서 ‘등록 규정’을 제정할 수 있다.</p>
+					<h5>제121조(복장) </h5>
+					<p>벤치에 참석할 감독, 코치의 복장은 정장을 착용하여야 한다.</p>
+
+					<h3 class="stitle">제7장 심 판 </h3>
+					<h5>제122조(자격)</h5>
+					<p>① WKBL의 공식ㆍ비공식 경기를 담당할 심판의 자격은 다음과 같다. <br>
+						1. KBA, KBL 또는 WKBL의 심판 자격을 얻은 자 <br>
+						2. FIBA 등 외국 농구 단체에서 전호와 동등한 자격을 취득한 자 <br>
+						② 심판의 자격제한에 관하여는 제100조를 준용한다. </p>
+					<h5>제123조(전임 심판 및 성실의무) </h5>
+					<p>① WKBL은 이사회가 제정한 ‘경기운영 위원회 규정’에서 정한 바에 따라 적정 인원의 전임 심판을 채용하여 운영한다. <br>
+						② 심판의 성실의무 등에 관하여는 제67조 및 제69조를 준용한다.</p>
+					<h5>제124조(복장과 용구)</h5>
+					<p>① 심판은 WKBL이 지정한 복장과 용구를 사용하여야 한다. <br>
+						② 전항의 복장과 용구는 WKBL이 지급한다. </p>
+					<h5>제125조(보수)</h5>
+					<p>심판의 보수는 심판 고용 계약서에 따라 연봉을 책정하여 매월 균등 분할 지급한다.</p>
+					<h5>제126조(보험)</h5>
+					<p>WKBL은 심판의 경기 중 발생할 수 있는 사고에 대비하여 이사회가 정한 비율에 따라 WKBL과 심판이 비용을 부담하는 보험에 가입하도록 한다. </p>
+
+					<h3 class="stitle">제8장 부 수 사 업 </h3>
+					<h5>제127조(부수 사업) </h5>
+					<p>WKBL은 정관 제1조의 목적 사업을 수행하기 위하여 농구와 관계된 각종 부수 사업을 할 수 있다.</p>
+					<h5>제128조(부수 사업의 종류)</h5>
+					<p>WKBL이 행할 수 있는 각종의 부수 사업은 다음 각 호와 같다. <br>
+						1. TV, RADIO 방송중계권 <br>
+						2. WKBL 용구의 공인 및 검정에 관한 사업 <br>
+						3. 경기장 내외의 광고 사업 <br>
+						4. 출판 사업 <br>
+						5. WKBL 공식 후원사 선정 사업 <br>
+						6. WKBL 공식 용품 공급업체 선정 사업<br>
+						7. WKBL 상품화 사업 <br>
+						8. 부동산 임대 사업<br>
+						9. 기타 이사회가 정한 부수 사업 </p>
+					<h5>제129조(방송권)</h5>
+					<p>WKBL이 주최하는 공식 비공식 경기의 방송중계권 판매 수익은 WKBL에 귀속한다.</p>
+					<h5>제130조 (공인, 검정, 공식용구 지정료) </h5>
+					<p>① WKBL은 이사회가 제정한 ‘용구 공인 검정 규정’에서 정한 바에 따라 농구 용구에 대한 공인 검정 및 WKBL 공식 용구 지정을 할 수 있다. <br>
+						② 전항의 공인 검정 및 공식 용구 지정에 따른 수익은 WKBL에 귀속한다. </p>
+					<h5>제131조(광고 사업)</h5>
+					<p>WKBL이 주관하는 공식 비공식 경기의 광고권에 따른 수익은 WKBL에 귀속한다. </p>
+					<h5>제132조(출판 사업)</h5>
+					<p>농구 보급 사업과 관련하여 WKBL은 출판 사업을 행하며 출판 사업 수익금은 WKBL에 귀속한다.</p>
+					<h5>제133조(공식후원사 선정 사업)</h5>
+					<p>WKBL이 주최하는 공식 비공식 대회의 원활한 운영을 위하여 WKBL은 공식후원사를 선정, 대회운영비를 재정 지원 받을 수 있다. 재정지원금은 WKBL에 귀속한다. </p>
+					<h5>제134조(공식용품 공급사업)</h5>
+					<p>WKBL은 WKBL이 주최하는 공식 비공식 대회의 원활한 운영을 위하여 대회에 소요되는 각종 용품을 원칙적으로 무상으로 제공받아 대회 운영에 사용한다. 업체 선정에서 발생하는
+						재정 지원금은 WKBL에 귀속한다.</p>
+					<h5>제135조(상품화 사업)</h5>
+					<p>① WKBL은 WKBL의 명칭, 엠블럼, 문장, 의장 등을 사용한 상품을 제조 판매할 수 있는 재산권을 갖는다. <br>
+						② 전항에서 발생하는 수익은 이사회가 정한 바에 따라 WKBL과 구단이 배분한다.</p>
+					<h5>제136조(기타 사업 등)</h5>
+					<p>사업의 계획, 심의, 결정 등 절차에 관하여는 이사회가 제정한 「사업 위원회 규정」에서 정한 바에 따른다. </p>
+
+					<h3 class="stitle">제9장 분 쟁 해 결 </h3>
+					<h4>제1절 재정 위원회 </h4>
+					<h5>제137조(설치)</h5>
+					<p>WKBL은 구단과 구단 임직원, 감독, 코치, 선수, 심판 등 WKBL을 구성하는 단체 또는 개인간 제반 분쟁을 해결하고 상벌사항을 심의하기 위하여 총재의 자문 기구로
+						재정위원회를 설치한다. </p>
+					<h5>제138조(구성) </h5>
+					<p>① 재정위원회는 9인 이내의 위원으로 구성한다. <br>
+						② 위원은 농구에 관한 전문 지식과 학식이 풍부한 자 가운데 이사회의 동의를 얻어 총재가 임명한다. <br>
+						③ WKBL의 임원과 직원은 재정위원회의 위원이 될 수 없다.</p>
+					<h5>제139조(위원의 임기 및 위원장) </h5>
+					<p>① 위원의 임기는 2년으로 하고 연임할 수 있다. <br>
+						② 결원으로 보임된 위원의 임기는 전임자의 잔여기간으로 한다.<br>
+						➂ 재정위원회의 위원장은 위원회에서 호선한다.<br>
+						➃ 위원장은 회의를 소집하고, 회무를 통할한다. <br>
+						➄ 위원장의 유고 시 위원 중 연장자가 그 직무를 대행한다.</p>
+					<h5>제140조(심의절차)</h5>
+					<p>① WKBL 소관부서는 WKBL을 구성하는 단체 또는 개인으로부터 서면신청이 있거나 WKBL의 각종 보고서 및 자료 분석에 의하여 인지한 사항 중 심의가 요구되는 경우 이를
+						총재에게 보고하고, 당사자에게 내용을 통지한 후 재정위원회에 상정한다. <br>
+						② 전항의 경우 위원장은 7일 이내에 재정위원회를 소집하여야 한다. <br>
+						③ 위원장은 당사자에게 필요한 자료 등을 요구할 수 있으며, 당사자에게 구술 또는 서면에 의한 소명의 기회를 주어야 한다.<br>
+						➃ WKBL 경기규칙에 의거 반칙금이 자동 부과되는 경우에는 재정위원회의 심의를 생략할 수 있다.<br>
+						➄ 경기출전을 제한할 수 있는 사항에 대하여는 제155조 제2항에서 정한 바에 따른다.<br>
+						➅ 해당 안건의 심의는 30일 이내에 종료되어야 한다. 다만, 총재가 필요하다고 인정하는 경우에는 그 기한을 연장할 수 있다. </p>
+					<h5>제141조(사무국) </h5>
+					<p>재정위원회의 사무 처리를 위하여 재정위원회 사무국을 설치한다. </p>
+					<h4>제2절 총재의 결정 </h4>
+					<h5>제142조(재정신청) </h5>
+					<p>① 구단과 WKBL 및 구단소속 모든 구성원은 다음 사항에 대하여 총재에게 재정신청을 할 수 있다. <br>
+						1. 선수계약에 관한 구단과 선수간의 분쟁 <br>
+						2. 선수 이적에 관한 구단 간 또는 구단과 선수간의 분쟁 <br>
+						3. WKBL 정관, 규약 기타 제규정 상의 권리, 의무에 관한 분쟁.</p>
+					<h5>제143조(재정위원회의 심리) </h5>
+					<p>제140조의 재정신청이 있을 경우 총재는 재정위원회로 하여금 필요한 조사와 심리를 거쳐 재정안을 제출을 요구한다. </p>
+					<h5>제144조(총재의 결정) </h5>
+					<p>총재는 제141조의 재정안을 신중히 검토하고, WKBL 전체의 이익을 충분히 고려하여 재정신청에 대한 결정을 내린다. </p>
+					<h5>제145조(화해) </h5>
+					<p>① 제소가 있은 후 당사자 간에 화해가 성립되어 재정 위원회가 화해 수용이 WKBL 정관, 규약에 저촉되지 않는다고 인정할 경우 총재는 화해 결정을 내린다. <br>
+						② 전항의 결정은 제142조에 의한 결정과 동일한 효력이 있다.</p>
+					<h4>제 10 장 제 재 </h4>
+					<h5>제146조(제재) </h5>
+					<p>총재는 구단과 WKBL 및 구단 소속 관계자에 대하여 WKBL 정관, 규약, 기타 제규정 및 이사회 결의사항을 위반하였을 때에는 제재를 가한다. </p>
+					<h5>제147조(제재의 종류)</h5>
+					<p>① 구단에 대한 제재의 종류는 다음 각 호와 같다. <br>
+						1. 견책 <br>
+						2. 선수 선발 및 선수 보유 권리에 대한 제한 <br>
+						3. 제명(퇴출) <br>
+						② WKBL 및 구단 소속 모든 구성원 개인에 대한 제재의 종류는 다음 각 호와 같다. <br>
+						1. 견책 <br>
+						2. 경기 횟수부 출전 정지 <br>
+						3. 기한부 자격 정지 <br>
+						4. 제명 </p>
+					<h5>제148조(제재금의 병과)</h5>
+					<p>① 총재는 제145조의 제재를 가하는 외에 제재금을 병과 할 수 있다. <br>
+						② 총재가 구단과 WKBL 및 구단 소속 모든 구성원에 과할 제재금은 다음 각 호와 같다. <br>
+						1. 구단 : 1억 원 이하 <br>
+						2. 개인 : 2천만원 이하 </p>
+					<h5>제149조(샐러리캡 위반 등의 경우 제제에 대한 특례) </h5>
+					<p>① 제91조 및 제92조 위반의 경우 구단에 대하여 다음 각호와 같은 제제를 할 수 있다. <br>
+						1. 2억원 이하의 제재금<br>
+						2. 선발회 1라운드 지명권 박탈<br>
+						② 제94조 위반의 경우 선수에 대하여 다음 각호의 제제를 할 수 있다.<br>
+						1. 계약 초과금의 500% 이하의 제재금<br>
+						2. 경기 횟수부 출전 정지<br>
+						③ 제69조 제1항 제7조, 제8호에 해당하는 사항을 위반한 구단과 WKBL 및 구단 소속 관계자에 대하여 다음 각호와 같은 제재를 할 수 있다. <br>
+						1. 2억의 아하의 제재금 <br>
+						2. 자진신고자에게는 처벌 감면<br>
+						3. 신고자에게는 2억원 이하의 신고포상금<br>
+						④ 제69조 제1항 제9호에 해당하는 사항을 위반한 구단과 WKBL 및 구단 소속 관계자에 대하여 다음 각호와 같은 제재를 할 수 있다.<br>
+						1. 폭언, 경미한 폭행 : 1년 이하 자격정지 또는 300만원 이하 제재금<br>
+						2. 성희롱 : 1년 이하 자격정지 또는 1000만원 이하 제재금<br>
+						3. 성추행, 성폭행, 중대한 폭행: 제명<br>
+						⑤ WKBL 및 구단 소속 관계자가 제69조 제1항 제9호 해당하는 행위를 인지하였음에도 그 사실을 행위 발생 3일 이내 총재에게 신고하지 않거나 이를 은폐하려 한 경우 
+						총재는 제148조, 제149조에서 정한 한도 내에서 제재금을 부과할 수 있다.  </p>
+					<h5>제150조(재정위원회의 자문 등) </h5>
+					<p>① 총재가 제145조, 제146조, 제147조의 제재를 결정할 때에는 제재의 종류, 제재금 등에 대하여 미리 재정위원회의 자문을 받아야 한다. <br>
+						② 총재가 제147조의 제1항 및 제2항 제재를 결정할 때에는 제재 대상인 구단을 제외한 각 구단 사무국장으로 구성된 조사위원회의 심의 및 이사회의 의결을 거쳐야 한다.
+					</p>
+					<h5>제151조(제3자의 위반행위) </h5>
+					<p>구단과 WKBL 관계자 개인이 제3자로 하여금 위반 행위를 행하도록 하였을 경우, 구단과 WKBL 관계자 개인이 스스로 위반 행위를 한 것과 동일한 제재를 가한다. </p>
+					<h5>제152조(구단에 대한 병과)</h5>
+					<p>구단 소속 관계자 개인이 위반 행위를 하였을 경우 관계자 개인에 대한 제재뿐만 아니라 구단의 관리 소홀의 책임을 물어 소속구단에 대하여 동시에 제재를 가할 수 있다. </p>
+					<h5>제153조(가중 제재금) </h5>
+					<p>동일한 위반 행위를 중복하여 범하였을 경우 그 위반 행위 등에 대하여 총재는 제146조, 제147조에서 정한 한도를 초과하여 제재금을 부과할 수 있다. </p>
+					<h5>제154조(제재금의 납부) </h5>
+					<p>제재금은 제재 결정 후 30일 이내에 총재가 지정한 방법으로 납부하여야 한다. </p>
+					<h5>제155조(부당 행위 등에 대한 반칙금)</h5>
+					<p>① 경기장 내에서 선수, 감독, 코치 기타 구단 임직원이 다음 각 호의 1에 해당하는 행위를 하였을 때에는 총재는 반칙금을 부과할 수 있다.
+						1. 불출전 <br>
+						2. 폭력행위 등 스포츠맨십에 어긋나는 행위. <br>
+						3. 운영 위원, 심판, 기록원 등 경기 진행 요원에 대하여 공개적으로 비난하는 행위. <br>
+						4. 조롱, 욕설 등 경기장 분위기를 흐리게 하는 행위. <br>
+						5. 관중을 선동하여 소란을 유발하는 행위. <br>
+						6. 심판의 허락 없이 퇴장하는 행위. <br>
+						7. 구단 관계자가 코트에 들어와 경기진행을 방해하는 행위. <br>
+						8. 경기 종료 후 1분 이내에 탈의실로 퇴장하지 않는 경우. <br>
+						9. 심판에 의하여 퇴장 명령을 받은 감독, 코치 등 구단 관계자가 1분 이내에 퇴장에 불응하는 경우. <br>
+						10. 심판에 의하여 퇴장 또는 테크니컬파울을 선언 받았을 경우<br>
+						② 전항의 부당 행위 등에 대하여는 총재는 300만 원 이하의 반칙금을 부과한다. <br>
+						③ 제1항의 부당 행위로 인하여 총재에 의하여 반칙금이 부과된 경우에는 10일 이내에 총재가 지정하는 방법에 의하여 반칙금을 납부하여야 한다. </p>
+					<h5>제156조(납입지연에 대한 제제)</h5>
+					<p>①제재금과 반칙금은 원칙적으로 납입기일까지 납부하여야 하며, 이를 초과할 경우 초과일당 5/100씩을 추가 납부하여야 한다. <br>
+						② 경기기간 종료 후 납부기일을 초과하는 경우 선수 기타 구단 관계자 개인에 대하여 등록을 제한할 수 있다. </p>
+					<h5>제157조(긴급 제재 등) </h5>
+					<p>① 제재는 제145조 제재 사유를 안날로부터 7일 이내에 재정위원회를 소집하여 심의를 하여야 하며, 해당 안건에 대한 심의는 원칙적으로 30일 이내에 종결되어야 한다.<br>
+						② 경기 중 발생한 퇴장, 폭행 등의 사유로 경기출전을 제한할 수 있는 사안에 대하여는 해당 팀 선수, 감독, 코치 및 소속구성원에 대하여 총재는 다음 팀의 다음 경기
+						이전에 제재를 취하여야 한다. <br>
+						③ 사안이 중대할 경우, 총재는 전항의 기한과 달리 제재를 취할 수 있다.<br>
+						➃ 제147조에 의한 제재의 경우 제148조 제2항에 따른 당해 연도 조사위원회 조사대상인 직전 시즌 샐러리캡 위반 등 사항에 대해서만 제재를 할 수 있다.</p>
+					<h5>제158조(감면 및 복권) </h5>
+					<p>총재는 제재, 제재금 또는 반칙금을 받은 구단 또는 개인에 대해 이사회 건의가 있는 경우 감면할 수 있다. </p>
+					<h5>제159조(재심) </h5>
+					<p>① 총재로부터 제재, 제재금을 또는 반칙금 부과를 받은 자가 당시의 증거내용과 명백히 다른 새로운 사실을 입증하는 경우 당해 당사자는 총재에게 재심을 청구할 수 있다.<br>
+						② 재심의 청구 기간 제재, 제재금 또는 반칙금 부과를 통보받은 날로부터 15일로 한다.<br>
+						③ 재심의 청구는 제재, 제재금 또는 반칙금 부과의 집행을 정지하는 효력이 없다.<br>
+						④ 총재는 재심 청구가 있는 경우에는 재정위원회의 재심의를 거쳐 재심청구에 대한 결정을 내린다.<br>
+						⑤ 재심청구인은 재심청구시 예치금 100만원을 WKBL에 예치하여야 한다. 재심이 당초의 제재, 제재금 또는 반칙금 부과와 동일한 결정이 내려진 경우 예치금은 반환하지
+						아니한다.</p>
+					<h5>제160조(제재금, 반칙금의 운용)</h5>
+					<p>제재금과 반칙금 중 WKBL, 구단, 선수, 임원 등 관계자에 귀속되는 부분 이외의 제재금과 반칙금은 WKBL 복지 후생 기금으로 운용함을 원칙으로 한다.</p>
+					<h5>제161조(WKBL 부정방지위원회 규정 준수 의무)</h5>
+					<p>WKBL 및 소속 구단은 WKBL 부정방지위원회에서 제정한 운영 규정 및 시행세칙을 준수하고, 그 결정에 따른다. </p>
+					<h5>제162조(WKBL 부정방지위원회의 재결 절차 특칙) </h5>
+					<p>다음 각 호의 사항의 위반행위에 대하여는 WKBL 부정방지위원회의 심의를 거쳐 제재를 결정한 후 총재의 재결에 따라 최종적으로 제재를 한다. <br>
+						1. 국민체육진흥법 제14조의 3(선수 등의 금지행위)<br>
+						2. 국민체육진흥법 제26조(유사행위의 금지)<br>
+						3. 국민체육진흥법 제30조(체육진흥투표권의 구매 제한 등)<br>
+						4. 승부조작과 관련된 일련의 사항<br>
+						5. 기타 제1회 내지 제4호에 상당하는 비위행위 </p>
+					<h5>제163조(손해배상청구) </h5>
+					<p>WKBL은 국민체육진흥법(승부조작, 불법도박 등) 위반자에게 민사상의 손해배상을 청구할 수 있다. </p>
+
+
+					<h3 class="stitle">부 칙</h3>
+					<h4>제1조(시행일) </h4>
+					<p>이 규약은 2016년 10월 25일부터 시행한다. </p>
+					<h4>제2조(경과조치)</h4>
+					<p>이 규정 시행 당시 제100조 제2항, 제116조 제2항, 제120조 제2항에 해당하는 자에 대해서도 이 규정이 적용된다. </p>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+    <footer id="footer">
+        <div class="wrap_fnb">
+            <div class="cont_inner t_space">
+                <ul class="list_fnb">
+                    <li><a href="/etc/privacy.asp" class="link_fnb language" data-kr="개인정보처리방침" data-en="Privacy policy">개인정보처리방침</a></li>
+                    <li><a href="/etc/terms.asp" class="link_fnb language" data-kr="이용약관" data-en="Term of use">이용약관</a></li>
+                    <li><a href="/etc/contact_us.asp" class="link_fnb">CONTACT US</a></li>
+                    <li><a href="javascript:MM_openBrWindow('/etc/paycheck4.asp', 'reporterChk', 'scrollbars=no, width=400, height=300');" class="link_fnb language" data-kr="통계 프로그램" data-en="Statistic Program">통계 프로그램</a></li>
+                    <li><a href="http://photo.wkbl.or.kr" class="link_fnb language" target="_blank" data-kr="WKBL 포토" data-en="WKBL photo">WKBL 포토</a></li>
+                    <li><a href="https://datalab.wkbl.or.kr" class="link_fnb language" target="_blank" data-kr="데이터랩" data-en="Data Lab">데이터랩</a></li>
+                    <li><a href="https://cert.wkbl.or.kr/" class="link_fnb language" target="_blank" data-kr="경력증명서" data-en="Data Lab">경력증명서</a></li>
+                </ul>
+                <ul class="list_team">
+                    <li><a href="http://www.samsungblueminx.com/" class="link_team" target="_blank"><img src="/static/images/team/teamlogo_03.png" alt="삼성생명 블루밍스"><p class="screen_out">삼성생명</p></a></li>
+                    <li><a href="/team/teaminfo.asp?team_code=07" class="link_team" target="_blank"><img src="/static/images/team/teamlogo_07.png" alt="신한은행 에스버드"><p class="screen_out">신한은행</p></a></li>
+                    <li><a href="https://wooriwon.wooribank.com/basketball/main/bridge.php" class="link_team" target="_blank"><img src="/static/images/team/teamlogo_05.png" alt="우리은행 위비"><p class="screen_out">우리은행</p></a></li>
+                    <li><a href="/team/teaminfo.asp?team_code=09" class="link_team" target="_blank"><img src="/static/images/team/teamlogo_09.png?ver=20240821" alt="하나은행"><p class="screen_out">하나은행</p></a></li>
+                    <li><a href="http://bnksumbasket.com" class="link_team" target="_blank"><img src="/static/images/team/teamlogo_11.png" alt="BNK캐피탈"><p class="screen_out">BNK 썸</p></a></li>
+                    <li><a href="http://www.kbstars.co.kr/kbstars/2022/main.php" class="link_team" target="_blank"><img src="/static/images/team/teamlogo_01.png" alt="KB스타즈"><p class="screen_out">KB 스타즈</p></a></li>
+                </ul>
+            </div>
+        </div>
+            
+        <div class="wrap_footer">
+            <div class="cont_inner t_space">
+                <div class="left">
+                    <ul class="sns_list">
+                        <li><a target="_blank" href="https://www.facebook.com/f.WKBL/"><img src="/static/images/main/icon_facebook.svg" alt="facebook 링크로 바로 가기"></a></li>
+                        <li><a target="_blank" href="https://www.instagram.com/wkbl_official/"><img src="/static/images/main/icon_instargram.svg" alt="instargram 링크로 바로 가기"></a></li>
+                        <li><a target="_blank" href="https://www.youtube.com/channel/UCLyyt15iUOMUQovmJVde1Zg"><img src="/static/images/main/icon_youtube.svg" alt="youtube 링크로 바로 가기"></a></li>
+                        <li><a target="_blank" href="https://www.tiktok.com/@wkbl_official?lang=ko-KR"><img src="/static/images/main/icon_tictok.svg" alt="tictok 링크로 바로 가기"></a></li>
+                    </ul>
+                    <div class="info_site">
+                        <address class="txt_addr language" data-kr="서울특별시 강서구 공항대로 355 (등촌동)" data-en="355, Gonghang-daero, Gangseo-gu, Seou">서울특별시 강서구 공항대로 355 (등촌동)</address>
+                        <p class="copyright ">COPYRIGHT ⓒ 2026 WOMEN'S KOREAN BASKETBALL LEAGUE. ALL RIGHTS RESERVED.</p>
+                    </div>
+                    
+                    <p class="txt_site language" data-kr="WKBL 소속 6개 구단의 팀로고, 마스코트, 엠블럼과 WKBL 소속선수의 사진, 초상, 영상, 캐릭터 등을 무단으로 사용할 경우 상표법 및 저작권법에 의해 금지됩니다.<br>본 웹사이트에 게시된 이메일 주소와 전자우편 수집 프로그램이나 그밖의 기술적 장치를 이용하여 무단으로 수집되는 것을 거부하며, 이를 위반시 정보통신망법에 의해 형사처벌됨을 유념하시기 바랍니다." data-en="Unauthorized use, reproduction, or distribution of the team logos, mascots, emblems of the six WKBL-affiliated teams, as well as the photos, portraits, videos, and characters of WKBL players, is strictly prohibited under trademark and copyright laws.<br><br>Additionally, the unauthorized collection of email addresses from this website using automated programs or other technical methods is strictly forbidden. Violators may be subject to legal action under the Information and Communications Network Act.">
+                        WKBL 소속 6개 구단의 팀로고, 마스코트, 엠블럼과 WKBL 소속선수의 사진, 초상, 영상, 캐릭터 등을 무단으로 사용할 경우 상표법 및 저작권법에 의해 금지됩니다.
+                        본 웹사이트에 게시된 이메일 주소와 전자우편 수집 프로그램이나 그밖의 기술적 장치를 이용하여 무단으로 수집되는 것을 거부하며, 이를 위반시 정보통신망법에 의해 형사처벌됨을 유념하시기 바랍니다.
+                    </p>
+                </div>
+                <div class="video">
+                    <!-- youtube 외부링크 -->
+                    <a target="_blank" href="https://www.youtube.com/watch?v=9RfJuytleAc" class="thumb_img">
+                        <!-- https://i.ytimg.com/vi/(wathch?v=해당코드삽입)/hqdefault.jpg -->
+                        <img src="https://i.ytimg.com/vi/9RfJuytleAc/hqdefault.jpg" alt="youtube 썸네일">
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</div>
+<script src="/static/js/ui_24.js?ver=2.2"></script>
+<script>
+$(function() {
+    /////////////////////////////////////////////language change start///////////////////////////////////////////
+    let wkbl_lang = ['kr','en'];
+    let now_lang = localStorage.getItem("lang");
+
+    //if(!now_lang) now_lang = "kr";
+
+    //default lang => kr
+    if( wkbl_lang.indexOf(now_lang) < 0 ){
+        now_lang = "kr";
+        localStorage.setItem("lang", now_lang);
+    }
+
+
+    $('.lang_change').on('click', function(e){
+        now_lang = (now_lang == "kr") ? "en" : "kr";
+        localStorage.setItem("lang", now_lang);
+
+        language_change(now_lang);
+    });
+
+    // function language_icon_change(now_lang){
+    //     // if( now_lang == 'en' ){
+    //     //     $('.lang_change').addClass('active');
+    //     //     $('.lang_change_text').html("English");
+    //     // }else{
+    //     //     $('.lang_change').removeClass('active');
+    //     //     $('.lang_change_text').html("Korea");
+    //     // }
+    //
+    //     language_change(now_lang);
+    // }
+
+    function language_change(now_lang){
+        $('#wrap > div')
+        .removeClass('kr en')
+        .addClass(now_lang);
+
+        for(i=0;i < $(".language").length; i++){
+            if($($('.language')[i]).attr('placeholder') !== undefined){ //placeholder change
+               $($('.language')[i]).attr('placeholder', $($('.language')[i]).attr("data-"+now_lang));
+            }else{ //text change
+                $($('.language')[i]).html($($('.language')[i]).attr("data-"+now_lang));
+            }
+        }
+    }
+
+    language_change(now_lang);
+    /////////////////////////////////////////////language change end ///////////////////////////////////////////
+
+
+
+
+});
+
+
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-55620765-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+</body>
+</html>

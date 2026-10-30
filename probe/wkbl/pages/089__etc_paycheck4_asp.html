@@ -1,0 +1,83 @@
+<!-- https://www.wkbl.or.kr/etc/paycheck4.asp -->
+<html>
+<head>
+<title>통계 프로그램 다운로드</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+<!--
+.style1 {
+	color: #CC0000;
+	font-weight: bold;
+	font-size: 18px;
+	font-family: "돋움";
+}
+.text {
+	font-family: "굴림";
+	font-size: 12px;
+	color: #FF0033;
+}
+.style2 {color: #000066}
+.text01 {
+	font-family: "굴림";
+	font-size: 12px;
+	font-weight: bold;
+	color: #FF0033;
+}
+.textbox {
+	font-family: "굴림";
+	font-size: 12px;
+	color: #333333;
+	border: 1px solid #333333;
+}
+body, th, td, div, span, input, select, textarea {margin: 0;	padding: 0;font-family:'돋움','dotum','verdana'; font-size:12px; color:#666666; line-height:18px;}
+.brline {border:solid 5px #255aa4; }
+-->
+</style>
+<script type="text/javascript">
+	function fnSubmit(){
+		var f = document.form82;
+		if(!f.uid2.value){
+			alert("비밀번호를 입력하세요!");
+			f.uid2.focus();
+			return;
+		}
+		//f.target = "myframe";
+		f.action = "paycheck4_ok.asp"
+		//f.action = "download.asp"
+		f.submit();
+	}
+</script>
+</head>
+
+<body bgcolor="#ffffff" text="#000000" >
+<form name="form82" method="post" action="">
+<table width="100%" border="0" cellspacing="0" cellpadding="0" class="brline" height="96%">
+	<tr>
+		<td valign="top">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0">
+				<tr>
+					<td style="padding:5 0 10 10; background-color:#255aa4; font-size:14px; color:#ffffff;" align="center">비밀번호입력</td>
+				</tr>
+				<tr>
+					<td height="200" style="padding:20 0 0 20" align="center">
+						<!--<input type="text" name="uid2" class="textbox" maxlength=20 size="20">-->
+						<input type="text" name="uid2" id="uid2" class="textbox" maxlength=20 size="20" onkeydown='if(event.keyCode==13) javascript:fnSubmit();'>
+						<input type="button" onclick="fnSubmit();" value="확 인">
+					</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+</table>
+</form>
+</body>
+</html>
+
+<script src="/static/js/lib/script.js"></script>
+<script type="text/javascript">
+<!--
+$(function() {
+	$("#uid2").focus();
+});
+//-->
+</script>

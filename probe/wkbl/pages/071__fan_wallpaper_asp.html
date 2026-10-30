@@ -1,0 +1,1730 @@
+<!-- https://www.wkbl.or.kr/fan/wallpaper.asp -->
+
+
+
+
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta property="og:image" content="https://www.wkbl.or.kr/static/images/wkbl_link_thum.jpg">
+<meta property="og:image:width" content="800">
+<meta property="og:image:height" content="400">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:alt" content="WKBL, 한국여자농구연맹, 여자농구연맹, 여자프로농구">
+<meta property="og:description" content="WKBL, 한국여자농구연맹, 여자농구연맹, 여자프로농구">
+<title>WKBL</title>
+<!-- <meta name="viewport" content="user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, width=device-width"> -->
+<link rel="stylesheet" href="/static/css/style_26.css?ver=0.1" type="text/css">
+<script src="/static/js/lib/script.js"></script>
+<script src="/static/js/common_wkbl.js"></script>
+
+<!--[if lt IE 9]>
+<link rel="stylesheet" href="/static/css/ie.css">
+<script src="/static/js/lib/html5shiv.min.js"></script>
+<script src="/static/js/lib/respond.js"></script>
+<![endif]-->
+</head>
+
+<body>
+    <div id="pageIndex">
+        <a href="#contents" class="shortcut_g">본문내용보기</a>
+        <a href="#pageGnb" class="shortcut_g">메뉴바로가기</a>
+    </div>
+
+    <div id="wrap" class="v2026">
+        <header id="header" class="is_brn_none">
+            <div class="nav_wrapper">
+                <div class="top_navigation">
+                    <div class="inner_nav">
+                        <h1 id="pageLogo" class="site_logo">
+                            <a href="/main"><img src="/static/images/common/head_logo_22.png" alt="WKBL"></a>
+                        </h1>
+                        <nav id="pageGnb" class="gnb_comm">
+                            <h2 class="screen_out">주요메뉴</h2>
+                            <ul class="list_menu">
+                                <li class="depth1 nav0"><a href="/about/greetings.asp" >WKBL</a></li>
+                                <li class="depth1 nav1"><a href="/news/hotfocus_list.asp" class="language" data-kr="뉴스" data-en="News">뉴스</a></li>
+                                <li class="depth1 nav2"><a href="/game/sch/schedule1.asp" class="language" data-kr="일정/기록" data-en="Schedule<br>Records">일정/기록</a></li>
+                                <li class="depth1 nav3"><a href="/team/teaminfo.asp" class="language" data-kr="팀" data-en="Teams">팀</a></li>
+                                <li class="depth1 nav4"><a href="/player/player_list.asp" class="language" data-kr="선수" data-en="Players">선수</a></li>
+                                <li class="depth1 nav5"><a href="/history/league.asp" class="language" data-kr="히스토리" data-en="History">히스토리</a></li>
+                                <li class="depth1 nav6"><a href="javascropt:void(0);" class="language" data-kr="이벤트" data-en="Events">이벤트</a></li>
+                                <li class="depth1 nav7"><a href="/fan/character.asp" class="language" data-kr="팬" data-en="Fan">팬</a></li>
+                                <li class="depth1 nav8"><a href="/ticket/ticketing.asp" class="language" data-kr="티켓" data-en="Tickets">티켓</a></li>
+                            </ul>
+                        </nav>
+                        
+
+                        <!--// nav_wrapper -->
+
+                        <div class="util_wrapper top_social_wrap">
+                            <div class="inner_util">
+                                <ul class="list_util">
+                                    <li><a href="javascript:void(0);" class="lang_change language btn_detail" data-kr="<img src='/static/images/main/icon_global_v2026.svg' title='EN'>EN" data-en="<img src='/static/images/main/icon_global_v2026.svg' title='KR'>KR"><img src='/static/images/main/icon_global_v2026.svg' title="EN">EN</a></li>
+                                    <li>
+                                        <a href="/member/login_v2.asp" class="btn_detail language" data-kr="<img src='/static/images/main/icon_login_v2026.svg' title='로그인'>로그인" data-en="<img src='/static/images/main/icon_login_v2026.svg' title='Sign in'>Sign in">
+                                            <img src='/static/images/main/icon_login_v2026.svg' title='로그인'>로그인
+                                        </a>
+                                    </li>
+                                
+                                    <!-- <li><a href="/member/join/join_native.asp" class="btn_detail language" data-kr="회원가입" data-en="Sign up">회원가입</a></li> -->
+                                
+                                    <li><button type="button" class="btn_search btn_detail language" data-kr="<img src='/static/images/main/icon_search_v2026.svg' title='선수'>선수" data-en="<img src='/static/images/main/icon_search_v2026.svg' title='Player'>Player"><img src='/static/images/main/icon_search_v2026.svg' title='선수'>선수</button></li>
+                                </ul>
+                            </div>
+                            
+
+                            <script type="text/javascript">
+                                $(function() {
+                                    $("#btn_header_search").click(function(e) {
+                                        e.preventDefault();
+
+                                        var search_team = TrimStr($("#search_team").val());
+                                        var search_word = TrimStr($("#search_word").val());
+
+                                        location.href = "/player/search_result.asp?search_team=" + encodeURI(search_team) + "&search_word=" + encodeURI(search_word)
+                                    });
+                                });
+
+                                function goCommonSearch() {
+                                    if (event.keyCode == 13) $("#btn_header_search").click();
+                                }
+                            </script>
+
+                            <div class="wrap_search">
+                                <div class="inner_search">
+                                    <div class="opt_item ico2_comm" style="display:none;">
+                                        <label id="header_label_team" class="lab_select language" for="search_team" data-kr="팀전체" data-en="All">팀전체</label>
+                                        <select class="opt_select" name="search_team" id="search_team">
+                                    <option value="" selected class="language" data-kr="팀전체" data-en="All">팀전체</option>
+                                    
+                                    <option value="03" class="language" data-kr="삼성생명" data-en="Samsung life">삼성생명</option>
+                                    
+                                    <option value="07" class="language" data-kr="신한은행" data-en="Shinhan Bank">신한은행</option>
+                                    
+                                    <option value="05" class="language" data-kr="우리은행" data-en="Woori Bank">우리은행</option>
+                                    
+                                    <option value="09" class="language" data-kr="하나은행" data-en="Hana Bank">하나은행</option>
+                                    
+                                    <option value="11" class="language" data-kr="BNK 썸" data-en="BNK SUM">BNK 썸</option>
+                                    
+                                    <option value="01" class="language" data-kr="KB스타즈" data-en="KB stars">KB스타즈</option>
+                                    
+                                </select>
+                                    </div>
+                                    <span class="inp_text">
+                                <label for="search_word" class="screen_out">검색어 입력</label>
+                                <input type="text" name="search_word" id="search_word" class="tf_text" onKeyDown="javascript:if(event.keyCode == 13) { goCommonSearch(); }">
+                                </span>
+                                    <button type="button" id="btn_header_search" class="btn_search language" data-kr="선수검색" data-en="Player Search">선수검색</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--// inner_nav -->
+                <div class="sub_menu">
+                    <div class="inner_menu">
+                        <ul class="sub0" rel="0">
+                            <li><a href="/about/greetings.asp" class="language" data-kr="소개" data-en="Introduce">소개</a></li>
+                            <li><a href="/about/history.asp" class="language" data-kr="연혁" data-en="History">연혁</a></li>
+                            <li><a href="/about/organization.asp" class="language" data-kr="조직도" data-en="Organization">조직도</a></li>
+                            <li><a href="/about/rule_wkbl.asp" class="language" data-kr="규정" data-en="Regulation">규정</a></li>
+                            <li><a href="/about/manage_system.asp" class="language" data-kr="운영제도" data-en="Operating<br>system">운영제도</a></li>
+                            <li><a href="/about/manage_process.asp" class="language" data-kr="운영방식" data-en="Procedure">운영방식</a></li>
+                            <li><a href="/about/game_rule.asp" class="language" data-kr="경기규칙" data-en="Rule">경기규칙</a></li>
+                            <li><a href="/about/dictionary.asp" class="language" data-kr="농구용어" data-en="Terms">농구용어</a></li>
+                            <li><a href="/about/link.asp" class="language" data-kr="관련사이트" data-en="Related site">관련사이트</a></li>
+                        </ul>
+                        <ul class="sub1" rel="1">
+                            <li><a href="/news/hotfocus_list.asp" class="language" data-kr="보도자료" data-en="Press release">보도자료</a></li>
+                            <li><a href="/news/notice_list.asp" class="language" data-kr="공지사항" data-en="Notice">공지사항</a></li>
+                            <li><a href="/news/news_list.asp" class="language" data-kr="뉴스" data-en="News">뉴스</a></li>
+                            <li><a href="/news/video_list.asp" class="language" data-kr="영상" data-en="Video">영상</a></li>
+                            <li><a href="/news/photo_list.asp" class="language" data-kr="포토" data-en="Photo">포토</a></li>
+                            <li><a href="/news/teamstory_list.asp" class="language" data-kr="6개구단소식" data-en="News from 6<br>teams">6개구단소식</a></li>
+                        </ul>
+                        <ul class="sub2" rel="2">
+                            <li><a href="/game/sch/schedule1.asp" class="language" data-kr="경기일정" data-en="Schedule">경기일정</a></li>
+                            <!-- <li><a href="/game/sch/schedule1.asp" class="language" data-kr="경기일정" data-en="Schedule">경기일정</a></li> -->
+                            <li><a href="/game/team_rank.asp" class="language" data-kr="팀순위" data-en="Team<br>Rankings">팀순위</a></li>
+                            <li><a href="/game/player_record.asp" class="language" data-kr="부문별 선수순위" data-en="Player Standings<br>by Category">부문별 선수순위</a></li>
+                            <li><a href="/game/part_team_rank.asp" class="language" data-kr="부문별 팀순위" data-en="Team Standings<br>by Category">부문별 팀순위</a></li>
+                            <li><a href="/game/team_total_record.asp" class="language" data-kr="팀종합기록" data-en="Overall<br>Records">팀종합기록</a></li>
+                            <li><a href="/game/report.asp" class="language" data-kr="승/패 리포트" data-en="W/L Reports">승/패 리포트</a></li>
+                            <li><a href="/game/today_mvp.asp" class="language" data-kr="오늘의 MVP" data-en="Today’s MVP">오늘의 MVP</a></li>
+                        </ul>
+                        <ul class="sub3" rel="3">
+                            <li><a href="/team/teaminfo.asp" class="language" data-kr="삼성생명" data-en="Samsung life">삼성생명</a></li>
+                            <li><a href="/team/teaminfo.asp?team_code=07" class="language" data-kr="신한은행" data-en="Shinhan Bank">신한은행</a></li>
+                            <li><a href="/team/teaminfo.asp?team_code=05" class="language" data-kr="우리은행" data-en="Woori Bank">우리은행</a></li>
+                            <li><a href="/team/teaminfo.asp?team_code=09" class="language" data-kr="하나은행" data-en="Hana Bank">하나은행</a></li>
+                            <li><a href="/team/teaminfo.asp?team_code=11" class="language" data-kr="BNK썸" data-en="BNK SUM">BNK썸</a></li>
+                            <li><a href="/team/teaminfo.asp?team_code=01" class="language" data-kr="KB스타즈" data-en="KB stars">KB스타즈</a></li>
+                        </ul>
+                        <ul class="sub4" rel="4">
+                            <li><a href="/player/player_list.asp" class="language" data-kr="선수색인" data-en="Player index">선수색인</a></li>
+                            <li><a href="/player/trade_info.asp" class="language" data-kr="이적현황" data-en="Transfer status">이적현황</a></li>
+                            <li><a href="/player/wkbl_hotline.asp">HOTLINE</a></li>
+                        </ul>
+                        <ul class="sub5" rel="5">
+                            <li><a href="/history/league.asp" class="language" data-kr="역대리그" data-en="League">역대리그</a></li>
+                            <li><a href="/history/prev_director.asp" class="language" data-kr="역대총재" data-en="President">역대총재</a></li>
+                            <li><a href="/history/major_team.asp" class="language" data-kr="역대주요기록" data-en="Key Records">역대주요기록</a></li>
+                            <li><a href="/history/awards.asp" class="language" data-kr="역대부문별수상자" data-en="All-time winners">역대부문별수상자</a></li>
+                            <li><a href="/history/draft.asp" class="language" data-kr="역대드래프트" data-en="Draft">역대드래프트</a></li>
+                            <li><a href="/history/fa_result.asp" class="language" data-kr="역대 FA" data-en="FA">역대 FA</a></li>
+                            <li><a href="/history/crowd.asp" class="language" data-kr="역대관중현황" data-en="Attendance<br>status">역대관중현황</a></li>
+                            <li><a href="/event/20th/index.asp" class="language" data-kr="GREAT 12<br/>(20주년 기념)" data-en="GREAT 12<br>(20th Anniversary)">GREAT 12<br/>(20주년 기념)</a></li>
+                        </ul>
+                        <ul class="sub6" rel="6">
+                            <li><a href="/event/parksj2026/about_01.asp" class="language" data-kr="박신자컵" data-en="Park Shin-Ja<br>Cup">박신자컵</a></li>
+                            <li><a href="/event/triplejam2026/about_01.asp" class="language" data-kr="트리플잼" data-en="Triple Jam">트리플잼</a></li>
+                            <li><a href="/allstar/2025/" class="language" data-kr="올스타전" data-en="All star">올스타전</a></li>
+                            <li><a href="/event/playoff2526/" class="language" data-kr="플레이오프<br/>챔프전" data-en="Playoffs<br>Championship">플레이오프<br/>챔프전</a></li>
+                            <li><a href="/event/futures2627/about_01.asp" class="language" data-kr="퓨처스리그" data-en="Futures league">퓨처스리그</a></li>
+                            <!-- <li><a href="/event/asian2022/about_01.asp" class="language" data-kr="국제대회" data-en="International<br>league">국제대회</a></li> -->
+                        </ul>
+                        <ul class="sub7" rel="7">
+                            <li><a href="/fan/character.asp" class="language" data-kr="캐릭터" data-en="Character">캐릭터</a></li>
+                            <li><a href="/fan/music.asp" class="language" data-kr="플레이리스트" data-en="WKBL PLAYLIST">플레이리스트</a></li>
+                            <li><a href="/fan/magazine.asp" class="language" data-kr="화보" data-en="Magazine">화보</a></li>
+                            <li><a href="/fan/wallpaper.asp" class="language" data-kr="월페이퍼" data-en="Wall paper">월페이퍼</a></li>
+                            <li><a href="/fan/season_paper.asp" class="language" data-kr="배경화면" data-en="Background<br>image">배경화면</a></li>
+                            <li><a href="/fan/board_list.asp" class="language" data-kr="자유게시판" data-en="Community">자유게시판</a></li>
+                            <li><a href="/fan/faq.asp" class="language" data-kr="자주하는질문" data-en="FAQ">자주하는질문</a></li>
+                            <li><a href="/fan/sns.asp" class="language">SNS</a></li>
+                            <li><a href="/ticket/event.asp" class="language" data-kr="이벤트" data-en="Event">이벤트</a></li>
+                        </ul>
+                        <ul class="sub8" rel="8">
+                            <li>&nbsp;</li>
+                        </ul>
+                    </div>
+                    <img src="/static/images/main/menu_banner.png" alt="통통튀는 우크블즈">
+                </div>
+            </div>
+
+            <!-- <div class="season_nav">
+                <div class="inner_season">
+                    <div class="title">
+                        <p class="name">정규리그</p>
+                    </div>
+                    <div class="game_status">
+                        <div class="info active">
+                            <div class="txt_info">
+                                <p class="time">14:30</p>
+                                <p class="status">진행중</p>
+                            </div>
+                            <div class="versus">
+                                <div class="thumb_img">
+                                    <img src="/static/images/team/teamlogo_01.png" alt="KB스타즈">
+                                </div>
+                                <p class="vs">vs</p>
+                                <div class="thumb_img">
+                                    <img src="/static/images/team/teamlogo_03.png" alt="삼성생명">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="info">
+                            <div class="txt_info">
+                                <p class="time">19:00</p>
+                                <p class="status">예정</p>
+                            </div>
+                            <div class="versus">
+                                <div class="thumb_img">
+                                    <img src="/static/images/team/teamlogo_01.png" alt="KB스타즈">
+                                </div>
+                                <p class="vs">vs</p>
+                                <div class="thumb_img">
+                                    <img src="/static/images/team/teamlogo_03.png" alt="삼성생명">
+                                </div>
+                            </div>
+                            
+                            <a href="" class="ticket_btn">티켓예매</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="main_aside_dday">
+                    <div class="top">
+                        <div class="dday_tit">
+                            <span class="tag">D-DAY</span>
+                            <span class="standard">26.07.29</span>
+                        </div>
+                        <p class="tit">26 퓨쳐스리그</p>
+                    </div>
+
+                    <div class="bottom">
+                        <div class="dday">
+                            <span>D</span>
+                            <span class="sign">-</span>
+                            <span class="num">130</span>
+                        </div>
+                    </div>
+                </div>
+            </div> -->
+        </header>
+<link rel="stylesheet" href="/static/css/owl.carousel.css" media="all">
+
+<section id="contents">
+    <div class="breadcrumb_block">
+    <ul class="list_breadcrumb">
+        <li class="home"><a href="/main/">HOME</a></li>
+        <li class="depth1"><a href="/fan/music.asp" id="depthTxt" class="language" data-kr="팬" data-en="Fan">팬</a>
+            <ul class="sub_menu" id="depth1">
+                <li><a href="/about/greetings.asp" class="active " id="b_wkbl">WKBL</a></li>
+                <li><a href="/news/hotfocus_list.asp" id="b_news" class="language" data-kr="뉴스" data-en="News">뉴스</a></li>
+                <li><a href="/game/sch/schedule1.asp" id="b_game" class="language" data-kr="일정/기록" data-en="Schedule/Records">일정/기록</a></li>
+                <li><a href="/team/teaminfo.asp" id="b_team" class="language" data-kr="팀" data-en="Teams">팀</a></li>
+                <li><a href="/player/player_list.asp" id="b_player" class="language" data-kr="선수" data-en="Players">선수</a></li>
+                <li><a href="/history/league.asp" id="b_history" class="language" data-kr="히스토리" data-en="History">히스토리</a></li>
+                <li><a href="/fan/music.asp" id="b_fan" class="language" data-kr="팬" data-en="Fan">팬</a></li>
+                <li><a href="/ticket/ticketing.asp" id="b_ticket" class="language" data-kr="티켓" data-en="Tickets">티켓</a></li>
+            </ul>
+        </li>
+
+
+        
+            <li class="depth1" id="depth2">
+                <a href="/fan/wallpaper.asp" class="language" data-kr="월페이퍼" data-en="Wall paper">
+                    월페이퍼
+                </a>
+                <ul class="sub_menu">
+                    <li><a href="/fan/music.asp" class='language' data-kr="플레이리스트" data-en="Playlist">플레이리스트</a></li>
+                    <li><a href="/fan/magazine.asp"  class='language' data-kr="화보" data-en="Magazine">화보</a></li>
+                    <li><a href="/fan/wallpaper.asp"  class='active language' data-kr="월페이퍼" data-en="Wall paper">월페이퍼</a></li>
+                    <li><a href="/fan/season_paper.asp" class='language' data-kr="배경화면" data-en="Background image">배경화면</a></li>
+                    <li><a href="/fan/board_list.asp"  class='language' data-kr="자유게시판" data-en="Community">자유게시판</a></li>
+                    <li><a href="/fan/faq.asp"  class='language' data-kr="자주하는질문" data-en="FAQ">자주하는질문</a></li>
+                    <li><a href="/fan/sns.asp" >SNS</a></li>
+                    <li><a href="/ticket/event.asp"  data-kr="이벤트" data-en="EVENT">이벤트</a></li>
+                </ul>
+            </li>
+    </ul>
+</div>
+    <div id="cMain" class="page_about">
+        <div class="inner_cont" style="padding-top:0;">
+            <h2 class="screen_out">월페이퍼</h2>
+
+            <div class="wrap_info_paper clear" id="wallSlide">
+                <div id="customNav" class="owl-nav"></div>
+                <div class="owl-carousel owl-theme">
+                    <!-- 2026.11 -->
+                    <div class="paper_img item">
+                        <p class="month">2026.11</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202611.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202611@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202611@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202611@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202611@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202611@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+
+                    <!-- 2026.10 -->
+                    <div class="paper_img item">
+                        <p class="month">2026.10</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202610.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202610@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202610@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202610@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202610@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202610@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+
+                    <!-- 2026.09 -->
+                    <div class="paper_img item">
+                        <p class="month">2026.09</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202609.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202609@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202609@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202609@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202609@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202609@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+
+                    <!-- 2026.08 -->
+                    <div class="paper_img item">
+                        <p class="month">2026.08</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202608.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202608@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202608@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202608@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202608@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202608@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+
+                    <!-- 2026.07 -->
+                    <div class="paper_img item">
+                        <p class="month">2026.07</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202607.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202607@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202607@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202607@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202607@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202607@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+
+                    <!-- 2026.06 -->
+                    <div class="paper_img item">
+                        <p class="month">2026.06</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202606.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202606@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202606@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202606@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202606@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202606@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+                    
+                    <!-- 2026.05 -->
+                    <div class="paper_img item">
+                        <p class="month">2026.05</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202605.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202605@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202605@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202605@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202605@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202605@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+
+                    <!-- 2026.04 -->
+                    <div class="paper_img item">
+                        <p class="month">2026.04</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202604.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202604@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202604@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202604@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202604@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202604@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+
+                    <!-- 2026.03 -->
+                    <div class="paper_img item">
+                        <p class="month">2026.03</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202603.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202603@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202603@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202603@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202603@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202603@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+
+                    <!-- 2026.02 -->
+                    <div class="paper_img item">
+                        <p class="month">2026.02</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202602.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202602@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202602@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202602@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202602@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202602@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+                    
+                    <!-- 2026.01 -->
+                    <div class="paper_img item">
+                        <p class="month">2026.01</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202601.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202601@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202601@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202601@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202601@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202601@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+
+                     <!-- 2025.12 -->
+                    <div class="paper_img item">
+                        <p class="month">2025.12</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202512.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202512@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202512@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202512@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202512@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202512@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+
+                    <!-- 2025.11 -->
+                    <div class="paper_img item">
+                        <p class="month">2025.11</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202511.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202511@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202511@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202511@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202511@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202511@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+
+                    <!-- 2025.10 -->
+                    <div class="paper_img item">
+                        <p class="month">2025.10</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202510.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202510@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202510@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202510@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202510@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202510@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+
+                    <!-- 2025.09 -->
+                    <div class="paper_img item">
+                        <p class="month">2025.09</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202509.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202509@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202509@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202509@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202509@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202509@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+
+                    <!-- 2025.08 -->
+                    <div class="paper_img item">
+                        <p class="month">2025.08</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202508.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202508@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202508@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202508@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202508@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202508@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+
+                    <!-- 2025.07 -->
+                    <div class="paper_img item">
+                        <p class="month">2025.07</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202507.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202507@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202507@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202507@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202507@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202507@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+
+                    <!-- 2025.06 -->
+                    <div class="paper_img item">
+                        <p class="month">2025.06</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202506.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202506@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202506@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202506@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202506@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202506@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+
+                    <!-- 2025.05 -->
+                    <div class="paper_img item">
+                        <p class="month">2025.05</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202505.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202505@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202505@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202505@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202505@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202505@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+
+                     <!-- 2025.04 -->
+                     <div class="paper_img item">
+                        <p class="month">2025.04</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202504.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202504@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202504@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202504@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202504@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202504@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+
+                    <!-- 2025.03 -->
+                    <div class="paper_img item">
+                        <p class="month">2025.03</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202503.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202503@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202503@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202503@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202503@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202503@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+                    
+                    <!-- 2025.02 -->
+                    <div class="paper_img item">
+                        <p class="month">2025.02</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202502.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202502@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202502@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202502@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202502@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202502@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+
+                    <!-- 2025.01 -->
+                    <div class="paper_img item">
+                        <p class="month">2025.01</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202501.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202501@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202501@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202501@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202501@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202501@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+
+                    <!-- 2024.12 -->
+                    <div class="paper_img item">
+                        <p class="month">2024.12</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202412.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202412@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202412@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202412@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202412@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202412@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+
+                    <!-- 2024.11 -->
+                    <div class="paper_img item">
+                        <p class="month">2024.11</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202411.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202411@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202411@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202411@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202411@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202411@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+
+                    <!-- 2024.10 -->
+                    <div class="paper_img item">
+                        <p class="month">2024.10</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202410.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202410@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202410@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202410@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202410@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202410@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+
+                     <!-- 2024.09 -->
+                     <div class="paper_img item">
+                        <p class="month">2024.09</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202409.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202409@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202409@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202409@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202409@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202409@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+                    
+                    <!-- 2024.08 -->
+                    <div class="paper_img item">
+                        <p class="month">2024.08</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202408.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202408@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202408@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202408@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202408@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202408@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+
+                    <!-- 2024.07 -->
+                    <div class="paper_img item">
+                        <p class="month">2024.07</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202407.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202407@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202407@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202407@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202407@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202407@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+
+                     <!-- 2024.06 -->
+                     <div class="paper_img item">
+                        <p class="month">2024.06</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202406.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202406@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202406@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202406@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202406@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202406@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+
+                    <!-- 2024.05 -->
+                    <div class="paper_img item">
+                        <p class="month">2024.05</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202405.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202405@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202405@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202405@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202405@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202405@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+
+                    <!-- 2024.04 -->
+                    <div class="paper_img item">
+                        <p class="month">2024.04</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202404.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202404@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202404@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202404@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202404@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202404@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+
+                    <!-- 2024.03 -->
+                    <div class="paper_img item">
+                        <p class="month">2024.03</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202403.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202403@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202403@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202403@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202403@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202403@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+
+                    <!-- 2024.02 -->
+                    <div class="paper_img item">
+                        <p class="month">2024.02</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202402.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202402@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202402@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202402@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202402@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202402@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+
+                    <!-- 2024.01 -->
+                    <div class="paper_img item">
+                        <p class="month">2024.01</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202401.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202401@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202401@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202401@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202401@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202401@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+
+                    <!-- 2023.12 -->
+                    <div class="paper_img item">
+                        <p class="month">2023.12</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202312.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202312@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202312@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202312@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202312@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202312@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+
+                      <!-- 2023.11 -->
+                      <div class="paper_img item">
+                        <p class="month">2023.11</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202311.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202311@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202311@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202311@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202311@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202311@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+
+                     <!-- 2023.10 -->
+                     <div class="paper_img item">
+                        <p class="month">2023.10</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202310.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202310@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202310@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202310@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202310@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202310@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+
+                    <!-- 2023.09 -->
+                    <div class="paper_img item">
+                        <p class="month">2023.09</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202309.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202309@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202309@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202309@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202309@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202309@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+
+                     <!-- 2023.08 -->
+                     <div class="paper_img item">
+                        <p class="month">2023.08</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202308.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202308@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202308@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202308@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202308@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202308@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+
+                    <!-- 2023.07 -->
+                    <div class="paper_img item">
+                        <p class="month">2023.07</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202307.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202307@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202307@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202307@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202307@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202307@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+
+                    <!-- 2023.06 -->
+                    <div class="paper_img item">
+                        <p class="month">2023.06</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202306.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202306@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202306@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202306@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202306@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202306@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+
+                     <!-- 2023.05 -->
+                     <div class="paper_img item">
+                        <p class="month">2023.05</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202305.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202305@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202305@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202305@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202305@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202305@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+
+                    <!-- 2023.04 -->
+                    <div class="paper_img item">
+                        <p class="month">2023.04</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202304.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202304@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202304@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202304@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202304@1080_s.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                            <a href="../images/wallpaper/202304@1080_l.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x2400</a>
+                        </div>
+                    </div>
+
+                     <!-- 2023.03 -->
+                     <div class="paper_img item">
+                        <p class="month">2023.03</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202303.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202303@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202303@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202303@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202303@1080.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                        </div>
+                    </div>
+
+                    <!-- 2023.02 -->
+                    <div class="paper_img item">
+                        <p class="month">2023.02</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202302.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202302@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202302@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202302@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202302@1080.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                        </div>
+                    </div>
+
+                    <!-- 2023.01 -->
+                    <div class="paper_img item">
+                        <p class="month">2023.01</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202301.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202301@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202301@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202301@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202301@1080.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                        </div>
+                    </div>
+
+                    <!-- 2022.12 -->
+                    <div class="paper_img item">
+                        <p class="month">2022.12</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202212.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202212@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202212@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202212@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202212@1080.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                        </div>
+                    </div>
+
+                    <!-- 2022.11 -->
+                    <div class="paper_img item">
+                        <p class="month">2022.11</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202211.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202211@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202211@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202211@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202211@1080.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                        </div>
+                    </div>
+
+                    <!-- 2022.10 -->
+                    <div class="paper_img item">
+                        <p class="month">2022.10</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202210.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202210@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202210@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202210@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202210@1080.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                        </div>
+                    </div>
+                    
+                     <!-- 2022.09 -->
+                     <div class="paper_img item">
+                        <p class="month">2022.09</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202209.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202209@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202209@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202209@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202209@1080.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                        </div>
+                    </div>
+
+                     <!-- 2022.08 -->
+                     <div class="paper_img item">
+                        <p class="month">2022.08</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202208.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202208@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202208@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202208@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202208@1080.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                        </div>
+                    </div>
+
+                      <!-- 2022.07 -->
+                      <div class="paper_img item">
+                        <p class="month">2022.07</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202207.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202207@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202207@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202207@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202207@1080.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                        </div>
+                    </div>
+
+                     <!-- 2022.06 -->
+                     <div class="paper_img item">
+                        <p class="month">2022.06</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202206.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202206@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202206@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202206@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202206@1080.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                        </div>
+                    </div>
+
+                    <!-- 2022.05 -->
+                    <div class="paper_img item">
+                        <p class="month">2022.05</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202205.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202205@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202205@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202205@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202205@1080.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                        </div>
+                    </div>
+
+                    <!-- 2022.04 -->
+                    <div class="paper_img item">
+                        <p class="month">2022.04</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202204.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202204@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202204@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202204@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202204@1080.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                        </div>
+                    </div>
+
+                    <!-- 2022.03 -->
+                    <div class="paper_img item">
+                        <p class="month">2022.03</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202203.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202203@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202203@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202203@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202203@1080.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                        </div>
+                    </div>
+
+                    <!-- 2022.02 -->
+                    <div class="paper_img item">
+                        <p class="month">2022.02</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202202.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202202@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202202@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202202@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202202@1080.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                        </div>
+                    </div>
+
+                    <!-- 2022.01   -->
+                    <div class="paper_img item">
+                        <p class="month">2022.01</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202201.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202201@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202201@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202201@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202201@1080.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                        </div>
+                    </div>
+
+                    <!-- 2021.12  -->
+                    <!-- <div class="paper_img item">
+							<p class="month">2021.12</p>
+							<div class="frame_g">
+								<img src="../images/wallpaper/202112.jpg" alt="">
+							</div>
+							<div class="btn_wrap">
+								<a href="../images/wallpaper/202112@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+								<a href="../images/wallpaper/202112@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+								<a href="../images/wallpaper/202112@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+								<a href="../images/wallpaper/202112@1080.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+							</div>
+						</div> -->
+
+                    <!-- 2021.11  -->
+                    <!-- <div class="paper_img item">
+							<p class="month">2021.11</p>
+							<div class="frame_g">
+								<img src="../images/wallpaper/202111.jpg" alt="">
+							</div>
+							<div class="btn_wrap">
+								<a href="../images/wallpaper/202111@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+								<a href="../images/wallpaper/202111@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+								<a href="../images/wallpaper/202111@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+								<a href="../images/wallpaper/202111@1080.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+							</div>
+						</div> -->
+
+                    <!-- 2021.10  -->
+                    <div class="paper_img item">
+                        <p class="month">2021.10</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202110.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202110@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202110@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202110@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202110@1080.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                        </div>
+                    </div>
+
+                    <!-- 2021.09 -->
+                    <div class="paper_img item">
+                        <p class="month">2021.09</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202109.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202109@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202109@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202109@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202109@1080.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                        </div>
+                    </div>
+
+                    <!-- 2021.08 -->
+                    <div class="paper_img item">
+                        <p class="month">2021.08</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202108.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202108@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202108@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202108@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202108@1080.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                        </div>
+                    </div>
+
+                    <!-- 2021.07     -->
+                    <div class="paper_img item">
+                        <p class="month">2021.07</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202107.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202107@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202107@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202107@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202107@1080.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                        </div>
+                    </div>
+
+                    <!-- 2021.06     -->
+                    <div class="paper_img item">
+                        <p class="month">2021.06</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202106.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202106@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202106@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202106@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202106@1080.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                        </div>
+                    </div>
+
+                    <!-- 2021.05    -->
+                    <div class="paper_img item">
+                        <p class="month">2021.05</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202105.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202105@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202105@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202105@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202105@1080.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                        </div>
+                    </div>
+
+                    <!-- 2021.04    -->
+                    <div class="paper_img item">
+                        <p class="month">2021.04</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202104.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202104@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202104@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202104@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202104@1080.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                        </div>
+                    </div>
+
+                    <!-- 2021.03    -->
+                    <div class="paper_img item">
+                        <p class="month">2021.03</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202103.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202103@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202103@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202103@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202103@1080.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                        </div>
+                    </div>
+
+                    <!-- 2021.02   -->
+                    <div class="paper_img item">
+                        <p class="month">2021.02</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202102.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202102@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202102@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202102@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202102@1080.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                        </div>
+                    </div>
+
+                    <!-- 2021.01  -->
+                    <div class="paper_img item">
+                        <p class="month">2021.01</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202101.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202101@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202101@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202101@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202101@1080.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                        </div>
+                    </div>
+
+                    <!-- 2020.12 -->
+                    <div class="paper_img item">
+                        <p class="month">2020.12</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202012.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202012@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202012@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202012@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202012@1080.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                        </div>
+                    </div>
+
+                    <!-- 2020.11 -->
+                    <div class="paper_img item">
+                        <p class="month">2020.11</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202011.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202011@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202011@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202011@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202011@1080.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                        </div>
+                    </div>
+
+                    <!-- 2020.10 -->
+                    <div class="paper_img item">
+                        <p class="month">2020.10</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202010.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202010@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202010@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                            <a href="../images/wallpaper/202010@1125.jpg" class="btn_wall_down" data-type="i" download><i class="ico_comm icon_down">다운받기</i>iPhone 1125x2436</a>
+                            <a href="../images/wallpaper/202010@1080.jpg" class="btn_wall_down" data-type="a" download><i class="ico_comm icon_down">다운받기</i>Android 1080x1920</a>
+                        </div>
+                    </div>
+
+                    <!-- 2020.09 -->
+                    <div class="paper_img item">
+                        <p class="month">2020.09</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202009.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202009@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>PC 1600x1200</a>
+                            <a href="../images/wallpaper/202009@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>PC 1280x1024</a>
+                        </div>
+                    </div>
+
+                    <!-- 2020.08 -->
+                    <div class="paper_img item">
+                        <p class="month">2020.08</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202008.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202008@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>1600x1200</a>
+                            <a href="../images/wallpaper/202008@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>1280x1024</a>
+                        </div>
+                    </div>
+
+                    <!-- 2020.07 -->
+                    <div class="paper_img item">
+                        <p class="month">2020.07</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202007.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202007@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>1600x1200</a>
+                            <a href="../images/wallpaper/202007@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>1280x1024</a>
+                        </div>
+                    </div>
+
+                    <!-- 2020.06 -->
+                    <div class="paper_img item">
+                        <p class="month">2020.06</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202006.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202006@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>1600x1200</a>
+                            <a href="../images/wallpaper/202006@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>1280x1024</a>
+                        </div>
+                    </div>
+
+                    <!-- 2020.05 -->
+                    <div class="paper_img item">
+                        <p class="month">2020.05</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202005.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202005@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>1600x1200</a>
+                            <a href="../images/wallpaper/202005@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>1280x1024</a>
+                        </div>
+                    </div>
+
+                    <!-- 2020.04 -->
+                    <div class="paper_img item">
+                        <p class="month">2020.04</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202004.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202004@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>1600x1200</a>
+                            <a href="../images/wallpaper/202004@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>1280x1024</a>
+                        </div>
+                    </div>
+
+                    <!-- 2020.03 -->
+                    <div class="paper_img item">
+                        <p class="month">2020.03</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202003.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202003@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>1600x1200</a>
+                            <a href="../images/wallpaper/202003@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>1280x1024</a>
+                        </div>
+                    </div>
+
+                    <!-- 2020.02 -->
+                    <div class="paper_img item">
+                        <p class="month">2020.02</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202002.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202002@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>1600x1200</a>
+                            <a href="../images/wallpaper/202002@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>1280x1024</a>
+                        </div>
+                    </div>
+
+                    <!-- 2020.01 -->
+                    <div class="paper_img item">
+                        <p class="month">2020.01</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/202001.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/202001@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>1600x1200</a>
+                            <a href="../images/wallpaper/202001@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>1280x1024</a>
+                        </div>
+                    </div>
+
+                    <!-- 2019.12 -->
+                    <div class="paper_img item">
+                        <p class="month">2019.12</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/201912.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/201912@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>1600x1200</a>
+                            <a href="../images/wallpaper/201912@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>1280x1024</a>
+                        </div>
+                    </div>
+
+                    <!-- 2019.11 -->
+                    <div class="paper_img item">
+                        <p class="month">2019.11</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/201911.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/201911@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>1600x1200</a>
+                            <a href="../images/wallpaper/201911@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>1280x1024</a>
+                        </div>
+                    </div>
+
+                    <!-- 2019.10 -->
+                    <div class="paper_img item">
+                        <p class="month">2019.10</p>
+                        <div class="frame_g">
+                            <img src="../images/wallpaper/201910.jpg" alt="">
+                        </div>
+                        <div class="btn_wrap">
+                            <a href="../images/wallpaper/201910@1600.jpg" class="btn_wall_down" data-type="b" download><i class="ico_comm icon_down">다운받기</i>1600x1200</a>
+                            <a href="../images/wallpaper/201910@1280.jpg" class="btn_wall_down" data-type="s" download><i class="ico_comm icon_down">다운받기</i>1280x1024</a>
+                        </div>
+                    </div>
+
+                    <!--
+						<div class="paper_img item">
+							<p class="month">2019.8</p>
+							<div class="frame_g">
+								<img src="https://via.placeholder.com/900x675" alt="">
+							</div>
+							<div class="btn_wrap">
+								<a href="javascript:;"><i class="ico_comm icon_down">다운받기</i>1600x1200</a>
+								<a href="javascript:;"><i class="ico_comm icon_down">다운받기</i>1280x1024</a>
+							</div>
+						</div>
+						<div class="paper_img item">
+							<p class="month">2019.7</p>
+							<div class="frame_g">
+								<img src="https://via.placeholder.com/900x675" alt="">
+							</div>
+							<div class="btn_wrap">
+								<a href="javascript:;"><i class="ico_comm icon_down">다운받기</i>1600x1200</a>
+								<a href="javascript:;"><i class="ico_comm icon_down">다운받기</i>1280x1024</a>
+							</div>
+						</div>
+						-->
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script src="/static/js/lib/owl.carousel.js"></script>
+<script>
+    /*
+    		$(document).ready(function() {
+    			$("#slider").owlCarousel({
+    				items: 1,
+    				singleItem: true,
+    				navigation : true,
+    				loop:true,
+    			});
+    		});
+    		*/
+    $(document).ready(function() {
+        $(".owl-carousel").owlCarousel({
+            items: 1,
+            loop: false,
+            singleItem: true,
+            nav: true,
+            navContainer: '#customNav',
+        });
+
+        $('.btn_wall_down').on('click', function(e) {
+            e.preventDefault();
+            var this_el = $(this);
+            if (this_el.attr('href') == '#') {
+                return false;
+            }
+
+            var parent_el = this_el.closest('div.paper_img');
+            var yymm = parent_el.find('.month').text().replace(".", "");
+
+            var file = $(this).attr('href').split('/');
+            var fname = file[file.length - 1];
+
+            var param = {
+                "yymm": yymm,
+                "itype": $(this).data('type'),
+                "fname": fname
+            };
+
+            location.href = './wallpaper_log.asp?' + $.param(param);
+        })
+    });
+</script>
+    <footer id="footer">
+        <div class="wrap_fnb">
+            <div class="cont_inner t_space">
+                <ul class="list_fnb">
+                    <li><a href="/etc/privacy.asp" class="link_fnb language" data-kr="개인정보처리방침" data-en="Privacy policy">개인정보처리방침</a></li>
+                    <li><a href="/etc/terms.asp" class="link_fnb language" data-kr="이용약관" data-en="Term of use">이용약관</a></li>
+                    <li><a href="/etc/contact_us.asp" class="link_fnb">CONTACT US</a></li>
+                    <li><a href="javascript:MM_openBrWindow('/etc/paycheck4.asp', 'reporterChk', 'scrollbars=no, width=400, height=300');" class="link_fnb language" data-kr="통계 프로그램" data-en="Statistic Program">통계 프로그램</a></li>
+                    <li><a href="http://photo.wkbl.or.kr" class="link_fnb language" target="_blank" data-kr="WKBL 포토" data-en="WKBL photo">WKBL 포토</a></li>
+                    <li><a href="https://datalab.wkbl.or.kr" class="link_fnb language" target="_blank" data-kr="데이터랩" data-en="Data Lab">데이터랩</a></li>
+                    <li><a href="https://cert.wkbl.or.kr/" class="link_fnb language" target="_blank" data-kr="경력증명서" data-en="Data Lab">경력증명서</a></li>
+                </ul>
+                <ul class="list_team">
+                    <li><a href="http://www.samsungblueminx.com/" class="link_team" target="_blank"><img src="/static/images/team/teamlogo_03.png" alt="삼성생명 블루밍스"><p class="screen_out">삼성생명</p></a></li>
+                    <li><a href="/team/teaminfo.asp?team_code=07" class="link_team" target="_blank"><img src="/static/images/team/teamlogo_07.png" alt="신한은행 에스버드"><p class="screen_out">신한은행</p></a></li>
+                    <li><a href="https://wooriwon.wooribank.com/basketball/main/bridge.php" class="link_team" target="_blank"><img src="/static/images/team/teamlogo_05.png" alt="우리은행 위비"><p class="screen_out">우리은행</p></a></li>
+                    <li><a href="/team/teaminfo.asp?team_code=09" class="link_team" target="_blank"><img src="/static/images/team/teamlogo_09.png?ver=20240821" alt="하나은행"><p class="screen_out">하나은행</p></a></li>
+                    <li><a href="http://bnksumbasket.com" class="link_team" target="_blank"><img src="/static/images/team/teamlogo_11.png" alt="BNK캐피탈"><p class="screen_out">BNK 썸</p></a></li>
+                    <li><a href="http://www.kbstars.co.kr/kbstars/2022/main.php" class="link_team" target="_blank"><img src="/static/images/team/teamlogo_01.png" alt="KB스타즈"><p class="screen_out">KB 스타즈</p></a></li>
+                </ul>
+            </div>
+        </div>
+            
+        <div class="wrap_footer">
+            <div class="cont_inner t_space">
+                <div class="left">
+                    <ul class="sns_list">
+                        <li><a target="_blank" href="https://www.facebook.com/f.WKBL/"><img src="/static/images/main/icon_facebook.svg" alt="facebook 링크로 바로 가기"></a></li>
+                        <li><a target="_blank" href="https://www.instagram.com/wkbl_official/"><img src="/static/images/main/icon_instargram.svg" alt="instargram 링크로 바로 가기"></a></li>
+                        <li><a target="_blank" href="https://www.youtube.com/channel/UCLyyt15iUOMUQovmJVde1Zg"><img src="/static/images/main/icon_youtube.svg" alt="youtube 링크로 바로 가기"></a></li>
+                        <li><a target="_blank" href="https://www.tiktok.com/@wkbl_official?lang=ko-KR"><img src="/static/images/main/icon_tictok.svg" alt="tictok 링크로 바로 가기"></a></li>
+                    </ul>
+                    <div class="info_site">
+                        <address class="txt_addr language" data-kr="서울특별시 강서구 공항대로 355 (등촌동)" data-en="355, Gonghang-daero, Gangseo-gu, Seou">서울특별시 강서구 공항대로 355 (등촌동)</address>
+                        <p class="copyright ">COPYRIGHT ⓒ 2026 WOMEN'S KOREAN BASKETBALL LEAGUE. ALL RIGHTS RESERVED.</p>
+                    </div>
+                    
+                    <p class="txt_site language" data-kr="WKBL 소속 6개 구단의 팀로고, 마스코트, 엠블럼과 WKBL 소속선수의 사진, 초상, 영상, 캐릭터 등을 무단으로 사용할 경우 상표법 및 저작권법에 의해 금지됩니다.<br>본 웹사이트에 게시된 이메일 주소와 전자우편 수집 프로그램이나 그밖의 기술적 장치를 이용하여 무단으로 수집되는 것을 거부하며, 이를 위반시 정보통신망법에 의해 형사처벌됨을 유념하시기 바랍니다." data-en="Unauthorized use, reproduction, or distribution of the team logos, mascots, emblems of the six WKBL-affiliated teams, as well as the photos, portraits, videos, and characters of WKBL players, is strictly prohibited under trademark and copyright laws.<br><br>Additionally, the unauthorized collection of email addresses from this website using automated programs or other technical methods is strictly forbidden. Violators may be subject to legal action under the Information and Communications Network Act.">
+                        WKBL 소속 6개 구단의 팀로고, 마스코트, 엠블럼과 WKBL 소속선수의 사진, 초상, 영상, 캐릭터 등을 무단으로 사용할 경우 상표법 및 저작권법에 의해 금지됩니다.
+                        본 웹사이트에 게시된 이메일 주소와 전자우편 수집 프로그램이나 그밖의 기술적 장치를 이용하여 무단으로 수집되는 것을 거부하며, 이를 위반시 정보통신망법에 의해 형사처벌됨을 유념하시기 바랍니다.
+                    </p>
+                </div>
+                <div class="video">
+                    <!-- youtube 외부링크 -->
+                    <a target="_blank" href="https://www.youtube.com/watch?v=9RfJuytleAc" class="thumb_img">
+                        <!-- https://i.ytimg.com/vi/(wathch?v=해당코드삽입)/hqdefault.jpg -->
+                        <img src="https://i.ytimg.com/vi/9RfJuytleAc/hqdefault.jpg" alt="youtube 썸네일">
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</div>
+<script src="/static/js/ui_24.js?ver=2.2"></script>
+<script>
+$(function() {
+    /////////////////////////////////////////////language change start///////////////////////////////////////////
+    let wkbl_lang = ['kr','en'];
+    let now_lang = localStorage.getItem("lang");
+
+    //if(!now_lang) now_lang = "kr";
+
+    //default lang => kr
+    if( wkbl_lang.indexOf(now_lang) < 0 ){
+        now_lang = "kr";
+        localStorage.setItem("lang", now_lang);
+    }
+
+
+    $('.lang_change').on('click', function(e){
+        now_lang = (now_lang == "kr") ? "en" : "kr";
+        localStorage.setItem("lang", now_lang);
+
+        language_change(now_lang);
+    });
+
+    // function language_icon_change(now_lang){
+    //     // if( now_lang == 'en' ){
+    //     //     $('.lang_change').addClass('active');
+    //     //     $('.lang_change_text').html("English");
+    //     // }else{
+    //     //     $('.lang_change').removeClass('active');
+    //     //     $('.lang_change_text').html("Korea");
+    //     // }
+    //
+    //     language_change(now_lang);
+    // }
+
+    function language_change(now_lang){
+        $('#wrap > div')
+        .removeClass('kr en')
+        .addClass(now_lang);
+
+        for(i=0;i < $(".language").length; i++){
+            if($($('.language')[i]).attr('placeholder') !== undefined){ //placeholder change
+               $($('.language')[i]).attr('placeholder', $($('.language')[i]).attr("data-"+now_lang));
+            }else{ //text change
+                $($('.language')[i]).html($($('.language')[i]).attr("data-"+now_lang));
+            }
+        }
+    }
+
+    language_change(now_lang);
+    /////////////////////////////////////////////language change end ///////////////////////////////////////////
+
+
+
+
+});
+
+
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-55620765-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+</body>
+</html>

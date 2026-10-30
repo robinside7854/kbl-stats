@@ -1,0 +1,5616 @@
+<!-- https://www.wkbl.or.kr/player/search_result.asp?player_search_team= -->
+
+
+
+
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta property="og:image" content="https://www.wkbl.or.kr/static/images/wkbl_link_thum.jpg">
+<meta property="og:image:width" content="800">
+<meta property="og:image:height" content="400">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:alt" content="WKBL, 한국여자농구연맹, 여자농구연맹, 여자프로농구">
+<meta property="og:description" content="WKBL, 한국여자농구연맹, 여자농구연맹, 여자프로농구">
+<title>WKBL</title>
+<!-- <meta name="viewport" content="user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, width=device-width"> -->
+<link rel="stylesheet" href="/static/css/style_26.css?ver=0.1" type="text/css">
+<script src="/static/js/lib/script.js"></script>
+<script src="/static/js/common_wkbl.js"></script>
+
+<!--[if lt IE 9]>
+<link rel="stylesheet" href="/static/css/ie.css">
+<script src="/static/js/lib/html5shiv.min.js"></script>
+<script src="/static/js/lib/respond.js"></script>
+<![endif]-->
+</head>
+
+<body>
+    <div id="pageIndex">
+        <a href="#contents" class="shortcut_g">본문내용보기</a>
+        <a href="#pageGnb" class="shortcut_g">메뉴바로가기</a>
+    </div>
+
+    <div id="wrap" class="v2026">
+        <header id="header" class="is_brn_none">
+            <div class="nav_wrapper">
+                <div class="top_navigation">
+                    <div class="inner_nav">
+                        <h1 id="pageLogo" class="site_logo">
+                            <a href="/main"><img src="/static/images/common/head_logo_22.png" alt="WKBL"></a>
+                        </h1>
+                        <nav id="pageGnb" class="gnb_comm">
+                            <h2 class="screen_out">주요메뉴</h2>
+                            <ul class="list_menu">
+                                <li class="depth1 nav0"><a href="/about/greetings.asp" >WKBL</a></li>
+                                <li class="depth1 nav1"><a href="/news/hotfocus_list.asp" class="language" data-kr="뉴스" data-en="News">뉴스</a></li>
+                                <li class="depth1 nav2"><a href="/game/sch/schedule1.asp" class="language" data-kr="일정/기록" data-en="Schedule<br>Records">일정/기록</a></li>
+                                <li class="depth1 nav3"><a href="/team/teaminfo.asp" class="language" data-kr="팀" data-en="Teams">팀</a></li>
+                                <li class="depth1 nav4"><a href="/player/player_list.asp" class="language" data-kr="선수" data-en="Players">선수</a></li>
+                                <li class="depth1 nav5"><a href="/history/league.asp" class="language" data-kr="히스토리" data-en="History">히스토리</a></li>
+                                <li class="depth1 nav6"><a href="javascropt:void(0);" class="language" data-kr="이벤트" data-en="Events">이벤트</a></li>
+                                <li class="depth1 nav7"><a href="/fan/character.asp" class="language" data-kr="팬" data-en="Fan">팬</a></li>
+                                <li class="depth1 nav8"><a href="/ticket/ticketing.asp" class="language" data-kr="티켓" data-en="Tickets">티켓</a></li>
+                            </ul>
+                        </nav>
+                        
+
+                        <!--// nav_wrapper -->
+
+                        <div class="util_wrapper top_social_wrap">
+                            <div class="inner_util">
+                                <ul class="list_util">
+                                    <li><a href="javascript:void(0);" class="lang_change language btn_detail" data-kr="<img src='/static/images/main/icon_global_v2026.svg' title='EN'>EN" data-en="<img src='/static/images/main/icon_global_v2026.svg' title='KR'>KR"><img src='/static/images/main/icon_global_v2026.svg' title="EN">EN</a></li>
+                                    <li>
+                                        <a href="/member/login_v2.asp" class="btn_detail language" data-kr="<img src='/static/images/main/icon_login_v2026.svg' title='로그인'>로그인" data-en="<img src='/static/images/main/icon_login_v2026.svg' title='Sign in'>Sign in">
+                                            <img src='/static/images/main/icon_login_v2026.svg' title='로그인'>로그인
+                                        </a>
+                                    </li>
+                                
+                                    <!-- <li><a href="/member/join/join_native.asp" class="btn_detail language" data-kr="회원가입" data-en="Sign up">회원가입</a></li> -->
+                                
+                                    <li><button type="button" class="btn_search btn_detail language" data-kr="<img src='/static/images/main/icon_search_v2026.svg' title='선수'>선수" data-en="<img src='/static/images/main/icon_search_v2026.svg' title='Player'>Player"><img src='/static/images/main/icon_search_v2026.svg' title='선수'>선수</button></li>
+                                </ul>
+                            </div>
+                            
+
+                            <script type="text/javascript">
+                                $(function() {
+                                    $("#btn_header_search").click(function(e) {
+                                        e.preventDefault();
+
+                                        var search_team = TrimStr($("#search_team").val());
+                                        var search_word = TrimStr($("#search_word").val());
+
+                                        location.href = "/player/search_result.asp?search_team=" + encodeURI(search_team) + "&search_word=" + encodeURI(search_word)
+                                    });
+                                });
+
+                                function goCommonSearch() {
+                                    if (event.keyCode == 13) $("#btn_header_search").click();
+                                }
+                            </script>
+
+                            <div class="wrap_search">
+                                <div class="inner_search">
+                                    <div class="opt_item ico2_comm" style="display:none;">
+                                        <label id="header_label_team" class="lab_select language" for="search_team" data-kr="팀전체" data-en="All">팀전체</label>
+                                        <select class="opt_select" name="search_team" id="search_team">
+                                    <option value="" selected class="language" data-kr="팀전체" data-en="All">팀전체</option>
+                                    
+                                    <option value="03" class="language" data-kr="삼성생명" data-en="Samsung life">삼성생명</option>
+                                    
+                                    <option value="07" class="language" data-kr="신한은행" data-en="Shinhan Bank">신한은행</option>
+                                    
+                                    <option value="05" class="language" data-kr="우리은행" data-en="Woori Bank">우리은행</option>
+                                    
+                                    <option value="09" class="language" data-kr="하나은행" data-en="Hana Bank">하나은행</option>
+                                    
+                                    <option value="11" class="language" data-kr="BNK 썸" data-en="BNK SUM">BNK 썸</option>
+                                    
+                                    <option value="01" class="language" data-kr="KB스타즈" data-en="KB stars">KB스타즈</option>
+                                    
+                                </select>
+                                    </div>
+                                    <span class="inp_text">
+                                <label for="search_word" class="screen_out">검색어 입력</label>
+                                <input type="text" name="search_word" id="search_word" class="tf_text" onKeyDown="javascript:if(event.keyCode == 13) { goCommonSearch(); }">
+                                </span>
+                                    <button type="button" id="btn_header_search" class="btn_search language" data-kr="선수검색" data-en="Player Search">선수검색</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--// inner_nav -->
+                <div class="sub_menu">
+                    <div class="inner_menu">
+                        <ul class="sub0" rel="0">
+                            <li><a href="/about/greetings.asp" class="language" data-kr="소개" data-en="Introduce">소개</a></li>
+                            <li><a href="/about/history.asp" class="language" data-kr="연혁" data-en="History">연혁</a></li>
+                            <li><a href="/about/organization.asp" class="language" data-kr="조직도" data-en="Organization">조직도</a></li>
+                            <li><a href="/about/rule_wkbl.asp" class="language" data-kr="규정" data-en="Regulation">규정</a></li>
+                            <li><a href="/about/manage_system.asp" class="language" data-kr="운영제도" data-en="Operating<br>system">운영제도</a></li>
+                            <li><a href="/about/manage_process.asp" class="language" data-kr="운영방식" data-en="Procedure">운영방식</a></li>
+                            <li><a href="/about/game_rule.asp" class="language" data-kr="경기규칙" data-en="Rule">경기규칙</a></li>
+                            <li><a href="/about/dictionary.asp" class="language" data-kr="농구용어" data-en="Terms">농구용어</a></li>
+                            <li><a href="/about/link.asp" class="language" data-kr="관련사이트" data-en="Related site">관련사이트</a></li>
+                        </ul>
+                        <ul class="sub1" rel="1">
+                            <li><a href="/news/hotfocus_list.asp" class="language" data-kr="보도자료" data-en="Press release">보도자료</a></li>
+                            <li><a href="/news/notice_list.asp" class="language" data-kr="공지사항" data-en="Notice">공지사항</a></li>
+                            <li><a href="/news/news_list.asp" class="language" data-kr="뉴스" data-en="News">뉴스</a></li>
+                            <li><a href="/news/video_list.asp" class="language" data-kr="영상" data-en="Video">영상</a></li>
+                            <li><a href="/news/photo_list.asp" class="language" data-kr="포토" data-en="Photo">포토</a></li>
+                            <li><a href="/news/teamstory_list.asp" class="language" data-kr="6개구단소식" data-en="News from 6<br>teams">6개구단소식</a></li>
+                        </ul>
+                        <ul class="sub2" rel="2">
+                            <li><a href="/game/sch/schedule1.asp" class="language" data-kr="경기일정" data-en="Schedule">경기일정</a></li>
+                            <!-- <li><a href="/game/sch/schedule1.asp" class="language" data-kr="경기일정" data-en="Schedule">경기일정</a></li> -->
+                            <li><a href="/game/team_rank.asp" class="language" data-kr="팀순위" data-en="Team<br>Rankings">팀순위</a></li>
+                            <li><a href="/game/player_record.asp" class="language" data-kr="부문별 선수순위" data-en="Player Standings<br>by Category">부문별 선수순위</a></li>
+                            <li><a href="/game/part_team_rank.asp" class="language" data-kr="부문별 팀순위" data-en="Team Standings<br>by Category">부문별 팀순위</a></li>
+                            <li><a href="/game/team_total_record.asp" class="language" data-kr="팀종합기록" data-en="Overall<br>Records">팀종합기록</a></li>
+                            <li><a href="/game/report.asp" class="language" data-kr="승/패 리포트" data-en="W/L Reports">승/패 리포트</a></li>
+                            <li><a href="/game/today_mvp.asp" class="language" data-kr="오늘의 MVP" data-en="Today’s MVP">오늘의 MVP</a></li>
+                        </ul>
+                        <ul class="sub3" rel="3">
+                            <li><a href="/team/teaminfo.asp" class="language" data-kr="삼성생명" data-en="Samsung life">삼성생명</a></li>
+                            <li><a href="/team/teaminfo.asp?team_code=07" class="language" data-kr="신한은행" data-en="Shinhan Bank">신한은행</a></li>
+                            <li><a href="/team/teaminfo.asp?team_code=05" class="language" data-kr="우리은행" data-en="Woori Bank">우리은행</a></li>
+                            <li><a href="/team/teaminfo.asp?team_code=09" class="language" data-kr="하나은행" data-en="Hana Bank">하나은행</a></li>
+                            <li><a href="/team/teaminfo.asp?team_code=11" class="language" data-kr="BNK썸" data-en="BNK SUM">BNK썸</a></li>
+                            <li><a href="/team/teaminfo.asp?team_code=01" class="language" data-kr="KB스타즈" data-en="KB stars">KB스타즈</a></li>
+                        </ul>
+                        <ul class="sub4" rel="4">
+                            <li><a href="/player/player_list.asp" class="language" data-kr="선수색인" data-en="Player index">선수색인</a></li>
+                            <li><a href="/player/trade_info.asp" class="language" data-kr="이적현황" data-en="Transfer status">이적현황</a></li>
+                            <li><a href="/player/wkbl_hotline.asp">HOTLINE</a></li>
+                        </ul>
+                        <ul class="sub5" rel="5">
+                            <li><a href="/history/league.asp" class="language" data-kr="역대리그" data-en="League">역대리그</a></li>
+                            <li><a href="/history/prev_director.asp" class="language" data-kr="역대총재" data-en="President">역대총재</a></li>
+                            <li><a href="/history/major_team.asp" class="language" data-kr="역대주요기록" data-en="Key Records">역대주요기록</a></li>
+                            <li><a href="/history/awards.asp" class="language" data-kr="역대부문별수상자" data-en="All-time winners">역대부문별수상자</a></li>
+                            <li><a href="/history/draft.asp" class="language" data-kr="역대드래프트" data-en="Draft">역대드래프트</a></li>
+                            <li><a href="/history/fa_result.asp" class="language" data-kr="역대 FA" data-en="FA">역대 FA</a></li>
+                            <li><a href="/history/crowd.asp" class="language" data-kr="역대관중현황" data-en="Attendance<br>status">역대관중현황</a></li>
+                            <li><a href="/event/20th/index.asp" class="language" data-kr="GREAT 12<br/>(20주년 기념)" data-en="GREAT 12<br>(20th Anniversary)">GREAT 12<br/>(20주년 기념)</a></li>
+                        </ul>
+                        <ul class="sub6" rel="6">
+                            <li><a href="/event/parksj2026/about_01.asp" class="language" data-kr="박신자컵" data-en="Park Shin-Ja<br>Cup">박신자컵</a></li>
+                            <li><a href="/event/triplejam2026/about_01.asp" class="language" data-kr="트리플잼" data-en="Triple Jam">트리플잼</a></li>
+                            <li><a href="/allstar/2025/" class="language" data-kr="올스타전" data-en="All star">올스타전</a></li>
+                            <li><a href="/event/playoff2526/" class="language" data-kr="플레이오프<br/>챔프전" data-en="Playoffs<br>Championship">플레이오프<br/>챔프전</a></li>
+                            <li><a href="/event/futures2627/about_01.asp" class="language" data-kr="퓨처스리그" data-en="Futures league">퓨처스리그</a></li>
+                            <!-- <li><a href="/event/asian2022/about_01.asp" class="language" data-kr="국제대회" data-en="International<br>league">국제대회</a></li> -->
+                        </ul>
+                        <ul class="sub7" rel="7">
+                            <li><a href="/fan/character.asp" class="language" data-kr="캐릭터" data-en="Character">캐릭터</a></li>
+                            <li><a href="/fan/music.asp" class="language" data-kr="플레이리스트" data-en="WKBL PLAYLIST">플레이리스트</a></li>
+                            <li><a href="/fan/magazine.asp" class="language" data-kr="화보" data-en="Magazine">화보</a></li>
+                            <li><a href="/fan/wallpaper.asp" class="language" data-kr="월페이퍼" data-en="Wall paper">월페이퍼</a></li>
+                            <li><a href="/fan/season_paper.asp" class="language" data-kr="배경화면" data-en="Background<br>image">배경화면</a></li>
+                            <li><a href="/fan/board_list.asp" class="language" data-kr="자유게시판" data-en="Community">자유게시판</a></li>
+                            <li><a href="/fan/faq.asp" class="language" data-kr="자주하는질문" data-en="FAQ">자주하는질문</a></li>
+                            <li><a href="/fan/sns.asp" class="language">SNS</a></li>
+                            <li><a href="/ticket/event.asp" class="language" data-kr="이벤트" data-en="Event">이벤트</a></li>
+                        </ul>
+                        <ul class="sub8" rel="8">
+                            <li>&nbsp;</li>
+                        </ul>
+                    </div>
+                    <img src="/static/images/main/menu_banner.png" alt="통통튀는 우크블즈">
+                </div>
+            </div>
+
+            <!-- <div class="season_nav">
+                <div class="inner_season">
+                    <div class="title">
+                        <p class="name">정규리그</p>
+                    </div>
+                    <div class="game_status">
+                        <div class="info active">
+                            <div class="txt_info">
+                                <p class="time">14:30</p>
+                                <p class="status">진행중</p>
+                            </div>
+                            <div class="versus">
+                                <div class="thumb_img">
+                                    <img src="/static/images/team/teamlogo_01.png" alt="KB스타즈">
+                                </div>
+                                <p class="vs">vs</p>
+                                <div class="thumb_img">
+                                    <img src="/static/images/team/teamlogo_03.png" alt="삼성생명">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="info">
+                            <div class="txt_info">
+                                <p class="time">19:00</p>
+                                <p class="status">예정</p>
+                            </div>
+                            <div class="versus">
+                                <div class="thumb_img">
+                                    <img src="/static/images/team/teamlogo_01.png" alt="KB스타즈">
+                                </div>
+                                <p class="vs">vs</p>
+                                <div class="thumb_img">
+                                    <img src="/static/images/team/teamlogo_03.png" alt="삼성생명">
+                                </div>
+                            </div>
+                            
+                            <a href="" class="ticket_btn">티켓예매</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="main_aside_dday">
+                    <div class="top">
+                        <div class="dday_tit">
+                            <span class="tag">D-DAY</span>
+                            <span class="standard">26.07.29</span>
+                        </div>
+                        <p class="tit">26 퓨쳐스리그</p>
+                    </div>
+
+                    <div class="bottom">
+                        <div class="dday">
+                            <span>D</span>
+                            <span class="sign">-</span>
+                            <span class="num">130</span>
+                        </div>
+                    </div>
+                </div>
+            </div> -->
+        </header>
+    <section id="contents">
+        <div id="cMain" class="player_result">
+            <div class="top_result">
+                <div class="inner_cont">
+                    <h2><strong>“"</strong><span class="language" data-kr="검색결과입니다" data-en="This is the search result.">검색결과입니다.</span></h2>
+                </div>
+            </div>
+            <div class="inner_cont">
+               <div class="result_box">
+					<h3 class="title language"  data-kr="현역선수" data-en="Active player">현역선수</h3>
+					<ul class="list_info">
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=07&pno=095937" class="link_detail">
+								가네다 마나
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=03&pno=096259" class="link_detail">
+								가네미츠 아야네
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=05&pno=095450" class="link_detail">
+								강계리
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=03&pno=095713" class="link_detail">
+								강유림
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=05&pno=095263" class="link_detail">
+								강이슬
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=07&pno=095700" class="link_detail">
+								고나연
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=01&pno=096138" class="link_detail">
+								고리미
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=09&pno=095830" class="link_detail">
+								고서연
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=01&pno=095901" class="link_detail">
+								고현지
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=05&pno=095104" class="link_detail">
+								김단비
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=11&pno=096001" class="link_detail">
+								김도연
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=05&pno=096263" class="link_detail">
+								김리혜
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=01&pno=096137" class="link_detail">
+								김민경
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=11&pno=095834" class="link_detail">
+								김민아
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=01&pno=095251" class="link_detail">
+								김민정
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=07&pno=096274" class="link_detail">
+								김사랑
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=11&pno=096271" class="link_detail">
+								김서현
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=01&pno=096272" class="link_detail">
+								김성언
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=11&pno=095248" class="link_detail">
+								김소니아
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=05&pno=095909" class="link_detail">
+								김솔
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=09&pno=095903" class="link_detail">
+								김수인
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=09&pno=095442" class="link_detail">
+								김시온
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=03&pno=095477" class="link_detail">
+								김아름
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=09&pno=096148" class="link_detail">
+								김연진
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=01&pno=095781" class="link_detail">
+								김은선
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=11&pno=095899" class="link_detail">
+								김정은
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=07&pno=095503" class="link_detail">
+								김지영
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=07&pno=095482" class="link_detail">
+								김진영
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=07&pno=096004" class="link_detail">
+								김채은
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=01&pno=095543" class="link_detail">
+								나윤정
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=07&pno=096265" class="link_detail">
+								노구치 사쿠라
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=03&pno=095918" class="link_detail">
+								미야사카 모모나
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=11&pno=096262" class="link_detail">
+								바네사 데 헤수스
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=11&pno=095900" class="link_detail">
+								박다원
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=11&pno=095833" class="link_detail">
+								박성진
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=05&pno=096145" class="link_detail">
+								박소영
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=09&pno=095788" class="link_detail">
+								박소희
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=09&pno=096278" class="link_detail">
+								박유리
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=11&pno=096136" class="link_detail">
+								박지수
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=01&pno=095533" class="link_detail">
+								박지수
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=07&pno=095832" class="link_detail">
+								박진영
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=11&pno=095186" class="link_detail">
+								박혜진
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=03&pno=095782" class="link_detail">
+								방지온
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=11&pno=095780" class="link_detail">
+								변소정
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=05&pno=095908" class="link_detail">
+								변하정
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=01&pno=096033" class="link_detail">
+								사카이 사라
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=01&pno=095902" class="link_detail">
+								성수연
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=01&pno=095999" class="link_detail">
+								송윤하
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=11&pno=096269" class="link_detail">
+								송은지
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=09&pno=095919" class="link_detail">
+								스나가와 나츠키
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=01&pno=095785" class="link_detail">
+								신예영
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=07&pno=095633" class="link_detail">
+								신이슬
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=07&pno=095441" class="link_detail">
+								신지현
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=05&pno=095210" class="link_detail">
+								심성영
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=07&pno=095825" class="link_detail">
+								심수현
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=11&pno=095484" class="link_detail">
+								안혜지
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=01&pno=096261" class="link_detail">
+								알렉시스 파나
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=09&pno=095259" class="link_detail">
+								양인영
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=01&pno=095746" class="link_detail">
+								양지수
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=03&pno=096140" class="link_detail">
+								양혜은
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=05&pno=095707" class="link_detail">
+								오승인
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=01&pno=096260" class="link_detail">
+								원이아나
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=03&pno=096003" class="link_detail">
+								유하은
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=01&pno=095497" class="link_detail">
+								윤예빈
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=07&pno=096143" class="link_detail">
+								이가현
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=03&pno=095742" class="link_detail">
+								이다연
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=09&pno=095831" class="link_detail">
+								이다현
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=07&pno=095826" class="link_detail">
+								이두나
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=05&pno=095703" class="link_detail">
+								이명관
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=05&pno=096005" class="link_detail">
+								이민지
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=03&pno=096268" class="link_detail">
+								이소희
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=11&pno=095636" class="link_detail">
+								이소희
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=05&pno=096277" class="link_detail">
+								이수현
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=01&pno=095978" class="link_detail">
+								이여명
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=03&pno=095904" class="link_detail">
+								이예나
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=11&pno=096135" class="link_detail">
+								이원정
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=01&pno=095642" class="link_detail">
+								이윤미
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=09&pno=096147" class="link_detail">
+								이은서
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=09&pno=095912" class="link_detail">
+								이이지마 사키
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=03&pno=095524" class="link_detail">
+								이주연
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=01&pno=095637" class="link_detail">
+								이채은
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=03&pno=095778" class="link_detail">
+								이해란
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=07&pno=095527" class="link_detail">
+								이혜미
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=03&pno=095779" class="link_detail">
+								임규리
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=11&pno=096270" class="link_detail">
+								임연서
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=09&pno=095715" class="link_detail">
+								정예림
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=05&pno=096276" class="link_detail">
+								정지윤
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=07&pno=096141" class="link_detail">
+								정채련
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=09&pno=096008" class="link_detail">
+								정현
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=05&pno=096275" class="link_detail">
+								정혜윤
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=03&pno=095749" class="link_detail">
+								조수아
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=03&pno=096267" class="link_detail">
+								조우
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=07&pno=096273" class="link_detail">
+								조희원
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=09&pno=095499" class="link_detail">
+								진안
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=03&pno=096002" class="link_detail">
+								최예슬
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=05&pno=096144" class="link_detail">
+								최예원
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=11&pno=095261" class="link_detail">
+								최이샘
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=05&pno=096156" class="link_detail">
+								카타야마 나나
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=11&pno=095911" class="link_detail">
+								타니무라 리카
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=09&pno=096007" class="link_detail">
+								하지윤
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=03&pno=095807" class="link_detail">
+								한야은
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=05&pno=095528" class="link_detail">
+								한연우
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=03&pno=096139" class="link_detail">
+								한지민
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=01&pno=095710" class="link_detail">
+								허예은
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=09&pno=095905" class="link_detail">
+								허유정
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=07&pno=095972" class="link_detail">
+								홍유순
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=07&pno=096264" class="link_detail">
+								황샹팅
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=09&pno=096146" class="link_detail">
+								황윤서
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=07&pno=096142" class="link_detail">
+								황현정
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail.asp?player_group=12&tcode=05&pno=095881" class="link_detail">
+								후지모토 마코
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+                   </ul>
+               </div>
+               <!--// result_box -->
+
+               <div class="result_box">
+ 					<h3 class="title language" data-kr="은퇴선수" data-en="Retired player">은퇴선수</h3>
+ 					<ul class="list_info">
+ 					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=02&pno=002008" class="link_detail">
+								강민정
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095187" class="link_detail">
+								강민지
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=02&pno=095033" class="link_detail">
+								강아름
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=11&pno=095106" class="link_detail">
+								강아정
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=005022" class="link_detail">
+								강영숙
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=095526" class="link_detail">
+								강예림
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=02&pno=002020" class="link_detail">
+								강윤미
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=08&pno=095225" class="link_detail">
+								강은미
+								<span class="txt_team">[KDB생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=02&pno=002010" class="link_detail">
+								강주림
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095739" class="link_detail">
+								강주은
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095202" class="link_detail">
+								강지영
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=09&pno=006011" class="link_detail">
+								강지우
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=001915" class="link_detail">
+								강혜진
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095116" class="link_detail">
+								경현미
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=11&pno=095736" class="link_detail">
+								고세림
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=02&pno=095027" class="link_detail">
+								고아라
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095068" class="link_detail">
+								고아라
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=002017" class="link_detail">
+								곽주영
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=04&pno=004017" class="link_detail">
+								구미영
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=095507" class="link_detail">
+								구민정
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=095256" class="link_detail">
+								구슬
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=06&pno=006007" class="link_detail">
+								권은정
+								<span class="txt_team">[현대]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=06&pno=006016" class="link_detail">
+								권혜미
+								<span class="txt_team">[현대]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095479" class="link_detail">
+								길다빈
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=095195" class="link_detail">
+								김가영
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095177" class="link_detail">
+								김가은
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=095198" class="link_detail">
+								김경락
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=005947" class="link_detail">
+								김경희
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=02&pno=001019" class="link_detail">
+								김경희
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=003009" class="link_detail">
+								김계령
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=095220" class="link_detail">
+								김규희
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=095588" class="link_detail">
+								김나연
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=09&pno=005020" class="link_detail">
+								김나연
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095038" class="link_detail">
+								김다래
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=095226" class="link_detail">
+								김단비
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=09&pno=095539" class="link_detail">
+								김단아
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=094935" class="link_detail">
+								김달님
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=09&pno=095638" class="link_detail">
+								김두나랑
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095073" class="link_detail">
+								김미나
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=095212" class="link_detail">
+								김미소
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=005006" class="link_detail">
+								김미정
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=09&pno=095221" class="link_detail">
+								김민경
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=094996" class="link_detail">
+								김민경
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=04&pno=094951" class="link_detail">
+								김민정
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=095525" class="link_detail">
+								김민정
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=095475" class="link_detail">
+								김민정
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=094955" class="link_detail">
+								김민지
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=003910" class="link_detail">
+								김민희
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095217" class="link_detail">
+								김보람
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=094915" class="link_detail">
+								김보미
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=095181" class="link_detail">
+								김보미
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=02&pno=005021" class="link_detail">
+								김보민
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=006032" class="link_detail">
+								김보현
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=11&pno=096000" class="link_detail">
+								김보현
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=001023" class="link_detail">
+								김분좌
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=095197" class="link_detail">
+								김새벽
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=001910" class="link_detail">
+								김서영
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=095253" class="link_detail">
+								김선미
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=095111" class="link_detail">
+								김선아
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=003012" class="link_detail">
+								김선혜
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=11&pno=095500" class="link_detail">
+								김선희
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=06&pno=006906" class="link_detail">
+								김성은
+								<span class="txt_team">[현대]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=06&pno=006910" class="link_detail">
+								김세영
+								<span class="txt_team">[현대]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095224" class="link_detail">
+								김소담
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=005024" class="link_detail">
+								김소현
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=02&pno=002014" class="link_detail">
+								김수경
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=001041" class="link_detail">
+								김수연
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095176" class="link_detail">
+								김수진
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=02&pno=095054" class="link_detail">
+								김수희
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=001920" class="link_detail">
+								김승란
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=003010" class="link_detail">
+								김아름
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=09&pno=095699" class="link_detail">
+								김애나
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=094925" class="link_detail">
+								김연주
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=02&pno=002031" class="link_detail">
+								김영숙
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=006018" class="link_detail">
+								김영옥
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=003014" class="link_detail">
+								김영화
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095504" class="link_detail">
+								김예진
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095103" class="link_detail">
+								김유경
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=09&pno=095824" class="link_detail">
+								김유선
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095149" class="link_detail">
+								김유정
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=095236" class="link_detail">
+								김유정
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=001001" class="link_detail">
+								김윤희
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=001030" class="link_detail">
+								김은경
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=005030" class="link_detail">
+								김은영
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=04&pno=095231" class="link_detail">
+								김은지
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=06&pno=006017" class="link_detail">
+								김은혜
+								<span class="txt_team">[현대]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=005028" class="link_detail">
+								김은혜
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=09&pno=095264" class="link_detail">
+								김이슬
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=001904" class="link_detail">
+								김정민
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095067" class="link_detail">
+								김정아
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=09&pno=095041" class="link_detail">
+								김정은
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=003020" class="link_detail">
+								김정현
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=09&pno=095184" class="link_detail">
+								김지수
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=001003" class="link_detail">
+								김지영
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=09&pno=001018" class="link_detail">
+								김지윤
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=11&pno=095595" class="link_detail">
+								김지은
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=09&pno=005036" class="link_detail">
+								김지현
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=02&pno=002015" class="link_detail">
+								김진아
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095585" class="link_detail">
+								김진희
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=094938" class="link_detail">
+								김채원
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=09&pno=095443" class="link_detail">
+								김채은
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=06&pno=006026" class="link_detail">
+								김춘미
+								<span class="txt_team">[현대]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=003031" class="link_detail">
+								김태경
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=095476" class="link_detail">
+								김태연
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=09&pno=095645" class="link_detail">
+								김하나
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=09&pno=095175" class="link_detail">
+								김하정
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=11&pno=095189" class="link_detail">
+								김한별
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=095250" class="link_detail">
+								김한비
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=09&pno=095265" class="link_detail">
+								김한빛
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095708" class="link_detail">
+								김해지
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=004931" class="link_detail">
+								김향미
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=11&pno=095502" class="link_detail">
+								김현아
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=04&pno=094964" class="link_detail">
+								김현정
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=095498" class="link_detail">
+								김형경
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=001917" class="link_detail">
+								김혜진
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=06&pno=006013" class="link_detail">
+								김화영
+								<span class="txt_team">[현대]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=08&pno=001004" class="link_detail">
+								김효정
+								<span class="txt_team">[KDB생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=003005" class="link_detail">
+								김효정
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=095260" class="link_detail">
+								김희란
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=11&pno=095447" class="link_detail">
+								김희진
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=11&pno=095706" class="link_detail">
+								나금비
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=003016" class="link_detail">
+								나에스더
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=002009" class="link_detail">
+								남경민
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=005035" class="link_detail">
+								남궁혜림
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=04&pno=004007" class="link_detail">
+								남기선
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095640" class="link_detail">
+								노은서
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095223" class="link_detail">
+								노현지
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095836" class="link_detail">
+								노혜경
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=02&pno=095608" class="link_detail">
+								류소희
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095237" class="link_detail">
+								류영선
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095205" class="link_detail">
+								린다 월링턴
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=02&pno=095082" class="link_detail">
+								마리아
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=095245" class="link_detail">
+								명금아
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=11&pno=095737" class="link_detail">
+								문지영
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=094916" class="link_detail">
+								민서연
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=094918" class="link_detail">
+								민주희
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=095065" class="link_detail">
+								박가금
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=11&pno=095748" class="link_detail">
+								박경림
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095086" class="link_detail">
+								박경숙
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095216" class="link_detail">
+								박근영
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=11&pno=095229" class="link_detail">
+								박다정
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=06&pno=006006" class="link_detail">
+								박명애
+								<span class="txt_team">[현대]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=003011" class="link_detail">
+								박선영
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=001033" class="link_detail">
+								박선영
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=094942" class="link_detail">
+								박세미
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=095199" class="link_detail">
+								박소영
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=005018" class="link_detail">
+								박순양
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=003914" class="link_detail">
+								박승지
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095523" class="link_detail">
+								박시은
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=095076" class="link_detail">
+								박애경
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=09&pno=095066" class="link_detail">
+								박언주
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095029" class="link_detail">
+								박연수
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095534" class="link_detail">
+								박유진
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=02&pno=094931" class="link_detail">
+								박은영
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=09&pno=002004" class="link_detail">
+								박은진
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095747" class="link_detail">
+								박은하
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=005011" class="link_detail">
+								박은혜
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=11&pno=095835" class="link_detail">
+								박인아
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=06&pno=006911" class="link_detail">
+								박정민
+								<span class="txt_team">[현대]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095600" class="link_detail">
+								박정시
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=003017" class="link_detail">
+								박정은
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095591" class="link_detail">
+								박주희
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095446" class="link_detail">
+								박지은
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095639" class="link_detail">
+								박지현
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095512" class="link_detail">
+								박진희
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095483" class="link_detail">
+								박진희
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=04&pno=095042" class="link_detail">
+								박진희
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=04&pno=095241" class="link_detail">
+								박진희
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=095540" class="link_detail">
+								박찬양
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=003030" class="link_detail">
+								박채정
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095019" class="link_detail">
+								박태은
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=095182" class="link_detail">
+								박하나
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=09&pno=095501" class="link_detail">
+								박현영
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=06&pno=006034" class="link_detail">
+								박현진
+								<span class="txt_team">[현대]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=08&pno=095194" class="link_detail">
+								박혜련
+								<span class="txt_team">[KDB생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095444" class="link_detail">
+								박혜미
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=04&pno=004924" class="link_detail">
+								박혜영
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095239" class="link_detail">
+								박혜인
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=04&pno=004015" class="link_detail">
+								방지윤
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=095115" class="link_detail">
+								배혜윤
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=001005" class="link_detail">
+								백성실
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=02&pno=095055" class="link_detail">
+								백쥬리
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095827" class="link_detail">
+								백지원
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=09&pno=095034" class="link_detail">
+								백지은
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=095741" class="link_detail">
+								백채연
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=003022" class="link_detail">
+								변연하
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095044" class="link_detail">
+								서민애
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=02&pno=002012" class="link_detail">
+								서상희
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=09&pno=095445" class="link_detail">
+								서수빈
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095119" class="link_detail">
+								서수진
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=005023" class="link_detail">
+								서영경
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=09&pno=095789" class="link_detail">
+								서예원
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=09&pno=095907" class="link_detail">
+								서진영
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095643" class="link_detail">
+								선가희
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=004010" class="link_detail">
+								선수민
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=095185" class="link_detail">
+								손보라
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=02&pno=002018" class="link_detail">
+								손영미
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095087" class="link_detail">
+								손주희
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095494" class="link_detail">
+								수잔나
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095709" class="link_detail">
+								신민지
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095234" class="link_detail">
+								신보라
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=02&pno=002910" class="link_detail">
+								신원화
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=04&pno=095183" class="link_detail">
+								신은경
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=095505" class="link_detail">
+								신재영
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=094934" class="link_detail">
+								신정아
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=001022" class="link_detail">
+								신정자
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=005003" class="link_detail">
+								신주희
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=09&pno=095910" class="link_detail">
+								신태희
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=04&pno=004028" class="link_detail">
+								신혜인
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=04&pno=004016" class="link_detail">
+								심신혜
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=06&pno=095599" class="link_detail">
+								심연정
+								<span class="txt_team">[현대]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=06&pno=006021" class="link_detail">
+								안두리
+								<span class="txt_team">[현대]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=04&pno=095070" class="link_detail">
+								안소현
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=005943" class="link_detail">
+								안자은
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095837" class="link_detail">
+								안정현
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=095634" class="link_detail">
+								안주연
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=001027" class="link_detail">
+								안하지
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=094919" class="link_detail">
+								안현진
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=095196" class="link_detail">
+								안효진
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=09&pno=004004" class="link_detail">
+								양선애
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095107" class="link_detail">
+								양선희
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=02&pno=002034" class="link_detail">
+								양은주
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=095230" class="link_detail">
+								양지영
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=095823" class="link_detail">
+								양지원
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=004006" class="link_detail">
+								양지희
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095240" class="link_detail">
+								양초롱
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=001020" class="link_detail">
+								양희연
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095508" class="link_detail">
+								엄다영
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=09&pno=095704" class="link_detail">
+								엄서이
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095037" class="link_detail">
+								염윤아
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=02&pno=002019" class="link_detail">
+								오수진
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095233" class="link_detail">
+								오승원
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=06&pno=095598" class="link_detail">
+								오은혜
+								<span class="txt_team">[현대]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=06&pno=006008" class="link_detail">
+								옥은희
+								<span class="txt_team">[현대]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=02&pno=002907" class="link_detail">
+								왕수진
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=08&pno=095536" class="link_detail">
+								우수진
+								<span class="txt_team">[KDB생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095244" class="link_detail">
+								우인혜
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=08&pno=095077" class="link_detail">
+								원진아
+								<span class="txt_team">[KDB생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=11&pno=095705" class="link_detail">
+								유승연
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095254" class="link_detail">
+								유승희
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=003904" class="link_detail">
+								유영주
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095509" class="link_detail">
+								유현이
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=04&pno=005029" class="link_detail">
+								유현진
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095641" class="link_detail">
+								유현희
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095113" class="link_detail">
+								윤나리
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=003013" class="link_detail">
+								윤미나
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=04&pno=004008" class="link_detail">
+								윤미연
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095031" class="link_detail">
+								윤미주
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=095209" class="link_detail">
+								윤미지
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=04&pno=095043" class="link_detail">
+								윤미혜
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=005940" class="link_detail">
+								윤배정
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=02&pno=095605" class="link_detail">
+								윤여진
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=08&pno=095191" class="link_detail">
+								윤윽희
+								<span class="txt_team">[KDB생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095109" class="link_detail">
+								윤혜민
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=001906" class="link_detail">
+								이경순
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=095035" class="link_detail">
+								이경은
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095030" class="link_detail">
+								이경희
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=04&pno=004925" class="link_detail">
+								이길순
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095480" class="link_detail">
+								이나현
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=02&pno=002915" class="link_detail">
+								이남지
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095188" class="link_detail">
+								이다혜
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=09&pno=095232" class="link_detail">
+								이령
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=095120" class="link_detail">
+								이명희     
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=005938" class="link_detail">
+								이명희
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=003019" class="link_detail">
+								이미선
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=006023" class="link_detail">
+								이미숙
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=003029" class="link_detail">
+								이미화
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=001922" class="link_detail">
+								이봉애
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=11&pno=095506" class="link_detail">
+								이사빈
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=02&pno=094929" class="link_detail">
+								이상희
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095448" class="link_detail">
+								이선영
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=02&pno=001911" class="link_detail">
+								이선형
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095069" class="link_detail">
+								이선화
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=04&pno=094943" class="link_detail">
+								이성은
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095535" class="link_detail">
+								이소정
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=09&pno=095200" class="link_detail">
+								이수연
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=095702" class="link_detail">
+								이수정
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=02&pno=095112" class="link_detail">
+								이수진
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=094930" class="link_detail">
+								이순아
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095118" class="link_detail">
+								이슬이
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095214" class="link_detail">
+								이승아
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=02&pno=004021" class="link_detail">
+								이언주
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=04&pno=095603" class="link_detail">
+								이연정
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=08&pno=005031" class="link_detail">
+								이연화
+								<span class="txt_team">[KDB생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=06&pno=006025" class="link_detail">
+								이영채
+								<span class="txt_team">[현대]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=003015" class="link_detail">
+								이옥경
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=04&pno=095174" class="link_detail">
+								이유리
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=003028" class="link_detail">
+								이유미
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=095787" class="link_detail">
+								이유진
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=09&pno=095110" class="link_detail">
+								이유진
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095478" class="link_detail">
+								이윤정
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=08&pno=095222" class="link_detail">
+								이은비
+								<span class="txt_team">[KDB생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=001913" class="link_detail">
+								이은아
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=02&pno=002007" class="link_detail">
+								이은영
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=095589" class="link_detail">
+								이은지
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095117" class="link_detail">
+								이은혜
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=002011" class="link_detail">
+								이은희
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=005034" class="link_detail">
+								이자행
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095646" class="link_detail">
+								이재원
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=09&pno=095215" class="link_detail">
+								이정현
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=005027" class="link_detail">
+								이종애
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095701" class="link_detail">
+								이주영
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=11&pno=095783" class="link_detail">
+								이주하
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=09&pno=095743" class="link_detail">
+								이지우
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=095024" class="link_detail">
+								이지윤
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=09&pno=095218" class="link_detail">
+								이지현
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=02&pno=002909" class="link_detail">
+								이진
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095584" class="link_detail">
+								이하영
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=11&pno=095481" class="link_detail">
+								이하은
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095828" class="link_detail">
+								이현서
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095711" class="link_detail">
+								이혜수
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=005944" class="link_detail">
+								이혜영
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=005002" class="link_detail">
+								이혜정
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095786" class="link_detail">
+								이혜주
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=04&pno=004930" class="link_detail">
+								이혜진
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=095180" class="link_detail">
+								이화연
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095032" class="link_detail">
+								이효나
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=003027" class="link_detail">
+								이효진
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095072" class="link_detail">
+								임소흔
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=002912" class="link_detail">
+								임순정
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=004013" class="link_detail">
+								임영희
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=11&pno=095635" class="link_detail">
+								임예솔
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=095147" class="link_detail">
+								임정희
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=095593" class="link_detail">
+								임주리
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=02&pno=002030" class="link_detail">
+								임현지
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=04&pno=004929" class="link_detail">
+								임혜경
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=02&pno=002022" class="link_detail">
+								장란희
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=04&pno=095219" class="link_detail">
+								장민지
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=004005" class="link_detail">
+								장선형
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095036" class="link_detail">
+								장예은
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=09&pno=095596" class="link_detail">
+								장유영
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=001026" class="link_detail">
+								장윤숙
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=095744" class="link_detail">
+								장은혜
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=06&pno=006014" class="link_detail">
+								장화진
+								<span class="txt_team">[현대]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=08&pno=095257" class="link_detail">
+								전보물
+								<span class="txt_team">[KDB생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=02&pno=003026" class="link_detail">
+								전보영
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=005032" class="link_detail">
+								전선희
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=006004" class="link_detail">
+								전주원
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=004932" class="link_detail">
+								전지혜
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095583" class="link_detail">
+								정금진
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=005946" class="link_detail">
+								정미나
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=002032" class="link_detail">
+								정미란
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=06&pno=006912" class="link_detail">
+								정미선
+								<span class="txt_team">[현대]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=02&pno=095080" class="link_detail">
+								정미현
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095449" class="link_detail">
+								정민주
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=003909" class="link_detail">
+								정서영
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=004020" class="link_detail">
+								정선민
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=11&pno=001009" class="link_detail">
+								정선화
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095071" class="link_detail">
+								정송희
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095178" class="link_detail">
+								정슬비
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=094917" class="link_detail">
+								정아름
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=02&pno=005009" class="link_detail">
+								정안나
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=094993" class="link_detail">
+								정안영
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=095542" class="link_detail">
+								정유림
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095074" class="link_detail">
+								정유진
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=095238" class="link_detail">
+								정유진
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=006019" class="link_detail">
+								정윤숙
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=003024" class="link_detail">
+								정은순
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095203" class="link_detail">
+								정은지
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=005012" class="link_detail">
+								정지문
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=04&pno=094944" class="link_detail">
+								정진경
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=096006" class="link_detail">
+								정채원
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=02&pno=002021" class="link_detail">
+								정하윤
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095085" class="link_detail">
+								정해란
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=04&pno=004031" class="link_detail">
+								정혜민
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=04&pno=004026" class="link_detail">
+								정혜진
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=095207" class="link_detail">
+								제네바 터커
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=06&pno=006015" class="link_detail">
+								조선정
+								<span class="txt_team">[현대]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=001024" class="link_detail">
+								조성애
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=11&pno=095738" class="link_detail">
+								조세영
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=005937" class="link_detail">
+								조소연
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095745" class="link_detail">
+								조수민
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=11&pno=003007" class="link_detail">
+								조은주
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=06&pno=006905" class="link_detail">
+								조인현
+								<span class="txt_team">[현대]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=001921" class="link_detail">
+								조정현
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=001924" class="link_detail">
+								조진혜
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=005026" class="link_detail">
+								조혜진
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095601" class="link_detail">
+								주정란
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=006010" class="link_detail">
+								진미정
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095592" class="link_detail">
+								진세민
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=09&pno=006012" class="link_detail">
+								진신혜
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=095451" class="link_detail">
+								차서온
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095545" class="link_detail">
+								차지현
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095108" class="link_detail">
+								차혜진
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=09&pno=095213" class="link_detail">
+								차홍진
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095020" class="link_detail">
+								천민혜
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=04&pno=004920" class="link_detail">
+								천은숙
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=09&pno=095495" class="link_detail">
+								첼시 리
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095511" class="link_detail">
+								최규희
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=003911" class="link_detail">
+								최명
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=02&pno=002088" class="link_detail">
+								최미연
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=09&pno=095714" class="link_detail">
+								최미현
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095075" class="link_detail">
+								최민경
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095717" class="link_detail">
+								최민서
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=11&pno=095784" class="link_detail">
+								최민주
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=09&pno=095597" class="link_detail">
+								최민주
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=11&pno=095716" class="link_detail">
+								최서연
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=005005" class="link_detail">
+								최설아
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=09&pno=095537" class="link_detail">
+								최세영
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095262" class="link_detail">
+								최예인
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=08&pno=095192" class="link_detail">
+								최원선
+								<span class="txt_team">[KDB생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=001017" class="link_detail">
+								최위정
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=04&pno=095114" class="link_detail">
+								최유진
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095712" class="link_detail">
+								최윤선
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=006031" class="link_detail">
+								최윤아
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=095587" class="link_detail">
+								최정민
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095510" class="link_detail">
+								최정민
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=09&pno=095644" class="link_detail">
+								최지선
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=095026" class="link_detail">
+								최지혜
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=095023" class="link_detail">
+								최하나
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=02&pno=095028" class="link_detail">
+								최하나
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=001006" class="link_detail">
+								최효정
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=06&pno=095604" class="link_detail">
+								최희정
+								<span class="txt_team">[현대]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095022" class="link_detail">
+								최희진
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=095906" class="link_detail">
+								케이티 티머맨
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095471" class="link_detail">
+								크리스틴 조
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=095822" class="link_detail">
+								키아나 스미스
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095740" class="link_detail">
+								편선우
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=095590" class="link_detail">
+								편예빈
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=095235" class="link_detail">
+								하선형
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=095081" class="link_detail">
+								하은주
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=04&pno=004027" class="link_detail">
+								한미라
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=001916" class="link_detail">
+								한서윤
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=095513" class="link_detail">
+								한여름
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=005941" class="link_detail">
+								한진희
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=006024" class="link_detail">
+								한채진
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=02&pno=002006" class="link_detail">
+								한현선
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=094939" class="link_detail">
+								함예슬
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=08&pno=095201" class="link_detail">
+								허기쁨
+								<span class="txt_team">[KDB생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=004011" class="link_detail">
+								허윤자
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=095602" class="link_detail">
+								허윤정
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=003008" class="link_detail">
+								허윤정
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=02&pno=095606" class="link_detail">
+								호선미
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=005010" class="link_detail">
+								홍보라
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=095064" class="link_detail">
+								홍보람
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=11&pno=095485" class="link_detail">
+								홍소리
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=095211" class="link_detail">
+								홍아란
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=08&pno=095193" class="link_detail">
+								홍영경
+								<span class="txt_team">[KDB생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=03&pno=095021" class="link_detail">
+								홍유리
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=02&pno=001021" class="link_detail">
+								홍정애
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=08&pno=005025" class="link_detail">
+								홍현희
+								<span class="txt_team">[KDB생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=094926" class="link_detail">
+								황미예
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=07&pno=095586" class="link_detail">
+								황미우
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=094941" class="link_detail">
+								황보순희
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=01&pno=001025" class="link_detail">
+								황순혜
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=09&pno=095474" class="link_detail">
+								황승미
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=06&pno=095607" class="link_detail">
+								황은주
+								<span class="txt_team">[현대]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=05&pno=005004" class="link_detail">
+								황진희
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=11&tcode=02&pno=095179" class="link_detail">
+								황혜진
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+               </div>
+               <!--// result_box -->
+
+               <div class="result_box">
+					<h3 class="title language" data-kr="외국인선수" data-en="Foreign player">외국인선수</h3>
+					<ul class="list_info">
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=06&pno=006027" class="link_detail">
+								가드너
+								<span class="txt_team">[현대]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=03&pno=096027" class="link_detail">
+								가와무라 미유키
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=07&pno=095492" class="link_detail">
+								게이틀링
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=02&pno=003021" class="link_detail">
+								겐트
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=09&pno=095576" class="link_detail">
+								과트미
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=02&pno=002903" class="link_detail">
+								관수핑
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=01&pno=001903" class="link_detail">
+								구레바
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=05&pno=095378" class="link_detail">
+								굿렛
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=05&pno=095577" class="link_detail">
+								그레이
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=01&pno=095084" class="link_detail">
+								그리피스
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=01&pno=095916" class="link_detail">
+								나가타 모에
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=01&pno=001907" class="link_detail">
+								나오미
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=11&pno=096032" class="link_detail">
+								나카자와 리나
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=03&pno=095429" class="link_detail">
+								니키
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=11&pno=095573" class="link_detail">
+								단타스
+								<span class="txt_team">[BNK썸]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=07&pno=095057" class="link_detail">
+								디종
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=03&pno=094968" class="link_detail">
+								라일리
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=01&pno=001905" class="link_detail">
+								라피유
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=06&pno=006009" class="link_detail">
+								래슬리
+								<span class="txt_team">[현대]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=02&pno=002902" class="link_detail">
+								량신
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=08&pno=095575" class="link_detail">
+								로이드
+								<span class="txt_team">[KDB생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=06&pno=006029" class="link_detail">
+								루이스
+								<span class="txt_team">[현대]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=05&pno=005934" class="link_detail">
+								류위에슈
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=09&pno=095514" class="link_detail">
+								리스턴
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=04&pno=004927" class="link_detail">
+								리앤
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=05&pno=005058" class="link_detail">
+								마로스
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=04&pno=004022" class="link_detail">
+								마리아
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=02&pno=002027" class="link_detail">
+								마아시
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=09&pno=095695" class="link_detail">
+								마이샤
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=01&pno=001902" class="link_detail">
+								마청칭
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=06&pno=006904" class="link_detail">
+								맥기
+								<span class="txt_team">[현대]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=07&pno=095025" class="link_detail">
+								맥윌리암스
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=07&pno=095548" class="link_detail">
+								맥컬리
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=02&pno=002029" class="link_detail">
+								맥케인
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=03&pno=095544" class="link_detail">
+								맥키니
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=03&pno=003006" class="link_detail">
+								맵
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=07&pno=095631" class="link_detail">
+								먼로
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=02&pno=095047" class="link_detail">
+								멀빈
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=09&pno=095440" class="link_detail">
+								모니카
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=09&pno=095493" class="link_detail">
+								모스비
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=07&pno=096029" class="link_detail">
+								미마 루이
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=02&pno=002905" class="link_detail">
+								밀라
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=05&pno=094920" class="link_detail">
+								밀러
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=02&pno=094967" class="link_detail">
+								밀튼존스
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=01&pno=095522" class="link_detail">
+								바샤라
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=03&pno=003023" class="link_detail">
+								바우터스
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=02&pno=002003" class="link_detail">
+								바이어스
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=07&pno=095530" class="link_detail">
+								불각
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=01&pno=004012" class="link_detail">
+								브라운
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=07&pno=095466" class="link_detail">
+								브릴랜드
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=08&pno=095574" class="link_detail">
+								블랙
+								<span class="txt_team">[KDB생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=04&pno=095004" class="link_detail">
+								블랙만
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=07&pno=094945" class="link_detail">
+								비어드
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=03&pno=095255" class="link_detail">
+								비키바흐
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=05&pno=095647" class="link_detail">
+								빌링스
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=01&pno=001054" class="link_detail">
+								사어
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=07&pno=006005" class="link_detail">
+								샌포드
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=02&pno=002005" class="link_detail">
+								샘
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=05&pno=095039" class="link_detail">
+								샤이라
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=07&pno=095580" class="link_detail">
+								서덜랜드
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=05&pno=096030" class="link_detail">
+								세키 나나미
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=02&pno=001028" class="link_detail">
+								셔튼브라운
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=06&pno=006913" class="link_detail">
+								송리웨이
+								<span class="txt_team">[현대]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=05&pno=005933" class="link_detail">
+								쉬춘메이
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=01&pno=001056" class="link_detail">
+								슈마커
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=02&pno=001008" class="link_detail">
+								스노우
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=03&pno=004018" class="link_detail">
+								스미스
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=04&pno=003920" class="link_detail">
+								스미스
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=07&pno=095696" class="link_detail">
+								스미스
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=01&pno=095056" class="link_detail">
+								스테파노바
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=03&pno=095489" class="link_detail">
+								스톡스
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=07&pno=095433" class="link_detail">
+								스트릭렌
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=01&pno=095917" class="link_detail">
+								시다 모에
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=02&pno=002016" class="link_detail">
+								신디
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=09&pno=095469" class="link_detail">
+								심스
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=01&pno=095538" class="link_detail">
+								쏜튼
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=04&pno=004921" class="link_detail">
+								안다
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=02&pno=005056" class="link_detail">
+								안드레아
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=02&pno=002906" class="link_detail">
+								안젤라
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=03&pno=095572" class="link_detail">
+								알렉산더
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=05&pno=005057" class="link_detail">
+								알렉산드라
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=07&pno=095529" class="link_detail">
+								알렉시즈
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=03&pno=095266" class="link_detail">
+								애슐리
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=05&pno=005033" class="link_detail">
+								앨리사
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=08&pno=095452" class="link_detail">
+								앰버
+								<span class="txt_team">[KDB생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=05&pno=095541" class="link_detail">
+								어천와
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=03&pno=003907" class="link_detail">
+								에비야
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=03&pno=003906" class="link_detail">
+								엔젤화이트
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=06&pno=006903" class="link_detail">
+								엠마
+								<span class="txt_team">[현대]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=04&pno=004009" class="link_detail">
+								엠버스
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=01&pno=001918" class="link_detail">
+								오건솔라
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=05&pno=096031" class="link_detail">
+								오니즈카 아야노
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=01&pno=001058" class="link_detail">
+								오웬
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=02&pno=002028" class="link_detail">
+								옥사나
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=02&pno=004025" class="link_detail">
+								옥사나
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=01&pno=095048" class="link_detail">
+								올디
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=09&pno=095913" class="link_detail">
+								와타베 유리나
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=01&pno=001919" class="link_detail">
+								왕징
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=03&pno=003901" class="link_detail">
+								왕푸잉
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=02&pno=095002" class="link_detail">
+								우도카
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=04&pno=004019" class="link_detail">
+								워커
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=06&pno=006030" class="link_detail">
+								월터스
+								<span class="txt_team">[현대]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=03&pno=003902" class="link_detail">
+								웬징
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=01&pno=001901" class="link_detail">
+								위잉
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=04&pno=094998" class="link_detail">
+								위틀
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=01&pno=094940" class="link_detail">
+								윌리암스
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=05&pno=095546" class="link_detail">
+								윌리엄스
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=02&pno=094932" class="link_detail">
+								이니스
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=04&pno=004023" class="link_detail">
+								이바나
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=09&pno=095914" class="link_detail">
+								이시다 유즈키
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=09&pno=095453" class="link_detail">
+								이파이
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=06&pno=006907" class="link_detail">
+								자레트
+								<span class="txt_team">[현대]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=02&pno=002916" class="link_detail">
+								자오후이
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=02&pno=002914" class="link_detail">
+								장단
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=03&pno=003903" class="link_detail">
+								장린
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=04&pno=004928" class="link_detail">
+								장잉
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=04&pno=004918" class="link_detail">
+								장줴
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=02&pno=002033" class="link_detail">
+								잭슨
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=03&pno=095083" class="link_detail">
+								잭슨
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=06&pno=006902" class="link_detail">
+								쟝린
+								<span class="txt_team">[현대]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=01&pno=001914" class="link_detail">
+								정인추이
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=05&pno=005008" class="link_detail">
+								제니
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=08&pno=095455" class="link_detail">
+								제니퍼
+								<span class="txt_team">[KDB생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=05&pno=095531" class="link_detail">
+								존스
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=07&pno=095059" class="link_detail">
+								존스
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=02&pno=002024" class="link_detail">
+								존슨
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=05&pno=005936" class="link_detail">
+								죠안나
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=04&pno=004923" class="link_detail">
+								주후이샹
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=06&pno=006028" class="link_detail">
+								지더
+								<span class="txt_team">[현대]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=02&pno=002901" class="link_detail">
+								지앙쉬
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=02&pno=002904" class="link_detail">
+								천난
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=04&pno=004919" class="link_detail">
+								천리샤
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=05&pno=005942" class="link_detail">
+								추이지에
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=01&pno=095049" class="link_detail">
+								카라
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=03&pno=095249" class="link_detail">
+								카이저
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=06&pno=005019" class="link_detail">
+								카트리나
+								<span class="txt_team">[현대]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=06&pno=006022" class="link_detail">
+								카트웰
+								<span class="txt_team">[현대]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=08&pno=095258" class="link_detail">
+								캐서린
+								<span class="txt_team">[KDB생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=05&pno=005007" class="link_detail">
+								캐칭
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=01&pno=095431" class="link_detail">
+								커리
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=02&pno=095045" class="link_detail">
+								케이티
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=03&pno=095439" class="link_detail">
+								켈리
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=03&pno=095242" class="link_detail">
+								켈리
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=04&pno=095058" class="link_detail">
+								켐벨
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=02&pno=095063" class="link_detail">
+								코라나
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=03&pno=003919" class="link_detail">
+								코리엥휴즌
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=01&pno=095432" class="link_detail">
+								콜맨
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=04&pno=004926" class="link_detail">
+								쿼시
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=05&pno=095430" class="link_detail">
+								퀸
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=05&pno=003018" class="link_detail">
+								크롤리
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=08&pno=095467" class="link_detail">
+								크리스마스
+								<span class="txt_team">[KDB생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=03&pno=003913" class="link_detail">
+								킴베리호프
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=03&pno=095515" class="link_detail">
+								테일러
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=08&pno=095062" class="link_detail">
+								테일러
+								<span class="txt_team">[KDB생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=05&pno=095630" class="link_detail">
+								토마스
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=03&pno=095468" class="link_detail">
+								토마스
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=06&pno=006033" class="link_detail">
+								토마스
+								<span class="txt_team">[현대]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=02&pno=002908" class="link_detail">
+								티나
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=08&pno=002026" class="link_detail">
+								티나
+								<span class="txt_team">[KDB생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=03&pno=003916" class="link_detail">
+								티엔리
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=01&pno=094936" class="link_detail">
+								티즐리
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=03&pno=094997" class="link_detail">
+								틸리스
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=09&pno=095629" class="link_detail">
+								파커
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=03&pno=003025" class="link_detail">
+								패리스
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=03&pno=095632" class="link_detail">
+								펜
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=02&pno=002025" class="link_detail">
+								프렛
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=01&pno=095488" class="link_detail">
+								피어슨
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=04&pno=095046" class="link_detail">
+								핀스트라
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=03&pno=003004" class="link_detail">
+								필립스
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=03&pno=096028" class="link_detail">
+								하마니시 나나미
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=03&pno=095490" class="link_detail">
+								하워드
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=08&pno=095472" class="link_detail">
+								하지스
+								<span class="txt_team">[KDB생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=02&pno=005055" class="link_detail">
+								하지스
+								<span class="txt_team">[금호생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=03&pno=095532" class="link_detail">
+								하킨스
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=03&pno=095594" class="link_detail">
+								할리비
+								<span class="txt_team">[삼성생명]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=05&pno=095473" class="link_detail">
+								해리스
+								<span class="txt_team">[우리은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=09&pno=095579" class="link_detail">
+								해리슨
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=01&pno=095491" class="link_detail">
+								햄비
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=01&pno=001007" class="link_detail">
+								홀즈클로
+								<span class="txt_team">[KB스타즈]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=04&pno=004024" class="link_detail">
+								화이트모어
+								<span class="txt_team">[신세계]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=06&pno=006909" class="link_detail">
+								황쉬에친
+								<span class="txt_team">[현대]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=09&pno=095454" class="link_detail">
+								휴스턴
+								<span class="txt_team">[하나은행]</span>
+							</a>
+						</li>
+					
+						<li>
+							<a href="/player/detail2.asp?player_group=F11&tcode=07&pno=095915" class="link_detail">
+								히라노 미츠키
+								<span class="txt_team">[신한은행]</span>
+							</a>
+						</li>
+					
+               </div>
+               <!--// result_box -->
+            </div>
+        </div>
+    </section>
+
+    <footer id="footer">
+        <div class="wrap_fnb">
+            <div class="cont_inner t_space">
+                <ul class="list_fnb">
+                    <li><a href="/etc/privacy.asp" class="link_fnb language" data-kr="개인정보처리방침" data-en="Privacy policy">개인정보처리방침</a></li>
+                    <li><a href="/etc/terms.asp" class="link_fnb language" data-kr="이용약관" data-en="Term of use">이용약관</a></li>
+                    <li><a href="/etc/contact_us.asp" class="link_fnb">CONTACT US</a></li>
+                    <li><a href="javascript:MM_openBrWindow('/etc/paycheck4.asp', 'reporterChk', 'scrollbars=no, width=400, height=300');" class="link_fnb language" data-kr="통계 프로그램" data-en="Statistic Program">통계 프로그램</a></li>
+                    <li><a href="http://photo.wkbl.or.kr" class="link_fnb language" target="_blank" data-kr="WKBL 포토" data-en="WKBL photo">WKBL 포토</a></li>
+                    <li><a href="https://datalab.wkbl.or.kr" class="link_fnb language" target="_blank" data-kr="데이터랩" data-en="Data Lab">데이터랩</a></li>
+                    <li><a href="https://cert.wkbl.or.kr/" class="link_fnb language" target="_blank" data-kr="경력증명서" data-en="Data Lab">경력증명서</a></li>
+                </ul>
+                <ul class="list_team">
+                    <li><a href="http://www.samsungblueminx.com/" class="link_team" target="_blank"><img src="/static/images/team/teamlogo_03.png" alt="삼성생명 블루밍스"><p class="screen_out">삼성생명</p></a></li>
+                    <li><a href="/team/teaminfo.asp?team_code=07" class="link_team" target="_blank"><img src="/static/images/team/teamlogo_07.png" alt="신한은행 에스버드"><p class="screen_out">신한은행</p></a></li>
+                    <li><a href="https://wooriwon.wooribank.com/basketball/main/bridge.php" class="link_team" target="_blank"><img src="/static/images/team/teamlogo_05.png" alt="우리은행 위비"><p class="screen_out">우리은행</p></a></li>
+                    <li><a href="/team/teaminfo.asp?team_code=09" class="link_team" target="_blank"><img src="/static/images/team/teamlogo_09.png?ver=20240821" alt="하나은행"><p class="screen_out">하나은행</p></a></li>
+                    <li><a href="http://bnksumbasket.com" class="link_team" target="_blank"><img src="/static/images/team/teamlogo_11.png" alt="BNK캐피탈"><p class="screen_out">BNK 썸</p></a></li>
+                    <li><a href="http://www.kbstars.co.kr/kbstars/2022/main.php" class="link_team" target="_blank"><img src="/static/images/team/teamlogo_01.png" alt="KB스타즈"><p class="screen_out">KB 스타즈</p></a></li>
+                </ul>
+            </div>
+        </div>
+            
+        <div class="wrap_footer">
+            <div class="cont_inner t_space">
+                <div class="left">
+                    <ul class="sns_list">
+                        <li><a target="_blank" href="https://www.facebook.com/f.WKBL/"><img src="/static/images/main/icon_facebook.svg" alt="facebook 링크로 바로 가기"></a></li>
+                        <li><a target="_blank" href="https://www.instagram.com/wkbl_official/"><img src="/static/images/main/icon_instargram.svg" alt="instargram 링크로 바로 가기"></a></li>
+                        <li><a target="_blank" href="https://www.youtube.com/channel/UCLyyt15iUOMUQovmJVde1Zg"><img src="/static/images/main/icon_youtube.svg" alt="youtube 링크로 바로 가기"></a></li>
+                        <li><a target="_blank" href="https://www.tiktok.com/@wkbl_official?lang=ko-KR"><img src="/static/images/main/icon_tictok.svg" alt="tictok 링크로 바로 가기"></a></li>
+                    </ul>
+                    <div class="info_site">
+                        <address class="txt_addr language" data-kr="서울특별시 강서구 공항대로 355 (등촌동)" data-en="355, Gonghang-daero, Gangseo-gu, Seou">서울특별시 강서구 공항대로 355 (등촌동)</address>
+                        <p class="copyright ">COPYRIGHT ⓒ 2026 WOMEN'S KOREAN BASKETBALL LEAGUE. ALL RIGHTS RESERVED.</p>
+                    </div>
+                    
+                    <p class="txt_site language" data-kr="WKBL 소속 6개 구단의 팀로고, 마스코트, 엠블럼과 WKBL 소속선수의 사진, 초상, 영상, 캐릭터 등을 무단으로 사용할 경우 상표법 및 저작권법에 의해 금지됩니다.<br>본 웹사이트에 게시된 이메일 주소와 전자우편 수집 프로그램이나 그밖의 기술적 장치를 이용하여 무단으로 수집되는 것을 거부하며, 이를 위반시 정보통신망법에 의해 형사처벌됨을 유념하시기 바랍니다." data-en="Unauthorized use, reproduction, or distribution of the team logos, mascots, emblems of the six WKBL-affiliated teams, as well as the photos, portraits, videos, and characters of WKBL players, is strictly prohibited under trademark and copyright laws.<br><br>Additionally, the unauthorized collection of email addresses from this website using automated programs or other technical methods is strictly forbidden. Violators may be subject to legal action under the Information and Communications Network Act.">
+                        WKBL 소속 6개 구단의 팀로고, 마스코트, 엠블럼과 WKBL 소속선수의 사진, 초상, 영상, 캐릭터 등을 무단으로 사용할 경우 상표법 및 저작권법에 의해 금지됩니다.
+                        본 웹사이트에 게시된 이메일 주소와 전자우편 수집 프로그램이나 그밖의 기술적 장치를 이용하여 무단으로 수집되는 것을 거부하며, 이를 위반시 정보통신망법에 의해 형사처벌됨을 유념하시기 바랍니다.
+                    </p>
+                </div>
+                <div class="video">
+                    <!-- youtube 외부링크 -->
+                    <a target="_blank" href="https://www.youtube.com/watch?v=9RfJuytleAc" class="thumb_img">
+                        <!-- https://i.ytimg.com/vi/(wathch?v=해당코드삽입)/hqdefault.jpg -->
+                        <img src="https://i.ytimg.com/vi/9RfJuytleAc/hqdefault.jpg" alt="youtube 썸네일">
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</div>
+<script src="/static/js/ui_24.js?ver=2.2"></script>
+<script>
+$(function() {
+    /////////////////////////////////////////////language change start///////////////////////////////////////////
+    let wkbl_lang = ['kr','en'];
+    let now_lang = localStorage.getItem("lang");
+
+    //if(!now_lang) now_lang = "kr";
+
+    //default lang => kr
+    if( wkbl_lang.indexOf(now_lang) < 0 ){
+        now_lang = "kr";
+        localStorage.setItem("lang", now_lang);
+    }
+
+
+    $('.lang_change').on('click', function(e){
+        now_lang = (now_lang == "kr") ? "en" : "kr";
+        localStorage.setItem("lang", now_lang);
+
+        language_change(now_lang);
+    });
+
+    // function language_icon_change(now_lang){
+    //     // if( now_lang == 'en' ){
+    //     //     $('.lang_change').addClass('active');
+    //     //     $('.lang_change_text').html("English");
+    //     // }else{
+    //     //     $('.lang_change').removeClass('active');
+    //     //     $('.lang_change_text').html("Korea");
+    //     // }
+    //
+    //     language_change(now_lang);
+    // }
+
+    function language_change(now_lang){
+        $('#wrap > div')
+        .removeClass('kr en')
+        .addClass(now_lang);
+
+        for(i=0;i < $(".language").length; i++){
+            if($($('.language')[i]).attr('placeholder') !== undefined){ //placeholder change
+               $($('.language')[i]).attr('placeholder', $($('.language')[i]).attr("data-"+now_lang));
+            }else{ //text change
+                $($('.language')[i]).html($($('.language')[i]).attr("data-"+now_lang));
+            }
+        }
+    }
+
+    language_change(now_lang);
+    /////////////////////////////////////////////language change end ///////////////////////////////////////////
+
+
+
+
+});
+
+
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-55620765-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+</body>
+</html>

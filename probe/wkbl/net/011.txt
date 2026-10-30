@@ -1,0 +1,70 @@
+GET https://www.wkbl.or.kr/game/sch/inc_list_1_new.asp?season_gu=047&ym=202611&viewType=1&gun=1
+
+
+
+<style>
+ .today_css td{
+    background-color: #F1F1FA !important;
+ }
+</style>
+					<div class="info_table01 type_list">
+                        <table>
+                            <caption>상세 정보</caption>
+                            <colgroup>
+                                <col width="95">
+                                <col width="457">
+                                <col width="132">
+                                <col width="88">
+                                <col>
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th scope="col" class="language" data-kr="일시" data-en="Date">일시</th>
+                                    <th scope="col" class="language" data-kr="대진팀" data-en="Match-up Teams">대진팀</th>
+                                    <th scope="col" class="language" data-kr="장소" data-en="Venue">장소</th>
+                                    <th scope="col" class="language" data-kr="경기시간" data-en="Time">경기시간</th>
+                                    <th scope="col" class="language" data-kr="중계/기록" data-en="Live/Stats">중계/기록</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            
+								<tr id="20261101" >
+									<td>11/1(<span class="language" data-kr="일" data-en="Sun">일</span>)</td>
+                                    <td>
+                                        <div class="team_versus">
+                                            <div class="info_team away">
+                                                <span class="frame_g"><img src="/static/images/team/teamlogo_01.png"></span>
+                                                <strong class="team_name language" data-kr="KB스타즈" data-en="KB STARS">KB스타즈</strong>
+                                            </div>
+                                            <span class="txt_vs">vs</span>
+                                            <div class="info_team home">
+                                                <span class="frame_g"><img src="/static/images/team/teamlogo_11.png"></span>
+                                                <strong class="team_name language" data-kr="BNK 썸" data-en="BNK SUM">BNK 썸</strong>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="language" data-kr="청주체육관" data-en="Cheongju Gymnasium">청주체육관</td>
+                                    <td>16:00</td>
+                                    <td>
+
+										
+											<a href="javascript:;" onClick="goTodayGame('01', 1);" class="btn_type1 language" data-kr="오늘의 경기" data-en="Today’s Game">오늘의 경기</a>
+										
+										<span class="info_cast">
+											<span class="ico_comm"></span>KBSN Sports, MBC Sports+<br>SPOTV(16:30~)<!-- 방송국명 -->
+										</span>
+										
+                                    </td>
+                                </tr>
+                                
+								<tr id="20261102" >
+									<td>11/2(<span class="language" data-kr="월" data-en="Mon">월</span>)</td>
+                                    <td>
+                                        <div class="team_versus">
+                                            <div class="info_team away">
+                                                <span class="frame_g"><img src="/static/images/team/teamlogo_03.png"></span>
+                                                <strong class="team_name language" data-kr="삼성생명" data-en="SAMSUNG LIFE">삼성생명</strong>
+                                            </div>
+                                            <span class="txt_vs">vs</span>
+                                            <div class="info_team home">
+                                                <span class="frame_g"><img src="/static/images/team/teamlogo

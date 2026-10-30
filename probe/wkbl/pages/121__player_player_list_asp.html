@@ -1,0 +1,1321 @@
+<!-- https://www.wkbl.or.kr/player/player_list.asp?player_group=12&tcode= -->
+
+
+
+
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta property="og:image" content="https://www.wkbl.or.kr/static/images/wkbl_link_thum.jpg">
+<meta property="og:image:width" content="800">
+<meta property="og:image:height" content="400">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:alt" content="WKBL, 한국여자농구연맹, 여자농구연맹, 여자프로농구">
+<meta property="og:description" content="WKBL, 한국여자농구연맹, 여자농구연맹, 여자프로농구">
+<title>WKBL</title>
+<!-- <meta name="viewport" content="user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, width=device-width"> -->
+<link rel="stylesheet" href="/static/css/style_26.css?ver=0.1" type="text/css">
+<script src="/static/js/lib/script.js"></script>
+<script src="/static/js/common_wkbl.js"></script>
+
+<!--[if lt IE 9]>
+<link rel="stylesheet" href="/static/css/ie.css">
+<script src="/static/js/lib/html5shiv.min.js"></script>
+<script src="/static/js/lib/respond.js"></script>
+<![endif]-->
+</head>
+
+<body>
+    <div id="pageIndex">
+        <a href="#contents" class="shortcut_g">본문내용보기</a>
+        <a href="#pageGnb" class="shortcut_g">메뉴바로가기</a>
+    </div>
+
+    <div id="wrap" class="v2026">
+        <header id="header" class="is_brn_none">
+            <div class="nav_wrapper">
+                <div class="top_navigation">
+                    <div class="inner_nav">
+                        <h1 id="pageLogo" class="site_logo">
+                            <a href="/main"><img src="/static/images/common/head_logo_22.png" alt="WKBL"></a>
+                        </h1>
+                        <nav id="pageGnb" class="gnb_comm">
+                            <h2 class="screen_out">주요메뉴</h2>
+                            <ul class="list_menu">
+                                <li class="depth1 nav0"><a href="/about/greetings.asp" >WKBL</a></li>
+                                <li class="depth1 nav1"><a href="/news/hotfocus_list.asp" class="language" data-kr="뉴스" data-en="News">뉴스</a></li>
+                                <li class="depth1 nav2"><a href="/game/sch/schedule1.asp" class="language" data-kr="일정/기록" data-en="Schedule<br>Records">일정/기록</a></li>
+                                <li class="depth1 nav3"><a href="/team/teaminfo.asp" class="language" data-kr="팀" data-en="Teams">팀</a></li>
+                                <li class="depth1 nav4"><a href="/player/player_list.asp" class="language" data-kr="선수" data-en="Players">선수</a></li>
+                                <li class="depth1 nav5"><a href="/history/league.asp" class="language" data-kr="히스토리" data-en="History">히스토리</a></li>
+                                <li class="depth1 nav6"><a href="javascropt:void(0);" class="language" data-kr="이벤트" data-en="Events">이벤트</a></li>
+                                <li class="depth1 nav7"><a href="/fan/character.asp" class="language" data-kr="팬" data-en="Fan">팬</a></li>
+                                <li class="depth1 nav8"><a href="/ticket/ticketing.asp" class="language" data-kr="티켓" data-en="Tickets">티켓</a></li>
+                            </ul>
+                        </nav>
+                        
+
+                        <!--// nav_wrapper -->
+
+                        <div class="util_wrapper top_social_wrap">
+                            <div class="inner_util">
+                                <ul class="list_util">
+                                    <li><a href="javascript:void(0);" class="lang_change language btn_detail" data-kr="<img src='/static/images/main/icon_global_v2026.svg' title='EN'>EN" data-en="<img src='/static/images/main/icon_global_v2026.svg' title='KR'>KR"><img src='/static/images/main/icon_global_v2026.svg' title="EN">EN</a></li>
+                                    <li>
+                                        <a href="/member/login_v2.asp" class="btn_detail language" data-kr="<img src='/static/images/main/icon_login_v2026.svg' title='로그인'>로그인" data-en="<img src='/static/images/main/icon_login_v2026.svg' title='Sign in'>Sign in">
+                                            <img src='/static/images/main/icon_login_v2026.svg' title='로그인'>로그인
+                                        </a>
+                                    </li>
+                                
+                                    <!-- <li><a href="/member/join/join_native.asp" class="btn_detail language" data-kr="회원가입" data-en="Sign up">회원가입</a></li> -->
+                                
+                                    <li><button type="button" class="btn_search btn_detail language" data-kr="<img src='/static/images/main/icon_search_v2026.svg' title='선수'>선수" data-en="<img src='/static/images/main/icon_search_v2026.svg' title='Player'>Player"><img src='/static/images/main/icon_search_v2026.svg' title='선수'>선수</button></li>
+                                </ul>
+                            </div>
+                            
+
+                            <script type="text/javascript">
+                                $(function() {
+                                    $("#btn_header_search").click(function(e) {
+                                        e.preventDefault();
+
+                                        var search_team = TrimStr($("#search_team").val());
+                                        var search_word = TrimStr($("#search_word").val());
+
+                                        location.href = "/player/search_result.asp?search_team=" + encodeURI(search_team) + "&search_word=" + encodeURI(search_word)
+                                    });
+                                });
+
+                                function goCommonSearch() {
+                                    if (event.keyCode == 13) $("#btn_header_search").click();
+                                }
+                            </script>
+
+                            <div class="wrap_search">
+                                <div class="inner_search">
+                                    <div class="opt_item ico2_comm" style="display:none;">
+                                        <label id="header_label_team" class="lab_select language" for="search_team" data-kr="팀전체" data-en="All">팀전체</label>
+                                        <select class="opt_select" name="search_team" id="search_team">
+                                    <option value="" selected class="language" data-kr="팀전체" data-en="All">팀전체</option>
+                                    
+                                    <option value="03" class="language" data-kr="삼성생명" data-en="Samsung life">삼성생명</option>
+                                    
+                                    <option value="07" class="language" data-kr="신한은행" data-en="Shinhan Bank">신한은행</option>
+                                    
+                                    <option value="05" class="language" data-kr="우리은행" data-en="Woori Bank">우리은행</option>
+                                    
+                                    <option value="09" class="language" data-kr="하나은행" data-en="Hana Bank">하나은행</option>
+                                    
+                                    <option value="11" class="language" data-kr="BNK 썸" data-en="BNK SUM">BNK 썸</option>
+                                    
+                                    <option value="01" class="language" data-kr="KB스타즈" data-en="KB stars">KB스타즈</option>
+                                    
+                                </select>
+                                    </div>
+                                    <span class="inp_text">
+                                <label for="search_word" class="screen_out">검색어 입력</label>
+                                <input type="text" name="search_word" id="search_word" class="tf_text" onKeyDown="javascript:if(event.keyCode == 13) { goCommonSearch(); }">
+                                </span>
+                                    <button type="button" id="btn_header_search" class="btn_search language" data-kr="선수검색" data-en="Player Search">선수검색</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--// inner_nav -->
+                <div class="sub_menu">
+                    <div class="inner_menu">
+                        <ul class="sub0" rel="0">
+                            <li><a href="/about/greetings.asp" class="language" data-kr="소개" data-en="Introduce">소개</a></li>
+                            <li><a href="/about/history.asp" class="language" data-kr="연혁" data-en="History">연혁</a></li>
+                            <li><a href="/about/organization.asp" class="language" data-kr="조직도" data-en="Organization">조직도</a></li>
+                            <li><a href="/about/rule_wkbl.asp" class="language" data-kr="규정" data-en="Regulation">규정</a></li>
+                            <li><a href="/about/manage_system.asp" class="language" data-kr="운영제도" data-en="Operating<br>system">운영제도</a></li>
+                            <li><a href="/about/manage_process.asp" class="language" data-kr="운영방식" data-en="Procedure">운영방식</a></li>
+                            <li><a href="/about/game_rule.asp" class="language" data-kr="경기규칙" data-en="Rule">경기규칙</a></li>
+                            <li><a href="/about/dictionary.asp" class="language" data-kr="농구용어" data-en="Terms">농구용어</a></li>
+                            <li><a href="/about/link.asp" class="language" data-kr="관련사이트" data-en="Related site">관련사이트</a></li>
+                        </ul>
+                        <ul class="sub1" rel="1">
+                            <li><a href="/news/hotfocus_list.asp" class="language" data-kr="보도자료" data-en="Press release">보도자료</a></li>
+                            <li><a href="/news/notice_list.asp" class="language" data-kr="공지사항" data-en="Notice">공지사항</a></li>
+                            <li><a href="/news/news_list.asp" class="language" data-kr="뉴스" data-en="News">뉴스</a></li>
+                            <li><a href="/news/video_list.asp" class="language" data-kr="영상" data-en="Video">영상</a></li>
+                            <li><a href="/news/photo_list.asp" class="language" data-kr="포토" data-en="Photo">포토</a></li>
+                            <li><a href="/news/teamstory_list.asp" class="language" data-kr="6개구단소식" data-en="News from 6<br>teams">6개구단소식</a></li>
+                        </ul>
+                        <ul class="sub2" rel="2">
+                            <li><a href="/game/sch/schedule1.asp" class="language" data-kr="경기일정" data-en="Schedule">경기일정</a></li>
+                            <!-- <li><a href="/game/sch/schedule1.asp" class="language" data-kr="경기일정" data-en="Schedule">경기일정</a></li> -->
+                            <li><a href="/game/team_rank.asp" class="language" data-kr="팀순위" data-en="Team<br>Rankings">팀순위</a></li>
+                            <li><a href="/game/player_record.asp" class="language" data-kr="부문별 선수순위" data-en="Player Standings<br>by Category">부문별 선수순위</a></li>
+                            <li><a href="/game/part_team_rank.asp" class="language" data-kr="부문별 팀순위" data-en="Team Standings<br>by Category">부문별 팀순위</a></li>
+                            <li><a href="/game/team_total_record.asp" class="language" data-kr="팀종합기록" data-en="Overall<br>Records">팀종합기록</a></li>
+                            <li><a href="/game/report.asp" class="language" data-kr="승/패 리포트" data-en="W/L Reports">승/패 리포트</a></li>
+                            <li><a href="/game/today_mvp.asp" class="language" data-kr="오늘의 MVP" data-en="Today’s MVP">오늘의 MVP</a></li>
+                        </ul>
+                        <ul class="sub3" rel="3">
+                            <li><a href="/team/teaminfo.asp" class="language" data-kr="삼성생명" data-en="Samsung life">삼성생명</a></li>
+                            <li><a href="/team/teaminfo.asp?team_code=07" class="language" data-kr="신한은행" data-en="Shinhan Bank">신한은행</a></li>
+                            <li><a href="/team/teaminfo.asp?team_code=05" class="language" data-kr="우리은행" data-en="Woori Bank">우리은행</a></li>
+                            <li><a href="/team/teaminfo.asp?team_code=09" class="language" data-kr="하나은행" data-en="Hana Bank">하나은행</a></li>
+                            <li><a href="/team/teaminfo.asp?team_code=11" class="language" data-kr="BNK썸" data-en="BNK SUM">BNK썸</a></li>
+                            <li><a href="/team/teaminfo.asp?team_code=01" class="language" data-kr="KB스타즈" data-en="KB stars">KB스타즈</a></li>
+                        </ul>
+                        <ul class="sub4" rel="4">
+                            <li><a href="/player/player_list.asp" class="language" data-kr="선수색인" data-en="Player index">선수색인</a></li>
+                            <li><a href="/player/trade_info.asp" class="language" data-kr="이적현황" data-en="Transfer status">이적현황</a></li>
+                            <li><a href="/player/wkbl_hotline.asp">HOTLINE</a></li>
+                        </ul>
+                        <ul class="sub5" rel="5">
+                            <li><a href="/history/league.asp" class="language" data-kr="역대리그" data-en="League">역대리그</a></li>
+                            <li><a href="/history/prev_director.asp" class="language" data-kr="역대총재" data-en="President">역대총재</a></li>
+                            <li><a href="/history/major_team.asp" class="language" data-kr="역대주요기록" data-en="Key Records">역대주요기록</a></li>
+                            <li><a href="/history/awards.asp" class="language" data-kr="역대부문별수상자" data-en="All-time winners">역대부문별수상자</a></li>
+                            <li><a href="/history/draft.asp" class="language" data-kr="역대드래프트" data-en="Draft">역대드래프트</a></li>
+                            <li><a href="/history/fa_result.asp" class="language" data-kr="역대 FA" data-en="FA">역대 FA</a></li>
+                            <li><a href="/history/crowd.asp" class="language" data-kr="역대관중현황" data-en="Attendance<br>status">역대관중현황</a></li>
+                            <li><a href="/event/20th/index.asp" class="language" data-kr="GREAT 12<br/>(20주년 기념)" data-en="GREAT 12<br>(20th Anniversary)">GREAT 12<br/>(20주년 기념)</a></li>
+                        </ul>
+                        <ul class="sub6" rel="6">
+                            <li><a href="/event/parksj2026/about_01.asp" class="language" data-kr="박신자컵" data-en="Park Shin-Ja<br>Cup">박신자컵</a></li>
+                            <li><a href="/event/triplejam2026/about_01.asp" class="language" data-kr="트리플잼" data-en="Triple Jam">트리플잼</a></li>
+                            <li><a href="/allstar/2025/" class="language" data-kr="올스타전" data-en="All star">올스타전</a></li>
+                            <li><a href="/event/playoff2526/" class="language" data-kr="플레이오프<br/>챔프전" data-en="Playoffs<br>Championship">플레이오프<br/>챔프전</a></li>
+                            <li><a href="/event/futures2627/about_01.asp" class="language" data-kr="퓨처스리그" data-en="Futures league">퓨처스리그</a></li>
+                            <!-- <li><a href="/event/asian2022/about_01.asp" class="language" data-kr="국제대회" data-en="International<br>league">국제대회</a></li> -->
+                        </ul>
+                        <ul class="sub7" rel="7">
+                            <li><a href="/fan/character.asp" class="language" data-kr="캐릭터" data-en="Character">캐릭터</a></li>
+                            <li><a href="/fan/music.asp" class="language" data-kr="플레이리스트" data-en="WKBL PLAYLIST">플레이리스트</a></li>
+                            <li><a href="/fan/magazine.asp" class="language" data-kr="화보" data-en="Magazine">화보</a></li>
+                            <li><a href="/fan/wallpaper.asp" class="language" data-kr="월페이퍼" data-en="Wall paper">월페이퍼</a></li>
+                            <li><a href="/fan/season_paper.asp" class="language" data-kr="배경화면" data-en="Background<br>image">배경화면</a></li>
+                            <li><a href="/fan/board_list.asp" class="language" data-kr="자유게시판" data-en="Community">자유게시판</a></li>
+                            <li><a href="/fan/faq.asp" class="language" data-kr="자주하는질문" data-en="FAQ">자주하는질문</a></li>
+                            <li><a href="/fan/sns.asp" class="language">SNS</a></li>
+                            <li><a href="/ticket/event.asp" class="language" data-kr="이벤트" data-en="Event">이벤트</a></li>
+                        </ul>
+                        <ul class="sub8" rel="8">
+                            <li>&nbsp;</li>
+                        </ul>
+                    </div>
+                    <img src="/static/images/main/menu_banner.png" alt="통통튀는 우크블즈">
+                </div>
+            </div>
+
+            <!-- <div class="season_nav">
+                <div class="inner_season">
+                    <div class="title">
+                        <p class="name">정규리그</p>
+                    </div>
+                    <div class="game_status">
+                        <div class="info active">
+                            <div class="txt_info">
+                                <p class="time">14:30</p>
+                                <p class="status">진행중</p>
+                            </div>
+                            <div class="versus">
+                                <div class="thumb_img">
+                                    <img src="/static/images/team/teamlogo_01.png" alt="KB스타즈">
+                                </div>
+                                <p class="vs">vs</p>
+                                <div class="thumb_img">
+                                    <img src="/static/images/team/teamlogo_03.png" alt="삼성생명">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="info">
+                            <div class="txt_info">
+                                <p class="time">19:00</p>
+                                <p class="status">예정</p>
+                            </div>
+                            <div class="versus">
+                                <div class="thumb_img">
+                                    <img src="/static/images/team/teamlogo_01.png" alt="KB스타즈">
+                                </div>
+                                <p class="vs">vs</p>
+                                <div class="thumb_img">
+                                    <img src="/static/images/team/teamlogo_03.png" alt="삼성생명">
+                                </div>
+                            </div>
+                            
+                            <a href="" class="ticket_btn">티켓예매</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="main_aside_dday">
+                    <div class="top">
+                        <div class="dday_tit">
+                            <span class="tag">D-DAY</span>
+                            <span class="standard">26.07.29</span>
+                        </div>
+                        <p class="tit">26 퓨쳐스리그</p>
+                    </div>
+
+                    <div class="bottom">
+                        <div class="dday">
+                            <span>D</span>
+                            <span class="sign">-</span>
+                            <span class="num">130</span>
+                        </div>
+                    </div>
+                </div>
+            </div> -->
+        </header>
+
+<script type="text/javascript">
+<!--
+function goList(team_code) {
+	location.href = "./player_list.asp?player_group=12&tcode=" + team_code;
+}
+//-->
+</script>
+    <section id="contents">
+        <h2 class="screen_out">선수색인</h2>
+        		<div class="breadcrumb_block">
+            <ul class="list_breadcrumb">
+                <li class="home"><a href="/main/">HOME</a></li>
+                <li class="depth1"><a href="/about/greetings.asp" id="depthTxt" class="language" data-kr="선수" data-en="Players">선수</a>
+                    <ul class="sub_menu" id="depth1">
+                        <li><a href="/about/greetings.asp" class="active" id="b_wkbl">WKBL</a></li>
+                        <li><a href="/news/hotfocus_list.asp" id="b_news" class="language" data-kr="뉴스" data-en="News">뉴스</a></li>
+                        <li><a href="/game/sch/schedule1.asp" id="b_game" class="language" data-kr="일정/기록" data-en="Schedule/Records">일정/기록</a></li>
+                        <li><a href="/team/teaminfo.asp" id="b_team" class="language" data-kr="팀" data-en="Teams">팀</a></li>
+                        <li><a href="/player/player_list.asp" id="b_player" class="language" data-kr="선수" data-en="Players">선수</a></li>
+                        <li><a href="/history/league.asp" id="b_history" class="language" data-kr="히스토리" data-en="History">히스토리</a></li>
+                        <li><a href="/fan/board_list.asp" id="b_fan" class="language" data-kr="팬" data-en="Fan">팬</a></li>
+                        <li><a href="/ticket/ticketing.asp" id="b_ticket" class="language" data-kr="티켓" data-en="Tickets">티켓</a></li>
+                    </ul>
+                </li>
+
+
+				
+                <li class="depth1" id="depth2"><a href="/player/player_list.asp" class="language" data-kr="선수색인" data-en="Player index">선수색인</a>
+                    <ul class="sub_menu">
+                        <li><a href="/player/player_list.asp" class='active language' data-kr="선수색인" data-en="Player index">선수색인</a></li>
+                        <li><a href="/player/trade_info.asp" class='language' data-kr="이적현황" data-en="Transfer status">이적현황</a></li>
+                        <li><a href="/player/wkbl_hotline.asp">WKBL HOTLINE</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        <div id="cMain" class="player_index">
+            <div class="player_order_tab">
+              <div class="inner_order">
+				<div class="wrap_order">
+                   <ul class="list_tab">
+                       <li><a href="./player_list.asp?player_group=12" class="link_tab is_active language" data-kr="현역선수" data-en="Active player">현역선수</a></li>
+                       <li><a href="./player_list.asp?player_group=11" class="link_tab language" data-kr="은퇴선수" data-en="Retired player">은퇴선수</a></li>
+                       <li><a href="./player_list.asp?player_group=F11" class="link_tab language" data-kr="외국인선수" data-en="Foreign player">외국인선수</a></li>
+                   </ul>
+				   <div class="opt_item ico2_comm">
+					<label id="select_etc" class="lab_select language" for="tcode"  data-kr="팀 전체" data-en="Choose a team">팀 전체</label>
+						<select class="opt_select" name="tcode" id="tcode" onChange="goList(this.value);">
+							<option value="" selected class="language" data-kr="팀 전체" data-en="Choose a team">팀 전체</option>
+							
+							<option value="03" class="language" data-kr="삼성생명" data-en="SAMSUNG LIFE">삼성생명</option>
+							
+							<option value="07" class="language" data-kr="신한은행" data-en="SHINHAN BANK">신한은행</option>
+							
+							<option value="05" class="language" data-kr="우리은행" data-en="WOORI BANK">우리은행</option>
+							
+							<option value="09" class="language" data-kr="하나은행" data-en="HANA BANK">하나은행</option>
+							
+							<option value="11" class="language" data-kr="BNK 썸" data-en="BNK SUM">BNK 썸</option>
+							
+							<option value="01" class="language" data-kr="KB스타즈" data-en="KB STARS">KB스타즈</option>
+							
+					</select>
+					</div>
+				</div>
+                   <div class="wrap_order">
+                        <ul>
+							
+                            <li><a href="#ㄱ" class="link_order js_scroll_slide">ㄱ</a></li>
+							
+                            <li><a href="#ㄴ" class="link_order js_scroll_slide">ㄴ</a></li>
+							
+                            <li><a href="#ㄷ" class="link_order js_scroll_slide">ㄷ</a></li>
+							
+                            <li><a href="#ㄹ" class="link_order js_scroll_slide">ㄹ</a></li>
+							
+                            <li><a href="#ㅁ" class="link_order js_scroll_slide">ㅁ</a></li>
+							
+                            <li><a href="#ㅂ" class="link_order js_scroll_slide">ㅂ</a></li>
+							
+                            <li><a href="#ㅅ" class="link_order js_scroll_slide">ㅅ</a></li>
+							
+                            <li><a href="#ㅇ" class="link_order js_scroll_slide">ㅇ</a></li>
+							
+                            <li><a href="#ㅈ" class="link_order js_scroll_slide">ㅈ</a></li>
+							
+                            <li><a href="#ㅊ" class="link_order js_scroll_slide">ㅊ</a></li>
+							
+                            <li><a href="#ㅋ" class="link_order js_scroll_slide">ㅋ</a></li>
+							
+                            <li><a href="#ㅌ" class="link_order js_scroll_slide">ㅌ</a></li>
+							
+                            <li><a href="#ㅍ" class="link_order js_scroll_slide">ㅍ</a></li>
+							
+                            <li><a href="#ㅎ" class="link_order js_scroll_slide">ㅎ</a></li>
+							
+                        </ul>
+						<div class="player_search">
+							<span class="inp_text">
+								<label for="player_search_word" class="screen_out">검색어 입력</label>
+								<input type="text" name="player_search_word" id="player_search_word" class="tf_text language" placeholder="선수명을 입력해주세요." data-kr="선수명을 입력해주세요." data-en="Please enter the name of the player." onKeyDown="javascript:if(event.keyCode == 13) { goCommonSearch(); }">
+								<button type="button" id="btn_player_search" class="btn_search ico2_comm">선수검색</button>
+							</span>
+						</div>
+						<script type="text/javascript">
+							$(function() {
+								$("#btn_player_search").click(function(e) {
+									e.preventDefault();
+						
+									var player_search_team = TrimStr($("#player_search_team").val());
+									var player_search_word = TrimStr($("#player_search_word").val());
+						
+									location.href = "/player/search_result.asp?player_search_team=" + encodeURI(player_search_team) + "&search_word=" + encodeURI(player_search_word)
+								});
+							});
+						
+							function goCommonSearch() {
+								if (event.keyCode == 13) $("#btn_player_search").click();
+							}
+						</script>
+                   </div>
+               </div>
+            </div>
+            <div class="inner_cont">
+				<h3 class="screen_out">선수리스트</h3>
+
+				<dl id="ㄱ" class="player_group">
+                    <dt>ㄱ</dt>
+                    <dd>
+                        <ul class="list_player">
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095937" class="link_detail">
+								        <span class="txt_name language" data-kr="가네다 마나" data-en="KANEDA M.">가네다 마나</span>&nbsp;[<span class="language" data-kr="신한은행" data-en="SHINHAN BANK">신한은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096259" class="link_detail">
+								        <span class="txt_name language" data-kr="가네미츠 아야네" data-en="KANEMITSU A.">가네미츠 아야네</span>&nbsp;[<span class="language" data-kr="삼성생명" data-en="SAMSUNG LIFE">삼성생명</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095450" class="link_detail">
+								        <span class="txt_name language" data-kr="강계리" data-en="KANG KYE LEE">강계리</span>&nbsp;[<span class="language" data-kr="우리은행" data-en="WOORI BANK">우리은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095713" class="link_detail">
+								        <span class="txt_name language" data-kr="강유림" data-en="KANG YOO LIM">강유림</span>&nbsp;[<span class="language" data-kr="삼성생명" data-en="SAMSUNG LIFE">삼성생명</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095263" class="link_detail">
+								        <span class="txt_name language" data-kr="강이슬" data-en="KANG LEE SEUL">강이슬</span>&nbsp;[<span class="language" data-kr="우리은행" data-en="WOORI BANK">우리은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095700" class="link_detail">
+								        <span class="txt_name language" data-kr="고나연" data-en="KO NA YEON">고나연</span>&nbsp;[<span class="language" data-kr="신한은행" data-en="SHINHAN BANK">신한은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096138" class="link_detail">
+								        <span class="txt_name language" data-kr="고리미" data-en="KOH LI MI">고리미</span>&nbsp;[<span class="language" data-kr="KB스타즈" data-en="KB STARS">KB스타즈</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095830" class="link_detail">
+								        <span class="txt_name language" data-kr="고서연" data-en="KO SEO YEON">고서연</span>&nbsp;[<span class="language" data-kr="하나은행" data-en="HANA BANK">하나은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095901" class="link_detail">
+								        <span class="txt_name language" data-kr="고현지" data-en="KO HYEON JI">고현지</span>&nbsp;[<span class="language" data-kr="KB스타즈" data-en="KB STARS">KB스타즈</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095104" class="link_detail">
+								        <span class="txt_name language" data-kr="김단비" data-en="KIM DAN BI">김단비</span>&nbsp;[<span class="language" data-kr="우리은행" data-en="WOORI BANK">우리은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096001" class="link_detail">
+								        <span class="txt_name language" data-kr="김도연" data-en="KIM DO YEON">김도연</span>&nbsp;[<span class="language" data-kr="BNK 썸" data-en="BNK SUM">BNK 썸</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096263" class="link_detail">
+								        <span class="txt_name language" data-kr="김리혜" data-en="KIM RIHYE">김리혜</span>&nbsp;[<span class="language" data-kr="우리은행" data-en="WOORI BANK">우리은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096137" class="link_detail">
+								        <span class="txt_name language" data-kr="김민경" data-en="KIM MIN KYUNG">김민경</span>&nbsp;[<span class="language" data-kr="KB스타즈" data-en="KB STARS">KB스타즈</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095834" class="link_detail">
+								        <span class="txt_name language" data-kr="김민아" data-en="KIM MIN A">김민아</span>&nbsp;[<span class="language" data-kr="BNK 썸" data-en="BNK SUM">BNK 썸</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095251" class="link_detail">
+								        <span class="txt_name language" data-kr="김민정" data-en="KIM MIN JEONG">김민정</span>&nbsp;[<span class="language" data-kr="KB스타즈" data-en="KB STARS">KB스타즈</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096274" class="link_detail">
+								        <span class="txt_name language" data-kr="김사랑" data-en="KIM SA LANG">김사랑</span>&nbsp;[<span class="language" data-kr="신한은행" data-en="SHINHAN BANK">신한은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096271" class="link_detail">
+								        <span class="txt_name language" data-kr="김서현" data-en="KIM SEO HYEON    ">김서현</span>&nbsp;[<span class="language" data-kr="BNK 썸" data-en="BNK SUM">BNK 썸</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096272" class="link_detail">
+								        <span class="txt_name language" data-kr="김성언" data-en="KIM SEONG EON">김성언</span>&nbsp;[<span class="language" data-kr="KB스타즈" data-en="KB STARS">KB스타즈</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095248" class="link_detail">
+								        <span class="txt_name language" data-kr="김소니아" data-en="KIM SONIA">김소니아</span>&nbsp;[<span class="language" data-kr="BNK 썸" data-en="BNK SUM">BNK 썸</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095909" class="link_detail">
+								        <span class="txt_name language" data-kr="김솔" data-en="KIM SOL">김솔</span>&nbsp;[<span class="language" data-kr="우리은행" data-en="WOORI BANK">우리은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095903" class="link_detail">
+								        <span class="txt_name language" data-kr="김수인" data-en="KIM SOO IN">김수인</span>&nbsp;[<span class="language" data-kr="하나은행" data-en="HANA BANK">하나은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095442" class="link_detail">
+								        <span class="txt_name language" data-kr="김시온" data-en="KIM SI ON">김시온</span>&nbsp;[<span class="language" data-kr="하나은행" data-en="HANA BANK">하나은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095477" class="link_detail">
+								        <span class="txt_name language" data-kr="김아름" data-en="KIM AH REUM">김아름</span>&nbsp;[<span class="language" data-kr="삼성생명" data-en="SAMSUNG LIFE">삼성생명</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096148" class="link_detail">
+								        <span class="txt_name language" data-kr="김연진" data-en="KIM YEON JIN">김연진</span>&nbsp;[<span class="language" data-kr="하나은행" data-en="HANA BANK">하나은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095781" class="link_detail">
+								        <span class="txt_name language" data-kr="김은선" data-en="KIM EUN SEON">김은선</span>&nbsp;[<span class="language" data-kr="KB스타즈" data-en="KB STARS">KB스타즈</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095899" class="link_detail">
+								        <span class="txt_name language" data-kr="김정은" data-en="KIM JUNG EUN">김정은</span>&nbsp;[<span class="language" data-kr="BNK 썸" data-en="BNK SUM">BNK 썸</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095503" class="link_detail">
+								        <span class="txt_name language" data-kr="김지영" data-en="KIM JI YOUNG">김지영</span>&nbsp;[<span class="language" data-kr="신한은행" data-en="SHINHAN BANK">신한은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095482" class="link_detail">
+								        <span class="txt_name language" data-kr="김진영" data-en="KIM JIN YOUNG">김진영</span>&nbsp;[<span class="language" data-kr="신한은행" data-en="SHINHAN BANK">신한은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096004" class="link_detail">
+								        <span class="txt_name language" data-kr="김채은" data-en="KIM CHAE EUN">김채은</span>&nbsp;[<span class="language" data-kr="신한은행" data-en="SHINHAN BANK">신한은행</span>]
+								    </a>
+								</li>
+							
+                        </ul>
+                    </dd>
+                </dl>
+
+				
+				<dl id="ㄴ" class="player_group">
+                    <dt>ㄴ</dt>
+                    <dd>
+                        <ul class="list_player">
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095543" class="link_detail">
+								        <span class="txt_name language" data-kr="나윤정" data-en="NA YUN JEONG">나윤정</span>&nbsp;[<span class="language" data-kr="KB스타즈" data-en="KB STARS">KB스타즈</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096265" class="link_detail">
+								        <span class="txt_name language" data-kr="노구치 사쿠라" data-en="NOGUCHI S.">노구치 사쿠라</span>&nbsp;[<span class="language" data-kr="신한은행" data-en="SHINHAN BANK">신한은행</span>]
+								    </a>
+								</li>
+							
+                        </ul>
+                    </dd>
+                </dl>
+				
+				<dl id="ㄷ" class="player_group">
+                    <dt>ㄷ</dt>
+                    <dd>
+                        <ul class="list_player">
+							
+                        </ul>
+                    </dd>
+                </dl>
+				
+				<dl id="ㄹ" class="player_group">
+                    <dt>ㄹ</dt>
+                    <dd>
+                        <ul class="list_player">
+							
+                        </ul>
+                    </dd>
+                </dl>
+				
+				<dl id="ㅁ" class="player_group">
+                    <dt>ㅁ</dt>
+                    <dd>
+                        <ul class="list_player">
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095918" class="link_detail">
+								        <span class="txt_name language" data-kr="미야사카 모모나" data-en="MIYASAKA M.">미야사카 모모나</span>&nbsp;[<span class="language" data-kr="삼성생명" data-en="SAMSUNG LIFE">삼성생명</span>]
+								    </a>
+								</li>
+							
+                        </ul>
+                    </dd>
+                </dl>
+				
+				<dl id="ㅂ" class="player_group">
+                    <dt>ㅂ</dt>
+                    <dd>
+                        <ul class="list_player">
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096262" class="link_detail">
+								        <span class="txt_name language" data-kr="바네사 데 헤수스" data-en="DE JESUS V.">바네사 데 헤수스</span>&nbsp;[<span class="language" data-kr="BNK 썸" data-en="BNK SUM">BNK 썸</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095900" class="link_detail">
+								        <span class="txt_name language" data-kr="박다원" data-en="PARK DA WON">박다원</span>&nbsp;[<span class="language" data-kr="BNK 썸" data-en="BNK SUM">BNK 썸</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095833" class="link_detail">
+								        <span class="txt_name language" data-kr="박성진" data-en="PARK SEONG JIN">박성진</span>&nbsp;[<span class="language" data-kr="BNK 썸" data-en="BNK SUM">BNK 썸</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096145" class="link_detail">
+								        <span class="txt_name language" data-kr="박소영" data-en="PARK SO YEONG">박소영</span>&nbsp;[<span class="language" data-kr="우리은행" data-en="WOORI BANK">우리은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095788" class="link_detail">
+								        <span class="txt_name language" data-kr="박소희" data-en="PARK SO HEE">박소희</span>&nbsp;[<span class="language" data-kr="하나은행" data-en="HANA BANK">하나은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096278" class="link_detail">
+								        <span class="txt_name language" data-kr="박유리" data-en="PARK YU RI">박유리</span>&nbsp;[<span class="language" data-kr="하나은행" data-en="HANA BANK">하나은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096136" class="link_detail">
+								        <span class="txt_name language" data-kr="박지수" data-en="PARK JI SU">박지수</span>&nbsp;[<span class="language" data-kr="BNK 썸" data-en="BNK SUM">BNK 썸</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095533" class="link_detail">
+								        <span class="txt_name language" data-kr="박지수" data-en="PARK JI SU">박지수</span>&nbsp;[<span class="language" data-kr="KB스타즈" data-en="KB STARS">KB스타즈</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095832" class="link_detail">
+								        <span class="txt_name language" data-kr="박진영" data-en="PARK JIN YOUNG">박진영</span>&nbsp;[<span class="language" data-kr="신한은행" data-en="SHINHAN BANK">신한은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095186" class="link_detail">
+								        <span class="txt_name language" data-kr="박혜진" data-en="PARK HYE JIN">박혜진</span>&nbsp;[<span class="language" data-kr="BNK 썸" data-en="BNK SUM">BNK 썸</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095782" class="link_detail">
+								        <span class="txt_name language" data-kr="방지온" data-en="BANG JI ON">방지온</span>&nbsp;[<span class="language" data-kr="삼성생명" data-en="SAMSUNG LIFE">삼성생명</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095780" class="link_detail">
+								        <span class="txt_name language" data-kr="변소정" data-en="BYUN SO JUNG">변소정</span>&nbsp;[<span class="language" data-kr="BNK 썸" data-en="BNK SUM">BNK 썸</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095908" class="link_detail">
+								        <span class="txt_name language" data-kr="변하정" data-en="BYUN HA JUNG">변하정</span>&nbsp;[<span class="language" data-kr="우리은행" data-en="WOORI BANK">우리은행</span>]
+								    </a>
+								</li>
+							
+                        </ul>
+                    </dd>
+                </dl>
+				
+				<dl id="ㅅ" class="player_group">
+                    <dt>ㅅ</dt>
+                    <dd>
+                        <ul class="list_player">
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096033" class="link_detail">
+								        <span class="txt_name language" data-kr="사카이 사라" data-en="SAKAI S.">사카이 사라</span>&nbsp;[<span class="language" data-kr="KB스타즈" data-en="KB STARS">KB스타즈</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095902" class="link_detail">
+								        <span class="txt_name language" data-kr="성수연" data-en="SUNG SU YEON">성수연</span>&nbsp;[<span class="language" data-kr="KB스타즈" data-en="KB STARS">KB스타즈</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095999" class="link_detail">
+								        <span class="txt_name language" data-kr="송윤하" data-en="SONG YUN HA">송윤하</span>&nbsp;[<span class="language" data-kr="KB스타즈" data-en="KB STARS">KB스타즈</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096269" class="link_detail">
+								        <span class="txt_name language" data-kr="송은지" data-en="SONG EUN JI">송은지</span>&nbsp;[<span class="language" data-kr="BNK 썸" data-en="BNK SUM">BNK 썸</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095919" class="link_detail">
+								        <span class="txt_name language" data-kr="스나가와 나츠키" data-en="SUNAGAWA N.">스나가와 나츠키</span>&nbsp;[<span class="language" data-kr="하나은행" data-en="HANA BANK">하나은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095785" class="link_detail">
+								        <span class="txt_name language" data-kr="신예영" data-en="SHIN YE YEONG">신예영</span>&nbsp;[<span class="language" data-kr="KB스타즈" data-en="KB STARS">KB스타즈</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095633" class="link_detail">
+								        <span class="txt_name language" data-kr="신이슬" data-en="SHIN LEE SEUL">신이슬</span>&nbsp;[<span class="language" data-kr="신한은행" data-en="SHINHAN BANK">신한은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095441" class="link_detail">
+								        <span class="txt_name language" data-kr="신지현" data-en="SHIN JI HYUN">신지현</span>&nbsp;[<span class="language" data-kr="신한은행" data-en="SHINHAN BANK">신한은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095210" class="link_detail">
+								        <span class="txt_name language" data-kr="심성영" data-en="SIM SUNG YOUNG">심성영</span>&nbsp;[<span class="language" data-kr="우리은행" data-en="WOORI BANK">우리은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095825" class="link_detail">
+								        <span class="txt_name language" data-kr="심수현" data-en="SIM SU HYEON">심수현</span>&nbsp;[<span class="language" data-kr="신한은행" data-en="SHINHAN BANK">신한은행</span>]
+								    </a>
+								</li>
+							
+                        </ul>
+                    </dd>
+                </dl>
+				
+				<dl id="ㅇ" class="player_group">
+                    <dt>ㅇ</dt>
+                    <dd>
+                        <ul class="list_player">
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095484" class="link_detail">
+								        <span class="txt_name language" data-kr="안혜지" data-en="AN HE JI">안혜지</span>&nbsp;[<span class="language" data-kr="BNK 썸" data-en="BNK SUM">BNK 썸</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096261" class="link_detail">
+								        <span class="txt_name language" data-kr="알렉시스 파나" data-en="ALEXIS P.">알렉시스 파나</span>&nbsp;[<span class="language" data-kr="KB스타즈" data-en="KB STARS">KB스타즈</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095259" class="link_detail">
+								        <span class="txt_name language" data-kr="양인영" data-en="YANG IN YOUNG">양인영</span>&nbsp;[<span class="language" data-kr="하나은행" data-en="HANA BANK">하나은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095746" class="link_detail">
+								        <span class="txt_name language" data-kr="양지수" data-en="YANG JI SU">양지수</span>&nbsp;[<span class="language" data-kr="KB스타즈" data-en="KB STARS">KB스타즈</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096140" class="link_detail">
+								        <span class="txt_name language" data-kr="양혜은" data-en="YANG HYE EUN">양혜은</span>&nbsp;[<span class="language" data-kr="삼성생명" data-en="SAMSUNG LIFE">삼성생명</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095707" class="link_detail">
+								        <span class="txt_name language" data-kr="오승인" data-en="OH SEUNG IN">오승인</span>&nbsp;[<span class="language" data-kr="우리은행" data-en="WOORI BANK">우리은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096260" class="link_detail">
+								        <span class="txt_name language" data-kr="원이아나" data-en="WON E.">원이아나</span>&nbsp;[<span class="language" data-kr="KB스타즈" data-en="KB STARS">KB스타즈</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096003" class="link_detail">
+								        <span class="txt_name language" data-kr="유하은" data-en="YOO HA EUN">유하은</span>&nbsp;[<span class="language" data-kr="삼성생명" data-en="SAMSUNG LIFE">삼성생명</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095497" class="link_detail">
+								        <span class="txt_name language" data-kr="윤예빈" data-en="YOON YE BIN">윤예빈</span>&nbsp;[<span class="language" data-kr="KB스타즈" data-en="KB STARS">KB스타즈</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096143" class="link_detail">
+								        <span class="txt_name language" data-kr="이가현" data-en="LEE GA HYUN">이가현</span>&nbsp;[<span class="language" data-kr="신한은행" data-en="SHINHAN BANK">신한은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095742" class="link_detail">
+								        <span class="txt_name language" data-kr="이다연" data-en="LEE DA YEON">이다연</span>&nbsp;[<span class="language" data-kr="삼성생명" data-en="SAMSUNG LIFE">삼성생명</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095831" class="link_detail">
+								        <span class="txt_name language" data-kr="이다현" data-en="LEE DA HYUN">이다현</span>&nbsp;[<span class="language" data-kr="하나은행" data-en="HANA BANK">하나은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095826" class="link_detail">
+								        <span class="txt_name language" data-kr="이두나" data-en="LEE DU NA">이두나</span>&nbsp;[<span class="language" data-kr="신한은행" data-en="SHINHAN BANK">신한은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095703" class="link_detail">
+								        <span class="txt_name language" data-kr="이명관" data-en="LEE MYUNG KUWAN">이명관</span>&nbsp;[<span class="language" data-kr="우리은행" data-en="WOORI BANK">우리은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096005" class="link_detail">
+								        <span class="txt_name language" data-kr="이민지" data-en="LEE MIN JI">이민지</span>&nbsp;[<span class="language" data-kr="우리은행" data-en="WOORI BANK">우리은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096268" class="link_detail">
+								        <span class="txt_name language" data-kr="이소희" data-en="LEE SO HEE">이소희</span>&nbsp;[<span class="language" data-kr="삼성생명" data-en="SAMSUNG LIFE">삼성생명</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095636" class="link_detail">
+								        <span class="txt_name language" data-kr="이소희" data-en="LEE SO HEE">이소희</span>&nbsp;[<span class="language" data-kr="BNK 썸" data-en="BNK SUM">BNK 썸</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096277" class="link_detail">
+								        <span class="txt_name language" data-kr="이수현" data-en="LEE SOO HYUN">이수현</span>&nbsp;[<span class="language" data-kr="우리은행" data-en="WOORI BANK">우리은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095978" class="link_detail">
+								        <span class="txt_name language" data-kr="이여명" data-en="LEE YEO MYONG">이여명</span>&nbsp;[<span class="language" data-kr="KB스타즈" data-en="KB STARS">KB스타즈</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095904" class="link_detail">
+								        <span class="txt_name language" data-kr="이예나" data-en="LEE YE NA">이예나</span>&nbsp;[<span class="language" data-kr="삼성생명" data-en="SAMSUNG LIFE">삼성생명</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096135" class="link_detail">
+								        <span class="txt_name language" data-kr="이원정" data-en="LEE WON JUNG">이원정</span>&nbsp;[<span class="language" data-kr="BNK 썸" data-en="BNK SUM">BNK 썸</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095642" class="link_detail">
+								        <span class="txt_name language" data-kr="이윤미" data-en="LEE YUN MI">이윤미</span>&nbsp;[<span class="language" data-kr="KB스타즈" data-en="KB STARS">KB스타즈</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096147" class="link_detail">
+								        <span class="txt_name language" data-kr="이은서" data-en="LEE EUN SEO">이은서</span>&nbsp;[<span class="language" data-kr="하나은행" data-en="HANA BANK">하나은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095912" class="link_detail">
+								        <span class="txt_name language" data-kr="이이지마 사키" data-en="IIJIMA S.">이이지마 사키</span>&nbsp;[<span class="language" data-kr="하나은행" data-en="HANA BANK">하나은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095524" class="link_detail">
+								        <span class="txt_name language" data-kr="이주연" data-en="LEE JU YEON">이주연</span>&nbsp;[<span class="language" data-kr="삼성생명" data-en="SAMSUNG LIFE">삼성생명</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095637" class="link_detail">
+								        <span class="txt_name language" data-kr="이채은" data-en="LEE CHAE EUN">이채은</span>&nbsp;[<span class="language" data-kr="KB스타즈" data-en="KB STARS">KB스타즈</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095778" class="link_detail">
+								        <span class="txt_name language" data-kr="이해란" data-en="LEE HAE RAN">이해란</span>&nbsp;[<span class="language" data-kr="삼성생명" data-en="SAMSUNG LIFE">삼성생명</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095527" class="link_detail">
+								        <span class="txt_name language" data-kr="이혜미" data-en="LEE HYE MI">이혜미</span>&nbsp;[<span class="language" data-kr="신한은행" data-en="SHINHAN BANK">신한은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095779" class="link_detail">
+								        <span class="txt_name language" data-kr="임규리" data-en="LIM KYU RI">임규리</span>&nbsp;[<span class="language" data-kr="삼성생명" data-en="SAMSUNG LIFE">삼성생명</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096270" class="link_detail">
+								        <span class="txt_name language" data-kr="임연서" data-en="LIM YEON SEO">임연서</span>&nbsp;[<span class="language" data-kr="BNK 썸" data-en="BNK SUM">BNK 썸</span>]
+								    </a>
+								</li>
+							
+                        </ul>
+                    </dd>
+                </dl>
+				
+				<dl id="ㅈ" class="player_group">
+                    <dt>ㅈ</dt>
+                    <dd>
+                        <ul class="list_player">
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095715" class="link_detail">
+								        <span class="txt_name language" data-kr="정예림" data-en="JUNG YE RIM">정예림</span>&nbsp;[<span class="language" data-kr="하나은행" data-en="HANA BANK">하나은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096276" class="link_detail">
+								        <span class="txt_name language" data-kr="정지윤" data-en="JUNG JI YUN">정지윤</span>&nbsp;[<span class="language" data-kr="우리은행" data-en="WOORI BANK">우리은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096141" class="link_detail">
+								        <span class="txt_name language" data-kr="정채련" data-en="JUNG CHAE RYEON">정채련</span>&nbsp;[<span class="language" data-kr="신한은행" data-en="SHINHAN BANK">신한은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096008" class="link_detail">
+								        <span class="txt_name language" data-kr="정현" data-en="JEONG HYUN">정현</span>&nbsp;[<span class="language" data-kr="하나은행" data-en="HANA BANK">하나은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096275" class="link_detail">
+								        <span class="txt_name language" data-kr="정혜윤" data-en="JUNG HYE YOON">정혜윤</span>&nbsp;[<span class="language" data-kr="우리은행" data-en="WOORI BANK">우리은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095749" class="link_detail">
+								        <span class="txt_name language" data-kr="조수아" data-en="CHO SOO AH">조수아</span>&nbsp;[<span class="language" data-kr="삼성생명" data-en="SAMSUNG LIFE">삼성생명</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096267" class="link_detail">
+								        <span class="txt_name language" data-kr="조우" data-en="CHO W.">조우</span>&nbsp;[<span class="language" data-kr="삼성생명" data-en="SAMSUNG LIFE">삼성생명</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096273" class="link_detail">
+								        <span class="txt_name language" data-kr="조희원" data-en="CHO HEE WON">조희원</span>&nbsp;[<span class="language" data-kr="신한은행" data-en="SHINHAN BANK">신한은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095499" class="link_detail">
+								        <span class="txt_name language" data-kr="진안" data-en="JIN AN">진안</span>&nbsp;[<span class="language" data-kr="하나은행" data-en="HANA BANK">하나은행</span>]
+								    </a>
+								</li>
+							
+                        </ul>
+                    </dd>
+                </dl>
+				
+				<dl id="ㅊ" class="player_group">
+                    <dt>ㅊ</dt>
+                    <dd>
+                        <ul class="list_player">
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096002" class="link_detail">
+								        <span class="txt_name language" data-kr="최예슬" data-en="CHOI YE SEL">최예슬</span>&nbsp;[<span class="language" data-kr="삼성생명" data-en="SAMSUNG LIFE">삼성생명</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096144" class="link_detail">
+								        <span class="txt_name language" data-kr="최예원" data-en="CHOI YE WON">최예원</span>&nbsp;[<span class="language" data-kr="우리은행" data-en="WOORI BANK">우리은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095261" class="link_detail">
+								        <span class="txt_name language" data-kr="최이샘" data-en="CHOI I SAEM">최이샘</span>&nbsp;[<span class="language" data-kr="BNK 썸" data-en="BNK SUM">BNK 썸</span>]
+								    </a>
+								</li>
+							
+                        </ul>
+                    </dd>
+                </dl>
+				
+				<dl id="ㅋ" class="player_group">
+                    <dt>ㅋ</dt>
+                    <dd>
+                        <ul class="list_player">
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096156" class="link_detail">
+								        <span class="txt_name language" data-kr="카타야마 나나" data-en="KATAYAMA N.">카타야마 나나</span>&nbsp;[<span class="language" data-kr="우리은행" data-en="WOORI BANK">우리은행</span>]
+								    </a>
+								</li>
+							
+                        </ul>
+                    </dd>
+                </dl>
+				
+				<dl id="ㅌ" class="player_group">
+                    <dt>ㅌ</dt>
+                    <dd>
+                        <ul class="list_player">
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095911" class="link_detail">
+								        <span class="txt_name language" data-kr="타니무라 리카" data-en="TANIMURA R.">타니무라 리카</span>&nbsp;[<span class="language" data-kr="BNK 썸" data-en="BNK SUM">BNK 썸</span>]
+								    </a>
+								</li>
+							
+                        </ul>
+                    </dd>
+                </dl>
+				
+				<dl id="ㅍ" class="player_group">
+                    <dt>ㅍ</dt>
+                    <dd>
+                        <ul class="list_player">
+							
+                        </ul>
+                    </dd>
+                </dl>
+				
+				<dl id="ㅎ" class="player_group">
+                    <dt>ㅎ</dt>
+                    <dd>
+                        <ul class="list_player">
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096007" class="link_detail">
+								        <span class="txt_name language" data-kr="하지윤" data-en="HA JI YOON">하지윤</span>&nbsp;[<span class="language" data-kr="하나은행" data-en="HANA BANK">하나은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095807" class="link_detail">
+								        <span class="txt_name language" data-kr="한야은" data-en="HAN YA EN">한야은</span>&nbsp;[<span class="language" data-kr="삼성생명" data-en="SAMSUNG LIFE">삼성생명</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095528" class="link_detail">
+								        <span class="txt_name language" data-kr="한연우" data-en="HAN EOM JI">한연우</span>&nbsp;[<span class="language" data-kr="우리은행" data-en="WOORI BANK">우리은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096139" class="link_detail">
+								        <span class="txt_name language" data-kr="한지민" data-en="HAN JI MIN">한지민</span>&nbsp;[<span class="language" data-kr="삼성생명" data-en="SAMSUNG LIFE">삼성생명</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095710" class="link_detail">
+								        <span class="txt_name language" data-kr="허예은" data-en="HEO YE EUN">허예은</span>&nbsp;[<span class="language" data-kr="KB스타즈" data-en="KB STARS">KB스타즈</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095905" class="link_detail">
+								        <span class="txt_name language" data-kr="허유정" data-en="HEO YOO JUNG">허유정</span>&nbsp;[<span class="language" data-kr="하나은행" data-en="HANA BANK">하나은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095972" class="link_detail">
+								        <span class="txt_name language" data-kr="홍유순" data-en="HONG YU SOON">홍유순</span>&nbsp;[<span class="language" data-kr="신한은행" data-en="SHINHAN BANK">신한은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096264" class="link_detail">
+								        <span class="txt_name language" data-kr="황샹팅" data-en="HUANG H.">황샹팅</span>&nbsp;[<span class="language" data-kr="신한은행" data-en="SHINHAN BANK">신한은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096146" class="link_detail">
+								        <span class="txt_name language" data-kr="황윤서" data-en="HWANG YOON SEO">황윤서</span>&nbsp;[<span class="language" data-kr="하나은행" data-en="HANA BANK">하나은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=096142" class="link_detail">
+								        <span class="txt_name language" data-kr="황현정" data-en="HWANG HYEON JEONG">황현정</span>&nbsp;[<span class="language" data-kr="신한은행" data-en="SHINHAN BANK">신한은행</span>]
+								    </a>
+								</li>
+							
+								<li>
+								    <a href="./detail.asp?player_group=12&tcode=&pno=095881" class="link_detail">
+								        <span class="txt_name language" data-kr="후지모토 마코" data-en="FUJIMOTO M.">후지모토 마코</span>&nbsp;[<span class="language" data-kr="우리은행" data-en="WOORI BANK">우리은행</span>]
+								    </a>
+								</li>
+							
+                        </ul>
+                    </dd>
+                </dl>
+				
+            </div>
+        </div>
+    </section>
+
+
+    <footer id="footer">
+        <div class="wrap_fnb">
+            <div class="cont_inner t_space">
+                <ul class="list_fnb">
+                    <li><a href="/etc/privacy.asp" class="link_fnb language" data-kr="개인정보처리방침" data-en="Privacy policy">개인정보처리방침</a></li>
+                    <li><a href="/etc/terms.asp" class="link_fnb language" data-kr="이용약관" data-en="Term of use">이용약관</a></li>
+                    <li><a href="/etc/contact_us.asp" class="link_fnb">CONTACT US</a></li>
+                    <li><a href="javascript:MM_openBrWindow('/etc/paycheck4.asp', 'reporterChk', 'scrollbars=no, width=400, height=300');" class="link_fnb language" data-kr="통계 프로그램" data-en="Statistic Program">통계 프로그램</a></li>
+                    <li><a href="http://photo.wkbl.or.kr" class="link_fnb language" target="_blank" data-kr="WKBL 포토" data-en="WKBL photo">WKBL 포토</a></li>
+                    <li><a href="https://datalab.wkbl.or.kr" class="link_fnb language" target="_blank" data-kr="데이터랩" data-en="Data Lab">데이터랩</a></li>
+                    <li><a href="https://cert.wkbl.or.kr/" class="link_fnb language" target="_blank" data-kr="경력증명서" data-en="Data Lab">경력증명서</a></li>
+                </ul>
+                <ul class="list_team">
+                    <li><a href="http://www.samsungblueminx.com/" class="link_team" target="_blank"><img src="/static/images/team/teamlogo_03.png" alt="삼성생명 블루밍스"><p class="screen_out">삼성생명</p></a></li>
+                    <li><a href="/team/teaminfo.asp?team_code=07" class="link_team" target="_blank"><img src="/static/images/team/teamlogo_07.png" alt="신한은행 에스버드"><p class="screen_out">신한은행</p></a></li>
+                    <li><a href="https://wooriwon.wooribank.com/basketball/main/bridge.php" class="link_team" target="_blank"><img src="/static/images/team/teamlogo_05.png" alt="우리은행 위비"><p class="screen_out">우리은행</p></a></li>
+                    <li><a href="/team/teaminfo.asp?team_code=09" class="link_team" target="_blank"><img src="/static/images/team/teamlogo_09.png?ver=20240821" alt="하나은행"><p class="screen_out">하나은행</p></a></li>
+                    <li><a href="http://bnksumbasket.com" class="link_team" target="_blank"><img src="/static/images/team/teamlogo_11.png" alt="BNK캐피탈"><p class="screen_out">BNK 썸</p></a></li>
+                    <li><a href="http://www.kbstars.co.kr/kbstars/2022/main.php" class="link_team" target="_blank"><img src="/static/images/team/teamlogo_01.png" alt="KB스타즈"><p class="screen_out">KB 스타즈</p></a></li>
+                </ul>
+            </div>
+        </div>
+            
+        <div class="wrap_footer">
+            <div class="cont_inner t_space">
+                <div class="left">
+                    <ul class="sns_list">
+                        <li><a target="_blank" href="https://www.facebook.com/f.WKBL/"><img src="/static/images/main/icon_facebook.svg" alt="facebook 링크로 바로 가기"></a></li>
+                        <li><a target="_blank" href="https://www.instagram.com/wkbl_official/"><img src="/static/images/main/icon_instargram.svg" alt="instargram 링크로 바로 가기"></a></li>
+                        <li><a target="_blank" href="https://www.youtube.com/channel/UCLyyt15iUOMUQovmJVde1Zg"><img src="/static/images/main/icon_youtube.svg" alt="youtube 링크로 바로 가기"></a></li>
+                        <li><a target="_blank" href="https://www.tiktok.com/@wkbl_official?lang=ko-KR"><img src="/static/images/main/icon_tictok.svg" alt="tictok 링크로 바로 가기"></a></li>
+                    </ul>
+                    <div class="info_site">
+                        <address class="txt_addr language" data-kr="서울특별시 강서구 공항대로 355 (등촌동)" data-en="355, Gonghang-daero, Gangseo-gu, Seou">서울특별시 강서구 공항대로 355 (등촌동)</address>
+                        <p class="copyright ">COPYRIGHT ⓒ 2026 WOMEN'S KOREAN BASKETBALL LEAGUE. ALL RIGHTS RESERVED.</p>
+                    </div>
+                    
+                    <p class="txt_site language" data-kr="WKBL 소속 6개 구단의 팀로고, 마스코트, 엠블럼과 WKBL 소속선수의 사진, 초상, 영상, 캐릭터 등을 무단으로 사용할 경우 상표법 및 저작권법에 의해 금지됩니다.<br>본 웹사이트에 게시된 이메일 주소와 전자우편 수집 프로그램이나 그밖의 기술적 장치를 이용하여 무단으로 수집되는 것을 거부하며, 이를 위반시 정보통신망법에 의해 형사처벌됨을 유념하시기 바랍니다." data-en="Unauthorized use, reproduction, or distribution of the team logos, mascots, emblems of the six WKBL-affiliated teams, as well as the photos, portraits, videos, and characters of WKBL players, is strictly prohibited under trademark and copyright laws.<br><br>Additionally, the unauthorized collection of email addresses from this website using automated programs or other technical methods is strictly forbidden. Violators may be subject to legal action under the Information and Communications Network Act.">
+                        WKBL 소속 6개 구단의 팀로고, 마스코트, 엠블럼과 WKBL 소속선수의 사진, 초상, 영상, 캐릭터 등을 무단으로 사용할 경우 상표법 및 저작권법에 의해 금지됩니다.
+                        본 웹사이트에 게시된 이메일 주소와 전자우편 수집 프로그램이나 그밖의 기술적 장치를 이용하여 무단으로 수집되는 것을 거부하며, 이를 위반시 정보통신망법에 의해 형사처벌됨을 유념하시기 바랍니다.
+                    </p>
+                </div>
+                <div class="video">
+                    <!-- youtube 외부링크 -->
+                    <a target="_blank" href="https://www.youtube.com/watch?v=9RfJuytleAc" class="thumb_img">
+                        <!-- https://i.ytimg.com/vi/(wathch?v=해당코드삽입)/hqdefault.jpg -->
+                        <img src="https://i.ytimg.com/vi/9RfJuytleAc/hqdefault.jpg" alt="youtube 썸네일">
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</div>
+<script src="/static/js/ui_24.js?ver=2.2"></script>
+<script>
+$(function() {
+    /////////////////////////////////////////////language change start///////////////////////////////////////////
+    let wkbl_lang = ['kr','en'];
+    let now_lang = localStorage.getItem("lang");
+
+    //if(!now_lang) now_lang = "kr";
+
+    //default lang => kr
+    if( wkbl_lang.indexOf(now_lang) < 0 ){
+        now_lang = "kr";
+        localStorage.setItem("lang", now_lang);
+    }
+
+
+    $('.lang_change').on('click', function(e){
+        now_lang = (now_lang == "kr") ? "en" : "kr";
+        localStorage.setItem("lang", now_lang);
+
+        language_change(now_lang);
+    });
+
+    // function language_icon_change(now_lang){
+    //     // if( now_lang == 'en' ){
+    //     //     $('.lang_change').addClass('active');
+    //     //     $('.lang_change_text').html("English");
+    //     // }else{
+    //     //     $('.lang_change').removeClass('active');
+    //     //     $('.lang_change_text').html("Korea");
+    //     // }
+    //
+    //     language_change(now_lang);
+    // }
+
+    function language_change(now_lang){
+        $('#wrap > div')
+        .removeClass('kr en')
+        .addClass(now_lang);
+
+        for(i=0;i < $(".language").length; i++){
+            if($($('.language')[i]).attr('placeholder') !== undefined){ //placeholder change
+               $($('.language')[i]).attr('placeholder', $($('.language')[i]).attr("data-"+now_lang));
+            }else{ //text change
+                $($('.language')[i]).html($($('.language')[i]).attr("data-"+now_lang));
+            }
+        }
+    }
+
+    language_change(now_lang);
+    /////////////////////////////////////////////language change end ///////////////////////////////////////////
+
+
+
+
+});
+
+
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-55620765-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+</body>
+</html>
+<script>
+$(function() {
+    //language change
+    let now_lang_sch = localStorage.getItem("lang");
+    if(!now_lang_sch) now_lang_sch = "kr";
+
+	if(now_lang_sch == "kr"){
+        $("#select_etc").html($("#tcode").find("option:selected").data("kr"));
+    }else{
+        $("#select_etc").html($("#tcode").find("option:selected").data("en"));
+    }
+});
+</script>

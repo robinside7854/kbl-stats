@@ -1,0 +1,818 @@
+<!-- https://www.wkbl.or.kr/etc/terms.asp -->
+
+
+
+
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta property="og:image" content="https://www.wkbl.or.kr/static/images/wkbl_link_thum.jpg">
+<meta property="og:image:width" content="800">
+<meta property="og:image:height" content="400">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:alt" content="WKBL, 한국여자농구연맹, 여자농구연맹, 여자프로농구">
+<meta property="og:description" content="WKBL, 한국여자농구연맹, 여자농구연맹, 여자프로농구">
+<title>WKBL</title>
+<!-- <meta name="viewport" content="user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, width=device-width"> -->
+<link rel="stylesheet" href="/static/css/style_26.css?ver=0.1" type="text/css">
+<script src="/static/js/lib/script.js"></script>
+<script src="/static/js/common_wkbl.js"></script>
+
+<!--[if lt IE 9]>
+<link rel="stylesheet" href="/static/css/ie.css">
+<script src="/static/js/lib/html5shiv.min.js"></script>
+<script src="/static/js/lib/respond.js"></script>
+<![endif]-->
+</head>
+
+<body>
+    <div id="pageIndex">
+        <a href="#contents" class="shortcut_g">본문내용보기</a>
+        <a href="#pageGnb" class="shortcut_g">메뉴바로가기</a>
+    </div>
+
+    <div id="wrap" class="v2026">
+        <header id="header" class="is_brn_none">
+            <div class="nav_wrapper">
+                <div class="top_navigation">
+                    <div class="inner_nav">
+                        <h1 id="pageLogo" class="site_logo">
+                            <a href="/main"><img src="/static/images/common/head_logo_22.png" alt="WKBL"></a>
+                        </h1>
+                        <nav id="pageGnb" class="gnb_comm">
+                            <h2 class="screen_out">주요메뉴</h2>
+                            <ul class="list_menu">
+                                <li class="depth1 nav0"><a href="/about/greetings.asp" >WKBL</a></li>
+                                <li class="depth1 nav1"><a href="/news/hotfocus_list.asp" class="language" data-kr="뉴스" data-en="News">뉴스</a></li>
+                                <li class="depth1 nav2"><a href="/game/sch/schedule1.asp" class="language" data-kr="일정/기록" data-en="Schedule<br>Records">일정/기록</a></li>
+                                <li class="depth1 nav3"><a href="/team/teaminfo.asp" class="language" data-kr="팀" data-en="Teams">팀</a></li>
+                                <li class="depth1 nav4"><a href="/player/player_list.asp" class="language" data-kr="선수" data-en="Players">선수</a></li>
+                                <li class="depth1 nav5"><a href="/history/league.asp" class="language" data-kr="히스토리" data-en="History">히스토리</a></li>
+                                <li class="depth1 nav6"><a href="javascropt:void(0);" class="language" data-kr="이벤트" data-en="Events">이벤트</a></li>
+                                <li class="depth1 nav7"><a href="/fan/character.asp" class="language" data-kr="팬" data-en="Fan">팬</a></li>
+                                <li class="depth1 nav8"><a href="/ticket/ticketing.asp" class="language" data-kr="티켓" data-en="Tickets">티켓</a></li>
+                            </ul>
+                        </nav>
+                        
+
+                        <!--// nav_wrapper -->
+
+                        <div class="util_wrapper top_social_wrap">
+                            <div class="inner_util">
+                                <ul class="list_util">
+                                    <li><a href="javascript:void(0);" class="lang_change language btn_detail" data-kr="<img src='/static/images/main/icon_global_v2026.svg' title='EN'>EN" data-en="<img src='/static/images/main/icon_global_v2026.svg' title='KR'>KR"><img src='/static/images/main/icon_global_v2026.svg' title="EN">EN</a></li>
+                                    <li>
+                                        <a href="/member/login_v2.asp" class="btn_detail language" data-kr="<img src='/static/images/main/icon_login_v2026.svg' title='로그인'>로그인" data-en="<img src='/static/images/main/icon_login_v2026.svg' title='Sign in'>Sign in">
+                                            <img src='/static/images/main/icon_login_v2026.svg' title='로그인'>로그인
+                                        </a>
+                                    </li>
+                                
+                                    <!-- <li><a href="/member/join/join_native.asp" class="btn_detail language" data-kr="회원가입" data-en="Sign up">회원가입</a></li> -->
+                                
+                                    <li><button type="button" class="btn_search btn_detail language" data-kr="<img src='/static/images/main/icon_search_v2026.svg' title='선수'>선수" data-en="<img src='/static/images/main/icon_search_v2026.svg' title='Player'>Player"><img src='/static/images/main/icon_search_v2026.svg' title='선수'>선수</button></li>
+                                </ul>
+                            </div>
+                            
+
+                            <script type="text/javascript">
+                                $(function() {
+                                    $("#btn_header_search").click(function(e) {
+                                        e.preventDefault();
+
+                                        var search_team = TrimStr($("#search_team").val());
+                                        var search_word = TrimStr($("#search_word").val());
+
+                                        location.href = "/player/search_result.asp?search_team=" + encodeURI(search_team) + "&search_word=" + encodeURI(search_word)
+                                    });
+                                });
+
+                                function goCommonSearch() {
+                                    if (event.keyCode == 13) $("#btn_header_search").click();
+                                }
+                            </script>
+
+                            <div class="wrap_search">
+                                <div class="inner_search">
+                                    <div class="opt_item ico2_comm" style="display:none;">
+                                        <label id="header_label_team" class="lab_select language" for="search_team" data-kr="팀전체" data-en="All">팀전체</label>
+                                        <select class="opt_select" name="search_team" id="search_team">
+                                    <option value="" selected class="language" data-kr="팀전체" data-en="All">팀전체</option>
+                                    
+                                    <option value="03" class="language" data-kr="삼성생명" data-en="Samsung life">삼성생명</option>
+                                    
+                                    <option value="07" class="language" data-kr="신한은행" data-en="Shinhan Bank">신한은행</option>
+                                    
+                                    <option value="05" class="language" data-kr="우리은행" data-en="Woori Bank">우리은행</option>
+                                    
+                                    <option value="09" class="language" data-kr="하나은행" data-en="Hana Bank">하나은행</option>
+                                    
+                                    <option value="11" class="language" data-kr="BNK 썸" data-en="BNK SUM">BNK 썸</option>
+                                    
+                                    <option value="01" class="language" data-kr="KB스타즈" data-en="KB stars">KB스타즈</option>
+                                    
+                                </select>
+                                    </div>
+                                    <span class="inp_text">
+                                <label for="search_word" class="screen_out">검색어 입력</label>
+                                <input type="text" name="search_word" id="search_word" class="tf_text" onKeyDown="javascript:if(event.keyCode == 13) { goCommonSearch(); }">
+                                </span>
+                                    <button type="button" id="btn_header_search" class="btn_search language" data-kr="선수검색" data-en="Player Search">선수검색</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--// inner_nav -->
+                <div class="sub_menu">
+                    <div class="inner_menu">
+                        <ul class="sub0" rel="0">
+                            <li><a href="/about/greetings.asp" class="language" data-kr="소개" data-en="Introduce">소개</a></li>
+                            <li><a href="/about/history.asp" class="language" data-kr="연혁" data-en="History">연혁</a></li>
+                            <li><a href="/about/organization.asp" class="language" data-kr="조직도" data-en="Organization">조직도</a></li>
+                            <li><a href="/about/rule_wkbl.asp" class="language" data-kr="규정" data-en="Regulation">규정</a></li>
+                            <li><a href="/about/manage_system.asp" class="language" data-kr="운영제도" data-en="Operating<br>system">운영제도</a></li>
+                            <li><a href="/about/manage_process.asp" class="language" data-kr="운영방식" data-en="Procedure">운영방식</a></li>
+                            <li><a href="/about/game_rule.asp" class="language" data-kr="경기규칙" data-en="Rule">경기규칙</a></li>
+                            <li><a href="/about/dictionary.asp" class="language" data-kr="농구용어" data-en="Terms">농구용어</a></li>
+                            <li><a href="/about/link.asp" class="language" data-kr="관련사이트" data-en="Related site">관련사이트</a></li>
+                        </ul>
+                        <ul class="sub1" rel="1">
+                            <li><a href="/news/hotfocus_list.asp" class="language" data-kr="보도자료" data-en="Press release">보도자료</a></li>
+                            <li><a href="/news/notice_list.asp" class="language" data-kr="공지사항" data-en="Notice">공지사항</a></li>
+                            <li><a href="/news/news_list.asp" class="language" data-kr="뉴스" data-en="News">뉴스</a></li>
+                            <li><a href="/news/video_list.asp" class="language" data-kr="영상" data-en="Video">영상</a></li>
+                            <li><a href="/news/photo_list.asp" class="language" data-kr="포토" data-en="Photo">포토</a></li>
+                            <li><a href="/news/teamstory_list.asp" class="language" data-kr="6개구단소식" data-en="News from 6<br>teams">6개구단소식</a></li>
+                        </ul>
+                        <ul class="sub2" rel="2">
+                            <li><a href="/game/sch/schedule1.asp" class="language" data-kr="경기일정" data-en="Schedule">경기일정</a></li>
+                            <!-- <li><a href="/game/sch/schedule1.asp" class="language" data-kr="경기일정" data-en="Schedule">경기일정</a></li> -->
+                            <li><a href="/game/team_rank.asp" class="language" data-kr="팀순위" data-en="Team<br>Rankings">팀순위</a></li>
+                            <li><a href="/game/player_record.asp" class="language" data-kr="부문별 선수순위" data-en="Player Standings<br>by Category">부문별 선수순위</a></li>
+                            <li><a href="/game/part_team_rank.asp" class="language" data-kr="부문별 팀순위" data-en="Team Standings<br>by Category">부문별 팀순위</a></li>
+                            <li><a href="/game/team_total_record.asp" class="language" data-kr="팀종합기록" data-en="Overall<br>Records">팀종합기록</a></li>
+                            <li><a href="/game/report.asp" class="language" data-kr="승/패 리포트" data-en="W/L Reports">승/패 리포트</a></li>
+                            <li><a href="/game/today_mvp.asp" class="language" data-kr="오늘의 MVP" data-en="Today’s MVP">오늘의 MVP</a></li>
+                        </ul>
+                        <ul class="sub3" rel="3">
+                            <li><a href="/team/teaminfo.asp" class="language" data-kr="삼성생명" data-en="Samsung life">삼성생명</a></li>
+                            <li><a href="/team/teaminfo.asp?team_code=07" class="language" data-kr="신한은행" data-en="Shinhan Bank">신한은행</a></li>
+                            <li><a href="/team/teaminfo.asp?team_code=05" class="language" data-kr="우리은행" data-en="Woori Bank">우리은행</a></li>
+                            <li><a href="/team/teaminfo.asp?team_code=09" class="language" data-kr="하나은행" data-en="Hana Bank">하나은행</a></li>
+                            <li><a href="/team/teaminfo.asp?team_code=11" class="language" data-kr="BNK썸" data-en="BNK SUM">BNK썸</a></li>
+                            <li><a href="/team/teaminfo.asp?team_code=01" class="language" data-kr="KB스타즈" data-en="KB stars">KB스타즈</a></li>
+                        </ul>
+                        <ul class="sub4" rel="4">
+                            <li><a href="/player/player_list.asp" class="language" data-kr="선수색인" data-en="Player index">선수색인</a></li>
+                            <li><a href="/player/trade_info.asp" class="language" data-kr="이적현황" data-en="Transfer status">이적현황</a></li>
+                            <li><a href="/player/wkbl_hotline.asp">HOTLINE</a></li>
+                        </ul>
+                        <ul class="sub5" rel="5">
+                            <li><a href="/history/league.asp" class="language" data-kr="역대리그" data-en="League">역대리그</a></li>
+                            <li><a href="/history/prev_director.asp" class="language" data-kr="역대총재" data-en="President">역대총재</a></li>
+                            <li><a href="/history/major_team.asp" class="language" data-kr="역대주요기록" data-en="Key Records">역대주요기록</a></li>
+                            <li><a href="/history/awards.asp" class="language" data-kr="역대부문별수상자" data-en="All-time winners">역대부문별수상자</a></li>
+                            <li><a href="/history/draft.asp" class="language" data-kr="역대드래프트" data-en="Draft">역대드래프트</a></li>
+                            <li><a href="/history/fa_result.asp" class="language" data-kr="역대 FA" data-en="FA">역대 FA</a></li>
+                            <li><a href="/history/crowd.asp" class="language" data-kr="역대관중현황" data-en="Attendance<br>status">역대관중현황</a></li>
+                            <li><a href="/event/20th/index.asp" class="language" data-kr="GREAT 12<br/>(20주년 기념)" data-en="GREAT 12<br>(20th Anniversary)">GREAT 12<br/>(20주년 기념)</a></li>
+                        </ul>
+                        <ul class="sub6" rel="6">
+                            <li><a href="/event/parksj2026/about_01.asp" class="language" data-kr="박신자컵" data-en="Park Shin-Ja<br>Cup">박신자컵</a></li>
+                            <li><a href="/event/triplejam2026/about_01.asp" class="language" data-kr="트리플잼" data-en="Triple Jam">트리플잼</a></li>
+                            <li><a href="/allstar/2025/" class="language" data-kr="올스타전" data-en="All star">올스타전</a></li>
+                            <li><a href="/event/playoff2526/" class="language" data-kr="플레이오프<br/>챔프전" data-en="Playoffs<br>Championship">플레이오프<br/>챔프전</a></li>
+                            <li><a href="/event/futures2627/about_01.asp" class="language" data-kr="퓨처스리그" data-en="Futures league">퓨처스리그</a></li>
+                            <!-- <li><a href="/event/asian2022/about_01.asp" class="language" data-kr="국제대회" data-en="International<br>league">국제대회</a></li> -->
+                        </ul>
+                        <ul class="sub7" rel="7">
+                            <li><a href="/fan/character.asp" class="language" data-kr="캐릭터" data-en="Character">캐릭터</a></li>
+                            <li><a href="/fan/music.asp" class="language" data-kr="플레이리스트" data-en="WKBL PLAYLIST">플레이리스트</a></li>
+                            <li><a href="/fan/magazine.asp" class="language" data-kr="화보" data-en="Magazine">화보</a></li>
+                            <li><a href="/fan/wallpaper.asp" class="language" data-kr="월페이퍼" data-en="Wall paper">월페이퍼</a></li>
+                            <li><a href="/fan/season_paper.asp" class="language" data-kr="배경화면" data-en="Background<br>image">배경화면</a></li>
+                            <li><a href="/fan/board_list.asp" class="language" data-kr="자유게시판" data-en="Community">자유게시판</a></li>
+                            <li><a href="/fan/faq.asp" class="language" data-kr="자주하는질문" data-en="FAQ">자주하는질문</a></li>
+                            <li><a href="/fan/sns.asp" class="language">SNS</a></li>
+                            <li><a href="/ticket/event.asp" class="language" data-kr="이벤트" data-en="Event">이벤트</a></li>
+                        </ul>
+                        <ul class="sub8" rel="8">
+                            <li>&nbsp;</li>
+                        </ul>
+                    </div>
+                    <img src="/static/images/main/menu_banner.png" alt="통통튀는 우크블즈">
+                </div>
+            </div>
+
+            <!-- <div class="season_nav">
+                <div class="inner_season">
+                    <div class="title">
+                        <p class="name">정규리그</p>
+                    </div>
+                    <div class="game_status">
+                        <div class="info active">
+                            <div class="txt_info">
+                                <p class="time">14:30</p>
+                                <p class="status">진행중</p>
+                            </div>
+                            <div class="versus">
+                                <div class="thumb_img">
+                                    <img src="/static/images/team/teamlogo_01.png" alt="KB스타즈">
+                                </div>
+                                <p class="vs">vs</p>
+                                <div class="thumb_img">
+                                    <img src="/static/images/team/teamlogo_03.png" alt="삼성생명">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="info">
+                            <div class="txt_info">
+                                <p class="time">19:00</p>
+                                <p class="status">예정</p>
+                            </div>
+                            <div class="versus">
+                                <div class="thumb_img">
+                                    <img src="/static/images/team/teamlogo_01.png" alt="KB스타즈">
+                                </div>
+                                <p class="vs">vs</p>
+                                <div class="thumb_img">
+                                    <img src="/static/images/team/teamlogo_03.png" alt="삼성생명">
+                                </div>
+                            </div>
+                            
+                            <a href="" class="ticket_btn">티켓예매</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="main_aside_dday">
+                    <div class="top">
+                        <div class="dday_tit">
+                            <span class="tag">D-DAY</span>
+                            <span class="standard">26.07.29</span>
+                        </div>
+                        <p class="tit">26 퓨쳐스리그</p>
+                    </div>
+
+                    <div class="bottom">
+                        <div class="dday">
+                            <span>D</span>
+                            <span class="sign">-</span>
+                            <span class="num">130</span>
+                        </div>
+                    </div>
+                </div>
+            </div> -->
+        </header>
+    <section id="contents">
+        		<div class="breadcrumb_block">
+            <ul class="list_breadcrumb">
+                <li class="home"><a href="/main/">HOME</a></li>
+                <li class="depth1"><a href="/member/login_v2.asp" class="language" data-kr="마이페이지" data-en="My page">마이페이지</a>
+                    <ul class="sub_menu">
+                        <li><a href="/about/greetings.asp" >WKBL</a></li>
+                        <li><a href="/news/hotfocus_list.asp" class="language" data-kr="뉴스" data-en="News">뉴스</a></li>
+                        <li><a href="/game/sch/schedule1.asp" class="language" data-kr="게임" data-en="Schedule">게임</a></li>
+                        <li><a href="/team/teaminfo.asp" class="language" data-kr="팀" data-en="Teams">팀</a></li>
+                        <li><a href="/player/player_list.asp" class="language" data-kr="선수" data-en="Players">선수</a></li>
+                        <li><a href="/fan/board_list.asp" class="language" data-kr="팬" data-en="Fan">팬</a></li>
+                    </ul>
+                </li>
+				
+                <li class="depth1"><a href="/etc/terms.asp" class="language" data-kr="이용약관" data-en="Terms of Use">이용약관</a>
+                    <ul class="sub_menu">
+                    
+						<li><a href="/member/login_v2.asp" class='language' data-kr="로그인" data-en="Sign in">로그인</a></li>
+						<li><a href="/member/join/join_native.asp" class='language' data-kr="회원가입" data-en="Sign up">회원가입</a></li>
+						<li><a href="/member/search/find_id_v2.asp" class='language' data-kr="아이디 찾기" data-en="Find ID">아이디 찾기</a></li>
+						<li><a href="/member/search/find_pw_v2.asp" class='language' data-kr="비밀번호 찾기" data-en="Find Password">비밀번호 찾기</a></li>
+                    
+						<li><a href="/etc/contact_us.asp">CONTACT US</a></li>
+                        <li><a href="/etc/terms.asp" class='active language' data-kr="이용약관" data-en="Terms of Use">이용약관</a></li>
+                        <li><a href="/etc/privacy.asp" class='language' data-kr="개인정보처리방침" data-en="Privacy Policy">개인정보처리방침</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        <div id="cMain" class="page_member">
+            <div class="inner_cont">
+               <h2 class="tit_page language" data-kr="이용약관" data-en="Term of Use">이용약관</h2>
+               <div class="wrap_terms">
+                   <h3 class="language" data-kr="제 1 장 총칙" data-en="Chpater 1. General Rules">제 1 장 총칙</h3>
+                   
+                   <h4 class="language" data-kr="제 1 조 (목적)" data-en="Article 1 (Purpose)">제 1 조 (목적)</h4>
+                   <p class="language" data-kr="이 약관은 한국여자농구연맹(WKBL)(이하 “WKBL”이라 합니다) 이 제공하는 모든 서비스(이하 “서비스”라 한다)의 이용 조건 및 절차에 관한 기본적인 사항에 대해 정의하는 것을 목적으로 합니다." data-en="The purpose of these Terms and Conditions define the basic terms, conditions, and procedure for the use of all services (hereinafter referred to as the “Services”) provided by the Women’s Korean Basketball League (hereinafter referred to as “WKBL”)">이 약관은 한국여자농구연맹(WKBL)(이하 "WKBL"이라 합니다) 이 제공하는 모든 서비스(이하 "서비스"라 한다)의 이용 조건 및 절차에 관한 기본적인 사항에 대해 정의하는 것을 목적으로 합니다.</p>
+                   <h4 class="language" data-kr="제 2 조 (약관의 효력 및 변경)" data-en="Article 2 (Effectiveness and Amendment of the Terms and Conditions)">제 2 조 (약관의 효력 및 변경)</h4>
+                   <p class="language"
+                       data-kr="① 이 약관은 서비스를 통하여 알리거나, 자료게시 및 전자우편 등의 방법으로 회원에게 알림으로써 효력을 발생합니다.<br>
+                       ② WKBL은 필요한 경우 이 약관의 내용을 변경할 수 있으며, 변경된 약관은 제1항과 같은 방법으로 알림으로써 효력을 발생합니다.<br>
+                       ③ 이 약관의 내용은 'WKBL홈페이지'(www.wkbl.or.kr)에 게시합니다."
+                       data-en="① These Terms and Conditions shall take effect when notified to members via the Services, posted materials, or through electronic mail.<br>
+                       ② WKBL may amend the Terms and Conditions when necessary. The amended Terms and Conditions shall become effective once notified in the same manner as set forth in Paragraph <br>
+                       ③ The contents of these Terms and Conditions shall be posted on the WKBL website (www.wkbl.or.kr)">
+                       ① 이 약관은 서비스를 통하여 알리거나, 자료게시 및 전자우편 등의 방법으로 회원에게 알림으로써 효력을 발생합니다.<br>
+                       ② WKBL은 필요한 경우 이 약관의 내용을 변경할 수 있으며, 변경된 약관은 제1항과 같은 방법으로 알림으로써 효력을 발생합니다.<br>
+                       ③ 이 약관의 내용은 'WKBL홈페이지'(www.wkbl.or.kr)에 게시합니다.
+                   </p>
+                   
+                   <h4 class="language" data-kr="제 3 조 (약관 이외의 준칙)" data-en="Article 3 (Applicable Regulations Beyond These Terms)">제 3 조 (약관 이외의 준칙)</h4>
+                   <p class="language" data-kr="이 약관에 언급되지 않은 사항이 전기통신기본법, 전기통신사업법, 기타 관련법령에 규정되어 있는 경우 그 규정에 따라 적용할 수 있습니다." data-en="Matters not specified in these Terms shall be subject to the provisions of the Framework Act on Telecommunications, the Telecommunications Business Act, and other relevant laws and regulations, where applicable">이 약관에 언급되지 않은 사항이 전기통신기본법, 전기통신사업법, 기타 관련법령에 규정되어 있는 경우 그 규정에 따라 적용할 수 있습니다.</p>
+                   
+                   <h4 class="language" data-kr="제 4 조 (용어의 정의)" data-en="Article 4 (Definitions)">제 4 조 (용어의 정의)</h4>
+                   <p class="language" data-kr="이 약관에서 사용하는 용어의 정의는 다음과 같습니다.<br>
+                       ① 회원 : 서비스를 제공받기 위하여 WKBL과 서비스 이용계약을 체결하고, 회원 아이디(ID)를 부여 받은 사람을 말합니다.<br>
+                       ② 아이디(ID) : 회원의 식별과 서비스 이용을 위하여 회원이 정하고 WKBL이 승인하는 문자와 숫자의 조합을 말합니다.<br>
+                       ③ 비밀번호 : 회원이 부여 받은 아이디(ID)와 일치된 회원임을 확인하고, 회원 자신의 비밀을 보호 하기 위하여 회원이 정한 문자와 숫자의 조합을 말합니다.<br>
+                       ④ 해지 : WKBL 또는 회원이 서비스 개통 후 이용계약을 해약 하는 것을 말합니다."
+                        data-en="The definitions of terms used in these Terms are as follows:<br>
+                        ① Member: Refers to a person who has entered into a service agreement with WKBL to receive services and has been granted a Member ID<br>
+                        ② ID (Identification): Refers to a combination of letters and numbers chosen by the Member and approved by WKBL for Member identification and service use.<br>
+                        ③  Password: Refers to a combination of letters and numbers set by the Member to confirm that the Member matches the assigned ID and to protect the Member’s privacy.<br>
+                        ④ Termination: Refers to the dissolution of the service agreement by either WKBL or the Member after the service has commenced.">
+                       이 약관에서 사용하는 용어의 정의는 다음과 같습니다.<br>
+                       ① 회원 : 서비스를 제공받기 위하여 WKBL과 서비스 이용계약을 체결하고, 회원 아이디(ID)를 부여 받은 사람을 말합니다.<br>
+                       ② 아이디(ID) : 회원의 식별과 서비스 이용을 위하여 회원이 정하고 WKBL이 승인하는 문자와 숫자의 조합을 말합니다.<br>
+                       ③ 비밀번호 : 회원이 부여 받은 아이디(ID)와 일치된 회원임을 확인하고, 회원 자신의 비밀을 보호 하기 위하여 회원이 정한 문자와 숫자의 조합을 말합니다.<br>
+                       ④ 해지 : WKBL 또는 회원이 서비스 개통 후 이용계약을 해약 하는 것을 말합니다.
+                   </p>
+                   
+                   <h3 class="language" data-kr="제2장 서비스가입 이용계약" data-en="Chapter 2 Service Use Agreement">제2장 서비스가입 이용계약</h3>
+                   
+                   <h4 class="language" data-kr="제 5 조 (이용계약의 성립)" data-en="Article 5 (Formation of Service Agreement)">제 5 조 (이용계약의 성립)</h4>
+                   <p class="language" data-kr="① 회원등록은 이용 희망자가 본 이용약관을 읽은 후 “이용약관에 동의하십니까?” 라는 이용신청시의 물음에 “동의”버튼을 클릭하면 이 약관에 동의하는 것으로 간주됩니다.<br>
+                       ② 이용계약은 서비스 이용희망자의 이용약관 동의 후 이뤄지는 이용 신청에 대하여 WKBL이 승낙함으로써 성립합니다."
+                        data-en="① Member registration is considered complete when the user wishing to use the service clicks the “Agree” button in response to the question “Do you agree to the Terms of Service?” after reading these Terms of Service”<br>
+                        ② The service agreement is formed when WKBL approves the service application made by the user after they agree to the Terms of Service.">
+                       ① 회원등록은 이용 희망자가 본 이용약관을 읽은 후 "이용약관에 동의하십니까?" 라는 이용신청시의 물음에 "동의"버튼을 클릭하면 이 약관에 동의하는 것으로 간주됩니다.<br>
+                       ② 이용계약은 서비스 이용희망자의 이용약관 동의 후 이뤄지는 이용 신청에 대하여 WKBL이 승낙함으로써 성립합니다.
+                   </p>
+                   
+                   <h4 class="language" data-kr="제 6 조 (이용신청)" data-en="Article 6 (Application for Use)">제 6 조 (이용신청)</h4>
+                   <p class="language" data-kr="① 회원으로 등록하여 본 서비스를 이용하기 위해서는 WKBL이 준비한 소정의 가입신청 양식에서 요구하는 모든 개인 신상정보를 기록하여 신청해야 합니다.<br>
+                       ② 가입신청 양식에 쓰는 모든 이용자 정보는 모두 실제 데이터인 것으로 간주됩니다. 실명이나 실제 정보를 입력하지 않은 사용자는 법적인 보호를 받을 수 없으며, 서비스의 제한을 받을 수 있습니다." 
+                       data-en="①  To register as a member and use this service, you must accurately complete all personal information required in the WKBL’s designated application form.<br>
+                       ② All user information provided in the application form is considered to be factual. Users who do not provide their real name or actual information may not receive legal protection">
+                       ① 회원으로 등록하여 본 서비스를 이용하기 위해서는 WKBL이 준비한 소정의 가입신청 양식에서 요구하는 모든 개인 신상정보를 기록하여 신청해야 합니다.<br>
+                       ② 가입신청 양식에 쓰는 모든 이용자 정보는 모두 실제 데이터인 것으로 간주됩니다. 실명이나 실제 정보를 입력하지 않은 사용자는 법적인 보호를 받을 수 없으며, 서비스의 제한을 받을 수 있습니다.
+                   </p>
+                   
+                   <h4 class="language" data-kr="제 7 조 (이용신청의 승낙)" data-en="Article 7 (Approval of Service Application)">제 7 조 (이용신청의 승낙)</h4>
+                   <p class="language" data-kr="  ① WKBL은 제6조에 따른 이용 신청 회원에 대하여 제2항, 제3항과 같은 예외적인 경우를 제외하곤 서비스 이용신청을 승낙합니다.<br>
+                       ② WKBL은 다음에 해당하는 경우, 그 사유가 해소될 때까지 승낙을 유보할 수 있습니다.<br>
+                        가. 서비스 관련 설비에 여유가 없는 경우<br>
+                        나. 기술상 지장이 있는 경우<br>
+                        다. 기타 WKBL이 필요하다고 인정되는 경우<br>
+                        ③ WKBL은 다음에 해당하는 경우, 회원가입을 승낙하지 않을 수 있습니다. <br>
+                        가. 이름이 실명이 아닌 경우 <br>
+                        나. 다른 사람의 명의를 사용하여 신청한 경우<br>
+                        다. 이용신청 시 이용자정보를 허위로 기재하여 신청한 경우 <br>
+                        라. 사회의 안녕과 질서 또는 미풍양속을 저해할 목적으로 신청한 경우<br>
+                        마. 기타 WKBL 소정의 이용신청요건을 충족하지 못하는 경우<br>
+                        바. 회원가입계약의 성립시기는 WKBL의 승낙이 회원에게 도달한 시점부터 입니다. <br>
+                        사. 회원이 이용 신청에 대하여 WKBL이 이를 승낙한 경우, WKBL은 회원 아이디(ID)와 기타 WKBL이 필요하다고 인정하는 내용을 회원에게 알려줍니다." 
+                        data-en="① WKBL shall approve service applications from members who apply under Article 6, except in the exceptional cases outlined in Paragraph 2 and 3.<br>
+                        ② WKBL may postpone approval in the following cases until the reason for postponement is resolved:<br>
+                        a. When the capacity of the service-related equipment is insufficient<br>
+                        b. When there are technical errors<br>
+                        c. When WKBL deems it necessary for other reasons.<br>
+                        ③ In any of the following cases, WKBL may not approve the membership registration:<br>
+                        a. When the name provided is not the applicant’s real name<br>
+                        b. When the application is made using another person’s name<br>
+                        c. When false user information is provided in the application<br>
+                        d. When the application is made with the purpose of disturbing public order or undermining public morals.<br>
+                        e. When the applicant fails to meet other application requirements set forth by WKBL<br>
+                        f. The service agreement is formed when WKBL’s approval reaches the member.<br>
+                        g. If WKBL approves a member’s service application, WKBL shall inform the member of their Member ID and any other details WKBL deems necessary.">
+                       ① WKBL은 제6조에 따른 이용 신청 회원에 대하여 제2항, 제3항과 같은 예외적인 경우를 제외하곤 서비스 이용신청을 승낙합니다.<br>
+                       ② WKBL은 다음에 해당하는 경우, 그 사유가 해소될 때까지 승낙을 유보할 수 있습니다.<br>
+                        가. 서비스 관련 설비에 여유가 없는 경우<br>
+                        나. 기술상 지장이 있는 경우<br>
+                        다. 기타 WKBL이 필요하다고 인정되는 경우<br>
+                        ③ WKBL은 다음에 해당하는 경우, 회원가입을 승낙하지 않을 수 있습니다. <br>
+                        가. 이름이 실명이 아닌 경우 <br>
+                        나. 다른 사람의 명의를 사용하여 신청한 경우<br>
+                        다. 이용신청 시 이용자정보를 허위로 기재하여 신청한 경우 <br>
+                        라. 사회의 안녕과 질서 또는 미풍양속을 저해할 목적으로 신청한 경우<br>
+                        마. 기타 WKBL 소정의 이용신청요건을 충족하지 못하는 경우<br>
+                        바. 회원가입계약의 성립시기는 WKBL의 승낙이 회원에게 도달한 시점부터 입니다. <br>
+                        사. 회원이 이용 신청에 대하여 WKBL이 이를 승낙한 경우, WKBL은 회원 아이디(ID)와 기타 WKBL이 필요하다고 인정하는 내용을 회원에게 알려줍니다.
+                   </p>
+                   
+                   <h4 class="language" data-kr="제 8 조 (이용자정보의 변경)" data-en="Chapter 8 (Changes to User Information)">제 8 조 (이용자정보의 변경)</h4>
+                   <p class="language" data-kr="회원은 이용신청 시 기재한 회원정보가 변경되었을 경우에는, 온라인으로 수정을 하여야 하며 변경을 하지 않아 생기는 문제의 책임은 회원에게 있습니다." data-en="If there is any change made to the information submitted during Member’s application for use, he/she shall modify the information online. Members are responsible for any issues arising from their failure to update this information.">
+                       회원은 이용신청 시 기재한 회원정보가 변경되었을 경우에는, 온라인으로 수정을 하여야 하며 변경을 하지 않아 생기는 문제의 책임은 회원에게 있습니다.
+                   </p>
+                   
+                   <h3 class="language" data-kr="제3장 계약당사자의 책임과 의무" data-en="Chapter 3 Responsibilities and Obligations of Contracting Parties">제3장 계약당사자의 책임과 의무</h3>
+                   
+                   <h4 class="language" data-kr="제 9 조 (WKBL의 의무)" data-en="Article 9 (Obligations of WKBL)">제 9 조 (WKBL의 의무)</h4>
+                   <p class="language" data-kr="① WKBL은 법령과 본 약관이 금지하거나 미풍양속에 반하는 행위를 하지 않으며 본 약관이 정하는 바에 따라 지속적이고, 안정적으로 서비스를 제공하기 위해서 노력합니다.<br>
+                       ② WKBL은 회원이 안전하게 인터넷 서비스를 이용할 수 있도록 이용자의 개인정보(신용정보 포함)보호를 위한 보안 시스템을 구축합니다. <br>
+                       ③ WKBL은 서비스 제공과 관련하여 취득한 회원의 개인정보를 본인의 사전 승낙 없이 타인에게 누설, 공개 또는 배포할 수 없으며, 서비스관련 업무 이에 회원이 원하지 않는 상업적 목적으로 광고성 전자우편을 등을 사용할 수 없습니다. 단, 다음에 해당하는 경우는 예외입니다. <br>
+                       가. 전기통신기본법 등 법률의 규정에 의해 국가기관의 요구가 있는 경우 <br>
+                       나. 범죄에 대한 수사상의 목적이 있거나 정보통신윤리 위원회의 요청이 있는 경우 <br>
+                       다. 기타 관계법령에서 정한 절차에 따른 요청이 있는 경우 <br>
+                       ④ WKBL은 회원이 서비스를 이용함에 있어 WKBL의 고의 또는 중대한 과실로 인하여 입은 손해에 대한 책임을 부담한다. <br>
+                       ⑤ 3항의 범위 내에서, WKBL은 업무와 관련하여 회원 전체 또는 일부의 개인 정보에 관한 통계 자료를 작성하여 이를 사용할 수 있고, 서비스를 통하여 원의 컴퓨터에 쿠키를 전송할 수 있습니다. 이 경우 회원은 쿠키의 수신을 거부하거나 쿠키의 수신에 대하여 경고하도록 사용하는 컴퓨터의 브라우저의 설정을 변경할 수 있습니다. <br>
+                       ⑥ WKBL은 회원이 서비스 이용 중 필요가 있다고 인정되는 다양한 정보를 회원의 신청에 따라 소정의 절차를 거쳐 전자우편이나 서신 등으로 제공합니다. <br>
+                       ⑦ WKBL은 회원으로부터 제기되는 불만이 정당하다고 인정할 경우에는 즉시 처리함을 원칙으로 합니다. 다만 즉시 처리가 곤란한 경우에는 회원에게 그 사유와 처리 일정을 통보합니다." 
+                       data-en="① WKBL shall not engage in acts prohibited by law or these Terms, or those contrary to public morals, and shall strive to provide continuous and stable service as stipulated by these Terms.<br>
+                       ② WKBL shall establish a security system to protect member’s personal information (including credit information) to ensure members can safely use internet services.<br>
+                       ③ WKBL shall not disclose, reveal, or distribute member’s personal information obtained in connection with service provision to third parties without the member’s prior consent, and shall not use advertising emails for commercial purpose unwanted by the member, except in the following cases:<br>
+                       a. When required by a national agency in accordance with laws such as the Framework Act on Telecommunications.<br>
+                       b. When there is an investigative purpose for a crime or a request from the Korea Communications Standards Commission.<br>
+                       c. When there is a request in accordance with procedures set forth by other relevant laws and regulations.<br>
+                       ④ WKBL shall be responsible for damages incurred by members due to WKBL’s willful misconduct or gross negligence while using the service.<br>
+                       ⑤ Within the scope Paragraph 3, WKBL may compile and use statistical data regarding all or part of the member’s personal information related to its operations, and may send cookies to members’ computers through the service. In this case, members can change their computer’s browser settings to refuse the receipt of cookies or to war them about cookie reception.<br>
+                       ⑥ WKBL shall provide various information deemed necessary during a member’s use of the service via email or mail, after going through the prescribed procedures based on the member’s request.<br>
+                       ⑦ WKBL’s principle is to process legitimate complaints raised by members immediately. However, if immediate processing is difficult, WKBL shall inform the member of the reason and the processing schedule. 
+                       ">
+                       ① WKBL은 법령과 본 약관이 금지하거나 미풍양속에 반하는 행위를 하지 않으며 본 약관이 정하는 바에 따라 지속적이고, 안정적으로 서비스를 제공하기 위해서 노력합니다.<br>
+                       ② WKBL은 회원이 안전하게 인터넷 서비스를 이용할 수 있도록 이용자의 개인정보(신용정보 포함)보호를 위한 보안 시스템을 구축합니다. <br>
+                       ③ WKBL은 서비스 제공과 관련하여 취득한 회원의 개인정보를 본인의 사전 승낙 없이 타인에게 누설, 공개 또는 배포할 수 없으며, 서비스관련 업무 이에 회원이 원하지 않는 상업적 목적으로 광고성 전자우편을 등을 사용할 수 없습니다. 단, 다음에 해당하는 경우는 예외입니다. <br>
+                       가. 전기통신기본법 등 법률의 규정에 의해 국가기관의 요구가 있는 경우 <br>
+                       나. 범죄에 대한 수사상의 목적이 있거나 정보통신윤리 위원회의 요청이 있는 경우 <br>
+                       다. 기타 관계법령에서 정한 절차에 따른 요청이 있는 경우 <br>
+                       ④ WKBL은 회원이 서비스를 이용함에 있어 WKBL의 고의 또는 중대한 과실로 인하여 입은 손해에 대한 책임을 부담한다. <br>
+                       ⑤ 3항의 범위 내에서, WKBL은 업무와 관련하여 회원 전체 또는 일부의 개인 정보에 관한 통계 자료를 작성하여 이를 사용할 수 있고, 서비스를 통하여 원의 컴퓨터에 쿠키를 전송할 수 있습니다. 이 경우 회원은 쿠키의 수신을 거부하거나 쿠키의 수신에 대하여 경고하도록 사용하는 컴퓨터의 브라우저의 설정을 변경할 수 있습니다. <br>
+                       ⑥ WKBL은 회원이 서비스 이용 중 필요가 있다고 인정되는 다양한 정보를 회원의 신청에 따라 소정의 절차를 거쳐 전자우편이나 서신 등으로 제공합니다. <br>
+                       ⑦ WKBL은 회원으로부터 제기되는 불만이 정당하다고 인정할 경우에는 즉시 처리함을 원칙으로 합니다. 다만 즉시 처리가 곤란한 경우에는 회원에게 그 사유와 처리 일정을 통보합니다.
+                   </p>
+                   
+                   <h4 class="language" data-kr="제 10 조 (회원의 의무)" data-en="Article 10 (Obligations of Members)">제 10 조 (회원의 의무)</h4>
+                   <p class="language" data-kr=" ① WKBL이 관계법령, “개인정보보호정책”에 의해서 그 책임을 지는 경우를 제외하고, 자신의 ID와 비밀번호에 관한 관리책임은 회원에게 있습니다. 회원에게 부여된 아이디(ID) 와 비밀번호의 관리소홀, 부정사용에 의해 생기는 모든 결과는 전적으로 회원에게 그 책임이 있습니다.<br>
+                       ② 회원은 관계법령, 이 약관에서 규정하는 사항, 서비스 이용 안내 및 주의 사항을 준수하여야 합니다. <br>
+                       ③ 회원은 자신의 ID 및 비밀번호를 제3자가 이용하게 해서는 안됩니다. <br>
+                       ④ 자신의 아이디(ID)가 부정하게 사용된 경우 또는 기타 보안 위반에 대하여, 회원은 반드시 WKBL에 그 사실을 통보해야 합니다. <br>
+                       ⑤ 회원은 서비스 이용 시 다음에 해당하는 행위를 하지 않아야 합니다. <br>
+                       가. 다른 회원의 ID를 부정하게 사용하는 행위 <br>
+                       나. WKBL서비스에서 얻은 정보를 WKBL의 사전승낙 없이 회원의 이용 이외의 목적으로 복제 하거나 이를 변경, 출판 및 방송 등에 사용하거나 타인에게 제공하는 행위 <br>
+                       다. WKBL의 저작권, 타인의 저작권 등 기타 권리를 침해하는 행위 <br>
+                       라. 공공질서 및 미풍양속에 위반되는 내용의 정보, 문장, 도형 등을 타인에게 유포하는 행위 <br>
+                       마. 범죄와 결부된다고 객관적으로 판단되는 행위 <br>
+                       바. 기타 관계법령에 위배되는 행위 <br>
+                       ⑥ 회원은 내용별로 WKBL이 서비스 공지사항에 게시하거나 별도로 공지한 이용 제한 사항을 준수하여야 합니다. <br>
+                       ⑦ 회원은 WKBL의 사전 승낙 없이 서비스를 이용하여 어떠한 영리행위도 할 수 없습니다. <br>
+                       ⑧ 회원은 본 약관 제20조 2항에서 명시한 내용과 같은 사유로 인하여 WKBL이나 다른 이용자에게 손해를 입힌 경우 이를 배상할 책임이 있습니다." 
+                       data-en="① Except in cases where is responsible under relevant laws or its “Privacy Policy”, members are solely responsible for managing their ID and password. All consequences arising from the careless management or unauthorized use of the assigned ID and password are the sole responsibility of the member.<br>
+                       ② Members must comply with relevant laws, the provisions of these Terms, service usage guidelines, and precautions.<br>
+                       ③ Members must not allow third parties to use their ID and password.<br>
+                       ④ Members must notify WKBL immediately if their ID is used fraudulently or if there is any other security breach.<br>
+                       ⑤ Members must not engage int the following acts when using the service:<br>
+                       a. Illegally using another member’s ID<br>
+                       b. Reproducing information obtained from WKBL’s service or altering, publishing, broadcasting, or providing it to others for purpose other than the member’s personal use, without WKBL’s prior consent.<br>
+                       c. Infringing on WKBL’s copyright, others’ copyrights, or other rights.<br>
+                       d. Distributing information, sentences, figures, etc., that violate public order or undermine public morals.<br>
+                       e. Acts objectively judged to be related to crime.<br>
+                       f. Other acts that violate relevant laws and regulations.<br>
+                       ⑥ Members must comply with the usage restrictions posted in WKBL’s service announcements or separately notified for each content type.<br>
+                       ⑦ Members may not engage in any profit-making activities using the service without WKBL’s prior consent.<br>
+                       ⑧ Members are responsible for compensation WKBL or other uses for damages caused by reasons such as those specified in Article 20, Paragraph 2 of these Terms.">
+                       ① WKBL이 관계법령, "개인정보보호정책"에 의해서 그 책임을 지는 경우를 제외하고, 자신의 ID와 비밀번호에 관한 관리책임은 회원에게 있습니다. 회원에게 부여된 아이디(ID) 와 비밀번호의 관리소홀, 부정사용에 의해 생기는 모든 결과는 전적으로 회원에게 그 책임이 있습니다.<br>
+                       ② 회원은 관계법령, 이 약관에서 규정하는 사항, 서비스 이용 안내 및 주의 사항을 준수하여야 합니다. <br>
+                       ③ 회원은 자신의 ID 및 비밀번호를 제3자가 이용하게 해서는 안됩니다. <br>
+                       ④ 자신의 아이디(ID)가 부정하게 사용된 경우 또는 기타 보안 위반에 대하여, 회원은 반드시 WKBL에 그 사실을 통보해야 합니다. <br>
+                       ⑤ 회원은 서비스 이용 시 다음에 해당하는 행위를 하지 않아야 합니다. <br>
+                       가. 다른 회원의 ID를 부정하게 사용하는 행위 <br>
+                       나. WKBL서비스에서 얻은 정보를 WKBL의 사전승낙 없이 회원의 이용 이외의 목적으로 복제 하거나 이를 변경, 출판 및 방송 등에 사용하거나 타인에게 제공하는 행위 <br>
+                       다. WKBL의 저작권, 타인의 저작권 등 기타 권리를 침해하는 행위 <br>
+                       라. 공공질서 및 미풍양속에 위반되는 내용의 정보, 문장, 도형 등을 타인에게 유포하는 행위 <br>
+                       마. 범죄와 결부된다고 객관적으로 판단되는 행위 <br>
+                       바. 기타 관계법령에 위배되는 행위 <br>
+                       ⑥ 회원은 내용별로 WKBL이 서비스 공지사항에 게시하거나 별도로 공지한 이용 제한 사항을 준수하여야 합니다. <br>
+                       ⑦ 회원은 WKBL의 사전 승낙 없이 서비스를 이용하여 어떠한 영리행위도 할 수 없습니다. <br>
+                       ⑧ 회원은 본 약관 제20조 2항에서 명시한 내용과 같은 사유로 인하여 WKBL이나 다른 이용자에게 손해를 입힌 경우 이를 배상할 책임이 있습니다.
+                   </p>
+                   
+                   <h3 class="language" data-kr="제4장 서비스 제공 및 이용" data-en="Chapter 4 Service Provision and Use">제4장 서비스 제공 및 이용</h3>
+                   
+                   <h4 class="language" data-kr="제 11 조 (정보의 제공)" data-en="Article 11 (Provision of Information)">제 11 조 (정보의 제공)</h4>
+                   <p class="language" data-kr="WKBL은 회원이 서비스 이용 중 필요하고 인정되는 다양한 정보에 대해서 전자메일이나 서신우편 등의 방법으로 회원에게 제공할 수 있으며, 회원은 원하지 않을 경우 회원가입신청 메뉴와 회원정보수정 메뉴에서 정보수신거부를 할 수 있습니다." data-en="WKBL may provide members with various information deemed necessary during their service use, through methods such as email or postal mail. Members can refuse to receive such information via the member registration application menu and the member information modification menu if they do not wish to receive it. ">
+                       WKBL은 회원이 서비스 이용 중 필요하고 인정되는 다양한 정보에 대해서 전자메일이나 서신우편 등의 방법으로 회원에게 제공할 수 있으며, 회원은 원하지 않을 경우 회원가입신청 메뉴와 회원정보수정 메뉴에서 정보수신거부를 할 수 있습니다.
+                   </p>
+                   
+                   <h4 class="language" data-kr="제 12 조 (광고주와의 거래)" data-en="Article 12 (Transactions with Advertisers)">제 12 조 (광고주와의 거래)</h4>
+                   <p class="language" data-kr="WKBL은 본 사이트에 게재되어 있거나 본 서비스를 통한 광고주의 판촉활동에 회원이 참여하여 거래한 결과로서 발생하는 모든 손실과 손해에 대해 책임을 지지 않습니다." data-en="WKBL is not responsible for any losses or damages resulting from members’ participation in promotional activities of advertisers displayed on this site or through this service, and any transactions made as a result. ">WKBL은 본 사이트에 게재되어 있거나 본 서비스를 통한 광고주의 판촉활동에 회원이 참여하여 거래한 결과로서 발생하는 모든 손실과 손해에 대해 책임을 지지 않습니다.</p>
+                   
+                   <h4 class="language" data-kr="제 13 조 (회원의 게시물)" data-en="Article 13 (Member Posts)">제 13 조 (회원의 게시물)</h4>
+                   <p class="language" data-kr="① WKBL은 회원이 본 서비스를 통하여 게시, 게재, 전자메일 또는 달리 전송한 내용물에 대해 책임을 지지 않습니다. 게시물에 대한 권리와 책임은 게시자에게 있으며 WKBL은 게시자의 동의 없이는 이를 서비스내 게재 이외에 영리적 목적으로 사용할 수 없습니다. 단, 비영리적인 경우에는 그렇지 않으며, WKBL은 서비스내의 게재권을 갖습니다. <br>
+                       ② 회원은 서비스를 이용하여 얻은 정보를 가공, 판매하는 행위 등 서비스에 게재된 자료를 상업적으로 사용할 수 없습니다. <br>
+                       ③ 다음의 경우에 해당될 경우 WKBL은 회원에게 사전통지 없이 삭제할 수 있으며, 회원 자격을 제한.정지 또는 상실시킬 수 있습니다. <br>
+                       가. 다른 회원이나 타인을 비방하거나, 프라이버시를 침해하거나, 중상모략으로 명예를 손상시키는 내용인 경우 <br>
+                       나. 서비스의 안정적인 운영에 지장을 주거나 줄 우려가 있는 경우 <br>
+                       다. 미풍양속에 위반되는 내용의 정보. 문장. 도형 등을 유포하는 내용을 게시하는 경우 <br>
+                       라. 범죄적 행위에 관련된다고 인정되는 내용일 경우 <br>
+                       마. WKBL의 저작권 및 지적재산권, 다른 회원 또는 타인의 저작권 및 지적재산권 등 기타 권리를 침해하는 내용인 경우 <br>
+                       바. WKBL에서 규정한 게시기간을 초과한 경우 <br>
+                       사. 기타 관계법령에 위반된다고 판단되는 경우" 
+                       data-en="① WKBL is not responsible for any content posted, uploaded, emailed, or otherwise transmitted by members through this service. The rights and responsibilities for posts belong to the poster, and WKBL may not use them for commercial purpose outside of their publication within the service without the poster’s consent. However, this does not apply to non-commercial uses, and WKBL retains the right to publish content within the service. <br>
+                       ② Members may not commercially use materials published on the service, including processing or selling information obtained through the service.<br>
+                       ③ In following cases, WKBL may delete contend without prior notice to the member and may limit, suspend, or terminate membership:<br>
+                       a. If the content slanders or defames other members or third parties, infringes on their privacy or damages their reputation.<br>
+                       b. If the content interferes with or is likely to interfere with the stable operation of the service.<br>
+                       c. If the content posted includes information, text, or graphics that violate public order or morals.<br>
+                       d. If the content is deemed to be related to criminal activity.<br>
+                       e. If the content infringes on WKBL’s copyrights and intellectual property rights, or the copyrights and intellectual property rights of other members or third parties.<br>
+                       f. If the content exceeds the posting period stipulated by WKBL.<br>
+                       g. If the content is deemed to violate other relevant laws and regulations.
+                       ">
+                       ① WKBL은 회원이 본 서비스를 통하여 게시, 게재, 전자메일 또는 달리 전송한 내용물에 대해 책임을 지지 않습니다. 게시물에 대한 권리와 책임은 게시자에게 있으며 WKBL은 게시자의 동의 없이는 이를 서비스내 게재 이외에 영리적 목적으로 사용할 수 없습니다. 단, 비영리적인 경우에는 그렇지 않으며, WKBL은 서비스내의 게재권을 갖습니다. <br>
+                       ② 회원은 서비스를 이용하여 얻은 정보를 가공, 판매하는 행위 등 서비스에 게재된 자료를 상업적으로 사용할 수 없습니다. <br>
+                       ③ 다음의 경우에 해당될 경우 WKBL은 회원에게 사전통지 없이 삭제할 수 있으며, 회원 자격을 제한.정지 또는 상실시킬 수 있습니다. <br>
+                       가. 다른 회원이나 타인을 비방하거나, 프라이버시를 침해하거나, 중상모략으로 명예를 손상시키는 내용인 경우 <br>
+                       나. 서비스의 안정적인 운영에 지장을 주거나 줄 우려가 있는 경우 <br>
+                       다. 미풍양속에 위반되는 내용의 정보. 문장. 도형 등을 유포하는 내용을 게시하는 경우 <br>
+                       라. 범죄적 행위에 관련된다고 인정되는 내용일 경우 <br>
+                       마. WKBL의 저작권 및 지적재산권, 다른 회원 또는 타인의 저작권 및 지적재산권 등 기타 권리를 침해하는 내용인 경우 <br>
+                       바. WKBL에서 규정한 게시기간을 초과한 경우 <br>
+                       사. 기타 관계법령에 위반된다고 판단되는 경우
+                   </p>
+                   
+                   <h4 class="language" data-kr="제 14 조 (게시물에 대한 저작권 및 책임)" data-en="Article 14 (Copyright and Responsibility for Posts)">제 14 조 (게시물에 대한 저작권 및 책임)</h4>
+                   <p class="language" data-kr="① WKBL이 작성한 저작물에 대한 저작권 기타 지적재산권은 WKBL에 있습니다. <br>
+                       ② 본 사이트의 모든 게시물에 대한 저작권은 사전에 당사자의 명시적인 다른 합의가 없는 한 WKBL에 귀속됩니다. <br>
+                       ③ 게시물에 대한 보호는 WKBL에서 하며, 회원은 WKBL의 서비스를 이용함으로써 얻은 정보를 WKBL의 허가 없이 복제, 전송, 출판, 방송 기타 방법에 의하여 영리목적으로 이용할 수 없으며, 타인에 의해 게시물이 다른 사이트에서 사용 또는 인용되는 것은 금지 됩니다.<br>" 
+                       data-en="① Copyright and other intellectual property rights for works created by WKBL belong to WKBL<br>
+                       ② The copyright for all posts on this site belongs to WKBL, unless otherwise explicitly agreed upon by the parties in advance.<br>
+                       ③ WKBL protects posts, and members may not reproduce, transmit, publish, broadcast, or otherwise use for commercial purpose information obtained through WKBL’s services without WKBL’s permission. The use or citation of posts by others on other sites is prohibited.">
+                       ① WKBL이 작성한 저작물에 대한 저작권 기타 지적재산권은 WKBL에 있습니다. <br>
+                       ② 본 사이트의 모든 게시물에 대한 저작권은 사전에 당사자의 명시적인 다른 합의가 없는 한 WKBL에 귀속됩니다. <br>
+                       ③ 게시물에 대한 보호는 WKBL에서 하며, 회원은 WKBL의 서비스를 이용함으로써 얻은 정보를 WKBL의 허가 없이 복제, 전송, 출판, 방송 기타 방법에 의하여 영리목적으로 이용할 수 없으며, 타인에 의해 게시물이 다른 사이트에서 사용 또는 인용되는 것은 금지 됩니다.<br>
+                   </p>
+                   
+                   <h4 class="language" data-kr="제 15 조 (메일의 내용)" data-en="Article 15 (Email Content)">제 15 조 (메일의 내용)</h4>
+                   <p class="language" data-kr=" ① WKBL은 회원의 메일 내용을 편집하거나 감시하지 않습니다. <br>
+                       ② 메일의 내용에 대한 책임은 각 회원에게 있습니다. <br>
+                       ③ 회원은 허가를 받지 않고서는 음란물이나 불온한 내용, 정크메일(junk mail), 스팸메일(spam mail) 및 타인에게 피해를 주거나 미풍양속을 해치는 메일을 보내서는 안됩니다. <br>
+                       ④ 전기통신법 제53조와 전기통신사업법 시행령 16조(불온통신), 통신사업법 제53조 3항에 의거, 음란물이나 불온한 내용을 전송함으로써 발생하는 모든 법적인 책임은 회원에게 있으며 WKBL은 책임지지 않습니다. <br>
+                       ⑤ 본 서비스를 이용하여 타인에게 피해를 주거나 미풍양속을 해치는 행위를 하신 회원의 아이디(ID)와 메일은 보호 받을 수 없습니다." 
+                       data-en="① WKBL does not edit or monitor the content of member’s emails.<br>
+                       ② The responsibility for the content of emails lies with each member.<br>
+                       ③ Members must not send emails containing obscene or illicit content, junk mail, spam mail, or emails that cause harm to others or undermine public morals, without permission.<br>
+                       ④ In accordance with Article 53 on the Telecommunications Act, Article 16 (Illicit Communications) of the Enforcement Decree of the Telecommunications Business Act, and Article 53, Paragraph 3 of the Telecommunications Business Act, all legal responsibility arising from the transmission of obscene or illicit content lies with the member, and WKBL is not responsible.<br>
+                       ⑤ The ID and email of members who cause harm to others or undermine public morals by using this service cannot be protected.">
+                       ① WKBL은 회원의 메일 내용을 편집하거나 감시하지 않습니다. <br>
+                       ② 메일의 내용에 대한 책임은 각 회원에게 있습니다. <br>
+                       ③ 회원은 허가를 받지 않고서는 음란물이나 불온한 내용, 정크메일(junk mail), 스팸메일(spam mail) 및 타인에게 피해를 주거나 미풍양속을 해치는 메일을 보내서는 안됩니다. <br>
+                       ④ 전기통신법 제53조와 전기통신사업법 시행령 16조(불온통신), 통신사업법 제53조 3항에 의거, 음란물이나 불온한 내용을 전송함으로써 발생하는 모든 법적인 책임은 회원에게 있으며 WKBL은 책임지지 않습니다. <br>
+                       ⑤ 본 서비스를 이용하여 타인에게 피해를 주거나 미풍양속을 해치는 행위를 하신 회원의 아이디(ID)와 메일은 보호 받을 수 없습니다.
+                   </p>
+                   
+                   <h4 class="language" data-kr="제 16 조 (서비스 이용시간)" data-en="Article 16 (Service Hours)">제 16 조 (서비스 이용시간)</h4>
+                   <p class="language" data-kr="① 서비스의 이용은 WKBL의 업무상 또는 기술상의 장애, 기타 특별한 사유가 없는 한 연중무휴, 1일 24시간 이용할 수 있습니다. 다만 설비의 점검 등 WKBL이 필요한 경우 또는 설비의 장애, 서비스 이용의 폭주 등 불가항력으로 인하여 서비스 이용에 지장이 있는 경우예외적으로 서비스 이용의 전부 또는 일부에 대하여 제한할 수 있습니다.<br>
+                       ② WKBL은 제공하는 서비스 중 일부에 대한 서비스 이용시간을 별도로 정할 수 있으며, 이 경우 그 이용시간을 사전에 회원에게 공지 또는 통지합니다." 
+                       data-en="① Service is available 24 hours a day, 7 days a week, unless there are operational or technical obstacles for WKBL or other special circumstances. However, service use may be partially or wholly restricted exceptionally in cases of equipment inspection, or when WKBL deems it necessary due to equipment failure, surge in service usage, or other force majeure events.<br>
+                       ② WKBL may set separate service hours for some of the services it provides, and in such cases, it shall announce or notify members of these hours in advance.">
+                       ① 서비스의 이용은 WKBL의 업무상 또는 기술상의 장애, 기타 특별한 사유가 없는 한 연중무휴, 1일 24시간 이용할 수 있습니다. 다만 설비의 점검 등 WKBL이 필요한 경우 또는 설비의 장애, 서비스 이용의 폭주 등 불가항력으로 인하여 서비스 이용에 지장이 있는 경우예외적으로 서비스 이용의 전부 또는 일부에 대하여 제한할 수 있습니다.<br>
+                       ② WKBL은 제공하는 서비스 중 일부에 대한 서비스 이용시간을 별도로 정할 수 있으며, 이 경우 그 이용시간을 사전에 회원에게 공지 또는 통지합니다.
+                   </p>
+                   
+                   <h4 class="language" data-kr="제 17 조 (서비스 이용 및 책임)" data-en="Article 17 (Service Use and Responsibility)">제 17 조 (서비스 이용 및 책임)</h4>
+                   <p class="language" data-kr="회원은 WKBL에서 권한 있는 사원이 서명한 명시적인 서면에 구체적으로 허용한 경우를 제외하고는 서비스를 이용하여 불법 상품을 판매하는 영업 활동을 할 수 없으며 특히 해킹, 돈 벌기 광고, 음란사이트를 통한 상업행위, 상용 S/W 불법배포 등을 할 수 없습니다. 이를 어기고 발생한 영업활동의 결과 및 손실, 관계기관에 의한 구속 등 법적조치 등에 관해서는 WKBL이 책임을 지지 않습니다." 
+                   data-en="Members may not engage in business activities involving the sale of illegal goods using the service, especially hacking, deceptive advertisements, commercial activities through obscene sites, or illegal distribution of commercial software, unless specifically permitted in writing by an authorized WKBL employee. WKBL is not responsible for the results or losses of such business activities, or for legal actions, such as arrests by relevant authorities, that arise from violating this provision.">회원은 WKBL에서 권한 있는 사원이 서명한 명시적인 서면에 구체적으로 허용한 경우를 제외하고는 서비스를 이용하여 불법 상품을 판매하는 영업 활동을 할 수 없으며 특히 해킹, 돈 벌기 광고, 음란사이트를 통한 상업행위, 상용 S/W 불법배포 등을 할 수 없습니다. 이를 어기고 발생한 영업활동의 결과 및 손실, 관계기관에 의한 구속 등 법적조치 등에 관해서는 WKBL이 책임을 지지 않습니다.</p>
+                   
+                   <h4 class="language" data-kr="제 18 조 (서비스 제한 및 정지)" data-en="Article 18 (Service Restrictions and Suspension)">제 18 조 (서비스 제한 및 정지)</h4>
+                   <p class="language" data-kr=" ① WKBL은 전시, 사변, 천재지변 또는 이에 준하는 국가비상사태가 발생하거나 발생할 우려가 있는 경우와 컴퓨터 등 전기통신사업법에 의한 기간통신 사업자가 정보통신설비의 보수점검, 교체 및 고장, 통신의 두절 등의 사유가 발생한 경우에는 서비스의 제공을 일시적으로 중단할 수 있고, 새로운 서비스로의 교체 등 기타 불가항력적 사유가 있는 경우 WKBL이 적절하다고 판단하는 사유에 기하여 현재 제공되는 서비스의 전부 또는 일부를 제한하거나 정지할 수 있습니다.<br>
+                       ② WKBL은 제1항의 규정에 의하여 서비스의 이용을 제한하거나 정지한 때에는 그 사유 및 제한기간 등을 회원에게 알려야 합니다. 다만, WKBL이 통제할 수 없는 사유로 인한 서비스의 중단(시스템 관리자의 고의, 과실이 없는 디스크 장애, 시스템 다운 등)으로 인하여 사전 통지가 불가능한 경우에는 그렇지 않습니다.<br>"
+                   data-en="① WKBL may temporarily suspend service provision in cases of war, civil unrest, natural disaster, or similar national emergencies or when such events are likely to occur, and when a key telecommunications business operator under the Telecommunication Business Act experiences reasons such as maintenance, replacement, or failure of information and communication facilities, or communication disruptions. WKBL may also restrict or suspend all or part of the currently provided services based on reasons WKBL deems appropriate in cases of replacement with new services or other force majeure events.<br>
+                   ② When WKBL restricts or suspends service use according to Paragraph 1, it must inform the member of the reason and the period of restriction. However, this is not applicable if prior notice is impossible due to service interruption caused by reasons beyond WKBL’s control (such as disk failure or system downtime not due to the system administrator’s willful misconduct or negligence).">
+                       ① WKBL은 전시, 사변, 천재지변 또는 이에 준하는 국가비상사태가 발생하거나 발생할 우려가 있는 경우와 컴퓨터 등 전기통신사업법에 의한 기간통신 사업자가 정보통신설비의 보수점검, 교체 및 고장, 통신의 두절 등의 사유가 발생한 경우에는 서비스의 제공을 일시적으로 중단할 수 있고, 새로운 서비스로의 교체 등 기타 불가항력적 사유가 있는 경우 WKBL이 적절하다고 판단하는 사유에 기하여 현재 제공되는 서비스의 전부 또는 일부를 제한하거나 정지할 수 있습니다.<br>
+                       ② WKBL은 제1항의 규정에 의하여 서비스의 이용을 제한하거나 정지한 때에는 그 사유 및 제한기간 등을 회원에게 알려야 합니다. 다만, WKBL이 통제할 수 없는 사유로 인한 서비스의 중단(시스템 관리자의 고의, 과실이 없는 디스크 장애, 시스템 다운 등)으로 인하여 사전 통지가 불가능한 경우에는 그렇지 않습니다.<br>
+                   </p>
+                   
+                   <h3 class="language" data-kr="제5장 기타" data-en="Chapter 5 Others">제5장 기타</h3>
+                   
+                   <h4 class="language" data-kr="제 19 조 (회원정보의 보호)" data-en="Article 19 (Protection of Member Information)">제 19 조 (회원정보의 보호)</h4>
+                   <p class="language" data-kr=" ① WKBL은 회원 정보를 존중하고 보호합니다. WKBL은 회원의 정보를 회원이 가입한 날로부터 탈퇴 또는 탈퇴 신청한 날까지만 보유함을 원칙으로 합니다.<br>
+                       ② WKBL은 서비스 제공과 관련하여 취득한 회원의 신상정보를 본인의 승낙 없이 제3자에게 누설 또는 배포할 수 없으며 상업적 목적으로 사용할 수 없습니다. 단, 다음에 해당하는 경우는 예외입니다. <br>
+                       가. 특정개인을 식별할 수 없는 통계작성, 홍보자료, 학술연구 등의 목적일 경우 <br>
+                       나. 관계 법령에 의거하여 수사기관 및 해당 국가기관이 요청하여 개인정보를 제공해야 할 의무를 지는 경우 <br>
+                       다. 배송업무상 배송업체에 고객의 정보를 알려주는 경우 <br>
+                       ③ 회원 정보는 회원이 WKBL 및 WKBL과 제휴한 사이트들을 편리하게 이용하도록 하기 위해 WKBL과 제휴하는 사이트 간에 공유될 수 있으며, 다른 사이트와 제휴할 경우 미리 제휴하게 될 사이트를 서비스내 공지를 통해 회원에게 알립니다." 
+                       data-en="① WKBL respects and protects member information. WKBL’s principle is to retain member information only from the data of membership registration until the date of withdrawal or withdrawal request.<br>
+                       ② WKBL shall not disclose or distribute members’ personal information obtained in connection with service provision to third parties without the member’s consent, and shall not use it for commercial purposes. However, the following cases are exceptions:<br>
+                       a. For purposes such as statistical complication, promotional materials, or academic research where specific individuals cannot be identified.<br>
+                       b. When there is a legal obligation to provide personal information upon request from investigative agencies or relevant national agencies in accordance with relevant laws and regulations.<br>
+                       c. When providing customer information to a delivery company for delivery purpose<br>
+                       ③ Member information may be shared between WKBL and its affiliated sites to facilitate convenient use of WKBL and its affiliated sites. If WKBL affiliates with other sites, it will notify members of the affiliated sites. If WKBL affiliates with other sites, it will notify members of the affiliated sited through a notice within the service in advance.">
+                       ① WKBL은 회원 정보를 존중하고 보호합니다. WKBL은 회원의 정보를 회원이 가입한 날로부터 탈퇴 또는 탈퇴 신청한 날까지만 보유함을 원칙으로 합니다.<br>
+                       ② WKBL은 서비스 제공과 관련하여 취득한 회원의 신상정보를 본인의 승낙 없이 제3자에게 누설 또는 배포할 수 없으며 상업적 목적으로 사용할 수 없습니다. 단, 다음에 해당하는 경우는 예외입니다. <br>
+                       가. 특정개인을 식별할 수 없는 통계작성, 홍보자료, 학술연구 등의 목적일 경우 <br>
+                       나. 관계 법령에 의거하여 수사기관 및 해당 국가기관이 요청하여 개인정보를 제공해야 할 의무를 지는 경우 <br>
+                       다. 배송업무상 배송업체에 고객의 정보를 알려주는 경우 <br>
+                       ③ 회원 정보는 회원이 WKBL 및 WKBL과 제휴한 사이트들을 편리하게 이용하도록 하기 위해 WKBL과 제휴하는 사이트 간에 공유될 수 있으며, 다른 사이트와 제휴할 경우 미리 제휴하게 될 사이트를 서비스내 공지를 통해 회원에게 알립니다.
+                   </p>
+                   
+                   <h4 class="language" data-kr="제 20 조 (계약해지 및 이용제한)" data-en="Article 20 (Contract Termination and Service Restriction)">제 20 조 (계약해지 및 이용제한)</h4>
+                   <p class="language" data-kr="① 회원이 WKBL의 서비스 이용계약을 해지하고자 하는 때에는 회원 본인이 WKBL에 해지신청을 해야 합니다.<br>
+                       ② WKBL은 회원이 다음에 해당하는 행위를 하였을 경우 사전통지 없이 이용계약을 해지하거나 또는 강제로 서비스 이용을 중지할 수 있습니다. <br>
+                       가. 타인의 서비스 ID 및 비밀번호를 도용한 경우 <br>
+                       나. 회원가입 신청 또는 변경 시 허위내용을 등록한 경우 <br>
+                       다. WKBL에 게시된 정보를 변경하는 경우 <br>
+                       라. 정크메일(junk mail), 스팸메일(spam mail), 행운의 편지(chain letters), 피라미드 조직에 가입할 것을 권유하는 메일, 외설 또는 폭력적인 메시지. 화상. 음성 등이 담긴 메일을 보내거나 정보를 공개하고 게시하는 등 공공질서 및 미풍양속에 저해되는 내용을 고의로 유포시키거나 서비스 운영을 고의로 방해한 경우 <br>
+                       마. WKBL의 직원이나 WKBL 서비스의 관리자를 가장하거나 사칭하여 글을 게시하거나 메일을 발송하는 경우 <br>
+                       바. 회원이 국익 또는 사회적 공익을 저해할 목적으로 서비스이용을 계획 또는 실행하는 경우 <br>
+                       사. 다른 이용자에 대한 개인정보를 그 동의 없이 수집, 저장, 공개하고 타인의 명예를 손상시키거나 불이익을 주는 행위를 한 경우 <br>
+                       아. 서비스의 안정적 운영을 방해할 목적으로 다량의 정보를 전송하거나 광고성 정보를 전송하고 회원이 자신의 홈페이지와 게시판에 음란물을 게재하거나 음란사이트를 링크하는 경우 <br>
+                       자. 정보통신설비의 오 작동이나 정보 등의 파괴를 유발시키는 컴퓨터 바이러스 프로그램 등을 유포하는 경우 <br>
+                       차. WKBL과 다른 회원 또는 타인의 지적재산권을 침해하거나 WKBL 업무를 방해하는 경우 <br>
+                       카. 정보통신윤리위원회 등 외부기관의 시정요구가 있거나 불법선거 운동과 관련하여 선거관리위원회의 유권해석을 받은 경우 <br>
+                       타. 타인의 개인정보, 이용자ID 및 비밀번호를 부정하게 사용하거나 스토킹(stalking) 등 다른 회원 및 타인을 괴롭히는 경우 <br>
+                       파. WKBL의 서비스 정보를 이용하여 얻은 정보를 WKBL의 사전 승낙 없이 복제 또는 유통시키거나 상업적으로 이용하는 경우 <br>
+                       하. 본 약관을 포함하여 기타 WKBL의 서비스 이용에 관한 규정 및 관계법령을 위반한 경우" 
+                       data-en="① If a member wishes to terminate the WKBL service agreement, the member must submit a termination request to WKBL.<br>
+                       ② WKBL may terminate the service agreement or forcibly suspend service use without prior notice if a member engages in any of the following acts:<br>
+                       a. Illegally using another person’s service ID and password.<br>
+                       b. Registering false information when applying for or changing<br>
+                       c. Altering information posted on WKBL<br>
+                       d. Deliberately disseminating content that disrupts public order or morals, or intentionally interfering with service operation, such as sending or publicly posting junk mail, spam mail, chain letters, emails soliciting joining pyramid scheme, or emails containing obscene or violent messages, images, or audio.<br>
+                       f. When a member plans or executes service use for the purpose of harming national interests or public good.<br>
+                       g. Collecting, storing, or disclosing another user’s personal information without their consent, or engaging in act that damage another person’s reputation or cause disadvantage.<br>
+                       h. Transmitting large amounts of information or advertising information for the purpose of distributing the stable operation of the service, or posting obscene material or linking to obscene site on the member’s homepage and bulletin board.<br>
+                       i. Distributing computer virus programs that cause malfunction of information and communication facilities or destruction of information.<br>
+                       j. Infringing on WKBL’s intellectual property rights or those of other members or third parties, or interfering with WKBL’s operations.<br>
+                       k. When there is a request for correction from an external organization such as the Kore Communications Standards Commission, or when an authoritative interpretation has been received from the National Election Commission regarding illegal election campaigns.<br>
+                       l. Illegally using another person’s personal information, user ID and password, or harassing other members and third parties, such as stalking.<br>
+                       m. Reproducing or distributing information obtained using WKBL’s service, or using it commercially without WKBL’s prior consent.<br>
+                       n. Violating other regulation related to WKBL’s service use, including these Terms, and relevant laws and regulations.
+                       ">
+                       ① 회원이 WKBL의 서비스 이용계약을 해지하고자 하는 때에는 회원 본인이 WKBL에 해지신청을 해야 합니다.<br>
+                       ② WKBL은 회원이 다음에 해당하는 행위를 하였을 경우 사전통지 없이 이용계약을 해지하거나 또는 강제로 서비스 이용을 중지할 수 있습니다. <br>
+                       가. 타인의 서비스 ID 및 비밀번호를 도용한 경우 <br>
+                       나. 회원가입 신청 또는 변경 시 허위내용을 등록한 경우 <br>
+                       다. WKBL에 게시된 정보를 변경하는 경우 <br>
+                       라. 정크메일(junk mail), 스팸메일(spam mail), 행운의 편지(chain letters), 피라미드 조직에 가입할 것을 권유하는 메일, 외설 또는 폭력적인 메시지. 화상. 음성 등이 담긴 메일을 보내거나 정보를 공개하고 게시하는 등 공공질서 및 미풍양속에 저해되는 내용을 고의로 유포시키거나 서비스 운영을 고의로 방해한 경우 <br>
+                       마. WKBL의 직원이나 WKBL 서비스의 관리자를 가장하거나 사칭하여 글을 게시하거나 메일을 발송하는 경우 <br>
+                       바. 회원이 국익 또는 사회적 공익을 저해할 목적으로 서비스이용을 계획 또는 실행하는 경우 <br>
+                       사. 다른 이용자에 대한 개인정보를 그 동의 없이 수집, 저장, 공개하고 타인의 명예를 손상시키거나 불이익을 주는 행위를 한 경우 <br>
+                       아. 서비스의 안정적 운영을 방해할 목적으로 다량의 정보를 전송하거나 광고성 정보를 전송하고 회원이 자신의 홈페이지와 게시판에 음란물을 게재하거나 음란사이트를 링크하는 경우 <br>
+                       자. 정보통신설비의 오 작동이나 정보 등의 파괴를 유발시키는 컴퓨터 바이러스 프로그램 등을 유포하는 경우 <br>
+                       차. WKBL과 다른 회원 또는 타인의 지적재산권을 침해하거나 WKBL 업무를 방해하는 경우 <br>
+                       카. 정보통신윤리위원회 등 외부기관의 시정요구가 있거나 불법선거 운동과 관련하여 선거관리위원회의 유권해석을 받은 경우 <br>
+                       타. 타인의 개인정보, 이용자ID 및 비밀번호를 부정하게 사용하거나 스토킹(stalking) 등 다른 회원 및 타인을 괴롭히는 경우 <br>
+                       파. WKBL의 서비스 정보를 이용하여 얻은 정보를 WKBL의 사전 승낙 없이 복제 또는 유통시키거나 상업적으로 이용하는 경우 <br>
+                       하. 본 약관을 포함하여 기타 WKBL의 서비스 이용에 관한 규정 및 관계법령을 위반한 경우
+                   </p>
+                   
+                   <h4 class="language" data-kr="제 21 조 (관할법원)" data-en="Article 21 (Jurisdiction)">제 21 조 (관할법원)</h4>
+                   <p class="language" data-kr="서비스 이용으로 발생한 분쟁에 대해 소송이 제기될 경우 WKBL의 본사 소재지를 관할하는 법원으로 합니다." data-en="In the event of a lawsuit arising from a dispute related to service use, the jurisdiction shall be the court having jurisdiction over WKBL’s head office.">서비스 이용으로 발생한 분쟁에 대해 소송이 제기될 경우 WKBL의 본사 소재지를 관할하는 법원으로 합니다.</p>
+                   
+                   <h4 class="language" data-kr="제 22 조 (약관의 개정)" data-en="Article 22 (Amendment of Terms)">제 22 조 (약관의 개정)</h4>
+                   <p class="language" data-kr="① WKBL은 약관의 규제 등에 관한 법률, 전자거래기본법, 전자서명법, 정보통신망 이용촉진 등에 관한 법률 등 관련법을 위배하지 않는 범위에서 본 약관을 개정할 수 있습니다.<br>
+                       ② WKBL이 본 약관을 개정할 경우에는 적용일자 및 개정사유를 명시하여 현행약관과 함께 초기화면에 그 적용일자 7일 이전부터 적용일자 전일까지 공지합니다. <br>
+                       ③ WKBL이 본 약관을 개정할 경우에는 그 개정약관은 개정된 내용이 관계 법령에 위배되지 않는 한 개정 이전에 회원으로 가입한 이용자에게도 적용됩니다. <br>
+                       ④ 변경된 약관에 이의가 있는 이용자는 제20조 1항에 따라 탈퇴할 수 있습니다.<br>" 
+                       data-en="① WKBL may amend these Terms to the extent that it does not violate relevant laws, such as the Act on the Regulation of Terms and Conditions, the Framework Act on Electronic Commerce, the Digital Signature Act, and the Act on Promotion of Information and Communications Network Utilization and Information Protection.<br>
+                       ② When WKBL amends these Terms, it shall announce the effective data and the reason for the amendment, along with the current terms, on the initial screen from 7 days prior to the effective date until the day before the effective date.<br>
+                       ③ When WKBL amends these Terms, the amended terms shall also apply to users who registered as members before the amendment, as long as the amended content does not violate relevant laws.<br>
+                       ④ Users who disagree with the changed terms may withdraw according to Article 20, Paragraph 1<br>">
+                       ① WKBL은 약관의 규제 등에 관한 법률, 전자거래기본법, 전자서명법, 정보통신망 이용촉진 등에 관한 법률 등 관련법을 위배하지 않는 범위에서 본 약관을 개정할 수 있습니다.<br>
+                       ② WKBL이 본 약관을 개정할 경우에는 적용일자 및 개정사유를 명시하여 현행약관과 함께 초기화면에 그 적용일자 7일 이전부터 적용일자 전일까지 공지합니다. <br>
+                       ③ WKBL이 본 약관을 개정할 경우에는 그 개정약관은 개정된 내용이 관계 법령에 위배되지 않는 한 개정 이전에 회원으로 가입한 이용자에게도 적용됩니다. <br>
+                       ④ 변경된 약관에 이의가 있는 이용자는 제20조 1항에 따라 탈퇴할 수 있습니다.<br>
+                   </p>
+                   
+                   <h4 class="language" data-kr="제 23 조 (손해배상)" data-en="Article 23 (Damages)">제 23 조 (손해배상)</h4>
+                   <p class="language" data-kr="WKBL은 서비스 요금이 무료인 동안의 서비스 이용과 관련하여 회원에게 발생한 어떠한 손해도 책임지지 않습니다." data-en="WKBL is not responsible for any damages incurred by members in connection in service use while the service fees are free.">WKBL은 서비스 요금이 무료인 동안의 서비스 이용과 관련하여 회원에게 발생한 어떠한 손해도 책임지지 않습니다.</p>
+                   
+                   <h4 class="language" data-kr="제 24 조 (면책조항)" data-en="Article 24 (Disclaimer)">제 24 조 (면책조항)</h4>
+                   <p class="language" data-kr=" ① WKBL은 천재지변 또는 이에 준하는 불가항력으로 인하여 서비스를 제공할 수 없는 경우에는 서비스 제공에 관한 책임이 면제됩니다.<br>
+                       ② WKBL에서 제공하는 특정 전문인에 의한 정보 및 질문의 대답 등으로 인해 회원에게 발생하는 손해는 WKBL이 책임지지 않습니다. 회원 각자는 스스로의 판단에 의하여 그러한 정보를 이용할 것을 확인합니다. <br>
+                       ③ WKBL은 회원의 잘못으로 인해 서비스 이용의 장애가 발생한 경우에는 책임이 면제됩니다. <br>
+                       ④ WKBL은 회원이 WKBL의 서비스 제공으로부터 기대되는 이익을 얻지 못하였거나, 서비스 자료에 대한 취사 선택 또는, 이용으로 발생하는 손해 등에 대해서는 책임이 면제됩니다." 
+                       data-en="① WKBL is exempted from responsibility for service provision if it cannot provide services due to natural disasters or equivalent force majeure events.<br>
+                       ② WKBL is nor responsible for damages incurred by members due to information provided by specific professionals or answers to questions provided by WKBL. Each member confirms that they will use such information based on their own judgement.<br>
+                       ③ WKBL is exempted from responsibility if a service usage obstacle occurs due to a member’s fault.<br>
+                       ④ WKBL’s service provision, or for damages arising from the selection, utilization, or use of service materials.">
+                       ① WKBL은 천재지변 또는 이에 준하는 불가항력으로 인하여 서비스를 제공할 수 없는 경우에는 서비스 제공에 관한 책임이 면제됩니다.<br>
+                       ② WKBL에서 제공하는 특정 전문인에 의한 정보 및 질문의 대답 등으로 인해 회원에게 발생하는 손해는 WKBL이 책임지지 않습니다. 회원 각자는 스스로의 판단에 의하여 그러한 정보를 이용할 것을 확인합니다. <br>
+                       ③ WKBL은 회원의 잘못으로 인해 서비스 이용의 장애가 발생한 경우에는 책임이 면제됩니다. <br>
+                       ④ WKBL은 회원이 WKBL의 서비스 제공으로부터 기대되는 이익을 얻지 못하였거나, 서비스 자료에 대한 취사 선택 또는, 이용으로 발생하는 손해 등에 대해서는 책임이 면제됩니다.
+                   </p>
+               </div>
+            </div>
+        </div>
+    </section>
+    <footer id="footer">
+        <div class="wrap_fnb">
+            <div class="cont_inner t_space">
+                <ul class="list_fnb">
+                    <li><a href="/etc/privacy.asp" class="link_fnb language" data-kr="개인정보처리방침" data-en="Privacy policy">개인정보처리방침</a></li>
+                    <li><a href="/etc/terms.asp" class="link_fnb language" data-kr="이용약관" data-en="Term of use">이용약관</a></li>
+                    <li><a href="/etc/contact_us.asp" class="link_fnb">CONTACT US</a></li>
+                    <li><a href="javascript:MM_openBrWindow('/etc/paycheck4.asp', 'reporterChk', 'scrollbars=no, width=400, height=300');" class="link_fnb language" data-kr="통계 프로그램" data-en="Statistic Program">통계 프로그램</a></li>
+                    <li><a href="http://photo.wkbl.or.kr" class="link_fnb language" target="_blank" data-kr="WKBL 포토" data-en="WKBL photo">WKBL 포토</a></li>
+                    <li><a href="https://datalab.wkbl.or.kr" class="link_fnb language" target="_blank" data-kr="데이터랩" data-en="Data Lab">데이터랩</a></li>
+                    <li><a href="https://cert.wkbl.or.kr/" class="link_fnb language" target="_blank" data-kr="경력증명서" data-en="Data Lab">경력증명서</a></li>
+                </ul>
+                <ul class="list_team">
+                    <li><a href="http://www.samsungblueminx.com/" class="link_team" target="_blank"><img src="/static/images/team/teamlogo_03.png" alt="삼성생명 블루밍스"><p class="screen_out">삼성생명</p></a></li>
+                    <li><a href="/team/teaminfo.asp?team_code=07" class="link_team" target="_blank"><img src="/static/images/team/teamlogo_07.png" alt="신한은행 에스버드"><p class="screen_out">신한은행</p></a></li>
+                    <li><a href="https://wooriwon.wooribank.com/basketball/main/bridge.php" class="link_team" target="_blank"><img src="/static/images/team/teamlogo_05.png" alt="우리은행 위비"><p class="screen_out">우리은행</p></a></li>
+                    <li><a href="/team/teaminfo.asp?team_code=09" class="link_team" target="_blank"><img src="/static/images/team/teamlogo_09.png?ver=20240821" alt="하나은행"><p class="screen_out">하나은행</p></a></li>
+                    <li><a href="http://bnksumbasket.com" class="link_team" target="_blank"><img src="/static/images/team/teamlogo_11.png" alt="BNK캐피탈"><p class="screen_out">BNK 썸</p></a></li>
+                    <li><a href="http://www.kbstars.co.kr/kbstars/2022/main.php" class="link_team" target="_blank"><img src="/static/images/team/teamlogo_01.png" alt="KB스타즈"><p class="screen_out">KB 스타즈</p></a></li>
+                </ul>
+            </div>
+        </div>
+            
+        <div class="wrap_footer">
+            <div class="cont_inner t_space">
+                <div class="left">
+                    <ul class="sns_list">
+                        <li><a target="_blank" href="https://www.facebook.com/f.WKBL/"><img src="/static/images/main/icon_facebook.svg" alt="facebook 링크로 바로 가기"></a></li>
+                        <li><a target="_blank" href="https://www.instagram.com/wkbl_official/"><img src="/static/images/main/icon_instargram.svg" alt="instargram 링크로 바로 가기"></a></li>
+                        <li><a target="_blank" href="https://www.youtube.com/channel/UCLyyt15iUOMUQovmJVde1Zg"><img src="/static/images/main/icon_youtube.svg" alt="youtube 링크로 바로 가기"></a></li>
+                        <li><a target="_blank" href="https://www.tiktok.com/@wkbl_official?lang=ko-KR"><img src="/static/images/main/icon_tictok.svg" alt="tictok 링크로 바로 가기"></a></li>
+                    </ul>
+                    <div class="info_site">
+                        <address class="txt_addr language" data-kr="서울특별시 강서구 공항대로 355 (등촌동)" data-en="355, Gonghang-daero, Gangseo-gu, Seou">서울특별시 강서구 공항대로 355 (등촌동)</address>
+                        <p class="copyright ">COPYRIGHT ⓒ 2026 WOMEN'S KOREAN BASKETBALL LEAGUE. ALL RIGHTS RESERVED.</p>
+                    </div>
+                    
+                    <p class="txt_site language" data-kr="WKBL 소속 6개 구단의 팀로고, 마스코트, 엠블럼과 WKBL 소속선수의 사진, 초상, 영상, 캐릭터 등을 무단으로 사용할 경우 상표법 및 저작권법에 의해 금지됩니다.<br>본 웹사이트에 게시된 이메일 주소와 전자우편 수집 프로그램이나 그밖의 기술적 장치를 이용하여 무단으로 수집되는 것을 거부하며, 이를 위반시 정보통신망법에 의해 형사처벌됨을 유념하시기 바랍니다." data-en="Unauthorized use, reproduction, or distribution of the team logos, mascots, emblems of the six WKBL-affiliated teams, as well as the photos, portraits, videos, and characters of WKBL players, is strictly prohibited under trademark and copyright laws.<br><br>Additionally, the unauthorized collection of email addresses from this website using automated programs or other technical methods is strictly forbidden. Violators may be subject to legal action under the Information and Communications Network Act.">
+                        WKBL 소속 6개 구단의 팀로고, 마스코트, 엠블럼과 WKBL 소속선수의 사진, 초상, 영상, 캐릭터 등을 무단으로 사용할 경우 상표법 및 저작권법에 의해 금지됩니다.
+                        본 웹사이트에 게시된 이메일 주소와 전자우편 수집 프로그램이나 그밖의 기술적 장치를 이용하여 무단으로 수집되는 것을 거부하며, 이를 위반시 정보통신망법에 의해 형사처벌됨을 유념하시기 바랍니다.
+                    </p>
+                </div>
+                <div class="video">
+                    <!-- youtube 외부링크 -->
+                    <a target="_blank" href="https://www.youtube.com/watch?v=9RfJuytleAc" class="thumb_img">
+                        <!-- https://i.ytimg.com/vi/(wathch?v=해당코드삽입)/hqdefault.jpg -->
+                        <img src="https://i.ytimg.com/vi/9RfJuytleAc/hqdefault.jpg" alt="youtube 썸네일">
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</div>
+<script src="/static/js/ui_24.js?ver=2.2"></script>
+<script>
+$(function() {
+    /////////////////////////////////////////////language change start///////////////////////////////////////////
+    let wkbl_lang = ['kr','en'];
+    let now_lang = localStorage.getItem("lang");
+
+    //if(!now_lang) now_lang = "kr";
+
+    //default lang => kr
+    if( wkbl_lang.indexOf(now_lang) < 0 ){
+        now_lang = "kr";
+        localStorage.setItem("lang", now_lang);
+    }
+
+
+    $('.lang_change').on('click', function(e){
+        now_lang = (now_lang == "kr") ? "en" : "kr";
+        localStorage.setItem("lang", now_lang);
+
+        language_change(now_lang);
+    });
+
+    // function language_icon_change(now_lang){
+    //     // if( now_lang == 'en' ){
+    //     //     $('.lang_change').addClass('active');
+    //     //     $('.lang_change_text').html("English");
+    //     // }else{
+    //     //     $('.lang_change').removeClass('active');
+    //     //     $('.lang_change_text').html("Korea");
+    //     // }
+    //
+    //     language_change(now_lang);
+    // }
+
+    function language_change(now_lang){
+        $('#wrap > div')
+        .removeClass('kr en')
+        .addClass(now_lang);
+
+        for(i=0;i < $(".language").length; i++){
+            if($($('.language')[i]).attr('placeholder') !== undefined){ //placeholder change
+               $($('.language')[i]).attr('placeholder', $($('.language')[i]).attr("data-"+now_lang));
+            }else{ //text change
+                $($('.language')[i]).html($($('.language')[i]).attr("data-"+now_lang));
+            }
+        }
+    }
+
+    language_change(now_lang);
+    /////////////////////////////////////////////language change end ///////////////////////////////////////////
+
+
+
+
+});
+
+
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-55620765-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+</body>
+</html>

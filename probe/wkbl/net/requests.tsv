@@ -1,0 +1,23 @@
+000	document	GET	302	text/html	https://www.wkbl.or.kr/	
+001	document	GET	301	text/html; charset=UTF-8	https://www.wkbl.or.kr/main	
+002	document	GET	200	text/html; Charset=utf-8	https://www.wkbl.or.kr/main/	
+003	xhr	POST	200	text/plain	https://www.google-analytics.com/j/collect?v=1&_v=j102&a=168516286&t=pageview&_s=1&dl=https%3A%2F%2Fwww.wkbl.or.kr%2Fmain%2F&ul=ko-kr&dt=WKBL&sr=1280x720&vp=1280x720&_u=IEBAAEABAAAAACAAI~&jid=1722574564&gjid=1963225&cid=1153745044.1793327767&tid=UA-55620765-1&_gid=269800006.1793327767&_r=1&_slc=1&z=1523100706	
+004	fetch	POST	204	text/plain	https://www.google-analytics.com/g/collect?v=2&tid=G-LXS3MSMPDX&gtm=45je6at0h2v9108820134za20gxf1&_p=1793327767473&gcd=13l3l3l3l2l1&npa=0&dma=0&_eu=EBAI&are=1&cid=1153745044.1793327767&frm=0&ir=1&ngs=1&pscdl=noapi&rcb=10&sr=1280x720&uaa=x86&uab=64&uafvl=HeadlessChrome%3B131.0.6778.33%7CChromium%3B131.0.6778.33%7CNot_A%2520Brand%3B24.0.0.0&uam=&uamb=0&uap=Linux&uapv=7.0.0&uaw=0&ul=ko-kr&_s=1&tag_exp=115616985~115938465~115938468~118897920~118897930~120213116~120385422~120420416~120469145~120469153~121246026~121246034~123636747~123691370&dl=https%3A%2F%2Fwww.wkbl.or.kr%2Fmain%2F&dt=WKBL&sid=1793327767&sct=1&seg=0&en=page_view&_fv=1&_ss=1&_ee=1&tfd=2461	
+005	xhr	POST	200	application/json; Charset=utf-8	https://www.wkbl.or.kr/main/data/2026_main_direct.asp	
+006	xhr	POST	200	application/json; Charset=utf-8	https://www.wkbl.or.kr/main/data/2026_main_common.asp	
+007	xhr	POST	200	application/json; Charset=utf-8	https://www.wkbl.or.kr/main/data/2026_main_record.asp	
+008	xhr	POST	200	text/html; Charset=utf-8	https://www.wkbl.or.kr/main/data/2026_main_sch.asp	
+009	document	GET	200	text/html; Charset=utf-8	https://www.wkbl.or.kr/game/sch/schedule1.asp	
+010	xhr	POST	200	text/plain	https://www.google-analytics.com/j/collect?v=1&_v=j102&a=108097222&t=pageview&_s=1&dl=https%3A%2F%2Fwww.wkbl.or.kr%2Fgame%2Fsch%2Fschedule1.asp&ul=ko-kr&dt=WKBL&sr=1280x720&vp=1280x720&_u=AACAAEABAAAAACAAI~&jid=&gjid=&cid=1153745044.1793327767&tid=UA-55620765-1&_gid=269800006.1793327767&_slc=1&z=839323354	
+011	xhr	GET	200	text/html; Charset=utf-8	https://www.wkbl.or.kr/game/sch/inc_list_1_new.asp?season_gu=047&ym=202611&viewType=1&gun=1	
+012	xhr	GET	200	text/html; Charset=utf-8	https://www.wkbl.or.kr/game/sch/inc_list_1_new_check.asp?season_gu=047&ym=202611&viewType=1&gun=1	
+013	document	GET	200	text/html; Charset=utf-8	https://www.wkbl.or.kr/game/result.asp	
+014	document	GET	200	text/html; Charset=utf-8	https://www.wkbl.or.kr/game/sch/schedule1.asp	
+015	xhr	GET	200	text/html; Charset=utf-8	https://www.wkbl.or.kr/game/sch/inc_list_1_new.asp?season_gu=047&ym=202611&viewType=1&gun=1	
+016	xhr	POST	200	text/plain	https://www.google-analytics.com/j/collect?v=1&_v=j102&a=2090617999&t=pageview&_s=1&dl=https%3A%2F%2Fwww.wkbl.or.kr%2Fgame%2Fsch%2Fschedule1.asp&ul=ko-kr&dt=WKBL&sr=1280x720&vp=1280x720&_u=AACAAEABAAAAACAAI~&jid=&gjid=&cid=1153745044.1793327767&tid=UA-55620765-1&_gid=269800006.1793327767&_slc=1&z=783158305	
+017	xhr	GET	200	text/html; Charset=utf-8	https://www.wkbl.or.kr/game/sch/inc_list_1_new_check.asp?season_gu=047&ym=202611&viewType=1&gun=1	
+018	document	GET	404	text/html; charset=utf-8	https://www.wkbl.or.kr/game/totalrecord.asp	
+019	document	GET	200	text/html; Charset=utf-8	https://www.wkbl.or.kr/player/player_list.asp	
+020	xhr	POST	200	text/plain	https://www.google-analytics.com/j/collect?v=1&_v=j102&a=1849259394&t=pageview&_s=1&dl=https%3A%2F%2Fwww.wkbl.or.kr%2Fplayer%2Fplayer_list.asp&ul=ko-kr&dt=WKBL&sr=1280x720&vp=1280x720&_u=AACAAEABAAAAACAAI~&jid=&gjid=&cid=1153745044.1793327767&tid=UA-55620765-1&_gid=269800006.1793327767&_slc=1&z=123983650	
+021	document	GET	404	text/html; charset=utf-8	https://www.wkbl.or.kr/game/ranking.asp	
+022	document	GET	403	text/html; charset=utf-8	https://www.wkbl.or.kr/live11/	
