@@ -1,4 +1,5 @@
 "use client";
+import type { ReactNode } from "react";
 // 두세 개 중 하나를 고르는 버튼 묶음 (순위표·선수 페이지 공용)
 
 /** 두세 개 중 하나를 고르는 버튼 묶음 */
@@ -9,7 +10,7 @@ export default function Segmented<T extends string>({
   onChange,
 }: {
   label: string;
-  options: { value: T; label: string }[];
+  options: { value: T; label: ReactNode }[];
   value: T;
   onChange: (v: T) => void;
 }) {

@@ -5,7 +5,7 @@
 // - 다른 시즌을 고르면 우리 정적 파일 /cards/{코드}.json 을 받아 같은 계산으로 다시 그린다 (useSeasonCards —
 //   KBL 서버가 아니라 우리 public/ 파일이므로 원칙 1 위반 아님).
 // - 종합 등급·정렬·필터는 lib/cardview(buildGridEntries·sortGridEntries·filterGridEntries) — 여기서는 계산하지 않는다.
-// - 상태는 주소 ?season=&pos=&origin=&team=&badge=&school=&grade=&score=&sort= 에 남긴다. 등급·점수대 칩과 등급순/점수순/득점순(2026-10-21). 칭호(badge)는 통산 칭호로 거르기(2026-10-01). 시즌은 상단 SiteNav 의 시즌 선택이 onSeasonChange 로 바꾼다.
+// - 상태는 주소 ?season=&pos=&origin=&team=&badge=&school=&grade=&score=&sort=&dir=asc 에 남긴다. 나열 순서 버튼을 한 번 더 누르면 반대 순서(2026-10-30). 등급·점수대 칩과 등급순/점수순/득점순(2026-10-21). 칭호(badge)는 통산 칭호로 거르기(2026-10-01). 시즌은 상단 SiteNav 의 시즌 선택이 onSeasonChange 로 바꾼다.
 // - 카드에 칭호 배지 1개(통산 기준 우선순위 1번, 서버가 넘긴 topBadges — lib/badges).
 // - 카드를 누르면 그 선수 상세의 그 시즌 카드로 (/player/번호?season=코드).
 import { useEffect, useMemo, useState } from "react";
@@ -52,7 +52,7 @@ const badgeDef = (key: string) => BADGE_DEFS.find((d) => d.key === key);
 import ChipRow from "./ChipRow";
 import MoreChipRow from "./MoreChipRow";
 import FilterSheet, { FilterGroup } from "./FilterSheet";
-import { IconChevronDown } from "./icons";
+import { IconChevronDown, IconChevronUp } from "./icons";
 import InfoLink from "./InfoLink";
 import PlayerAvatar from "./PlayerAvatar";
 import PlayerSearch from "./PlayerSearch";
@@ -178,7 +178,7 @@ function GridCard({ e, team, seasonCode, colors, badge, sort }: { e: GridEntry; 
 export default function PlayersView({ seasons, latest, initialFile, topBadges, badgeKeys, schools }: Props) {
   const colors = useThemeColors();
   const initialCards = useMemo(() => primeSeasonCards(initialFile), [initialFile]);
-  const [state, setState] = useState<PlayersState>({ season: latest, position: "all", origin: "all", teamCode: null, badge: null, school: null, grade: null, scoreBand: null, sort: "grade" });
+  const [state, setState] = useState<PlayersState>({ season: latest, position: "all", origin: "all", teamCode: null, badge: null, school: null, grade: null, scoreBand: null, sort: "grade", asc: false });
   const [limit, setLimit] = useState(GRID_PAGE_SIZE);
   const seasonCodes = useMemo(() => seasons.map((s) => s.seasonCode), [seasons]);
 
@@ -238,18 +238,38 @@ export default function PlayersView({ seasons, latest, initialFile, topBadges, b
   const filtered = useMemo(
     () =>
       filterGridEntries(
-        sortGridBy(all, state.sort),
+        sortGridBy(all, state.sort, state.asc),
         { position: state.position, origin: state.origin, teamCode, badge, school, grade: state.grade, scoreBand: state.scoreBand },
         (id) => badgeKeys[id] ?? [],
         (id) => schools[id] ?? null,
       ),
-    [all, state.sort, state.position, state.origin, teamCode, badge, badgeKeys, school, schools, state.grade, state.scoreBand],
+    [all, state.sort, state.asc, state.position, state.origin, teamCode, badge, badgeKeys, school, schools, state.grade, state.scoreBand],
   );
   const { shown, remaining } = takeFirst(filtered, limit);
   const update = (patch: Partial<PlayersState>) => {
     trackFilters("players", patch);
     setState((s) => ({ ...s, ...patch }));
   };
+  // 나열 순서: 다른 버튼 = 그 순서(기본 방향), 지금 버튼을 한 번 더 = 반대 방향 (2026-10-30). GA4 sort 값은 반대면 "_asc" (54-0 표 정렬과 같은 꼴)
+  const pickSort = (v: GridSort) => {
+    const asc = v === state.sort ? !state.asc : false;
+    trackFilters("players", { sort: asc ? `${v}_asc` : v });
+    setState((s) => ({ ...s, sort: v, asc }));
+  };
+  const sortOptions = GRID_SORTS.map((o) =>
+    o.value === state.sort
+      ? {
+          value: o.value,
+          label: (
+            <span className="inline-flex items-center gap-0.5">
+              {o.label}
+              {state.asc ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
+              <span className="sr-only">{state.asc ? " (반대 순서, 다시 누르면 기본 순서)" : " (다시 누르면 반대 순서)"}</span>
+            </span>
+          ),
+        }
+      : o,
+  );
   // 불러오는 동안 제목은 고른 시즌으로 (그리드는 스켈레톤)
   const headSeason = status === "loading" ? state.season : shownSeason;
   const seasonLabel = seasons.find((s) => s.seasonCode === headSeason)?.seasonLabel ?? String(headSeason);
@@ -369,7 +389,7 @@ export default function PlayersView({ seasons, latest, initialFile, topBadges, b
             </h2>
             {/* 나열 순서가 다섯 개라(2026-10-30 키순·나이순) 폰에서는 제목 아래 한 줄 — 넘치면 이 줄만 옆으로 민다 */}
             <div className="-mx-4 flex w-[calc(100%+2rem)] items-center gap-1 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:w-auto sm:px-0 [&_button]:shrink-0 [&_button]:whitespace-nowrap">
-              <Segmented label="나열 순서" options={[...GRID_SORTS]} value={state.sort} onChange={(v) => update({ sort: v })} />
+              <Segmented label="나열 순서" options={sortOptions} value={state.sort} onChange={pickSort} />
               <InfoLink term="percentileGrade" />
             </div>
           </div>

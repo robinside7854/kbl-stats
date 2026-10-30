@@ -264,28 +264,35 @@ export const GRID_SORTS: readonly { value: GridSort; label: string }[] = [
 ];
 
 /**
- * 나열 순서대로 다시 줄 세운다. 표본 미달(점수 없음)은 늘 맨 뒤.
- * 점수순: 점수 높은 순 → PER, 득점순: 경기당 득점 → 점수. 같으면 이름순·선수 번호순.
- * 키순(큰 순)·나이순(생년월일 이른 순)은 표본과 상관없이 줄 세우고, 키·생년월일이 없는 선수만 맨 뒤 (같으면 점수 → 이름).
+ * 나열 순서대로 다시 줄 세운다. 값이 없는 선수(등급·점수·득점순은 표본 미달, 키순·나이순은 키·생년월일 없음)는 방향과 상관없이 늘 맨 뒤.
+ * 기본(asc false) = 등급 S 먼저(같으면 PER) · 점수 높은 순(같으면 PER) · 경기당 득점 많은 순(같으면 점수) · 키 큰 순 · 나이 많은 순(생년월일 이른 순, 키·나이는 같으면 점수).
+ * asc = 같은 버튼을 한 번 더 누른 반대 순서 (2026-10-30). 같으면 이름순·선수 번호순은 방향과 상관없이 그대로.
  */
-export function sortGridBy(list: readonly GridEntry[], by: GridSort): GridEntry[] {
-  if (by === "grade") return sortGridEntries(list);
+export function sortGridBy(list: readonly GridEntry[], by: GridSort, asc = false): GridEntry[] {
   const sc = (e: GridEntry) => e.score ?? -1;
-  if (by === "height" || by === "age") {
-    const has = (e: GridEntry) => (by === "height" ? !!e.player.heightCm : !!e.player.birthday);
-    return [...list].sort(
-      (a, b) =>
-        Number(!has(a)) - Number(!has(b)) ||
-        (by === "height" ? (b.player.heightCm ?? 0) - (a.player.heightCm ?? 0) : (a.player.birthday ?? "").localeCompare(b.player.birthday ?? "")) ||
-        sc(b) - sc(a) ||
-        a.player.nameKo.localeCompare(b.player.nameKo, "ko") ||
-        a.player.id.localeCompare(b.player.id),
-    );
-  }
+  const g = (e: GridEntry) => GRADE_ORDER.indexOf(e.overall);
+  const missing = (e: GridEntry) =>
+    by === "height" ? !e.player.heightCm : by === "age" ? !e.player.birthday : by === "grade" ? e.overall === "-" : !e.qualified;
+  // 기본 방향 기준 비교 (음수 = a 가 위)
+  const main = (a: GridEntry, b: GridEntry): number => {
+    switch (by) {
+      case "grade":
+        return g(a) - g(b) || b.player.per - a.player.per;
+      case "score":
+        return sc(b) - sc(a) || b.player.per - a.player.per;
+      case "ppg":
+        return b.ppg - a.ppg || sc(b) - sc(a);
+      case "height":
+        return (b.player.heightCm ?? 0) - (a.player.heightCm ?? 0) || sc(b) - sc(a);
+      case "age":
+        return (a.player.birthday ?? "").localeCompare(b.player.birthday ?? "") || sc(b) - sc(a);
+    }
+  };
+  const dir = asc ? -1 : 1;
   return [...list].sort(
     (a, b) =>
-      Number(!a.qualified) - Number(!b.qualified) ||
-      (by === "score" ? sc(b) - sc(a) || b.player.per - a.player.per : b.ppg - a.ppg || sc(b) - sc(a)) ||
+      Number(missing(a)) - Number(missing(b)) ||
+      dir * main(a, b) ||
       a.player.nameKo.localeCompare(b.player.nameKo, "ko") ||
       a.player.id.localeCompare(b.player.id),
   );
@@ -640,10 +647,12 @@ export interface PlayersState extends GridFilter {
   season: number;
   /** 나열 순서 (기본 등급순) */
   sort: GridSort;
+  /** 반대 순서 (같은 순서 버튼을 한 번 더 누름, ?dir=asc) */
+  asc: boolean;
 }
 
 /**
- * 선수 탭 쿼리 ?season=45&pos=g&origin=for&team=55&badge=scoringKing&grade=a&score=80&sort=score → 상태. 칭호는 형식만 본다(목록에 없는 키면 화면이 버린다). 목록에 없는 시즌이면 latest.
+ * 선수 탭 쿼리 ?season=45&pos=g&origin=for&team=55&badge=scoringKing&grade=a&score=80&sort=score&dir=asc → 상태. 칭호는 형식만 본다(목록에 없는 키면 화면이 버린다). 목록에 없는 시즌이면 latest.
  * 팀은 형식만 본다(시즌마다 팀이 달라 그 시즌 파일을 받은 뒤 화면이 없는 팀을 버린다).
  */
 export function parsePlayersQuery(search: string, ctx: { seasons: readonly number[]; latest: number }): PlayersState {
@@ -665,6 +674,7 @@ export function parsePlayersQuery(search: string, ctx: { seasons: readonly numbe
     grade: (GRID_GRADES as readonly string[]).includes(grade) ? (grade as Grade) : null,
     scoreBand: SCORE_BANDS.some((b) => b.value === band) ? (band as ScoreBand) : null,
     sort: GRID_SORTS.some((o) => o.value === sort) ? (sort as GridSort) : "grade",
+    asc: qs.get("dir") === "asc",
   };
 }
 
@@ -680,6 +690,7 @@ export function playersQueryString(s: PlayersState, latest: number): string {
   if (s.grade) qs.set("grade", s.grade.toLowerCase());
   if (s.scoreBand) qs.set("score", s.scoreBand);
   if (s.sort !== "grade") qs.set("sort", s.sort);
+  if (s.asc) qs.set("dir", "asc");
   const str = qs.toString();
   return str ? `?${str}` : "";
 }

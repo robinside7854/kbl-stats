@@ -23,6 +23,8 @@ import {
   rankPhrase,
   rankShort,
   sortGridEntries,
+  GRADE_ORDER,
+  type GridEntry,
 } from "../lib/cardview";
 import { LEADER_CATEGORIES } from "../lib/leaders";
 import { glossaryHref, GLOSSARY, GLOSSARY_ANCHORS, LEADER_COLUMN_GLOSSARY, RADAR_AXIS_GLOSSARY } from "../lib/glossary";
@@ -194,11 +196,11 @@ assert.equal(compareHref({ id: "1", seasonCode: 47 }), "/compare?a=1:47"); // �
 
 // ── 선수 탭 주소 ──
 const pctx = { seasons: [45, 47], latest: 47 };
-assert.deepEqual(parsePlayersQuery("", pctx), { season: 47, position: "all", origin: "all", teamCode: null, badge: null, school: null, grade: null, scoreBand: null, sort: "grade" });
-const ps = { season: 45, position: "G" as const, origin: "asia" as const, teamCode: "55", badge: null, school: null, grade: null, scoreBand: null, sort: "grade" as const };
+assert.deepEqual(parsePlayersQuery("", pctx), { season: 47, position: "all", origin: "all", teamCode: null, badge: null, school: null, grade: null, scoreBand: null, sort: "grade", asc: false });
+const ps = { season: 45, position: "G" as const, origin: "asia" as const, teamCode: "55", badge: null, school: null, grade: null, scoreBand: null, sort: "grade" as const, asc: false };
 assert.equal(playersQueryString(ps, 47), "?season=45&pos=g&origin=asia&team=55");
 assert.deepEqual(parsePlayersQuery(playersQueryString(ps, 47), pctx), ps);
-assert.deepEqual(parsePlayersQuery("?season=13&pos=q&origin=x&team=a&grade=z&score=85&sort=x", pctx), { season: 47, position: "all", origin: "all", teamCode: null, badge: null, school: null, grade: null, scoreBand: null, sort: "grade" });
+assert.deepEqual(parsePlayersQuery("?season=13&pos=q&origin=x&team=a&grade=z&score=85&sort=x", pctx), { season: 47, position: "all", origin: "all", teamCode: null, badge: null, school: null, grade: null, scoreBand: null, sort: "grade", asc: false });
 assert.equal(positionFromParam("c"), "C");
 assert.equal(nationalityFromParam("for"), "foreign");
 
@@ -347,7 +349,7 @@ import { componentValueText, percentileBarGroups, percentileTone } from "../lib/
   assert.deepEqual(ids(filterGridEntries(grid, { position: "all", origin: "all", teamCode: null, badge: "scoringKing" }, of)).sort(), ["101", "104"]);
   assert.deepEqual(ids(filterGridEntries(grid, { position: "C", origin: "all", teamCode: null, badge: "scoringKing" }, of)), ["104"]);
   assert.equal(filterGridEntries(grid, { position: "all", origin: "all", teamCode: null, badge: null }, of).length, grid.length);
-  const ps2 = { season: 45, position: "all" as const, origin: "all" as const, teamCode: null, badge: "scoringKing", school: null, sort: "grade" as const };
+  const ps2 = { season: 45, position: "all" as const, origin: "all" as const, teamCode: null, badge: "scoringKing", school: null, sort: "grade" as const, asc: false };
   assert.equal(playersQueryString(ps2, 47), "?season=45&badge=scoringKing");
   assert.equal(parsePlayersQuery("?badge=scoringKing", { seasons: [45, 47], latest: 47 }).badge, "scoringKing");
   assert.equal(parsePlayersQuery("?badge=<x>", { seasons: [45, 47], latest: 47 }).badge, null);
@@ -385,7 +387,7 @@ import { SCHOOL_ABROAD, schoolGroupOf } from "../lib/roster";
   assert.equal(schoolGroupOf("", false), null);
   const sc: Record<string, string> = { "101": "연세대", "102": "고려대", "104": SCHOOL_ABROAD };
   assert.deepEqual(ids(filterGridEntries(grid, { position: "all", origin: "all", teamCode: null, school: "연세대" }, () => [], (id) => sc[id] ?? null)), ["101"]);
-  const ps3 = { season: 47, position: "all" as const, origin: "all" as const, teamCode: null, badge: null, school: "연세대", sort: "grade" as const };
+  const ps3 = { season: 47, position: "all" as const, origin: "all" as const, teamCode: null, badge: null, school: "연세대", sort: "grade" as const, asc: false };
   assert.equal(playersQueryString(ps3, 47), "?school=%EC%97%B0%EC%84%B8%EB%8C%80");
   assert.equal(parsePlayersQuery(playersQueryString(ps3, 47), { seasons: [47], latest: 47 }).school, "연세대");
   assert.equal(clearGridFilter(ps3, "school").school, null);
@@ -447,7 +449,7 @@ import { scoreBandOf, sortGridBy } from "../lib/cardview";
   for (let i = 1; i < byPpg.length; i++) assert.ok(byPpg[i - 1].ppg >= byPpg[i].ppg);
   assert.equal(sortGridBy(grid, "grade").map((e) => e.player.id).join(), grid.map((e) => e.player.id).join());
   // 주소
-  const ps4 = { season: 47, ...base, badge: null, school: null, grade: "A" as const, scoreBand: "80" as const, sort: "score" as const };
+  const ps4 = { season: 47, ...base, badge: null, school: null, grade: "A" as const, scoreBand: "80" as const, sort: "score" as const, asc: false };
   assert.equal(playersQueryString(ps4, 47), "?grade=a&score=80&sort=score");
   assert.deepEqual(parsePlayersQuery("?grade=a&score=80&sort=score", { seasons: [47], latest: 47 }), ps4);
   assert.deepEqual(gridFilterChips(ps4, String).map((c) => c.label), ["A등급", "80점대"]);
@@ -485,4 +487,24 @@ import { teamScoringLeaders } from "../lib/cardview";
   assert.equal(parsePlayersQuery("?sort=height", { seasons: [47], latest: 47 }).sort, "height");
   assert.equal(parsePlayersQuery("?sort=age", { seasons: [47], latest: 47 }).sort, "age");
   console.log("cardview: 키순·나이순 통과");
+}
+
+// ── 나열 순서 반대 방향 (2026-10-30: 같은 버튼을 한 번 더) ──
+{
+  const ids = (l: GridEntry[]) => l.map((e) => e.player.id);
+  for (const by of ["grade", "score", "ppg"] as const) {
+    const down = sortGridBy(grid, by);
+    const up = sortGridBy(grid, by, true);
+    // 표본 미달은 어느 방향이든 맨 뒤, 나머지는 값 순서가 뒤집힌다
+    assert.equal(up[up.length - 1].player.id, "108", `${by} 반대도 표본 미달 맨 뒤`);
+    const val = (e: GridEntry) => (by === "ppg" ? e.ppg : by === "score" ? e.score! : GRADE_ORDER.indexOf(e.overall));
+    const q = up.filter((e) => e.qualified);
+    for (let i = 1; i < q.length; i++) assert.ok(by === "grade" ? val(q[i - 1]) >= val(q[i]) : val(q[i - 1]) <= val(q[i]), `${by} 오름차순`);
+    assert.equal(down.length, up.length);
+  }
+  assert.equal(ids(sortGridBy(grid, "grade")).join(), ids(sortGridEntries(grid)).join(), "기본 방향 등급순은 그대로");
+  const st = { ...parsePlayersQuery("", { seasons: [47], latest: 47 }), sort: "height" as const, asc: true };
+  assert.equal(playersQueryString(st, 47), "?sort=height&dir=asc");
+  assert.deepEqual(parsePlayersQuery("?sort=height&dir=asc", { seasons: [47], latest: 47 }), st);
+  console.log("cardview: 나열 순서 반대 방향 통과");
 }
