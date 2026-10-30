@@ -31,6 +31,18 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-10-30-team-roster-table",
+    date: "2026-10-30",
+    kind: "update",
+    title: "팀 페이지 선수 기록을 더 자세히",
+    summary: "팀 로스터 기록 늘림",
+    blocks: [
+      { kind: "p", text: "팀 페이지 시즌 로스터에 스틸, 블록, 턴오버, 야투율, 3점, 3점 성공률, 자유투 성공률을 더했어요. 폰에서는 기본, 수비, 슈팅으로 나눠 봐요." },
+      { kind: "p", text: "머리글을 누르면 그 기록 순으로 줄 서고, 한 번 더 누르면 거꾸로 바뀌어요." },
+      { kind: "list", items: [{ text: "모든 팀 보기", href: "/teams" }] },
+    ],
+  },
+  {
     slug: "2026-10-30-profile-ranks",
     date: "2026-10-30",
     kind: "update",

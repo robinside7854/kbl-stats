@@ -1218,6 +1218,11 @@ export function loadFranchises(): Map<string, TeamPageData> {
           ppg: per(p.points, p.games),
           rpg: per(p.reb, p.games),
           apg: per(p.ast, p.games),
+          spg: per(p.stl, p.games),
+          bpg: per(p.blk, p.games),
+          tpg: per(p.tov, p.games),
+          tpmPg: per(p.tpm, p.games),
+          fgm: p.fgm, fga: p.fga, tpm: p.tpm, tpa: p.tpa, ftm: p.ftm, fta: p.fta,
           photoUrl: photo.get(p.playerNo) ?? null,
         }))
         .sort((x, y) => y.ppg - x.ppg || y.gp - x.gp);

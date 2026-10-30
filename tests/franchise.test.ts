@@ -75,3 +75,22 @@ assert.equal(bestRegularSeason([]), null);
   assert.equal(bestRegularSeason([a, b, c, d])?.seasonCode, 9);
 }
 console.log("franchise: 플레이오프 단계·통산·레전드·팀 기록·이름 구간·계보 통과");
+
+// ── 로스터 표 정렬 (2026-10-30: 머리글 정렬·반대 순서·성공률 시도 기준) ──
+import { ROSTER_PCT_MIN_ATTEMPTS, rosterPct, sortRoster, type RosterRow } from "../lib/franchise";
+{
+  const r = (id: string, ppg: number, tpm: number, tpa: number, extra: Partial<RosterRow> = {}): RosterRow => ({
+    id, name: id, pos: "G", foreign: false, gp: 10, mpg: 20, ppg, rpg: 3, apg: 2, spg: 1, bpg: 0, tpg: 1, tpmPg: tpm / 10,
+    fgm: 40, fga: 90, tpm, tpa, ftm: 10, fta: 12, photoUrl: null, ...extra,
+  });
+  const rows = [r("a", 20, 10, 40), r("b", 12, 3, 4), r("c", 8, 20, 45), r("d", 15, 0, 0)];
+  assert.deepEqual(sortRoster(rows, "ppg").map((x) => x.id), ["a", "d", "b", "c"]);
+  assert.deepEqual(sortRoster(rows, "ppg", true).map((x) => x.id), ["c", "b", "d", "a"]);
+  // 3점%: 시도 10개 미만(b 3/4, d 0/0)은 어느 방향이든 뒤
+  assert.deepEqual(sortRoster(rows, "tpPct").map((x) => x.id).slice(0, 2), ["c", "a"]);
+  assert.deepEqual(sortRoster(rows, "tpPct", true).map((x) => x.id).slice(0, 2), ["a", "c"]);
+  assert.ok(ROSTER_PCT_MIN_ATTEMPTS > 4);
+  assert.equal(rosterPct(rows[3], "tpPct"), null);
+  assert.equal(Math.round(rosterPct(rows[0], "tpPct")!), 25);
+  console.log("franchise: 로스터 표 정렬 통과");
+}

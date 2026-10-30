@@ -130,7 +130,46 @@ export interface RosterRow {
   ppg: number;
   rpg: number;
   apg: number;
+  /** 경기당 스틸·블록·턴오버·3점 성공 (소수 1자리, 2026-10-30 로스터 표 열 늘림) */
+  spg: number;
+  bpg: number;
+  tpg: number;
+  tpmPg: number;
+  /** 시즌 합계 성공·시도 — 성공률은 화면에서 rosterPct 로 (시도 0 이면 "–") */
+  fgm: number;
+  fga: number;
+  tpm: number;
+  tpa: number;
+  ftm: number;
+  fta: number;
   photoUrl: string | null;
+}
+
+/** 로스터 표 정렬 열 (2026-10-30 사용자: 머리글을 눌러 정렬, 다른 기록 표처럼 열 더) */
+export type RosterSortKey = "gp" | "mpg" | "ppg" | "rpg" | "apg" | "spg" | "bpg" | "tpg" | "tpmPg" | "fgPct" | "tpPct" | "ftPct";
+
+/** 성공률 정렬은 시즌 시도가 이만큼 이상인 선수만 위로 (적게 던진 100% 가 1위가 되지 않게 — 우리 규칙). 모자란 선수는 방향과 상관없이 뒤 */
+export const ROSTER_PCT_MIN_ATTEMPTS = 10;
+
+/** 성공률 % (시도 0 이면 null) */
+export function rosterPct(r: RosterRow, key: "fgPct" | "tpPct" | "ftPct"): number | null {
+  const [m, a] = key === "fgPct" ? [r.fgm, r.fga] : key === "tpPct" ? [r.tpm, r.tpa] : [r.ftm, r.fta];
+  return a > 0 ? (m / a) * 100 : null;
+}
+
+/**
+ * 로스터 줄 세우기. 기본(asc false) = 큰 값부터(턴오버도), asc = 같은 머리글을 한 번 더 누른 반대 순서.
+ * 성공률 열은 시도가 ROSTER_PCT_MIN_ATTEMPTS 미만이면 어느 방향이든 맨 뒤. 같으면 경기당 득점 → 경기 수 → 이름.
+ */
+export function sortRoster(rows: readonly RosterRow[], key: RosterSortKey, asc = false): RosterRow[] {
+  const isPct = key === "fgPct" || key === "tpPct" || key === "ftPct";
+  const attempts = (r: RosterRow) => (key === "fgPct" ? r.fga : key === "tpPct" ? r.tpa : r.fta);
+  const low = (r: RosterRow) => isPct && attempts(r) < ROSTER_PCT_MIN_ATTEMPTS;
+  const val = (r: RosterRow) => (isPct ? (rosterPct(r, key) ?? -1) : r[key]);
+  const dir = asc ? -1 : 1;
+  return [...rows].sort(
+    (a, b) => Number(low(a)) - Number(low(b)) || dir * (val(b) - val(a)) || b.ppg - a.ppg || b.gp - a.gp || a.name.localeCompare(b.name, "ko"),
+  );
 }
 
 /** 한 선수가 이 팀에서 남긴 합계 (시즌 기록 합) */
