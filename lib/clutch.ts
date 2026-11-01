@@ -321,15 +321,32 @@ export function sumClutchTotals(list: Iterable<ClutchTotals>): ClutchTotals {
 
 /**
  * 기록 탭 부문: 위닝샷 횟수·버저비터·클러치 득점.
- * 클러치 야투율은 2026-11-01 사용자 요청으로 따로 칩을 두지 않고 클러치 득점 줄 숫자 아래에 같이 보인다("야투율 40.0%", 성공/시도는 둘째 줄).
- * fgPct 키·clutchRecordValue 의 야투율 계산은 남겨 둔다(예전 주소 ?cat=fgPct 는 첫 부문으로).
+ * 클러치 야투율(2026-11-01 사용자): 따로 칩을 두지 않고 클러치 득점 안에서 "득점순 / 야투율순"으로 고른다.
+ * 득점순 줄은 숫자 아래 야투율, 야투율순 줄은 숫자 아래 득점. 예전 주소 ?cat=fgPct 는 클러치 득점 + 야투율순으로.
  */
 export type ClutchRecordKey = "winning" | "buzzer" | "pts" | "fgPct";
 
-export const CLUTCH_RECORD_DEFS: readonly { key: ClutchRecordKey; label: string; unit: string }[] = [
+/** 화면 부문 칩 (sorts = 그 부문 안 정렬 기준 — 값은 목록 키 부문, 첫 값이 기본) */
+export const CLUTCH_RECORD_DEFS: readonly { key: ClutchRecordKey; label: string; unit: string; sorts?: readonly { key: ClutchRecordKey; label: string }[] }[] = [
   { key: "winning", label: "위닝샷", unit: "회" },
   { key: "buzzer", label: "버저비터", unit: "회" },
-  { key: "pts", label: "클러치 득점", unit: "점" },
+  {
+    key: "pts",
+    label: "클러치 득점",
+    unit: "점",
+    sorts: [
+      { key: "pts", label: "득점순" },
+      { key: "fgPct", label: "야투율순" },
+    ],
+  },
+];
+
+/** 목록 파일을 만드는 부문 (칩 + 정렬 기준) */
+export const CLUTCH_LIST_DEFS: readonly { key: ClutchRecordKey; unit: string }[] = [
+  { key: "winning", unit: "회" },
+  { key: "buzzer", unit: "회" },
+  { key: "pts", unit: "점" },
+  { key: "fgPct", unit: "%" },
 ];
 
 /**

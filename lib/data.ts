@@ -60,7 +60,7 @@ import { seasonContext } from "./cardview";
 import { asOfLabel, computeStandings, headToHead, latestGameDay, playerRecentGames, teamGameStrip, type HeadToHeadRecord, type OppBrand, type PlayerRecentGame, type TeamHeadToHeadLine, type TeamStripGame } from "./games";
 import { buildNotifItems, careerHighsFromIndex, careerSumsFromSeasons, featGroups, homeFeatItems, leagueSeasonRecords, type RecentFeat } from "./notifications";
 import { FALLBACK_TEAM_COLOR } from "./teams";
-import { CLUTCH_RECORD_DEFS, clutchFgMinAttempts, clutchFgPct, clutchRecordValue, collectPlayerClutch, shotInStage, sumClutchTotals, winningLabel, winningLine, type ClutchStage, type ClutchTotals, type PlayerClutchRaw, type WinningEntry } from "./clutch";
+import { CLUTCH_LIST_DEFS, clutchFgMinAttempts, clutchFgPct, clutchRecordValue, collectPlayerClutch, shotInStage, sumClutchTotals, winningLabel, winningLine, type ClutchStage, type ClutchTotals, type PlayerClutchRaw, type WinningEntry } from "./clutch";
 import { attachFeatContexts, domesticFromIndex, performancesFromGames } from "./feat-context";
 import { oddsSeed, playoffOdds, priorFromSeason, teamRatings, upcomingWinProbs, type PlayoffOdds } from "./predict";
 import { pickRegularChampions } from "./game-pool";
@@ -1080,7 +1080,7 @@ export function loadClutchLists(): RecordListsData {
         return [{ id, t, shots }];
       });
       const minFga = clutchFgMinAttempts(stage, scope === "all" ? "career" : "season");
-      for (const def of CLUTCH_RECORD_DEFS) {
+      for (const def of CLUTCH_LIST_DEFS) {
         const entries = totals.flatMap((x) => {
           const v = clutchRecordValue(x.t, def.key, minFga);
           return v === null ? [] : [{ ...x, v }];
@@ -1113,7 +1113,7 @@ export function loadClutchLists(): RecordListsData {
             value: def.key === "fgPct" ? x.v.toFixed(1) : String(x.v),
             unit: def.unit,
             sub,
-            note: def.key === "winning" && x.t.buzzer > 0 ? `버저비터 ${x.t.buzzer}회` : def.key === "pts" ? fgNote : null,
+            note: def.key === "winning" && x.t.buzzer > 0 ? `버저비터 ${x.t.buzzer}회` : def.key === "pts" ? fgNote : def.key === "fgPct" ? `클러치 ${x.t.pts}점` : null,
           };
         });
         lists[clutchListKey(stage, scope, def.key)] = list;

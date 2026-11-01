@@ -38,6 +38,7 @@ export const UPDATE_POSTS: UpdatePost[] = [
     summary: "클러치 득점에 야투율",
     blocks: [
       { kind: "p", text: "기록 탭 클러치에서 따로 있던 야투율 칸을 클러치 득점에 합쳤어요. 득점 숫자 아래에 그때 야투율이, 선수 이름 아래 줄에 야투 성공/시도가 나와요." },
+      { kind: "p", text: "클러치 득점 아래 득점순, 야투율순 버튼으로 야투율 높은 순서로도 볼 수 있어요." },
       { kind: "list", items: [{ text: "클러치 기록 보기", href: "/records/clutch" }] },
     ],
   },

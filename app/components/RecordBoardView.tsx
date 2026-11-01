@@ -4,8 +4,9 @@
 // 서버가 부문마다 필터(국내/외국인 × 전체/현역)별 상위 50을 모두 담아 보내고(lib/data unionForFilters), 이 화면은 걸러서 순위만 다시 센다
 // remote 가 있으면(한 경기·한 시즌 최다, 2026-10-12) 페이지에는 처음 목록 하나만 들어 있고 다른 목록은 고를 때 정적 파일로 받는다(lib/records recordListUrl)
 // (lib/records filterRecordList). 선택은 주소 ?kind=&cat=&mode=&origin=&active=1 에 남긴다.
+// 부문에 sorts 가 있으면(클러치 득점, 2026-11-01) 부문 칩 바로 아래 정렬 기준 Segmented — 고른 값이 목록 키 부문이 된다(?sort=).
 // scopes 가 있으면(클러치 탭, 2026-10-28) 기간(통산·시즌) 고르기와 경기 구분을 필터 버튼 밖 한 줄에 둔다 — ?season= 으로 남김.
-// GA4: filter_change screen=records_game|records_season|records_awards|records_clutch|records_profile (kind·category·mode·origin·active_only·season).
+// GA4: filter_change screen=records_game|records_season|records_awards|records_clutch|records_profile (kind·category·mode·origin·active_only·season·sort).
 import InfoLink from "./InfoLink";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -34,6 +35,8 @@ export interface BoardCategory {
   label: string;
   /** 경기당 단위가 있는 부문 */
   perGame?: boolean;
+  /** 부문 안 정렬 기준 (클러치 득점 "득점순 / 야투율순", 2026-11-01) — value 는 목록 키 부문, 첫 값이 기본. 주소 ?sort= */
+  sorts?: { value: string; label: string }[];
 }
 
 interface Props {
@@ -77,6 +80,7 @@ export default function RecordBoardView({ screen, data, categories, kinds = fals
   const baseScope = defaultScope ?? scopes?.[0]?.value;
   const inline = !!scopes;
   const [cat, setCat] = useState(categories[0].value);
+  const [sortBy, setSortBy] = useState<string | null>(null);
   const [mode, setMode] = useState<RecordMode>("total");
   const [origin, setOrigin] = useState<RecordOrigin>("all");
   const [activeOnly, setActiveOnly] = useState(false);
@@ -87,6 +91,14 @@ export default function RecordBoardView({ screen, data, categories, kinds = fals
     if (kinds && GAME_KINDS.some((g) => g.value === k)) setKind(k as GameKind);
     const c = qs.get("cat");
     if (c && categories.some((d) => d.value === c)) setCat(c);
+    // 예전 주소: 정렬 기준이 부문이던 때(?cat=fgPct) → 그 정렬 기준을 가진 부문으로
+    const owner = c ? categories.find((d) => d.sorts?.some((x) => x.value === c && x.value !== d.value)) : undefined;
+    if (owner && c) {
+      setCat(owner.value);
+      setSortBy(c);
+    }
+    const so = qs.get("sort");
+    if (so && categories.some((d) => d.sorts?.some((x) => x.value === so))) setSortBy(so);
     if (modes && qs.get("mode") === "perGame") setMode("perGame");
     const o = qs.get("origin");
     if (o === "domestic" || o === "foreign") setOrigin(o);
@@ -103,17 +115,21 @@ export default function RecordBoardView({ screen, data, categories, kinds = fals
     const put = (k: string, v: string | null) => (v === null ? qs.delete(k) : qs.set(k, v));
     put("kind", kind !== "regular" ? kind : null);
     put("cat", cat !== categories[0].value ? cat : null);
+    const sorts = categories.find((d) => d.value === cat)?.sorts;
+    put("sort", sorts && sortBy && sortBy !== sorts[0].value && sorts.some((x) => x.value === sortBy) ? sortBy : null);
     put("mode", mode !== "total" ? mode : null);
     put("origin", origin !== "all" ? origin : null);
     put("active", activeOnly ? "1" : null);
     if (scopes) put("season", scope !== baseScope ? scope : null);
     const q = qs.toString();
     window.history.replaceState(null, "", `${window.location.pathname}${q ? `?${q}` : ""}`);
-  }, [kind, cat, mode, origin, activeOnly, categories, scope, scopes, baseScope]);
+  }, [kind, cat, sortBy, mode, origin, activeOnly, categories, scope, scopes, baseScope]);
 
   const def = categories.find((d) => d.value === cat) ?? categories[0];
   const effMode: RecordMode = modes && def.perGame ? mode : "total";
-  const key = listKey(kind, def.value, effMode, scope);
+  const sortValue = def.sorts ? (def.sorts.find((x) => x.value === sortBy) ?? def.sorts[0]).value : null;
+  const listCat = sortValue ?? def.value;
+  const key = listKey(kind, listCat, effMode, scope);
   // 받아 온 목록 (키 → 목록·선수 정보). 실패한 키는 null
   const [loaded, setLoaded] = useState<Record<string, RecordListsData | null>>({});
   const missing = !!remote && !(key in data.lists) && !(key in loaded);
@@ -190,6 +206,19 @@ export default function RecordBoardView({ screen, data, categories, kinds = fals
           setCat(v);
         }}
       />
+      {def.sorts && sortValue && (
+        <div className="mt-3">
+          <Segmented
+            label={`${def.label} 정렬 기준`}
+            options={def.sorts}
+            value={sortValue}
+            onChange={(v) => {
+              trackFilters(screen, { sort: v });
+              setSortBy(v);
+            }}
+          />
+        </div>
+      )}
       <div className="mt-3">
         <FilterSheet
           chips={recordFilterChips({ kind: inline ? "regular" : kind, mode, origin, activeOnly }, modes && !!def.perGame).map((c) => ({
@@ -293,7 +322,7 @@ export default function RecordBoardView({ screen, data, categories, kinds = fals
           }
         />
         )}
-        <p className="mt-2 text-sub text-ink-3">{note(kind, effMode, scope, def.value)}</p>
+        <p className="mt-2 text-sub text-ink-3">{note(kind, effMode, scope, listCat)}</p>
       </section>
     </>
   );
