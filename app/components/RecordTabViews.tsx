@@ -3,7 +3,7 @@
 import { highDef, SEASON_HIGH_LEADER_KEYS } from "@/lib/highs";
 import { gameHighListKey, POSTSEASON_MIN_GAMES, REGULAR_MIN_GAMES_SHARE, SEASON_BEST_STATS, seasonBestListKey, type RecordListsData } from "@/lib/records";
 import { useCallback, useMemo, useState } from "react";
-import { CLUTCH_RECORD_DEFS, clutchFgMinAttempts } from "@/lib/clutch";
+import { CLUTCH_RECORD_DEFS } from "@/lib/clutch";
 import { clutchListKey, type GameKind } from "@/lib/records";
 import RecentWinningShots, { type WinningShotRow } from "./RecentWinningShots";
 import RecordBoardView from "./RecordBoardView";
@@ -66,7 +66,7 @@ export function AwardRecordsView({ data, categories }: { data: RecordListsData; 
   );
 }
 
-/** 클러치 탭 (2026-10-28): 구분(정규·플옵·챔프전) × 기간(통산·시즌) — 위닝샷·버저비터·클러치 득점·클러치 야투율 순위 + 아래 위닝샷 목록 */
+/** 클러치 탭 (2026-10-28): 구분(정규·플옵·챔프전) × 기간(통산·시즌) — 위닝샷·버저비터·클러치 득점(숫자 아래 야투율) 순위 + 아래 위닝샷 목록 */
 export function ClutchRecordsView({
   data,
   seasons,
@@ -91,8 +91,8 @@ export function ClutchRecordsView({
         remote="clutch"
         onSelect={onSelect}
         listKey={(kind, cat, _mode, scope) => clutchListKey(kind, scope === "all" ? "all" : Number(scope), cat)}
-        note={(kind, _mode, scope) =>
-          `${kind === "regular" ? "정규시즌" : kind === "playoff" ? "플레이오프(6강~챔프전)" : "챔프전"} 4쿼터·연장 남은 2분 미만, 6점 차 이내 기록입니다. 공홈 문자중계가 있는 2006-07 시즌부터 셉니다. 클러치 야투율은 ${clutchFgMinAttempts(kind, scope === "all" ? "career" : "season")}개 이상 던진 선수만.`
+        note={(kind) =>
+          `${kind === "regular" ? "정규시즌" : kind === "playoff" ? "플레이오프(6강~챔프전)" : "챔프전"} 4쿼터·연장 남은 2분 미만, 6점 차 이내 기록입니다. 공홈 문자중계가 있는 2006-07 시즌부터 셉니다. 클러치 득점 숫자 아래는 그때 야투율이에요.`
         }
         emptyText={() => "이 기간에는 기록이 없어요."}
       />

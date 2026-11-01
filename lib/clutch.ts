@@ -319,14 +319,17 @@ export function sumClutchTotals(list: Iterable<ClutchTotals>): ClutchTotals {
   return t;
 }
 
-/** 기록 탭 부문: 위닝샷 횟수·버저비터·클러치 득점·클러치 야투율 */
+/**
+ * 기록 탭 부문: 위닝샷 횟수·버저비터·클러치 득점.
+ * 클러치 야투율은 2026-11-01 사용자 요청으로 따로 칩을 두지 않고 클러치 득점 줄 숫자 아래에 같이 보인다("야투율 40.0%", 성공/시도는 둘째 줄).
+ * fgPct 키·clutchRecordValue 의 야투율 계산은 남겨 둔다(예전 주소 ?cat=fgPct 는 첫 부문으로).
+ */
 export type ClutchRecordKey = "winning" | "buzzer" | "pts" | "fgPct";
 
 export const CLUTCH_RECORD_DEFS: readonly { key: ClutchRecordKey; label: string; unit: string }[] = [
   { key: "winning", label: "위닝샷", unit: "회" },
   { key: "buzzer", label: "버저비터", unit: "회" },
   { key: "pts", label: "클러치 득점", unit: "점" },
-  { key: "fgPct", label: "클러치 야투율", unit: "%" },
 ];
 
 /**

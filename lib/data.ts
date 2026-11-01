@@ -60,7 +60,7 @@ import { seasonContext } from "./cardview";
 import { asOfLabel, computeStandings, headToHead, latestGameDay, playerRecentGames, teamGameStrip, type HeadToHeadRecord, type OppBrand, type PlayerRecentGame, type TeamHeadToHeadLine, type TeamStripGame } from "./games";
 import { buildNotifItems, careerHighsFromIndex, careerSumsFromSeasons, featGroups, homeFeatItems, leagueSeasonRecords, type RecentFeat } from "./notifications";
 import { FALLBACK_TEAM_COLOR } from "./teams";
-import { CLUTCH_RECORD_DEFS, clutchFgMinAttempts, clutchRecordValue, collectPlayerClutch, shotInStage, sumClutchTotals, winningLabel, winningLine, type ClutchStage, type ClutchTotals, type PlayerClutchRaw, type WinningEntry } from "./clutch";
+import { CLUTCH_RECORD_DEFS, clutchFgMinAttempts, clutchFgPct, clutchRecordValue, collectPlayerClutch, shotInStage, sumClutchTotals, winningLabel, winningLine, type ClutchStage, type ClutchTotals, type PlayerClutchRaw, type WinningEntry } from "./clutch";
 import { attachFeatContexts, domesticFromIndex, performancesFromGames } from "./feat-context";
 import { oddsSeed, playoffOdds, priorFromSeason, teamRatings, upcomingWinProbs, type PlayoffOdds } from "./predict";
 import { pickRegularChampions } from "./game-pool";
@@ -1061,7 +1061,7 @@ export function clutchSeasonOptions(): { seasonCode: number; seasonShort: string
 }
 
 /**
- * 기록 탭 "클러치": 구분(정규·플옵·챔프전) × 기간(통산·시즌) × 부문(위닝샷·버저비터·클러치 득점·클러치 야투율) 순위.
+ * 기록 탭 "클러치": 구분(정규·플옵·챔프전) × 기간(통산·시즌) × 부문(위닝샷·버저비터·클러치 득점 — 숫자 아래 야투율) 순위.
  * 키 = lib/records clutchListKey("regular", "all", "winning") — 국적·현역 필터용으로 넉넉히(unionForFilters). 빌드 때 한 번
  */
 let clutchListsCache: RecordListsData | null = null;
@@ -1092,7 +1092,10 @@ export function loadClutchLists(): RecordListsData {
             (r) => rankNum(r.v),
           ).filter((r) => r.rank <= top);
         const list = unionForFilters(entries, rank, (x) => x.id).map((x) => {
-          const fg = `야투 ${x.t.fgm}/${x.t.fga}`;
+          // 클러치 득점 줄: 야투 성공/시도·야투율을 숫자 아래에 (2026-11-01 사용자 — 야투율 부문을 따로 두지 않고 같이)
+          const fgPct = clutchFgPct(x.t);
+          // 숫자 아래는 짧게(폰에서 이름 칸이 좁아지지 않게) — 성공/시도는 둘째 줄로
+          const fgNote = fgPct === null ? null : `야투율 ${fgPct.toFixed(1)}%`;
           let sub: string;
           if (def.key === "winning" || def.key === "buzzer") {
             const last = (def.key === "buzzer" ? x.shots.filter((s) => s.shot.buzzer) : x.shots)[0];
@@ -1100,7 +1103,7 @@ export function loadClutchLists(): RecordListsData {
               ? `${scope === "all" ? "최근 " : ""}${seasonShortOf(last.seasonCode)} · ${last.date.slice(5).replace("-", ".")} vs ${teamNameInSeason(last.oppCode, last.seasonCode) ?? last.oppCode}`
               : "";
           } else {
-            sub = `클러치 ${x.t.games}경기 · ${fg} · 자유투 ${x.t.ftm}/${x.t.fta}`;
+            sub = `야투 ${x.t.fgm}/${x.t.fga} · 자유투 ${x.t.ftm}/${x.t.fta} · ${x.t.games}경기${x.t.winning > 0 ? ` · 위닝샷 ${x.t.winning}회` : ""}`;
           }
           return {
             rank: x.rank,
@@ -1110,7 +1113,7 @@ export function loadClutchLists(): RecordListsData {
             value: def.key === "fgPct" ? x.v.toFixed(1) : String(x.v),
             unit: def.unit,
             sub,
-            note: def.key === "winning" && x.t.buzzer > 0 ? `버저비터 ${x.t.buzzer}회` : def.key === "pts" && x.t.winning > 0 ? `위닝샷 ${x.t.winning}회` : null,
+            note: def.key === "winning" && x.t.buzzer > 0 ? `버저비터 ${x.t.buzzer}회` : def.key === "pts" ? fgNote : null,
           };
         });
         lists[clutchListKey(stage, scope, def.key)] = list;

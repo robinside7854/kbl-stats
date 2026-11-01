@@ -1,4 +1,4 @@
-// "기록" 메뉴 · 클러치 탭 (/records/clutch, 2026-10-28 사용자 기준): 구분(정규·플옵·챔프전) × 기간(통산·시즌) 위닝샷·버저비터·클러치 득점·클러치 야투율 순위 + 위닝샷 목록.
+// "기록" 메뉴 · 클러치 탭 (/records/clutch, 2026-10-28 사용자 기준): 구분(정규·플옵·챔프전) × 기간(통산·시즌) 위닝샷·버저비터·클러치 득점(야투율 포함) 순위 + 위닝샷 목록.
 // 재료는 시즌 games.json·playoff-clutch.json 의 winning·clutch(공홈 문자중계 4쿼터·연장, lib/clutch) → lib/data loadClutchLists·loadWinningShotLists.
 import type { Metadata } from "next";
 import { ogImagePath, shareMetadata } from "@/lib/share";

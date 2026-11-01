@@ -31,6 +31,17 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-11-01-clutch-fg-pct",
+    date: "2026-11-01",
+    kind: "update",
+    title: "클러치 득점에 야투율도 같이",
+    summary: "클러치 득점에 야투율",
+    blocks: [
+      { kind: "p", text: "기록 탭 클러치에서 따로 있던 야투율 칸을 클러치 득점에 합쳤어요. 득점 숫자 아래에 그때 야투율이, 선수 이름 아래 줄에 야투 성공/시도가 나와요." },
+      { kind: "list", items: [{ text: "클러치 기록 보기", href: "/records/clutch" }] },
+    ],
+  },
+  {
     slug: "2026-10-30-team-roster-table",
     date: "2026-10-30",
     kind: "update",
