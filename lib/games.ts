@@ -583,6 +583,12 @@ export interface PlayerRecentGame {
   tpm: number;
   fgm: number;
   fga: number;
+  /** 넓은 화면 열 (2026-11-03 사용자: PC 여백에 지표 더) */
+  tov: number;
+  tpa: number;
+  ftm: number;
+  fta: number;
+  pf: number;
   /** 이 선수가 넣은 위닝샷·버저비터 (2026-10-28, 없으면 필드 없음) */
   winning?: Pick<WinningShot, "buzzer" | "kind">;
 }
@@ -617,6 +623,11 @@ export function playerRecentGames(games: readonly SeasonGame[], playerNo: string
         tpm: r.tpm,
         fgm: r.fgm,
         fga: r.fga,
+        tov: r.tov,
+        tpa: r.tpa,
+        ftm: r.ftm,
+        fta: r.fta,
+        pf: r.pf,
         ...(g.winning?.id === playerNo ? { winning: { buzzer: g.winning.buzzer, kind: g.winning.kind } } : {}),
       });
       break;
