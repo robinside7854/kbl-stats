@@ -69,10 +69,10 @@ const COLS: Col[] = [
 
 // 넓은 표(@4xl)는 머리글 글자 + 열 사이 여백(pl-2)이 들어가게 (2026-10-07 사용자: 턴오버가 옆 열과 붙어 보임)
 const SIZE: Record<Col["size"], string> = {
-  count: "w-[2.1rem] @4xl:w-[3.25rem]",
-  made: "w-[2.6rem] @4xl:w-[4rem]",
-  pct: "w-[2.5rem] @4xl:w-[4rem]",
-  wide: "w-[2.5rem] @4xl:w-[4.5rem]",
+  count: "w-[2.1rem] @4xl:w-[3rem]",
+  made: "w-[2.6rem] @4xl:w-[3.75rem]",
+  pct: "w-[2.5rem] @4xl:w-[3.75rem]",
+  wide: "w-[2.5rem] @4xl:w-[4.25rem]",
 };
 
 export interface BoxSide {
@@ -109,6 +109,9 @@ export default function BoxScore({
   const rows = sortBoxRows(cur?.rows ?? [], sort);
   // 상자 폭이 56rem(896px) 미만이면 지금 보기에 없는 열은 숨기고, 그 이상은 전부 (container query — 두 칸 카드 안에서도 넘치지 않게)
   const vis = (c: Col) => (c.views.includes(view) ? "" : "hidden @4xl:table-cell");
+  // <col> 은 table-cell 이 아니라 table-column 으로 되살려야 너비가 먹는다 (2026-11-04: table-cell 이면 너비가 무시돼
+  // 14열이 똑같이 나뉘고 이름 칸이 약 85px — "샘조세프 벨란겔"이 잘림)
+  const colVis = (c: Col) => (c.views.includes(view) ? "" : "hidden @4xl:table-column");
 
   return (
     <div className="@container mt-2">
@@ -133,7 +136,7 @@ export default function BoxScore({
         <colgroup>
           <col />
           {COLS.map((c) => (
-            <col key={c.key} className={`${vis(c)} ${SIZE[c.size]}`} />
+            <col key={c.key} className={`${colVis(c)} ${SIZE[c.size]}`} />
           ))}
         </colgroup>
         <thead>
@@ -176,7 +179,7 @@ export default function BoxScore({
                   href={`/player/${r.id}?season=${seasonCode}`}
                   className="focus-ring-inset flex h-10 min-w-0 items-center rounded-md text-ink underline-offset-2 hover:underline"
                 >
-                  <span className="truncate">{r.nameKo}</span>
+                  <span className="truncate" title={r.nameKo}>{r.nameKo}</span>
                   {/* 위닝샷·버저비터: 이름 칸이 좁아(PC 도 14열) 이름이 잘리지 않게 금색 번개 아이콘만 — 글자 꼬리표는 아래 클러치 기록에 */}
                   {winning?.id === r.id && (
                     <span className="ml-0.5 shrink-0 text-[var(--gold-ink)]" title={winningLabel(winning)}>
