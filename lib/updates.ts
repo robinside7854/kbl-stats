@@ -31,6 +31,16 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-11-04-team-strip-stats",
+    date: "2026-11-04",
+    kind: "update",
+    title: "팀 페이지 경기 띠에도 기록을 더 넣었어요",
+    summary: "팀 경기 띠 기록 늘림",
+    blocks: [
+      { kind: "p", text: "팀 페이지 맨 위 최근·다음 경기 칸에 그 경기 득점 1위, 리바운드, 어시스트, 턴오버, 3점, 야투율을 더했어요. 다음 경기 칸에는 경기장과 올 시즌 그 팀과의 전적이 나와요. PC처럼 넓은 화면에서 보여요." },
+    ],
+  },
+  {
     slug: "2026-11-03-recent-games-columns",
     date: "2026-11-03",
     kind: "update",

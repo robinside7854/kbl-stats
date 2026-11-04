@@ -513,6 +513,45 @@ export interface TeamStripGame {
   oppScore: number | null;
   /** 이겼으면 true, 졌으면 false, 아직이면 null */
   win: boolean | null;
+  /** 경기장 (PC 넓은 띠에만 보임) */
+  stadium: string | null;
+  /** 끝난 경기의 이 팀 합계 (박스스코어가 있을 때만, 아니면 null) — 2026-11-04 PC 띠 */
+  stats: TeamStripStats | null;
+  /** 아직 안 한 경기: 그 경기 전까지 이 시즌 그 상대와 전적 (맞붙은 적 없으면 null) */
+  series: { wins: number; losses: number } | null;
+}
+
+/** 팀 경기 띠 한 칸의 팀 기록 (선수 박스스코어 합) */
+export interface TeamStripStats {
+  /** 이 팀 최다 득점 선수 (topPerformer 규칙) */
+  top: { id: string; nameKo: string; pts: number } | null;
+  reb: number;
+  oppReb: number;
+  ast: number;
+  tov: number;
+  fgm: number;
+  fga: number;
+  tpm: number;
+  tpa: number;
+}
+
+/** 박스스코어 → 팀 경기 띠 기록. 기록이 없으면 null */
+export function teamStripStats(mine: readonly GameBoxRow[] | undefined, opp: readonly GameBoxRow[] | undefined): TeamStripStats | null {
+  if (!mine || mine.length === 0) return null;
+  const sum = (rows: readonly GameBoxRow[] | undefined, k: "reb" | "ast" | "tov" | "fgm" | "fga" | "tpm" | "tpa") =>
+    (rows ?? []).reduce((t, r) => t + r[k], 0);
+  const t = topPerformer(mine);
+  return {
+    top: t ? { id: t.id, nameKo: t.nameKo, pts: t.pts } : null,
+    reb: sum(mine, "reb"),
+    oppReb: sum(opp, "reb"),
+    ast: sum(mine, "ast"),
+    tov: sum(mine, "tov"),
+    fgm: sum(mine, "fgm"),
+    fga: sum(mine, "fga"),
+    tpm: sum(mine, "tpm"),
+    tpa: sum(mine, "tpa"),
+  };
 }
 
 /** 시즌 경기에서 이 팀의 지난 경기(최근 past 개, 오래된 → 최근)와 다음 경기(next 개, 가까운 순) */
@@ -540,11 +579,31 @@ export function teamGameStrip(
       teamScore: w ? me.score : null,
       oppScore: w ? opp.score : null,
       win: w ? (w === "home") === home : null,
+      stadium: g.stadium,
+      stats: w && g.box ? teamStripStats(home ? g.box.home : g.box.away, home ? g.box.away : g.box.home) : null,
+      series: null,
     };
   };
   const ended = mine.filter((g) => winnerSide(g));
+  // 아직 안 한 경기: 그 경기 전까지 그 상대와 전적
+  const seriesBefore = (g: SeasonGame) => {
+    const oppCode = g.home.teamCode === teamCode ? g.away.teamCode : g.home.teamCode;
+    let wins = 0;
+    let losses = 0;
+    for (const e of ended) {
+      if (e.date > g.date) continue;
+      const home = e.home.teamCode === teamCode;
+      if ((home ? e.away.teamCode : e.home.teamCode) !== oppCode) continue;
+      if ((winnerSide(e) === "home") === home) wins++;
+      else losses++;
+    }
+    return wins + losses > 0 ? { wins, losses } : null;
+  };
   const upcoming = mine.filter((g) => !g.ended && !winnerSide(g));
-  return { past: ended.slice(-past).map(toStrip), next: upcoming.slice(0, next).map(toStrip) };
+  return {
+    past: ended.slice(-past).map(toStrip),
+    next: upcoming.slice(0, next).map((g) => ({ ...toStrip(g), series: seriesBefore(g) })),
+  };
 }
 
 // ─────────────────────────────────────────────

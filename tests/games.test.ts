@@ -226,6 +226,11 @@ console.log("games: 팀 순위 통과");
   assert.deepEqual(s.next.map((x) => x.gmkey), ["S1G01N5", "S1G01N6"], "다음 2경기");
   assert.deepEqual([s.past[0].win, s.past[0].home, s.past[0].teamScore, s.past[0].oppScore, s.past[0].oppCode], [false, false, 70, 75, "B"]);
   assert.equal(s.next[0].win, null);
+  assert.equal(s.past[0].stats?.top?.nameKo, "p", "박스스코어 있으면 팀 기록");
+  assert.deepEqual([s.past[0].stats?.reb, s.past[0].stats?.oppReb, s.past[0].stats?.tpm, s.past[0].stats?.tpa], [2, 2, 1, 2]);
+  assert.equal(s.past[1].stats, null, "박스스코어 없으면 null");
+  assert.deepEqual(s.next[0].series, { wins: 1, losses: 1 }, "다음 경기 전 그 상대 전적");
+  assert.equal(s.next[1].series?.wins, 1, "C 와 1승 1패");
   assert.equal(teamGameStrip(list, "Z").past.length, 0);
 
   const r = playerRecentGames(list, "p");
