@@ -1,6 +1,6 @@
 // 시상 레이스 (lib/award-race) — MVP 자격(팀 6위·출전 2/3·출전 시간·기록 합·종합 하한)·묶음(국내+아시아쿼터 / 외국)·팀 가중 점수, MIP 조건, 머리말 칩
 import assert from "node:assert/strict";
-import { buildAwardRace, gradeSteps, MVP_GROUP_RULES, mvpScore, raceRankText, raceTagsOf } from "../lib/award-race";
+import { buildAwardRace, gradeSteps, mipScore, MVP_GROUP_RULES, mvpScore, raceRankText, raceTagsOf } from "../lib/award-race";
 import { decodeSeasonCards, encodeSeasonCards } from "../lib/cards";
 import type { StandingRow } from "../lib/games";
 import type { CardPlayer, Nationality, PositionGroup } from "../lib/types";
@@ -61,6 +61,8 @@ assert.ok(dom.includes("d1"), "1위 팀 스타는 후보");
 for (const c of race.mvp.domestic) {
   assert.ok(c.team.rank <= MVP_GROUP_RULES.domestic.teamRankMax!);
   assert.equal(c.stats.length, 9, "지표 7개 + PER + 기록 합");
+  const prod = c.stats.find((x) => x.key === "prod");
+  assert.ok(prod?.rank != null && prod.rank <= MVP_GROUP_RULES.domestic.prodRankMax!, "국내는 기록 합 10위 안");
 }
 // ── 아시아쿼터는 국내 묶음, 외국 묶음은 외국 선수만 ──
 const fr = race.mvp.foreign.map((c) => c.id);
@@ -77,16 +79,19 @@ assert.equal(mvpScore("foreign", 100, 0.5, 0.5), 50);
 assert.equal(raceRankText("domestic", { rank: 2 }), "국내 2위");
 assert.equal(raceRankText("foreign", { rank: null }), "");
 
-// ── MIP: d4 는 출전·볼륨·효율·등급 모두 올라 후보, w0 는 TS%·PER 이 떨어져 빠짐 ──
+// ── MIP: d4 는 지난 시즌 C 이하 → 이번 시즌 B 이상이라 후보, 외국 선수는 빠짐 ──
 assert.equal(gradeSteps("D", "B"), 2);
 assert.equal(gradeSteps("-", "A"), 0);
 const mip = race.mip.map((m) => m.id);
-assert.ok(mip.includes("d4"), "모두 오른 선수는 MIP 후보");
-assert.ok(!mip.includes("w0"), "효율이 떨어지면 MIP 아님");
-for (const m of race.mip) {
-  assert.ok(m.cur.mpg > m.prev.mpg && m.cur.tsPct > m.prev.tsPct && m.cur.per > m.prev.per && m.gain >= 15);
-  assert.ok(m.prev.score < 55 && m.cur.score >= 55, "지난 시즌 C 이하 → 이번 시즌 B 이상");
-}
+assert.ok(mip.includes("d4"), "C 이하에서 B 이상으로 오른 국내 선수는 MIP 후보");
+assert.ok(race.mip.every((m) => m.nationality !== "foreign"), "MIP 는 국내 선수(아시아쿼터 포함)만");
+for (const m of race.mip) assert.ok(m.prev.score < 55 && m.cur.score >= 55, "지난 시즌 C 이하 → 이번 시즌 B 이상");
+for (let i = 1; i < race.mip.length; i++) assert.ok(race.mip[i - 1].score >= race.mip[i].score, "MIP 점수 순");
+// 점수: 기록 합 증가 70% + 이번 시즌 종합 20% + PER 증가 10%
+assert.equal(mipScore(1, 0.5, 0), 80);
+// 이미 기량 발전상·MVP 를 받은 선수는 빼고 다음 선수가 올라온다
+const raceEx = buildAwardRace(enc(49, "2026-2027", cur), enc(47, "2025-2026", prev), standings, [], new Set(["d4"]));
+assert.ok(!raceEx.mip.some((m) => m.id === "d4"), "앞선 수상자는 MIP 후보가 아님");
 // 그 전 시즌들엔 잘했던 선수(반등)는 최근 3시즌 평균이 높아 MIP 아님
 const older = cur.map((p) => (p.id === "d4" ? { ...p, ...star({}) } : p));
 const race2 = buildAwardRace(enc(49, "2026-2027", cur), enc(47, "2025-2026", prev), standings, [enc(45, "2024-2025", older), enc(43, "2023-2024", older)]);

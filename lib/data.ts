@@ -64,7 +64,7 @@ import { CLUTCH_LIST_DEFS, clutchFgMinAttempts, clutchFgPct, clutchRecordValue, 
 import { attachFeatContexts, domesticFromIndex, performancesFromGames } from "./feat-context";
 import { oddsSeed, playoffOdds, priorFromSeason, teamRatings, upcomingWinProbs, type PlayoffOdds } from "./predict";
 import { pickRegularChampions } from "./game-pool";
-import { buildAwardRace, MIP_HISTORY_SEASONS, type AwardRace } from "./award-race";
+import { buildAwardRace, MIP_HISTORY_SEASONS, MIP_EXCLUDE_AWARDS, type AwardRace } from "./award-race";
 import teamLineage from "@/data/codes/team-lineage.json";
 import {
   buildTenures, franchiseLeaders, franchiseTotals, lineageChain, longestTenures, nameSpans, pickLegends, playoffStage, TEAM_LEADER_STATS,
@@ -205,7 +205,13 @@ export function loadAwardRace(): AwardRace | null {
       const c = loadSeasonCards(s.seasonCode);
       return c ? [c] : [];
     });
-  awardRaceCache = buildAwardRace(cards, prevCards, standings, older);
+  // MIP 에서 빼는 선수: 앞선 시즌 기량 발전상(평생 한 번)·정규리그 MVP·외국선수 MVP 수상자
+  const excluded = new Set(
+    loadPlayersIndex()
+      .filter((e) => (e.awards ?? []).some((a) => a.seasonCode < cur.seasonCode && MIP_EXCLUDE_AWARDS.includes(a.key)))
+      .map((e) => e.id),
+  );
+  awardRaceCache = buildAwardRace(cards, prevCards, standings, older, excluded);
   return awardRaceCache;
 }
 
