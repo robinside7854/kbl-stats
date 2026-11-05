@@ -42,7 +42,7 @@ export default function RecentFeats({ feats, latestDate }: { feats: RecentFeat[]
       {/* 한 상자 안 줄 나눔 (2026-10-16 디자인 정리 M2: 기록마다 카드였던 것). 칸 사이 선 = 칸마다 1px 바깥 테두리(ring) — 상자 가장자리는 overflow 로 잘린다 */}
       <ul className="surface-card mt-3 grid overflow-hidden rounded-container md:grid-cols-2 xl:grid-cols-3">
         {shown.map((f) => {
-          // 2026-10-17 사용자 "세로로 너무 김" → 한 칸 두 줄: ① 이름·팀·날짜 ② 첫 기록 + 단계 + 맥락(한 줄로 자름). 기록이 더 있으면 "외 N개", 경기 결과 줄은 뺐다(누르면 선수 페이지)
+          // 2026-10-17 사용자 "세로로 너무 김" → 한 칸 두 줄: ① 이름·팀·날짜 ② 첫 기록 + 단계 (+ 맥락이 있으면 ③ 아래 줄, 2026-11-05 자르지 않게). 기록이 더 있으면 "외 N개", 경기 결과 줄은 뺐다(누르면 선수 페이지)
           const [first, ...more] = f.lines;
           return (
             <li key={f.key} className="min-w-0 ring-1 ring-line">
@@ -63,10 +63,9 @@ export default function RecentFeats({ feats, latestDate }: { feats: RecentFeat[]
                     <span className="min-w-0 shrink truncate text-body font-bold text-ink">{first.text}</span>
                     <LevelTag level={first.level} />
                     {more.length > 0 && <span className="shrink-0 text-caption font-semibold text-ink-3">외 {more.length}개</span>}
-                    {first.context && first.context.length > 0 && (
-                      <span className="min-w-0 flex-1 shrink-[3] truncate text-caption text-ink-2">{first.context[0]}</span>
-                    )}
                   </span>
+                  {/* 2026-11-05 사용자 "모바일에서 코멘트가 잘려 보임" → 맥락은 기록 아래 따로 한 줄(넘치면 줄바꿈, 자르지 않음) */}
+                  {first.context && first.context.length > 0 && <span className="mt-0.5 block text-caption text-ink-2">{first.context[0]}</span>}
                 </span>
               </Link>
             </li>
