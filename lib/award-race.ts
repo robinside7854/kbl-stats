@@ -2,14 +2,16 @@
 // 화면: 기록 탭 "시상 레이스"(/records/race, AwardRaceView) · 홈 한 줄 카드(AwardRaceStrip) · 선수 머리말 칩(PlayerHero).
 //
 // MVP (묶음 둘: 국내 선수(아시아쿼터 포함) / 외국 선수 — 2026-11-05 사용자: 아시아쿼터는 국내 선수로 분류)
-//   기준은 지난 11시즌(2015-16~2025-26) 실제 정규리그 MVP·외국선수 MVP 기록에서 잡았다(2026-11-05 사용자: 문유현처럼
-//   출전·기록 양이 적은 선수는 MVP 같지 않다). 실제 수상자는 전원 경기당 27분 이상 뛰고, 경기당 득점+리바+어시+스틸+블록이
-//   같은 묶음 6위 안이었고, 팀은 1~6위(5·6위 수상도 있음)였다.
-//   - 자격: 기본 표본 기준, 팀 경기 2/3 이상 출전, 팀이 지금 6위(플레이오프 자리) 이내, "기록 합"(경기당 득점+리바+어시+스틸+블록)
-//     같은 묶음 10위 이내, 경기당 출전·종합 점수 하한(국내 28분·80점(A) / 외국 25분·70점 — 외국 선수는 둘이 시간을 나눈다)
-//   - 순위: MVP 점수 = 개인 종합 점수 30% + 팀 승률(%) 40% + 기록 합 순위 백분위 30%
-//     (되짚어 보기: 국내 1위 적중 8/11·3위 안 9/11, 외국 1위 7/11·3위 안 11/11 — 수상 가산점은 빼고 계산)
-//     같으면 개인 점수 → 팀 순위. 묶음마다 3명까지
+//   기준은 과거 시즌 실제 정규리그 MVP(국내 30시즌)·외국선수 MVP(27시즌)를 되짚어 보며 고른 묶음별 규칙(2026-11-05 사용자 "가장
+//   정확한 방법", 결정 A). 조합 약 15만 개(자격 문턱 × 점수 무게, 득점·PER 무게 포함)를 대입하고, 한 시즌씩 빼고 나머지로
+//   고른 규칙이 빠진 시즌을 맞히는지(교차 검증)로 확인했다. 수상 가산점은 빼고 계산.
+//   - 공통 자격: 기본 표본 기준, 팀 경기 2/3 이상 출전
+//   - 국내: 팀 6위(플레이오프 자리) 이내·경기당 28분 이상, 점수 = 기록 합 70% + 팀 승률 20% + 종합 점수 10%
+//     → 30시즌 1위 적중 22·3위 안 29 (교차 검증 16·24, 예전 규칙 19·26)
+//   - 외국: "기록 합" 같은 묶음 10위 이내, 점수 = 팀 승률 60% + 기록 합 40% (종합 점수·출전 시간·팀 순위 문턱은 오히려 정확도를 떨어뜨려 뺌)
+//     → 27시즌 1위 23·3위 안 26 (교차 검증 20·25, 예전 규칙 16·25)
+//   - 기록 합 = 경기당 득점+리바+어시+스틸+블록, 점수에는 같은 묶음 안 백분위(나보다 낮은 선수 비율)로 들어간다
+//   - 같으면 개인 점수 → 팀 순위. 묶음마다 3명까지
 //   - 개인 종합 점수: 사이트 등급과 같은 풀(국내+아시아쿼터 / 외국, lib/metrics gradeGroupOf)
 //   - 지표별 순위: 같은 묶음(국내+아시아쿼터끼리 / 외국끼리) 안, 성공률은 리그 시도 기준을 채운 선수끼리
 // MIP (전체 선수, 3명)
@@ -36,12 +38,7 @@ import {
 } from "./metrics";
 import type { CardPlayer, CardTeam, Nationality, Position, PositionGroup } from "./types";
 
-export const MVP_TEAM_RANK_MAX = 6;
 export const MVP_MIN_GAMES_SHARE = 2 / 3;
-/** 기록 합(경기당 득점+리바+어시+스틸+블록) 같은 묶음 순위 상한 */
-export const MVP_PROD_RANK_MAX = 10;
-/** MVP 점수 무게 (합 1) */
-export const MVP_WEIGHTS = { overall: 0.3, team: 0.4, prod: 0.3 } as const;
 export const RACE_PICKS = 3;
 /** MIP: 지난 시즌 종합 점수가 이 값 미만(C 이하) → 이번 시즌 이 값 이상(B 이상). lib/metrics OVERALL_GRADE_CUTS 의 B 컷 */
 export const MIP_GRADE_LINE = 55;
@@ -55,10 +52,21 @@ export const MVP_GROUP_LABELS: Record<MvpGroup, string> = { domestic: "국내 �
 /** 지표 순위 앞에 붙는 짧은 이름 ("국내 2위") */
 export const MVP_GROUP_SHORT: Record<MvpGroup, string> = { domestic: "국내", foreign: "외국" };
 
-/** 묶음별 자격 하한 — 경기당 출전(분)·개인 종합 점수 */
-export const MVP_GROUP_RULES: Record<MvpGroup, { minMpg: number; minOverall: number }> = {
-  domestic: { minMpg: 28, minOverall: 80 },
-  foreign: { minMpg: 25, minOverall: 70 },
+export interface MvpGroupRule {
+  /** 팀 순위 상한 (null = 보지 않음) */
+  teamRankMax: number | null;
+  /** 경기당 출전(분) 하한 */
+  minMpg: number;
+  /** 기록 합 같은 묶음 순위 상한 (null = 보지 않음) */
+  prodRankMax: number | null;
+  /** MVP 점수 무게 (합 1): 개인 종합 점수·팀 승률·기록 합 백분위 */
+  weights: { overall: number; team: number; prod: number };
+}
+
+/** 묶음별 규칙 — 과거 MVP 되짚어 보기로 고른 값 (위 머리 주석) */
+export const MVP_GROUP_RULES: Record<MvpGroup, MvpGroupRule> = {
+  domestic: { teamRankMax: 6, minMpg: 28, prodRankMax: null, weights: { overall: 0.1, team: 0.2, prod: 0.7 } },
+  foreign: { teamRankMax: null, minMpg: 0, prodRankMax: 10, weights: { overall: 0, team: 0.6, prod: 0.4 } },
 };
 
 /** MVP 카드에 보이는 지표 (CARD_STATS 키 + PER + 기록 합) */
@@ -155,9 +163,10 @@ const median = (xs: readonly number[]) => {
   return s.length % 2 ? s[(s.length - 1) / 2] : Math.round((s[s.length / 2 - 1] + s[s.length / 2]) / 2);
 };
 
-/** MVP 점수: 개인 종합 점수(0~100) 30% + 팀 승률(%) 40% + 기록 합 순위 백분위(0~1 → %) 30% */
-export function mvpScore(individual: number, teamPct: number, prodPct: number): number {
-  return round1(individual * MVP_WEIGHTS.overall + teamPct * 100 * MVP_WEIGHTS.team + prodPct * 100 * MVP_WEIGHTS.prod);
+/** MVP 점수 (0~100): 개인 종합 점수(0~100)·팀 승률(0~1)·기록 합 백분위(0~1)를 묶음 무게로 */
+export function mvpScore(group: MvpGroup, individual: number, teamPct: number, prodPct: number): number {
+  const w = MVP_GROUP_RULES[group].weights;
+  return round1(individual * w.overall + teamPct * 100 * w.team + prodPct * 100 * w.prod);
 }
 
 /** 기록 합 = 경기당 득점+리바운드+어시스트+스틸+블록 */
@@ -200,14 +209,14 @@ export function mvpCandidates(cards: SeasonCards, standings: readonly StandingRo
     const p = e.player;
     const t = team.get(p.teamCode);
     if (!t || t.games === 0) return [];
-    if (t.rank > MVP_TEAM_RANK_MAX) return [];
+    if (rule.teamRankMax !== null && t.rank > rule.teamRankMax) return [];
     if (p.games / t.games < MVP_MIN_GAMES_SHARE) return [];
     if (perGame(p.minutes, p.games) < rule.minMpg) return [];
     const ind = e.overallPct!;
-    if (ind < rule.minOverall) return [];
     const prodRank = prodRankOf(p);
-    if (prodRank > MVP_PROD_RANK_MAX) return [];
-    const prodPct = qualified.length > 1 ? 1 - (prodRank - 1) / qualified.length : 1;
+    if (rule.prodRankMax !== null && prodRank > rule.prodRankMax) return [];
+    const mine = productionPerGame(p);
+    const prodPct = qualified.length > 1 ? qualified.filter((x) => productionPerGame(x.player) < mine).length / (qualified.length - 1) : 1;
     const samePos = p.positionGroup ? qualified.filter((x) => x.player.positionGroup === p.positionGroup) : [];
     const stats: RaceStat[] = MVP_STAT_KEYS.map((k) => {
       const s = e.stats.find((x) => x.def.key === k)!;
@@ -226,7 +235,7 @@ export function mvpCandidates(cards: SeasonCards, standings: readonly StandingRo
       nationality: p.nationality,
       grade: e.overall,
       score: gradeScore(ind) ?? 0,
-      mvpScore: mvpScore(ind, t.pct, prodPct),
+      mvpScore: mvpScore(group, ind, t.pct, prodPct),
       team: { rank: t.rank, wins: t.wins, losses: t.losses, pct: t.pct },
       games: p.games,
       teamGames: t.games,

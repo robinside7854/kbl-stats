@@ -59,21 +59,20 @@ assert.ok(!dom.includes("d5"), "경기당 출전이 짧으면 후보가 아님")
 assert.ok(!dom.includes("d3"), "팀 경기 2/3 미만 출전은 후보가 아님");
 assert.ok(dom.includes("d1"), "1위 팀 스타는 후보");
 for (const c of race.mvp.domestic) {
-  assert.ok(c.team.rank <= 6 && c.score >= Math.round(MVP_GROUP_RULES.domestic.minOverall));
+  assert.ok(c.team.rank <= MVP_GROUP_RULES.domestic.teamRankMax!);
   assert.equal(c.stats.length, 9, "지표 7개 + PER + 기록 합");
-  assert.ok(c.stats.find((x) => x.key === "prod")!.rank! <= 10);
 }
 // ── 아시아쿼터는 국내 묶음, 외국 묶음은 외국 선수만 ──
 const fr = race.mvp.foreign.map((c) => c.id);
 assert.ok(dom.includes("a1"), "아시아쿼터는 국내 묶음 후보");
 assert.ok(fr.includes("f1") && !fr.includes("a1"), "외국 묶음엔 아시아쿼터가 없음");
 assert.ok(race.mvp.foreign.every((c) => c.nationality === "foreign"));
-assert.ok(!fr.includes("f3"), "7위 팀 외국 선수는 빠짐");
+assert.equal(fr[0], "f1", "외국 1위 = 1위 팀 + 기록 합 1위");
 assert.equal(race.mvp.domestic.find((c) => c.id === "a1")?.nationality, "asia", "국적 표시는 원래 값");
 assert.ok(race.mvp.foreign.length <= 3 && race.mvp.domestic.length <= 3);
-// 점수: 개인 30% + 팀 승률 40% + 기록 합 순위 30%
-assert.equal(mvpScore(80, 0.9, 1), 90);
-assert.equal(mvpScore(100, 0.5, 0.5), 65);
+// 점수: 국내 기록 합 70% + 팀 승률 20% + 종합 10% / 외국 팀 승률 60% + 기록 합 40%
+assert.equal(mvpScore("domestic", 80, 0.9, 1), 96);
+assert.equal(mvpScore("foreign", 100, 0.5, 0.5), 50);
 // 순위 글자
 assert.equal(raceRankText("domestic", { rank: 2 }), "국내 2위");
 assert.equal(raceRankText("foreign", { rank: null }), "");
