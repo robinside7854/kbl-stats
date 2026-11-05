@@ -2,7 +2,7 @@
   "seasonCode": 49,
   "seasonLabel": "2026-2027",
   "gameType": "regular",
-  "fetchedAt": "2026-11-04T13:24:23.482Z",
+  "fetchedAt": "2026-11-05T13:24:12.633Z",
   "coverage": {
     "advanced": true,
     "plusMinus": true,
@@ -395,6 +395,226 @@
       }
     },
     {
+      "playerNo": "291787",
+      "nameKo": "케렘 칸터",
+      "nameEn": "Kerem Kanter",
+      "teamCode": "35",
+      "teamName": "서울 삼성",
+      "teamShort": "SAMSUNG",
+      "isForeign": true,
+      "position": "C",
+      "positionLabel": "센터",
+      "positionGroup": "C",
+      "nationality": "foreign",
+      "heightCm": 204,
+      "weightKg": 119,
+      "backNumber": "35",
+      "draft": null,
+      "games": 11,
+      "wins": 10,
+      "losses": 1,
+      "minutes": 399,
+      "points": 288,
+      "fgm": 108,
+      "fga": 192,
+      "fgPct": 56.25,
+      "tpm": 8,
+      "tpa": 35,
+      "tpPct": 22.857142857142858,
+      "twoPm": 100,
+      "twoPa": 157,
+      "twoPPct": 63.69426751592356,
+      "ftm": 64,
+      "fta": 86,
+      "ftPct": 74.4186046511628,
+      "dunks": 4,
+      "oreb": 32,
+      "dreb": 91,
+      "reb": 123,
+      "ast": 27,
+      "stl": 10,
+      "blk": 3,
+      "tov": 32,
+      "goodDef": 1,
+      "fouls": 31,
+      "doubleDoubles": 8,
+      "tripleDoubles": 0,
+      "plusMinus": 63,
+      "screenAst": 24,
+      "deflections": 8,
+      "per": 31.365344467640917,
+      "offRtg": 130.5255830142708,
+      "defRtg": 107.41840092493774,
+      "netRtg": 23.10718208933305,
+      "efgPct": 58.333333333333,
+      "tsPct": 62.652279846849986,
+      "astPct": 12.980769230769,
+      "astTo": 0.84375,
+      "astRatio": 9.347735770668882,
+      "orebPct": 10.126582278481,
+      "drebPct": 23.575129533678,
+      "rebPct": 17.521367521367,
+      "usgPct": 31.580470860671554,
+      "usgPctRaw": 6.316094172134311,
+      "pace": 71.31914154488517,
+      "tovPct": 12.221203788573174,
+      "toRatio": 14.5028425571412,
+      "pie": 34.44010416666667,
+      "poss": 703.7952,
+      "seasonHighs": {
+        "pts": {
+          "value": 42,
+          "date": "2026-10-15",
+          "opponentTeamCode": "50",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "fgm": {
+          "value": 18,
+          "date": "2026-10-15",
+          "opponentTeamCode": "50",
+          "times": 1,
+          "seasonCode": 49,
+          "attempts": 28,
+          "pct": 64.3
+        },
+        "fgPct": {
+          "value": 75,
+          "date": "2026-10-04",
+          "opponentTeamCode": "06",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "twoPm": {
+          "value": 18,
+          "date": "2026-10-15",
+          "opponentTeamCode": "50",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "twoPPct": {
+          "value": 91.66666666666667,
+          "date": "2026-10-21",
+          "opponentTeamCode": "60",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "tpm": {
+          "value": 2,
+          "date": "2026-11-01",
+          "opponentTeamCode": "55",
+          "times": 3,
+          "seasonCode": 49,
+          "attempts": 6,
+          "pct": 33.3
+        },
+        "tpPct": {
+          "value": 66.66666666666667,
+          "date": "2026-10-04",
+          "opponentTeamCode": "06",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "ftm": {
+          "value": 10,
+          "date": "2026-10-04",
+          "opponentTeamCode": "06",
+          "times": 1,
+          "seasonCode": 49,
+          "attempts": 14,
+          "pct": 71.4
+        },
+        "ftPct": {
+          "value": 100,
+          "date": "2026-10-09",
+          "opponentTeamCode": "70",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "oreb": {
+          "value": 7,
+          "date": "2026-10-15",
+          "opponentTeamCode": "50",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "dreb": {
+          "value": 12,
+          "date": "2026-11-01",
+          "opponentTeamCode": "55",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "reb": {
+          "value": 15,
+          "date": "2026-11-01",
+          "opponentTeamCode": "55",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "ast": {
+          "value": 7,
+          "date": "2026-10-17",
+          "opponentTeamCode": "16",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "stl": {
+          "value": 4,
+          "date": "2026-10-21",
+          "opponentTeamCode": "60",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "blk": {
+          "value": 2,
+          "date": "2026-10-04",
+          "opponentTeamCode": "06",
+          "times": 1,
+          "seasonCode": 49
+        }
+      },
+      "shotZones": {
+        "total": {
+          "attempts": 192,
+          "made": 108
+        },
+        "zones": {
+          "rim": {
+            "a": 63,
+            "m": 42
+          },
+          "paint": {
+            "a": 76,
+            "m": 51
+          },
+          "mid": {
+            "a": 17,
+            "m": 7
+          },
+          "corner3": {
+            "a": 1,
+            "m": 0
+          },
+          "arc3": {
+            "a": 35,
+            "m": 8
+          }
+        },
+        "offenseType": "inside",
+        "corners": {
+          "left": {
+            "a": 1,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
+      }
+    },
+    {
       "playerNo": "291884",
       "nameKo": "루이스 킹",
       "nameEn": "Louis Dajon King",
@@ -610,226 +830,6 @@
           "right": {
             "a": 1,
             "m": 1
-          }
-        }
-      }
-    },
-    {
-      "playerNo": "291787",
-      "nameKo": "케렘 칸터",
-      "nameEn": "Kerem Kanter",
-      "teamCode": "35",
-      "teamName": "서울 삼성",
-      "teamShort": "SAMSUNG",
-      "isForeign": true,
-      "position": "C",
-      "positionLabel": "센터",
-      "positionGroup": "C",
-      "nationality": "foreign",
-      "heightCm": 204,
-      "weightKg": 119,
-      "backNumber": "35",
-      "draft": null,
-      "games": 10,
-      "wins": 9,
-      "losses": 1,
-      "minutes": 364,
-      "points": 256,
-      "fgm": 96,
-      "fga": 174,
-      "fgPct": 55.172413793103445,
-      "tpm": 8,
-      "tpa": 34,
-      "tpPct": 23.52941176470588,
-      "twoPm": 88,
-      "twoPa": 140,
-      "twoPPct": 62.857142857142854,
-      "ftm": 56,
-      "fta": 76,
-      "ftPct": 73.68421052631578,
-      "dunks": 4,
-      "oreb": 29,
-      "dreb": 82,
-      "reb": 111,
-      "ast": 26,
-      "stl": 9,
-      "blk": 3,
-      "tov": 28,
-      "goodDef": 1,
-      "fouls": 28,
-      "doubleDoubles": 7,
-      "tripleDoubles": 0,
-      "plusMinus": 57,
-      "screenAst": 20,
-      "deflections": 8,
-      "per": 30.697290606519047,
-      "offRtg": 129.17393270038107,
-      "defRtg": 106.77433662825837,
-      "netRtg": 22.399596072122694,
-      "efgPct": 57.471264367816,
-      "tsPct": 61.70458927882761,
-      "astPct": 13.684210526315,
-      "astTo": 0.9285714285714286,
-      "astRatio": 9.944920440636475,
-      "orebPct": 10.069444444444,
-      "drebPct": 23.033707865168,
-      "rebPct": 17.23602484472,
-      "usgPct": 31.227120802164574,
-      "usgPctRaw": 6.245424160432915,
-      "pace": 71.288483014716,
-      "tovPct": 11.892626571525655,
-      "toRatio": 14.12839888910418,
-      "pie": 33.984092552422275,
-      "poss": 639.3216,
-      "seasonHighs": {
-        "pts": {
-          "value": 42,
-          "date": "2026-10-15",
-          "opponentTeamCode": "50",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "fgm": {
-          "value": 18,
-          "date": "2026-10-15",
-          "opponentTeamCode": "50",
-          "times": 1,
-          "seasonCode": 49,
-          "attempts": 28,
-          "pct": 64.3
-        },
-        "fgPct": {
-          "value": 75,
-          "date": "2026-10-04",
-          "opponentTeamCode": "06",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "twoPm": {
-          "value": 18,
-          "date": "2026-10-15",
-          "opponentTeamCode": "50",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "twoPPct": {
-          "value": 91.66666666666667,
-          "date": "2026-10-21",
-          "opponentTeamCode": "60",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "tpm": {
-          "value": 2,
-          "date": "2026-11-01",
-          "opponentTeamCode": "55",
-          "times": 3,
-          "seasonCode": 49,
-          "attempts": 6,
-          "pct": 33.3
-        },
-        "tpPct": {
-          "value": 66.66666666666667,
-          "date": "2026-10-04",
-          "opponentTeamCode": "06",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "ftm": {
-          "value": 10,
-          "date": "2026-10-04",
-          "opponentTeamCode": "06",
-          "times": 1,
-          "seasonCode": 49,
-          "attempts": 14,
-          "pct": 71.4
-        },
-        "ftPct": {
-          "value": 100,
-          "date": "2026-10-09",
-          "opponentTeamCode": "70",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "oreb": {
-          "value": 7,
-          "date": "2026-10-15",
-          "opponentTeamCode": "50",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "dreb": {
-          "value": 12,
-          "date": "2026-11-01",
-          "opponentTeamCode": "55",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "reb": {
-          "value": 15,
-          "date": "2026-11-01",
-          "opponentTeamCode": "55",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "ast": {
-          "value": 7,
-          "date": "2026-10-17",
-          "opponentTeamCode": "16",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "stl": {
-          "value": 4,
-          "date": "2026-10-21",
-          "opponentTeamCode": "60",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "blk": {
-          "value": 2,
-          "date": "2026-10-04",
-          "opponentTeamCode": "06",
-          "times": 1,
-          "seasonCode": 49
-        }
-      },
-      "shotZones": {
-        "total": {
-          "attempts": 174,
-          "made": 96
-        },
-        "zones": {
-          "rim": {
-            "a": 52,
-            "m": 33
-          },
-          "paint": {
-            "a": 73,
-            "m": 49
-          },
-          "mid": {
-            "a": 14,
-            "m": 6
-          },
-          "corner3": {
-            "a": 1,
-            "m": 0
-          },
-          "arc3": {
-            "a": 34,
-            "m": 8
-          }
-        },
-        "offenseType": "inside",
-        "corners": {
-          "left": {
-            "a": 1,
-            "m": 0
-          },
-          "right": {
-            "a": 0,
-            "m": 0
           }
         }
       }
@@ -2855,7 +2855,7 @@
       "oreb": 10,
       "dreb": 18,
       "reb": 28,
-      "ast": 65,
+      "ast": 66,
       "stl": 16,
       "blk": 0,
       "tov": 11,
@@ -2866,24 +2866,24 @@
       "plusMinus": 11,
       "screenAst": 2,
       "deflections": 5,
-      "per": 20.783331135434526,
+      "per": 20.88883027825399,
       "offRtg": 112.94619569267456,
-      "defRtg": 111.77977571539056,
-      "netRtg": 1.1664199772840014,
+      "defRtg": 111.70849999033872,
+      "netRtg": 1.2376957023358415,
       "efgPct": 49.371069182389,
       "tsPct": 54.518884892086334,
-      "astPct": 30.66037735849,
-      "astTo": 5.909090909090909,
-      "astRatio": 25.598613736609956,
+      "astPct": 31.132075471698,
+      "astTo": 6,
+      "astRatio": 25.890475443276323,
       "orebPct": 2.857142857142,
       "drebPct": 5.960264900662,
       "rebPct": 4.294478527607,
       "usgPct": 23.446187450357424,
       "usgPctRaw": 4.689237490071485,
-      "pace": 70.00214163259925,
+      "pace": 70.0244230515627,
       "tovPct": 5.822570400169384,
       "toRatio": 6.4041657351516506,
-      "pie": 27.860696517412933,
+      "pie": 27.980132450331126,
       "poss": 665.0496,
       "seasonHighs": {
         "pts": {
@@ -3327,7 +3327,7 @@
       "pace": 71.84332041823683,
       "tovPct": 16.145057128663687,
       "toRatio": 20.357286029264383,
-      "pie": 39.36781609195402,
+      "pie": 39.29254302103251,
       "poss": 563.8272,
       "seasonHighs": {
         "pts": {
@@ -3478,6 +3478,230 @@
           "right": {
             "a": 2,
             "m": 1
+          }
+        }
+      }
+    },
+    {
+      "playerNo": "291375",
+      "nameKo": "이우석",
+      "nameEn": "LEE WOO SUK",
+      "teamCode": "10",
+      "teamName": "울산 현대모비스",
+      "teamShort": "HYUNDAI MOBIS",
+      "isForeign": false,
+      "position": "G",
+      "positionLabel": "가드",
+      "positionGroup": "G",
+      "nationality": "domestic",
+      "heightCm": 196,
+      "weightKg": 83,
+      "backNumber": "11",
+      "draft": {
+        "year": 2020,
+        "round": 1,
+        "pick": 3
+      },
+      "games": 11,
+      "wins": 3,
+      "losses": 8,
+      "minutes": 396,
+      "points": 167,
+      "fgm": 64,
+      "fga": 146,
+      "fgPct": 43.83561643835616,
+      "tpm": 25,
+      "tpa": 84,
+      "tpPct": 29.761904761904763,
+      "twoPm": 39,
+      "twoPa": 62,
+      "twoPPct": 62.903225806451616,
+      "ftm": 14,
+      "fta": 20,
+      "ftPct": 70,
+      "dunks": 0,
+      "oreb": 13,
+      "dreb": 56,
+      "reb": 69,
+      "ast": 41,
+      "stl": 12,
+      "blk": 3,
+      "tov": 12,
+      "goodDef": 3,
+      "fouls": 18,
+      "doubleDoubles": 0,
+      "tripleDoubles": 0,
+      "plusMinus": -55,
+      "screenAst": 2,
+      "deflections": 8,
+      "per": 19.407825464347386,
+      "offRtg": 113.10684872128304,
+      "defRtg": 120.07488529509254,
+      "netRtg": -6.968036573809498,
+      "efgPct": 52.397260273972,
+      "tsPct": 53.9405684754522,
+      "astPct": 17.083333333333,
+      "astTo": 3.4166666666666665,
+      "astRatio": 19.73051010587103,
+      "orebPct": 3.846153846153,
+      "drebPct": 16.326530612244,
+      "rebPct": 10.132158590308,
+      "usgPct": 19.96457126442285,
+      "usgPctRaw": 3.9929142528845705,
+      "pace": 74.02920945120668,
+      "tovPct": 7.194244604316546,
+      "toRatio": 8.12743823146944,
+      "pie": 23.833452979181622,
+      "poss": 731.0208,
+      "seasonHighs": {
+        "pts": {
+          "value": 21,
+          "date": "2026-10-31",
+          "opponentTeamCode": "64",
+          "times": 2,
+          "seasonCode": 49
+        },
+        "fgm": {
+          "value": 9,
+          "date": "2026-10-10",
+          "opponentTeamCode": "64",
+          "times": 1,
+          "seasonCode": 49,
+          "attempts": 16,
+          "pct": 56.3
+        },
+        "fgPct": {
+          "value": 61.53846153846154,
+          "date": "2026-10-18",
+          "opponentTeamCode": "06",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "twoPm": {
+          "value": 6,
+          "date": "2026-10-18",
+          "opponentTeamCode": "06",
+          "times": 2,
+          "seasonCode": 49
+        },
+        "twoPPct": {
+          "value": 100,
+          "date": "2026-10-16",
+          "opponentTeamCode": "66",
+          "times": 2,
+          "seasonCode": 49
+        },
+        "tpm": {
+          "value": 5,
+          "date": "2026-10-31",
+          "opponentTeamCode": "64",
+          "times": 1,
+          "seasonCode": 49,
+          "attempts": 9,
+          "pct": 55.6
+        },
+        "tpPct": {
+          "value": 55.55555555555556,
+          "date": "2026-10-31",
+          "opponentTeamCode": "64",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "ftm": {
+          "value": 5,
+          "date": "2026-10-12",
+          "opponentTeamCode": "16",
+          "times": 1,
+          "seasonCode": 49,
+          "attempts": 7,
+          "pct": 71.4
+        },
+        "ftPct": {
+          "value": 100,
+          "date": "2026-10-31",
+          "opponentTeamCode": "64",
+          "times": 2,
+          "seasonCode": 49
+        },
+        "oreb": {
+          "value": 3,
+          "date": "2026-10-12",
+          "opponentTeamCode": "16",
+          "times": 2,
+          "seasonCode": 49
+        },
+        "dreb": {
+          "value": 9,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "reb": {
+          "value": 9,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 4,
+          "seasonCode": 49
+        },
+        "ast": {
+          "value": 7,
+          "date": "2026-10-29",
+          "opponentTeamCode": "60",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "stl": {
+          "value": 2,
+          "date": "2026-10-29",
+          "opponentTeamCode": "60",
+          "times": 4,
+          "seasonCode": 49
+        },
+        "blk": {
+          "value": 1,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 3,
+          "seasonCode": 49
+        }
+      },
+      "shotZones": {
+        "total": {
+          "attempts": 145,
+          "made": 64
+        },
+        "zones": {
+          "rim": {
+            "a": 21,
+            "m": 16
+          },
+          "paint": {
+            "a": 25,
+            "m": 16
+          },
+          "mid": {
+            "a": 14,
+            "m": 6
+          },
+          "corner3": {
+            "a": 15,
+            "m": 3
+          },
+          "arc3": {
+            "a": 70,
+            "m": 23
+          }
+        },
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 12,
+            "m": 3
+          },
+          "right": {
+            "a": 3,
+            "m": 0
           }
         }
       }
@@ -3917,230 +4141,6 @@
           },
           "right": {
             "a": 0,
-            "m": 0
-          }
-        }
-      }
-    },
-    {
-      "playerNo": "291375",
-      "nameKo": "이우석",
-      "nameEn": "LEE WOO SUK",
-      "teamCode": "10",
-      "teamName": "울산 현대모비스",
-      "teamShort": "HYUNDAI MOBIS",
-      "isForeign": false,
-      "position": "G",
-      "positionLabel": "가드",
-      "positionGroup": "G",
-      "nationality": "domestic",
-      "heightCm": 196,
-      "weightKg": 83,
-      "backNumber": "11",
-      "draft": {
-        "year": 2020,
-        "round": 1,
-        "pick": 3
-      },
-      "games": 10,
-      "wins": 3,
-      "losses": 7,
-      "minutes": 358,
-      "points": 163,
-      "fgm": 62,
-      "fga": 135,
-      "fgPct": 45.925925925925924,
-      "tpm": 25,
-      "tpa": 78,
-      "tpPct": 32.05128205128205,
-      "twoPm": 37,
-      "twoPa": 57,
-      "twoPPct": 64.91228070175438,
-      "ftm": 14,
-      "fta": 20,
-      "ftPct": 70,
-      "dunks": 0,
-      "oreb": 13,
-      "dreb": 47,
-      "reb": 60,
-      "ast": 38,
-      "stl": 11,
-      "blk": 2,
-      "tov": 12,
-      "goodDef": 2,
-      "fouls": 18,
-      "doubleDoubles": 0,
-      "tripleDoubles": 0,
-      "plusMinus": -49,
-      "screenAst": 2,
-      "deflections": 8,
-      "per": 20.475524475524477,
-      "offRtg": 118.90172735760972,
-      "defRtg": 120.52713736791547,
-      "netRtg": -1.6254100103057552,
-      "efgPct": 55.185185185185,
-      "tsPct": 56.675938803894304,
-      "astPct": 17.43119266055,
-      "astTo": 3.1666666666666665,
-      "astRatio": 19.607843137254903,
-      "orebPct": 4.304635761589,
-      "drebPct": 15.015974440894,
-      "rebPct": 9.756097560975,
-      "usgPct": 20.56059966216216,
-      "usgPctRaw": 4.1121199324324325,
-      "pace": 74.37032727272727,
-      "tovPct": 7.702182284980744,
-      "toRatio": 8.753501400560225,
-      "pie": 24.725274725274726,
-      "poss": 663.1296,
-      "seasonHighs": {
-        "pts": {
-          "value": 21,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 2,
-          "seasonCode": 49
-        },
-        "fgm": {
-          "value": 9,
-          "date": "2026-10-10",
-          "opponentTeamCode": "64",
-          "times": 1,
-          "seasonCode": 49,
-          "attempts": 16,
-          "pct": 56.3
-        },
-        "fgPct": {
-          "value": 61.53846153846154,
-          "date": "2026-10-18",
-          "opponentTeamCode": "06",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "twoPm": {
-          "value": 6,
-          "date": "2026-10-18",
-          "opponentTeamCode": "06",
-          "times": 2,
-          "seasonCode": 49
-        },
-        "twoPPct": {
-          "value": 100,
-          "date": "2026-10-16",
-          "opponentTeamCode": "66",
-          "times": 2,
-          "seasonCode": 49
-        },
-        "tpm": {
-          "value": 5,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 1,
-          "seasonCode": 49,
-          "attempts": 9,
-          "pct": 55.6
-        },
-        "tpPct": {
-          "value": 55.55555555555556,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "ftm": {
-          "value": 5,
-          "date": "2026-10-12",
-          "opponentTeamCode": "16",
-          "times": 1,
-          "seasonCode": 49,
-          "attempts": 7,
-          "pct": 71.4
-        },
-        "ftPct": {
-          "value": 100,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 2,
-          "seasonCode": 49
-        },
-        "oreb": {
-          "value": 3,
-          "date": "2026-10-12",
-          "opponentTeamCode": "16",
-          "times": 2,
-          "seasonCode": 49
-        },
-        "dreb": {
-          "value": 8,
-          "date": "2026-10-29",
-          "opponentTeamCode": "60",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "reb": {
-          "value": 9,
-          "date": "2026-10-29",
-          "opponentTeamCode": "60",
-          "times": 3,
-          "seasonCode": 49
-        },
-        "ast": {
-          "value": 7,
-          "date": "2026-10-29",
-          "opponentTeamCode": "60",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "stl": {
-          "value": 2,
-          "date": "2026-10-29",
-          "opponentTeamCode": "60",
-          "times": 4,
-          "seasonCode": 49
-        },
-        "blk": {
-          "value": 1,
-          "date": "2026-10-29",
-          "opponentTeamCode": "60",
-          "times": 2,
-          "seasonCode": 49
-        }
-      },
-      "shotZones": {
-        "total": {
-          "attempts": 134,
-          "made": 62
-        },
-        "zones": {
-          "rim": {
-            "a": 19,
-            "m": 15
-          },
-          "paint": {
-            "a": 23,
-            "m": 15
-          },
-          "mid": {
-            "a": 13,
-            "m": 6
-          },
-          "corner3": {
-            "a": 13,
-            "m": 3
-          },
-          "arc3": {
-            "a": 66,
-            "m": 23
-          }
-        },
-        "offenseType": "shooter",
-        "corners": {
-          "left": {
-            "a": 10,
-            "m": 3
-          },
-          "right": {
-            "a": 3,
             "m": 0
           }
         }
@@ -4811,6 +4811,226 @@
       }
     },
     {
+      "playerNo": "291237",
+      "nameKo": "크리스 맥컬러",
+      "nameEn": "Christopher McCullough",
+      "teamCode": "35",
+      "teamName": "서울 삼성",
+      "teamShort": "SAMSUNG",
+      "isForeign": true,
+      "position": "F",
+      "positionLabel": "포워드",
+      "positionGroup": "F",
+      "nationality": "foreign",
+      "heightCm": 206,
+      "weightKg": 105,
+      "backNumber": "13",
+      "draft": null,
+      "games": 11,
+      "wins": 10,
+      "losses": 1,
+      "minutes": 253,
+      "points": 148,
+      "fgm": 58,
+      "fga": 117,
+      "fgPct": 49.572649572649574,
+      "tpm": 8,
+      "tpa": 30,
+      "tpPct": 26.666666666666668,
+      "twoPm": 50,
+      "twoPa": 87,
+      "twoPPct": 57.47126436781609,
+      "ftm": 24,
+      "fta": 27,
+      "ftPct": 88.88888888888889,
+      "dunks": 13,
+      "oreb": 28,
+      "dreb": 62,
+      "reb": 90,
+      "ast": 22,
+      "stl": 12,
+      "blk": 9,
+      "tov": 23,
+      "goodDef": 0,
+      "fouls": 29,
+      "doubleDoubles": 3,
+      "tripleDoubles": 0,
+      "plusMinus": 7,
+      "screenAst": 2,
+      "deflections": 5,
+      "per": 30.945332543911586,
+      "offRtg": 124.44839091594015,
+      "defRtg": 111.86579208740274,
+      "netRtg": 12.582598828537408,
+      "efgPct": 52.991452991452,
+      "tsPct": 57.417752948479205,
+      "astPct": 15.602836879432,
+      "astTo": 0.9565217391304348,
+      "astRatio": 12.652403956751783,
+      "orebPct": 13.861386138613,
+      "drebPct": 26.382978723404,
+      "rebPct": 20.594965675057,
+      "usgPct": 28.05112293144208,
+      "usgPctRaw": 5.610224586288416,
+      "pace": 72.65610420367081,
+      "tovPct": 15.143534369238873,
+      "toRatio": 19.339952642342052,
+      "pie": 32.459016393442624,
+      "poss": 456.4224,
+      "seasonHighs": {
+        "pts": {
+          "value": 21,
+          "date": "2026-10-24",
+          "opponentTeamCode": "10",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "fgm": {
+          "value": 9,
+          "date": "2026-10-24",
+          "opponentTeamCode": "10",
+          "times": 1,
+          "seasonCode": 49,
+          "attempts": 13,
+          "pct": 69.2
+        },
+        "fgPct": {
+          "value": 69.23076923076923,
+          "date": "2026-10-24",
+          "opponentTeamCode": "10",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "twoPm": {
+          "value": 9,
+          "date": "2026-10-24",
+          "opponentTeamCode": "10",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "twoPPct": {
+          "value": 81.81818181818181,
+          "date": "2026-10-24",
+          "opponentTeamCode": "10",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "tpm": {
+          "value": 3,
+          "date": "2026-10-04",
+          "opponentTeamCode": "06",
+          "times": 1,
+          "seasonCode": 49,
+          "attempts": 5,
+          "pct": 60
+        },
+        "tpPct": {
+          "value": 60,
+          "date": "2026-10-04",
+          "opponentTeamCode": "06",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "ftm": {
+          "value": 5,
+          "date": "2026-10-30",
+          "opponentTeamCode": "66",
+          "times": 2,
+          "seasonCode": 49,
+          "attempts": 5,
+          "pct": 100
+        },
+        "ftPct": {
+          "value": 100,
+          "date": "2026-11-05",
+          "opponentTeamCode": "10",
+          "times": 6,
+          "seasonCode": 49
+        },
+        "oreb": {
+          "value": 5,
+          "date": "2026-10-15",
+          "opponentTeamCode": "50",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "dreb": {
+          "value": 10,
+          "date": "2026-11-01",
+          "opponentTeamCode": "55",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "reb": {
+          "value": 14,
+          "date": "2026-11-01",
+          "opponentTeamCode": "55",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "ast": {
+          "value": 4,
+          "date": "2026-10-17",
+          "opponentTeamCode": "16",
+          "times": 2,
+          "seasonCode": 49
+        },
+        "stl": {
+          "value": 3,
+          "date": "2026-10-30",
+          "opponentTeamCode": "66",
+          "times": 2,
+          "seasonCode": 49
+        },
+        "blk": {
+          "value": 2,
+          "date": "2026-10-25",
+          "opponentTeamCode": "64",
+          "times": 3,
+          "seasonCode": 49
+        }
+      },
+      "shotZones": {
+        "total": {
+          "attempts": 117,
+          "made": 58
+        },
+        "zones": {
+          "rim": {
+            "a": 26,
+            "m": 17
+          },
+          "paint": {
+            "a": 41,
+            "m": 25
+          },
+          "mid": {
+            "a": 19,
+            "m": 8
+          },
+          "corner3": {
+            "a": 1,
+            "m": 0
+          },
+          "arc3": {
+            "a": 30,
+            "m": 8
+          }
+        },
+        "offenseType": "inside",
+        "corners": {
+          "left": {
+            "a": 1,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
+      }
+    },
+    {
       "playerNo": "291785",
       "nameKo": "헨리 엘런슨",
       "nameEn": "Henry Ellenson",
@@ -5251,226 +5471,6 @@
       }
     },
     {
-      "playerNo": "291237",
-      "nameKo": "크리스 맥컬러",
-      "nameEn": "Christopher McCullough",
-      "teamCode": "35",
-      "teamName": "서울 삼성",
-      "teamShort": "SAMSUNG",
-      "isForeign": true,
-      "position": "F",
-      "positionLabel": "포워드",
-      "positionGroup": "F",
-      "nationality": "foreign",
-      "heightCm": 206,
-      "weightKg": 105,
-      "backNumber": "13",
-      "draft": null,
-      "games": 10,
-      "wins": 9,
-      "losses": 1,
-      "minutes": 230,
-      "points": 140,
-      "fgm": 55,
-      "fga": 109,
-      "fgPct": 50.45871559633027,
-      "tpm": 8,
-      "tpa": 28,
-      "tpPct": 28.57142857142857,
-      "twoPm": 47,
-      "twoPa": 81,
-      "twoPPct": 58.0246913580247,
-      "ftm": 22,
-      "fta": 25,
-      "ftPct": 88,
-      "dunks": 11,
-      "oreb": 26,
-      "dreb": 57,
-      "reb": 83,
-      "ast": 19,
-      "stl": 11,
-      "blk": 8,
-      "tov": 21,
-      "goodDef": 0,
-      "fouls": 27,
-      "doubleDoubles": 3,
-      "tripleDoubles": 0,
-      "plusMinus": 0,
-      "screenAst": 2,
-      "deflections": 5,
-      "per": 31.886162334833745,
-      "offRtg": 126.81159420289856,
-      "defRtg": 114.66533931404858,
-      "netRtg": 12.146254888849972,
-      "efgPct": 54.128440366972,
-      "tsPct": 58.33333333333333,
-      "astPct": 15.079365079365,
-      "astTo": 0.9047619047619048,
-      "astRatio": 11.875,
-      "orebPct": 14.364640883977,
-      "drebPct": 27.142857142857,
-      "rebPct": 21.227621483375,
-      "usgPct": 28.83907387711691,
-      "usgPctRaw": 5.767814775423382,
-      "pace": 72.50223319297227,
-      "tovPct": 14.893617021276595,
-      "toRatio": 19.02173913043478,
-      "pie": 34.19434194341944,
-      "poss": 412.7232,
-      "seasonHighs": {
-        "pts": {
-          "value": 21,
-          "date": "2026-10-24",
-          "opponentTeamCode": "10",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "fgm": {
-          "value": 9,
-          "date": "2026-10-24",
-          "opponentTeamCode": "10",
-          "times": 1,
-          "seasonCode": 49,
-          "attempts": 13,
-          "pct": 69.2
-        },
-        "fgPct": {
-          "value": 69.23076923076923,
-          "date": "2026-10-24",
-          "opponentTeamCode": "10",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "twoPm": {
-          "value": 9,
-          "date": "2026-10-24",
-          "opponentTeamCode": "10",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "twoPPct": {
-          "value": 81.81818181818181,
-          "date": "2026-10-24",
-          "opponentTeamCode": "10",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "tpm": {
-          "value": 3,
-          "date": "2026-10-04",
-          "opponentTeamCode": "06",
-          "times": 1,
-          "seasonCode": 49,
-          "attempts": 5,
-          "pct": 60
-        },
-        "tpPct": {
-          "value": 60,
-          "date": "2026-10-04",
-          "opponentTeamCode": "06",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "ftm": {
-          "value": 5,
-          "date": "2026-10-30",
-          "opponentTeamCode": "66",
-          "times": 2,
-          "seasonCode": 49,
-          "attempts": 5,
-          "pct": 100
-        },
-        "ftPct": {
-          "value": 100,
-          "date": "2026-10-30",
-          "opponentTeamCode": "66",
-          "times": 5,
-          "seasonCode": 49
-        },
-        "oreb": {
-          "value": 5,
-          "date": "2026-10-15",
-          "opponentTeamCode": "50",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "dreb": {
-          "value": 10,
-          "date": "2026-11-01",
-          "opponentTeamCode": "55",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "reb": {
-          "value": 14,
-          "date": "2026-11-01",
-          "opponentTeamCode": "55",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "ast": {
-          "value": 4,
-          "date": "2026-10-17",
-          "opponentTeamCode": "16",
-          "times": 2,
-          "seasonCode": 49
-        },
-        "stl": {
-          "value": 3,
-          "date": "2026-10-30",
-          "opponentTeamCode": "66",
-          "times": 2,
-          "seasonCode": 49
-        },
-        "blk": {
-          "value": 2,
-          "date": "2026-10-25",
-          "opponentTeamCode": "64",
-          "times": 3,
-          "seasonCode": 49
-        }
-      },
-      "shotZones": {
-        "total": {
-          "attempts": 109,
-          "made": 55
-        },
-        "zones": {
-          "rim": {
-            "a": 23,
-            "m": 15
-          },
-          "paint": {
-            "a": 40,
-            "m": 25
-          },
-          "mid": {
-            "a": 18,
-            "m": 7
-          },
-          "corner3": {
-            "a": 1,
-            "m": 0
-          },
-          "arc3": {
-            "a": 27,
-            "m": 8
-          }
-        },
-        "offenseType": "inside",
-        "corners": {
-          "left": {
-            "a": 1,
-            "m": 0
-          },
-          "right": {
-            "a": 0,
-            "m": 0
-          }
-        }
-      }
-    },
-    {
       "playerNo": "291248",
       "nameKo": "자밀 워니",
       "nameEn": "Jameel Warney",
@@ -5505,9 +5505,9 @@
       "ftPct": 52.94117647058824,
       "dunks": 8,
       "oreb": 22,
-      "dreb": 44,
-      "reb": 66,
-      "ast": 38,
+      "dreb": 43,
+      "reb": 65,
+      "ast": 39,
       "stl": 10,
       "blk": 6,
       "tov": 8,
@@ -5517,25 +5517,25 @@
       "tripleDoubles": 0,
       "plusMinus": 46,
       "screenAst": 7,
-      "deflections": 7,
+      "deflections": 6,
       "per": 29.07766650325653,
       "offRtg": 121.1667254141699,
       "defRtg": 116.02483944670865,
       "netRtg": 5.14188596746124,
       "efgPct": 51.25,
       "tsPct": 51.772827110134926,
-      "astPct": 25.503355704697,
-      "astTo": 4.75,
-      "astRatio": 21.904542310352777,
+      "astPct": 26.174496644295,
+      "astTo": 4.875,
+      "astRatio": 22.35213204951857,
       "orebPct": 10.42654028436,
-      "drebPct": 24.175824175824,
-      "rebPct": 16.79389312977,
+      "drebPct": 23.626373626373,
+      "rebPct": 16.539440203562,
       "usgPct": 26.660894206549123,
       "usgPctRaw": 5.332178841309824,
       "pace": 70.10911128230268,
       "tovPct": 5.90493061706525,
       "toRatio": 7.343437903889085,
-      "pie": 30.979978925184405,
+      "pie": 30.914826498422713,
       "poss": 419.6736,
       "seasonHighs": {
         "pts": {
@@ -5616,9 +5616,9 @@
         },
         "dreb": {
           "value": 10,
-          "date": "2026-11-04",
-          "opponentTeamCode": "64",
-          "times": 2,
+          "date": "2026-10-20",
+          "opponentTeamCode": "70",
+          "times": 1,
           "seasonCode": 49
         },
         "reb": {
@@ -6203,7 +6203,7 @@
       "pace": 70.83462591784084,
       "tovPct": 12.785543811796796,
       "toRatio": 14.835738701101405,
-      "pie": 22.933884297520663,
+      "pie": 22.88659793814433,
       "poss": 444.5184,
       "seasonHighs": {
         "pts": {
@@ -6393,8 +6393,8 @@
       "ftPct": 63.1578947368421,
       "dunks": 8,
       "oreb": 21,
-      "dreb": 28,
-      "reb": 49,
+      "dreb": 29,
+      "reb": 50,
       "ast": 15,
       "stl": 4,
       "blk": 6,
@@ -6406,7 +6406,7 @@
       "plusMinus": 60,
       "screenAst": 2,
       "deflections": 4,
-      "per": 31.425693617800565,
+      "per": 31.64545371302994,
       "offRtg": 154.25377468060395,
       "defRtg": 109.41361657055432,
       "netRtg": 44.840158110049636,
@@ -6416,14 +6416,14 @@
       "astTo": 2.142857142857143,
       "astRatio": 12.891027844620144,
       "orebPct": 13.207547169811,
-      "drebPct": 17.948717948717,
-      "rebPct": 15.555555555555,
+      "drebPct": 18.589743589743,
+      "rebPct": 15.873015873015,
       "usgPct": 25.76512455516014,
       "usgPctRaw": 5.153024911032028,
       "pace": 71.7592308396667,
       "tovPct": 6.906077348066298,
       "toRatio": 9.073751451800232,
-      "pie": 30.322580645161292,
+      "pie": 30.501930501930502,
       "poss": 326.784,
       "seasonHighs": {
         "pts": {
@@ -6574,6 +6574,230 @@
           "right": {
             "a": 2,
             "m": 0
+          }
+        }
+      }
+    },
+    {
+      "playerNo": "290440",
+      "nameKo": "이관희",
+      "nameEn": "LEE GWAN HEE",
+      "teamCode": "35",
+      "teamName": "서울 삼성",
+      "teamShort": "SAMSUNG",
+      "isForeign": false,
+      "position": "G",
+      "positionLabel": "가드",
+      "positionGroup": "G",
+      "nationality": "domestic",
+      "heightCm": 189,
+      "weightKg": 82,
+      "backNumber": "2",
+      "draft": {
+        "year": 2011,
+        "round": 2,
+        "pick": 5
+      },
+      "games": 11,
+      "wins": 10,
+      "losses": 1,
+      "minutes": 220,
+      "points": 118,
+      "fgm": 46,
+      "fga": 93,
+      "fgPct": 49.46236559139785,
+      "tpm": 19,
+      "tpa": 48,
+      "tpPct": 39.58333333333333,
+      "twoPm": 27,
+      "twoPa": 45,
+      "twoPPct": 60,
+      "ftm": 7,
+      "fta": 9,
+      "ftPct": 77.77777777777779,
+      "dunks": 0,
+      "oreb": 1,
+      "dreb": 23,
+      "reb": 24,
+      "ast": 13,
+      "stl": 2,
+      "blk": 1,
+      "tov": 11,
+      "goodDef": 0,
+      "fouls": 11,
+      "doubleDoubles": 0,
+      "tripleDoubles": 0,
+      "plusMinus": 4,
+      "screenAst": 0,
+      "deflections": 1,
+      "per": 17.784499054820415,
+      "offRtg": 114.9183495387684,
+      "defRtg": 118.18715581470684,
+      "netRtg": -3.268806275938448,
+      "efgPct": 59.677419354838,
+      "tsPct": 60.849834983498354,
+      "astPct": 9.848484848484,
+      "astTo": 1.1818181818181819,
+      "astRatio": 10.747354497354497,
+      "orebPct": 0.543478260869,
+      "drebPct": 11.442786069651,
+      "rebPct": 6.233766233766,
+      "usgPct": 23.629837156364907,
+      "usgPctRaw": 4.725967431272982,
+      "pace": 71.73149035916825,
+      "tovPct": 10.18895887365691,
+      "toRatio": 10.712727499376713,
+      "pie": 20.92457420924574,
+      "poss": 395.4048,
+      "seasonHighs": {
+        "pts": {
+          "value": 19,
+          "date": "2026-10-17",
+          "opponentTeamCode": "16",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "fgm": {
+          "value": 7,
+          "date": "2026-10-30",
+          "opponentTeamCode": "66",
+          "times": 3,
+          "seasonCode": 49,
+          "attempts": 9,
+          "pct": 77.8
+        },
+        "fgPct": {
+          "value": 77.77777777777777,
+          "date": "2026-10-30",
+          "opponentTeamCode": "66",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "twoPm": {
+          "value": 4,
+          "date": "2026-11-05",
+          "opponentTeamCode": "10",
+          "times": 3,
+          "seasonCode": 49
+        },
+        "twoPPct": {
+          "value": 80,
+          "date": "2026-11-05",
+          "opponentTeamCode": "10",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "tpm": {
+          "value": 4,
+          "date": "2026-10-17",
+          "opponentTeamCode": "16",
+          "times": 1,
+          "seasonCode": 49,
+          "attempts": 9,
+          "pct": 44.4
+        },
+        "tpPct": {
+          "value": 100,
+          "date": "2026-10-30",
+          "opponentTeamCode": "66",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "ftm": {
+          "value": 3,
+          "date": "2026-10-24",
+          "opponentTeamCode": "10",
+          "times": 1,
+          "seasonCode": 49,
+          "attempts": 3,
+          "pct": 100
+        },
+        "ftPct": {
+          "value": 100,
+          "date": "2026-11-01",
+          "opponentTeamCode": "55",
+          "times": 3,
+          "seasonCode": 49
+        },
+        "oreb": {
+          "value": 1,
+          "date": "2026-10-21",
+          "opponentTeamCode": "60",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "dreb": {
+          "value": 7,
+          "date": "2026-10-17",
+          "opponentTeamCode": "16",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "reb": {
+          "value": 7,
+          "date": "2026-10-17",
+          "opponentTeamCode": "16",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "ast": {
+          "value": 4,
+          "date": "2026-10-24",
+          "opponentTeamCode": "10",
+          "times": 2,
+          "seasonCode": 49
+        },
+        "stl": {
+          "value": 1,
+          "date": "2026-10-17",
+          "opponentTeamCode": "16",
+          "times": 2,
+          "seasonCode": 49
+        },
+        "blk": {
+          "value": 1,
+          "date": "2026-10-30",
+          "opponentTeamCode": "66",
+          "times": 1,
+          "seasonCode": 49
+        }
+      },
+      "shotZones": {
+        "total": {
+          "attempts": 93,
+          "made": 46
+        },
+        "zones": {
+          "rim": {
+            "a": 3,
+            "m": 2
+          },
+          "paint": {
+            "a": 17,
+            "m": 9
+          },
+          "mid": {
+            "a": 24,
+            "m": 15
+          },
+          "corner3": {
+            "a": 5,
+            "m": 2
+          },
+          "arc3": {
+            "a": 44,
+            "m": 18
+          }
+        },
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 3,
+            "m": 1
+          },
+          "right": {
+            "a": 2,
+            "m": 1
           }
         }
       }
@@ -8139,230 +8363,6 @@
       }
     },
     {
-      "playerNo": "290440",
-      "nameKo": "이관희",
-      "nameEn": "LEE GWAN HEE",
-      "teamCode": "35",
-      "teamName": "서울 삼성",
-      "teamShort": "SAMSUNG",
-      "isForeign": false,
-      "position": "G",
-      "positionLabel": "가드",
-      "positionGroup": "G",
-      "nationality": "domestic",
-      "heightCm": 189,
-      "weightKg": 82,
-      "backNumber": "2",
-      "draft": {
-        "year": 2011,
-        "round": 2,
-        "pick": 5
-      },
-      "games": 10,
-      "wins": 9,
-      "losses": 1,
-      "minutes": 203,
-      "points": 104,
-      "fgm": 40,
-      "fga": 84,
-      "fgPct": 47.61904761904761,
-      "tpm": 17,
-      "tpa": 44,
-      "tpPct": 38.63636363636363,
-      "twoPm": 23,
-      "twoPa": 40,
-      "twoPPct": 57.49999999999999,
-      "ftm": 7,
-      "fta": 9,
-      "ftPct": 77.77777777777779,
-      "dunks": 0,
-      "oreb": 1,
-      "dreb": 23,
-      "reb": 24,
-      "ast": 12,
-      "stl": 2,
-      "blk": 1,
-      "tov": 10,
-      "goodDef": 0,
-      "fouls": 10,
-      "doubleDoubles": 0,
-      "tripleDoubles": 0,
-      "plusMinus": 7,
-      "screenAst": 0,
-      "deflections": 1,
-      "per": 17.13019936007876,
-      "offRtg": 111.72992299229922,
-      "defRtg": 116.88848295059151,
-      "netRtg": -5.1585599582922805,
-      "efgPct": 57.738095238095,
-      "tsPct": 59.11778080945884,
-      "astPct": 9.6,
-      "astTo": 1.2,
-      "astRatio": 10.913059294288832,
-      "orebPct": 0.591715976331,
-      "drebPct": 12.299465240641,
-      "rebPct": 6.741573033707,
-      "usgPct": 23.097236631142128,
-      "usgPctRaw": 4.619447326228426,
-      "pace": 72.331498892444,
-      "tovPct": 10.208248264597795,
-      "toRatio": 10.74326182618262,
-      "pie": 19.66364812419146,
-      "poss": 366.8352,
-      "seasonHighs": {
-        "pts": {
-          "value": 19,
-          "date": "2026-10-17",
-          "opponentTeamCode": "16",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "fgm": {
-          "value": 7,
-          "date": "2026-10-30",
-          "opponentTeamCode": "66",
-          "times": 3,
-          "seasonCode": 49,
-          "attempts": 9,
-          "pct": 77.8
-        },
-        "fgPct": {
-          "value": 77.77777777777777,
-          "date": "2026-10-30",
-          "opponentTeamCode": "66",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "twoPm": {
-          "value": 4,
-          "date": "2026-10-30",
-          "opponentTeamCode": "66",
-          "times": 2,
-          "seasonCode": 49
-        },
-        "twoPPct": {
-          "value": 75,
-          "date": "2026-10-24",
-          "opponentTeamCode": "10",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "tpm": {
-          "value": 4,
-          "date": "2026-10-17",
-          "opponentTeamCode": "16",
-          "times": 1,
-          "seasonCode": 49,
-          "attempts": 9,
-          "pct": 44.4
-        },
-        "tpPct": {
-          "value": 100,
-          "date": "2026-10-30",
-          "opponentTeamCode": "66",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "ftm": {
-          "value": 3,
-          "date": "2026-10-24",
-          "opponentTeamCode": "10",
-          "times": 1,
-          "seasonCode": 49,
-          "attempts": 3,
-          "pct": 100
-        },
-        "ftPct": {
-          "value": 100,
-          "date": "2026-11-01",
-          "opponentTeamCode": "55",
-          "times": 3,
-          "seasonCode": 49
-        },
-        "oreb": {
-          "value": 1,
-          "date": "2026-10-21",
-          "opponentTeamCode": "60",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "dreb": {
-          "value": 7,
-          "date": "2026-10-17",
-          "opponentTeamCode": "16",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "reb": {
-          "value": 7,
-          "date": "2026-10-17",
-          "opponentTeamCode": "16",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "ast": {
-          "value": 4,
-          "date": "2026-10-24",
-          "opponentTeamCode": "10",
-          "times": 2,
-          "seasonCode": 49
-        },
-        "stl": {
-          "value": 1,
-          "date": "2026-10-17",
-          "opponentTeamCode": "16",
-          "times": 2,
-          "seasonCode": 49
-        },
-        "blk": {
-          "value": 1,
-          "date": "2026-10-30",
-          "opponentTeamCode": "66",
-          "times": 1,
-          "seasonCode": 49
-        }
-      },
-      "shotZones": {
-        "total": {
-          "attempts": 84,
-          "made": 40
-        },
-        "zones": {
-          "rim": {
-            "a": 3,
-            "m": 2
-          },
-          "paint": {
-            "a": 15,
-            "m": 7
-          },
-          "mid": {
-            "a": 21,
-            "m": 13
-          },
-          "corner3": {
-            "a": 5,
-            "m": 2
-          },
-          "arc3": {
-            "a": 40,
-            "m": 16
-          }
-        },
-        "offenseType": "shooter",
-        "corners": {
-          "left": {
-            "a": 3,
-            "m": 1
-          },
-          "right": {
-            "a": 2,
-            "m": 1
-          }
-        }
-      }
-    },
-    {
       "playerNo": "291853",
       "nameKo": "이규태",
       "nameEn": "LEE KYU TAE",
@@ -8382,57 +8382,57 @@
         "round": 1,
         "pick": 5
       },
-      "games": 10,
-      "wins": 9,
+      "games": 11,
+      "wins": 10,
       "losses": 1,
-      "minutes": 260,
-      "points": 93,
-      "fgm": 36,
-      "fga": 71,
-      "fgPct": 50.70422535211267,
-      "tpm": 18,
-      "tpa": 42,
-      "tpPct": 42.857142857142854,
-      "twoPm": 18,
-      "twoPa": 29,
-      "twoPPct": 62.06896551724138,
+      "minutes": 291,
+      "points": 100,
+      "fgm": 39,
+      "fga": 79,
+      "fgPct": 49.36708860759494,
+      "tpm": 19,
+      "tpa": 45,
+      "tpPct": 42.22222222222222,
+      "twoPm": 20,
+      "twoPa": 34,
+      "twoPPct": 58.82352941176471,
       "ftm": 3,
       "fta": 3,
       "ftPct": 100,
       "dunks": 2,
       "oreb": 5,
-      "dreb": 29,
-      "reb": 34,
-      "ast": 6,
-      "stl": 3,
+      "dreb": 32,
+      "reb": 37,
+      "ast": 7,
+      "stl": 4,
       "blk": 2,
       "tov": 6,
       "goodDef": 0,
-      "fouls": 22,
+      "fouls": 25,
       "doubleDoubles": 0,
       "tripleDoubles": 0,
-      "plusMinus": 72,
+      "plusMinus": 75,
       "screenAst": 2,
       "deflections": 3,
-      "per": 14.903015171884,
-      "offRtg": 132.1262956901255,
-      "defRtg": 104.30234451318789,
-      "netRtg": 27.823951176937587,
-      "efgPct": 63.38028169014,
-      "tsPct": 64.29756637168141,
-      "astPct": 3.333333333333,
-      "astTo": 1,
-      "astRatio": 7.115749525616699,
-      "orebPct": 2.538071065989,
-      "drebPct": 11.328125,
-      "rebPct": 7.505518763796,
-      "usgPct": 14.724018649420964,
-      "usgPctRaw": 2.944803729884193,
-      "pace": 71.77636258882272,
-      "tovPct": 7.660878447395301,
-      "toRatio": 8.524277141298418,
-      "pie": 13.414634146341465,
-      "poss": 462.6432,
+      "per": 14.297989345248325,
+      "offRtg": 128.0947696343663,
+      "defRtg": 105.29592733665396,
+      "netRtg": 22.79884229771232,
+      "efgPct": 61.392405063291,
+      "tsPct": 62.25099601593626,
+      "astPct": 3.482587064676,
+      "astTo": 1.1666666666666667,
+      "astRatio": 7.5010715816545215,
+      "orebPct": 2.252252252252,
+      "drebPct": 11.267605633802,
+      "rebPct": 7.312252964426,
+      "usgPct": 14.534922880043107,
+      "usgPctRaw": 2.9069845760086213,
+      "pace": 71.53130091080942,
+      "tovPct": 6.950880444856349,
+      "toRatio": 7.685686178061977,
+      "pie": 12.721145745577084,
+      "poss": 516.3648,
       "seasonHighs": {
         "pts": {
           "value": 18,
@@ -8533,9 +8533,9 @@
         },
         "stl": {
           "value": 1,
-          "date": "2026-10-25",
-          "opponentTeamCode": "64",
-          "times": 3,
+          "date": "2026-11-05",
+          "opponentTeamCode": "10",
+          "times": 4,
           "seasonCode": 49
         },
         "blk": {
@@ -8548,20 +8548,20 @@
       },
       "shotZones": {
         "total": {
-          "attempts": 71,
-          "made": 36
+          "attempts": 79,
+          "made": 39
         },
         "zones": {
           "rim": {
-            "a": 4,
-            "m": 3
+            "a": 8,
+            "m": 5
           },
           "paint": {
             "a": 10,
             "m": 7
           },
           "mid": {
-            "a": 16,
+            "a": 17,
             "m": 9
           },
           "corner3": {
@@ -8569,8 +8569,8 @@
             "m": 2
           },
           "arc3": {
-            "a": 34,
-            "m": 15
+            "a": 37,
+            "m": 16
           }
         },
         "offenseType": "shooter",
@@ -8582,6 +8582,230 @@
           "right": {
             "a": 4,
             "m": 0
+          }
+        }
+      }
+    },
+    {
+      "playerNo": "290754",
+      "nameKo": "한호빈",
+      "nameEn": "HAN HO BIN",
+      "teamCode": "35",
+      "teamName": "서울 삼성",
+      "teamShort": "SAMSUNG",
+      "isForeign": false,
+      "position": "G",
+      "positionLabel": "가드",
+      "positionGroup": "G",
+      "nationality": "domestic",
+      "heightCm": 181,
+      "weightKg": 80,
+      "backNumber": "5",
+      "draft": {
+        "year": 2013,
+        "round": 1,
+        "pick": 6
+      },
+      "games": 11,
+      "wins": 10,
+      "losses": 1,
+      "minutes": 323,
+      "points": 99,
+      "fgm": 33,
+      "fga": 79,
+      "fgPct": 41.77215189873418,
+      "tpm": 22,
+      "tpa": 54,
+      "tpPct": 40.74074074074074,
+      "twoPm": 11,
+      "twoPa": 25,
+      "twoPPct": 44,
+      "ftm": 11,
+      "fta": 14,
+      "ftPct": 78.57142857142857,
+      "dunks": 0,
+      "oreb": 6,
+      "dreb": 34,
+      "reb": 40,
+      "ast": 63,
+      "stl": 5,
+      "blk": 0,
+      "tov": 15,
+      "goodDef": 5,
+      "fouls": 32,
+      "doubleDoubles": 0,
+      "tripleDoubles": 0,
+      "plusMinus": 60,
+      "screenAst": 0,
+      "deflections": 4,
+      "per": 17.686163359958773,
+      "offRtg": 109.52102803738318,
+      "defRtg": 105.91355253312206,
+      "netRtg": 3.6074755042611213,
+      "efgPct": 55.696202531645,
+      "tsPct": 58.12588069516205,
+      "astPct": 28.378378378378,
+      "astTo": 4.2,
+      "astRatio": 38.61240500122579,
+      "orebPct": 2.316602316602,
+      "drebPct": 10.591900311526,
+      "rebPct": 6.896551724137,
+      "usgPct": 14.923416174980629,
+      "usgPctRaw": 2.9846832349961256,
+      "pace": 71.53620200979128,
+      "tovPct": 14.976038338658148,
+      "toRatio": 16.594095157179268,
+      "pie": 17.293835068054445,
+      "poss": 575.1936,
+      "seasonHighs": {
+        "pts": {
+          "value": 15,
+          "date": "2026-10-17",
+          "opponentTeamCode": "16",
+          "times": 2,
+          "seasonCode": 49
+        },
+        "fgm": {
+          "value": 5,
+          "date": "2026-10-17",
+          "opponentTeamCode": "16",
+          "times": 2,
+          "seasonCode": 49,
+          "attempts": 7,
+          "pct": 71.4
+        },
+        "fgPct": {
+          "value": 71.42857142857143,
+          "date": "2026-10-17",
+          "opponentTeamCode": "16",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "twoPm": {
+          "value": 2,
+          "date": "2026-10-21",
+          "opponentTeamCode": "60",
+          "times": 4,
+          "seasonCode": 49
+        },
+        "twoPPct": {
+          "value": 100,
+          "date": "2026-10-15",
+          "opponentTeamCode": "50",
+          "times": 2,
+          "seasonCode": 49
+        },
+        "tpm": {
+          "value": 4,
+          "date": "2026-10-17",
+          "opponentTeamCode": "16",
+          "times": 1,
+          "seasonCode": 49,
+          "attempts": 5,
+          "pct": 80
+        },
+        "tpPct": {
+          "value": 80,
+          "date": "2026-10-17",
+          "opponentTeamCode": "16",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "ftm": {
+          "value": 2,
+          "date": "2026-11-05",
+          "opponentTeamCode": "10",
+          "times": 4,
+          "seasonCode": 49,
+          "attempts": 2,
+          "pct": 100
+        },
+        "ftPct": {
+          "value": 100,
+          "date": "2026-11-05",
+          "opponentTeamCode": "10",
+          "times": 5,
+          "seasonCode": 49
+        },
+        "oreb": {
+          "value": 1,
+          "date": "2026-11-05",
+          "opponentTeamCode": "10",
+          "times": 6,
+          "seasonCode": 49
+        },
+        "dreb": {
+          "value": 7,
+          "date": "2026-10-11",
+          "opponentTeamCode": "66",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "reb": {
+          "value": 7,
+          "date": "2026-10-11",
+          "opponentTeamCode": "66",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "ast": {
+          "value": 8,
+          "date": "2026-10-30",
+          "opponentTeamCode": "66",
+          "times": 3,
+          "seasonCode": 49
+        },
+        "stl": {
+          "value": 2,
+          "date": "2026-10-30",
+          "opponentTeamCode": "66",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "blk": {
+          "value": 0,
+          "date": "2026-11-05",
+          "opponentTeamCode": "10",
+          "times": 11,
+          "seasonCode": 49
+        }
+      },
+      "shotZones": {
+        "total": {
+          "attempts": 79,
+          "made": 33
+        },
+        "zones": {
+          "rim": {
+            "a": 5,
+            "m": 2
+          },
+          "paint": {
+            "a": 7,
+            "m": 4
+          },
+          "mid": {
+            "a": 9,
+            "m": 3
+          },
+          "corner3": {
+            "a": 7,
+            "m": 3
+          },
+          "arc3": {
+            "a": 51,
+            "m": 21
+          }
+        },
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 4,
+            "m": 2
+          },
+          "right": {
+            "a": 3,
+            "m": 1
           }
         }
       }
@@ -9255,230 +9479,6 @@
       }
     },
     {
-      "playerNo": "290754",
-      "nameKo": "한호빈",
-      "nameEn": "HAN HO BIN",
-      "teamCode": "35",
-      "teamName": "서울 삼성",
-      "teamShort": "SAMSUNG",
-      "isForeign": false,
-      "position": "G",
-      "positionLabel": "가드",
-      "positionGroup": "G",
-      "nationality": "domestic",
-      "heightCm": 181,
-      "weightKg": 80,
-      "backNumber": "5",
-      "draft": {
-        "year": 2013,
-        "round": 1,
-        "pick": 6
-      },
-      "games": 10,
-      "wins": 9,
-      "losses": 1,
-      "minutes": 292,
-      "points": 86,
-      "fgm": 29,
-      "fga": 69,
-      "fgPct": 42.028985507246375,
-      "tpm": 19,
-      "tpa": 46,
-      "tpPct": 41.30434782608695,
-      "twoPm": 10,
-      "twoPa": 23,
-      "twoPPct": 43.47826086956522,
-      "ftm": 9,
-      "fta": 12,
-      "ftPct": 75,
-      "dunks": 0,
-      "oreb": 5,
-      "dreb": 30,
-      "reb": 35,
-      "ast": 57,
-      "stl": 5,
-      "blk": 0,
-      "tov": 15,
-      "goodDef": 4,
-      "fouls": 31,
-      "doubleDoubles": 0,
-      "tripleDoubles": 0,
-      "plusMinus": 61,
-      "screenAst": 0,
-      "deflections": 4,
-      "per": 17.152658662092623,
-      "offRtg": 106.29251700680271,
-      "defRtg": 104.14390297202797,
-      "netRtg": 2.148614034774749,
-      "efgPct": 55.797101449275,
-      "tsPct": 57.889068389876144,
-      "astPct": 28.358208955223,
-      "astTo": 3.8,
-      "astRatio": 38.96636587366694,
-      "orebPct": 2.155172413793,
-      "drebPct": 10.238907849829,
-      "rebPct": 6.666666666666,
-      "usgPct": 14.735591206179441,
-      "usgPctRaw": 2.9471182412358883,
-      "pace": 71.86003430531733,
-      "tovPct": 16.801075268817204,
-      "toRatio": 18.53939250118652,
-      "pie": 16.25222024866785,
-      "poss": 520.2048,
-      "seasonHighs": {
-        "pts": {
-          "value": 15,
-          "date": "2026-10-17",
-          "opponentTeamCode": "16",
-          "times": 2,
-          "seasonCode": 49
-        },
-        "fgm": {
-          "value": 5,
-          "date": "2026-10-17",
-          "opponentTeamCode": "16",
-          "times": 2,
-          "seasonCode": 49,
-          "attempts": 7,
-          "pct": 71.4
-        },
-        "fgPct": {
-          "value": 71.42857142857143,
-          "date": "2026-10-17",
-          "opponentTeamCode": "16",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "twoPm": {
-          "value": 2,
-          "date": "2026-10-21",
-          "opponentTeamCode": "60",
-          "times": 4,
-          "seasonCode": 49
-        },
-        "twoPPct": {
-          "value": 100,
-          "date": "2026-10-15",
-          "opponentTeamCode": "50",
-          "times": 2,
-          "seasonCode": 49
-        },
-        "tpm": {
-          "value": 4,
-          "date": "2026-10-17",
-          "opponentTeamCode": "16",
-          "times": 1,
-          "seasonCode": 49,
-          "attempts": 5,
-          "pct": 80
-        },
-        "tpPct": {
-          "value": 80,
-          "date": "2026-10-17",
-          "opponentTeamCode": "16",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "ftm": {
-          "value": 2,
-          "date": "2026-10-30",
-          "opponentTeamCode": "66",
-          "times": 3,
-          "seasonCode": 49,
-          "attempts": 2,
-          "pct": 100
-        },
-        "ftPct": {
-          "value": 100,
-          "date": "2026-10-30",
-          "opponentTeamCode": "66",
-          "times": 4,
-          "seasonCode": 49
-        },
-        "oreb": {
-          "value": 1,
-          "date": "2026-11-01",
-          "opponentTeamCode": "55",
-          "times": 5,
-          "seasonCode": 49
-        },
-        "dreb": {
-          "value": 7,
-          "date": "2026-10-11",
-          "opponentTeamCode": "66",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "reb": {
-          "value": 7,
-          "date": "2026-10-11",
-          "opponentTeamCode": "66",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "ast": {
-          "value": 8,
-          "date": "2026-10-30",
-          "opponentTeamCode": "66",
-          "times": 3,
-          "seasonCode": 49
-        },
-        "stl": {
-          "value": 2,
-          "date": "2026-10-30",
-          "opponentTeamCode": "66",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "blk": {
-          "value": 0,
-          "date": "2026-11-01",
-          "opponentTeamCode": "55",
-          "times": 10,
-          "seasonCode": 49
-        }
-      },
-      "shotZones": {
-        "total": {
-          "attempts": 69,
-          "made": 29
-        },
-        "zones": {
-          "rim": {
-            "a": 4,
-            "m": 2
-          },
-          "paint": {
-            "a": 7,
-            "m": 4
-          },
-          "mid": {
-            "a": 9,
-            "m": 3
-          },
-          "corner3": {
-            "a": 4,
-            "m": 1
-          },
-          "arc3": {
-            "a": 45,
-            "m": 19
-          }
-        },
-        "offenseType": "shooter",
-        "corners": {
-          "left": {
-            "a": 2,
-            "m": 0
-          },
-          "right": {
-            "a": 2,
-            "m": 1
-          }
-        }
-      }
-    },
-    {
       "playerNo": "291512",
       "nameKo": "저스틴 구탕",
       "nameEn": "Justin Gutang",
@@ -9494,57 +9494,57 @@
       "weightKg": 98,
       "backNumber": "18",
       "draft": null,
-      "games": 10,
-      "wins": 9,
+      "games": 11,
+      "wins": 10,
       "losses": 1,
-      "minutes": 293,
-      "points": 81,
-      "fgm": 34,
-      "fga": 71,
-      "fgPct": 47.88732394366197,
-      "tpm": 9,
-      "tpa": 30,
-      "tpPct": 30,
-      "twoPm": 25,
-      "twoPa": 41,
-      "twoPPct": 60.97560975609756,
+      "minutes": 319,
+      "points": 86,
+      "fgm": 36,
+      "fga": 81,
+      "fgPct": 44.44444444444444,
+      "tpm": 10,
+      "tpa": 32,
+      "tpPct": 31.25,
+      "twoPm": 26,
+      "twoPa": 49,
+      "twoPPct": 53.06122448979592,
       "ftm": 4,
       "fta": 10,
       "ftPct": 40,
       "dunks": 2,
-      "oreb": 9,
-      "dreb": 36,
-      "reb": 45,
-      "ast": 56,
+      "oreb": 10,
+      "dreb": 42,
+      "reb": 52,
+      "ast": 61,
       "stl": 17,
       "blk": 2,
       "tov": 21,
       "goodDef": 1,
-      "fouls": 32,
+      "fouls": 36,
       "doubleDoubles": 0,
       "tripleDoubles": 0,
-      "plusMinus": 42,
+      "plusMinus": 41,
       "screenAst": 1,
       "deflections": 2,
-      "per": 18.71265152808605,
-      "offRtg": 96.53890160183067,
-      "defRtg": 108.63224114703618,
-      "netRtg": -12.093339545205518,
-      "efgPct": 54.225352112676,
-      "tsPct": 53.713527851458885,
-      "astPct": 28.865979381443,
-      "astTo": 2.6666666666666665,
-      "astRatio": 36.74540682414698,
-      "orebPct": 3.896103896103,
-      "drebPct": 12.371134020618,
-      "rebPct": 8.620689655172,
-      "usgPct": 15.822992580920491,
-      "usgPctRaw": 3.1645985161840984,
-      "pace": 72.15030220249274,
-      "tovPct": 21.78423236514523,
-      "toRatio": 25.028604118993133,
-      "pie": 18.009049773755656,
-      "poss": 524.3904,
+      "per": 18.289054752335716,
+      "offRtg": 92.92876901798064,
+      "defRtg": 109.26694905832389,
+      "netRtg": -16.338180040343246,
+      "efgPct": 50.617283950617,
+      "tsPct": 50.35128805620609,
+      "astPct": 28.909952606635,
+      "astTo": 2.9047619047619047,
+      "astRatio": 36.43966547192354,
+      "orebPct": 3.968253968253,
+      "drebPct": 13.291139240506,
+      "rebPct": 9.154929577464,
+      "usgPct": 16.16235265524365,
+      "usgPctRaw": 3.23247053104873,
+      "pace": 71.61051829427423,
+      "tovPct": 19.736842105263158,
+      "toRatio": 22.691908713692946,
+      "pie": 17.391304347826086,
+      "poss": 567.6672,
       "seasonHighs": {
         "pts": {
           "value": 11,
@@ -9594,9 +9594,9 @@
         },
         "tpPct": {
           "value": 50,
-          "date": "2026-10-30",
-          "opponentTeamCode": "66",
-          "times": 3,
+          "date": "2026-11-05",
+          "opponentTeamCode": "10",
+          "times": 4,
           "seasonCode": 49
         },
         "ftm": {
@@ -9631,9 +9631,9 @@
         },
         "reb": {
           "value": 7,
-          "date": "2026-10-11",
-          "opponentTeamCode": "66",
-          "times": 2,
+          "date": "2026-11-05",
+          "opponentTeamCode": "10",
+          "times": 3,
           "seasonCode": 49
         },
         "ast": {
@@ -9660,20 +9660,20 @@
       },
       "shotZones": {
         "total": {
-          "attempts": 71,
-          "made": 34
+          "attempts": 81,
+          "made": 36
         },
         "zones": {
           "rim": {
-            "a": 7,
-            "m": 6
+            "a": 10,
+            "m": 7
           },
           "paint": {
-            "a": 27,
+            "a": 29,
             "m": 15
           },
           "mid": {
-            "a": 7,
+            "a": 10,
             "m": 4
           },
           "corner3": {
@@ -9681,8 +9681,8 @@
             "m": 3
           },
           "arc3": {
-            "a": 23,
-            "m": 6
+            "a": 25,
+            "m": 7
           }
         },
         "offenseType": "insideOut",
@@ -9694,6 +9694,454 @@
           "right": {
             "a": 2,
             "m": 1
+          }
+        }
+      }
+    },
+    {
+      "playerNo": "291189",
+      "nameKo": "서명진",
+      "nameEn": "SEO MYEONG JIN",
+      "teamCode": "10",
+      "teamName": "울산 현대모비스",
+      "teamShort": "HYUNDAI MOBIS",
+      "isForeign": false,
+      "position": "G",
+      "positionLabel": "가드",
+      "positionGroup": "G",
+      "nationality": "domestic",
+      "heightCm": 188,
+      "weightKg": 77,
+      "backNumber": "7",
+      "draft": {
+        "year": 2018,
+        "round": 1,
+        "pick": 3
+      },
+      "games": 11,
+      "wins": 3,
+      "losses": 8,
+      "minutes": 320,
+      "points": 83,
+      "fgm": 29,
+      "fga": 71,
+      "fgPct": 40.845070422535215,
+      "tpm": 16,
+      "tpa": 46,
+      "tpPct": 34.78260869565217,
+      "twoPm": 13,
+      "twoPa": 25,
+      "twoPPct": 52,
+      "ftm": 9,
+      "fta": 11,
+      "ftPct": 81.81818181818183,
+      "dunks": 0,
+      "oreb": 3,
+      "dreb": 21,
+      "reb": 24,
+      "ast": 21,
+      "stl": 4,
+      "blk": 0,
+      "tov": 12,
+      "goodDef": 0,
+      "fouls": 29,
+      "doubleDoubles": 0,
+      "tripleDoubles": 0,
+      "plusMinus": -19,
+      "screenAst": 1,
+      "deflections": 4,
+      "per": 9.49851585689736,
+      "offRtg": 101.9075121797894,
+      "defRtg": 118.66070279315228,
+      "netRtg": -16.753190613362865,
+      "efgPct": 52.112676056338,
+      "tsPct": 54.720464135021096,
+      "astPct": 9.333333333333,
+      "astTo": 1.75,
+      "astRatio": 19.294377067254686,
+      "orebPct": 1.10701107011,
+      "drebPct": 7.664233576642,
+      "rebPct": 4.40366972477,
+      "usgPct": 13.003315963998109,
+      "usgPctRaw": 2.6006631927996215,
+      "pace": 74.27079518825182,
+      "tovPct": 13.66120218579235,
+      "toRatio": 14.733616218764734,
+      "pie": 7.446808510638298,
+      "poss": 591.8592,
+      "seasonHighs": {
+        "pts": {
+          "value": 20,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "fgm": {
+          "value": 6,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 1,
+          "seasonCode": 49,
+          "attempts": 11,
+          "pct": 54.5
+        },
+        "fgPct": {
+          "value": 71.42857142857143,
+          "date": "2026-10-18",
+          "opponentTeamCode": "06",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "twoPm": {
+          "value": 3,
+          "date": "2026-10-29",
+          "opponentTeamCode": "60",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "twoPPct": {
+          "value": 100,
+          "date": "2026-10-18",
+          "opponentTeamCode": "06",
+          "times": 2,
+          "seasonCode": 49
+        },
+        "tpm": {
+          "value": 5,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 1,
+          "seasonCode": 49,
+          "attempts": 8,
+          "pct": 62.5
+        },
+        "tpPct": {
+          "value": 66.66666666666667,
+          "date": "2026-10-24",
+          "opponentTeamCode": "35",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "ftm": {
+          "value": 3,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 1,
+          "seasonCode": 49,
+          "attempts": 3,
+          "pct": 100
+        },
+        "ftPct": {
+          "value": 100,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 4,
+          "seasonCode": 49
+        },
+        "oreb": {
+          "value": 1,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 3,
+          "seasonCode": 49
+        },
+        "dreb": {
+          "value": 5,
+          "date": "2026-10-05",
+          "opponentTeamCode": "60",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "reb": {
+          "value": 5,
+          "date": "2026-10-05",
+          "opponentTeamCode": "60",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "ast": {
+          "value": 4,
+          "date": "2026-10-29",
+          "opponentTeamCode": "60",
+          "times": 2,
+          "seasonCode": 49
+        },
+        "stl": {
+          "value": 3,
+          "date": "2026-10-29",
+          "opponentTeamCode": "60",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "blk": {
+          "value": 0,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 11,
+          "seasonCode": 49
+        }
+      },
+      "shotZones": {
+        "total": {
+          "attempts": 71,
+          "made": 29
+        },
+        "zones": {
+          "rim": {
+            "a": 7,
+            "m": 4
+          },
+          "paint": {
+            "a": 9,
+            "m": 6
+          },
+          "mid": {
+            "a": 9,
+            "m": 3
+          },
+          "corner3": {
+            "a": 5,
+            "m": 2
+          },
+          "arc3": {
+            "a": 41,
+            "m": 14
+          }
+        },
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 2,
+            "m": 1
+          },
+          "right": {
+            "a": 3,
+            "m": 1
+          }
+        }
+      }
+    },
+    {
+      "playerNo": "291649",
+      "nameKo": "박무빈",
+      "nameEn": "PARK MU BIN",
+      "teamCode": "10",
+      "teamName": "울산 현대모비스",
+      "teamShort": "HYUNDAI MOBIS",
+      "isForeign": false,
+      "position": "G",
+      "positionLabel": "가드",
+      "positionGroup": "G",
+      "nationality": "domestic",
+      "heightCm": 184,
+      "weightKg": 77,
+      "backNumber": "3",
+      "draft": {
+        "year": 2023,
+        "round": 1,
+        "pick": 2
+      },
+      "games": 11,
+      "wins": 3,
+      "losses": 8,
+      "minutes": 272,
+      "points": 80,
+      "fgm": 27,
+      "fga": 70,
+      "fgPct": 38.57142857142858,
+      "tpm": 12,
+      "tpa": 38,
+      "tpPct": 31.57894736842105,
+      "twoPm": 15,
+      "twoPa": 32,
+      "twoPPct": 46.875,
+      "ftm": 14,
+      "fta": 15,
+      "ftPct": 93.33333333333333,
+      "dunks": 0,
+      "oreb": 10,
+      "dreb": 32,
+      "reb": 42,
+      "ast": 41,
+      "stl": 7,
+      "blk": 0,
+      "tov": 12,
+      "goodDef": 4,
+      "fouls": 26,
+      "doubleDoubles": 0,
+      "tripleDoubles": 0,
+      "plusMinus": -18,
+      "screenAst": 0,
+      "deflections": 8,
+      "per": 16.767788196359625,
+      "offRtg": 106.02205258693807,
+      "defRtg": 118.74757658006979,
+      "netRtg": -12.725523993131711,
+      "efgPct": 47.142857142857,
+      "tsPct": 52.21932114882507,
+      "astPct": 22.777777777777,
+      "astTo": 3.4166666666666665,
+      "astRatio": 31.6358024691358,
+      "orebPct": 4.329004329004,
+      "drebPct": 14.414414414414,
+      "rebPct": 9.271523178807,
+      "usgPct": 15.430163706025775,
+      "usgPctRaw": 3.086032741205155,
+      "pace": 72.78985107556537,
+      "tovPct": 13.544018058690746,
+      "toRatio": 15.903307888040713,
+      "pie": 17.309697601668404,
+      "poss": 494.592,
+      "seasonHighs": {
+        "pts": {
+          "value": 16,
+          "date": "2026-10-16",
+          "opponentTeamCode": "66",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "fgm": {
+          "value": 5,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 3,
+          "seasonCode": 49,
+          "attempts": 11,
+          "pct": 45.5
+        },
+        "fgPct": {
+          "value": 80,
+          "date": "2026-10-10",
+          "opponentTeamCode": "64",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "twoPm": {
+          "value": 3,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 2,
+          "seasonCode": 49
+        },
+        "twoPPct": {
+          "value": 100,
+          "date": "2026-10-29",
+          "opponentTeamCode": "60",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "tpm": {
+          "value": 3,
+          "date": "2026-10-16",
+          "opponentTeamCode": "66",
+          "times": 1,
+          "seasonCode": 49,
+          "attempts": 7,
+          "pct": 42.9
+        },
+        "tpPct": {
+          "value": 100,
+          "date": "2026-10-10",
+          "opponentTeamCode": "64",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "ftm": {
+          "value": 4,
+          "date": "2026-10-12",
+          "opponentTeamCode": "16",
+          "times": 1,
+          "seasonCode": 49,
+          "attempts": 4,
+          "pct": 100
+        },
+        "ftPct": {
+          "value": 100,
+          "date": "2026-10-31",
+          "opponentTeamCode": "64",
+          "times": 4,
+          "seasonCode": 49
+        },
+        "oreb": {
+          "value": 3,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "dreb": {
+          "value": 7,
+          "date": "2026-10-12",
+          "opponentTeamCode": "16",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "reb": {
+          "value": 9,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "ast": {
+          "value": 9,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "stl": {
+          "value": 3,
+          "date": "2026-10-18",
+          "opponentTeamCode": "06",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "blk": {
+          "value": 0,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 11,
+          "seasonCode": 49
+        }
+      },
+      "shotZones": {
+        "total": {
+          "attempts": 70,
+          "made": 27
+        },
+        "zones": {
+          "rim": {
+            "a": 5,
+            "m": 3
+          },
+          "paint": {
+            "a": 19,
+            "m": 10
+          },
+          "mid": {
+            "a": 6,
+            "m": 1
+          },
+          "corner3": {
+            "a": 5,
+            "m": 4
+          },
+          "arc3": {
+            "a": 35,
+            "m": 9
+          }
+        },
+        "offenseType": "shooter",
+        "corners": {
+          "left": {
+            "a": 2,
+            "m": 1
+          },
+          "right": {
+            "a": 3,
+            "m": 3
           }
         }
       }
@@ -9767,7 +10215,7 @@
       "pace": 71.31662171753017,
       "tovPct": 13.361838588989844,
       "toRatio": 14.91504390988927,
-      "pie": 13.83108935128519,
+      "pie": 13.797313797313796,
       "poss": 379.6992,
       "seasonHighs": {
         "pts": {
@@ -11541,7 +11989,7 @@
       "tripleDoubles": 0,
       "plusMinus": 0,
       "screenAst": 0,
-      "deflections": 9,
+      "deflections": 10,
       "per": 18.61945494330615,
       "offRtg": 122.93605939716312,
       "defRtg": 113.45609215961842,
@@ -11559,7 +12007,7 @@
       "pace": 70.51330813606525,
       "tovPct": 6.045949214026602,
       "toRatio": 6.925975177304965,
-      "pie": 20.613287904599662,
+      "pie": 20.543293718166385,
       "poss": 290.2272,
       "seasonHighs": {
         "pts": {
@@ -11710,230 +12158,6 @@
           "right": {
             "a": 1,
             "m": 0
-          }
-        }
-      }
-    },
-    {
-      "playerNo": "291649",
-      "nameKo": "박무빈",
-      "nameEn": "PARK MU BIN",
-      "teamCode": "10",
-      "teamName": "울산 현대모비스",
-      "teamShort": "HYUNDAI MOBIS",
-      "isForeign": false,
-      "position": "G",
-      "positionLabel": "가드",
-      "positionGroup": "G",
-      "nationality": "domestic",
-      "heightCm": 184,
-      "weightKg": 77,
-      "backNumber": "3",
-      "draft": {
-        "year": 2023,
-        "round": 1,
-        "pick": 2
-      },
-      "games": 10,
-      "wins": 3,
-      "losses": 7,
-      "minutes": 241,
-      "points": 68,
-      "fgm": 22,
-      "fga": 59,
-      "fgPct": 37.28813559322034,
-      "tpm": 10,
-      "tpa": 33,
-      "tpPct": 30.303030303030305,
-      "twoPm": 12,
-      "twoPa": 26,
-      "twoPPct": 46.15384615384615,
-      "ftm": 14,
-      "fta": 15,
-      "ftPct": 93.33333333333333,
-      "dunks": 0,
-      "oreb": 7,
-      "dreb": 26,
-      "reb": 33,
-      "ast": 32,
-      "stl": 6,
-      "blk": 0,
-      "tov": 10,
-      "goodDef": 4,
-      "fouls": 23,
-      "doubleDoubles": 0,
-      "tripleDoubles": 0,
-      "plusMinus": -20,
-      "screenAst": 0,
-      "deflections": 6,
-      "per": 15.135135135135135,
-      "offRtg": 103.25558794946551,
-      "defRtg": 118.66916934293899,
-      "netRtg": -15.41358139347348,
-      "efgPct": 45.762711864406,
-      "tsPct": 51.829268292682926,
-      "astPct": 19.512195121951,
-      "astTo": 3.2,
-      "astRatio": 29.739776951672862,
-      "orebPct": 3.465346534653,
-      "drebPct": 13.197969543147,
-      "rebPct": 8.270676691729,
-      "usgPct": 14.780636584030653,
-      "usgPctRaw": 2.9561273168061306,
-      "pace": 73.47253222453223,
-      "tovPct": 13.227513227513228,
-      "toRatio": 15.184645286686102,
-      "pie": 15.375446960667462,
-      "poss": 441.1008,
-      "seasonHighs": {
-        "pts": {
-          "value": 16,
-          "date": "2026-10-16",
-          "opponentTeamCode": "66",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "fgm": {
-          "value": 5,
-          "date": "2026-10-16",
-          "opponentTeamCode": "66",
-          "times": 2,
-          "seasonCode": 49,
-          "attempts": 10,
-          "pct": 50
-        },
-        "fgPct": {
-          "value": 80,
-          "date": "2026-10-10",
-          "opponentTeamCode": "64",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "twoPm": {
-          "value": 3,
-          "date": "2026-10-03",
-          "opponentTeamCode": "70",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "twoPPct": {
-          "value": 100,
-          "date": "2026-10-29",
-          "opponentTeamCode": "60",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "tpm": {
-          "value": 3,
-          "date": "2026-10-16",
-          "opponentTeamCode": "66",
-          "times": 1,
-          "seasonCode": 49,
-          "attempts": 7,
-          "pct": 42.9
-        },
-        "tpPct": {
-          "value": 100,
-          "date": "2026-10-10",
-          "opponentTeamCode": "64",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "ftm": {
-          "value": 4,
-          "date": "2026-10-12",
-          "opponentTeamCode": "16",
-          "times": 1,
-          "seasonCode": 49,
-          "attempts": 4,
-          "pct": 100
-        },
-        "ftPct": {
-          "value": 100,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 4,
-          "seasonCode": 49
-        },
-        "oreb": {
-          "value": 2,
-          "date": "2026-10-29",
-          "opponentTeamCode": "60",
-          "times": 2,
-          "seasonCode": 49
-        },
-        "dreb": {
-          "value": 7,
-          "date": "2026-10-12",
-          "opponentTeamCode": "16",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "reb": {
-          "value": 7,
-          "date": "2026-10-12",
-          "opponentTeamCode": "16",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "ast": {
-          "value": 8,
-          "date": "2026-10-05",
-          "opponentTeamCode": "60",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "stl": {
-          "value": 3,
-          "date": "2026-10-18",
-          "opponentTeamCode": "06",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "blk": {
-          "value": 0,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 10,
-          "seasonCode": 49
-        }
-      },
-      "shotZones": {
-        "total": {
-          "attempts": 59,
-          "made": 22
-        },
-        "zones": {
-          "rim": {
-            "a": 3,
-            "m": 1
-          },
-          "paint": {
-            "a": 16,
-            "m": 10
-          },
-          "mid": {
-            "a": 6,
-            "m": 1
-          },
-          "corner3": {
-            "a": 5,
-            "m": 4
-          },
-          "arc3": {
-            "a": 29,
-            "m": 6
-          }
-        },
-        "offenseType": "shooter",
-        "corners": {
-          "left": {
-            "a": 2,
-            "m": 1
-          },
-          "right": {
-            "a": 3,
-            "m": 3
           }
         }
       }
@@ -12231,7 +12455,7 @@
       "pace": 69.7476051015588,
       "tovPct": 2.793296089385475,
       "toRatio": 3.128128128128128,
-      "pie": 11.375,
+      "pie": 11.346633416458852,
       "poss": 373.7856,
       "seasonHighs": {
         "pts": {
@@ -12382,230 +12606,6 @@
           "right": {
             "a": 3,
             "m": 1
-          }
-        }
-      }
-    },
-    {
-      "playerNo": "291189",
-      "nameKo": "서명진",
-      "nameEn": "SEO MYEONG JIN",
-      "teamCode": "10",
-      "teamName": "울산 현대모비스",
-      "teamShort": "HYUNDAI MOBIS",
-      "isForeign": false,
-      "position": "G",
-      "positionLabel": "가드",
-      "positionGroup": "G",
-      "nationality": "domestic",
-      "heightCm": 188,
-      "weightKg": 77,
-      "backNumber": "7",
-      "draft": {
-        "year": 2018,
-        "round": 1,
-        "pick": 3
-      },
-      "games": 10,
-      "wins": 3,
-      "losses": 7,
-      "minutes": 282,
-      "points": 63,
-      "fgm": 23,
-      "fga": 60,
-      "fgPct": 38.333333333333336,
-      "tpm": 11,
-      "tpa": 38,
-      "tpPct": 28.947368421052634,
-      "twoPm": 12,
-      "twoPa": 22,
-      "twoPPct": 54.54545454545454,
-      "ftm": 6,
-      "fta": 8,
-      "ftPct": 75,
-      "dunks": 0,
-      "oreb": 2,
-      "dreb": 20,
-      "reb": 22,
-      "ast": 20,
-      "stl": 4,
-      "blk": 0,
-      "tov": 11,
-      "goodDef": 0,
-      "fouls": 27,
-      "doubleDoubles": 0,
-      "tripleDoubles": 0,
-      "plusMinus": -16,
-      "screenAst": 1,
-      "deflections": 3,
-      "per": 8.378202473226436,
-      "offRtg": 90.49227799227799,
-      "defRtg": 119.42940378418974,
-      "netRtg": -28.93712579191175,
-      "efgPct": 47.5,
-      "tsPct": 49.59068010075567,
-      "astPct": 9.708737864077,
-      "astTo": 1.8181818181818181,
-      "astRatio": 21.159542953872197,
-      "orebPct": 0.847457627118,
-      "drebPct": 8.264462809917,
-      "rebPct": 4.602510460251,
-      "usgPct": 12.44488977955912,
-      "usgPctRaw": 2.4889779559118237,
-      "pace": 74.78423288562807,
-      "tovPct": 14.761137949543746,
-      "toRatio": 15.80023901452473,
-      "pie": 5.662100456621005,
-      "poss": 524.928,
-      "seasonHighs": {
-        "pts": {
-          "value": 13,
-          "date": "2026-10-18",
-          "opponentTeamCode": "06",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "fgm": {
-          "value": 5,
-          "date": "2026-10-18",
-          "opponentTeamCode": "06",
-          "times": 1,
-          "seasonCode": 49,
-          "attempts": 7,
-          "pct": 71.4
-        },
-        "fgPct": {
-          "value": 71.42857142857143,
-          "date": "2026-10-18",
-          "opponentTeamCode": "06",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "twoPm": {
-          "value": 3,
-          "date": "2026-10-29",
-          "opponentTeamCode": "60",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "twoPPct": {
-          "value": 100,
-          "date": "2026-10-18",
-          "opponentTeamCode": "06",
-          "times": 2,
-          "seasonCode": 49
-        },
-        "tpm": {
-          "value": 3,
-          "date": "2026-10-18",
-          "opponentTeamCode": "06",
-          "times": 1,
-          "seasonCode": 49,
-          "attempts": 5,
-          "pct": 60
-        },
-        "tpPct": {
-          "value": 66.66666666666667,
-          "date": "2026-10-24",
-          "opponentTeamCode": "35",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "ftm": {
-          "value": 2,
-          "date": "2026-10-22",
-          "opponentTeamCode": "50",
-          "times": 1,
-          "seasonCode": 49,
-          "attempts": 2,
-          "pct": 100
-        },
-        "ftPct": {
-          "value": 100,
-          "date": "2026-10-22",
-          "opponentTeamCode": "50",
-          "times": 3,
-          "seasonCode": 49
-        },
-        "oreb": {
-          "value": 1,
-          "date": "2026-10-24",
-          "opponentTeamCode": "35",
-          "times": 2,
-          "seasonCode": 49
-        },
-        "dreb": {
-          "value": 5,
-          "date": "2026-10-05",
-          "opponentTeamCode": "60",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "reb": {
-          "value": 5,
-          "date": "2026-10-05",
-          "opponentTeamCode": "60",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "ast": {
-          "value": 4,
-          "date": "2026-10-29",
-          "opponentTeamCode": "60",
-          "times": 2,
-          "seasonCode": 49
-        },
-        "stl": {
-          "value": 3,
-          "date": "2026-10-29",
-          "opponentTeamCode": "60",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "blk": {
-          "value": 0,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 10,
-          "seasonCode": 49
-        }
-      },
-      "shotZones": {
-        "total": {
-          "attempts": 60,
-          "made": 23
-        },
-        "zones": {
-          "rim": {
-            "a": 6,
-            "m": 3
-          },
-          "paint": {
-            "a": 9,
-            "m": 6
-          },
-          "mid": {
-            "a": 7,
-            "m": 3
-          },
-          "corner3": {
-            "a": 3,
-            "m": 0
-          },
-          "arc3": {
-            "a": 35,
-            "m": 11
-          }
-        },
-        "offenseType": "shooter",
-        "corners": {
-          "left": {
-            "a": 1,
-            "m": 0
-          },
-          "right": {
-            "a": 2,
-            "m": 0
           }
         }
       }
@@ -13059,6 +13059,230 @@
       }
     },
     {
+      "playerNo": "290787",
+      "nameKo": "이승현",
+      "nameEn": "LEE SEOUNG HYUN",
+      "teamCode": "10",
+      "teamName": "울산 현대모비스",
+      "teamShort": "HYUNDAI MOBIS",
+      "isForeign": false,
+      "position": "F",
+      "positionLabel": "포워드",
+      "positionGroup": "F",
+      "nationality": "domestic",
+      "heightCm": 197,
+      "weightKg": 105,
+      "backNumber": "33",
+      "draft": {
+        "year": 2014,
+        "round": 1,
+        "pick": 1
+      },
+      "games": 11,
+      "wins": 3,
+      "losses": 8,
+      "minutes": 238,
+      "points": 54,
+      "fgm": 24,
+      "fga": 54,
+      "fgPct": 44.44444444444444,
+      "tpm": 3,
+      "tpa": 10,
+      "tpPct": 30,
+      "twoPm": 21,
+      "twoPa": 44,
+      "twoPPct": 47.72727272727273,
+      "ftm": 3,
+      "fta": 8,
+      "ftPct": 37.5,
+      "dunks": 0,
+      "oreb": 10,
+      "dreb": 12,
+      "reb": 22,
+      "ast": 18,
+      "stl": 4,
+      "blk": 1,
+      "tov": 15,
+      "goodDef": 0,
+      "fouls": 21,
+      "doubleDoubles": 0,
+      "tripleDoubles": 0,
+      "plusMinus": -31,
+      "screenAst": 5,
+      "deflections": 6,
+      "per": 8.223201174743025,
+      "offRtg": 89.97120921305182,
+      "defRtg": 117.32313368055556,
+      "netRtg": -27.351924467503732,
+      "efgPct": 47.222222222222,
+      "tsPct": 46.940194714881784,
+      "astPct": 11.538461538461,
+      "astTo": 1.2,
+      "astRatio": 19.88510826336721,
+      "orebPct": 5.128205128205,
+      "drebPct": 6.25,
+      "rebPct": 5.684754521963,
+      "usgPct": 14.646954273711426,
+      "usgPctRaw": 2.929390854742285,
+      "pace": 73.70028949024544,
+      "tovPct": 20.683949255377826,
+      "toRatio": 24.992002559181064,
+      "pie": 5.454545454545454,
+      "poss": 435.9552,
+      "seasonHighs": {
+        "pts": {
+          "value": 16,
+          "date": "2026-10-31",
+          "opponentTeamCode": "64",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "fgm": {
+          "value": 7,
+          "date": "2026-10-31",
+          "opponentTeamCode": "64",
+          "times": 1,
+          "seasonCode": 49,
+          "attempts": 13,
+          "pct": 53.8
+        },
+        "fgPct": {
+          "value": 75,
+          "date": "2026-10-18",
+          "opponentTeamCode": "06",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "twoPm": {
+          "value": 5,
+          "date": "2026-10-31",
+          "opponentTeamCode": "64",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "twoPPct": {
+          "value": 100,
+          "date": "2026-10-18",
+          "opponentTeamCode": "06",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "tpm": {
+          "value": 2,
+          "date": "2026-10-31",
+          "opponentTeamCode": "64",
+          "times": 1,
+          "seasonCode": 49,
+          "attempts": 5,
+          "pct": 40
+        },
+        "tpPct": {
+          "value": 50,
+          "date": "2026-10-05",
+          "opponentTeamCode": "60",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "ftm": {
+          "value": 1,
+          "date": "2026-10-29",
+          "opponentTeamCode": "60",
+          "times": 3,
+          "seasonCode": 49,
+          "attempts": 2,
+          "pct": 50
+        },
+        "ftPct": {
+          "value": 50,
+          "date": "2026-10-29",
+          "opponentTeamCode": "60",
+          "times": 2,
+          "seasonCode": 49
+        },
+        "oreb": {
+          "value": 3,
+          "date": "2026-10-22",
+          "opponentTeamCode": "50",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "dreb": {
+          "value": 2,
+          "date": "2026-10-31",
+          "opponentTeamCode": "64",
+          "times": 4,
+          "seasonCode": 49
+        },
+        "reb": {
+          "value": 4,
+          "date": "2026-10-22",
+          "opponentTeamCode": "50",
+          "times": 3,
+          "seasonCode": 49
+        },
+        "ast": {
+          "value": 3,
+          "date": "2026-10-29",
+          "opponentTeamCode": "60",
+          "times": 2,
+          "seasonCode": 49
+        },
+        "stl": {
+          "value": 1,
+          "date": "2026-10-29",
+          "opponentTeamCode": "60",
+          "times": 4,
+          "seasonCode": 49
+        },
+        "blk": {
+          "value": 1,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 1,
+          "seasonCode": 49
+        }
+      },
+      "shotZones": {
+        "total": {
+          "attempts": 54,
+          "made": 24
+        },
+        "zones": {
+          "rim": {
+            "a": 6,
+            "m": 4
+          },
+          "paint": {
+            "a": 8,
+            "m": 1
+          },
+          "mid": {
+            "a": 28,
+            "m": 14
+          },
+          "corner3": {
+            "a": 5,
+            "m": 0
+          },
+          "arc3": {
+            "a": 7,
+            "m": 5
+          }
+        },
+        "offenseType": "midrange",
+        "corners": {
+          "left": {
+            "a": 1,
+            "m": 0
+          },
+          "right": {
+            "a": 4,
+            "m": 0
+          }
+        }
+      }
+    },
+    {
       "playerNo": "291436",
       "nameKo": "라숀 토마스",
       "nameEn": "Rashawn Thomas",
@@ -13497,230 +13721,6 @@
           },
           "right": {
             "a": 0,
-            "m": 0
-          }
-        }
-      }
-    },
-    {
-      "playerNo": "290787",
-      "nameKo": "이승현",
-      "nameEn": "LEE SEOUNG HYUN",
-      "teamCode": "10",
-      "teamName": "울산 현대모비스",
-      "teamShort": "HYUNDAI MOBIS",
-      "isForeign": false,
-      "position": "F",
-      "positionLabel": "포워드",
-      "positionGroup": "F",
-      "nationality": "domestic",
-      "heightCm": 197,
-      "weightKg": 105,
-      "backNumber": "33",
-      "draft": {
-        "year": 2014,
-        "round": 1,
-        "pick": 1
-      },
-      "games": 10,
-      "wins": 3,
-      "losses": 7,
-      "minutes": 216,
-      "points": 52,
-      "fgm": 23,
-      "fga": 50,
-      "fgPct": 46,
-      "tpm": 3,
-      "tpa": 10,
-      "tpPct": 30,
-      "twoPm": 20,
-      "twoPa": 40,
-      "twoPPct": 50,
-      "ftm": 3,
-      "fta": 8,
-      "ftPct": 37.5,
-      "dunks": 0,
-      "oreb": 10,
-      "dreb": 11,
-      "reb": 21,
-      "ast": 17,
-      "stl": 4,
-      "blk": 0,
-      "tov": 14,
-      "goodDef": 0,
-      "fouls": 18,
-      "doubleDoubles": 0,
-      "tripleDoubles": 0,
-      "plusMinus": -22,
-      "screenAst": 4,
-      "deflections": 5,
-      "per": 8.879297055649761,
-      "offRtg": 94.17014371812702,
-      "defRtg": 117.95181780459001,
-      "netRtg": -23.781674086462967,
-      "efgPct": 49,
-      "tsPct": 48.57997010463379,
-      "astPct": 11.805555555555,
-      "astTo": 1.2142857142857142,
-      "astRatio": 20.113582584003787,
-      "orebPct": 5.780346820809,
-      "drebPct": 6.321839080459,
-      "rebPct": 6.051873198847,
-      "usgPct": 14.907709970855782,
-      "usgPctRaw": 2.9815419941711565,
-      "pace": 73.93257900416218,
-      "tovPct": 20.734597156398106,
-      "toRatio": 25.353500231803434,
-      "pie": 6.485084306095979,
-      "poss": 398.3232,
-      "seasonHighs": {
-        "pts": {
-          "value": 16,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "fgm": {
-          "value": 7,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 1,
-          "seasonCode": 49,
-          "attempts": 13,
-          "pct": 53.8
-        },
-        "fgPct": {
-          "value": 75,
-          "date": "2026-10-18",
-          "opponentTeamCode": "06",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "twoPm": {
-          "value": 5,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "twoPPct": {
-          "value": 100,
-          "date": "2026-10-18",
-          "opponentTeamCode": "06",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "tpm": {
-          "value": 2,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 1,
-          "seasonCode": 49,
-          "attempts": 5,
-          "pct": 40
-        },
-        "tpPct": {
-          "value": 50,
-          "date": "2026-10-05",
-          "opponentTeamCode": "60",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "ftm": {
-          "value": 1,
-          "date": "2026-10-29",
-          "opponentTeamCode": "60",
-          "times": 3,
-          "seasonCode": 49,
-          "attempts": 2,
-          "pct": 50
-        },
-        "ftPct": {
-          "value": 50,
-          "date": "2026-10-29",
-          "opponentTeamCode": "60",
-          "times": 2,
-          "seasonCode": 49
-        },
-        "oreb": {
-          "value": 3,
-          "date": "2026-10-22",
-          "opponentTeamCode": "50",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "dreb": {
-          "value": 2,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 4,
-          "seasonCode": 49
-        },
-        "reb": {
-          "value": 4,
-          "date": "2026-10-22",
-          "opponentTeamCode": "50",
-          "times": 3,
-          "seasonCode": 49
-        },
-        "ast": {
-          "value": 3,
-          "date": "2026-10-29",
-          "opponentTeamCode": "60",
-          "times": 2,
-          "seasonCode": 49
-        },
-        "stl": {
-          "value": 1,
-          "date": "2026-10-29",
-          "opponentTeamCode": "60",
-          "times": 4,
-          "seasonCode": 49
-        },
-        "blk": {
-          "value": 0,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 10,
-          "seasonCode": 49
-        }
-      },
-      "shotZones": {
-        "total": {
-          "attempts": 50,
-          "made": 23
-        },
-        "zones": {
-          "rim": {
-            "a": 5,
-            "m": 3
-          },
-          "paint": {
-            "a": 8,
-            "m": 1
-          },
-          "mid": {
-            "a": 25,
-            "m": 14
-          },
-          "corner3": {
-            "a": 5,
-            "m": 0
-          },
-          "arc3": {
-            "a": 7,
-            "m": 5
-          }
-        },
-        "offenseType": "midrange",
-        "corners": {
-          "left": {
-            "a": 1,
-            "m": 0
-          },
-          "right": {
-            "a": 4,
             "m": 0
           }
         }
@@ -14467,7 +14467,7 @@
       "pace": 70.60078921664388,
       "tovPct": 14.720314033366044,
       "toRatio": 21.731571627260085,
-      "pie": 13.421550094517958,
+      "pie": 13.370998116760829,
       "poss": 302.4768,
       "seasonHighs": {
         "pts": {
@@ -14638,57 +14638,57 @@
       "weightKg": 81,
       "backNumber": "26",
       "draft": null,
-      "games": 10,
+      "games": 11,
       "wins": 3,
-      "losses": 7,
-      "minutes": 157,
+      "losses": 8,
+      "minutes": 162,
       "points": 45,
       "fgm": 18,
-      "fga": 44,
-      "fgPct": 40.909090909090914,
+      "fga": 45,
+      "fgPct": 40,
       "tpm": 7,
       "tpa": 15,
       "tpPct": 46.666666666666664,
       "twoPm": 11,
-      "twoPa": 29,
-      "twoPPct": 37.93103448275862,
+      "twoPa": 30,
+      "twoPPct": 36.666666666666664,
       "ftm": 2,
       "fta": 4,
       "ftPct": 50,
       "dunks": 0,
       "oreb": 1,
-      "dreb": 12,
-      "reb": 13,
-      "ast": 14,
-      "stl": 6,
+      "dreb": 13,
+      "reb": 14,
+      "ast": 15,
+      "stl": 7,
       "blk": 0,
-      "tov": 8,
+      "tov": 10,
       "goodDef": 2,
-      "fouls": 24,
+      "fouls": 26,
       "doubleDoubles": 0,
       "tripleDoubles": 0,
-      "plusMinus": -45,
+      "plusMinus": -49,
       "screenAst": 0,
       "deflections": 5,
-      "per": 10.712008501594049,
-      "offRtg": 88.84571645185747,
-      "defRtg": 122.42240303069438,
-      "netRtg": -33.57668657883692,
-      "efgPct": 48.863636363636,
-      "tsPct": 49.16958041958041,
-      "astPct": 14.141414141414,
-      "astTo": 1.75,
-      "astRatio": 20.661157024793386,
-      "orebPct": 0.751879699248,
-      "drebPct": 8.759124087591,
-      "rebPct": 4.814814814814,
-      "usgPct": 16.356334428623583,
-      "usgPctRaw": 3.2712668857247165,
-      "pace": 75.46150903294367,
-      "tovPct": 14.880952380952381,
-      "toRatio": 15.794794035885772,
-      "pie": 7.056451612903226,
-      "poss": 294.4128,
+      "per": 10.3971119133574,
+      "offRtg": 84.06563845050216,
+      "defRtg": 122.11112504179204,
+      "netRtg": -38.04548659128989,
+      "efgPct": 47.777777777777,
+      "tsPct": 48.118049615055604,
+      "astPct": 14.705882352941,
+      "astTo": 1.5,
+      "astRatio": 20.903010033444815,
+      "orebPct": 0.724637681159,
+      "drebPct": 9.219858156028,
+      "rebPct": 5.017921146953,
+      "usgPct": 16.759182709342152,
+      "usgPctRaw": 3.3518365418684306,
+      "pace": 75.53887983496648,
+      "tovPct": 17.618040873854827,
+      "toRatio": 18.681252989000477,
+      "pie": 6.224899598393574,
+      "poss": 304.0128,
       "seasonHighs": {
         "pts": {
           "value": 13,
@@ -14796,20 +14796,20 @@
         },
         "blk": {
           "value": 0,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 10,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 11,
           "seasonCode": 49
         }
       },
       "shotZones": {
         "total": {
-          "attempts": 44,
+          "attempts": 45,
           "made": 18
         },
         "zones": {
           "rim": {
-            "a": 3,
+            "a": 4,
             "m": 3
           },
           "paint": {
@@ -15739,6 +15739,230 @@
       }
     },
     {
+      "playerNo": "291275",
+      "nameKo": "김경원",
+      "nameEn": "KIM KYUNG WON",
+      "teamCode": "10",
+      "teamName": "울산 현대모비스",
+      "teamShort": "HYUNDAI MOBIS",
+      "isForeign": false,
+      "position": "C",
+      "positionLabel": "센터",
+      "positionGroup": "C",
+      "nationality": "domestic",
+      "heightCm": 198,
+      "weightKg": 101,
+      "backNumber": "17",
+      "draft": {
+        "year": 2019,
+        "round": 1,
+        "pick": 2
+      },
+      "games": 10,
+      "wins": 3,
+      "losses": 7,
+      "minutes": 118,
+      "points": 41,
+      "fgm": 16,
+      "fga": 31,
+      "fgPct": 51.61290322580645,
+      "tpm": 2,
+      "tpa": 8,
+      "tpPct": 25,
+      "twoPm": 14,
+      "twoPa": 23,
+      "twoPPct": 60.86956521739131,
+      "ftm": 7,
+      "fta": 8,
+      "ftPct": 87.5,
+      "dunks": 0,
+      "oreb": 3,
+      "dreb": 10,
+      "reb": 13,
+      "ast": 9,
+      "stl": 2,
+      "blk": 0,
+      "tov": 6,
+      "goodDef": 1,
+      "fouls": 12,
+      "doubleDoubles": 0,
+      "tripleDoubles": 0,
+      "plusMinus": 2,
+      "screenAst": 2,
+      "deflections": 0,
+      "per": 14.543404735062007,
+      "offRtg": 113.8281805259417,
+      "defRtg": 117.86204101988655,
+      "netRtg": -4.033860493944821,
+      "efgPct": 54.838709677419,
+      "tsPct": 59.38586326767092,
+      "astPct": 11.842105263157,
+      "astTo": 1.5,
+      "astRatio": 18.17447495961228,
+      "orebPct": 3.448275862068,
+      "drebPct": 10,
+      "rebPct": 6.951871657754,
+      "usgPct": 17.58070114543561,
+      "usgPctRaw": 3.5161402290871226,
+      "pace": 69.8667869222097,
+      "tovPct": 14.807502467917079,
+      "toRatio": 16.65778251599147,
+      "pie": 13.849765258215962,
+      "poss": 207.8208,
+      "seasonHighs": {
+        "pts": {
+          "value": 15,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "fgm": {
+          "value": 5,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 1,
+          "seasonCode": 49,
+          "attempts": 9,
+          "pct": 55.6
+        },
+        "fgPct": {
+          "value": 100,
+          "date": "2026-10-22",
+          "opponentTeamCode": "50",
+          "times": 3,
+          "seasonCode": 49
+        },
+        "twoPm": {
+          "value": 4,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 2,
+          "seasonCode": 49
+        },
+        "twoPPct": {
+          "value": 100,
+          "date": "2026-10-24",
+          "opponentTeamCode": "35",
+          "times": 3,
+          "seasonCode": 49
+        },
+        "tpm": {
+          "value": 1,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 2,
+          "seasonCode": 49,
+          "attempts": 2,
+          "pct": 50
+        },
+        "tpPct": {
+          "value": 100,
+          "date": "2026-10-22",
+          "opponentTeamCode": "50",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "ftm": {
+          "value": 4,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 1,
+          "seasonCode": 49,
+          "attempts": 4,
+          "pct": 100
+        },
+        "ftPct": {
+          "value": 100,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 2,
+          "seasonCode": 49
+        },
+        "oreb": {
+          "value": 1,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 3,
+          "seasonCode": 49
+        },
+        "dreb": {
+          "value": 3,
+          "date": "2026-10-31",
+          "opponentTeamCode": "64",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "reb": {
+          "value": 4,
+          "date": "2026-10-31",
+          "opponentTeamCode": "64",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "ast": {
+          "value": 4,
+          "date": "2026-10-31",
+          "opponentTeamCode": "64",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "stl": {
+          "value": 1,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 2,
+          "seasonCode": 49
+        },
+        "blk": {
+          "value": 0,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 11,
+          "seasonCode": 49
+        }
+      },
+      "shotZones": {
+        "total": {
+          "attempts": 31,
+          "made": 16
+        },
+        "zones": {
+          "rim": {
+            "a": 12,
+            "m": 10
+          },
+          "paint": {
+            "a": 9,
+            "m": 4
+          },
+          "mid": {
+            "a": 2,
+            "m": 0
+          },
+          "corner3": {
+            "a": 5,
+            "m": 1
+          },
+          "arc3": {
+            "a": 3,
+            "m": 1
+          }
+        },
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 3,
+            "m": 0
+          },
+          "right": {
+            "a": 2,
+            "m": 1
+          }
+        }
+      }
+    },
+    {
       "playerNo": "291363",
       "nameKo": "윤원상",
       "nameEn": "YUN WON SANG",
@@ -16654,17 +16878,17 @@
         "round": 1,
         "pick": 8
       },
-      "games": 10,
-      "wins": 9,
+      "games": 11,
+      "wins": 10,
       "losses": 1,
-      "minutes": 106,
+      "minutes": 114,
       "points": 33,
       "fgm": 11,
-      "fga": 25,
-      "fgPct": 44,
+      "fga": 28,
+      "fgPct": 39.285714285714285,
       "tpm": 11,
-      "tpa": 24,
-      "tpPct": 45.83333333333333,
+      "tpa": 27,
+      "tpPct": 40.74074074074074,
       "twoPm": 0,
       "twoPa": 1,
       "twoPPct": 0,
@@ -16673,38 +16897,38 @@
       "ftPct": 0,
       "dunks": 0,
       "oreb": 2,
-      "dreb": 7,
-      "reb": 9,
+      "dreb": 8,
+      "reb": 10,
       "ast": 4,
-      "stl": 4,
+      "stl": 6,
       "blk": 0,
       "tov": 3,
       "goodDef": 0,
       "fouls": 4,
       "doubleDoubles": 0,
       "tripleDoubles": 0,
-      "plusMinus": 15,
+      "plusMinus": 21,
       "screenAst": 0,
       "deflections": 0,
-      "per": 12.4391393120779,
-      "offRtg": 132.21153846153845,
-      "defRtg": 106.57979407979407,
-      "netRtg": 25.63174438174438,
-      "efgPct": 66,
-      "tsPct": 66,
-      "astPct": 5.479452054794,
+      "per": 11.558669001751314,
+      "offRtg": 118.5344827586207,
+      "defRtg": 102.67989889979185,
+      "netRtg": 15.854583858828839,
+      "efgPct": 58.928571428571,
+      "tsPct": 58.92857142857143,
+      "astPct": 5.06329113924,
       "astTo": 1.3333333333333333,
-      "astRatio": 12.5,
-      "orebPct": 2.469135802469,
-      "drebPct": 6.542056074766,
-      "rebPct": 4.787234042553,
-      "usgPct": 12.131715771230503,
-      "usgPctRaw": 2.4263431542461005,
-      "pace": 74.5443694047432,
-      "tovPct": 10.714285714285714,
-      "toRatio": 12.019230769230768,
-      "pie": 15.217391304347828,
-      "poss": 196.608,
+      "astRatio": 11.428571428571429,
+      "orebPct": 2.298850574712,
+      "drebPct": 6.896551724137,
+      "rebPct": 4.926108374384,
+      "usgPct": 12.465819527103104,
+      "usgPctRaw": 2.4931639054206207,
+      "pace": 74.96406304728546,
+      "tovPct": 9.67741935483871,
+      "toRatio": 10.775862068965518,
+      "pie": 13.82716049382716,
+      "poss": 212.8128,
       "seasonHighs": {
         "pts": {
           "value": 9,
@@ -16731,16 +16955,16 @@
         },
         "twoPm": {
           "value": 0,
-          "date": "2026-11-01",
-          "opponentTeamCode": "55",
-          "times": 10,
+          "date": "2026-11-05",
+          "opponentTeamCode": "10",
+          "times": 11,
           "seasonCode": 49
         },
         "twoPPct": {
           "value": 0,
-          "date": "2026-11-01",
-          "opponentTeamCode": "55",
-          "times": 10,
+          "date": "2026-11-05",
+          "opponentTeamCode": "10",
+          "times": 11,
           "seasonCode": 49
         },
         "tpm": {
@@ -16761,18 +16985,18 @@
         },
         "ftm": {
           "value": 0,
-          "date": "2026-11-01",
-          "opponentTeamCode": "55",
-          "times": 10,
+          "date": "2026-11-05",
+          "opponentTeamCode": "10",
+          "times": 11,
           "seasonCode": 49,
           "attempts": null,
           "pct": null
         },
         "ftPct": {
           "value": 0,
-          "date": "2026-11-01",
-          "opponentTeamCode": "55",
-          "times": 10,
+          "date": "2026-11-05",
+          "opponentTeamCode": "10",
+          "times": 11,
           "seasonCode": 49
         },
         "oreb": {
@@ -16804,23 +17028,23 @@
           "seasonCode": 49
         },
         "stl": {
-          "value": 1,
-          "date": "2026-11-01",
-          "opponentTeamCode": "55",
-          "times": 4,
+          "value": 2,
+          "date": "2026-11-05",
+          "opponentTeamCode": "10",
+          "times": 1,
           "seasonCode": 49
         },
         "blk": {
           "value": 0,
-          "date": "2026-11-01",
-          "opponentTeamCode": "55",
-          "times": 10,
+          "date": "2026-11-05",
+          "opponentTeamCode": "10",
+          "times": 11,
           "seasonCode": 49
         }
       },
       "shotZones": {
         "total": {
-          "attempts": 25,
+          "attempts": 28,
           "made": 11
         },
         "zones": {
@@ -16841,7 +17065,7 @@
             "m": 0
           },
           "arc3": {
-            "a": 23,
+            "a": 26,
             "m": 11
           }
         },
@@ -17151,7 +17375,7 @@
       "pace": 68.66039538420252,
       "tovPct": 9.587727708533079,
       "toRatio": 19.18354818907305,
-      "pie": 10.55194805194805,
+      "pie": 10.51779935275081,
       "poss": 320.5248,
       "seasonHighs": {
         "pts": {
@@ -17755,230 +17979,6 @@
       }
     },
     {
-      "playerNo": "291275",
-      "nameKo": "김경원",
-      "nameEn": "KIM KYUNG WON",
-      "teamCode": "10",
-      "teamName": "울산 현대모비스",
-      "teamShort": "HYUNDAI MOBIS",
-      "isForeign": false,
-      "position": "C",
-      "positionLabel": "센터",
-      "positionGroup": "C",
-      "nationality": "domestic",
-      "heightCm": 198,
-      "weightKg": 101,
-      "backNumber": "17",
-      "draft": {
-        "year": 2019,
-        "round": 1,
-        "pick": 2
-      },
-      "games": 9,
-      "wins": 3,
-      "losses": 6,
-      "minutes": 99,
-      "points": 26,
-      "fgm": 11,
-      "fga": 22,
-      "fgPct": 50,
-      "tpm": 1,
-      "tpa": 6,
-      "tpPct": 16.666666666666664,
-      "twoPm": 10,
-      "twoPa": 16,
-      "twoPPct": 62.5,
-      "ftm": 3,
-      "fta": 4,
-      "ftPct": 75,
-      "dunks": 0,
-      "oreb": 2,
-      "dreb": 9,
-      "reb": 11,
-      "ast": 9,
-      "stl": 1,
-      "blk": 0,
-      "tov": 4,
-      "goodDef": 1,
-      "fouls": 9,
-      "doubleDoubles": 0,
-      "tripleDoubles": 0,
-      "plusMinus": -3,
-      "screenAst": 2,
-      "deflections": 0,
-      "per": 12.56544502617801,
-      "offRtg": 105.13716356107659,
-      "defRtg": 118.10932890855457,
-      "netRtg": -12.972165347477967,
-      "efgPct": 52.272727272727,
-      "tsPct": 54.71380471380472,
-      "astPct": 13.432835820895,
-      "astTo": 2.25,
-      "astRatio": 24.483133841131664,
-      "orebPct": 2.857142857142,
-      "drebPct": 10.714285714285,
-      "rebPct": 7.142857142857,
-      "usgPct": 14.690939881456394,
-      "usgPctRaw": 2.938187976291279,
-      "pace": 70.38465124134437,
-      "tovPct": 14.409221902017292,
-      "toRatio": 16.17494824016563,
-      "pie": 11.965811965811966,
-      "poss": 173.7216,
-      "seasonHighs": {
-        "pts": {
-          "value": 10,
-          "date": "2026-10-29",
-          "opponentTeamCode": "60",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "fgm": {
-          "value": 4,
-          "date": "2026-10-29",
-          "opponentTeamCode": "60",
-          "times": 1,
-          "seasonCode": 49,
-          "attempts": 7,
-          "pct": 57.1
-        },
-        "fgPct": {
-          "value": 100,
-          "date": "2026-10-22",
-          "opponentTeamCode": "50",
-          "times": 3,
-          "seasonCode": 49
-        },
-        "twoPm": {
-          "value": 4,
-          "date": "2026-10-29",
-          "opponentTeamCode": "60",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "twoPPct": {
-          "value": 100,
-          "date": "2026-10-24",
-          "opponentTeamCode": "35",
-          "times": 3,
-          "seasonCode": 49
-        },
-        "tpm": {
-          "value": 1,
-          "date": "2026-10-22",
-          "opponentTeamCode": "50",
-          "times": 1,
-          "seasonCode": 49,
-          "attempts": 1,
-          "pct": 100
-        },
-        "tpPct": {
-          "value": 100,
-          "date": "2026-10-22",
-          "opponentTeamCode": "50",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "ftm": {
-          "value": 2,
-          "date": "2026-10-29",
-          "opponentTeamCode": "60",
-          "times": 1,
-          "seasonCode": 49,
-          "attempts": 2,
-          "pct": 100
-        },
-        "ftPct": {
-          "value": 100,
-          "date": "2026-10-29",
-          "opponentTeamCode": "60",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "oreb": {
-          "value": 1,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 2,
-          "seasonCode": 49
-        },
-        "dreb": {
-          "value": 3,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "reb": {
-          "value": 4,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "ast": {
-          "value": 4,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "stl": {
-          "value": 1,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "blk": {
-          "value": 0,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 10,
-          "seasonCode": 49
-        }
-      },
-      "shotZones": {
-        "total": {
-          "attempts": 22,
-          "made": 11
-        },
-        "zones": {
-          "rim": {
-            "a": 8,
-            "m": 7
-          },
-          "paint": {
-            "a": 6,
-            "m": 3
-          },
-          "mid": {
-            "a": 2,
-            "m": 0
-          },
-          "corner3": {
-            "a": 4,
-            "m": 1
-          },
-          "arc3": {
-            "a": 2,
-            "m": 0
-          }
-        },
-        "offenseType": null,
-        "corners": {
-          "left": {
-            "a": 2,
-            "m": 0
-          },
-          "right": {
-            "a": 2,
-            "m": 1
-          }
-        }
-      }
-    },
-    {
       "playerNo": "291594",
       "nameKo": "김태완",
       "nameEn": "KIM TAE WAN",
@@ -17998,10 +17998,10 @@
         "round": 1,
         "pick": 5
       },
-      "games": 8,
+      "games": 9,
       "wins": 3,
-      "losses": 5,
-      "minutes": 72,
+      "losses": 6,
+      "minutes": 77,
       "points": 26,
       "fgm": 9,
       "fga": 15,
@@ -18019,36 +18019,36 @@
       "oreb": 1,
       "dreb": 4,
       "reb": 5,
-      "ast": 3,
+      "ast": 4,
       "stl": 2,
       "blk": 0,
-      "tov": 4,
+      "tov": 5,
       "goodDef": 0,
       "fouls": 10,
       "doubleDoubles": 0,
       "tripleDoubles": 0,
-      "plusMinus": -21,
+      "plusMinus": -26,
       "screenAst": 0,
       "deflections": 1,
-      "per": 14.538676607642126,
-      "offRtg": 143.44985875706215,
-      "defRtg": 125.93679298642533,
-      "netRtg": 17.513065770636807,
+      "per": 13.512343005630143,
+      "offRtg": 136.23407109322602,
+      "defRtg": 123.52579056505962,
+      "netRtg": 12.708280528166407,
       "efgPct": 80,
       "tsPct": 81.86397984886649,
-      "astPct": 6.382978723404,
-      "astTo": 0.75,
-      "astRatio": 13.111888111888113,
-      "orebPct": 1.851851851851,
-      "drebPct": 5.479452054794,
-      "rebPct": 3.937007874015,
-      "usgPct": 12.956204379562042,
-      "usgPctRaw": 2.5912408759124084,
-      "pace": 76.46359739049394,
-      "tovPct": 20.120724346076457,
-      "toRatio": 22.06920903954802,
-      "pie": 12.5,
-      "poss": 137.7024,
+      "astPct": 8,
+      "astTo": 0.8,
+      "astRatio": 16.077170418006432,
+      "orebPct": 1.694915254237,
+      "drebPct": 5.128205128205,
+      "rebPct": 3.649635036496,
+      "usgPct": 12.620889748549322,
+      "usgPctRaw": 2.5241779497098644,
+      "pace": 77.27230835859679,
+      "tovPct": 23.946360153256705,
+      "toRatio": 26.19885982562039,
+      "pie": 12.062256809338521,
+      "poss": 149.2224,
       "seasonHighs": {
         "pts": {
           "value": 17,
@@ -18142,9 +18142,9 @@
         },
         "ast": {
           "value": 1,
-          "date": "2026-10-29",
-          "opponentTeamCode": "60",
-          "times": 3,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 4,
           "seasonCode": 49
         },
         "stl": {
@@ -18156,9 +18156,9 @@
         },
         "blk": {
           "value": 0,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 10,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 11,
           "seasonCode": 49
         }
       },
@@ -18427,6 +18427,450 @@
       }
     },
     {
+      "playerNo": "290985",
+      "nameKo": "최성모",
+      "nameEn": "CHOI SEONG MO",
+      "teamCode": "35",
+      "teamName": "서울 삼성",
+      "teamShort": "SAMSUNG",
+      "isForeign": false,
+      "position": "G",
+      "positionLabel": "가드",
+      "positionGroup": "G",
+      "nationality": "domestic",
+      "heightCm": 187,
+      "weightKg": 82,
+      "backNumber": "7",
+      "draft": {
+        "year": 2016,
+        "round": 1,
+        "pick": 7
+      },
+      "games": 11,
+      "wins": 10,
+      "losses": 1,
+      "minutes": 116,
+      "points": 25,
+      "fgm": 9,
+      "fga": 21,
+      "fgPct": 42.857142857142854,
+      "tpm": 2,
+      "tpa": 11,
+      "tpPct": 18.181818181818183,
+      "twoPm": 7,
+      "twoPa": 10,
+      "twoPPct": 70,
+      "ftm": 5,
+      "fta": 6,
+      "ftPct": 83.33333333333334,
+      "dunks": 0,
+      "oreb": 3,
+      "dreb": 10,
+      "reb": 13,
+      "ast": 14,
+      "stl": 2,
+      "blk": 0,
+      "tov": 7,
+      "goodDef": 1,
+      "fouls": 20,
+      "doubleDoubles": 0,
+      "tripleDoubles": 0,
+      "plusMinus": 2,
+      "screenAst": 0,
+      "deflections": 2,
+      "per": 11.737629459148446,
+      "offRtg": 94.21731789676797,
+      "defRtg": 116.99330059415544,
+      "netRtg": -22.775982697387484,
+      "efgPct": 47.619047619047,
+      "tsPct": 52.876480541455166,
+      "astPct": 16.279069767441,
+      "astTo": 2,
+      "astRatio": 31.36200716845878,
+      "orebPct": 3.488372093023,
+      "drebPct": 9.615384615384,
+      "rebPct": 6.842105263157,
+      "usgPct": 12.557377049180332,
+      "usgPctRaw": 2.5114754098360663,
+      "pace": 71.73818181818181,
+      "tovPct": 22.845953002610965,
+      "toRatio": 26.38084901109503,
+      "pie": 5.617977528089888,
+      "poss": 204.48,
+      "seasonHighs": {
+        "pts": {
+          "value": 6,
+          "date": "2026-10-21",
+          "opponentTeamCode": "60",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "fgm": {
+          "value": 2,
+          "date": "2026-10-21",
+          "opponentTeamCode": "60",
+          "times": 2,
+          "seasonCode": 49,
+          "attempts": 3,
+          "pct": 66.7
+        },
+        "fgPct": {
+          "value": 100,
+          "date": "2026-10-24",
+          "opponentTeamCode": "10",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "twoPm": {
+          "value": 2,
+          "date": "2026-10-04",
+          "opponentTeamCode": "06",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "twoPPct": {
+          "value": 100,
+          "date": "2026-11-05",
+          "opponentTeamCode": "10",
+          "times": 3,
+          "seasonCode": 49
+        },
+        "tpm": {
+          "value": 1,
+          "date": "2026-10-21",
+          "opponentTeamCode": "60",
+          "times": 2,
+          "seasonCode": 49,
+          "attempts": 1,
+          "pct": 100
+        },
+        "tpPct": {
+          "value": 100,
+          "date": "2026-10-21",
+          "opponentTeamCode": "60",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "ftm": {
+          "value": 2,
+          "date": "2026-10-09",
+          "opponentTeamCode": "70",
+          "times": 1,
+          "seasonCode": 49,
+          "attempts": 2,
+          "pct": 100
+        },
+        "ftPct": {
+          "value": 100,
+          "date": "2026-11-01",
+          "opponentTeamCode": "55",
+          "times": 3,
+          "seasonCode": 49
+        },
+        "oreb": {
+          "value": 2,
+          "date": "2026-10-09",
+          "opponentTeamCode": "70",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "dreb": {
+          "value": 2,
+          "date": "2026-11-05",
+          "opponentTeamCode": "10",
+          "times": 3,
+          "seasonCode": 49
+        },
+        "reb": {
+          "value": 3,
+          "date": "2026-11-05",
+          "opponentTeamCode": "10",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "ast": {
+          "value": 3,
+          "date": "2026-11-01",
+          "opponentTeamCode": "55",
+          "times": 2,
+          "seasonCode": 49
+        },
+        "stl": {
+          "value": 1,
+          "date": "2026-11-05",
+          "opponentTeamCode": "10",
+          "times": 2,
+          "seasonCode": 49
+        },
+        "blk": {
+          "value": 0,
+          "date": "2026-11-05",
+          "opponentTeamCode": "10",
+          "times": 11,
+          "seasonCode": 49
+        }
+      },
+      "shotZones": {
+        "total": {
+          "attempts": 21,
+          "made": 9
+        },
+        "zones": {
+          "rim": {
+            "a": 0,
+            "m": 0
+          },
+          "paint": {
+            "a": 7,
+            "m": 6
+          },
+          "mid": {
+            "a": 2,
+            "m": 1
+          },
+          "corner3": {
+            "a": 1,
+            "m": 1
+          },
+          "arc3": {
+            "a": 11,
+            "m": 1
+          }
+        },
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 1,
+            "m": 1
+          }
+        }
+      }
+    },
+    {
+      "playerNo": "291475",
+      "nameKo": "오마리 스펠맨",
+      "nameEn": "Omari Spellman",
+      "teamCode": "10",
+      "teamName": "울산 현대모비스",
+      "teamShort": "HYUNDAI MOBIS",
+      "isForeign": true,
+      "position": "F",
+      "positionLabel": "포워드",
+      "positionGroup": "F",
+      "nationality": "foreign",
+      "heightCm": 206,
+      "weightKg": null,
+      "backNumber": "4",
+      "draft": null,
+      "games": 1,
+      "wins": 0,
+      "losses": 1,
+      "minutes": 38,
+      "points": 23,
+      "fgm": 7,
+      "fga": 19,
+      "fgPct": 36.84210526315789,
+      "tpm": 3,
+      "tpa": 10,
+      "tpPct": 30,
+      "twoPm": 4,
+      "twoPa": 9,
+      "twoPPct": 44.44444444444444,
+      "ftm": 6,
+      "fta": 6,
+      "ftPct": 100,
+      "dunks": 0,
+      "oreb": 2,
+      "dreb": 5,
+      "reb": 7,
+      "ast": 4,
+      "stl": 0,
+      "blk": 2,
+      "tov": 0,
+      "goodDef": 1,
+      "fouls": 3,
+      "doubleDoubles": 0,
+      "tripleDoubles": 0,
+      "plusMinus": -6,
+      "screenAst": 0,
+      "deflections": 0,
+      "per": 25.065274151436032,
+      "offRtg": 121.98744059742022,
+      "defRtg": 114.04055801921656,
+      "netRtg": 7.946882578203676,
+      "efgPct": 44.736842105263,
+      "tsPct": 53.14232902033272,
+      "astPct": 22.222222222222,
+      "astTo": 0,
+      "astRatio": 15.600624024960998,
+      "orebPct": 5.714285714285,
+      "drebPct": 15.625,
+      "rebPct": 10.447761194029,
+      "usgPct": 27.84354091610911,
+      "usgPctRaw": 5.568708183221822,
+      "pace": 72.62913838120105,
+      "tovPct": 0,
+      "toRatio": 0,
+      "pie": 29.457364341085274,
+      "poss": 69.8112,
+      "seasonHighs": {
+        "pts": {
+          "value": 23,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "fgm": {
+          "value": 7,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 1,
+          "seasonCode": 49,
+          "attempts": 19,
+          "pct": 36.8
+        },
+        "fgPct": {
+          "value": 36.8421052631579,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "twoPm": {
+          "value": 4,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "twoPPct": {
+          "value": 44.44444444444444,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "tpm": {
+          "value": 3,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 1,
+          "seasonCode": 49,
+          "attempts": 10,
+          "pct": 30
+        },
+        "tpPct": {
+          "value": 30,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "ftm": {
+          "value": 6,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 1,
+          "seasonCode": 49,
+          "attempts": 6,
+          "pct": 100
+        },
+        "ftPct": {
+          "value": 100,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "oreb": {
+          "value": 2,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "dreb": {
+          "value": 5,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "reb": {
+          "value": 7,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "ast": {
+          "value": 4,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "stl": {
+          "value": 0,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 1,
+          "seasonCode": 49
+        },
+        "blk": {
+          "value": 2,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 1,
+          "seasonCode": 49
+        }
+      },
+      "shotZones": {
+        "total": {
+          "attempts": 19,
+          "made": 7
+        },
+        "zones": {
+          "rim": {
+            "a": 1,
+            "m": 1
+          },
+          "paint": {
+            "a": 2,
+            "m": 0
+          },
+          "mid": {
+            "a": 4,
+            "m": 2
+          },
+          "corner3": {
+            "a": 0,
+            "m": 0
+          },
+          "arc3": {
+            "a": 12,
+            "m": 4
+          }
+        },
+        "offenseType": null,
+        "corners": {
+          "left": {
+            "a": 0,
+            "m": 0
+          },
+          "right": {
+            "a": 0,
+            "m": 0
+          }
+        }
+      }
+    },
+    {
       "playerNo": "290489",
       "nameKo": "정준원",
       "nameEn": "JUNG JOONWON",
@@ -18446,10 +18890,10 @@
         "round": 2,
         "pick": 4
       },
-      "games": 9,
+      "games": 10,
       "wins": 3,
-      "losses": 6,
-      "minutes": 48,
+      "losses": 7,
+      "minutes": 49,
       "points": 23,
       "fgm": 9,
       "fga": 17,
@@ -18475,28 +18919,28 @@
       "fouls": 9,
       "doubleDoubles": 0,
       "tripleDoubles": 0,
-      "plusMinus": -13,
+      "plusMinus": -12,
       "screenAst": 0,
       "deflections": 0,
-      "per": 15.977575332866154,
+      "per": 15.400202634245186,
       "offRtg": 141.93325434439177,
-      "defRtg": 132.37554355975408,
-      "netRtg": 9.557710784637699,
+      "defRtg": 130.20833333333334,
+      "netRtg": 11.724921011058452,
       "efgPct": 64.705882352941,
       "tsPct": 64.31767337807605,
       "astPct": 0,
       "astTo": 0,
       "astRatio": 0,
-      "orebPct": 4.761904761904,
-      "drebPct": 9.756097560975,
-      "rebPct": 7.22891566265,
-      "usgPct": 18.978689183755524,
-      "usgPctRaw": 3.7957378367511048,
-      "pace": 71.60644709180099,
+      "orebPct": 4.651162790697,
+      "drebPct": 9.090909090909,
+      "rebPct": 6.896551724137,
+      "usgPct": 18.423106947697114,
+      "usgPctRaw": 3.684621389539423,
+      "pace": 71.6955623100304,
       "tovPct": 5.296610169491526,
       "toRatio": 6.171011058451816,
-      "pie": 11.612903225806452,
-      "poss": 84.9408,
+      "pie": 10.909090909090908,
+      "poss": 87.8208,
       "seasonHighs": {
         "pts": {
           "value": 11,
@@ -18590,23 +19034,23 @@
         },
         "ast": {
           "value": 0,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 10,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 11,
           "seasonCode": 49
         },
         "stl": {
           "value": 0,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 10,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 11,
           "seasonCode": 49
         },
         "blk": {
           "value": 0,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 10,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 11,
           "seasonCode": 49
         }
       },
@@ -18870,230 +19314,6 @@
           "right": {
             "a": 2,
             "m": 0
-          }
-        }
-      }
-    },
-    {
-      "playerNo": "290985",
-      "nameKo": "최성모",
-      "nameEn": "CHOI SEONG MO",
-      "teamCode": "35",
-      "teamName": "서울 삼성",
-      "teamShort": "SAMSUNG",
-      "isForeign": false,
-      "position": "G",
-      "positionLabel": "가드",
-      "positionGroup": "G",
-      "nationality": "domestic",
-      "heightCm": 187,
-      "weightKg": 82,
-      "backNumber": "7",
-      "draft": {
-        "year": 2016,
-        "round": 1,
-        "pick": 7
-      },
-      "games": 10,
-      "wins": 9,
-      "losses": 1,
-      "minutes": 103,
-      "points": 23,
-      "fgm": 8,
-      "fga": 19,
-      "fgPct": 42.10526315789473,
-      "tpm": 2,
-      "tpa": 10,
-      "tpPct": 20,
-      "twoPm": 6,
-      "twoPa": 9,
-      "twoPPct": 66.66666666666666,
-      "ftm": 5,
-      "fta": 6,
-      "ftPct": 83.33333333333334,
-      "dunks": 0,
-      "oreb": 2,
-      "dreb": 8,
-      "reb": 10,
-      "ast": 14,
-      "stl": 1,
-      "blk": 0,
-      "tov": 7,
-      "goodDef": 1,
-      "fouls": 19,
-      "doubleDoubles": 0,
-      "tripleDoubles": 0,
-      "plusMinus": 0,
-      "screenAst": 0,
-      "deflections": 2,
-      "per": 11.247575953458307,
-      "offRtg": 89.93368368368368,
-      "defRtg": 121.39885863586358,
-      "netRtg": -31.465174952179904,
-      "efgPct": 47.368421052631,
-      "tsPct": 53.14232902033272,
-      "astPct": 17.721518987341,
-      "astTo": 2,
-      "astRatio": 32.833020637898684,
-      "orebPct": 2.631578947368,
-      "drebPct": 8.888888888888,
-      "rebPct": 6.024096385542,
-      "usgPct": 13.203024156371013,
-      "usgPctRaw": 2.6406048312742025,
-      "pace": 71.27208791208793,
-      "tovPct": 24.441340782122907,
-      "toRatio": 27.37112112112112,
-      "pie": 4.615384615384615,
-      "poss": 181.3632,
-      "seasonHighs": {
-        "pts": {
-          "value": 6,
-          "date": "2026-10-21",
-          "opponentTeamCode": "60",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "fgm": {
-          "value": 2,
-          "date": "2026-10-21",
-          "opponentTeamCode": "60",
-          "times": 2,
-          "seasonCode": 49,
-          "attempts": 3,
-          "pct": 66.7
-        },
-        "fgPct": {
-          "value": 100,
-          "date": "2026-10-24",
-          "opponentTeamCode": "10",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "twoPm": {
-          "value": 2,
-          "date": "2026-10-04",
-          "opponentTeamCode": "06",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "twoPPct": {
-          "value": 100,
-          "date": "2026-11-01",
-          "opponentTeamCode": "55",
-          "times": 2,
-          "seasonCode": 49
-        },
-        "tpm": {
-          "value": 1,
-          "date": "2026-10-21",
-          "opponentTeamCode": "60",
-          "times": 2,
-          "seasonCode": 49,
-          "attempts": 1,
-          "pct": 100
-        },
-        "tpPct": {
-          "value": 100,
-          "date": "2026-10-21",
-          "opponentTeamCode": "60",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "ftm": {
-          "value": 2,
-          "date": "2026-10-09",
-          "opponentTeamCode": "70",
-          "times": 1,
-          "seasonCode": 49,
-          "attempts": 2,
-          "pct": 100
-        },
-        "ftPct": {
-          "value": 100,
-          "date": "2026-11-01",
-          "opponentTeamCode": "55",
-          "times": 3,
-          "seasonCode": 49
-        },
-        "oreb": {
-          "value": 2,
-          "date": "2026-10-09",
-          "opponentTeamCode": "70",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "dreb": {
-          "value": 2,
-          "date": "2026-11-01",
-          "opponentTeamCode": "55",
-          "times": 2,
-          "seasonCode": 49
-        },
-        "reb": {
-          "value": 2,
-          "date": "2026-11-01",
-          "opponentTeamCode": "55",
-          "times": 3,
-          "seasonCode": 49
-        },
-        "ast": {
-          "value": 3,
-          "date": "2026-11-01",
-          "opponentTeamCode": "55",
-          "times": 2,
-          "seasonCode": 49
-        },
-        "stl": {
-          "value": 1,
-          "date": "2026-10-11",
-          "opponentTeamCode": "66",
-          "times": 1,
-          "seasonCode": 49
-        },
-        "blk": {
-          "value": 0,
-          "date": "2026-11-01",
-          "opponentTeamCode": "55",
-          "times": 10,
-          "seasonCode": 49
-        }
-      },
-      "shotZones": {
-        "total": {
-          "attempts": 19,
-          "made": 8
-        },
-        "zones": {
-          "rim": {
-            "a": 0,
-            "m": 0
-          },
-          "paint": {
-            "a": 6,
-            "m": 5
-          },
-          "mid": {
-            "a": 2,
-            "m": 1
-          },
-          "corner3": {
-            "a": 1,
-            "m": 1
-          },
-          "arc3": {
-            "a": 10,
-            "m": 1
-          }
-        },
-        "offenseType": null,
-        "corners": {
-          "left": {
-            "a": 0,
-            "m": 0
-          },
-          "right": {
-            "a": 1,
-            "m": 1
           }
         }
       }
@@ -20272,8 +20492,8 @@
       "deflections": 1,
       "per": 5.111821086261981,
       "offRtg": 93.00595238095238,
-      "defRtg": 106.02428218932256,
-      "netRtg": -13.018329808370186,
+      "defRtg": 106.41815827986039,
+      "netRtg": -13.412205898908026,
       "efgPct": 32.142857142857,
       "tsPct": 44.642857142857146,
       "astPct": 7.5,
@@ -20284,7 +20504,7 @@
       "rebPct": 1.626016260162,
       "usgPct": 15.871587158715869,
       "usgPctRaw": 3.174317431743174,
-      "pace": 71.2178913738019,
+      "pace": 71.08293929712461,
       "tovPct": 4.725897920604915,
       "toRatio": 5.166997354497354,
       "pie": -2.9239766081871346,
@@ -22022,57 +22242,57 @@
         "round": 3,
         "pick": 2
       },
-      "games": 4,
-      "wins": 3,
+      "games": 5,
+      "wins": 4,
       "losses": 1,
-      "minutes": 14,
+      "minutes": 27,
       "points": 9,
       "fgm": 3,
-      "fga": 6,
-      "fgPct": 50,
+      "fga": 8,
+      "fgPct": 37.5,
       "tpm": 0,
       "tpa": 3,
       "tpPct": 0,
       "twoPm": 3,
-      "twoPa": 3,
-      "twoPPct": 100,
+      "twoPa": 5,
+      "twoPPct": 60,
       "ftm": 3,
       "fta": 4,
       "ftPct": 75,
       "dunks": 0,
-      "oreb": 2,
+      "oreb": 3,
       "dreb": 3,
-      "reb": 5,
-      "ast": 1,
-      "stl": 1,
+      "reb": 6,
+      "ast": 5,
+      "stl": 2,
       "blk": 0,
       "tov": 0,
       "goodDef": 0,
-      "fouls": 6,
+      "fouls": 7,
       "doubleDoubles": 0,
       "tripleDoubles": 0,
-      "plusMinus": 19,
+      "plusMinus": 25,
       "screenAst": 0,
       "deflections": 0,
-      "per": 34.90909090909091,
-      "offRtg": 162.76041666666669,
-      "defRtg": 89.21288743882545,
-      "netRtg": 73.54752922784122,
-      "efgPct": 50,
-      "tsPct": 57.98969072164948,
-      "astPct": 9.090909090909,
+      "per": 23.45754428833232,
+      "offRtg": 138.68343195266272,
+      "defRtg": 90.68256371435781,
+      "netRtg": 48.00086823830491,
+      "efgPct": 37.5,
+      "tsPct": 46.10655737704918,
+      "astPct": 21.739130434782,
       "astTo": 0,
-      "astRatio": 11.415525114155251,
-      "orebPct": 20,
-      "drebPct": 25,
-      "rebPct": 22.727272727272,
-      "usgPct": 23.774509803921568,
-      "usgPctRaw": 4.754901960784314,
-      "pace": 72.83432727272726,
+      "astRatio": 33.87533875338754,
+      "orebPct": 13.636363636363,
+      "drebPct": 12.5,
+      "rebPct": 13.043478260869,
+      "usgPct": 14.628297362110311,
+      "usgPctRaw": 2.9256594724220624,
+      "pace": 77.10025656689066,
       "tovPct": 0,
       "toRatio": 0,
-      "pie": 14.925373134328359,
-      "poss": 26.5344,
+      "pie": 11.029411764705882,
+      "poss": 54.4512,
       "seasonHighs": {
         "pts": {
           "value": 5,
@@ -22113,18 +22333,18 @@
         },
         "tpm": {
           "value": 0,
-          "date": "2026-11-01",
-          "opponentTeamCode": "55",
-          "times": 7,
+          "date": "2026-11-05",
+          "opponentTeamCode": "10",
+          "times": 8,
           "seasonCode": 49,
-          "attempts": 2,
-          "pct": 0
+          "attempts": null,
+          "pct": null
         },
         "tpPct": {
           "value": 0,
-          "date": "2026-11-01",
-          "opponentTeamCode": "55",
-          "times": 7,
+          "date": "2026-11-05",
+          "opponentTeamCode": "10",
+          "times": 8,
           "seasonCode": 49
         },
         "ftm": {
@@ -22145,9 +22365,9 @@
         },
         "oreb": {
           "value": 1,
-          "date": "2026-11-01",
-          "opponentTeamCode": "55",
-          "times": 2,
+          "date": "2026-11-05",
+          "opponentTeamCode": "10",
+          "times": 3,
           "seasonCode": 49
         },
         "dreb": {
@@ -22165,30 +22385,30 @@
           "seasonCode": 49
         },
         "ast": {
-          "value": 1,
-          "date": "2026-11-01",
-          "opponentTeamCode": "55",
+          "value": 4,
+          "date": "2026-11-05",
+          "opponentTeamCode": "10",
           "times": 1,
           "seasonCode": 49
         },
         "stl": {
           "value": 1,
-          "date": "2026-10-24",
+          "date": "2026-11-05",
           "opponentTeamCode": "10",
-          "times": 1,
+          "times": 2,
           "seasonCode": 49
         },
         "blk": {
           "value": 0,
-          "date": "2026-11-01",
-          "opponentTeamCode": "55",
-          "times": 7,
+          "date": "2026-11-05",
+          "opponentTeamCode": "10",
+          "times": 8,
           "seasonCode": 49
         }
       },
       "shotZones": {
         "total": {
-          "attempts": 6,
+          "attempts": 8,
           "made": 3
         },
         "zones": {
@@ -22197,11 +22417,11 @@
             "m": 0
           },
           "paint": {
-            "a": 2,
+            "a": 3,
             "m": 2
           },
           "mid": {
-            "a": 1,
+            "a": 2,
             "m": 1
           },
           "corner3": {
@@ -23048,9 +23268,9 @@
         },
         "dreb": {
           "value": 0,
-          "date": "2026-11-01",
-          "opponentTeamCode": "55",
-          "times": 10,
+          "date": "2026-11-05",
+          "opponentTeamCode": "10",
+          "times": 11,
           "seasonCode": 49
         },
         "reb": {
@@ -23076,9 +23296,9 @@
         },
         "blk": {
           "value": 0,
-          "date": "2026-11-01",
-          "opponentTeamCode": "55",
-          "times": 10,
+          "date": "2026-11-05",
+          "opponentTeamCode": "10",
+          "times": 11,
           "seasonCode": 49
         }
       },
@@ -23697,25 +23917,25 @@
         },
         "ftm": {
           "value": 0,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 10,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 11,
           "seasonCode": 49,
           "attempts": null,
           "pct": null
         },
         "ftPct": {
           "value": 0,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 10,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 11,
           "seasonCode": 49
         },
         "oreb": {
           "value": 0,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 10,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 11,
           "seasonCode": 49
         },
         "dreb": {
@@ -23748,9 +23968,9 @@
         },
         "blk": {
           "value": 0,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 10,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 11,
           "seasonCode": 49
         }
       },
@@ -27869,48 +28089,48 @@
         },
         "fgm": {
           "value": 0,
-          "date": "2026-11-01",
-          "opponentTeamCode": "55",
-          "times": 9,
+          "date": "2026-11-05",
+          "opponentTeamCode": "10",
+          "times": 10,
           "seasonCode": 49,
           "attempts": null,
           "pct": null
         },
         "fgPct": {
           "value": 0,
-          "date": "2026-11-01",
-          "opponentTeamCode": "55",
-          "times": 9,
+          "date": "2026-11-05",
+          "opponentTeamCode": "10",
+          "times": 10,
           "seasonCode": 49
         },
         "twoPm": {
           "value": 0,
-          "date": "2026-11-01",
-          "opponentTeamCode": "55",
-          "times": 9,
+          "date": "2026-11-05",
+          "opponentTeamCode": "10",
+          "times": 10,
           "seasonCode": 49
         },
         "twoPPct": {
           "value": 0,
-          "date": "2026-11-01",
-          "opponentTeamCode": "55",
-          "times": 9,
+          "date": "2026-11-05",
+          "opponentTeamCode": "10",
+          "times": 10,
           "seasonCode": 49
         },
         "tpm": {
           "value": 0,
-          "date": "2026-11-01",
-          "opponentTeamCode": "55",
-          "times": 9,
+          "date": "2026-11-05",
+          "opponentTeamCode": "10",
+          "times": 10,
           "seasonCode": 49,
           "attempts": null,
           "pct": null
         },
         "tpPct": {
           "value": 0,
-          "date": "2026-11-01",
-          "opponentTeamCode": "55",
-          "times": 9,
+          "date": "2026-11-05",
+          "opponentTeamCode": "10",
+          "times": 10,
           "seasonCode": 49
         },
         "ftm": {
@@ -27952,23 +28172,23 @@
         },
         "ast": {
           "value": 0,
-          "date": "2026-11-01",
-          "opponentTeamCode": "55",
-          "times": 9,
+          "date": "2026-11-05",
+          "opponentTeamCode": "10",
+          "times": 10,
           "seasonCode": 49
         },
         "stl": {
           "value": 0,
-          "date": "2026-11-01",
-          "opponentTeamCode": "55",
-          "times": 9,
+          "date": "2026-11-05",
+          "opponentTeamCode": "10",
+          "times": 10,
           "seasonCode": 49
         },
         "blk": {
           "value": 0,
-          "date": "2026-11-01",
-          "opponentTeamCode": "55",
-          "times": 9,
+          "date": "2026-11-05",
+          "opponentTeamCode": "10",
+          "times": 10,
           "seasonCode": 49
         }
       },
@@ -28093,48 +28313,48 @@
         },
         "fgm": {
           "value": 0,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 6,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 7,
           "seasonCode": 49,
-          "attempts": 1,
-          "pct": 0
+          "attempts": null,
+          "pct": null
         },
         "fgPct": {
           "value": 0,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 6,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 7,
           "seasonCode": 49
         },
         "twoPm": {
           "value": 0,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 6,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 7,
           "seasonCode": 49
         },
         "twoPPct": {
           "value": 0,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 6,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 7,
           "seasonCode": 49
         },
         "tpm": {
           "value": 0,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 6,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 7,
           "seasonCode": 49,
           "attempts": null,
           "pct": null
         },
         "tpPct": {
           "value": 0,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 6,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 7,
           "seasonCode": 49
         },
         "ftm": {
@@ -28155,23 +28375,23 @@
         },
         "oreb": {
           "value": 0,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 6,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 7,
           "seasonCode": 49
         },
         "dreb": {
           "value": 0,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 6,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 7,
           "seasonCode": 49
         },
         "reb": {
           "value": 0,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 6,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 7,
           "seasonCode": 49
         },
         "ast": {
@@ -28183,16 +28403,16 @@
         },
         "stl": {
           "value": 0,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 6,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 7,
           "seasonCode": 49
         },
         "blk": {
           "value": 0,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 6,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 7,
           "seasonCode": 49
         }
       },
@@ -30098,71 +30318,71 @@
       "seasonHighs": {
         "pts": {
           "value": 0,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 3,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 4,
           "seasonCode": 49
         },
         "fgm": {
           "value": 0,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 3,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 4,
           "seasonCode": 49,
           "attempts": null,
           "pct": null
         },
         "fgPct": {
           "value": 0,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 3,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 4,
           "seasonCode": 49
         },
         "twoPm": {
           "value": 0,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 3,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 4,
           "seasonCode": 49
         },
         "twoPPct": {
           "value": 0,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 3,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 4,
           "seasonCode": 49
         },
         "tpm": {
           "value": 0,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 3,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 4,
           "seasonCode": 49,
           "attempts": null,
           "pct": null
         },
         "tpPct": {
           "value": 0,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 3,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 4,
           "seasonCode": 49
         },
         "ftm": {
           "value": 0,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 3,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 4,
           "seasonCode": 49,
           "attempts": null,
           "pct": null
         },
         "ftPct": {
           "value": 0,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 3,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 4,
           "seasonCode": 49
         },
         "oreb": {
@@ -30174,9 +30394,9 @@
         },
         "dreb": {
           "value": 0,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 3,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 4,
           "seasonCode": 49
         },
         "reb": {
@@ -30188,23 +30408,23 @@
         },
         "ast": {
           "value": 0,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 3,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 4,
           "seasonCode": 49
         },
         "stl": {
           "value": 0,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 3,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 4,
           "seasonCode": 49
         },
         "blk": {
           "value": 0,
-          "date": "2026-10-31",
-          "opponentTeamCode": "64",
-          "times": 3,
+          "date": "2026-11-05",
+          "opponentTeamCode": "35",
+          "times": 4,
           "seasonCode": 49
         }
       },
@@ -31205,24 +31425,24 @@
   },
   "shotZoneLeague": {
     "rim": {
-      "a": 1198,
-      "m": 810
+      "a": 1232,
+      "m": 833
     },
     "paint": {
-      "a": 1980,
-      "m": 1126
+      "a": 2000,
+      "m": 1133
     },
     "mid": {
-      "a": 972,
-      "m": 399
+      "a": 994,
+      "m": 405
     },
     "corner3": {
-      "a": 380,
-      "m": 132
+      "a": 388,
+      "m": 136
     },
     "arc3": {
-      "a": 2735,
-      "m": 957
+      "a": 2787,
+      "m": 974
     }
   },
   "champion": null,
