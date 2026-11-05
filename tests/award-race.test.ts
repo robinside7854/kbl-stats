@@ -1,4 +1,4 @@
-// 시상 레이스 (lib/award-race) — MVP 자격(팀 4위·출전 2/3·종합 B)·묶음(국내 / 외국+아시아쿼터)·팀 가중 점수, MIP 조건, 머리말 칩
+// 시상 레이스 (lib/award-race) — MVP 자격(팀 4위·출전 2/3·종합 B)·묶음(국내+아시아쿼터 / 외국)·팀 가중 점수, MIP 조건, 머리말 칩
 import assert from "node:assert/strict";
 import { buildAwardRace, gradeSteps, MVP_MIN_OVERALL, mvpScore, raceRankText, raceTagsOf } from "../lib/award-race";
 import { decodeSeasonCards, encodeSeasonCards } from "../lib/cards";
@@ -60,11 +60,13 @@ for (const c of race.mvp.domestic) {
   assert.ok(c.team.rank <= 4 && c.score >= Math.round(MVP_MIN_OVERALL));
   assert.equal(c.stats.length, 8, "지표 7개 + PER");
 }
-// ── 외국·아시아쿼터는 한 묶음 ──
+// ── 아시아쿼터는 국내 묶음, 외국 묶음은 외국 선수만 ──
 const fr = race.mvp.foreign.map((c) => c.id);
-assert.ok(fr.includes("f1") && fr.includes("a1"), "아시아쿼터도 외국 묶음 후보");
+assert.ok(dom.includes("a1"), "아시아쿼터는 국내 묶음 후보");
+assert.ok(fr.includes("f1") && !fr.includes("a1"), "외국 묶음엔 아시아쿼터가 없음");
+assert.ok(race.mvp.foreign.every((c) => c.nationality === "foreign"));
 assert.ok(!fr.includes("f3"), "5위 팀 외국 선수는 빠짐");
-assert.equal(race.mvp.foreign.find((c) => c.id === "a1")?.nationality, "asia", "국적 표시는 원래 값");
+assert.equal(race.mvp.domestic.find((c) => c.id === "a1")?.nationality, "asia", "국적 표시는 원래 값");
 assert.ok(race.mvp.foreign.length <= 3 && race.mvp.domestic.length <= 3);
 // 점수: 개인 60% + 팀 승률 40%
 assert.equal(mvpScore(80, 0.9), 84);

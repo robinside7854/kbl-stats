@@ -1,6 +1,6 @@
 "use client";
 // 홈 "시상 레이스" 한 줄 카드 (2026-11-05 사용자: 기록 탭 시상 레이스 + 홈 + 선수 머리말 칩).
-// 국내 MVP 1위 · 외국·아시아쿼터 MVP 1위 · MIP 1위 세 사람만 — 누르면 /records/race (전체 후보·지표별 순위).
+// 국내 MVP 1위 · 외국 선수 MVP 1위 · MIP 1위 세 사람만 — 누르면 /records/race (전체 후보·지표별 순위).
 // GA4: award_race_open {place: "home"}
 import Link from "next/link";
 import { MVP_GROUP_LABELS, type AwardRace } from "@/lib/award-race";

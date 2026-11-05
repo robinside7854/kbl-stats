@@ -1,5 +1,5 @@
 "use client";
-// 기록 탭 "시상 레이스" (/records/race, 2026-11-05 사용자): 이번 시즌 MVP 후보(국내 선수 / 외국·아시아쿼터 각 3명) + MIP 후보(전체 3명).
+// 기록 탭 "시상 레이스" (/records/race, 2026-11-05 사용자): 이번 시즌 MVP 후보(국내 선수(아시아쿼터 포함) / 외국 선수 각 3명) + MIP 후보(전체 3명).
 // 규칙은 lib/award-race (팀 4위 이내·팀 경기 2/3 이상·종합 B 이상, MVP 점수 = 개인 60% + 팀 승률 40% / MIP 볼륨·효율·출전 시간·등급 모두 상승),
 // 재료는 lib/data loadAwardRace — 기록을 받을 때마다 다시 계산된다. 설명은 ⓘ(NoteInfo) 안에만.
 // GA4: award_race_click {kind: mvp_domestic·mvp_foreign·mip, player_no} — 후보 이름·사진을 눌러 선수 페이지로
@@ -23,7 +23,7 @@ const pct = (v: number) => Math.round(v * 100);
 const MVP_NOTE =
   `후보 자격: 팀이 지금 ${MVP_TEAM_RANK_MAX}위 이내, 팀 경기의 ${Math.round(MVP_MIN_GAMES_SHARE * 3)}/3 이상 출전, 종합 등급 B 이상. ` +
   `MVP 점수 = 개인 종합 점수 ${pct(1 - MVP_TEAM_WEIGHT)}% + 팀 승률 ${pct(MVP_TEAM_WEIGHT)}%. ` +
-  "국내 선수와 외국·아시아쿼터 선수는 따로 뽑고, 외국·아시아쿼터의 종합 점수와 지표 순위는 둘을 합친 선수들 안에서 다시 매겨요. KBL 공식 시상 기준이 아닌 우리 규칙이에요.";
+  "국내 선수와 외국 선수는 따로 뽑아요. 아시아쿼터 선수는 국내 선수로 쳐요. KBL 공식 시상 기준이 아닌 우리 규칙이에요.";
 
 const MIP_NOTE =
   `지난 시즌과 이번 시즌 모두 출전 기준을 채운 선수 중 출전 시간·경기당 득점+리바운드+어시스트·TS%·PER 이 모두 오르고, ` +
@@ -136,7 +136,7 @@ function MvpCard({ c, group, team, seasonCode, colors }: { c: MvpCandidate; grou
                   · {pos} {c.posRank.rank}위/{c.posRank.of}
                 </span>
               )}
-              {group === "foreign" && c.nationality === "asia" && <span className="whitespace-nowrap">· {NATIONALITY_LABELS.asia}</span>}
+              {c.nationality === "asia" && <span className="whitespace-nowrap">· {NATIONALITY_LABELS.asia}</span>}
             </p>
           </PlayerHead>
         </div>

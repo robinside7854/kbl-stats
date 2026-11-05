@@ -1,13 +1,12 @@
 // 시상 레이스 — 이번 시즌 MVP·MIP 후보 (2026-11-05 사용자 기준). 순수 함수만, 재료는 lib/data loadAwardRace.
 // 화면: 기록 탭 "시상 레이스"(/records/race, AwardRaceView) · 홈 한 줄 카드(AwardRaceStrip) · 선수 머리말 칩(PlayerHero).
 //
-// MVP (묶음 둘: 국내 선수 / 외국·아시아쿼터 — 2026-11-05 사용자: 외국과 아시아쿼터는 합친다)
+// MVP (묶음 둘: 국내 선수(아시아쿼터 포함) / 외국 선수 — 2026-11-05 사용자: 아시아쿼터는 국내 선수로 분류)
 //   - 자격: 기본 표본 기준을 채우고, 팀 경기의 2/3 이상 뛰고, 팀이 지금 4위 이내, 개인 종합 점수 55(종합 B) 이상
 //   - 순위: MVP 점수 = 개인 종합 점수 × 0.6 + 팀 승률(%) × 0.4 (2026-11-05 사용자: 삼성이 압도적 1위인데 후보가 적다 → 팀 성적 가중치)
 //     같으면 개인 점수 → 팀 순위. 묶음마다 3명까지
-//   - 개인 종합 점수: 국내 선수는 사이트 등급과 같은 풀(국내+아시아쿼터, lib/metrics gradeGroupOf),
-//     외국·아시아쿼터는 둘을 한 풀로 다시 매긴다(아시아쿼터를 국내 풀 점수로 외국 선수와 비교하면 기준이 달라서)
-//   - 지표별 순위: 같은 묶음(국내끼리 / 외국·아시아쿼터끼리) 안, 성공률은 리그 시도 기준을 채운 선수끼리
+//   - 개인 종합 점수: 사이트 등급과 같은 풀(국내+아시아쿼터 / 외국, lib/metrics gradeGroupOf)
+//   - 지표별 순위: 같은 묶음(국내+아시아쿼터끼리 / 외국끼리) 안, 성공률은 리그 시도 기준을 채운 선수끼리
 // MIP (전체 선수, 3명)
 //   - 지난 시즌·이번 시즌 모두 표본 기준을 채운 선수 중, 경기당 출전 시간 증가 · 경기당 득점+리바운드+어시스트 증가 ·
 //     TS%·PER 둘 다 증가 · 종합 등급 1단계 이상 · 종합 점수 15 이상 상승 — 모두 만족. 팀 성적은 보지 않는다
@@ -40,9 +39,9 @@ export const MIP_MIN_GRADE_STEPS = 1;
 
 export type MvpGroup = "domestic" | "foreign";
 export const MVP_GROUPS: readonly MvpGroup[] = ["domestic", "foreign"];
-export const MVP_GROUP_LABELS: Record<MvpGroup, string> = { domestic: "국내 선수", foreign: "외국·아시아쿼터" };
+export const MVP_GROUP_LABELS: Record<MvpGroup, string> = { domestic: "국내 선수", foreign: "외국 선수" };
 /** 지표 순위 앞에 붙는 짧은 이름 ("국내 2위") */
-export const MVP_GROUP_SHORT: Record<MvpGroup, string> = { domestic: "국내", foreign: "외국·AQ" };
+export const MVP_GROUP_SHORT: Record<MvpGroup, string> = { domestic: "국내", foreign: "외국" };
 
 /** MVP 카드에 보이는 지표 (CARD_STATS 키 + PER) */
 const MVP_STAT_KEYS = ["points", "reb", "ast", "stl", "blk", "fgPct", "tpPct"] as const;
@@ -141,16 +140,15 @@ export function mvpScore(individual: number, teamPct: number): number {
   return round1(individual * (1 - MVP_TEAM_WEIGHT) + teamPct * 100 * MVP_TEAM_WEIGHT);
 }
 
+/** 아시아쿼터는 국내 선수 묶음 (2026-11-05 사용자) — 사이트 등급 풀과 같다 */
 function groupOfPlayer(p: CardPlayer): MvpGroup {
-  return (p.nationality ?? (p.isForeign ? "foreign" : "domestic")) === "domestic" ? "domestic" : "foreign";
+  return (p.nationality ?? (p.isForeign ? "foreign" : "domestic")) === "foreign" ? "foreign" : "domestic";
 }
 
-/** 묶음 하나의 등급·순위 재료. foreign 묶음은 아시아쿼터를 외국 풀로 옮겨 다시 매긴다 */
+/** 묶음 하나의 등급·순위 재료 (등급은 사이트와 같은 풀, 순위는 그 묶음 선수끼리) */
 function groupContext(cards: SeasonCards, group: MvpGroup): { ctx: CardContext; members: CardPlayer[] } {
-  const players =
-    group === "foreign" ? cards.players.map((p) => (p.nationality === "asia" ? { ...p, nationality: "foreign" as const } : p)) : cards.players;
-  const grading = buildGradingContext(players, cards.defaults.rule, cards.coverage);
-  const members = players.filter((p) => groupOfPlayer(p) === group);
+  const grading = buildGradingContext(cards.players, cards.defaults.rule, cards.coverage);
+  const members = cards.players.filter((p) => groupOfPlayer(p) === group);
   const ctx = buildCardContext(members, cards.defaults.rule, cards.coverage, { thresholds: cards.defaults.thresholds, grading });
   return { ctx, members };
 }
@@ -194,7 +192,7 @@ export function mvpCandidates(cards: SeasonCards, standings: readonly StandingRo
       teamCode: p.teamCode,
       position: p.position,
       positionGroup: p.positionGroup,
-      nationality: cards.players.find((x) => x.id === p.id)?.nationality ?? p.nationality,
+      nationality: p.nationality,
       grade: e.overall,
       score: gradeScore(ind) ?? 0,
       mvpScore: mvpScore(ind, t.pct),

@@ -1,4 +1,4 @@
-// "기록" 메뉴 · 시상 레이스 탭 (/records/race, 2026-11-05 사용자): 이번 시즌 MVP 후보(국내 / 외국·아시아쿼터 각 3명) + MIP 후보 3명.
+// "기록" 메뉴 · 시상 레이스 탭 (/records/race, 2026-11-05 사용자): 이번 시즌 MVP 후보(국내+아시아쿼터 / 외국 각 3명) + MIP 후보 3명.
 // 규칙 lib/award-race, 재료 lib/data loadAwardRace(진행 중 시즌만 — 시즌이 끝났거나 개막 전이면 안내 한 줄).
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -12,7 +12,7 @@ import SourceFooter from "@/app/components/SourceFooter";
 
 export const metadata: Metadata = shareMetadata({
   title: "시상 레이스 · KBL - Stats Reference",
-  description: "이번 시즌 KBL MVP·MIP 후보 — 국내 선수·외국·아시아쿼터 MVP 레이스와 기량 발전 후보, 지표별 순위. 기록이 들어올 때마다 바뀌는 우리 기준. 비영리 팬 프로젝트.",
+  description: "이번 시즌 KBL MVP·MIP 후보 — 국내 선수·외국 선수 MVP 레이스와 기량 발전 후보, 지표별 순위. 기록이 들어올 때마다 바뀌는 우리 기준. 비영리 팬 프로젝트.",
   path: "/records/race", image: ogImagePath.records(),
 });
 
