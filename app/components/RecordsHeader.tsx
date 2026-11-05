@@ -2,6 +2,7 @@
 // "기록" 메뉴 머리말 + 탭 한 줄 (2026-10-06 사용자 결정: 리더보드와 역대 기록을 한 메뉴로 — 탭 안에 탭을 두지 않는다).
 // 시즌별(시즌 리더보드 /season/{코드}/leaders) · 통산(/records) · 한 경기 최다 · 한 시즌 최다 · 수상(/records/awards, 시즌 어워즈 + 수상 횟수).
 // 2026-10-16 탭 셋 추가: 리그 변화(/records/trends) · 드래프트(/records/draft) · 외국 선수 명예의 전당(/records/foreign). 2026-10-28 클러치(/records/clutch). 2026-10-30 프로필(/records/profile — 키·몸무게·나이 순위, 키 대비 기록).
+// 2026-11-05 시상 레이스(/records/race — 이번 시즌 MVP·MIP 후보, 시즌별 바로 옆).
 // 탭이 열 개라 폰에서는 이 줄만 옆으로 밀린다(페이지는 밀리지 않음) — 지금 탭이 처음부터 보이게 줄을 그 탭까지 옮겨 둔다.
 // 탭은 각자 주소라 링크로 옮긴다. GA4: filter_change screen=records filter=tab.
 import Link from "next/link";
@@ -10,11 +11,12 @@ import type { GlossaryKey } from "@/lib/glossary";
 import InfoLink from "./InfoLink";
 import { trackFilters } from "./track";
 
-export type RecordsTab = "leaders" | "career" | "game" | "season" | "clutch" | "awards" | "trends" | "draft" | "foreign" | "profile";
+export type RecordsTab = "leaders" | "race" | "career" | "game" | "season" | "clutch" | "awards" | "trends" | "draft" | "foreign" | "profile";
 
 // short: 폰(640px 미만)에서 줄인 이름 (탭이 많아 폰에서는 줄이 옆으로 밀린다)
 const TABS: { key: RecordsTab; label: string; short?: string; href: (leadersSeason: number) => string }[] = [
   { key: "leaders", label: "시즌별", href: (c) => `/season/${c}/leaders` },
+  { key: "race", label: "시상 레이스", href: () => "/records/race" },
   { key: "career", label: "통산", href: () => "/records" },
   { key: "game", label: "한 경기 최다", short: "한 경기", href: () => "/records/game" },
   { key: "season", label: "한 시즌 최다", short: "한 시즌", href: () => "/records/season" },

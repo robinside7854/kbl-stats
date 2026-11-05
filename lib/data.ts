@@ -64,6 +64,7 @@ import { CLUTCH_LIST_DEFS, clutchFgMinAttempts, clutchFgPct, clutchRecordValue, 
 import { attachFeatContexts, domesticFromIndex, performancesFromGames } from "./feat-context";
 import { oddsSeed, playoffOdds, priorFromSeason, teamRatings, upcomingWinProbs, type PlayoffOdds } from "./predict";
 import { pickRegularChampions } from "./game-pool";
+import { buildAwardRace, type AwardRace } from "./award-race";
 import teamLineage from "@/data/codes/team-lineage.json";
 import {
   buildTenures, franchiseLeaders, franchiseTotals, lineageChain, longestTenures, nameSpans, pickLegends, playoffStage, TEAM_LEADER_STATS,
@@ -185,6 +186,21 @@ export function loadTeamStrip(teamCode: string): { seasonCode: number; seasonSho
   const opps: Record<string, OppBrand> = {};
   for (const g of [...strip.past, ...strip.next]) opps[g.oppCode] = infos[g.oppCode] ?? { shortName: g.oppName, logoUrl: null, color: FALLBACK_TEAM_COLOR };
   return { seasonCode: latest.seasonCode, seasonShort: seasonShortLabel(latest.seasonLabel), ...strip, opps };
+}
+
+// 시상 레이스 (2026-11-05, lib/award-race): 진행 중 시즌의 MVP·MIP 후보. 끝난 시즌·개막 전·지난 시즌이 없으면 null
+let awardRaceCache: AwardRace | null | undefined;
+export function loadAwardRace(): AwardRace | null {
+  if (awardRaceCache !== undefined) return awardRaceCache;
+  const [cur, prev] = listSeasonsWithPlayers();
+  awardRaceCache = null;
+  if (!cur || !prev || !isSeasonOngoing(cur.seasonCode)) return null;
+  const cards = loadSeasonCards(cur.seasonCode);
+  const prevCards = loadSeasonCards(prev.seasonCode);
+  const standings = computeStandings(loadSeasonGames(cur.seasonCode));
+  if (!cards || !prevCards || standings.length === 0) return null;
+  awardRaceCache = buildAwardRace(cards, prevCards, standings);
+  return awardRaceCache;
 }
 
 /**

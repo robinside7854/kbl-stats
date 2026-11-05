@@ -31,6 +31,21 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-11-05-award-race",
+    date: "2026-11-05",
+    kind: "update",
+    title: "이번 시즌 MVP·MIP 레이스를 열었어요",
+    summary: "MVP·MIP 레이스 시작",
+    blocks: [
+      { kind: "p", text: "기록 탭에 시상 레이스가 생겼어요. 지금 팀 성적과 개인 기록으로 이번 시즌 MVP 후보를 국내 선수, 외국·아시아쿼터로 나눠 3명씩 뽑고, 지난 시즌보다 가장 많이 오른 MIP 후보 3명도 보여 줘요." },
+      { kind: "p", text: "MVP 는 팀 성적을 꽤 크게 반영해요. 후보마다 득점·리바운드 같은 지표가 같은 묶음에서 몇 위인지도 나와요. 기록이 들어올 때마다 순위가 바뀌어요." },
+      { kind: "list", items: [
+        { text: "시상 레이스 보기", href: "/records/race" },
+        "홈에는 1위 세 명, 후보 선수 페이지에는 MVP 후보 칩이 붙어요",
+      ] },
+    ],
+  },
+  {
     slug: "2026-11-04-team-strip-stats",
     date: "2026-11-04",
     kind: "update",

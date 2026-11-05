@@ -21,6 +21,7 @@ import { MILESTONE_STEPS, type Milestone } from "@/lib/records";
 import { IconChevronRight, IconInfo, IconTrophy } from "./icons";
 import HelpPopover from "./HelpPopover";
 import BadgeRow, { type BadgeItem } from "./BadgeRow";
+import RaceChip from "./RaceChip";
 
 const FALLBACK: TeamColor = FALLBACK_TEAM_COLOR;
 const NF1 = new Intl.NumberFormat("ko-KR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
@@ -37,9 +38,11 @@ interface Props {
   badges: BadgeItem[];
   /** 현역 선수의 다음 통산 이정표 (lib/records nextMilestones, 은퇴 선수는 []) */
   milestones?: Milestone[];
+  /** 이번 시즌 시상 레이스 후보 칩 ("MVP 후보 1위" — lib/award-race raceTagsOf, 후보가 아니면 []) */
+  raceTags?: string[];
 }
 
-export default function PlayerHero({ entry, seasons, today, badges, milestones = [] }: Props) {
+export default function PlayerHero({ entry, seasons, today, badges, milestones = [], raceTags = [] }: Props) {
   const latest = seasons[seasons.length - 1];
   const first = seasons[0];
   const team = latest?.team ?? null;
@@ -100,7 +103,7 @@ export default function PlayerHero({ entry, seasons, today, badges, milestones =
               <span className="whitespace-nowrap">{NATIONALITY_LABELS[nationalityOf(entry)]}</span>
               {span && <span className="whitespace-nowrap"> · {span}</span>}
             </p>
-            {(heroAwards.length > 0 || entry.rosterStatus) && (
+            {(heroAwards.length > 0 || entry.rosterStatus || raceTags.length > 0) && (
               <div className="mt-3 flex flex-wrap gap-1.5 text-sub font-semibold">
                 {heroAwards.map((a) => (
                   <span
@@ -129,6 +132,9 @@ export default function PlayerHero({ entry, seasons, today, badges, milestones =
                     </span>
                   </HelpPopover>
                 )}
+                {raceTags.map((t) => (
+                  <RaceChip key={t} label={t} />
+                ))}
               </div>
             )}
             {badges.length > 0 && (

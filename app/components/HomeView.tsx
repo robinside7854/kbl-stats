@@ -19,6 +19,8 @@ import GameDayBoard, { type GameTeamInfo } from "./GameDayBoard";
 import { seasonTitle, type GameDay, type SeasonProgress } from "@/lib/games";
 import SeasonProgressBar from "./SeasonProgressBar";
 import RecentFeats from "./RecentFeats";
+import AwardRaceStrip from "./AwardRaceStrip";
+import type { AwardRace } from "@/lib/award-race";
 import type { RecentFeat } from "@/lib/notifications";
 
 const GRAY: TeamColor = FALLBACK_TEAM_COLOR;
@@ -50,12 +52,14 @@ interface Props {
   feats?: RecentFeat[];
   /** 팀 코드 → 2경기 이상 연승·연패 (다음 경기 줄에 표시) */
   streaks?: Record<string, { label: string; kind: "W" | "L" }>;
+  /** 이번 시즌 시상 레이스 (lib/data loadAwardRace — 진행 중 시즌만, 아니면 null) */
+  race?: AwardRace | null;
 }
 
 /** 순위표 부문 링크 (득점은 기본 부문이라 쿼리 없음 — lib/leaders DEFAULT_CATEGORY) */
 const leadersHref = (code: number, key: LeaderStatKey) => `/season/${code}/leaders${key === "points" ? "" : `?cat=${key}`}`;
 
-export default function HomeView({ season, fetchedLabel, asOf = null, upcoming, categories, teams, qualifyText, birthdays, gameDay = null, nextGameDay = null, gameTeams = {}, progress = null, feats = [], streaks = {} }: Props) {
+export default function HomeView({ season, fetchedLabel, asOf = null, upcoming, categories, teams, qualifyText, birthdays, gameDay = null, nextGameDay = null, gameTeams = {}, progress = null, feats = [], streaks = {}, race = null }: Props) {
   const teamByCode = new Map(teams.map((t) => [t.teamCode, t]));
   const code = season.seasonCode;
   const short = seasonShortLabel(season.seasonLabel);
@@ -82,6 +86,8 @@ export default function HomeView({ season, fetchedLabel, asOf = null, upcoming, 
       {gameDay && <GameDayBoard day={gameDay} next={nextGameDay} seasonCode={code} teams={gameTeams} streaks={streaks} />}
 
       {gameDay && <RecentFeats feats={feats} latestDate={gameDay.date} />}
+
+      {race && !upcoming && <AwardRaceStrip race={race} />}
 
       {heroItems.length > 0 && <HomeHero items={heroItems} seasonCode={code} />}
 

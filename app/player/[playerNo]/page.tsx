@@ -26,7 +26,9 @@ import {
   loadPlayerGameRanges,
   loadPlayerRecentGames,
   loadPlayerClutch,
+  loadAwardRace,
 } from "@/lib/data";
+import { raceTagsOf } from "@/lib/award-race";
 import { activeSpanLabel, seasonShortLabel, seoulDateIso } from "@/lib/career";
 import { teamShortLabel } from "@/lib/images";
 import { buildSeasonCardView } from "@/lib/cardview";
@@ -115,7 +117,7 @@ export default async function PlayerPage({ params }: { params: Params }) {
           teamLabel={`${seasonShortLabel(latest.seasonLabel)} ${teamShortLabel(latest.team?.shortName ?? latest.teamShort)}`}
           color={latest.team?.color ?? FALLBACK_TEAM_COLOR}
         />
-        <PlayerHero entry={entry} seasons={seasons} today={today} badges={badges} milestones={loadMilestones(playerNo)} />
+        <PlayerHero entry={entry} seasons={seasons} today={today} badges={badges} milestones={loadMilestones(playerNo)} raceTags={raceTagsOf(loadAwardRace(), playerNo)} />
         <div className="mx-auto mt-6 max-w-page px-4">
           {card ? (
             <PlayerSeasonCards
