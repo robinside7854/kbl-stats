@@ -64,7 +64,7 @@ import { CLUTCH_LIST_DEFS, clutchFgMinAttempts, clutchFgPct, clutchRecordValue, 
 import { attachFeatContexts, domesticFromIndex, performancesFromGames } from "./feat-context";
 import { oddsSeed, playoffOdds, priorFromSeason, teamRatings, upcomingWinProbs, type PlayoffOdds } from "./predict";
 import { pickRegularChampions } from "./game-pool";
-import { buildAwardRace, type AwardRace } from "./award-race";
+import { buildAwardRace, MIP_HISTORY_SEASONS, type AwardRace } from "./award-race";
 import teamLineage from "@/data/codes/team-lineage.json";
 import {
   buildTenures, franchiseLeaders, franchiseTotals, lineageChain, longestTenures, nameSpans, pickLegends, playoffStage, TEAM_LEADER_STATS,
@@ -192,14 +192,20 @@ export function loadTeamStrip(teamCode: string): { seasonCode: number; seasonSho
 let awardRaceCache: AwardRace | null | undefined;
 export function loadAwardRace(): AwardRace | null {
   if (awardRaceCache !== undefined) return awardRaceCache;
-  const [cur, prev] = listSeasonsWithPlayers();
+  const [cur, prev, ...rest] = listSeasonsWithPlayers();
   awardRaceCache = null;
   if (!cur || !prev || !isSeasonOngoing(cur.seasonCode)) return null;
   const cards = loadSeasonCards(cur.seasonCode);
   const prevCards = loadSeasonCards(prev.seasonCode);
   const standings = computeStandings(loadSeasonGames(cur.seasonCode));
   if (!cards || !prevCards || standings.length === 0) return null;
-  awardRaceCache = buildAwardRace(cards, prevCards, standings);
+  const older = rest
+    .slice(0, MIP_HISTORY_SEASONS - 1)
+    .flatMap((s) => {
+      const c = loadSeasonCards(s.seasonCode);
+      return c ? [c] : [];
+    });
+  awardRaceCache = buildAwardRace(cards, prevCards, standings, older);
   return awardRaceCache;
 }
 

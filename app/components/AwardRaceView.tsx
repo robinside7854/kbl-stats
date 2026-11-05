@@ -1,10 +1,11 @@
 "use client";
 // 기록 탭 "시상 레이스" (/records/race, 2026-11-05 사용자): 이번 시즌 MVP 후보(국내 선수(아시아쿼터 포함) / 외국 선수 각 3명) + MIP 후보(전체 3명).
-// 규칙은 lib/award-race (팀 4위 이내·팀 경기 2/3 이상·종합 B 이상, MVP 점수 = 개인 60% + 팀 승률 40% / MIP 볼륨·효율·출전 시간·등급 모두 상승),
+// 규칙은 lib/award-race (지난 11시즌 실제 MVP 기록으로 잡은 기준: 팀 6위 이내·출전·기록 합·종합 점수 하한, MVP 점수 = 개인 30% + 팀 승률 40% + 기록 합 30%
+// / MIP 지난 시즌 C 이하 → 이번 시즌 B 이상 + 최근 3시즌 평균 C 이하 + 볼륨·효율·출전 시간 상승),
 // 재료는 lib/data loadAwardRace — 기록을 받을 때마다 다시 계산된다. 설명은 ⓘ(NoteInfo) 안에만.
 // GA4: award_race_click {kind: mvp_domestic·mvp_foreign·mip, player_no} — 후보 이름·사진을 눌러 선수 페이지로
 import Link from "next/link";
-import { MVP_GROUP_LABELS, MVP_GROUPS, MVP_MIN_GAMES_SHARE, MVP_TEAM_RANK_MAX, MVP_TEAM_WEIGHT, MIP_MIN_SCORE_GAIN, type AwardRace, type MipCandidate, type MipLine, type MvpCandidate, type MvpGroup } from "@/lib/award-race";
+import { MIP_HISTORY_SEASONS, MIP_MIN_SCORE_GAIN, MVP_GROUP_LABELS, MVP_GROUP_RULES, MVP_GROUPS, MVP_MIN_GAMES_SHARE, MVP_PROD_RANK_MAX, MVP_TEAM_RANK_MAX, MVP_WEIGHTS, type AwardRace, type MipCandidate, type MipLine, type MvpCandidate, type MvpGroup } from "@/lib/award-race";
 import { seasonShortLabel } from "@/lib/career";
 import { playerHref } from "@/lib/cardview";
 import { NATIONALITY_LABELS, positionLabel } from "@/lib/roster";
@@ -20,14 +21,17 @@ import { useThemeColors, type ThemeColors } from "./useThemeColors";
 
 const pct = (v: number) => Math.round(v * 100);
 
+const { domestic: DR, foreign: FR } = MVP_GROUP_RULES;
 const MVP_NOTE =
-  `후보 자격: 팀이 지금 ${MVP_TEAM_RANK_MAX}위 이내, 팀 경기의 ${Math.round(MVP_MIN_GAMES_SHARE * 3)}/3 이상 출전, 종합 등급 B 이상. ` +
-  `MVP 점수 = 개인 종합 점수 ${pct(1 - MVP_TEAM_WEIGHT)}% + 팀 승률 ${pct(MVP_TEAM_WEIGHT)}%. ` +
-  "국내 선수와 외국 선수는 따로 뽑아요. 아시아쿼터 선수는 국내 선수로 쳐요. KBL 공식 시상 기준이 아닌 우리 규칙이에요.";
+  `지난 11시즌 실제 MVP들의 기록을 보고 정한 기준이에요. 팀이 지금 ${MVP_TEAM_RANK_MAX}위 이내, 팀 경기의 ${Math.round(MVP_MIN_GAMES_SHARE * 3)}/3 이상 출전, ` +
+  `기록 합(경기당 득점+리바운드+어시스트+스틸+블록)이 같은 묶음 ${MVP_PROD_RANK_MAX}위 안. ` +
+  `국내 선수는 경기당 ${DR.minMpg}분·종합 ${DR.minOverall}점 이상, 외국 선수는 ${FR.minMpg}분·${FR.minOverall}점 이상이어야 해요. ` +
+  `MVP 점수 = 개인 종합 점수 ${pct(MVP_WEIGHTS.overall)}% + 팀 승률 ${pct(MVP_WEIGHTS.team)}% + 기록 합 순위 ${pct(MVP_WEIGHTS.prod)}%. ` +
+  "아시아쿼터 선수는 국내 선수로 쳐요. KBL 공식 시상 기준이 아닌 우리 규칙이에요.";
 
 const MIP_NOTE =
-  `지난 시즌과 이번 시즌 모두 출전 기준을 채운 선수 중 출전 시간·경기당 득점+리바운드+어시스트·TS%·PER 이 모두 오르고, ` +
-  `종합 등급이 한 단계 이상·종합 점수가 ${MIP_MIN_SCORE_GAIN}점 이상 오른 선수예요. 오른 폭이 큰 순서, 팀 성적은 보지 않아요. KBL 공식 시상 기준이 아닌 우리 규칙이에요.`;
+  `지난 시즌 종합 C 이하였다가 이번 시즌 B 이상으로 올라온 선수예요. 최근 ${MIP_HISTORY_SEASONS}시즌 평균도 C 이하여야 해서, 원래 잘하던 선수가 반등한 경우는 빠져요. ` +
+  `출전 시간·경기당 득점+리바운드+어시스트·TS%·PER 도 모두 오르고 종합 점수가 ${MIP_MIN_SCORE_GAIN}점 이상 올라야 해요. 오른 폭이 큰 순서, 팀 성적은 보지 않아요. KBL 공식 시상 기준이 아닌 우리 규칙이에요.`;
 
 export default function AwardRaceView({ race }: { race: AwardRace }) {
   const colors = useThemeColors();
@@ -145,7 +149,7 @@ function MvpCard({ c, group, team, seasonCode, colors }: { c: MvpCandidate; grou
           <p className="tabular text-h2 font-black text-ink">{c.mvpScore.toFixed(1)}</p>
         </div>
       </div>
-      <dl className="tabular mt-3 grid grid-cols-4 gap-x-2 gap-y-2.5 border-t border-line pt-3 sm:grid-cols-8">
+      <dl className="tabular mt-3 grid grid-cols-3 gap-x-2 gap-y-2.5 border-t border-line pt-3 sm:grid-cols-9">
         {c.stats.map((s) => {
           const top = s.rank !== null && s.rank <= 3;
           return (
@@ -215,7 +219,7 @@ function MipCard({ m, team, seasonCode, colors }: { m: MipCandidate; team: TeamB
         })}
       </dl>
       <p className="tabular mt-2 text-caption text-ink-3">
-        {m.prev.games}경기 출전 · 올 시즌 {m.cur.games}경기
+        지난 시즌 {m.prev.games}경기 · 올 시즌 {m.cur.games}경기 · 최근 {m.recent.seasons}시즌 평균 {m.recent.score}점
       </p>
     </li>
   );
