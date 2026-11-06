@@ -58,7 +58,7 @@ import { pickPrimeSeasons, primeCandidatesOf, type PrimeCandidate } from "./prim
 import { DEFAULT_QUALIFY, buildCardEntry, gradeGroupOf, isDomesticPool, isOngoingSeason, isQualified, seasonDefaultQualify } from "./metrics";
 import { seasonContext } from "./cardview";
 import { asOfLabel, computeStandings, headToHead, latestGameDay, playerRecentGames, teamGameStrip, type HeadToHeadRecord, type OppBrand, type PlayerRecentGame, type TeamHeadToHeadLine, type TeamStripGame } from "./games";
-import { buildNotifItems, careerHighsFromIndex, careerSumsFromSeasons, featGroups, homeFeatItems, leagueSeasonRecords, type RecentFeat } from "./notifications";
+import { buildNotifItems, careerHighsFromIndex, careerSumsFromSeasons, pastHighsFromSeasons, featGroups, homeFeatItems, leagueSeasonRecords, type RecentFeat } from "./notifications";
 import { FALLBACK_TEAM_COLOR } from "./teams";
 import { CLUTCH_LIST_DEFS, clutchFgMinAttempts, clutchFgPct, clutchRecordValue, collectPlayerClutch, shotInStage, sumClutchTotals, winningLabel, winningLine, type ClutchStage, type ClutchTotals, type PlayerClutchRaw, type WinningEntry } from "./clutch";
 import { attachFeatContexts, domesticFromIndex, performancesFromGames } from "./feat-context";
@@ -280,6 +280,8 @@ export function loadRecentFeats(seasonCode: number): RecentFeat[] {
     teamShort,
     careerHighs: careerHighsFromIndex(loadPlayersIndex()),
     careerSums: careerSumsFromSeasons(seasonFiles),
+    pastHighs: pastHighsFromSeasons(seasonFiles, seasonCode),
+    names: Object.fromEntries(loadPlayersIndex().map((p) => [p.id, p.nameKo])),
   };
   // 홈 규칙(2026-10-11): 커리어 하이 + 이번 시즌 리그 최고 갱신 + 통산 득점·출전 이정표만
   // 맥락 꼬리표(2026-10-16, lib/feat-context): "올 시즌 40득점 이상은 리그 2번째" · "이보다 높이 올라간 국내 선수는 역대 7명"

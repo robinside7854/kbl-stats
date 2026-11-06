@@ -60,6 +60,12 @@ export interface FeatInfo {
   value: number;
   /** "올 시즌 40득점 이상은 리그 2번째" 같은 맥락 한두 줄 (lib/feat-context attachFeatContexts 가 붙인다, 없으면 없음) */
   context?: string[];
+  /**
+   * 직전 기준 한 줄 (2026-11-06 사용자 "기록 갱신은 직전 기준이 뭐였는지 — 누구를 넘었거나 가장 최근 기록이 언제였는지").
+   * 커리어 하이 "이전 최고 18득점 · 2024년 1월 5일" · 타이 "처음 기록 10월 21일" · 리그 최고 "이전 최고 A 28득점 · 10월 26일"
+   * · 개인 시즌 최다 "이전 시즌 최다 15득점 · 10월 20일" · 이정표 "넘은 선수 B 5,998득점 · 지금 역대 27위" · 위닝샷 "올 시즌 3번째 · 직전 C 10월 24일"
+   */
+  prev?: string;
 }
 
 /** season = 그 선수의 이번 시즌 최다(알림함), league = 이번 시즌 리그 전체 최고 기록 갱신(홈), buzzer·winning·winningFt = 버저비터·위닝샷·결승 자유투 (2026-10-28) */
@@ -134,6 +140,55 @@ export interface NotifContext {
   careerHighs: Record<string, Partial<Record<HighKey, { value: number; date: string; seasonCode: number }>>>;
   /** 선수 번호 → 지금까지 통산 합계 (이번 시즌 포함) */
   careerSums: Record<string, CareerSums>;
+  /** 선수 번호 → 이번 시즌 앞 시즌들의 정규시즌 한 경기 최고(값·날짜, pastHighsFromSeasons) — 커리어 하이의 "이전 최고" 재료. 없으면 이번 시즌 앞 경기만 본다 */
+  pastHighs?: Record<string, Partial<Record<HighKey, HighMark>>>;
+  /** 선수 번호 → 이름 — 이정표 "넘은 선수" 재료. 없으면 그 줄을 안 만든다 */
+  names?: Record<string, string>;
+}
+
+/** 이정표 "넘은 선수 · 지금 역대 N위" 는 이 순위 안일 때만 */
+export const MILESTONE_RANK_MAX = 100;
+
+/** 한 경기 기록 하나 (값·날짜 "2024-01-05") */
+export interface HighMark {
+  value: number;
+  date: string;
+}
+
+/** 값이 크면 그것, 같으면 더 최근 날짜 (직전 기준은 "가장 최근"에 같은 값을 낸 경기) */
+function betterMark(a: HighMark | null | undefined, b: HighMark | null | undefined): HighMark | null {
+  if (!a || a.value <= 0) return b && b.value > 0 ? b : null;
+  if (!b || b.value <= 0) return a;
+  if (b.value !== a.value) return b.value > a.value ? b : a;
+  return b.date > a.date ? b : a;
+}
+
+/** 날짜 표기: 이번 시즌(seasonStart 이후)이면 "10월 26일", 그 전이면 "2024년 1월 5일" */
+export function featDateLabel(date: string, seasonStart: string | null): string {
+  const [y, m, d] = date.split("-").map(Number);
+  if (!y || !m || !d) return date;
+  return seasonStart && date >= seasonStart ? `${m}월 ${d}일` : `${y}년 ${m}월 ${d}일`;
+}
+
+/** 시즌 파일들 → 선수별 이번 시즌(seasonCode) 앞 시즌들의 한 경기 최고 (seasonHighs, 값이 같으면 더 최근) */
+export function pastHighsFromSeasons(
+  seasons: readonly { seasonCode: number; players: readonly { playerNo: string; seasonHighs?: Partial<Record<string, { value: number; date: string | null } | null>> | null }[] }[],
+  seasonCode: number,
+): NonNullable<NotifContext["pastHighs"]> {
+  const out: NonNullable<NotifContext["pastHighs"]> = {};
+  for (const season of seasons) {
+    if (season.seasonCode >= seasonCode) continue;
+    for (const p of season.players) {
+      for (const h of HIGH_KEYS) {
+        const sh = p.seasonHighs?.[h.key];
+        if (!sh || !(sh.value > 0) || !sh.date) continue;
+        const mine = (out[p.playerNo] ??= {});
+        const next = betterMark(mine[h.key], { value: sh.value, date: sh.date });
+        if (next) mine[h.key] = next;
+      }
+    }
+  }
+  return out;
 }
 
 const NF = new Intl.NumberFormat("ko-KR");
@@ -232,18 +287,81 @@ export function buildNotifItems(allGames: readonly SeasonGame[], ctx: NotifConte
     }
     after.set(g.gmkey, snap);
   }
+  // 지금 running = 시즌 시작 직전 통산. 경기 순서 i 직후 다른 선수 통산 = 시작 값 + 그 선수의 i 까지 경기 (이정표 "넘은 선수")
+  const timeline = new Map<string, { i: number; sums: CareerSums }[]>();
+  {
+    const acc = new Map<string, CareerSums>();
+    ordered.forEach((g, i) => {
+      for (const side of ["home", "away"] as const) {
+        const won = (g[side].score ?? 0) > (g[side === "home" ? "away" : "home"].score ?? 0);
+        for (const r of g.box![side]) {
+          const base = running.get(r.id);
+          if (!base || r.sec <= 0) continue;
+          const cur = acc.get(r.id) ?? { ...base };
+          cur.points += r.pts; cur.reb += r.reb; cur.ast += r.ast; cur.stl += r.stl; cur.blk += r.blk; cur.tpm += r.tpm;
+          cur.games += 1;
+          if (won) cur.wins += 1;
+          acc.set(r.id, cur);
+          const list = timeline.get(r.id) ?? [];
+          list.push({ i, sums: { ...cur } });
+          timeline.set(r.id, list);
+        }
+      }
+    });
+  }
+  const orderIndex = new Map(ordered.map((g, i) => [g.gmkey, i]));
+  const sumAt = (id: string, key: MilestoneKey, i: number): number => {
+    const list = timeline.get(id);
+    let v = running.get(id)?.[key] ?? 0;
+    if (list) for (const e of list) { if (e.i > i) break; v = e.sums[key]; }
+    return v;
+  };
+  const seasonStart = ordered[0]?.date ?? null;
+  /** 이 경기로 넘어선 선수 중 가장 높은 사람 + 지금 역대 순위 (넘은 사람이 없으면 없음) */
+  const milestonePassed = (id: string, key: MilestoneKey, was: number, now: number, i: number, unit: (n: string) => string): string | undefined => {
+    if (i < 0 || !ctx.names) return undefined;
+    let rank = 1;
+    let passed: { id: string; v: number } | null = null;
+    for (const o of Object.keys(ctx.careerSums)) {
+      if (o === id) continue;
+      const vAfter = sumAt(o, key, i);
+      const vBefore = sumAt(o, key, i - 1);
+      if (vAfter > now) rank++;
+      if (vBefore > was && vAfter < now && (!passed || vAfter > passed.v)) passed = { id: o, v: vAfter };
+    }
+    // 역대 순위는 MILESTONE_RANK_MAX 위 안일 때만 (1,000득점 역대 345위 같은 줄은 소식이 아니라서 — 우리 규칙)
+    if (rank > MILESTONE_RANK_MAX) return undefined;
+    // 넘은 사람이 없으면 줄을 안 만든다 (역대 몇 번째는 맥락 꼬리표에 이미 있다)
+    return passed ? `넘은 선수 ${ctx.names[passed.id] ?? passed.id} ${unit(NF.format(passed.v))} · 지금 역대 ${rank}위` : undefined;
+  };
+  // 위닝샷 직전 기록 (이번 시즌 정규시즌, 경기 순서) — 버저비터는 버저비터끼리
+  const winningOrder = ordered.filter((g) => g.winning);
+  const winningPrev = (g: SeasonGame): { prev?: string } => {
+    const buzzer = !!g.winning?.buzzer;
+    const same = winningOrder.filter((x) => !!x.winning!.buzzer === buzzer);
+    const at = same.findIndex((x) => x.gmkey === g.gmkey);
+    if (at < 0) return {};
+    const what = buzzer ? "버저비터" : "위닝샷";
+    if (at === 0) return { prev: `올 시즌 첫 ${what}` };
+    const last = same[at - 1];
+    return { prev: `올 시즌 ${at + 1}번째 ${what} · 직전 ${last.winning!.nameKo} ${featDateLabel(last.date, seasonStart)}` };
+  };
   // 시즌 최다: 이 경기 전까지 이번 시즌 최고 기록·경기 수
-  const seasonBest = new Map<string, { games: number } & Record<HighKey, number>>();
-  const prior = new Map<string, Map<string, { games: number } & Record<HighKey, number>>>();
+  type SeasonBest = { games: number; dates: Partial<Record<HighKey, string>> } & Record<HighKey, number>;
+  const seasonBest = new Map<string, SeasonBest>();
+  const prior = new Map<string, Map<string, SeasonBest>>();
   for (const g of ordered) {
-    const snap = new Map<string, { games: number } & Record<HighKey, number>>();
+    const snap = new Map<string, SeasonBest>();
     for (const side of ["home", "away"] as const) {
       for (const r of g.box![side]) {
         if (r.sec <= 0) continue;
-        const b = seasonBest.get(r.id) ?? { games: 0, pts: 0, reb: 0, ast: 0, tpm: 0, stl: 0, blk: 0 };
-        snap.set(r.id, { ...b });
+        const b = seasonBest.get(r.id) ?? { games: 0, pts: 0, reb: 0, ast: 0, tpm: 0, stl: 0, blk: 0, dates: {} };
+        snap.set(r.id, { ...b, dates: { ...b.dates } });
         b.games += 1;
-        for (const h of HIGH_KEYS) b[h.key] = Math.max(b[h.key], r[h.key]);
+        for (const h of HIGH_KEYS) {
+          if (r[h.key] > 0 && r[h.key] >= b[h.key]) b.dates[h.key] = g.date;
+          b[h.key] = Math.max(b[h.key], r[h.key]);
+        }
         seasonBest.set(r.id, b);
       }
     }
@@ -286,6 +404,7 @@ export function buildNotifItems(allGames: readonly SeasonGame[], ctx: NotifConte
             level: w.buzzer ? "buzzer" : w.kind === "ft" ? "winningFt" : "winning",
             text: winningMoment(w),
             context: [winningScore(w, g.home.teamCode)],
+            ...winningPrev(g),
             game: text,
             won,
             stat: winner ? playerStatLine(winner) : "",
@@ -338,11 +457,25 @@ export function buildNotifItems(allGames: readonly SeasonGame[], ctx: NotifConte
           const v = r[h.key];
           if (v < h.min) continue;
           const career = ctx.careerHighs[r.id]?.[h.key];
+          // 이 경기 전 최고 = 지난 시즌들(pastHighs) + 이번 시즌 앞 경기 중 최고 (값이 같으면 더 최근)
+          const thisSeasonBefore: HighMark | null = before && before[h.key] > 0 && before.dates[h.key] ? { value: before[h.key], date: before.dates[h.key]! } : null;
+          const prevBest = betterMark(ctx.pastHighs?.[r.id]?.[h.key], thisSeasonBefore);
           let label: string | null = null;
-          if (veteran && career && career.seasonCode === ctx.seasonCode && career.value === v) {
-            label = career.date === g.date ? "커리어 하이" : "커리어 하이 타이";
+          // 직전 기준 (2026-11-06): 커리어 하이 = 이전 최고 값·날짜, 타이 = 직전에 같은 값을 낸 날, 시즌 최다 = 이번 시즌 앞 경기 최고
+          let prev: string | undefined;
+          if (veteran && career && career.seasonCode === ctx.seasonCode && career.value === v && !(prevBest && prevBest.value > v)) {
+            // 공홈 한 경기 최다는 같은 값이면 가장 최근 경기 날짜를 준다 — 앞에 같은 값이 있었으면 "타이" (2026-11-06 발견)
+            const tie = career.date !== g.date || prevBest?.value === v;
+            label = tie ? "커리어 하이 타이" : "커리어 하이";
+            if (tie) {
+              const d = prevBest?.value === v ? prevBest.date : career.date < g.date ? career.date : null;
+              if (d) prev = `직전 같은 기록 · ${featDateLabel(d, seasonStart)}`;
+            } else if (prevBest) {
+              prev = `이전 최고 ${h.text(prevBest.value)} · ${featDateLabel(prevBest.date, seasonStart)}`;
+            }
           } else if (before && before.games >= SEASON_HIGH_MIN_PRIOR_GAMES && v > before[h.key]) {
             label = "이번 시즌 최다";
+            if (thisSeasonBefore) prev = `이전 시즌 최다 ${h.text(thisSeasonBefore.value)} · ${featDateLabel(thisSeasonBefore.date, seasonStart)}`;
           }
           if (!label) continue;
           const level: FeatLevel = label === "커리어 하이" ? "career" : label === "커리어 하이 타이" ? "careerTie" : "season";
@@ -354,7 +487,7 @@ export function buildNotifItems(allGames: readonly SeasonGame[], ctx: NotifConte
             title: `${r.nameKo} ${label} ${h.text(v)}`,
             body: `${text} · ${playerStatLine(r)}`,
             href: `/player/${r.id}?season=${ctx.seasonCode}`,
-            feat: { level, text: h.text(v), game: text, won, stat: playerStatLine(r), name: r.nameKo, key: h.key, value: v },
+            feat: { level, text: h.text(v), game: text, won, stat: playerStatLine(r), name: r.nameKo, key: h.key, value: v, ...(prev ? { prev } : {}) },
           });
         }
         // 통산 이정표 돌파
@@ -367,6 +500,7 @@ export function buildNotifItems(allGames: readonly SeasonGame[], ctx: NotifConte
             const was = now - add;
             if (add <= 0 || Math.floor(was / step) === Math.floor(now / step)) continue;
             const target = Math.floor(now / step) * step;
+            const prev = ctx.names ? milestonePassed(r.id, m.key, was, now, orderIndex.get(g.gmkey) ?? -1, m.text) : undefined;
             items.push({
               id: `m:${g.gmkey}:${r.id}:${m.key}`,
               kind: "milestone",
@@ -375,7 +509,7 @@ export function buildNotifItems(allGames: readonly SeasonGame[], ctx: NotifConte
               title: `${r.nameKo} 통산 ${m.text(NF.format(target))} 달성`,
               body: `${text} · 지금 통산 ${m.text(NF.format(now))}`,
               href: `/player/${r.id}?season=${ctx.seasonCode}`,
-              feat: { level: "milestone", text: `통산 ${m.text(NF.format(target))}`, game: text, won, stat: playerStatLine(r), name: r.nameKo, key: m.key, value: target },
+              feat: { level: "milestone", text: `통산 ${m.text(NF.format(target))}`, game: text, won, stat: playerStatLine(r), name: r.nameKo, key: m.key, value: target, ...(prev ? { prev } : {}) },
             });
           }
         }
@@ -508,7 +642,7 @@ export interface FeatGroup {
   won: boolean;
   stat: string;
   /** 단계 높은 것 먼저. context = 그 기록의 맥락 꼬리표 (없으면 없음) */
-  lines: { level: FeatLevel; text: string; context?: string[] }[];
+  lines: { level: FeatLevel; text: string; context?: string[]; prev?: string }[];
 }
 
 /** 홈 한 칸 (featGroups + 사진·팀 색 — lib/data loadRecentFeats) */
@@ -546,7 +680,7 @@ export function featGroups(items: readonly NotifItem[]): FeatGroup[] {
     // 같은 경기 같은 부문이 커리어 하이·시즌 최다 두 줄이면 꼬리표가 겹친다 — 앞 줄에 있던 건 뺀다
     const seen = new Set(g.lines.flatMap((l) => l.context ?? []));
     const context = (it.feat.context ?? []).filter((c) => !seen.has(c));
-    g.lines.push({ level: it.feat.level, text: it.feat.text, ...(context.length ? { context } : {}) });
+    g.lines.push({ level: it.feat.level, text: it.feat.text, ...(context.length ? { context } : {}), ...(it.feat.prev ? { prev: it.feat.prev } : {}) });
   }
   const groups = [...map.values()];
   for (const g of groups) g.lines.sort((a, b) => LEVEL_ORDER[a.level] - LEVEL_ORDER[b.level]);
@@ -597,12 +731,18 @@ export function leagueSeasonRecords(allGames: readonly SeasonGame[], ctx: Pick<N
   const recentKeys = new Set(windowGames(allGames, windowDays).map((g) => g.gmkey));
   const dates = [...new Set(done.map((g) => g.date))].sort();
   const best: Record<HighKey, number> = { pts: 0, reb: 0, ast: 0, tpm: 0, stl: 0, blk: 0 };
+  // 지금 최고를 낸 사람들(이름)과 가장 최근에 낸 날 — 갱신 때 "이전 최고 A·B 28득점 · 10월 26일"
+  const holders: Record<HighKey, { names: string[]; date: string }> = { pts: { names: [], date: "" }, reb: { names: [], date: "" }, ast: { names: [], date: "" }, tpm: { names: [], date: "" }, stl: { names: [], date: "" }, blk: { names: [], date: "" } };
+  const seasonStart = dates[0] ?? null;
   const items: NotifItem[] = [];
   dates.forEach((date, di) => {
     const dayGames = done.filter((g) => g.date === date);
     const rows = dayGames.flatMap((g) => (["home", "away"] as const).flatMap((side) => g.box![side].filter((r) => r.sec > 0).map((r) => ({ g, side, r }))));
     for (const h of HIGH_KEYS) {
       const dayMax = rows.reduce((m, x) => Math.max(m, x.r[h.key]), 0);
+      const was = holders[h.key];
+      const prevNames = was.names.length > 2 ? `${was.names.slice(0, 2).join("·")} 외 ${was.names.length - 2}명` : was.names.join("·");
+      const prev = was.names.length && best[h.key] > 0 ? `이전 최고 ${prevNames} ${h.text(best[h.key])} · ${featDateLabel(was.date, seasonStart)}` : undefined;
       if (di > 0 && dayMax > best[h.key] && dayMax >= h.min) {
         for (const { g, side, r } of rows) {
           if (r[h.key] !== dayMax || !recentKeys.has(g.gmkey)) continue;
@@ -615,10 +755,14 @@ export function leagueSeasonRecords(allGames: readonly SeasonGame[], ctx: Pick<N
             title: `${r.nameKo} 이번 시즌 최고 ${h.text(r[h.key])}`,
             body: `${text} · ${playerStatLine(r)}`,
             href: `/player/${r.id}?season=${ctx.seasonCode}`,
-            feat: { level: "league", text: h.text(r[h.key]), game: text, won, stat: playerStatLine(r), name: r.nameKo, key: h.key, value: r[h.key] },
+            feat: { level: "league", text: h.text(r[h.key]), game: text, won, stat: playerStatLine(r), name: r.nameKo, key: h.key, value: r[h.key], ...(prev ? { prev } : {}) },
           });
         }
       }
+      if (dayMax <= 0) continue;
+      const dayNames = [...new Set(rows.filter((x) => x.r[h.key] === dayMax).map((x) => x.r.nameKo))];
+      if (dayMax > best[h.key]) holders[h.key] = { names: dayNames, date };
+      else if (dayMax === best[h.key]) holders[h.key] = { names: [...new Set([...was.names, ...dayNames])], date };
       best[h.key] = Math.max(best[h.key], dayMax);
     }
   });

@@ -176,3 +176,40 @@ console.log("notifications: 통과");
   assert.equal(featGroups(homeFeatItems(base, rec)).find((g) => g.player === "A")?.lines[0].level, "league");
   console.log("notifications: 홈 기록 규칙 통과");
 }
+
+// 직전 기준 한 줄 (2026-11-06): 리그 최고 = 이전 최고 사람·날짜, 시즌 최다 = 이번 시즌 앞 최고, 커리어 하이 = 이전 최고(지난 시즌 포함), 같은 값이 앞에 있으면 타이, 이정표 = 넘은 선수
+{
+  const { leagueSeasonRecords, pastHighsFromSeasons, featDateLabel } = await import("../lib/notifications");
+  const lg = [
+    game(1, "2026-10-01", 80, 70, [row("A", "가선수", { pts: 20, reb: 9 })], [row("B", "나선수")]),
+    game(2, "2026-10-03", 80, 70, [row("A", "가선수", { pts: 20 })], [row("B", "나선수", { reb: 12 })]),
+    game(3, "2026-10-05", 80, 70, [row("A", "가선수", { pts: 20, reb: 12 })], [row("B", "나선수")]),
+    game(4, "2026-10-09", 70, 90, [row("A", "가선수", { pts: 25 })], [row("B", "나선수")]),
+  ];
+  const rec = leagueSeasonRecords(lg, ctx);
+  assert.equal(rec[0].feat?.prev, "이전 최고 가선수 9리바운드 · 10월 1일");
+  assert.equal(rec[1].feat?.prev, "이전 최고 가선수 20득점 · 10월 5일", "같은 값을 여러 번 냈으면 가장 최근 날");
+  // 시즌 최다: 이번 시즌 앞 경기 최고 20득점 (마지막으로 낸 날)
+  const items = buildNotifItems(games, ctx);
+  assert.equal(items.find((i) => i.id === "h:S49G01N4:A:pts")?.feat?.prev, "이전 시즌 최다 20득점 · 10월 5일");
+  // 커리어 하이: 지난 시즌 최고 11리바운드 → 12 갱신 (지난 시즌 날짜는 연도까지)
+  const pastHighs = pastHighsFromSeasons([{ seasonCode: 47, players: [{ playerNo: "B", seasonHighs: { reb: { value: 11, date: "2026-02-01" } } }] }, { seasonCode: 49, players: [{ playerNo: "B", seasonHighs: { reb: { value: 12, date: "2026-10-09" } } }] }], 49);
+  assert.deepEqual(pastHighs, { B: { reb: { value: 11, date: "2026-02-01" } } }, "이번 시즌은 빼고 앞 시즌만");
+  const withPast = buildNotifItems(games, { ...ctx, pastHighs });
+  const ch = withPast.find((i) => i.id === "h:S49G01N4:B:reb");
+  assert.equal(ch?.feat?.level, "career");
+  assert.equal(ch?.feat?.prev, "이전 최고 11리바운드 · 2026년 2월 1일");
+  // 지난 시즌에 같은 12를 냈으면 공홈이 오늘 날짜를 줘도 타이
+  const tie = buildNotifItems(games, { ...ctx, pastHighs: { B: { reb: { value: 12, date: "2025-12-25" } } } }).find((i) => i.id === "h:S49G01N4:B:reb");
+  assert.equal(tie?.feat?.level, "careerTie");
+  assert.ok(tie?.title.includes("커리어 하이 타이"), tie?.title);
+  assert.equal(tie?.feat?.prev, "직전 같은 기록 · 2025년 12월 25일");
+  // 이정표: C(통산 1,003점, 은퇴)를 이 경기에서 넘음 → "넘은 선수 다선수 1,003득점 · 지금 역대 1위"
+  const msCtx: NotifContext = { ...ctx, careerSums: { ...ctx.careerSums, A: { ...ctx.careerSums.A, points: 1010 }, C: { points: 1003, reb: 0, ast: 0, stl: 0, blk: 0, tpm: 0, games: 100, wins: 50 } }, names: { A: "가선수", B: "나선수", C: "다선수" } };
+  const ms = buildNotifItems(games, msCtx).find((i) => i.id === "m:S49G01N4:A:points");
+  assert.equal(ms?.feat?.prev, "넘은 선수 다선수 1,003득점 · 지금 역대 1위");
+  assert.equal(buildNotifItems(games, ctx).find((i) => i.id === "m:S49G01N4:A:points")?.feat?.prev, undefined, "이름이 없거나 넘은 사람이 없으면 줄 없음");
+  assert.equal(featDateLabel("2026-10-26", "2026-10-03"), "10월 26일");
+  assert.equal(featDateLabel("2024-01-05", "2026-10-03"), "2024년 1월 5일");
+  console.log("notifications: 직전 기준 통과");
+}

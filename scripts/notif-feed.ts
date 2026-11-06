@@ -3,7 +3,7 @@
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { buildNotifItems, careerHighsFromIndex, careerSumsFromSeasons, kstDate, sortNotifs, type NotifFeed } from "../lib/notifications.js";
+import { buildNotifItems, careerHighsFromIndex, careerSumsFromSeasons, pastHighsFromSeasons, kstDate, sortNotifs, type NotifFeed } from "../lib/notifications.js";
 import {
   alltimeRankItems,
   awardItems,
@@ -99,7 +99,7 @@ export async function buildNotifFeed(now: Date = new Date()): Promise<NotifFeed>
   }));
   const seen = await readJson<AwardSeenState>(join(process.cwd(), "data", "award-first-seen.json"), {});
   // 대기록에 맥락 꼬리표 (2026-10-16, lib/feat-context) — 알림함 소식 아래 한 줄
-  const base = attachFeatContexts(mergeLeagueRecords(buildNotifItems(games.games, { seasonCode, teamShort, careerHighs, careerSums }), games.games, ctx), {
+  const base = attachFeatContexts(mergeLeagueRecords(buildNotifItems(games.games, { seasonCode, teamShort, careerHighs, careerSums, pastHighs: pastHighsFromSeasons(seasonFiles, seasonCode), names }), games.games, ctx), {
     performances: performancesFromGames(games.games),
     careerHighs,
     careerSums: careerSums as unknown as Record<string, Record<string, number>>,

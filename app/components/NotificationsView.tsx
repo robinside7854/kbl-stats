@@ -112,6 +112,7 @@ export default function NotificationsView() {
                             {c}
                           </span>
                         ))}
+                        {it.feat?.prev && <span className="tabular mt-0.5 block text-caption text-ink-3 break-keep">{it.feat.prev}</span>}
                       </span>
                       <IconChevronRight size={16} className="mt-1.5 shrink-0 text-ink-3" />
                     </Link>

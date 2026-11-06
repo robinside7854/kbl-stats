@@ -31,6 +31,18 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-11-06-record-prev",
+    date: "2026-11-06",
+    kind: "update",
+    title: "새 기록에 직전 기록도 같이 보여 줘요",
+    summary: "새 기록 옆에 직전 기록",
+    blocks: [
+      { kind: "p", text: "홈 새로 나온 기록과 알림함에서 기록마다 그 전 기준이 한 줄 더 붙어요. 커리어 하이는 이전 최고가 몇이었고 언제였는지, 시즌 최다는 누구의 기록을 넘었는지, 통산 이정표는 이 경기로 누구를 넘어 역대 몇 위가 됐는지 보여 줘요." },
+      { kind: "p", text: "예전에 같은 기록을 낸 적이 있으면 커리어 하이 타이로 바로잡고, 직전에 같은 기록을 낸 날을 보여 줘요. 위닝샷·버저비터는 올 시즌 몇 번째인지와 직전 기록을 같이 보여 줘요." },
+      { kind: "list", items: [{ text: "홈에서 보기", href: "/" }] },
+    ],
+  },
+  {
     slug: "2026-11-05-award-race",
     date: "2026-11-05",
     kind: "update",

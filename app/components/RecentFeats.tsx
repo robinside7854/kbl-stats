@@ -66,6 +66,8 @@ export default function RecentFeats({ feats, latestDate }: { feats: RecentFeat[]
                   </span>
                   {/* 2026-11-05 사용자 "모바일에서 코멘트가 잘려 보임" → 맥락은 기록 아래 따로 한 줄(넘치면 줄바꿈, 자르지 않음) */}
                   {first.context && first.context.length > 0 && <span className="mt-0.5 block text-caption text-ink-2">{first.context[0]}</span>}
+                  {/* 2026-11-06 사용자: 직전 기준(이전 최고·넘은 선수·직전 기록 날짜) 한 줄 */}
+                  {first.prev && <span className="tabular mt-0.5 block text-caption text-ink-3 break-keep">{first.prev}</span>}
                 </span>
               </Link>
             </li>
