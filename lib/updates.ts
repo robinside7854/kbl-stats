@@ -31,6 +31,28 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-11-08-player-tabs",
+    date: "2026-11-08",
+    kind: "update",
+    title: "선수 페이지를 탭으로 나눴어요",
+    summary: "선수 페이지 탭으로 정리",
+    blocks: [
+      { kind: "p", text: "선수 페이지가 너무 길어서 탭 다섯 개로 나눴어요. 이름 아래 탭을 누르면 그 내용만 보여요." },
+      {
+        kind: "list",
+        items: [
+          "시즌: 플레이어 카드, 하이라이트, 최근 경기",
+          "능력치: 세부 능력치, 경기별 기록 범위, 비슷한 시즌",
+          "슛: 슛 차트, 슛 습관의 변화",
+          "커리어: 수상 경력, 다음 이정표, 소속 팀, 추이, 시즌별 기록, 타임라인",
+          "명장면: 커리어 하이, 클러치",
+        ],
+      },
+      { kind: "p", text: "아래로 내리면 맨 위에 이름과 탭이 붙어 있어서 어디서든 바로 바꿀 수 있어요." },
+      { kind: "list", items: [{ text: "자밀 워니 선수 페이지에서 보기", href: "/player/291248" }] },
+    ],
+  },
+  {
     slug: "2026-11-06-record-prev",
     date: "2026-11-06",
     kind: "update",

@@ -1,7 +1,8 @@
 // 선수 페이지 머리말 (PLAN.md §2-2 ①, §5-4): 최근 시즌 팀 색 배경 + 큰 세로 사진 + 로고 + 이름·소속·활동 기간,
 // 이름 아래 국적 배지(국내/외국/아시아쿼터)·활동 기간, 프로필 한 줄(포지션·키·몸무게·등번호·드래프트 — 선수 마스터,
-// 나이·국적(국가명)·출신교 — 서버 B 프로필, 없으면 뺌), 우승·MVP 금색 칩, 통산 요약 아래 수상 경력 표(lib/career awardLines),
-// 이름 아래 칭호("칭호 N개" 한 줄로 접힘 — 2026-10-16 디자인 정리 M3, 꼬리표는 수상·현역 상태 합쳐 3개까지), 그 아래 통산 요약 8칸(모바일 4×2, PC 8×1)·프로필 줄과 소속 팀 이력. 계산은 lib/metrics careerSummary, 표기는 lib/career.
+// 나이·국적(국가명)·출신교 — 서버 B 프로필, 없으면 뺌), 우승·MVP 금색 칩,
+// 이름 아래 칭호("칭호 N개" 한 줄로 접힘 — 2026-10-16 디자인 정리 M3, 꼬리표는 수상·현역 상태 합쳐 3개까지), 그 아래 통산 요약 8칸(모바일 4×2, PC 8×1)·프로필 줄.
+// 수상 경력 표(lib/career awardLines)·다음 이정표·소속 팀 이력은 2026-11-08 탭 개편으로 커리어 탭(아래 PlayerCareerFacts). 계산은 lib/metrics careerSummary, 표기는 lib/career.
 // 머리말 팀 색은 가장 최근 시즌 팀 (카드 영역은 고른 시즌 팀 색을 따로 쓴다).
 import { FALLBACK_TEAM_COLOR } from "@/lib/teams";
 import type { CareerSeason, PlayerIndexEntry, TeamColor } from "@/lib/types";
@@ -36,13 +37,11 @@ interface Props {
   today: string;
   /** 칭호 배지 (우선순위 순, 빌드 시점 lib/badges playerBadges) */
   badges: BadgeItem[];
-  /** 현역 선수의 다음 통산 이정표 (lib/records nextMilestones, 은퇴 선수는 []) */
-  milestones?: Milestone[];
   /** 이번 시즌 시상 레이스 후보 칩 ("MVP 후보 1위" — lib/award-race raceTagsOf, 후보가 아니면 []) */
   raceTags?: string[];
 }
 
-export default function PlayerHero({ entry, seasons, today, badges, milestones = [], raceTags = [] }: Props) {
+export default function PlayerHero({ entry, seasons, today, badges, raceTags = [] }: Props) {
   const latest = seasons[seasons.length - 1];
   const first = seasons[0];
   const team = latest?.team ?? null;
@@ -54,7 +53,6 @@ export default function PlayerHero({ entry, seasons, today, badges, milestones =
   const floor = mixHex(color.primary, "#000000", 0.72);
   const sum = careerSummary(seasons);
   const span = first && latest ? activeSpanLabel(first.seasonLabel, latest.seasonLabel, seasons.length) : "";
-  const stints = teamStints(seasons);
   const facts = [...profileFacts(entry), ...personalFacts(entry, today)];
   // 우승(정규시즌 소속 팀 = 챔프전 우승팀, scripts/champions.ts) + 역대 수상(공홈 역대수상현황, scripts/awards.ts)
   const awards = awardLines(entry.awards, entry.championships, seasons);
@@ -178,7 +176,7 @@ export default function PlayerHero({ entry, seasons, today, badges, milestones =
         </div>
       </div>
 
-      {/* ── 통산 요약 + 소속 이력 ── */}
+      {/* ── 통산 요약 + 프로필 (수상·이정표·소속 이력은 커리어 탭 PlayerCareerFacts, 2026-11-08) ── */}
       <div className="mx-auto max-w-page px-4">
         <dl className="tabular -mt-px grid grid-cols-4 gap-px overflow-hidden rounded-b-container border border-t-0 border-line bg-line shadow-card lg:grid-cols-8 xl:hidden">
           {tiles.map((t) => (
@@ -217,104 +215,117 @@ export default function PlayerHero({ entry, seasons, today, badges, milestones =
           <HelpPopover content={{ title: "통산 기록", short: careerNote, formula: null, href: "/glossary" }} ariaLabel="통산 기록 기준 보기" />
         </div>
 
-        {awards.length > 0 && (
-          <section aria-labelledby="awards-title" className="mt-4">
-            <p id="awards-title" className="text-sub font-semibold text-ink-2">
-              수상 경력 <span className="font-normal text-ink-3">· KBL 역대수상현황</span>
-            </p>
-            <dl className="surface-card tabular mt-1.5 divide-y divide-line rounded-card lg:hidden">
-              {awards.map((a) => (
-                <div key={a.key} className="grid grid-cols-[6.5rem_2.75rem_minmax(0,1fr)] items-baseline gap-2 px-3 py-2 text-sub sm:grid-cols-[8rem_3rem_minmax(0,1fr)]">
-                  <dt className="font-semibold text-ink">{a.label}</dt>
-                  <dd className="font-bold text-ink">{a.count}회</dd>
-                  <dd className="min-w-0 text-ink-2 [overflow-wrap:anywhere]">{a.seasons}</dd>
-                </div>
-              ))}
-            </dl>
-            {/* PC: 상마다 카드 한 장, 네 칸 (2026-10-06 사용자: 넓은 표 오른쪽이 빈다) */}
-            <dl className="tabular mt-1.5 hidden grid-cols-4 gap-2 lg:grid">
-              {awards.map((a) => (
-                <div key={a.key} className="surface-card min-w-0 rounded-card px-4 py-3">
-                  <div className="flex items-baseline justify-between gap-2">
-                    <dt className="truncate text-body font-semibold text-ink">{a.label}</dt>
-                    {/* deslop-ignore-next-line 11 */}
-                    <dd className="shrink-0 text-2xl font-black leading-none text-ink">
-                      {a.count}
-                      <span className="ml-0.5 text-sub font-bold text-ink-3">회</span>
-                    </dd>
-                  </div>
-                  <dd className="mt-1.5 text-sub text-ink-2 [overflow-wrap:anywhere]">{a.seasons}</dd>
-                </div>
-              ))}
-            </dl>
-          </section>
-        )}
+      </div>
+    </section>
+  );
+}
 
-        {milestones.length > 0 && (
-          <section aria-labelledby="milestones-title" className="mt-4">
-            <p id="milestones-title" className="text-sub font-semibold text-ink-2">
-              다음 이정표 <span className="font-normal text-ink-3">· 통산 정규시즌</span>
-            </p>
-            <ul className="tabular mt-1.5 grid gap-2 sm:grid-cols-3">
-              {milestones.map((m) => {
-                const step = MILESTONE_STEPS[m.key] ?? m.target;
-                const done = Math.min(1, Math.max(0, (m.current - (m.target - step)) / step));
-                return (
-                  <li key={m.key} className="surface-card rounded-card px-3 py-2.5">
-                    <p className="flex items-baseline justify-between gap-2 text-sub">
-                      <span className="font-semibold text-ink">
-                        {m.label} {NF0.format(m.target)}
-                        {m.unit}
-                      </span>
-                      <span className="text-ink-3">역대 {NF0.format(m.rank)}위</span>
-                    </p>
-                    <span
-                      className="mt-1.5 block h-2 overflow-hidden rounded-md bg-surface-2"
-                      role="progressbar"
-                      aria-valuemin={0}
-                      aria-valuemax={100}
-                      aria-valuenow={Math.round(done * 100)}
-                      aria-label={`${m.label} ${NF0.format(m.target)}${m.unit}까지 ${Math.round(done * 100)}%`}
-                    >
-                      <span className="block h-full rounded-md bg-series-1" style={{ width: `${done * 100}%` }} />
-                    </span>
-                    <p className="mt-1 text-caption text-ink-2">
-                      지금 {NF0.format(m.current)}
-                      {m.unit} · <b className="font-bold text-ink">{NF0.format(m.remaining)}{m.unit}</b> 남음
-                    </p>
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
-        )}
+/**
+ * 수상 경력 · 다음 이정표 · 소속 팀 이력 — 2026-11-08 탭으로 나누며 머리말에서 커리어 탭 맨 위로 옮겼다
+ * (폰 머리말이 약 1,000px 라 탭이 너무 아래에 있었다).
+ */
+export function PlayerCareerFacts({ entry, seasons, milestones = [] }: { entry: PlayerIndexEntry; seasons: CareerSeason[]; milestones?: Milestone[] }) {
+  const stints = teamStints(seasons);
+  const awards = awardLines(entry.awards, entry.championships, seasons);
+  return (
+    <section aria-label="수상 · 이정표 · 소속 팀" className="space-y-4">
+      {awards.length > 0 && (
+        <section aria-labelledby="awards-title">
+          <p id="awards-title" className="text-sub font-semibold text-ink-2">
+            수상 경력 <span className="font-normal text-ink-3">· KBL 역대수상현황</span>
+          </p>
+          <dl className="surface-card tabular mt-1.5 divide-y divide-line rounded-card lg:hidden">
+            {awards.map((a) => (
+              <div key={a.key} className="grid grid-cols-[6.5rem_2.75rem_minmax(0,1fr)] items-baseline gap-2 px-3 py-2 text-sub sm:grid-cols-[8rem_3rem_minmax(0,1fr)]">
+                <dt className="font-semibold text-ink">{a.label}</dt>
+                <dd className="font-bold text-ink">{a.count}회</dd>
+                <dd className="min-w-0 text-ink-2 [overflow-wrap:anywhere]">{a.seasons}</dd>
+              </div>
+            ))}
+          </dl>
+          {/* PC: 상마다 카드 한 장, 네 칸 (2026-10-06 사용자: 넓은 표 오른쪽이 빈다) */}
+          <dl className="tabular mt-1.5 hidden grid-cols-4 gap-2 lg:grid">
+            {awards.map((a) => (
+              <div key={a.key} className="surface-card min-w-0 rounded-card px-4 py-3">
+                <div className="flex items-baseline justify-between gap-2">
+                  <dt className="truncate text-body font-semibold text-ink">{a.label}</dt>
+                  {/* deslop-ignore-next-line 11 */}
+                  <dd className="shrink-0 text-2xl font-black leading-none text-ink">
+                    {a.count}
+                    <span className="ml-0.5 text-sub font-bold text-ink-3">회</span>
+                  </dd>
+                </div>
+                <dd className="mt-1.5 text-sub text-ink-2 [overflow-wrap:anywhere]">{a.seasons}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      )}
 
-        <div className="mt-4">
-          <p id="stints-title" className="text-sub font-semibold text-ink-2">소속 팀 이력</p>
-          {/* 유니폼 한 줄 (넘치면 옆으로 밀기), 아래에 몸담은 시즌 */}
-          <ol aria-labelledby="stints-title" className="-mx-1 mt-2 flex gap-2 overflow-x-auto px-1 pb-1">
-            {stints.map((st, i) => {
-              // 같은 팀 코드라도 시즌마다 이름·로고가 다를 수 있어(KT&G → 정관장) 구간 마지막 시즌의 팀 정보를 쓴다
-              const s = seasons.find((x) => x.seasonLabel === st.toLabel);
-              const t = s?.team ?? undefined;
-              const name = t?.shortName ?? s?.teamShort ?? st.teamCode;
+      {milestones.length > 0 && (
+        <section aria-labelledby="milestones-title">
+          <p id="milestones-title" className="text-sub font-semibold text-ink-2">
+            다음 이정표 <span className="font-normal text-ink-3">· 통산 정규시즌</span>
+          </p>
+          <ul className="tabular mt-1.5 grid gap-2 sm:grid-cols-3">
+            {milestones.map((m) => {
+              const step = MILESTONE_STEPS[m.key] ?? m.target;
+              const done = Math.min(1, Math.max(0, (m.current - (m.target - step)) / step));
               return (
-                <li key={`${st.teamCode}-${i}`} className="w-[4.75rem] shrink-0">
-                  {/* 누르면 그 팀 페이지의 마지막 시즌 로스터 (2026-10-04) */}
-                  <Link
-                    href={`/team/${st.teamCode}${s ? `?season=${s.seasonCode}` : ""}`}
-                    className="focus-ring flex flex-col items-center rounded-card pb-1 text-center transition-colors duration-200 hover:bg-surface-2"
+                <li key={m.key} className="surface-card rounded-card px-3 py-2.5">
+                  <p className="flex items-baseline justify-between gap-2 text-sub">
+                    <span className="font-semibold text-ink">
+                      {m.label} {NF0.format(m.target)}
+                      {m.unit}
+                    </span>
+                    <span className="text-ink-3">역대 {NF0.format(m.rank)}위</span>
+                  </p>
+                  <span
+                    className="mt-1.5 block h-2 overflow-hidden rounded-md bg-surface-2"
+                    role="progressbar"
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={Math.round(done * 100)}
+                    aria-label={`${m.label} ${NF0.format(m.target)}${m.unit}까지 ${Math.round(done * 100)}%`}
                   >
-                    <TeamJersey color={t?.color ?? FALLBACK} logoUrl={t?.logoUrl} shortName={name} width={56} />
-                    <span className="mt-1 w-full truncate text-caption font-semibold text-ink">{teamShortLabel(name)}</span>
-                    <span className="tabular text-caption text-ink-3">{seasonRangeLabel(st.fromLabel, st.toLabel)}</span>
-                    <span className="tabular text-caption text-ink-3">{st.seasons}시즌</span>
-                  </Link>
+                    <span className="block h-full rounded-md bg-series-1" style={{ width: `${done * 100}%` }} />
+                  </span>
+                  <p className="mt-1 text-caption text-ink-2">
+                    지금 {NF0.format(m.current)}
+                    {m.unit} · <b className="font-bold text-ink">{NF0.format(m.remaining)}{m.unit}</b> 남음
+                  </p>
                 </li>
               );
             })}
-          </ol>
-        </div>
+          </ul>
+        </section>
+      )}
+
+      <div>
+        <p id="stints-title" className="text-sub font-semibold text-ink-2">소속 팀 이력</p>
+        {/* 유니폼 한 줄 (넘치면 옆으로 밀기), 아래에 몸담은 시즌 */}
+        <ol aria-labelledby="stints-title" className="-mx-1 mt-2 flex gap-2 overflow-x-auto px-1 pb-1">
+          {stints.map((st, i) => {
+            // 같은 팀 코드라도 시즌마다 이름·로고가 다를 수 있어(KT&G → 정관장) 구간 마지막 시즌의 팀 정보를 쓴다
+            const s = seasons.find((x) => x.seasonLabel === st.toLabel);
+            const t = s?.team ?? undefined;
+            const name = t?.shortName ?? s?.teamShort ?? st.teamCode;
+            return (
+              <li key={`${st.teamCode}-${i}`} className="w-[4.75rem] shrink-0">
+                {/* 누르면 그 팀 페이지의 마지막 시즌 로스터 (2026-10-04) */}
+                <Link
+                  href={`/team/${st.teamCode}${s ? `?season=${s.seasonCode}` : ""}`}
+                  className="focus-ring flex flex-col items-center rounded-card pb-1 text-center transition-colors duration-200 hover:bg-surface-2"
+                >
+                  <TeamJersey color={t?.color ?? FALLBACK} logoUrl={t?.logoUrl} shortName={name} width={56} />
+                  <span className="mt-1 w-full truncate text-caption font-semibold text-ink">{teamShortLabel(name)}</span>
+                  <span className="tabular text-caption text-ink-3">{seasonRangeLabel(st.fromLabel, st.toLabel)}</span>
+                  <span className="tabular text-caption text-ink-3">{st.seasons}시즌</span>
+                </Link>
+              </li>
+            );
+          })}
+        </ol>
       </div>
     </section>
   );

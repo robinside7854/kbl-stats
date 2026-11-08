@@ -1,8 +1,11 @@
 // 선수 페이지 (PLAN.md §2-2, §3 ③): 선수 색인(players-index.json)의 전원을 빌드 때 정적 생성한다.
-// 구성(모바일 우선): 머리말(팀 색·사진·칭호 배지·프로필·나이·국가·출신교·통산 요약 8칸) → 시즌 칩 + 플레이어 카드(순위 범위, PC 는 가로 카드) → 시즌별 추이 + 하이라이트 3개(PC 는 추이 오른쪽 열)
-// → 슛 차트(하프코트 점 + 구역표 + 주 공격 유형, 시즌 칩을 따름 — 최신 시즌은 정적 HTML, 다른 시즌은 /shots/{시즌}/{번호}.json)
-// → 비슷한 시즌(lib/similar, 시즌 칩을 따름) → 슛 습관의 변화(시즌별 구역 비중, 2026-10-16) → 커리어 타임라인(2026-10-16)
-// → 시즌별 기록표(리그 1위 굵게) → 클러치(위닝샷·클러치 득점, 2026-10-28 — 문자중계가 있는 2006-07 이후만) → 커리어 하이(통산 한 경기 최다 업적 카드 7개, 데이터 없으면 숨김).
+// 구성(모바일 우선): 머리말(팀 색·사진·칭호 배지·프로필·나이·국가·출신교·통산 요약) → 탭 줄 → 탭 내용 (2026-11-08 사용자: 스크롤이 길면 이탈 → 탭).
+//   시즌: 시즌 칩 · 플레이어 카드(순위 범위) · 하이라이트 3개 · 최근 경기
+//   능력치: 세부 능력치 막대 · 경기별 기록 범위 · 비슷한 시즌(lib/similar)
+//   슛: 슛 차트(하프코트 점 + 구역표 + 주 공격 유형) · 슛 습관의 변화
+//   커리어: 수상 경력·다음 이정표·소속 팀 이력 · 시즌별 추이 · 시즌별 기록표(리그 1위 굵게) · 커리어 타임라인
+//   명장면: 커리어 하이(통산 한 경기 최다 업적 카드) · 클러치(위닝샷·클러치 득점, 2006-07 이후)
+// 탭 규칙 lib/player-tabs, 상태(주소 ?tab=) app/components/PlayerTabs. 내용이 없는 탭은 빠진다.
 // 데이터는 lib/data.ts 가 빌드 시점에 읽어 필요한 필드만 클라이언트 컴포넌트로 넘긴다.
 // 카드: 가장 최근 시즌·전체 범위는 여기서 계산해 정적 HTML에 넣고(lib/cardview), 다른 시즌·범위는 브라우저가 /cards/{코드}.json 으로.
 import type { Metadata } from "next";
@@ -38,7 +41,7 @@ import type { SimilarEntry } from "@/lib/similar";
 import CareerHighs from "@/app/components/CareerHighs";
 import CareerTable from "@/app/components/CareerTable";
 import CareerTrend from "@/app/components/CareerTrend";
-import PlayerHero from "@/app/components/PlayerHero";
+import PlayerHero, { PlayerCareerFacts } from "@/app/components/PlayerHero";
 import RecentPlayerMark from "@/app/components/RecentPlayerMark";
 import PlayerSectionNav from "@/app/components/PlayerSectionNav";
 import PlayerSeasonCards from "@/app/components/PlayerSeasonCards";
@@ -48,6 +51,8 @@ import CareerTimeline from "@/app/components/CareerTimeline";
 import ShotHabit from "@/app/components/ShotHabit";
 import PlayerClutch from "@/app/components/PlayerClutch";
 import { loadCareerTimeline, loadShotHabits } from "@/lib/data-career-extra";
+import { PlayerTabBar, PlayerTabsProvider, TabPanel, PLAYER_TAB_PANELS_ID } from "@/app/components/PlayerTabs";
+import { availablePlayerTabs } from "@/lib/player-tabs";
 
 // 색인에 없는 선수 번호는 404
 export const dynamicParams = false;
@@ -95,7 +100,6 @@ export default async function PlayerPage({ params }: { params: Params }) {
   const allSeasons = listSeasonsWithPlayers();
   const highTabs = loadCareerHighTabs(entry);
   const achievements = loadCareerHighAchievements(entry);
-  const trend = <CareerTrend seasons={seasons} allSeasons={allSeasons} />;
   // 칭호 배지: 빌드 시점에 계산해 라벨만 넘긴다 (lib/badges via lib/data)
   const badges = loadPlayerBadges(playerNo).map((b) => ({ key: b.key, label: b.label }));
   // 만 나이의 "오늘" = 빌드 시각(한국 시간). 정적 페이지라 매일 데이터 커밋 → 재배포 때 갱신된다
@@ -105,64 +109,56 @@ export default async function PlayerPage({ params }: { params: Params }) {
   const timeline = loadCareerTimeline(career);
   const clutch = loadPlayerClutch(playerNo);
 
+  const shotSeasons = playerShotSeasons(playerNo, seasons.map((s) => s.seasonCode));
+  const habit = shotHabits.length >= 2 ? <ShotHabit rows={shotHabits} /> : null;
+  const tabs = availablePlayerTabs({ card: !!card, shots: shotSeasons.length > 0 || !!habit, moments: achievements.length > 0 || !!clutch });
+
   return (
     <>
       <SiteNav seasons={allSeasons} seasonCode={allSeasons[0]?.seasonCode ?? latest.seasonCode} view="player" wide />
       <main className="pb-2">
         <RecentPlayerMark playerId={entry.id} />
-        <PlayerSectionNav
-          playerId={entry.id}
-          nameKo={entry.nameKo}
-          photoUrl={entry.photoUrl}
-          teamLabel={`${seasonShortLabel(latest.seasonLabel)} ${teamShortLabel(latest.team?.shortName ?? latest.teamShort)}`}
-          color={latest.team?.color ?? FALLBACK_TEAM_COLOR}
-        />
-        <PlayerHero entry={entry} seasons={seasons} today={today} badges={badges} milestones={loadMilestones(playerNo)} raceTags={raceTagsOf(loadAwardRace(), playerNo)} />
-        <div className="mx-auto mt-6 max-w-page px-4">
-          {card ? (
-            <PlayerSeasonCards
-              playerId={playerNo}
-              nameKo={entry.nameKo}
-              seasons={seasons.map((s) => ({ seasonCode: s.seasonCode, seasonLabel: s.seasonLabel }))}
-              initial={card}
-              groupLabel={entry.positionGroup ? POSITION_GROUP_LABELS[entry.positionGroup] : null}
-              aside={trend}
-              careerHighRows={highTabs.find((t) => t.key === "regular")?.rows ?? []}
-              shotSeasons={playerShotSeasons(playerNo, seasons.map((s) => s.seasonCode))}
-              initialShots={loadPlayerShots(latest.seasonCode, playerNo)}
-              similar={pickSimilarSeason(similarAll, card.seasonCode)}
-              similarSeasons={Object.keys(similarAll).map(Number)}
-              primeSeason={loadPrimeSeason(playerNo)}
-              gameRanges={loadPlayerGameRanges(playerNo, seasons.map((s) => s.seasonCode))}
-              recentGames={loadPlayerRecentGames(playerNo, seasons.map((s) => s.seasonCode))}
-            />
-          ) : (
-            trend
-          )}
-        </div>
-        {shotHabits.length >= 2 && (
-          <div className="mx-auto mt-8 max-w-page px-4">
-            <ShotHabit rows={shotHabits} />
+        <PlayerTabsProvider available={tabs}>
+          <PlayerSectionNav
+            playerId={entry.id}
+            nameKo={entry.nameKo}
+            photoUrl={entry.photoUrl}
+            teamLabel={`${seasonShortLabel(latest.seasonLabel)} ${teamShortLabel(latest.team?.shortName ?? latest.teamShort)}`}
+            color={latest.team?.color ?? FALLBACK_TEAM_COLOR}
+          />
+          <PlayerHero entry={entry} seasons={seasons} today={today} badges={badges} raceTags={raceTagsOf(loadAwardRace(), playerNo)} />
+          <PlayerTabBar />
+          <div id={PLAYER_TAB_PANELS_ID} className="mx-auto mt-5 max-w-page px-4">
+            {card && (
+              <PlayerSeasonCards
+                playerId={playerNo}
+                nameKo={entry.nameKo}
+                seasons={seasons.map((s) => ({ seasonCode: s.seasonCode, seasonLabel: s.seasonLabel }))}
+                initial={card}
+                groupLabel={entry.positionGroup ? POSITION_GROUP_LABELS[entry.positionGroup] : null}
+                shotsExtra={habit}
+                careerHighRows={highTabs.find((t) => t.key === "regular")?.rows ?? []}
+                shotSeasons={shotSeasons}
+                initialShots={loadPlayerShots(latest.seasonCode, playerNo)}
+                similar={pickSimilarSeason(similarAll, card.seasonCode)}
+                similarSeasons={Object.keys(similarAll).map(Number)}
+                primeSeason={loadPrimeSeason(playerNo)}
+                gameRanges={loadPlayerGameRanges(playerNo, seasons.map((s) => s.seasonCode))}
+                recentGames={loadPlayerRecentGames(playerNo, seasons.map((s) => s.seasonCode))}
+              />
+            )}
+            <TabPanel tab="career" className="space-y-8">
+              <PlayerCareerFacts entry={entry} seasons={seasons} milestones={loadMilestones(playerNo)} />
+              <CareerTrend seasons={seasons} allSeasons={allSeasons} />
+              <CareerTable seasons={seasons} playoffSeasons={career.playoffSeasons} />
+              {timeline.length > 0 && <CareerTimeline rows={timeline} />}
+            </TabPanel>
+            <TabPanel tab="moments" className="space-y-8">
+              {achievements.length > 0 && <CareerHighs items={achievements} teamPrimary={latest.team?.color.primary ?? FALLBACK_TEAM_COLOR.primary} />}
+              {clutch && <PlayerClutch data={clutch} />}
+            </TabPanel>
           </div>
-        )}
-        {timeline.length > 0 && (
-          <div className="mx-auto mt-8 max-w-page px-4">
-            <CareerTimeline rows={timeline} />
-          </div>
-        )}
-        <div className="mx-auto mt-8 max-w-page px-4">
-          <CareerTable seasons={seasons} playoffSeasons={career.playoffSeasons} />
-        </div>
-        {clutch && (
-          <div className="mx-auto mt-8 max-w-page px-4">
-            <PlayerClutch data={clutch} />
-          </div>
-        )}
-        {achievements.length > 0 && (
-          <div className="mx-auto mt-8 max-w-page px-4">
-            <CareerHighs items={achievements} teamPrimary={latest.team?.color.primary ?? FALLBACK_TEAM_COLOR.primary} />
-          </div>
-        )}
+        </PlayerTabsProvider>
       </main>
       {/* 수집일은 이 선수의 가장 최근 시즌 파일 기준 */}
       <SourceFooter fetchedAt={loadSeasonData(latest.seasonCode)?.fetchedAt} wide />

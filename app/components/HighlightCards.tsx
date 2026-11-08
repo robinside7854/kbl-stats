@@ -9,9 +9,11 @@ interface Props {
   title: string;
   items: Highlight[];
   teamPrimary: string;
+  /** PC 에서도 가로 3칸 (선수 상세 시즌 탭, 2026-11-08) */
+  row?: boolean;
 }
 
-export default function HighlightCards({ title, items, teamPrimary }: Props) {
+export default function HighlightCards({ title, items, teamPrimary, row = false }: Props) {
   if (items.length === 0) return null;
   const tint = desaturate(teamPrimary, 0.2);
   return (
@@ -19,7 +21,7 @@ export default function HighlightCards({ title, items, teamPrimary }: Props) {
       <h3 id="highlight-title" className="mb-2 text-body font-bold text-ink">
         {title}
       </h3>
-      <ul className="tabular grid grid-cols-3 gap-2 lg:grid-cols-1">
+      <ul className={`tabular grid grid-cols-3 gap-2 ${row ? "" : "lg:grid-cols-1"}`}>
         {items.map((h) => (
           <li
             key={h.key}

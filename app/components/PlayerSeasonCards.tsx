@@ -1,17 +1,14 @@
 "use client";
-// 선수 상세(/player/[번호])의 카드 영역: 시즌 칩 → 플레이어 카드 → 설명.
-// - 시즌 칩: 그 선수가 뛴 시즌 전부(최신이 기본). 고르면 카드가 그 시즌 기록·순위·등급·팀 색·로고로 바뀐다.
+// 선수 상세(/player/[번호])의 시즌 칩 + 시즌·능력치·슛 탭 내용 (탭 규칙 lib/player-tabs, 탭 상태 PlayerTabs).
+// - 시즌 칩: 그 선수가 뛴 시즌 전부(최신이 기본). 세 탭이 같은 칩을 쓴다 — 고르면 카드·하이라이트·최근 경기·능력치·슛 차트가 그 시즌으로.
 //   첫 화면(최신 시즌·전체 범위) 카드는 서버가 계산해 정적 HTML에 넣고(initial), 다른 시즌은 /cards/{코드}.json 을 받아
 //   lib/cardview buildSeasonCardView 로 계산한다 (useCardView).
 // - 순위 범위: 전체 / 같은 포지션 — 카드의 순위 비교 집단만 바꾼다 ("가드 중 3위"). 등급은 항상 같은 국적 집단 안.
-// - 같은 선수 "시즌 비교"는 없앴다(2026-09-30 사용자 피드백) — 두 시즌·두 선수 비교는 비교 탭 링크로.
-// - 상태는 주소 ?season=&scope=pos 에 남긴다 (window.location — 정적 HTML은 기본 상태로 그려진다).
-// - PC(1024px 이상)는 가로 카드(왼쪽 사진·가운데 스탯·오른쪽 레이더, 높이 520px 이하) 한 줄 → 그 아래
-//   시즌별 추이(원래 높이) + 오른쪽 좁은 열에 하이라이트 카드 3개 세로(그 시즌 순위 1~10위 부문, 없으면 커리어 하이).
-//   (피드백 5차 #1: 세로 카드 옆에 추이를 카드 높이만큼 늘이던 배치를 없앴다.) 모바일은 세로 카드 → 추이 → 하이라이트 3개 가로.
-// - 추이·하이라이트 아래 슛 차트(ShotChart) — 같은 시즌 칩을 따른다 (PLAN.md §14).
-// - 시즌별 기록표(CareerTable)의 시즌을 누르면 "player-season" 이벤트로 여기 시즌을 바꾼다.
-// - 시즌 칩 줄이 화면 위로 지나가면 떠 있는 시즌 바(FloatingSeasonBar)로 어디서든 시즌을 바꾼다 (2026-10-01).
+// - 시즌 탭: 순위 기준 → 카드 → 비교 링크 → 하이라이트 3개 → 최근 경기. 능력치 탭: 세부 능력치 → 경기별 기록 범위 → 비슷한 시즌.
+//   슛 탭: 슛 차트 → 슛 습관의 변화(shotsExtra). 시즌별 추이·기록표는 커리어 탭(page.tsx) — 2026-11-08 탭으로 나눔.
+// - 상태는 주소 ?season=&scope=pos 에 남긴다 (탭 ?tab= 은 PlayerTabs 가 같은 주소에 따로 쓴다).
+// - 시즌별 기록표(CareerTable)의 시즌을 누르면 "player-season" 이벤트로 여기 시즌을, PlayerTabs 가 탭을 시즌으로 바꾼다.
+// - 시즌 칩 줄이 화면 위로 지나가면 떠 있는 시즌 바(FloatingSeasonBar)로 어디서든 시즌을 바꾼다 (2026-10-01, 시즌 칩을 쓰는 탭에서만).
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { SeasonOption } from "@/lib/types";
@@ -39,9 +36,11 @@ import PlayerRecentGames from "./PlayerRecentGames";
 import type { OppBrand, PlayerRecentGame } from "@/lib/games";
 import type { GameRangeSet } from "@/lib/career";
 import { trackFilters } from "./track";
+import { PLAYER_SEASON_EVENT, TabPanel, usePlayerTab } from "./PlayerTabs";
+import { isSeasonalTab, mergeQuery } from "@/lib/player-tabs";
 
-/** 시즌별 기록표 등 다른 컴포넌트가 카드 시즌을 바꿀 때 보내는 이벤트 이름 */
-export const PLAYER_SEASON_EVENT = "player-season";
+/** 시즌별 기록표 등 다른 컴포넌트가 카드 시즌을 바꿀 때 보내는 이벤트 이름 (탭도 같은 이벤트로 시즌 탭이 된다 — PlayerTabs) */
+export { PLAYER_SEASON_EVENT };
 
 interface Props {
   playerId: string;
@@ -52,8 +51,8 @@ interface Props {
   initial: SeasonCardView;
   /** 포지션 묶음 이름 (예: "가드"). 모르면 null → 같은 포지션 범위 버튼을 끈다 */
   groupLabel: string | null;
-  /** 카드 아래에 둘 내용 (시즌별 추이 그래프 — PC 는 하이라이트 3개가 그 오른쪽 열) */
-  aside?: React.ReactNode;
+  /** 슛 탭에서 슛 차트 아래에 둘 내용 (슛 습관의 변화 — 시즌 칩과 상관없음) */
+  shotsExtra?: React.ReactNode;
   /** 정규시즌 커리어 하이 행 (시즌 순위 1~10위가 없을 때 하이라이트 대체용). 없으면 [] */
   careerHighRows: CareerHighRow[];
   /** 슛 차트가 있는 시즌 코드 */
@@ -72,7 +71,7 @@ interface Props {
   recentGames?: Record<number, (PlayerRecentGame & { opp: OppBrand })[]>;
 }
 
-export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, groupLabel, aside, careerHighRows, shotSeasons, initialShots, similar, similarSeasons, primeSeason, gameRanges, recentGames }: Props) {
+export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, groupLabel, shotsExtra, careerHighRows, shotSeasons, initialShots, similar, similarSeasons, primeSeason, gameRanges, recentGames }: Props) {
   const codes = useMemo(() => seasons.map((s) => s.seasonCode), [seasons]);
   const labelOf = (code: number) => seasonShortLabel(seasons.find((s) => s.seasonCode === code)?.seasonLabel ?? String(code));
   const [state, setState] = useState<PlayerViewState>({ season: initial.seasonCode, scope: "all" });
@@ -91,9 +90,14 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // 주소에는 season·scope 만 바꿔 쓴다 (tab 은 PlayerTabs 몫)
   useEffect(() => {
-    window.history.replaceState(null, "", `${window.location.pathname}${playerQueryString(state, codes)}${window.location.hash}`);
+    const mine = new URLSearchParams(playerQueryString(state, codes));
+    const q = mergeQuery(window.location.search, { season: mine.get("season"), scope: mine.get("scope") });
+    window.history.replaceState(null, "", `${window.location.pathname}${q}${window.location.hash}`);
   }, [state, codes]);
+  const { tab } = usePlayerTab();
+  const seasonal = isSeasonalTab(tab);
 
   const { season, scope } = state;
   const a = useCardView(playerId, season, scope, initial);
@@ -138,13 +142,17 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
     </section>
   );
 
+  const changeSeason = (c: number) => {
+    trackFilters("player", { season: c });
+    setState((s) => ({ ...s, season: c }));
+  };
+
   return (
     <div>
-      {/* ── 조작: 시즌 칩 · 순위 범위 · 비교 탭 링크 ── */}
-      <section aria-label="카드 보기 설정" className="space-y-2.5">
+      {/* ── 시즌 칩: 시즌·능력치·슛 탭이 함께 쓴다 ── */}
+      <section aria-label="시즌 고르기" hidden={!seasonal}>
         <div ref={setChipsEl}>
-          <h2 id="season-cards-title" className="text-h2 font-bold">시즌 카드</h2>
-          <div className="mb-1.5 mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+          <div className="mb-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
             <p className="text-sub font-semibold text-ink-2">
               시즌 <span className="font-normal text-ink-3">· {seasons.length}시즌 뛰었음</span>
             </p>
@@ -163,91 +171,85 @@ export default function PlayerSeasonCards({ playerId, nameKo, seasons, initial, 
               </button>
             )}
           </div>
-          <ChipRow label="카드 시즌 선택" chips={seasonChips} value={season} onChange={(c) => {
-          trackFilters("player", { season: c });
-          setState((s) => ({ ...s, season: c }));
-        }} scroll />
+          <ChipRow label="카드 시즌 선택" chips={seasonChips} value={season} onChange={changeSeason} scroll />
         </div>
       </section>
 
-      {/* 순위 기준(전체 / 같은 포지션)은 카드 바로 위 — 카드 속 순위와 한 화면에 보이게
-          (2026-10-06 카드 아래로 옮겼다가 2026-10-11 사용자: "버튼이 너무 밑이라 순위와 한 번에 안 보임") */}
-      {groupLabel && (
-        <div className="mt-3 flex items-center gap-2 text-sub font-medium text-ink-3">
-          순위 기준
-          <Segmented
-            label="순위 비교 범위"
-            options={scopeOptions}
-            value={scope}
-            onChange={(v) => {
-              trackFilters("player", { scope: v });
-              setState((s) => ({ ...s, scope: v }));
-            }}
+      {/* ── 시즌 탭: 카드 → 하이라이트 → 최근 경기 ── */}
+      <TabPanel tab="season">
+        <h2 id="season-cards-title" className="sr-only">
+          시즌 카드
+        </h2>
+        {/* 순위 기준(전체 / 같은 포지션)은 카드 바로 위 — 카드 속 순위와 한 화면에 보이게 (2026-10-11 사용자) */}
+        {groupLabel && (
+          <div className="mt-3 flex items-center gap-2 text-sub font-medium text-ink-3">
+            순위 기준
+            <Segmented
+              label="순위 비교 범위"
+              options={scopeOptions}
+              value={scope}
+              onChange={(v) => {
+                trackFilters("player", { scope: v });
+                setState((s) => ({ ...s, scope: v }));
+              }}
+            />
+          </div>
+        )}
+        <div className={groupLabel ? "mt-2" : "mt-4"}>{deck}</div>
+        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+          <Link href={compareHref({ id: playerId, seasonCode: season })} className="focus-ring link-shortcut text-body">
+            비교 탭에서 다른 선수·시즌과 비교
+            <IconChevronRight size={16} />
+          </Link>
+        </div>
+        <div className="mt-6">
+          <HighlightCards title={highlight.title} items={highlight.items} teamPrimary={view?.team?.color.primary ?? FALLBACK_TEAM_COLOR.primary} row />
+        </div>
+        {/* 최근 경기 (스포츠 앱 비교 5): 박스스코어가 있는 시즌만, 카드 시즌을 따른다 */}
+        {recentGames?.[season] && (
+          <div className="mt-6">
+            <PlayerRecentGames games={recentGames[season]} seasonCode={season} seasonShort={labelOf(season)} />
+          </div>
+        )}
+      </TabPanel>
+
+      {/* ── 능력치 탭: 세부 능력치 → 경기별 기록 범위 → 비슷한 시즌 ── */}
+      <TabPanel tab="ability">
+        {/* 세부 능력치 백분위 막대 (Baseball Savant 방식): 카드와 같은 시즌·같은 등급 집단 */}
+        {view && (
+          <div className="mt-6">
+            <PercentileBars view={view} seasonShort={labelOf(view.seasonCode)} />
+          </div>
+        )}
+        {/* 경기별 기록 범위 (토스 검토 B-9): 박스스코어가 있는 시즌만 */}
+        {gameRanges?.[season] && (
+          <div className="mt-8">
+            <GameRangeBars data={gameRanges[season]} seasonShort={labelOf(season)} />
+          </div>
+        )}
+        {similar && (
+          <div className="mt-8">
+            <SimilarPlayers items={similarState.items} loading={similarState.loading} seasonShort={labelOf(season)} />
+          </div>
+        )}
+      </TabPanel>
+
+      {/* ── 슛 탭: 슛 차트(카드 시즌·그 시즌 팀 색) → 슛 습관의 변화 ── */}
+      <TabPanel tab="shots">
+        <div className="mt-6">
+          <ShotChart
+            playerId={playerId}
+            seasonCode={season}
+            seasonShort={labelOf(season)}
+            available={shotSeasons}
+            initial={initialShots}
+            teamPrimary={view?.team?.color.primary ?? FALLBACK_TEAM_COLOR.primary}
           />
         </div>
-      )}
+        {shotsExtra && <div className="mt-8">{shotsExtra}</div>}
+      </TabPanel>
 
-      {/* ── 카드 (PC 가로 카드 한 줄) → 추이 + 하이라이트 ── */}
-      <div className={groupLabel ? "mt-2" : "mt-4"}>{deck}</div>
-      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
-        <Link
-          href={compareHref({ id: playerId, seasonCode: season })}
-          className="focus-ring link-shortcut text-body"
-        >
-          비교 탭에서 다른 선수·시즌과 비교
-          <IconChevronRight size={16} />
-        </Link>
-      </div>
-      {/* 경기별 기록 범위 (토스 검토 B-9): 박스스코어가 있는 시즌만, 카드 시즌을 따른다 */}
-      {gameRanges?.[season] && (
-        <div className="mt-6">
-          <GameRangeBars data={gameRanges[season]} seasonShort={labelOf(season)} />
-        </div>
-      )}
-      {/* 최근 경기 (스포츠 앱 비교 5): 박스스코어가 있는 시즌만, 카드 시즌을 따른다 */}
-      {recentGames?.[season] && (
-        <div className="mt-6">
-          <PlayerRecentGames games={recentGames[season]} seasonCode={season} seasonShort={labelOf(season)} />
-        </div>
-      )}
-      {/* 세부 능력치 백분위 막대 (Baseball Savant 방식): 카드와 같은 시즌·같은 등급 집단 */}
-      {view && (
-        <div className="mt-6">
-          <PercentileBars view={view} seasonShort={labelOf(view.seasonCode)} />
-        </div>
-      )}
-      <div className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start">
-        <div className="min-w-0">{aside}</div>
-        <HighlightCards title={highlight.title} items={highlight.items} teamPrimary={view?.team?.color.primary ?? FALLBACK_TEAM_COLOR.primary} />
-      </div>
-      {/* 슛 차트: 카드와 같은 시즌을 따른다 (팀 색도 그 시즌 카드의 팀) */}
-      <div className="mt-8">
-        <ShotChart
-          playerId={playerId}
-          seasonCode={season}
-          seasonShort={labelOf(season)}
-          available={shotSeasons}
-          initial={initialShots}
-          teamPrimary={view?.team?.color.primary ?? FALLBACK_TEAM_COLOR.primary}
-        />
-      </div>
-      <FloatingSeasonBar
-        codes={codes}
-        season={season}
-        labelOf={labelOf}
-        primeSeason={primeSeason}
-        onChange={(c) => {
-          trackFilters("player", { season: c });
-          setState((s) => ({ ...s, season: c }));
-        }}
-        anchor={chipsEl}
-      />
-      {/* 비슷한 시즌: 카드와 같은 시즌을 따른다 */}
-      {similar && (
-        <div className="mt-8">
-          <SimilarPlayers items={similarState.items} loading={similarState.loading} seasonShort={labelOf(season)} />
-        </div>
-      )}
+      {seasonal && <FloatingSeasonBar codes={codes} season={season} labelOf={labelOf} primeSeason={primeSeason} onChange={changeSeason} anchor={chipsEl} />}
     </div>
   );
 }

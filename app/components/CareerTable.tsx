@@ -50,12 +50,20 @@ const isTotal = (s: CareerSeason) => s.seasonCode === TOTAL_CODE;
 /** 모바일 접힌 행에 보이는 세 값 */
 const SUMMARY_KEYS: LeaderStatKey[] = ["points", "reb", "ast"];
 
-/** 위 카드를 그 시즌으로 바꾸고 카드로 스크롤 */
+/** 시즌 탭의 카드를 그 시즌으로 바꾸고 카드로 스크롤 */
 function showSeasonCard(seasonCode: number) {
   window.dispatchEvent(new CustomEvent(PLAYER_SEASON_EVENT, { detail: seasonCode }));
   // 움직임 줄이기 설정이면 바로 이동 (디자인 점검 C4)
+  // 이벤트로 탭이 시즌 탭으로 바뀌어 카드가 그려진 뒤에 스크롤 (2026-11-08 탭)
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  document.getElementById("season-card")?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+  window.requestAnimationFrame(() =>
+    window.requestAnimationFrame(() => {
+      const el = document.getElementById("season-card");
+      if (!el) return;
+      const offset = (document.getElementById("player-fixed-bar")?.offsetHeight ?? 96) + 8;
+      window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - offset, behavior: reduce ? "auto" : "smooth" });
+    }),
+  );
 }
 
 export default function CareerTable({ seasons, playoffSeasons = [] }: { seasons: CareerSeason[]; playoffSeasons?: CareerSeason[] }) {
