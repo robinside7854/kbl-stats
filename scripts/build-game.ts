@@ -10,7 +10,8 @@ import { buildGamePool, pickRegularChampions } from "../lib/game-pool.js";
 import { computeStandings } from "../lib/games.js";
 import { pickPrimeSeasons, primeCandidatesOf } from "../lib/prime.js";
 import { schoolGroupOf, SCHOOL_ABROAD } from "../lib/roster.js";
-import type { PlayerIndexEntry, SeasonData, SeasonGame, SeasonOption } from "../lib/types.js";
+import type { FormLine } from "../lib/game-playoffs.js";
+import type { PlayerIndexEntry, PostseasonFile, SeasonData, SeasonGame, SeasonOption } from "../lib/types.js";
 
 const ROOT = process.cwd();
 const PROCESSED = join(ROOT, "data", "processed");
@@ -27,6 +28,7 @@ async function main() {
   const photo = new Map(index.map((e) => [e.id, e.photoUrl]));
   const all: SeasonCards[] = [];
   const regularChampions = new Map<number, Set<string>>();
+  const playoffs = new Map<number, Map<string, FormLine>>();
   for (const s of seasons) {
     const season = await readJson<SeasonData | null>(join(PROCESSED, String(s.seasonCode), "players.json"), null);
     if (!season || season.players.length === 0) continue;
@@ -40,6 +42,18 @@ async function main() {
       season.seasonAwards?.regular?.first ?? null,
     );
     if (first.length > 0) regularChampions.set(season.seasonCode, new Set(first));
+    // 플레이오프 합계 (54-0 플레이오프 이어 하기 — 선수마다 플레이오프 폼)
+    const post = await readJson<PostseasonFile | null>(join(PROCESSED, String(s.seasonCode), "postseason.json"), null);
+    if (post?.playoff?.length) {
+      const m = new Map<string, FormLine>();
+      for (const l of post.playoff) {
+        m.set(`${l.playerNo}|${l.teamCode}`, {
+          games: l.games, minutes: l.minutes, points: l.points, reb: l.reb, ast: l.ast, stl: l.stl, blk: l.blk,
+          tov: l.tov ?? 0, fgm: l.fgm ?? 0, fga: l.fga ?? 0, ftm: l.ftm, fta: l.fta ?? l.ftm,
+        });
+      }
+      playoffs.set(season.seasonCode, m);
+    }
     const file = encodeSeasonCards(
       { seasonCode: season.seasonCode, seasonLabel: season.seasonLabel, coverage: season.coverage, teams: toCardTeams(season) },
       toCardPlayers(season, (no) => photo.get(no) ?? null),
@@ -53,7 +67,7 @@ async function main() {
     if (g && g !== SCHOOL_ABROAD) schools.set(e.id, g);
   }
   const primes = pickPrimeSeasons(all.flatMap(primeCandidatesOf));
-  const pool = buildGamePool(all, { schools, primes, regularChampions });
+  const pool = buildGamePool(all, { schools, primes, regularChampions, playoffs });
   console.log(`정규리그 1위: ${[...regularChampions].map(([k, v]) => `${k}:${[...v].join("·")}`).join(" ")}`);
   await mkdir(OUT, { recursive: true });
   const json = JSON.stringify(pool);

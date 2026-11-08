@@ -10,8 +10,17 @@ import { DEFAULT_QUALIFY, buildCardEntry, gradeScore, isQualified, perGame, RADA
 import { nationalityOf } from "./roster";
 import { type GameCandidate, type GameEra, type GamePool, type GameTeam } from "./game";
 import type { SeasonCards } from "./cards";
+import { leaguePlayoffRatio, playoffForm, type FormLine } from "./game-playoffs";
 
 const r1 = (v: number) => Math.round(v * 10) / 10;
+
+/** 카드 한 줄 → 정규시즌 효율 재료 (자유투 성공은 시도 × 성공률) */
+function regularLine(p: SeasonCards["players"][number]): FormLine {
+  return {
+    games: p.games, minutes: p.minutes, points: p.points, reb: p.reb, ast: p.ast, stl: p.stl, blk: p.blk, tov: p.tov,
+    fgm: p.fgm, fga: p.fga, ftm: Math.round((p.fta * (p.ftPct ?? 0)) / 100), fta: p.fta,
+  };
+}
 
 /** 가산점 재료 (scripts/build-game.ts 가 processed 에서 모은다). 없으면 가산점 없음 */
 export interface GamePoolExtras {
@@ -21,6 +30,8 @@ export interface GamePoolExtras {
   primes?: ReadonlyMap<string, number>;
   /** 시즌 코드 → 정규리그 1위 팀 코드들 (공동 1위면 둘) */
   regularChampions?: ReadonlyMap<number, ReadonlySet<string>>;
+  /** 시즌 코드 → "선수번호|팀코드" → 그 시즌 플레이오프 합계 (postseason.json playoff) — 54-0 플레이오프 이어 하기 */
+  playoffs?: ReadonlyMap<number, ReadonlyMap<string, FormLine>>;
 }
 
 /**
@@ -49,6 +60,10 @@ export function buildGamePool(all: readonly SeasonCards[], extras: GamePoolExtra
     const totals = new Map<string, { games: number; pts: number; reb: number; ast: number; stl: number; blk: number; tpm: number; tpa: number; labels: string[] }>();
     for (const cards of chunk) {
       const ctx = seasonContext(cards, "all");
+      const poLines = extras.playoffs?.get(cards.seasonCode);
+      const leagueRatio = poLines
+        ? leaguePlayoffRatio(cards.players.flatMap((p) => { const po = poLines.get(`${p.id}|${p.teamCode}`); return po ? [{ regular: regularLine(p), playoff: po }] : []; }))
+        : 1;
       for (const t of cards.teams) {
         // 구간 마지막 시즌의 이름·로고로 (오래된 순으로 돌며 덮어쓴다)
         const prev = teams.get(t.teamCode);
@@ -83,6 +98,10 @@ if (!p.position || !isQualified(p, DEFAULT_QUALIFY)) continue;
           prime: extras.primes?.get(p.id) === cards.seasonCode,
           regularChamp: extras.regularChampions?.get(cards.seasonCode)?.has(p.teamCode) ?? false,
         };
+        const po = extras.playoffs?.get(cards.seasonCode)?.get(`${p.id}|${p.teamCode}`);
+        if (po && po.games > 0) {
+          c.po = { g: po.games, ppg: r1(po.points / po.games), rpg: r1(po.reb / po.games), apg: r1(po.ast / po.games), f: playoffForm(regularLine(p), po, leagueRatio) };
+        }
         const key = `${p.teamCode}|${p.id}`;
         const t = totals.get(key) ?? { games: 0, pts: 0, reb: 0, ast: 0, stl: 0, blk: 0, tpm: 0, tpa: 0, labels: [] };
         t.games += p.games;

@@ -142,6 +142,76 @@ console.log("game: 슬롯 돌리기 통과");
   console.log("game: 가산점 통과");
 }
 
+// 역할 케미 (2026-11-08): 궂은일 담당 +, 볼은 하나 −
+{
+  const { BALL_FREE_PTS, BALL_MAX, GLUE_BONUS } = await import("../lib/game");
+  const p = (id: string, extra: Partial<GameCandidate>) => ({ ...c(id, "G"), ...extra });
+  const glue = [p("a", { axes: [40, 85, 50, 50, 50, 50] }), p("b", {}), p("c", {}), p("d", {}), p("e", {})];
+  assert.deepEqual(lineupBonuses(glue).map((b) => [b.key, b.points]), [["glue", GLUE_BONUS]]);
+  // 공격이 높은 수비수는 궂은일 담당이 아니다
+  assert.deepEqual(lineupBonuses([p("a", { axes: [80, 95, 50, 50, 50, 50] }), p("b", {}), p("c", {}), p("d", {}), p("e", {})]), []);
+  // 득점 합 80 이하는 감점 없음, 넘은 10점마다 −0.5, 최대 −1.5
+  const scorers = (each: number) => ["a", "b", "c", "d", "e"].map((id) => p(id, { ppg: each }));
+  assert.deepEqual(lineupBonuses(scorers(BALL_FREE_PTS / 5)), []);
+  assert.deepEqual(lineupBonuses(scorers(20)).map((b) => [b.key, b.points]), [["ball", -1]]); // 100점 → −1
+  assert.equal(lineupBonuses(scorers(40)).find((b) => b.key === "ball")!.points, -BALL_MAX);
+  assert.ok(teamRating(scorers(20)).rating < teamRating(scorers(10)).rating);
+  console.log("game: 역할 케미 통과");
+}
+
+// 이 팀에서 예상 기록·예상 MVP (2026-11-08)
+{
+  const { projectLineup, PROJ_POOL } = await import("../lib/game-projection");
+  const p = (id: string, extra: Partial<GameCandidate>) => ({ ...c(id, "G"), ...extra });
+  // 합이 몫보다 작으면 그대로
+  const small = ["a", "b", "c", "d", "e"].map((id) => p(id, { ppg: 10 }));
+  const s1 = projectLineup(small);
+  assert.ok(s1.rows.every((r) => r.ppg === 10) && !s1.shared);
+  // 올스타 다섯 명은 몫을 나눈다 — 합은 몫 이하, 원래보다 늘지 않음, 효율 높은 선수가 덜 깎인다
+  const stars = [p("a", { ppg: 25, axes: [90, 50, 50, 50, 50, 95] }), p("b", { ppg: 25, axes: [90, 50, 50, 50, 50, 30] }), p("c", { ppg: 20 }), p("d", { ppg: 18 }), p("e", { ppg: 15 })];
+  const s2 = projectLineup(stars);
+  assert.ok(s2.shared);
+  assert.ok(s2.rows.reduce((t, r) => t + r.ppg, 0) <= PROJ_POOL.pts + 0.5);
+  s2.rows.forEach((r, i) => assert.ok(r.ppg <= stars[i].ppg));
+  assert.ok(s2.rows[0].ppg > s2.rows[1].ppg, "같은 득점이면 효율 높은 쪽이 공을 더 받는다");
+  assert.equal(s2.mvpId, "a");
+  console.log("game: 예상 기록·MVP 통과");
+}
+
+// 플레이오프 (2026-11-08): 폼 배율·시리즈 확률·1위만·같은 라인업 같은 결과
+{
+  const { playoffForm, seriesWinProb, vsWinProb, simulatePlayoffs, isPlayoffSeed, GAME_PLAYOFF_SEED_WINS, PLAYOFF_FORM_MAX, PLAYOFF_FORM_MIN, PLAYOFF_NO_RECORD_FORM, playoffRating, leaguePlayoffRatio } =
+    await import("../lib/game-playoffs");
+  const line = (min: number, eff: number) => ({ games: 10, minutes: min, points: eff, reb: 0, ast: 0, stl: 0, blk: 0, tov: 0, fgm: 0, fga: 0, ftm: 0, fta: 0 });
+  assert.equal(playoffForm(line(300, 300), line(300, 300)), 1);
+  assert.ok(playoffForm(line(300, 300), line(300, 400)) > 1);
+  assert.ok(playoffForm(line(300, 300), line(300, 200)) < 1);
+  assert.equal(playoffForm(line(300, 300), line(3000, 30000)), PLAYOFF_FORM_MAX);
+  assert.equal(playoffForm(line(300, 300), line(3000, 0)), PLAYOFF_FORM_MIN);
+  assert.equal(playoffForm(line(300, 300), { ...line(0, 0), games: 0 }), PLAYOFF_NO_RECORD_FORM);
+  // 리그 전체가 떨어졌으면 그만큼 감안 (리그 0.9배 · 선수 0.9배 → 그대로)
+  assert.ok(Math.abs(leaguePlayoffRatio([{ regular: line(300, 300), playoff: line(300, 270) }]) - 0.9) < 1e-9);
+  assert.equal(playoffForm(line(300, 300), line(300, 270), 0.9), 1);
+  // 시리즈 확률: 반반이면 50%, 한 경기 확률보다 시리즈가 강자에게 유리
+  assert.ok(Math.abs(seriesWinProb(0.5, 4) - 0.5) < 1e-9);
+  assert.ok(seriesWinProb(0.6, 4) > 0.6);
+  assert.ok(Math.abs(seriesWinProb(0.7, 1) - 0.7) < 1e-9);
+  assert.ok(Math.abs(vsWinProb(0.5, 0.5) - 0.5) < 1e-9 && vsWinProb(0.8, 0.5) === 0.8);
+  // 1위만
+  const five = [c("1", "G"), c("2", "G"), c("3", "F"), c("4", "F"), c("5", "C")];
+  assert.equal(isPlayoffSeed(GAME_PLAYOFF_SEED_WINS - 1), false);
+  assert.equal(simulatePlayoffs(five, GAME_PLAYOFF_SEED_WINS - 1), null);
+  const strong = five.map((x) => ({ ...x, score: 95, axes: [95, 95, 95, 95, 95, 95], po: { g: 10, ppg: 20, rpg: 5, apg: 3, f: 1.05 } }));
+  const a = simulatePlayoffs(strong, 50)!;
+  const b = simulatePlayoffs(strong, 50)!;
+  assert.deepEqual(a.rounds.map((r) => r.games), b.rounds.map((r) => r.games));
+  assert.ok(a.titleProb > 0 && a.titleProb < 1);
+  assert.ok(playoffRating(strong).rating > teamRating(strong).rating, "플옵 폼이 좋으면 전력이 오른다");
+  for (const r of a.rounds) assert.ok(r.wins === r.need || r.losses === r.need);
+  assert.equal(a.champion, a.rounds.length === 2 && a.rounds.every((r) => r.won));
+  console.log("game: 플레이오프 통과");
+}
+
 // 전력: 평균 75% + 축 최고값 평균 25%, 약점 축
 const lineup5 = [c("1", "G", false, 80, [90, 10, 10, 90, 90, 90]), c("2", "G", false, 80, [10, 10, 10, 10, 10, 10]), c("3", "F", false, 80, [10, 10, 10, 10, 10, 10]), c("4", "F", false, 80, [10, 10, 10, 10, 10, 10]), c("5", "C", false, 80, [10, 10, 10, 10, 10, 10])];
 const r = teamRating(lineup5);
@@ -229,7 +299,8 @@ if (existsSync(POOL)) {
   );
   assert.ok(rand.median >= 10 && rand.median <= 30, "아무나 뽑으면 20승 안팎");
   assert.ok(ppg.median >= 40, "득점 1위만 골라도 40승 이상");
-  assert.ok(ppg.perfect > 0.004 && ppg.perfect < 0.012, "득점 1위만 고르면 전승 0.7% 안팎");
+  // 2026-11-08 볼은 하나(득점원만 모으면 감점)로 0.6% → 0.2% 안팎
+  assert.ok(ppg.perfect > 0.001 && ppg.perfect < 0.008, "득점 1위만 고르면 전승 0.2% 안팎");
   assert.ok(score.perfect > ppg.perfect && score.perfect < 0.18, "숨은 점수까지 알면 더 높지만 18% 미만");
   // S급(종합 점수 95 이상) 5명 라인업: 전승 약 20% (2026-10-03 사용자 결정)
   const sCands = pool.eras.flatMap((e) => e.teams.flatMap((t) => t.candidates)).filter((x) => x.score >= 95);
@@ -246,6 +317,17 @@ if (existsSync(POOL)) {
   const sPerfect = sLineups.reduce((sum, l) => sum + winProbability(teamRating(l).rating) ** GAME_SEASON_GAMES, 0) / sLineups.length;
   console.log(`game: S급 5명 전승 ${(sPerfect * 100).toFixed(1)}%`);
   assert.ok(sPerfect > 0.14 && sPerfect < 0.26, "S급 5명이면 전승 20% 안팎");
+  // 플레이오프 (2026-11-08): 정규리그 1위를 한 라인업만, 우승 확률 평균
+  const { simulatePlayoffs } = await import("../lib/game-playoffs");
+  const titleRate = (ls: GameCandidate[][]) => {
+    const seeds = ls.map((l) => simulatePlayoffs(l, simulateSeason(l).wins)).filter((x) => x !== null);
+    return seeds.reduce((t, x) => t + x!.titleProb, 0) / Math.max(1, seeds.length);
+  };
+  const sTitle = titleRate(sLineups.slice(0, 1000));
+  const ppgTitle = titleRate(Array.from({ length: 1000 }, (_, i) => lineupOf("ppg", i + 1)));
+  console.log(`game: 플레이오프 우승 — S급 5명 ${(sTitle * 100).toFixed(0)}% · 득점 1위만 ${(ppgTitle * 100).toFixed(0)}%`);
+  assert.ok(sTitle > 0.5 && sTitle < 0.8, "S급 5명 우승 65% 안팎");
+  assert.ok(ppgTitle > 0.15 && ppgTitle < 0.4, "득점 1위만이면 우승 25% 안팎");
 }
 
 // 정규리그 1위 고르기 (우승 DNA 재료): 동률이면 공식 1위 이름으로, 공동 1위는 둘 다

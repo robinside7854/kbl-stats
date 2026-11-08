@@ -8,7 +8,7 @@
 import {
   GAME_BONUS_KEYS, GAME_HISTORY_LIMIT, MAX_GAME_RECORDS, type GameHistory, type GameRecord, type GameRecordInput,
   LOGIN_PROVIDERS, MAX_FAVORITES, MAX_LIKES, MAX_TEAMS, mergeFavorites, normalizeTeamCodes, providerOfMemberId, sanitizeFavorites,
-  type AdminMemberRow, type GameRanking, type GameRankRow, type LikeCounts, type RankingWeek, GAME_RANKING_LIMIT, kstWeekStart, type LikeKind, type LoginProvider, type MemberView, type MyLikes,
+  type AdminMemberRow, GAME_PEOPLE_KEEP_WEEKS, GAME_PLAYS_BASELINE, type GamePlayStats, kstWeekDate, type GameRanking, type GameRankRow, type LikeCounts, type RankingWeek, GAME_RANKING_LIMIT, kstWeekStart, type LikeKind, type LoginProvider, type MemberView, type MyLikes,
 } from "../account";
 import { parseNotifOff } from "../notifications";
 
@@ -91,6 +91,18 @@ export const SCHEMA_SQL = [
   `DROP TABLE IF EXISTS member_votes`,
   // 경기 승부 예측은 같은 날 폐지(사용자 결정) — 하루 동안 쌓인 예측 기록도 지운다
   `DROP TABLE IF EXISTS member_picks`,
+  // 54-0 플레이 수 (2026-11-08) — 로그인 없이 센다. 주(한국 시간 월요일 날짜)·승수별 판 수, 그 주 브라우저 무작위 번호(사람 수)
+  `CREATE TABLE IF NOT EXISTS game_play_counts (
+    week_start date NOT NULL,
+    wins smallint NOT NULL,
+    plays int NOT NULL DEFAULT 0,
+    PRIMARY KEY (week_start, wins)
+  )`,
+  `CREATE TABLE IF NOT EXISTS game_play_people (
+    week_start date NOT NULL,
+    pid text NOT NULL,
+    PRIMARY KEY (week_start, pid)
+  )`,
   // 연결 기능 이전 회원(로그인 수단이 하나도 안 적힌 회원): 회원 번호가 곧 로그인 번호
   `INSERT INTO member_logins (login_id, member_id, provider)
     SELECT m.id, m.id, m.provider FROM members m
@@ -429,6 +441,56 @@ export async function weeklyGameRanking(q: Query, week: RankingWeek, now = new D
     playedAt: new Date(r.played_at as string).toISOString(),
   }));
   return { week, from: from.toISOString(), to: to.toISOString(), rows: list, members: Number(rows[0]?.total ?? 0) };
+}
+
+// ── 54-0 플레이 수·최고 기록 (2026-11-08) ──
+
+/** 완성한 판 하나 세기 (승수는 서버가 다시 계산한 값). 오래된 주의 사람 번호는 지운다 */
+export async function recordGamePlay(q: Query, wins: number, pid: string, now = new Date()): Promise<void> {
+  const week = kstWeekDate(now);
+  await q(
+    `INSERT INTO game_play_counts (week_start, wins, plays) VALUES ($1, $2, 1)
+     ON CONFLICT (week_start, wins) DO UPDATE SET plays = game_play_counts.plays + 1`,
+    [week, wins],
+  );
+  await q(`INSERT INTO game_play_people (week_start, pid) VALUES ($1, $2) ON CONFLICT DO NOTHING`, [week, pid]);
+  await q(`DELETE FROM game_play_people WHERE week_start < $1`, [kstWeekDate(now, -GAME_PEOPLE_KEEP_WEEKS)]);
+}
+
+export async function gamePlayStats(q: Query, now = new Date()): Promise<GamePlayStats> {
+  const week = kstWeekDate(now);
+  const [totals, hist, people, best, perfect] = await Promise.all([
+    q(`SELECT coalesce(sum(plays), 0)::int AS n FROM game_play_counts`),
+    q(`SELECT wins, plays FROM game_play_counts WHERE week_start = $1`, [week]),
+    q(`SELECT count(*)::int AS n FROM game_play_people WHERE week_start = $1`, [week]),
+    q(
+      `SELECT m.nickname, g.wins, g.names, g.lineup, g.played_at FROM member_games g JOIN members m ON m.id = g.member_id
+       WHERE g.verified AND m.nickname IS NOT NULL ORDER BY g.wins DESC, g.rating DESC, g.played_at ASC LIMIT 1`,
+    ),
+    q(`SELECT count(DISTINCT g.member_id)::int AS n FROM member_games g WHERE g.verified AND g.wins = 54`),
+  ]);
+  const weekHist = Array.from({ length: 55 }, () => 0);
+  for (const r of hist) {
+    const w = Number(r.wins);
+    if (w >= 0 && w <= 54) weekHist[w] = Number(r.plays);
+  }
+  const b = best[0];
+  return {
+    totalPlays: GAME_PLAYS_BASELINE + Number(totals[0]?.n ?? 0),
+    weekPlays: weekHist.reduce((s, v) => s + v, 0),
+    weekPlayers: Number(people[0]?.n ?? 0),
+    weekHist,
+    best: b
+      ? {
+          nickname: String(b.nickname),
+          wins: Number(b.wins),
+          names: Array.isArray(b.names) ? b.names.map(String) : [],
+          lineup: String(b.lineup),
+          playedAt: new Date(b.played_at as string).toISOString(),
+        }
+      : null,
+    perfectMembers: Number(perfect[0]?.n ?? 0),
+  };
 }
 
 // ── 업데이트 소식 삭제 (관리자) ──

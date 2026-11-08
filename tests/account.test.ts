@@ -323,6 +323,36 @@ console.log("account: 계정 연결·관리자 규칙 통과");
   rk = await weeklyGameRanking(q3, "this");
   assert.deepEqual(rk.rows.map((r) => r.nickname), ["일번"]);
   assert.deepEqual((await weeklyGameRanking(q3, "last")).rows.map((r) => r.nickname), ["이번"]);
+
+  // 54-0 플레이 수·최고 기록 (2026-11-08): 로그인 없이 판·사람 세기, 이번 주 상위 %, 회원 최고 기록
+  {
+    const { recordGamePlay, gamePlayStats } = await import("../lib/server/members");
+    const { GAME_PLAYS_BASELINE, weekTopPercent, validPlayId, kstWeekDate } = await import("../lib/account");
+    assert.equal(kstWeekDate(new Date("2026-11-08T14:00:00Z")), "2026-11-02"); // 일요일 23시 KST → 그 주 월요일
+    assert.equal(kstWeekDate(new Date("2026-11-08T15:00:00Z")), "2026-11-09"); // 월요일 0시 KST
+    assert.equal(validPlayId("abcdefghij0123456789"), true);
+    assert.equal(validPlayId("short"), false);
+    assert.equal(validPlayId("ABCDEFGHIJ0123456789"), false);
+    let st = await gamePlayStats(q3);
+    assert.equal(st.totalPlays, GAME_PLAYS_BASELINE);
+    assert.equal(st.weekPlays, 0);
+    assert.equal(st.best?.nickname, "이번"); // 역대 최고 = 맞춘 기록 중 닉네임 있는 회원의 최고 (지난주 45승·전력 95)
+    const pid = (n: number) => `p${String(n).padStart(19, "0")}`;
+    await recordGamePlay(q3, 40, pid(1));
+    await recordGamePlay(q3, 50, pid(1)); // 같은 사람 두 판
+    await recordGamePlay(q3, 30, pid(2));
+    await recordGamePlay(q3, 50, pid(3), new Date(Date.now() - 8 * 86400_000)); // 지난주
+    st = await gamePlayStats(q3);
+    assert.equal(st.totalPlays, GAME_PLAYS_BASELINE + 4);
+    assert.equal(st.weekPlays, 3);
+    assert.equal(st.weekPlayers, 2);
+    assert.equal(st.weekHist[50], 1);
+    assert.equal(weekTopPercent(st.weekHist, 50), 34); // 3판 중 1등 → 상위 34%
+    assert.equal(weekTopPercent(st.weekHist, 30), 100);
+    assert.equal(weekTopPercent(Array(55).fill(0), 30), null);
+    // 54-0 회원 수: 맞춘 54승 기록이 있는 회원(닉네임 없는 회원 포함)
+    assert.equal(st.perfectMembers, 1);
+  }
   await db3.close();
   console.log("account: 54-0 내 기록(검사·저장·같은 라인업 한 줄·요약·지우기·상한·합치기·탈퇴)·주간 순위 통과");
 }

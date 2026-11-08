@@ -217,7 +217,7 @@ export interface AdminMemberRow {
 // 같은 라인업은 늘 같은 성적(lib/game simulateSeason 시드)이라 라인업 하나에 한 줄 — 다시 하면 시각만 새로.
 export const MAX_GAME_RECORDS = 200;
 export const GAME_HISTORY_LIMIT = 50;
-export const GAME_BONUS_KEYS = ["school", "prime", "champion"] as const;
+export const GAME_BONUS_KEYS = ["school", "prime", "champion", "glue", "ball"] as const;
 export type GameBonusKey = (typeof GAME_BONUS_KEYS)[number];
 
 export interface GameRecordInput {
@@ -269,6 +269,54 @@ export function validGameRecord(raw: unknown): GameRecordInput | null {
     names.push(clean);
   }
   return { lineup: r.lineup, wins: r.wins, rating: Math.round(r.rating * 10) / 10, bonuses, names };
+}
+
+// ── 54-0 플레이 수·최고 기록 (2026-11-08 사용자 "몇 명이 했고 최고 기록이 누구인지 보이면 더 하고 싶어진다") ──
+// 로그인 없이 센다: 완성한 판마다 그 주(한국 시간 월~일)·승수별 판 수 + 그 주 브라우저 무작위 번호(사람 수, 개인정보 아님).
+// 승수는 서버가 라인업으로 다시 계산한 값. 최고 기록은 닉네임을 정한 회원의 서버 확인 기록(member_games verified) 중 가장 좋은 판.
+/** 집계를 시작하기 전(2026-10-02 ~ 11-08) 완성 판 수 — GA4 game_complete 5,450회(2026-11-08 조회). 전체 판 수 = 이 값 + 집계분 */
+export const GAME_PLAYS_BASELINE = 5450;
+/** 그 주 사람 수 번호는 이만큼 지난 주를 지운다 */
+export const GAME_PEOPLE_KEEP_WEEKS = 8;
+
+export interface GamePlayBest {
+  nickname: string;
+  wins: number;
+  /** "이상민 97-98" 다섯 개 */
+  names: string[];
+  lineup: string;
+  playedAt: string;
+}
+export interface GamePlayStats {
+  /** 지금까지 완성한 판 (집계 전 GA 값 포함) */
+  totalPlays: number;
+  weekPlays: number;
+  weekPlayers: number;
+  /** 이번 주 승수별 판 수 (0~54, 길이 55) — 상위 % 계산 */
+  weekHist: number[];
+  /** 회원 역대 최고 기록 (없으면 null) */
+  best: GamePlayBest | null;
+  /** 54-0 을 해 본 회원 수 */
+  perfectMembers: number;
+}
+
+const PLAY_ID_RE = /^[a-z0-9]{16,40}$/;
+/** 브라우저 무작위 번호 (localStorage) — 형식만 본다 */
+export function validPlayId(v: unknown): v is string {
+  return typeof v === "string" && PLAY_ID_RE.test(v);
+}
+
+/** 이번 주 판 중 이 승수의 위치 "상위 N%" — 나보다 많이 이긴 판 수 기준. 판이 없으면 null */
+export function weekTopPercent(hist: readonly number[], wins: number): number | null {
+  const total = hist.reduce((s, v) => s + v, 0);
+  if (total === 0) return null;
+  const above = hist.slice(wins + 1).reduce((s, v) => s + v, 0);
+  return Math.max(1, Math.ceil(((above + 1) / total) * 100));
+}
+
+/** 한국 시간 그 주 월요일 "YYYY-MM-DD" */
+export function kstWeekDate(now: Date, offset = 0): string {
+  return new Date(kstWeekStart(now, offset).getTime() + KST_MS).toISOString().slice(0, 10);
 }
 
 // ── 54-0 주간 순위 (2026-10-05) ─────────────────────────

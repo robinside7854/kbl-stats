@@ -26,10 +26,23 @@ export const gameResultImagePath = (slug: string) => `/game/og/${slug}`;
 export const recordLabel = (wins: number) => `${wins}승 ${GAME_SEASON_GAMES - wins}패`;
 
 /** 공유할 때 같이 보내는 글 (카톡 말풍선에 그대로 들어간다) */
-export function shareText(wins: number, shared = false): string {
+/** 공유 글에 덧붙이는 것 (2026-11-08): 플레이오프 결과·이번 주 상위 % */
+export interface ShareExtra {
+  /** 플레이오프까지 했으면 어디까지 갔나 */
+  stage?: "champion" | "final" | "semi" | null;
+  /** 이번 주 판 중 상위 N% */
+  topPercent?: number | null;
+}
+
+export function shareText(wins: number, shared = false, extra: ShareExtra = {}): string {
   if (shared) return `이 54-0 라인업은 ${recordLabel(wins)}래요. 넘을 수 있어요?`;
-  if (wins === GAME_SEASON_GAMES) return `54-0 전승 찍었어요. KBL 역대 라인업으로 해 보세요`;
-  return `제 54-0 라인업은 ${recordLabel(wins)}예요. 이 기록 넘을 수 있어요?`;
+  const tail = [
+    extra.stage === "champion" ? "챔프전 우승까지" : extra.stage === "final" ? "챔프전 준우승" : extra.stage === "semi" ? "플레이오프 4강" : null,
+    extra.topPercent != null && extra.topPercent <= 50 ? `이번 주 상위 ${extra.topPercent}%` : null,
+  ].filter(Boolean);
+  const more = tail.length > 0 ? ` (${tail.join(" · ")})` : "";
+  if (wins === GAME_SEASON_GAMES) return `54-0 전승 찍었어요${more}. KBL 역대 라인업으로 해 보세요`;
+  return `제 54-0 라인업은 ${recordLabel(wins)}예요${more}. 이 기록 넘을 수 있어요?`;
 }
 
 /** 결과 화면 공유 권유 글 — 직접 한 판(mine)과 친구가 보낸 결과(shared)가 다르다 */
@@ -42,6 +55,6 @@ export function shareCta(wins: number, shared: boolean): { title: string; body: 
   }
   if (wins === GAME_SEASON_GAMES) return { title: "전승이에요. 지금이 자랑할 때", body: "54전 전승은 정말 드물어요. 친구들한테 보여 주세요." };
   if (wins >= 48) return { title: "전승까지 거의 다 왔어요", body: "친구는 이 기록 넘을 수 있을까요? 결과를 보내 보세요." };
-  if (wins >= 40) return { title: "1위 후보 라인업이에요", body: "친구한테 도전장 보내 볼까요?" };
+  if (wins >= 39) return { title: "정규리그 1위 라인업이에요", body: "플레이오프까지 해 보고 친구한테 도전장 보내 볼까요?" };
   return { title: resultVerdict(wins), body: "친구 라인업이랑 비교해 보면 재밌어요. 결과를 보내 보세요." };
 }

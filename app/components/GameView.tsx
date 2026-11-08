@@ -12,7 +12,7 @@ import { PlayerLink, TeamLink } from "./EntityLinks";
 import {
   canPick, decodeLineupParam, emptyLineup, encodeLineupParam, foreignCount, GAME_FOREIGN_MAX, GAME_ROUNDS, GAME_SEASON_GAMES,
   GAME_SLOTS, isLineupFull, lineupTotals, openSlotsFor, pickBlockReason, placePick, respinEra, respinTeam, resultVerdict,
-  simulateSeason, findCandidateTeam, SLOT_LABELS, spin, teamOfCandidate, teamsOf, GAME_SPIN_TEAMS, filterByPositionChip, sortCandidatesBy, POSITION_CHIPS, SORT_COLUMNS, nextSort, schoolChemistryComment, CHEM_SCHOOL_MIN, CHEM_SCHOOL_BONUS, CHEM_PRIME_MIN, CHEM_PRIME_BONUS, CHEM_CHAMP_PER, type LineupBonus, type PositionChip, type SortDir, type SortKey, type SortStat, type GameCandidate, type GamePool, type GameTeam, type Lineup,
+  simulateSeason, findCandidateTeam, SLOT_LABELS, spin, teamOfCandidate, teamsOf, GAME_SPIN_TEAMS, filterByPositionChip, sortCandidatesBy, POSITION_CHIPS, SORT_COLUMNS, nextSort, schoolChemistryComment, CHEM_SCHOOL_MIN, CHEM_SCHOOL_BONUS, CHEM_PRIME_MIN, CHEM_PRIME_BONUS, CHEM_CHAMP_PER, BALL_FREE_PTS, BALL_PER_10, BALL_MAX, GLUE_BONUS, GLUE_OFFENSE_MAX, GLUE_ROLE_MIN, type LineupBonus, type PositionChip, type SortDir, type SortKey, type SortStat, type GameCandidate, type GamePool, type GameTeam, type Lineup,
   type SeasonResult, type Spin,
 } from "@/lib/game";
 import { RADAR_AXES, RADAR_AXIS_LABELS } from "@/lib/metrics";
@@ -32,7 +32,12 @@ import TeamLogo from "./TeamLogo";
 import { useCardSave } from "./useCardSave";
 import { ExportImages } from "./useOfficialImage";
 import { trackEvent, trackFilters } from "./track";
-import { enabledLoginProviders } from "@/lib/account";
+import { enabledLoginProviders, weekTopPercent, type GamePlayStats } from "@/lib/account";
+import { simulatePlayoffs, type PlayoffResult } from "@/lib/game-playoffs";
+import { projectLineup } from "@/lib/game-projection";
+import GamePlayoffs, { type PlayoffPhase } from "./GamePlayoffs";
+import { GameRankLine, GameStatsStrip } from "./GameStatsStrip";
+import { fetchGameStats, postGamePlay } from "./game-stats-client";
 import { hasSignedInHint, saveGameRecord, type GameSaveResult } from "./account-client";
 import { useThemeColors, type ThemeColors } from "./useThemeColors";
 
@@ -89,6 +94,9 @@ export default function GameView({ sharedLineup }: { sharedLineup?: string } = {
   const [recordStatus, setRecordStatus] = useState<GameSaveResult | "saving" | "off">("off");
   /** 게임 방법 상자 — 처음엔 접어 두고 "게임 방법 보기" 버튼만 (2026-10-04 사용자 요청) */
   const [rulesOpen, setRulesOpen] = useState(false);
+  // 플레이 수·최고 기록 (2026-11-08) — 로그인 기능(DB)이 켜진 빌드만
+  const [stats, setStats] = useState<GamePlayStats | null>(null);
+  const [poPhase, setPoPhase] = useState<PlayoffPhase>("idle");
   const timer = useRef<number | null>(null);
 
   useEffect(() => {
@@ -98,6 +106,7 @@ export default function GameView({ sharedLineup }: { sharedLineup?: string } = {
       .then((p: GamePool) => {
         if (!alive) return;
         setPool(p);
+        fetchGameStats().then((st) => alive && st && setStats(st));
         // 공유 주소로 들어오면 그 라인업 결과를 바로
         const players = decodeLineupParam(p, sharedLineup ?? new URLSearchParams(window.location.search).get("l"));
         if (players) setShared(players.map((c) => ({ c, team: findTeam(p, c) })));
@@ -118,6 +127,8 @@ export default function GameView({ sharedLineup }: { sharedLineup?: string } = {
     return lineup.map((c, i) => ({ c: c!, team: teams[i]! }));
   }, [shared, full, lineup, teams]);
   const result = useMemo(() => (picked ? simulateSeason(picked.map((p) => p.c)) : null), [picked]);
+  const playoff = useMemo(() => (picked && result ? simulatePlayoffs(picked.map((p) => p.c), result.wins) : null), [picked, result]);
+  useEffect(() => setPoPhase("idle"), [picked]);
 
   // 직접 완성한 판만 센다(공유 링크로 본 결과는 빼고)
   useEffect(() => {
@@ -126,6 +137,8 @@ export default function GameView({ sharedLineup }: { sharedLineup?: string } = {
       return;
     }
     trackEvent("game_complete", { wins: result.wins, bonuses: result.rating.bonuses.map((b) => b.key).join(",") || "none" });
+    // 플레이 수 세기 (로그인 없이 — 서버가 승수를 다시 계산) → 이번 주 상위 % 가 바로 보이게
+    postGamePlay(encodeLineupParam(picked.map((p) => p.c))).then((st) => st && setStats(st));
     // 로그인한 사람은 내 기록에 저장 (같은 라인업은 서버에서 한 줄로)
     if (enabledLoginProviders().length === 0) return;
     if (!hasSignedInHint()) {
@@ -285,7 +298,10 @@ export default function GameView({ sharedLineup }: { sharedLineup?: string } = {
     if (!picked || !result) return;
     const slug = lineupToSlug(encodeLineupParam(picked.map((p) => p.c)));
     const url = `${window.location.origin}${slug ? gameResultPath(slug) : window.location.pathname + window.location.search}`;
-    const text = shareText(result.wins, shared != null);
+    const text = shareText(result.wins, shared != null, {
+      stage: poPhase === "done" && playoff ? playoff.stage : null,
+      topPercent: stats && !shared ? weekTopPercent(stats.weekHist, result.wins) : null,
+    });
     const base = { wins: result.wins, place: shared ? `shared_${place}` : place };
     if (how === "share" && typeof navigator.share === "function") {
       try {
@@ -340,9 +356,31 @@ export default function GameView({ sharedLineup }: { sharedLineup?: string } = {
           <Skeleton className="h-40 rounded-container" />
         </div>
       ) : picked && result ? (
-        <ResultView picked={picked} result={result} colors={colors} shared={!!shared} copied={copied} canShare={canShare} recordStatus={recordStatus} onShare={shareResult} onRestart={restart} />
+        <ResultView
+          picked={picked}
+          result={result}
+          colors={colors}
+          shared={!!shared}
+          copied={copied}
+          canShare={canShare}
+          recordStatus={recordStatus}
+          onShare={shareResult}
+          onRestart={restart}
+          stats={stats}
+          playoff={playoff}
+          poPhase={poPhase}
+          onPlayoffStart={() => {
+            trackEvent("game_playoff_start", { wins: result.wins });
+            setPoPhase("playing");
+          }}
+          onPlayoffDone={() => {
+            setPoPhase("done");
+            if (playoff) trackEvent("game_playoff_complete", { result: playoff.stage, wins: result.wins });
+          }}
+        />
       ) : (
         <>
+          {round === 0 && <GameStatsStrip stats={stats} />}
           <GameRules
             open={rulesOpen}
             onToggle={(next) => {
@@ -674,6 +712,11 @@ interface ResultProps {
   recordStatus: GameSaveResult | "saving" | "off";
   onShare: (place: "top" | "bottom", how?: "share" | "copy") => void;
   onRestart: () => void;
+  stats: GamePlayStats | null;
+  playoff: PlayoffResult | null;
+  poPhase: PlayoffPhase;
+  onPlayoffStart: () => void;
+  onPlayoffDone: () => void;
 }
 
 /** 결과 아래 한 줄: 내 기록에 저장됐는지 / 로그인하면 저장된다는 안내 */
@@ -711,7 +754,7 @@ function RecordNotice({ status }: { status: ResultProps["recordStatus"] }) {
  * 결과 맨 위 공유 권유 칸 (2026-10-27): 성적에 맞춘 한 줄 + 큰 "결과 공유하기"(폰은 카톡 등 공유 창) + "링크 복사"(2026-10-28).
  * 친구가 보낸 결과로 들어온 사람에게는 "나도 해 보기"가 먼저.
  */
-function ShareCta({ wins, shared, copied, canShare, onShare, onRestart }: { wins: number; shared: boolean; copied: boolean; canShare: boolean; onShare: (how: "share" | "copy") => void; onRestart: () => void }) {
+function ShareCta({ wins, shared, copied, canShare, stats, onShare, onRestart }: { wins: number; shared: boolean; copied: boolean; canShare: boolean; stats: GamePlayStats | null; onShare: (how: "share" | "copy") => void; onRestart: () => void }) {
   const cta = shareCta(wins, shared);
   const primary =
     "focus-ring inline-flex h-12 cursor-pointer items-center justify-center gap-2 rounded-control bg-series-1 px-5 text-body font-bold text-white transition-colors duration-200 hover:bg-ink";
@@ -723,6 +766,7 @@ function ShareCta({ wins, shared, copied, canShare, onShare, onRestart }: { wins
       <div className="min-w-0">
         <p className="text-h2 font-bold text-ink">{cta.title}</p>
         <p className="mt-1 text-sub text-ink-2">{cta.body}</p>
+        <GameRankLine stats={stats} wins={wins} />
       </div>
       <div className={`mt-3 grid shrink-0 gap-2 sm:mt-0 sm:flex ${shared || canShare ? "grid-cols-2" : ""}`}>
         {shared ? (
@@ -763,15 +807,25 @@ function ShareCta({ wins, shared, copied, canShare, onShare, onRestart }: { wins
   );
 }
 
-function ResultView({ picked, result, colors, shared, copied, canShare, recordStatus, onShare, onRestart }: ResultProps) {
+function ResultView({ picked, result, colors, shared, copied, canShare, recordStatus, onShare, onRestart, stats, playoff, poPhase, onPlayoffStart, onPlayoffDone }: ResultProps) {
+  const shownPlayoff = poPhase === "done" ? playoff : null;
   const { exportRef, saving, saveError, save } = useCardSave(colors.surface);
   const fileName = `54-0-${result.wins}-${result.losses}.png`;
   const secondary =
     "focus-ring h-11 cursor-pointer rounded-control border border-line bg-surface text-body font-semibold text-ink transition-colors duration-200 hover:bg-surface-2";
   return (
     <section aria-label="시즌 결과">
-      <ShareCta wins={result.wins} shared={shared} copied={copied} canShare={canShare} onShare={(how) => onShare("top", how)} onRestart={onRestart} />
-      <ResultCard picked={picked} result={result} colors={colors} official />
+      <ShareCta wins={result.wins} shared={shared} copied={copied} canShare={canShare} stats={stats} onShare={(how) => onShare("top", how)} onRestart={onRestart} />
+      <ResultCard picked={picked} result={result} playoff={shownPlayoff} colors={colors} official />
+      <GamePlayoffs
+        wins={result.wins}
+        playoff={playoff}
+        players={picked.map((p) => p.c)}
+        phase={poPhase}
+        colors={colors}
+        onStart={onPlayoffStart}
+        onDone={onPlayoffDone}
+      />
       <div className={`mt-3 grid grid-cols-2 gap-2 ${canShare ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}>
         {canShare && (
           <button
@@ -804,7 +858,7 @@ function ResultView({ picked, result, colors, shared, copied, canShare, recordSt
         <ExportImages>
           <div aria-hidden className="pointer-events-none fixed top-0" style={{ left: -10000 }}>
             <div ref={exportRef} className="w-[440px] bg-surface p-3">
-              <ResultCard picked={picked} result={result} colors={colors} official={false} />
+              <ResultCard picked={picked} result={result} playoff={shownPlayoff} colors={colors} official={false} />
             </div>
           </div>
         </ExportImages>
@@ -816,10 +870,14 @@ function ResultView({ picked, result, colors, shared, copied, canShare, recordSt
 // 코트 그림·다섯 자리는 HalfCourt (팀 올타임 베스트 5 와 같이 쓴다)
 
 /** 결과 카드 (화면·저장 이미지 공용). official=false 는 저장 사본 — ExportImages 안이라 사진·로고를 중계 주소로 그린다 */
-function ResultCard({ picked, result, colors, official }: { picked: Picked[]; result: SeasonResult; colors: ThemeColors; official: boolean }) {
-  const mvp = picked.reduce((b, p) => (p.c.score > b.c.score || (p.c.score === b.c.score && p.c.ppg > b.c.ppg) ? p : b), picked[0]);
+function ResultCard({ picked, result, playoff, colors, official }: { picked: Picked[]; result: SeasonResult; playoff: PlayoffResult | null; colors: ThemeColors; official: boolean }) {
+  // 이 팀에서의 예상 기록·예상 MVP (2026-11-08, lib/game-projection) — 올스타끼리 모이면 공을 나눠 가진다
+  const projection = projectLineup(picked.map((p) => p.c));
+  const proj = new Map(projection.rows.map((r) => [r.id, r]));
+  const mvp = picked.find((p) => p.c.id === projection.mvpId) ?? picked[0];
+  const mvpLine = proj.get(mvp.c.id)!;
   const perfect = result.wins === GAME_SEASON_GAMES;
-  const totals = lineupTotals(picked.map((p) => p.c));
+  const totals = lineupTotals(projection.rows.map((r, i) => ({ ...picked[i].c, ...r })));
   return (
     <div className="surface-card rounded-container p-4">
       <div className="flex items-end justify-between gap-3">
@@ -837,11 +895,21 @@ function ResultCard({ picked, result, colors, official }: { picked: Picked[]; re
             )}
           </p>
           <p className="mt-1 text-body font-semibold text-ink">{resultVerdict(result.wins)}</p>
+          {playoff && (
+            <p className="tabular mt-1 flex flex-wrap items-center gap-1.5 text-sub text-ink-2">
+              {playoff.champion && (
+                <span className="rounded-control px-1.5 py-0.5 font-bold" style={{ background: colors.gradeS, color: colors.gradeSInk }}>
+                  우승
+                </span>
+              )}
+              {playoff.rounds.map((r) => `${r.label === "챔피언결정전" ? "챔프전" : r.label} ${r.wins}-${r.losses}`).join(" · ")}
+            </p>
+          )}
         </div>
         <p className="tabular shrink-0 text-right text-caption text-ink-3">
           팀 전력 {result.rating.rating.toFixed(1)}
           {result.rating.bonuses.length > 0 && (
-            <span className="block">가산 +{(result.rating.rating - result.rating.base).toFixed(1)}</span>
+            <span className="block">가산·케미 {bonusPoints(Math.round((result.rating.rating - result.rating.base) * 10) / 10)}</span>
           )}
         </p>
       </div>
@@ -877,7 +945,7 @@ function ResultCard({ picked, result, colors, official }: { picked: Picked[]; re
                 </span>
                 <span className="tabular truncate text-caption text-ink-2">
                   {SLOT_LABELS[GAME_SLOTS[i]]}
-                  {p === mvp ? " · MVP" : ""}
+                  {p === mvp ? " · 예상 MVP" : ""}
                 </span>
                 <span className="tabular truncate text-caption text-ink-3">
                   <TeamLink code={official ? p.team.teamCode : null} season={p.c.seasonCode} place="game_result">
@@ -891,9 +959,18 @@ function ResultCard({ picked, result, colors, official }: { picked: Picked[]; re
         })}
       </div>
 
-      {/* 다섯 명 기록 (그 시즌 경기당) + 합계 */}
-      <table className="tabular mt-4 w-full table-fixed text-caption">
-        <caption className="mb-1 text-left text-sub font-bold text-ink">경기당 기록 (그 시즌)</caption>
+      {/* 예상 MVP + 이 팀에서의 예상 기록(그 시즌 기록과 다르면 아래 작게) */}
+      <p className="mt-4 rounded-card border border-line px-3 py-2 text-sub text-ink-2">
+        <span className="font-bold text-ink">예상 MVP {mvp.c.nameKo}</span>
+        <span className="tabular">
+          {" "}
+          · {mvpLine.ppg.toFixed(1)}득점 {mvpLine.rpg.toFixed(1)}리바 {mvpLine.apg.toFixed(1)}어시
+        </span>
+      </p>
+      <table className="tabular mt-3 w-full table-fixed text-caption">
+        <caption className="mb-1 text-left text-sub font-bold text-ink">
+          이 팀에서 예상 기록 <span className="font-normal text-ink-3">{projection.shared ? "· 작은 숫자는 그 시즌 원래 기록" : "· 그 시즌 기록 그대로"}</span>
+        </caption>
         <thead>
           <tr className="text-ink-3">
             <th scope="col" className="w-[34%] py-1 text-left font-medium">선수</th>
@@ -917,11 +994,16 @@ function ResultCard({ picked, result, colors, official }: { picked: Picked[]; re
                   p.c.nameKo
                 )}
               </th>
-              {STAT_COLS.map((s) => (
-                <td key={s.key} className="py-1.5 text-right text-ink">
-                  {p.c[s.key].toFixed(1)}
-                </td>
-              ))}
+              {STAT_COLS.map((s) => {
+                const v = proj.get(p.c.id)?.[s.key] ?? p.c[s.key];
+                const changed = Math.abs(v - p.c[s.key]) >= 0.05;
+                return (
+                  <td key={s.key} className="py-1.5 text-right align-top text-ink">
+                    {v.toFixed(1)}
+                    {changed && <span className="block text-ink-3">{p.c[s.key].toFixed(1)}</span>}
+                  </td>
+                );
+              })}
             </tr>
           ))}
         </tbody>
@@ -987,6 +1069,7 @@ function GameRules({ open, onToggle }: { open: boolean; onToggle: (next: boolean
               <li>슬롯을 돌리면 시즌 하나와 그 시즌 팀 3개가 나와요.</li>
               <li>세 팀 선수 중 한 명을 골라 빈 칸에 넣어요. 칸은 가드 2·포워드 2·센터 1, 외국 선수는 2명까지예요(아시아쿼터는 세지 않아요).</li>
               <li>다섯 번 하면 주전 5명 완성. 54경기를 치른 성적이 바로 나와요.</li>
+              <li>정규리그 1위(39승 이상)면 플레이오프를 이어서 할 수 있어요. 4강(5전 3승)과 챔프전(7전 4승)을 이기면 우승이에요.</li>
             </ol>
             <p className="mt-1.5 text-caption text-ink-3">
               시즌 다시·팀 다시는 한 번씩 쓸 수 있어요. 같은 선수는 시즌이 달라도 한 번만 뽑을 수 있어요.
@@ -1000,15 +1083,19 @@ function GameRules({ open, onToggle }: { open: boolean; onToggle: (next: boolean
                 <span className="font-semibold text-ink">팀 전력</span> = 다섯 명 점수 평균 75% + 6가지 능력(공격·수비·리바운드·슈팅·리딩·효율)마다 가장 잘하는 선수 점수 25% + 가산점
               </li>
               <li>전력이 높을수록 한 경기를 이길 확률이 올라가요. 54경기를 다 이기면 54-0! S급 5명을 모아도 다섯 판에 한 번꼴이에요.</li>
+              <li>올스타끼리 모이면 공을 나눠 가져서 각자 기록이 줄어요. 결과에 이 팀에서의 예상 기록과 예상 MVP가 나와요.</li>
+              <li>플레이오프에서는 선수마다 그 시즌 플레이오프 기록으로 전력을 다시 매겨요. 큰 경기에 강했던 선수가 빛나요.</li>
             </ul>
           </div>
           <div>
-            <h2 className="text-sub font-bold text-ink">가산점</h2>
+            <h2 className="text-sub font-bold text-ink">가산점·케미</h2>
             <dl className="mt-1 divide-y divide-line rounded-card border border-line">
               {[
                 { name: "동문 케미", rule: `같은 학교 출신이 ${CHEM_SCHOOL_MIN}명 이상`, pts: fmt(CHEM_SCHOOL_BONUS) },
                 { name: "프라임 타임", rule: `선수 커리어 최고 시즌(프라임)으로 뽑은 선수가 ${CHEM_PRIME_MIN}명 이상`, pts: fmt(CHEM_PRIME_BONUS) },
                 { name: "우승 DNA", rule: "그 시즌 정규리그 1위 팀 선수 1명마다", pts: fmt(CHEM_CHAMP_PER) },
+                { name: "궂은일 담당", rule: `공격은 약해도(${GLUE_OFFENSE_MAX}점 미만) 수비나 리바운드가 ${GLUE_ROLE_MIN}점 이상인 선수가 있으면`, pts: fmt(GLUE_BONUS) },
+                { name: "볼은 하나", rule: `다섯 명 득점 합이 ${BALL_FREE_PTS}점을 넘으면 10점마다 (최대 −${BALL_MAX})`, pts: `−${BALL_PER_10}` },
               ].map((b) => (
                 <div key={b.name} className="flex items-baseline gap-3 px-3 py-2">
                   <dt className="w-20 shrink-0 font-bold text-ink">{b.name}</dt>
@@ -1024,14 +1111,21 @@ function GameRules({ open, onToggle }: { open: boolean; onToggle: (next: boolean
   );
 }
 
-/** 가산점 (동문 케미·프라임 타임·우승 DNA) — 없으면 노릴 수 있는 것을 한 줄로 */
+/** 가산점 표기 "+0.5" · "−1.5" */
+function bonusPoints(v: number): string {
+  const abs = Math.abs(v);
+  const t = Number.isInteger(abs) ? String(abs) : abs.toFixed(2).replace(/0$/, "");
+  return `${v < 0 ? "−" : "+"}${t}`;
+}
+
+/** 가산점 (동문 케미·프라임 타임·우승 DNA·궂은일 담당 / 감점 볼은 하나) — 없으면 노릴 수 있는 것을 한 줄로 */
 function BonusList({ bonuses, picked, official }: { bonuses: LineupBonus[]; picked: Picked[]; official: boolean }) {
   const nameOf = new Map(picked.map((p) => [p.c.id, p.c.nameKo]));
   return (
     <>
-      <h3 className="mt-4 text-sub font-bold text-ink">가산점</h3>
+      <h3 className="mt-4 text-sub font-bold text-ink">가산점·케미</h3>
       {bonuses.length === 0 ? (
-        <p className="mt-1 text-caption text-ink-3">없음 · 같은 학교 3명, 프라임 시즌 2명, 정규리그 1위 팀 선수에게 붙어요</p>
+        <p className="mt-1 text-caption text-ink-3">없음 · 같은 학교 3명, 프라임 시즌 2명, 정규리그 1위 팀 선수, 궂은일 담당에게 붙어요</p>
       ) : (
         <ul className="mt-1.5 divide-y divide-line rounded-card border border-line">
           {bonuses.map((b) => (
@@ -1039,7 +1133,7 @@ function BonusList({ bonuses, picked, official }: { bonuses: LineupBonus[]; pick
               <p className="flex items-baseline gap-2 text-sub">
                 <span className="font-bold text-ink">{b.label}</span>
                 <span className="min-w-0 flex-1 truncate text-ink-2">{b.detail}</span>
-                <span className="tabular shrink-0 font-bold text-ink">+{b.points.toFixed(b.points % 1 === 0 ? 0 : 2).replace(/0$/, "")}</span>
+                <span className="tabular shrink-0 font-bold text-ink">{bonusPoints(b.points)}</span>
               </p>
               <p className="mt-0.5 text-caption text-ink-3">
                 {b.playerIds.map((id, i) => {

@@ -60,6 +60,8 @@ export interface GameCandidate {
   /** 평균을 낸 시즌 구간 "97-00" (한 시즌이면 "98-99") */
   span: string;
   seasonCount: number;
+  /** 그 시즌 그 팀으로 뛴 플레이오프 (2026-11-08) — 경기 수·경기당 득점/리바/어시·폼 배율(lib/game-playoffs playoffForm). 못 나갔으면 없음 */
+  po?: { g: number; ppg: number; rpg: number; apg: number; f: number };
 }
 
 export interface GameTeam {
@@ -357,7 +359,7 @@ export const CHEM_PRIME_MIN = 2;
 export const CHEM_PRIME_BONUS = 0.5;
 export const CHEM_CHAMP_PER = 0.25;
 
-export type BonusKey = "school" | "prime" | "champion";
+export type BonusKey = "school" | "prime" | "champion" | "ball" | "glue";
 export interface LineupBonus {
   key: BonusKey;
   /** "동문 케미" */
@@ -366,8 +368,26 @@ export interface LineupBonus {
   detail: string;
   /** 해당 선수 번호 */
   playerIds: string[];
+  /** 더하는 점수 (볼은 하나는 음수) */
   points: number;
 }
+
+/**
+ * 역할 케미 (2026-11-08 사용자 "올스타끼리 모이면 성적이 변해야 하고, 케미가 중요하다"):
+ *   - 볼은 하나: 다섯 명의 그 시즌 경기당 득점 합이 BALL_FREE_PTS 를 넘으면, 넘은 10점마다 BALL_PER_10 점 감점 (BALL_MAX 까지).
+ *     공은 하나라 득점원만 모으면 서로 슛을 나눠 쏜다. 측정(2026-11-08 실제 풀): 매번 득점 1위 → 득점 합 중앙 93점,
+ *     S급 5명 → 83점, 아무나 → 39점.
+ *   - 궂은일 담당: 공격 축은 낮아도(GLUE_OFFENSE_MAX 미만) 수비나 리바운드 축이 높은(GLUE_ROLE_MIN 이상) 선수가 있으면 +GLUE_BONUS.
+ *     득점 1위만 고른 라인업은 11%, S급 5명은 17% 만 받는다.
+ */
+export const BALL_FREE_PTS = 80;
+export const BALL_PER_10 = 0.5;
+export const BALL_MAX = 1.5;
+export const GLUE_OFFENSE_MAX = 70;
+export const GLUE_ROLE_MIN = 80;
+export const GLUE_BONUS = 0.5;
+
+const AXIS_INDEX = Object.fromEntries(RADAR_AXES.map((a, i) => [a, i])) as Record<RadarAxis, number>;
 
 export function lineupBonuses(players: readonly GameCandidate[]): LineupBonus[] {
   const out: LineupBonus[] = [];
@@ -392,6 +412,20 @@ export function lineupBonuses(players: readonly GameCandidate[]): LineupBonus[] 
       playerIds: champs.map((p) => p.id),
       points: Math.round(CHEM_CHAMP_PER * champs.length * 100) / 100,
     });
+  }
+  const glue = players.filter(
+    (p) => (p.axes[AXIS_INDEX.offense] ?? 0) < GLUE_OFFENSE_MAX && Math.max(p.axes[AXIS_INDEX.defense] ?? 0, p.axes[AXIS_INDEX.rebound] ?? 0) >= GLUE_ROLE_MIN,
+  );
+  if (glue.length > 0) {
+    out.push({ key: "glue", label: "궂은일 담당", detail: `수비·리바운드 전문 ${glue.length}명`, playerIds: glue.map((p) => p.id), points: GLUE_BONUS });
+  }
+  const pts = players.reduce((sum, p) => sum + p.ppg, 0);
+  if (pts > BALL_FREE_PTS) {
+    const minus = Math.min(BALL_MAX, Math.round(((pts - BALL_FREE_PTS) / 10) * BALL_PER_10 * 10) / 10);
+    if (minus > 0) {
+      const top = [...players].sort((a, b) => b.ppg - a.ppg).slice(0, 3);
+      out.push({ key: "ball", label: "볼은 하나", detail: `다섯 명 득점 합 ${Math.round(pts)}점`, playerIds: top.map((p) => p.id), points: -minus });
+    }
   }
   return out;
 }
@@ -434,7 +468,7 @@ export function teamRating(players: readonly GameCandidate[]): TeamRating {
   const weakest = RADAR_AXES.reduce((w, a) => (axes[a] < axes[w] ? a : w), RADAR_AXES[0]);
   const base = PLAYER_WEIGHT * avgScore + (1 - PLAYER_WEIGHT) * balance;
   const bonuses = lineupBonuses(players);
-  const rating = Math.min(100, base + bonuses.reduce((sum, b) => sum + b.points, 0));
+  const rating = Math.max(0, Math.min(100, base + bonuses.reduce((sum, b) => sum + b.points, 0)));
   return { avgScore, axes, balance, base, bonuses, rating, weakest };
 }
 
@@ -505,8 +539,9 @@ export function simulateSeason(players: readonly GameCandidate[]): SeasonResult 
 export function resultVerdict(wins: number): string {
   if (wins === GAME_SEASON_GAMES) return "전승 시즌!";
   if (wins >= 48) return "역대급 시즌, 전승까지 조금만 더";
-  if (wins >= 40) return "정규리그 1위 후보";
-  if (wins >= 30) return "플레이오프 진출권";
+  // 39승 이상 = 정규리그 1위 (lib/game-playoffs GAME_PLAYOFF_SEED_WINS — 순환 참조를 피해 숫자로)
+  if (wins >= 39) return "정규리그 1위, 플레이오프 직행";
+  if (wins >= 30) return "상위권, 1위까지 조금 더";
   if (wins >= 20) return "중위권";
   return "다음 시즌을 기약";
 }
