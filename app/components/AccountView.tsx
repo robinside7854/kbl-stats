@@ -14,8 +14,6 @@ import { disablePush } from "./push-client";
 import { clearSuggestion, deleteAccount, fetchMe, forgetAccount, saveProfile, startLink, syncFavorites, unlinkProvider } from "./account-client";
 import LoginButtons from "./LoginButtons";
 import GameHistoryCard from "./GameHistoryCard";
-import GameBadgeShelf from "./GameBadgeShelf";
-import { clearLocalBadges } from "./game-badges-client";
 import MemberBadge from "./MemberBadge";
 import Skeleton from "./Skeleton";
 import TeamLogo from "./TeamLogo";
@@ -160,7 +158,6 @@ function SignedIn({ member, suggested, teams, onChange }: { member: MemberView; 
     const ok = await deleteAccount();
     if (!ok) return setMessage({ ok: false, text: "탈퇴하지 못했어요. 잠시 뒤 다시 해 주세요." });
     trackEvent("account_delete");
-    clearLocalBadges();
     await signOut({ callbackUrl: "/me?deleted=1" });
   }
 
@@ -269,7 +266,6 @@ function SignedIn({ member, suggested, teams, onChange }: { member: MemberView; 
       </Card>
 
       <GameHistoryCard />
-      <GameBadgeShelf screen="me" defaultOpen />
 
       <Card>
         <div className="flex flex-wrap gap-2">

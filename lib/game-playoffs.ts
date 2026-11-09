@@ -10,7 +10,8 @@
 //     매번 득점 1위 27% · 39~42승으로 겨우 1위 한 팀 12%.
 //   - 한 경기 승리 확률 = 우리 팀이 리그 평균 팀을 이길 확률(winProbability)과 상대 승률을 log5(승산비)로 맞붙인다.
 //   - 라인업으로 정한 시드로 굴린다 → 같은 라인업은 늘 같은 플레이오프 결과.
-import { GAME_SEASON_GAMES, hashSeed, lineupKey, seededRng, teamRating, winProbability, type GameCandidate, type TeamRating } from "./game";
+import { GAME_SEASON_GAMES, hashSeed, lineupKey, seededRng, teamRating, winProbability, type GameCandidate, type Rng, type TeamRating } from "./game";
+import { mvpValue, projectLineup, PROJ_STATS, type ProjectedLine, type ProjStat } from "./game-projection";
 
 /** 정규리그 1위로 보는 승수 (역대 1위 평균 승률 71.6% × 54) */
 export const GAME_PLAYOFF_SEED_WINS = 39;
@@ -141,6 +142,22 @@ export interface PlayoffRoundResult extends PlayoffRoundDef {
   wins: number;
   losses: number;
   won: boolean;
+  /** 경기마다 점수·선수 기록 (2026-11-09 — 활약상) */
+  box: PlayoffGameBox[];
+  /** 이 시리즈 선수별 평균 (선수 순서 그대로) */
+  averages: ProjectedLine[];
+  /** 시리즈 MVP(이겼을 때) 또는 팀 최고 활약(졌을 때) 선수 번호 */
+  starId: string;
+}
+
+/** 플레이오프 한 경기: 우리 점수·상대 점수·선수 기록(정수) */
+export interface PlayoffGameBox {
+  win: boolean;
+  score: number;
+  oppScore: number;
+  lines: ProjectedLine[];
+  /** 그 경기 최고 활약(최다 득점) 선수 번호 */
+  topId: string;
 }
 
 export interface PlayoffResult {
@@ -151,6 +168,77 @@ export interface PlayoffResult {
   titleProb: number;
   /** 어디까지 갔나: champion(우승) · final(챔프전 패) · semi(4강 패) */
   stage: "champion" | "final" | "semi";
+  /** 챔프전 MVP (우승했을 때만) */
+  finalsMvpId: string | null;
+}
+
+// ── 선수 활약 (2026-11-09 사용자 요청) ──
+// 한 경기 기록 = 이 팀 예상 기록(lib/game-projection) × 플레이오프 폼(formOf) × 그날 컨디션(0.45~1.55 배, 가운데가 잦다)
+// × 이긴 경기 PLAYOFF_WIN_LIFT · 진 경기 PLAYOFF_LOSS_DROP. 정수로 반올림(스틸·블록은 확률로 올림).
+// 우리 점수 = 주전 득점 합 + 벤치(PLAYOFF_BENCH_MIN~+SPAN), 상대 점수는 승패에 맞춰 1~14점 차.
+// 승패와 다른 시드(`…|playoff-box`)로 굴려서, 활약상을 더해도 예전 결과 링크의 승패는 그대로다.
+export const PLAYOFF_WIN_LIFT = 1.06;
+export const PLAYOFF_LOSS_DROP = 0.94;
+export const PLAYOFF_BENCH_MIN = 8;
+export const PLAYOFF_BENCH_SPAN = 10;
+
+function gameLine(base: ProjectedLine, form: number, win: boolean, rng: Rng): ProjectedLine {
+  const out = { id: base.id } as ProjectedLine;
+  const lift = win ? PLAYOFF_WIN_LIFT : PLAYOFF_LOSS_DROP;
+  for (const k of PROJ_STATS) {
+    const day = 0.45 + 1.1 * ((rng() + rng()) / 2);
+    const v = base[k] * form * lift * day;
+    out[k] = Math.max(0, Math.floor(v + rng()));
+  }
+  return out;
+}
+
+function avgLines(players: readonly GameCandidate[], box: readonly PlayoffGameBox[]): ProjectedLine[] {
+  return players.map((p, i) => {
+    const row = { id: p.id } as ProjectedLine;
+    for (const k of PROJ_STATS) row[k] = Math.round((box.reduce((s, g) => s + g.lines[i][k], 0) / Math.max(1, box.length)) * 10) / 10;
+    return row;
+  });
+}
+
+function bestOf(players: readonly GameCandidate[], lines: readonly ProjectedLine[]): string {
+  let best = 0;
+  for (let i = 1; i < lines.length; i++) if (mvpValue(lines[i], players[i]) > mvpValue(lines[best], players[best])) best = i;
+  return players[best]?.id ?? "";
+}
+
+/** 그 경기 최고 활약 = 가장 많이 넣은 선수 (같으면 공헌이 큰 쪽) — 경기마다 주인공이 바뀌게 득점으로 */
+function topScorerOf(players: readonly GameCandidate[], lines: readonly ProjectedLine[]): string {
+  let best = 0;
+  for (let i = 1; i < lines.length; i++) {
+    const d = lines[i].ppg - lines[best].ppg;
+    if (d > 0 || (d === 0 && mvpValue(lines[i], players[i]) > mvpValue(lines[best], players[best]))) best = i;
+  }
+  return players[best]?.id ?? "";
+}
+
+/** 시리즈 한 판의 경기별 기록 */
+function seriesBox(players: readonly GameCandidate[], proj: readonly ProjectedLine[], games: readonly boolean[], rng: Rng): PlayoffGameBox[] {
+  return games.map((win) => {
+    const lines = players.map((p, i) => gameLine(proj[i], formOf(p), win, rng));
+    const score = lines.reduce((s, l) => s + l.ppg, 0) + PLAYOFF_BENCH_MIN + Math.floor(rng() * (PLAYOFF_BENCH_SPAN + 1));
+    const gap = 1 + Math.floor(rng() * 14);
+    return { win, score, oppScore: win ? Math.max(40, score - gap) : score + gap, lines, topId: topScorerOf(players, lines) };
+  });
+}
+
+/** 선수 번호 → 그 기록 한 줄 글자 "28점 11리바 4어시" (0 은 뺌, 스틸·블록은 2개 이상만) */
+export function boxLineText(l: Omit<ProjectedLine, "id">, decimals = false): string {
+  const f = (v: number) => (decimals ? v.toFixed(1) : String(v));
+  const parts: string[] = [`${f(l.ppg)}점`];
+  const extra: [ProjStat, string, number][] = [
+    ["rpg", "리바", decimals ? 0.05 : 1],
+    ["apg", "어시", decimals ? 0.05 : 1],
+    ["spg", "스틸", decimals ? 1 : 2],
+    ["bpg", "블록", decimals ? 1 : 2],
+  ];
+  for (const [k, label, min] of extra) if (l[k] >= min) parts.push(`${f(l[k])}${label}`);
+  return parts.join(" ");
 }
 
 export const isPlayoffSeed = (wins: number) => wins >= GAME_PLAYOFF_SEED_WINS && wins <= GAME_SEASON_GAMES;
@@ -161,6 +249,8 @@ export function simulatePlayoffs(players: readonly GameCandidate[], regularWins:
   const rating = playoffRating(players);
   const p = winProbability(rating.rating);
   const rng = seededRng(hashSeed(`${lineupKey(players)}|playoff`));
+  const boxRng = seededRng(hashSeed(`${lineupKey(players)}|playoff-box`));
+  const proj = projectLineup(players).rows;
   const rounds: PlayoffRoundResult[] = [];
   let alive = true;
   let titleProb = 1;
@@ -179,12 +269,14 @@ export function simulatePlayoffs(players: readonly GameCandidate[], regularWins:
       else l++;
     }
     const won = w === def.need;
-    rounds.push({ ...def, gameProb, seriesProb, games, wins: w, losses: l, won });
+    const box = seriesBox(players, proj, games, boxRng);
+    const averages = avgLines(players, box);
+    rounds.push({ ...def, gameProb, seriesProb, games, wins: w, losses: l, won, box, averages, starId: bestOf(players, averages) });
     if (!won) alive = false;
   }
   const champion = rounds.length === PLAYOFF_ROUNDS.length && rounds.every((r) => r.won);
   const stage = champion ? "champion" : rounds.length === PLAYOFF_ROUNDS.length ? "final" : "semi";
-  return { rating, rounds, champion, titleProb, stage };
+  return { rating, rounds, champion, titleProb, stage, finalsMvpId: champion ? rounds[rounds.length - 1].starId : null };
 }
 
 /** 플레이오프 결과 한 줄 */

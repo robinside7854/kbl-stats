@@ -1,13 +1,21 @@
 "use client";
 // 54-0 플레이오프 이어 하기 (2026-11-08) — 규칙·계산은 lib/game-playoffs.ts, 여기서는 보여 주기만.
 // 정규리그 1위(39승 이상)면 "플레이오프 이어서 하기" 버튼 → 4강(5전 3승)·챔프전(7전 4승)을 한 경기씩 펼쳐 보인다.
+// 경기마다 점수·최고 활약, 시리즈가 끝나면 선수별 평균·시리즈 MVP (2026-11-09).
 // 같은 라인업은 늘 같은 결과(시드) — 다시 눌러도 결과는 같다. 동작 줄이기 설정이면 한 번에 보인다.
 import { useEffect, useState } from "react";
-import { GAME_PLAYOFF_SEED_WINS, PLAYOFF_NO_RECORD_FORM, formOf, playoffVerdict, type PlayoffResult } from "@/lib/game-playoffs";
+import { GAME_PLAYOFF_SEED_WINS, PLAYOFF_NO_RECORD_FORM, boxLineText, formOf, playoffVerdict, type PlayoffResult } from "@/lib/game-playoffs";
 import type { GameCandidate } from "@/lib/game";
 import type { ThemeColors } from "./useThemeColors";
 
 const STEP_MS = 420;
+const PO_COLS = [
+  { key: "ppg", label: "득점" },
+  { key: "rpg", label: "리바" },
+  { key: "apg", label: "어시" },
+  { key: "spg", label: "스틸" },
+  { key: "bpg", label: "블록" },
+] as const;
 const pct = (v: number) => `${Math.round(v * 100)}%`;
 
 export type PlayoffPhase = "idle" | "playing" | "done";
@@ -77,6 +85,7 @@ export default function GamePlayoffs({
     );
   }
 
+  const nameOf = (id: string) => players.find((p) => p.id === id)?.nameKo ?? "";
   const ups = players.filter((p) => p.po && p.po.f > 1);
   const downs = players.filter((p) => formOf(p) < 1);
   let left = shown;
@@ -154,7 +163,57 @@ export default function GamePlayoffs({
                     {w}-{l}
                   </span>
                 </div>
-                {finished && <p className="mt-1.5 text-sub font-semibold text-ink">{r.won ? (r.key === "final" ? "챔피언!" : "챔프전 진출") : r.key === "final" ? "준우승" : "4강 탈락"}</p>}
+                {/* 경기마다 점수와 그 경기 최고 활약 */}
+                <ul className="tabular mt-2 space-y-1 text-sub">
+                  {r.box.slice(0, visible).map((g, i) => {
+                    const top = g.lines.find((l) => l.id === g.topId)!;
+                    return (
+                      <li key={i} className="flex flex-wrap items-baseline gap-x-2">
+                        <span className="w-12 shrink-0 text-ink-3">{i + 1}차전</span>
+                        <span className={`w-20 shrink-0 font-semibold ${g.win ? "text-ink" : "text-ink-2"}`}>
+                          {g.win ? "승" : "패"} {g.score}-{g.oppScore}
+                        </span>
+                        <span className="min-w-0 text-ink-2">
+                          <span className="font-semibold text-ink">{nameOf(g.topId)}</span> {boxLineText(top)}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+                {finished && (
+                  <>
+                    <p className="mt-2 text-sub font-semibold text-ink">{r.won ? (r.key === "final" ? "챔피언!" : "챔프전 진출") : r.key === "final" ? "준우승" : "4강 탈락"}</p>
+                    <table className="tabular mt-2 w-full table-fixed text-caption">
+                      <caption className="mb-1 text-left text-sub text-ink-2">
+                        {r.won ? (r.key === "final" ? "챔프전 MVP" : "시리즈 MVP") : "팀 최고 활약"} <span className="font-bold text-ink">{nameOf(r.starId)}</span> · 시리즈 평균
+                      </caption>
+                      <thead>
+                        <tr className="text-ink-3">
+                          <th scope="col" className="w-[34%] py-1 text-left font-medium">선수</th>
+                          {PO_COLS.map((c) => (
+                            <th key={c.key} scope="col" className="py-1 text-right font-medium">
+                              {c.label}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-line border-y border-line">
+                        {r.averages.map((a) => (
+                          <tr key={a.id} className={a.id === r.starId ? "font-bold text-ink" : "text-ink-2"}>
+                            <th scope="row" className="truncate py-1 text-left font-semibold text-ink">
+                              {nameOf(a.id)}
+                            </th>
+                            {PO_COLS.map((c) => (
+                              <td key={c.key} className="py-1 text-right">
+                                {a[c.key].toFixed(1)}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </>
+                )}
               </li>
             );
           })}
@@ -163,6 +222,7 @@ export default function GamePlayoffs({
       {done && playoff.champion && (
         <p className="mt-3 rounded-control px-3 py-2 text-body font-bold" style={{ background: colors.gradeS, color: colors.gradeSInk }}>
           {wins}승 정규리그 1위에 챔프전 우승까지. 통합 우승이에요.
+          {playoff.finalsMvpId && <span className="block text-sub font-semibold">챔프전 MVP {nameOf(playoff.finalsMvpId)}</span>}
         </p>
       )}
     </section>
