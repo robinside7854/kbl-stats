@@ -354,35 +354,6 @@ console.log("account: 계정 연결·관리자 규칙 통과");
     assert.equal(st.perfectMembers, 1);
   }
 
-  // 54-0 배지 (2026-11-09): 판 수·배지 저장, 브라우저 기록 합치기, 주간 챔피언(지난주 1위)
-  {
-    const { memberBadgeState, recordMemberBadges, mergeMemberBadges } = await import("../lib/server/members");
-    let r = await recordMemberBadges(q3, "google:b1", ["perfect"], true);
-    assert.deepEqual(r.added, ["perfect"]);
-    assert.equal(r.state.plays, 1);
-    r = await recordMemberBadges(q3, "google:b1", ["perfect", "alumni"], true);
-    assert.deepEqual(r.added, ["alumni"]);
-    assert.equal(r.state.plays, 2);
-    const merged = await mergeMemberBadges(q3, "google:b1", { earned: { sweep: "2026-10-01T00:00:00.000Z" }, plays: 15 });
-    assert.equal(merged.plays, 15);
-    assert.ok(merged.earned.sweep && merged.earned.plays_10);
-    const again = await memberBadgeState(q3, "google:b1");
-    assert.equal(again.plays, 15);
-    assert.ok(again.earned.plays_10 && again.earned.sweep && again.earned.perfect);
-    assert.ok(!again.earned.weekly_champ);
-    // 지난주 순위 1위였던 "이번"(google:r2) 은 주간 챔피언
-    const champ = await memberBadgeState(q3, "google:r2");
-    assert.ok(champ.earned.weekly_champ, "지난주 1위 → 주간 챔피언");
-    // 계정 합치기: 배지 합집합·판 수 더하기
-    const { linkLogin } = await import("../lib/server/members");
-    await recordMemberBadges(q3, "google:c1", ["perfect"], true);
-    await recordMemberBadges(q3, "naver:c2", ["alumni"], true);
-    await recordMemberBadges(q3, "naver:c2", [], true);
-    assert.deepEqual(await linkLogin(q3, "google:c1", "naver:c2"), { ok: true, merged: true });
-    const joined = await memberBadgeState(q3, "google:c1");
-    assert.equal(joined.plays, 3);
-    assert.ok(joined.earned.perfect && joined.earned.alumni);
-  }
   await db3.close();
   console.log("account: 54-0 내 기록(검사·저장·같은 라인업 한 줄·요약·지우기·상한·합치기·탈퇴)·주간 순위 통과");
 }

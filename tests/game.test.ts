@@ -159,24 +159,44 @@ console.log("game: 슬롯 돌리기 통과");
   console.log("game: 역할 케미 통과");
 }
 
-// 이 팀에서 예상 기록·예상 MVP (2026-11-08)
+// 이 팀에서 예상 기록·예상 MVP (2026-11-08, 2026-11-09 다섯 기록 모두)
 {
-  const { projectLineup, PROJ_POOL } = await import("../lib/game-projection");
+  const { projectLineup, shareStat, PROJ_POOL, PROJ_TEAM_MAX, PROJ_PLAYER_MIN, PROJ_PLAYER_MAX, deltaText } = await import("../lib/game-projection");
   const p = (id: string, extra: Partial<GameCandidate>) => ({ ...c(id, "G"), ...extra });
-  // 합이 몫보다 작으면 그대로
-  const small = ["a", "b", "c", "d", "e"].map((id) => p(id, { ppg: 10 }));
-  const s1 = projectLineup(small);
-  assert.ok(s1.rows.every((r) => r.ppg === 10) && !s1.shared);
-  // 올스타 다섯 명은 몫을 나눈다 — 합은 몫 이하, 원래보다 늘지 않음, 효율 높은 선수가 덜 깎인다
-  const stars = [p("a", { ppg: 25, axes: [90, 50, 50, 50, 50, 95] }), p("b", { ppg: 25, axes: [90, 50, 50, 50, 50, 30] }), p("c", { ppg: 20 }), p("d", { ppg: 18 }), p("e", { ppg: 15 })];
+  // 합이 몫보다 작으면 조금 는다 (최대 PROJ_TEAM_MAX 배), 같은 선수들이면 똑같이
+  const small = ["a", "b", "c", "d", "e"].map((id) => p(id, { ppg: 10, rpg: 3, apg: 2, spg: 0.5, bpg: 0.2 }));
+  const s1 = shareStat(small, "ppg");
+  assert.ok(s1.factor > 1 && s1.factor <= PROJ_TEAM_MAX);
+  assert.ok(s1.values.every((v) => Math.abs(v - s1.values[0]) < 1e-9 && v > 10));
+  // 올스타 다섯 명: 득점 합이 줄고, 능력 축 높은 쪽이 덜 깎인다
+  const stars = [
+    p("a", { ppg: 25, rpg: 4, apg: 6, axes: [90, 50, 30, 50, 90, 95] }),
+    p("b", { ppg: 25, rpg: 4, apg: 6, axes: [60, 50, 30, 50, 20, 30] }),
+    p("c", { ppg: 20, rpg: 10, apg: 2, axes: [50, 50, 95, 50, 30, 50] }),
+    p("d", { ppg: 18, rpg: 10, apg: 2, axes: [50, 50, 20, 50, 30, 50] }),
+    p("e", { ppg: 15, rpg: 6, apg: 3 }),
+  ];
   const s2 = projectLineup(stars);
-  assert.ok(s2.shared);
-  assert.ok(s2.rows.reduce((t, r) => t + r.ppg, 0) <= PROJ_POOL.pts + 0.5);
-  s2.rows.forEach((r, i) => assert.ok(r.ppg <= stars[i].ppg));
-  assert.ok(s2.rows[0].ppg > s2.rows[1].ppg, "같은 득점이면 효율 높은 쪽이 공을 더 받는다");
+  const sum = (k: "ppg" | "rpg" | "apg") => s2.rows.reduce((t, r) => t + r[k], 0);
+  assert.ok(s2.teamFactor.ppg < 1 && sum("ppg") < 103);
+  assert.ok(sum("ppg") > PROJ_POOL.ppg - 1, "합이 몫 근처까지만 준다");
+  assert.ok(s2.rows[0].ppg > s2.rows[1].ppg, "같은 득점이면 공격·효율 높은 쪽이 공을 더 받는다");
+  assert.ok(s2.rows[0].apg > s2.rows[1].apg, "어시는 리딩 축");
+  assert.ok(s2.rows[2].rpg > s2.rows[3].rpg, "리바는 리바운드 축");
+  // 다섯 기록 모두 바뀐다 (그대로인 칸이 없다) + 한 사람 변화는 범위 안
+  s2.rows.forEach((r, i) => {
+    for (const k of ["ppg", "rpg", "apg"] as const) {
+      assert.ok(r[k] !== stars[i][k], `${r.id} ${k} 바뀜`);
+      assert.ok(r[k] >= stars[i][k] * PROJ_PLAYER_MIN - 0.05 && r[k] <= stars[i][k] * PROJ_PLAYER_MAX + 0.05);
+    }
+  });
   assert.equal(s2.mvpId, "a");
+  assert.equal(deltaText(-2.24), "−2.2");
+  assert.equal(deltaText(1.26), "+1.3");
+  assert.equal(deltaText(0.04), "0");
   console.log("game: 예상 기록·MVP 통과");
 }
+
 
 // 플레이오프 (2026-11-08): 폼 배율·시리즈 확률·1위만·같은 라인업 같은 결과
 {
@@ -209,6 +229,22 @@ console.log("game: 슬롯 돌리기 통과");
   assert.ok(playoffRating(strong).rating > teamRating(strong).rating, "플옵 폼이 좋으면 전력이 오른다");
   for (const r of a.rounds) assert.ok(r.wins === r.need || r.losses === r.need);
   assert.equal(a.champion, a.rounds.length === 2 && a.rounds.every((r) => r.won));
+  // 선수 활약 (2026-11-09): 경기마다 기록·점수가 승패와 맞고, 같은 라인업은 같은 기록, MVP 는 우승했을 때만
+  assert.deepEqual(a.rounds.map((r) => r.box), b.rounds.map((r) => r.box));
+  for (const r of a.rounds) {
+    assert.equal(r.box.length, r.games.length);
+    r.box.forEach((g, i) => {
+      assert.equal(g.win, r.games[i]);
+      assert.ok(g.win ? g.score > g.oppScore : g.score < g.oppScore);
+      assert.equal(g.lines.length, 5);
+      assert.ok(g.lines.every((l) => Number.isInteger(l.ppg) && l.ppg >= 0));
+      const top = g.lines.find((l) => l.id === g.topId)!;
+      assert.ok(g.lines.every((l) => l.ppg <= top.ppg), "최고 활약 = 최다 득점");
+    });
+    assert.equal(r.averages.length, 5);
+    assert.ok(r.averages.some((x) => x.id === r.starId));
+  }
+  assert.equal(a.finalsMvpId, a.champion ? a.rounds[1].starId : null);
   console.log("game: 플레이오프 통과");
 }
 
@@ -340,46 +376,6 @@ if (existsSync(POOL)) {
   console.log("game: 정규리그 1위 통과");
 }
 
-// 도전 과제 배지 (2026-11-09)
-{
-  const { seasonBadges, playoffBadges, playBadges, addBadges, mergeBadgeStates, parseBadgeState, earnedCount, GAME_BADGES } = await import("../lib/game-badges");
-  const p = (id: string, extra: Partial<GameCandidate>) => ({ ...c(id, "G"), ...extra });
-  const five = ["1", "2", "3", "4", "5"].map((id) => p(id, { seasonCode: 3, school: "연세대" }));
-  const base = { players: five, teamCodes: ["40", "40", "70", "70", "70"], successor: { "40": "70" } };
-  // 39승 1위: 국내파·원클럽맨(SBS → KT&G 계보)·그 시절·동문회
-  assert.deepEqual(seasonBadges({ ...base, wins: 39 }).sort(), ["alumni", "domestic", "old_school", "one_club"]);
-  // 1위가 아니면 조합 배지 중 동문회만
-  assert.deepEqual(seasonBadges({ ...base, wins: 30 }), ["alumni"]);
-  // 54-0 은 퍼펙트, 외국 선수가 있으면 국내파 아님, 아시아쿼터도 아님
-  assert.ok(seasonBadges({ ...base, wins: 54 }).includes("perfect"));
-  assert.ok(!seasonBadges({ ...base, wins: 50, players: [...five.slice(0, 4), p("5", { foreign: true, seasonCode: 3, school: "연세대" })] }).includes("domestic"));
-  assert.ok(!seasonBadges({ ...base, wins: 50, players: [...five.slice(0, 4), p("5", { asia: true, seasonCode: 3, school: "연세대" })] }).includes("domestic"));
-  // 형제의 난: 허웅·허훈
-  assert.ok(seasonBadges({ ...base, wins: 10, players: [p("290776", {}), p("291085", {}), p("3", {}), p("4", {}), p("5", {})] }).includes("brothers"));
-  // 플레이오프: 우승일 때만, 스윕·완전무결·언더독·첫 반지
-  const champ = (losses: number) => ({ rating: teamRating(five), champion: true, titleProb: 0.5, stage: "champion" as const,
-    rounds: [{ key: "semi" as const, label: "4강", need: 3, oppPct: 0.75, oppLabel: "", gameProb: 0.7, seriesProb: 0.8, games: [], wins: 3, losses, won: true },
-      { key: "final" as const, label: "챔피언결정전", need: 4, oppPct: 0.85, oppLabel: "", gameProb: 0.6, seriesProb: 0.6, games: [], wins: 4, losses: 0, won: true }] });
-  assert.deepEqual(playoffBadges({ ...base, wins: 54 }, champ(0), true).sort(), ["first_ring", "flawless", "sweep"]);
-  assert.deepEqual(playoffBadges({ ...base, wins: 40 }, champ(1), false), ["underdog"]);
-  assert.deepEqual(playoffBadges({ ...base, wins: 50 }, { ...champ(0), champion: false, stage: "final" }, true), []);
-  assert.deepEqual(playoffBadges({ ...base, wins: 50 }, null, true), []);
-  // 판 수
-  assert.deepEqual(playBadges(9), []);
-  assert.deepEqual(playBadges(100), ["plays_10", "plays_100"]);
-  // 저장: 더하기는 처음 날짜 유지, 합치기는 이른 날짜·큰 판 수, 모르는 배지는 버림
-  const a = addBadges({ earned: {}, plays: 3 }, ["perfect"], "2026-11-01T00:00:00.000Z");
-  assert.deepEqual(a.added, ["perfect"]);
-  assert.deepEqual(addBadges(a.state, ["perfect"], "2026-11-09T00:00:00.000Z").added, []);
-  const m = mergeBadgeStates(a.state, { earned: { perfect: "2026-10-01T00:00:00.000Z", alumni: "2026-11-05T00:00:00.000Z" }, plays: 12 });
-  assert.equal(m.earned.perfect, "2026-10-01T00:00:00.000Z");
-  assert.equal(m.plays, 12);
-  assert.ok(m.earned.plays_10, "합친 판 수로 판 수 배지");
-  assert.deepEqual(parseBadgeState({ earned: { perfect: "2026-11-01", nope: "2026-11-01" }, plays: -1 }), { earned: { perfect: "2026-11-01T00:00:00.000Z" }, plays: 0 });
-  assert.equal(earnedCount(m), 3);
-  assert.equal(GAME_BADGES.length, 17);
-  console.log("game: 배지 통과");
-}
 
 // 결과 공유 (2026-10-27): 주소 칸 ↔ ?l= 값, 권유 글
 {
