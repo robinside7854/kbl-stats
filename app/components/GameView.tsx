@@ -38,6 +38,12 @@ import { projectLineup } from "@/lib/game-projection";
 import GamePlayoffs, { type PlayoffPhase } from "./GamePlayoffs";
 import { GameRankLine, GameStatsStrip } from "./GameStatsStrip";
 import { fetchGameStats, postGamePlay } from "./game-stats-client";
+import teamLineage from "@/data/codes/team-lineage.json";
+import type { BadgeGameInput, BadgeKey } from "@/lib/game-badges";
+import GameBadgeShelf, { NewBadgesNotice } from "./GameBadgeShelf";
+import { recordGameBadges } from "./game-badges-client";
+
+const LINEAGE = (teamLineage as { successor: Record<string, string> }).successor;
 import { hasSignedInHint, saveGameRecord, type GameSaveResult } from "./account-client";
 import { useThemeColors, type ThemeColors } from "./useThemeColors";
 
@@ -97,6 +103,8 @@ export default function GameView({ sharedLineup }: { sharedLineup?: string } = {
   // 플레이 수·최고 기록 (2026-11-08) — 로그인 기능(DB)이 켜진 빌드만
   const [stats, setStats] = useState<GamePlayStats | null>(null);
   const [poPhase, setPoPhase] = useState<PlayoffPhase>("idle");
+  // 이번 판에 새로 받은 배지 (2026-11-09)
+  const [newBadges, setNewBadges] = useState<BadgeKey[]>([]);
   const timer = useRef<number | null>(null);
 
   useEffect(() => {
@@ -128,7 +136,22 @@ export default function GameView({ sharedLineup }: { sharedLineup?: string } = {
   }, [shared, full, lineup, teams]);
   const result = useMemo(() => (picked ? simulateSeason(picked.map((p) => p.c)) : null), [picked]);
   const playoff = useMemo(() => (picked && result ? simulatePlayoffs(picked.map((p) => p.c), result.wins) : null), [picked, result]);
-  useEffect(() => setPoPhase("idle"), [picked]);
+  useEffect(() => {
+    setPoPhase("idle");
+    setNewBadges([]);
+  }, [picked]);
+  const badgeInput: BadgeGameInput | null = useMemo(
+    () => (picked && result ? { players: picked.map((p) => p.c), teamCodes: picked.map((p) => p.team.teamCode), wins: result.wins, successor: LINEAGE } : null),
+    [picked, result],
+  );
+  function earnBadges(stage: "season" | "playoff") {
+    if (!picked || !badgeInput || shared) return;
+    recordGameBadges(stage, encodeLineupParam(picked.map((p) => p.c)), badgeInput, stage === "playoff" ? playoff : null).then((added) => {
+      if (added.length === 0) return;
+      for (const k of added) trackEvent("game_badge_earn", { badge: k });
+      setNewBadges((prev) => [...prev, ...added.filter((k) => !prev.includes(k))]);
+    });
+  }
 
   // 직접 완성한 판만 센다(공유 링크로 본 결과는 빼고)
   useEffect(() => {
@@ -139,6 +162,7 @@ export default function GameView({ sharedLineup }: { sharedLineup?: string } = {
     trackEvent("game_complete", { wins: result.wins, bonuses: result.rating.bonuses.map((b) => b.key).join(",") || "none" });
     // 플레이 수 세기 (로그인 없이 — 서버가 승수를 다시 계산) → 이번 주 상위 % 가 바로 보이게
     postGamePlay(encodeLineupParam(picked.map((p) => p.c))).then((st) => st && setStats(st));
+    earnBadges("season");
     // 로그인한 사람은 내 기록에 저장 (같은 라인업은 서버에서 한 줄로)
     if (enabledLoginProviders().length === 0) return;
     if (!hasSignedInHint()) {
@@ -369,6 +393,7 @@ export default function GameView({ sharedLineup }: { sharedLineup?: string } = {
           stats={stats}
           playoff={playoff}
           poPhase={poPhase}
+          newBadges={newBadges}
           onPlayoffStart={() => {
             trackEvent("game_playoff_start", { wins: result.wins });
             setPoPhase("playing");
@@ -376,11 +401,13 @@ export default function GameView({ sharedLineup }: { sharedLineup?: string } = {
           onPlayoffDone={() => {
             setPoPhase("done");
             if (playoff) trackEvent("game_playoff_complete", { result: playoff.stage, wins: result.wins });
+            earnBadges("playoff");
           }}
         />
       ) : (
         <>
           {round === 0 && <GameStatsStrip stats={stats} />}
+          {round === 0 && <GameBadgeShelf screen="game" />}
           <GameRules
             open={rulesOpen}
             onToggle={(next) => {
@@ -717,6 +744,7 @@ interface ResultProps {
   poPhase: PlayoffPhase;
   onPlayoffStart: () => void;
   onPlayoffDone: () => void;
+  newBadges: BadgeKey[];
 }
 
 /** 결과 아래 한 줄: 내 기록에 저장됐는지 / 로그인하면 저장된다는 안내 */
@@ -807,7 +835,7 @@ function ShareCta({ wins, shared, copied, canShare, stats, onShare, onRestart }:
   );
 }
 
-function ResultView({ picked, result, colors, shared, copied, canShare, recordStatus, onShare, onRestart, stats, playoff, poPhase, onPlayoffStart, onPlayoffDone }: ResultProps) {
+function ResultView({ picked, result, colors, shared, copied, canShare, recordStatus, onShare, onRestart, stats, playoff, poPhase, onPlayoffStart, onPlayoffDone, newBadges }: ResultProps) {
   const shownPlayoff = poPhase === "done" ? playoff : null;
   const { exportRef, saving, saveError, save } = useCardSave(colors.surface);
   const fileName = `54-0-${result.wins}-${result.losses}.png`;
@@ -826,6 +854,7 @@ function ResultView({ picked, result, colors, shared, copied, canShare, recordSt
         onStart={onPlayoffStart}
         onDone={onPlayoffDone}
       />
+      <NewBadgesNotice keys={newBadges} />
       <div className={`mt-3 grid grid-cols-2 gap-2 ${canShare ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}>
         {canShare && (
           <button
@@ -854,6 +883,7 @@ function ResultView({ picked, result, colors, shared, copied, canShare, recordSt
       </div>
       <RecordNotice status={recordStatus} />
       {saveError && <p className="mt-2 text-sub text-ink-2">{saveError}</p>}
+      {!shared && <GameBadgeShelf screen="game" />}
       {saving && (
         <ExportImages>
           <div aria-hidden className="pointer-events-none fixed top-0" style={{ left: -10000 }}>

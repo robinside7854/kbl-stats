@@ -340,6 +340,47 @@ if (existsSync(POOL)) {
   console.log("game: 정규리그 1위 통과");
 }
 
+// 도전 과제 배지 (2026-11-09)
+{
+  const { seasonBadges, playoffBadges, playBadges, addBadges, mergeBadgeStates, parseBadgeState, earnedCount, GAME_BADGES } = await import("../lib/game-badges");
+  const p = (id: string, extra: Partial<GameCandidate>) => ({ ...c(id, "G"), ...extra });
+  const five = ["1", "2", "3", "4", "5"].map((id) => p(id, { seasonCode: 3, school: "연세대" }));
+  const base = { players: five, teamCodes: ["40", "40", "70", "70", "70"], successor: { "40": "70" } };
+  // 39승 1위: 국내파·원클럽맨(SBS → KT&G 계보)·그 시절·동문회
+  assert.deepEqual(seasonBadges({ ...base, wins: 39 }).sort(), ["alumni", "domestic", "old_school", "one_club"]);
+  // 1위가 아니면 조합 배지 중 동문회만
+  assert.deepEqual(seasonBadges({ ...base, wins: 30 }), ["alumni"]);
+  // 54-0 은 퍼펙트, 외국 선수가 있으면 국내파 아님, 아시아쿼터도 아님
+  assert.ok(seasonBadges({ ...base, wins: 54 }).includes("perfect"));
+  assert.ok(!seasonBadges({ ...base, wins: 50, players: [...five.slice(0, 4), p("5", { foreign: true, seasonCode: 3, school: "연세대" })] }).includes("domestic"));
+  assert.ok(!seasonBadges({ ...base, wins: 50, players: [...five.slice(0, 4), p("5", { asia: true, seasonCode: 3, school: "연세대" })] }).includes("domestic"));
+  // 형제의 난: 허웅·허훈
+  assert.ok(seasonBadges({ ...base, wins: 10, players: [p("290776", {}), p("291085", {}), p("3", {}), p("4", {}), p("5", {})] }).includes("brothers"));
+  // 플레이오프: 우승일 때만, 스윕·완전무결·언더독·첫 반지
+  const champ = (losses: number) => ({ rating: teamRating(five), champion: true, titleProb: 0.5, stage: "champion" as const,
+    rounds: [{ key: "semi" as const, label: "4강", need: 3, oppPct: 0.75, oppLabel: "", gameProb: 0.7, seriesProb: 0.8, games: [], wins: 3, losses, won: true },
+      { key: "final" as const, label: "챔피언결정전", need: 4, oppPct: 0.85, oppLabel: "", gameProb: 0.6, seriesProb: 0.6, games: [], wins: 4, losses: 0, won: true }] });
+  assert.deepEqual(playoffBadges({ ...base, wins: 54 }, champ(0), true).sort(), ["first_ring", "flawless", "sweep"]);
+  assert.deepEqual(playoffBadges({ ...base, wins: 40 }, champ(1), false), ["underdog"]);
+  assert.deepEqual(playoffBadges({ ...base, wins: 50 }, { ...champ(0), champion: false, stage: "final" }, true), []);
+  assert.deepEqual(playoffBadges({ ...base, wins: 50 }, null, true), []);
+  // 판 수
+  assert.deepEqual(playBadges(9), []);
+  assert.deepEqual(playBadges(100), ["plays_10", "plays_100"]);
+  // 저장: 더하기는 처음 날짜 유지, 합치기는 이른 날짜·큰 판 수, 모르는 배지는 버림
+  const a = addBadges({ earned: {}, plays: 3 }, ["perfect"], "2026-11-01T00:00:00.000Z");
+  assert.deepEqual(a.added, ["perfect"]);
+  assert.deepEqual(addBadges(a.state, ["perfect"], "2026-11-09T00:00:00.000Z").added, []);
+  const m = mergeBadgeStates(a.state, { earned: { perfect: "2026-10-01T00:00:00.000Z", alumni: "2026-11-05T00:00:00.000Z" }, plays: 12 });
+  assert.equal(m.earned.perfect, "2026-10-01T00:00:00.000Z");
+  assert.equal(m.plays, 12);
+  assert.ok(m.earned.plays_10, "합친 판 수로 판 수 배지");
+  assert.deepEqual(parseBadgeState({ earned: { perfect: "2026-11-01", nope: "2026-11-01" }, plays: -1 }), { earned: { perfect: "2026-11-01T00:00:00.000Z" }, plays: 0 });
+  assert.equal(earnedCount(m), 3);
+  assert.equal(GAME_BADGES.length, 17);
+  console.log("game: 배지 통과");
+}
+
 // 결과 공유 (2026-10-27): 주소 칸 ↔ ?l= 값, 권유 글
 {
   const { lineupToSlug, slugToLineup, shareCta, shareText, gameResultPath, gameResultImagePath } = await import("../lib/game-share");

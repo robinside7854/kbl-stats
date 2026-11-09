@@ -31,6 +31,27 @@ export const UPDATE_KIND_LABELS: Record<UpdateKind, string> = { update: "업데�
 /** 글 목록 — **새 글은 맨 위에** 더한다(같은 날짜면 위가 더 새 글) */
 export const UPDATE_POSTS: UpdatePost[] = [
   {
+    slug: "2026-11-09-game-badges",
+    date: "2026-11-09",
+    kind: "update",
+    title: "54-0 배지를 모아 보세요",
+    summary: "54-0 배지 17개",
+    blocks: [
+      { kind: "p", text: "54-0에 도전 과제 배지 17개가 생겼어요. 조건을 채우면 결과 화면에 새 배지가 뜨고, 게임 화면과 내 계정에서 모은 배지를 볼 수 있어요." },
+      {
+        kind: "list",
+        items: [
+          "성적: 퍼펙트, 완전무결, 첫 반지, 스윕, 언더독",
+          "조합: 국내파, 원클럽맨, 그 시절, 동문회, 형제의 난",
+          "케미: 궂은일의 미학, 볼은 하나라도, 큰 경기 체질",
+          "꾸준함: 10판·100판·500판, 주간 챔피언",
+        ],
+      },
+      { kind: "p", text: "로그인하지 않아도 이 브라우저에 쌓이고, 로그인하면 계정에도 저장돼요." },
+      { kind: "list", items: [{ text: "54-0 하러 가기", href: "/game" }] },
+    ],
+  },
+  {
     slug: "2026-11-08-game-playoffs",
     date: "2026-11-08",
     kind: "update",

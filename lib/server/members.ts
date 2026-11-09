@@ -11,6 +11,7 @@ import {
   type AdminMemberRow, GAME_PEOPLE_KEEP_WEEKS, GAME_PLAYS_BASELINE, type GamePlayStats, kstWeekDate, type GameRanking, type GameRankRow, type LikeCounts, type RankingWeek, GAME_RANKING_LIMIT, kstWeekStart, type LikeKind, type LoginProvider, type MemberView, type MyLikes,
 } from "../account";
 import { parseNotifOff } from "../notifications";
+import { addBadges, mergeBadgeStates, parseBadgeState, playBadges, type BadgeKey, type BadgeState } from "../game-badges";
 
 /** SQL 문장 + 값($1, $2 …) → 행 목록 */
 export type Query = (text: string, params?: unknown[]) => Promise<Record<string, unknown>[]>;
@@ -103,6 +104,14 @@ export const SCHEMA_SQL = [
     pid text NOT NULL,
     PRIMARY KEY (week_start, pid)
   )`,
+  // 54-0 배지 (2026-11-09) — 회원마다 받은 배지와 완성한 판 수. 회원을 지우면 같이 지워진다
+  `CREATE TABLE IF NOT EXISTS member_badges (
+    member_id text NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+    badge text NOT NULL,
+    earned_at timestamptz NOT NULL DEFAULT now(),
+    PRIMARY KEY (member_id, badge)
+  )`,
+  `ALTER TABLE members ADD COLUMN IF NOT EXISTS game_plays int NOT NULL DEFAULT 0`,
   // 연결 기능 이전 회원(로그인 수단이 하나도 안 적힌 회원): 회원 번호가 곧 로그인 번호
   `INSERT INTO member_logins (login_id, member_id, provider)
     SELECT m.id, m.id, m.provider FROM members m
@@ -272,6 +281,11 @@ export async function linkLogin(q: Query, currentLoginId: string, newLoginId: st
   await q(`INSERT INTO member_games (member_id, lineup, wins, rating, bonuses, names, played_at, verified)
     SELECT $1, lineup, wins, rating, bonuses, names, played_at, verified FROM member_games WHERE member_id = $2
     ON CONFLICT (member_id, lineup) DO NOTHING`, [me, owner]);
+  // 54-0 배지도 합친다 (이른 날짜), 판 수는 더한다
+  await q(`INSERT INTO member_badges (member_id, badge, earned_at)
+    SELECT $1, badge, earned_at FROM member_badges WHERE member_id = $2
+    ON CONFLICT (member_id, badge) DO UPDATE SET earned_at = LEAST(member_badges.earned_at, EXCLUDED.earned_at)`, [me, owner]);
+  await q(`UPDATE members SET game_plays = game_plays + coalesce((SELECT game_plays FROM members WHERE id = $2), 0) WHERE id = $1`, [me, owner]);
   // 폰 알림 기기·보낸 알림도 옮긴다
   await q(`UPDATE push_subscriptions SET member_id = $1 WHERE member_id = $2`, [me, owner]);
   await q(`INSERT INTO push_sent (member_id, notif_id, sent_at)
@@ -491,6 +505,85 @@ export async function gamePlayStats(q: Query, now = new Date()): Promise<GamePla
       : null,
     perfectMembers: Number(perfect[0]?.n ?? 0),
   };
+}
+
+// ── 54-0 배지 (2026-11-09) ──
+
+async function readBadges(q: Query, memberId: string): Promise<BadgeState> {
+  const rows = await q(`SELECT badge, earned_at FROM member_badges WHERE member_id = $1`, [memberId]);
+  const [m] = await q(`SELECT game_plays FROM members WHERE id = $1`, [memberId]);
+  return parseBadgeState({
+    earned: Object.fromEntries(rows.map((r) => [String(r.badge), new Date(r.earned_at as string).toISOString()])),
+    plays: Number(m?.game_plays ?? 0),
+  });
+}
+
+async function writeBadges(q: Query, memberId: string, keys: readonly BadgeKey[], at: string): Promise<void> {
+  for (const k of keys) {
+    await q(
+      `INSERT INTO member_badges (member_id, badge, earned_at) VALUES ($1, $2, $3)
+       ON CONFLICT (member_id, badge) DO UPDATE SET earned_at = LEAST(member_badges.earned_at, EXCLUDED.earned_at)`,
+      [memberId, k, at],
+    );
+  }
+}
+
+/** 지난 주(한국 시간 월~일) 주간 순위 1위를 한 적이 있으면 그 주 끝 시각 (주간 순위와 같은 규칙: 서버 확인 기록·닉네임 회원) */
+async function weeklyChampAt(q: Query, memberId: string, now: Date): Promise<string | null> {
+  const rows = await q(
+    `WITH w AS (
+       SELECT g.member_id, date_trunc('week', g.played_at + interval '9 hours') AS wk, g.wins, g.rating, g.played_at
+       FROM member_games g JOIN members m ON m.id = g.member_id
+       WHERE g.verified AND m.nickname IS NOT NULL AND g.played_at < $1
+     ), best AS (
+       SELECT DISTINCT ON (wk) wk, member_id FROM w ORDER BY wk, wins DESC, rating DESC, played_at ASC
+     )
+     SELECT min(wk) AS wk FROM best WHERE member_id = $2`,
+    [kstWeekStart(now).toISOString(), memberId],
+  );
+  const wk = rows[0]?.wk;
+  if (!wk) return null;
+  // 그 주 일요일 끝 (한국 시간 월요일 0시 = 주 시작 + 7일, 9시간 보정)
+  return new Date(new Date(wk as string).getTime() + 7 * 86400_000 - 9 * 3600_000).toISOString();
+}
+
+/** 내 배지 (주간 챔피언은 볼 때 확인해 붙인다) */
+export async function memberBadgeState(q: Query, loginId: string, now = new Date()): Promise<BadgeState> {
+  const id = await resolveMemberId(q, loginId);
+  const state = await readBadges(q, id);
+  if (!state.earned.weekly_champ) {
+    const at = await weeklyChampAt(q, id, now);
+    if (at) {
+      await writeBadges(q, id, ["weekly_champ"], at);
+      state.earned.weekly_champ = at;
+    }
+  }
+  return state;
+}
+
+/** 한 판 결과로 받은 배지 저장 (season 단계면 판 수 +1, 판 수 배지도) → 새로 받은 배지 */
+export async function recordMemberBadges(q: Query, loginId: string, keys: readonly BadgeKey[], countPlay: boolean, now = new Date()): Promise<{ state: BadgeState; added: BadgeKey[] }> {
+  const id = await resolveMemberId(q, loginId);
+  const before = await readBadges(q, id);
+  if (countPlay) await q(`UPDATE members SET game_plays = game_plays + 1 WHERE id = $1`, [id]);
+  const plays = before.plays + (countPlay ? 1 : 0);
+  const all = [...keys, ...playBadges(plays)];
+  const at = now.toISOString();
+  const added = all.filter((k, i) => !before.earned[k] && all.indexOf(k) === i);
+  await writeBadges(q, id, added, at);
+  return { state: addBadges({ ...before, plays }, added, at).state, added };
+}
+
+/** 이 브라우저에 쌓인 배지를 계정에 합치기 (판 수는 큰 쪽) */
+export async function mergeMemberBadges(q: Query, loginId: string, local: BadgeState): Promise<BadgeState> {
+  const id = await resolveMemberId(q, loginId);
+  const before = await readBadges(q, id);
+  const merged = mergeBadgeStates(before, local);
+  for (const [k, at] of Object.entries(merged.earned) as [BadgeKey, string][]) {
+    if (before.earned[k] !== at) await writeBadges(q, id, [k], at);
+  }
+  if (merged.plays !== before.plays) await q(`UPDATE members SET game_plays = $2 WHERE id = $1`, [id, merged.plays]);
+  return merged;
 }
 
 // ── 업데이트 소식 삭제 (관리자) ──
